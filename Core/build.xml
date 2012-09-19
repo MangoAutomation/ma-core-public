@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+
+<project name="M2M2 - Core" basedir="." default="build">
+	<property file="build.properties"/>
+    <property name="fullName" value="m2m2-${name}-${version}" />
+	
+	<property name="build.dir" value="target"/>
+	
+	<path id="master-classpath">
+		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement path="${build.dir}"/>
+	</path>
+	
+	<target name="clean" description="Clean output directories">
+		<delete dir="${build.dir}"/>
+		<mkdir dir="${build.dir}"/>
+	</target>
+	
+	<target name="compile" description="Compile main source tree java files">
+		<mkdir dir="${build.dir}/classes"/>
+		<javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
+				deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
+            <src path="src"/>
+            <src path="src-private"/>
+            <classpath refid="master-classpath"/>
+		</javac>
+	</target>
+	
+    <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
+        <tstamp>
+            <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+        </tstamp>
+
+        <manifest file="${build.dir}/MANIFEST.MF">
+            <attribute name="Built-By" value="${vendor}" />
+            <attribute name="Build-Date" value="${TODAY}" />
+        </manifest>
+
+        <mkdir dir="${build.dir}/lib" />
+        <jar destfile="${build.dir}/lib/m2m2-core.jar" manifest="${build.dir}/MANIFEST.MF">
+            <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
+        </jar>
+    	
+        <delete dir="${build.dir}/classes"/>
+        <delete file="${build.dir}/MANIFEST.MF"/>
+    </target>
+	
+	<target name="build" depends="jar" description="Copy changed static assets to build directory">
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset dir="classes"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}/db" preservelastmodified="true">
+            <fileset file="db/createTables-DERBY.sql"/>
+            <fileset file="db/createTables-MSSQL.sql"/>
+            <fileset file="db/createTables-MYSQL.sql"/>
+        </copy>
+        <copy todir="${build.dir}/ftl" preservelastmodified="true">
+            <fileset dir="ftl"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}/lib" preservelastmodified="true">
+            <fileset dir="lib"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}" preservelastmodified="true">
+            <fileset dir="scripts"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}/web" preservelastmodified="true">
+            <fileset dir="web">
+            	<include name="**/*.*"/>
+            </fileset>
+        </copy>
+        <!-- Empty the modules dir -->
+        <delete dir="${build.dir}/web/modules" />
+        <mkdir dir="${build.dir}/web/modules" />
+        <!-- Empty the filedata dir -->
+        <delete dir="${build.dir}/web/WEB-INF/filedata" />
+        <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
+        
+        <mkdir dir="${build.dir}/overrides" />
+        <mkdir dir="${build.dir}/logs" />
+	</target>
+	
+	<target name="zip" depends="build">
+	    <zip destfile="${fullName}.zip">
+            <fileset dir="">
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+            </fileset>
+	    	<fileset dir="${build.dir}"><include name="**/*"/></fileset>
+	    </zip>
+	</target>
+	
+	<target name="docs">
+		<javadoc sourcepath="src" packagenames="com.serotonin.m2m2.module" destdir="${build.dir}/docs">
+            <classpath refid="master-classpath"/>
+		</javadoc>
+	</target>
+</project>

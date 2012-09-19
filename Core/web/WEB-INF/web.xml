@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+  <!-- 
+    Filter definitions.
+   -->
+  <filter>
+    <filter-name>CharacterSet</filter-name>
+    <filter-class>com.serotonin.web.filter.CharacterSetFilter</filter-class>
+    <init-param>
+      <param-name>charset</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  
+  <filter>
+    <filter-name>IsLoggedIn</filter-name>
+    <filter-class>com.serotonin.m2m2.web.filter.LoggedInFilter</filter-class>
+    <init-param>
+      <param-name>forwardUrl</param-name>
+      <param-value>/login.htm</param-value>
+    </init-param>
+    <init-param>
+      <param-name>exceededIpLimitUrl</param-name>
+      <param-value>/exception/exceededIpLimitUrl.jsp</param-value>
+    </init-param>
+  </filter>
+  
+  <filter>
+    <filter-name>WebContext</filter-name>
+    <filter-class>com.serotonin.m2m2.web.filter.WebContextFilter</filter-class>
+  </filter>
+  
+  <filter>
+    <filter-name>CacheHeaders</filter-name>
+    <filter-class>com.serotonin.web.filter.HttpResponseHeaderFilter</filter-class>
+    <init-param>
+      <param-name>Cache-Control</param-name>
+      <param-value>max-age=5184000</param-value>
+    </init-param>
+  </filter>
+  
+  <filter>
+    <filter-name>Translations</filter-name>
+    <filter-class>com.serotonin.m2m2.web.filter.TranslationsFilter</filter-class>
+  </filter>
+  
+  
+  <!-- 
+    Filter mappings.
+   -->
+  <filter-mapping>
+    <filter-name>CharacterSet</filter-name>
+    <url-pattern>*.htm</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>CharacterSet</filter-name>
+    <url-pattern>*.shtm</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>IsLoggedIn</filter-name>
+    <url-pattern>*.shtm</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>WebContext</filter-name>
+    <url-pattern>*.shtm</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>Translations</filter-name>
+    <url-pattern>/exception/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/dwr/interfaces/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/dwr/engine.js</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/dwr/utils.js</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/audio/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/images/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/graphics/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CacheHeaders</filter-name>
+    <url-pattern>/resources/*</url-pattern>
+  </filter-mapping>
+
+  
+  <!-- 
+    Servlet definitions.
+   -->
+  <servlet>
+    <servlet-name>default</servlet-name>
+    <servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class>
+    <init-param>
+      <param-name>useFileMappedBuffer</param-name>
+      <param-value>false</param-value>
+    </init-param>  
+  </servlet>   
+   
+  <servlet>
+    <servlet-name>springDispatcher</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>dwr-invoker</servlet-name>
+    <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>publishContainerAs</param-name>
+      <param-value>DwrContainer</param-value>
+    </init-param>
+    <init-param>
+      <param-name>crossDomainSessionSecurity</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.directwebremoting.extend.ConverterManager</param-name>
+      <param-value>com.serotonin.m2m2.web.dwr.util.BlabberConverterManager</param-value>
+    </init-param>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>imageChart</servlet-name>
+    <servlet-class>com.serotonin.m2m2.web.servlet.ImageChartServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>asyncImageChart</servlet-name>
+    <servlet-class>com.serotonin.m2m2.web.servlet.AsyncImageChartServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>imageValue</servlet-name>
+    <servlet-class>com.serotonin.m2m2.web.servlet.ImageValueServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>chartExport</servlet-name>
+    <servlet-class>com.serotonin.m2m2.web.servlet.ChartExportServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>eventExport</servlet-name>
+    <servlet-class>com.serotonin.m2m2.web.servlet.EventExportServlet</servlet-class>
+  </servlet>
+  
+
+  <!-- 
+    Servlet mappings.
+   -->
+  <servlet-mapping>
+    <servlet-name>springDispatcher</servlet-name>
+    <url-pattern>*.htm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>springDispatcher</servlet-name>
+    <url-pattern>*.shtm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dwr-invoker</servlet-name>
+    <url-pattern>/dwr/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>imageChart</servlet-name>
+    <url-pattern>/chart/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>asyncImageChart</servlet-name>
+    <url-pattern>/achart/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>imageValue</servlet-name>
+    <url-pattern>/imageValue/*</url-pattern>
+  </servlet-mapping>
+ 
+  <servlet-mapping>
+    <servlet-name>chartExport</servlet-name>
+    <url-pattern>/chartExport/*</url-pattern>
+  </servlet-mapping>
+ 
+  <servlet-mapping>
+    <servlet-name>eventExport</servlet-name>
+    <url-pattern>/eventExport/*</url-pattern>
+  </servlet-mapping>
+ 
+  
+  <!-- 
+    Context listeners.
+   -->
+  <listener><listener-class>org.springframework.web.context.ContextLoaderListener</listener-class></listener>
+  <listener><listener-class>com.serotonin.m2m2.web.M2M2ContextListener</listener-class></listener>
+  
+  <!-- 
+    Other stuff.
+   -->
+  <session-config>
+    <session-timeout>30</session-timeout>
+  </session-config>
+    
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+
+  <error-page>
+    <exception-type>com.serotonin.m2m2.vo.permission.PermissionException</exception-type>
+    <location>/exception/accessDenied.jsp</location>
+  </error-page>
+  
+  <error-page>
+    <error-code>500</error-code>
+    <location>/exception/error.jsp</location>
+  </error-page>
+  
+  <error-page>
+    <error-code>404</error-code>
+    <location>/exception/404.jsp</location>
+  </error-page>
+  
+</web-app>

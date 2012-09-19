@@ -1,0 +1,13 @@
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+<h1>Overview</h1>
+<p>The Spinwave data source is used to gather data from Spinwave devices connected to a local gateway, and accessible via RS232 or RS485 (requires adapter) communication. This data source receives regular updates from the connected devices; it does not poll.</p>
+
+<h1>Configuration</h1>
+<p>Every data source requires a <b>Name</b>, which can be any description. The <b>Port</b> selection provides a list of all available serial ports on the host hardware. This corresponds to the port into which the Spinwave gateway is connected. The <b>Message version</b> depends upon the hardware that you are using. Consult your Spinwave documentation for details.</p>
+<p><b>Sensor addresses</b> are typically found by using the sensor listener functionality described below, although if you know the unique addresses of your hardware you may enter them manually. After entering the address value, click the <img src="images/add.png"/> icon to add it to the list of known addresses.</p>
+
+<h1>Spinwave sensor listener</h1>
+<p>Once the Spinwave gateway has been connected to the host, a listener can be started that waits for messages to arrive. Typically, devices are configured to send messages every 21 seconds, but other settings are possible. To add the addresses of all devices that were heard to the Sensor addresses list, click the "Add found sensors to list" button.</p>

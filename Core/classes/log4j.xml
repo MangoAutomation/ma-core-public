@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration>
+  <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+    </layout>
+  </appender>
+  
+  <appender name="logfile" class="org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="logs/m2m2.log"/>
+    <param name="DatePattern" value="yyyy-MM-dd"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+    </layout>
+  </appender>
+  
+  <appender name="async" class="org.apache.log4j.AsyncAppender">
+    <param name="LocationInfo" value="true"/>
+    <appender-ref ref="logfile"/>
+  </appender>
+  
+  <category name="org"><level value="info"/></category>
+  <category name="org.directwebremoting"><level value="fatal"/></category>
+  <category name="org.springframework"><level value="error"/></category>
+  <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
+  <category name="com.serotonin.m2m2"><level value="info"/></category>
+  
+  <root>
+    <level value="info"/>
+    <appender-ref ref="async"/>
+    <appender-ref ref="stdout"/>
+  </root>
+
+</log4j:configuration>

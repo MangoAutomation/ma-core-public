@@ -1,0 +1,13 @@
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+<h1>Overview</h1>
+<p>The NMEA listener data source is used to receive messages from NMEA 0183 compliant equipment. Devices are connected via RS232 or RS485 (requires adapter) ports. This data source receives regular updates from the connected devices; it does not poll.</p>
+
+<h1>Configuration</h1>
+<p>Every data source requires a <b>Name</b>, which can be any description. The <b>Port</b> selection provides a list of all available serial ports on the host hardware. This corresponds to the port into which the NMEA equipment is connected. The <b>Baud rate</b> is the rate at which your equipment can communicate its messages. Typically this value is 4800, but other values are possible. Consult your NMEA documentation for details. Checksum values are validated if they are included in the message. If the checksum validation fails, the message is ignored.</p>
+
+<h1>NMEA message listener</h1>
+<p>Once the NMEA equipment has been connected to the host, a listener can be started that waits for messages to arrive. The arrival rate of messages depends upon the equipment. Messages will be displayed excluding the message "envelop", i.e. the "$" start indicator, the CRLF end indicator, and the "*" and checksum value if it is present.</p>
+<p>Messages that are displayed are suitable for copying and pasting into the <b>Regex test message</b> box for testing against your points' regex.</p>

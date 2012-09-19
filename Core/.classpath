@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src-test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="classes"/>
+	<classpathentry kind="lib" path="overrides"/>
+	<classpathentry kind="lib" path="lib/org.springframework.context.support-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/commons-dbcp-jdbc4.jar"/>
+	<classpathentry kind="lib" path="lib/m2m2-shared.jar"/>
+	<classpathentry kind="lib" path="lib/derby.jar"/>
+	<classpathentry kind="lib" path="lib/derbytools.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-server-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-util-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-http-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-webapp-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-servlet-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-continuation-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-io-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-security-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-xml-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/org.springframework.aop-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/org.springframework.asm-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/org.springframework.expression-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/org.springframework.orm-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/jsp-2.1-glassfish-9.1.1.B60.25.p2.jar"/>
+	<classpathentry kind="lib" path="lib/ant-1.6.5.jar"/>
+	<classpathentry kind="lib" path="lib/taglibs-log.jar"/>
+	<classpathentry kind="lib" path="lib-opt/tools.jar"/>
+	<classpathentry kind="lib" path="lib/m2m2-priv.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

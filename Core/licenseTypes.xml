@@ -1,0 +1,22 @@
+<licenseTypes>
+    <licenseType id="free">
+        <description>Restricted to 3 unique IP addresses.</description>
+        
+        <features>
+            <uniqueIpAddresses>3</uniqueIpAddresses>
+        </features>
+        
+        <price>0</price>
+    </licenseType>
+    
+    <licenseType id="paid">
+        <description>No restrictions within core.</description>
+        
+        <features>
+            <uniqueIpAddresses>unlimited</uniqueIpAddresses>
+        </features>
+        
+        <price>400</price>
+        <price fromVersion="1" fromType="paid">350</price>
+    </licenseType>
+</licenseTypes>

@@ -1,0 +1,37 @@
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+<p>
+  UI performance represents the responsiveness of the user interface. This includes all activities that are managed via
+  the long poll mechanism, such as the maximum alarm level indicator, AJAX updating, event list updates, etc. If
+  the Mango host has a limited-power CPU, you may want to set the UI performance to a lower level to prevent users 
+  browsers from consuming too much of the hosts CPU.
+</p>
+
+<p>
+  If "Send errors to Serotonin" is checked, exceptions that this instance of Mango observes will be sent to Serotonin 
+  Software for review. If you are modifying the Mango source for your own purposes, please set this value to unchecked.
+</p>
+
+<p>
+  Use the "purge point data" settings to determine the default purge settings for data point history data. These 
+  settings may be overridden at the data source level, which may be further overridden at the point level.
+</p>
+
+<p>
+  Use the "purge events" settings to set the maximum age of an event before it is purged from the database. Purging 
+  permanently deletes the event as well as any user comments associated with it.
+</p>
+
+<p>
+  Click the <b>Purge all data</b> button to permanently delete all point samples currently in the database. This can be
+  useful for giving a Mango instance a "fresh start", especially if spurious data exists from configuration and set up
+  activities. 
+</p>
+
+<p>
+  User the "Discard point values future dated" settings to set the maximum amount of time into the future for which 
+  data points will accept new values. Any values with timestamps that exceed this value will be discarded, and an error
+  message will be written to the log.
+</p>

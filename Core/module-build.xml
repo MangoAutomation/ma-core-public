@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<project name="M2M2 - Module build" basedir=".">
+	<property file="module.properties" />
+	<property name="fullName" value="m2m2-${name}-${version}" />
+	<property name="coreHome" value="../Core"/>
+	
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+
+	<path id="master-classpath">
+		<pathelement path="${coreHome}/bin" />
+		<fileset dir="${coreHome}/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+		<pathelement path="target" />
+	</path>
+
+	<target name="clean" description="Clean the target area">
+		<delete dir="target" />
+	</target>
+
+	<target name="compile" description="Compile main source tree java files">
+		<mkdir dir="target"/>
+		<javac destdir="target" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" 
+                deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
+			<src path="src" />
+			<classpath refid="master-classpath" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
+		<delete file="${fullName}.jar" />
+		<delete file="target/MANIFEST.MF" />
+		<tstamp>
+			<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+
+		<manifest file="target/MANIFEST.MF">
+			<attribute name="Built-By" value="Serotonin Software Inc., Markham, Ontario" />
+			<attribute name="Build-Date" value="${TODAY}" />
+		</manifest>
+
+        <mkdir dir="target/lib" />
+		<jar destfile="target/lib/${fullName}.jar" manifest="target/MANIFEST.MF">
+			<fileset dir="target">
+				<include name="**/*.class" />
+				<exclude name="MANIFEST.MF" />
+			</fileset>
+		</jar>
+		
+		<if>
+			<istrue value="${includeSource}"/>
+			<then>
+		        <copy todir="target/src" preservelastmodified="true">
+		            <fileset dir="src"><include name="**/*.*"/></fileset>
+		        </copy>
+			</then>
+		</if>
+	</target>
+
+    <target name="zip" depends="jar" description="Create a jar file of the compiled classes">
+        <delete file="target/${fullName}.zip" />
+        <zip destfile="target/${fullName}.zip">
+            <fileset dir="">
+                <include name="module.properties" />
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+                </fileset>
+            <fileset dir="target/"><include name="lib/${fullName}.jar" /></fileset>
+            <fileset dir=""><include name="lib/**/*.jar" /></fileset>
+            <fileset dir=""><include name="web/**/*" /></fileset>
+            <fileset dir=""><include name="classes/**/*" /></fileset>
+        	<fileset dir="target" ><include name="src/**/*" /></fileset>
+        </zip>
+    </target>
+    
+    <target name="deploy" depends="zip" description="Copy the zip to the M2M2 app">
+        <copy todir="${coreHome}/web/modules" preservelastmodified="true">
+            <fileset file="target/${fullName}.zip"/>
+        </copy>
+<!--         <copy todir="${coreHome}/target/web/modules" preservelastmodified="true"> -->
+<!--             <fileset file="target/${fullName}.zip"/> -->
+<!--         </copy> -->
+    </target>
+</project>

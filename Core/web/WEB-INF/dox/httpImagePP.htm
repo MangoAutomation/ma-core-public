@@ -1,0 +1,30 @@
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+<p>
+  The <b>URL</b> is the address of the image to be retrieved. Use the <img src="images/bullet_go.png"/> icon to test 
+  the URL. (Opens in a new window or browser tab.) The <b>Timeout</b> and <b>Retry</b> fields determine how long to 
+  wait for the web server to return the image, and how many times to retry the connection in the event of failures. If 
+  all of the retries are exhausted, a data point exception event is raised.
+</p>
+
+<p>
+  Images can be automatically scaled as required to save memory or file system space. (Images can be scaled up as well,
+  but since this does not increase resolution it is usually not practical to do.) The "percent" scaling type is a 
+  "relative" scaling method that results in an image that is scaled to the <b>Scale percentage</b> size of the original 
+  image. The "box" scaling method is an "absolute" scaling method that scales the original image so that it fits into 
+  the "box" defined by the given <b>Scale width</b> and <b>Scale height</b>.
+</p>
+
+<p>
+  The read limit allows the setting of a maximum response size that may be received. If the size of the image data 
+  exceeds the given value the data will be discarded and a data retrieval event will be raised.
+</p>
+
+<p>
+  If the image source is a web cam, you may enter live feed code into the provided text area. This code will be entered
+  verbatim into a new window or browser tab (surrounded by html and body tags). If the web cam live feed requires the 
+  use of an ActiveX component or Java applet you will need to install such components appropriately within the Mango
+  instance.
+</p>

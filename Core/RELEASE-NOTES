@@ -1,0 +1,54 @@
+*Version 2.0.0*
+
+* Added user and system timezone
+* Hierarchical point value purge. Data sources can override the system, and points can override data sources.
+* Individual data source and point exports
+* Allow specification of data source name, xid, and point device name before copying data sources
+* Added publisher cache entry discard limit
+* Added individual table fields for point many point attributes
+* Replaced bootstrap with jar file discovery in the startup script
+* HTTP Components upgraded to version 4.2.1
+* Added script source hook, allowing modules to introduce global EMCAScript functions
+* Allow polling data sources to run from cron pattern
+* Allow setting of point values from within scripts
+* Upgraded Dojo to version 1.7
+* Removed timed shutdown in free mode
+* Added max unique IP addresses (5)
+* Point hierarchy moved from watchlist module to core
+* Upgraded Jetty
+* Upgraded JFreechart
+* Removed bootstrap layer. Startup scripts construct classpath instead.
+* Added lifecycle definition
+* Replaced initialize definition method with preInitialize, postInitialize, preTerminate, and postTerminate.
+* New time series quantization package
+* Improved stats package
+
+
+*Version 1.3.1*
+
+Enhancements:
+* Don't disable data sources when importing data points
+
+Bug fixes:
+* Point deserialization bug fix
+
+
+*Version 1.3.0*
+
+Enhancements:
+* Upgraded many supporting packages
+* Reduced restart request delay to 10 seconds from 60 seconds
+* Removed multiple indices from pointValues table to improve data logging performance
+* Added plot type attribute to data points
+* Made publisher "point missing" error messages more descriptive
+* Added active and idle database connection counts to internal data source
+* Updated supporting libraries
+* Added shared e-poll functionality to Modbus-based data sources
+* Copy the new data source name to the device name of copied points
+* Purge old events even if they have not been ack'ed
+* Added low and high limit values as markers to data point charts
+* Added forced read icon to data point details page. Depends on data source support.
+* Updated copyright date to 2012
+* Cleaner app shutdowns
+
+Bug fixes:

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+-->
+
+<doxManifest>
+  <item id="chartRenderers" key="dox.chartRenderers" filename="chartRenderers.htm"/>
+  
+  <item id="cronPatterns" key="dox.cronPatterns" filename="cronPatterns.htm"/>
+
+  <item id="nmeaListenerPP" key="dox.nmeaListenerPP" filename="nmeaListenerPP.htm">
+    <relation id="nmeaListenerDS"/>
+  </item>
+  
+  <item id="userAdministration" key="dox.userAdministration" filename="userAdministration.htm"/>
+
+  <item id="generalPublisherProperties" key="dox.generalPublisherProperties" filename="generalPublisherProperties.htm"/>
+  
+  <item id="spinwavePP" key="dox.spinwavePP" filename="spinwavePP.htm"/>
+
+  <item id="eventHandlers" key="dox.eventHandlers" filename="eventHandlers.htm"/>
+  
+  <item id="emailSettings" key="dox.emailSettings" filename="emailSettings.htm"/>
+  
+  <item id="httpSettings" key="dox.httpSettings" filename="httpSettings.htm"/>
+
+  <item id="nmeaListenerDS" key="dox.nmeaListenerDS" filename="nmeaListenerDS.htm">
+    <relation id="nmeaListenerPP"/>
+  </item>
+  
+  <item id="welcomeToMango" key="dox.welcomeToMango" filename="welcomeToMango.htm"/>
+
+  <item id="regex" key="dox.regex" filename="regex.htm"/>
+  
+  <item id="pointValueLogging" key="dox.pointValueLogging" filename="pointValueLogging.htm"/>
+  
+  <item id="publisherList" key="dox.publisherList" filename="publisherList.htm"/>
+
+  <item id="datetimeFormats" key="dox.datetimeFormats" filename="datetimeFormats.htm">
+    <relation id="textRenderers"/>
+  </item>
+  
+  <item id="dataPointEditing" key="dox.dataPointEditing" filename="dataPointEditing.htm">
+    <relation id="colours"/>
+  </item>
+  
+  <item id="numberFormats" key="dox.numberFormats" filename="numberFormats.htm">
+    <relation id="textRenderers"/>
+  </item>
+  
+  <item id="dataSourceList" key="dox.dataSourceList" filename="dataSourceList.htm"/>
+
+  <item id="eventDetectors" key="dox.eventDetectors" filename="eventDetectors.htm"/>
+  
+  <item id="pointValueLogPurging" key="dox.pointValueLogPurging" filename="pointValueLogPurging.htm"/>
+  
+  <item id="mailingLists" key="dox.mailingLists" filename="mailingLists.htm"/>
+  
+  <item id="textRenderers" key="dox.textRenderers" filename="textRenderers.htm">
+    <relation id="numberFormats"/>
+    <relation id="datetimeFormats"/>
+  </item>
+  
+  <item id="systemInformation" key="dox.systemInformation" filename="systemInformation.htm"/>
+  
+  <item id="otherSettings" key="dox.otherSettings" filename="otherSettings.htm"/>
+  
+  <item id="spinwaveDS" key="dox.spinwaveDS" filename="spinwaveDS.htm"/>
+  
+  <item id="languageSettings" key="dox.languageSettings" filename="languageSettings.htm"/>
+  
+  <item id="systemAlarmLevels" key="dox.systemAlarmLevels" filename="systemAlarmLevels.htm"/>
+  
+  <item id="auditAlarmLevels" key="systemSettings.auditAlarmLevels" filename="auditAlarmLevels.htm"/>
+  
+  <item id="emport" key="dox.emport" filename="emport.htm"/>
+  
+  <item id="viconicsDS" key="dox.viconicsDS" filename="viconicsDS.htm">
+    <relation id="viconicsPP"/>
+  </item>
+  
+  <item id="viconicsPP" key="dox.viconicsPP" filename="viconicsPP.htm">
+    <relation id="viconicsDS"/>
+  </item>
+  
+  <item id="colourSettings" key="dox.colourSettings" filename="colourSettings.htm">
+    <relation id="colours"/>
+  </item>
+  
+  <item id="colours" key="dox.colours" filename="colours.htm"/>
+  
+  <item id="pointHierarchy" key="dox.pointHierarchy" filename="pointHierarchy.htm"/>
+</doxManifest>
