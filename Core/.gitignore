@@ -2,3 +2,5 @@
 /logs
 /m2m2db
 /target
+/m2m2.license*
+/m2m2-core-*
