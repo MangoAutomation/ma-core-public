@@ -2,8 +2,8 @@
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
 --%>
+<%@page import="com.serotonin.m2m2.Constants"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<%@page import="com.serotonin.m2m2.Main"%>
 
 <c:set var="dwrClasses">PublisherEditDwr</c:set>
 <c:if test="${!empty publisher.definition.dwrClass}">
@@ -147,7 +147,7 @@
         </div>
         
         <div>
-          <c:set var="incpage">/<c:out value="<%= Main.Constants.DIR_MODULES %>"/>/${publisher.definition.module.name}/${publisher.definition.editPagePath}</c:set>
+          <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${publisher.definition.module.name}/${publisher.definition.editPagePath}</c:set>
           <jsp:include page="${incpage}"/>
         </div>
       </td>

@@ -2,7 +2,7 @@
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
 --%>
-<%@page import="com.serotonin.m2m2.Main"%>
+<%@page import="com.serotonin.m2m2.Constants"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
 
@@ -313,7 +313,7 @@
     </table>
   </td></tr></table>
   
-  <c:set var="incpage">/<c:out value="<%= Main.Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
+  <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
   <jsp:include page="${incpage}"/>
   
   <div data-dojo-type="dijit.Dialog" data-dojo-id="exportDialog" title="<fmt:message key="emport.export"/>" style="display: none">

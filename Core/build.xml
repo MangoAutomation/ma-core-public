@@ -23,7 +23,6 @@
 		<javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
 				deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
             <src path="src"/>
-            <src path="src-private"/>
             <classpath refid="master-classpath"/>
 		</javac>
 	</target>
