@@ -30,15 +30,16 @@
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
   <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.7.2/</c:set>
+<%--   <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/</c:set> --%>
   
   <!-- Style -->
   <link rel="icon" href="/images/favicon.ico"/>
   <link rel="shortcut icon" href="/images/favicon.ico"/>
   <style type="text/css">
-    @import "${dojoURI}/dojox/editor/plugins/resources/css/StatusBar.css";
-    @import "${dojoURI}/dojox/layout/resources/FloatingPane.css";
-    @import "${dojoURI}/dijit/themes/${theme}/${theme}.css";
-    @import "${dojoURI}/dojo/resources/dojo.css";
+    @import "${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css";
+    @import "${dojoURI}dojox/layout/resources/FloatingPane.css";
+    @import "${dojoURI}dijit/themes/${theme}/${theme}.css";
+    @import "${dojoURI}dojo/resources/dojo.css";
   </style>  
   <link href="/resources/common.css" type="text/css" rel="stylesheet"/>
   <c:forEach items="<%= Common.applicationStyles %>" var="modStyle">
@@ -46,7 +47,7 @@
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
-  <script type="text/javascript" src="${dojoURI}/dojo/dojo.js" data-dojo-config="async: false, parseOnLoad: true, isDebug:true, extraLocale: ['en-us', 'nl', 'nl-nl', 'ja-jp', 'fi-fi', 'sv-se', 'zh-cn', 'zh-tw','xx']"></script>
+  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
   <script type="text/javascript" src="/dwr/engine.js"></script>
   <script type="text/javascript" src="/dwr/util.js"></script>
   <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
@@ -174,7 +175,7 @@
           <tag:img png="house_link" title="header.setHomeUrl" onclick="setHomeUrl()" onmouseover="hideLayerIgnoreMissing('localeEdit')"/>
         </c:if>
         <c:if test="${fn:length(availableLanguages) > 1}">
-          <div style="display:inline;" onmouseover="showMenu('localeEdit', -40, 10);">
+          <div style="display:inline;" onmouseover="showMenu('localeEdit', null, 10, 10);">
             <tag:img png="locale" title="header.changeLanguage"/>
             <div id="localeEdit" style="visibility:hidden;left:0px;top:15px;" class="labelDiv" onmouseout="hideLayer(this)">
               <c:forEach items="${availableLanguages}" var="lang">

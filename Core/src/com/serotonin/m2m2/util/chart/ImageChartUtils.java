@@ -158,9 +158,8 @@ public class ImageChartUtils {
             for (int i = 0; i < pointTimeSeriesCollection.getDiscreteSeriesCount(); i++) {
                 DiscreteTimeSeries dts = pointTimeSeriesCollection.getDiscreteTimeSeries(i);
                 XYStepRenderer renderer = new XYStepRenderer();
-                plot.setRenderer(numericSeriesCount + i, renderer, false);
 
-                TimeSeries ts = new TimeSeries(dts.getName());
+                TimeSeries ts = new TimeSeries(dts.getName(), null, null);
                 for (IValueTime vt : dts.getValueTimes())
                     addMillisecond(ts, vt.getTime(), numericMin
                             + (interval * (dts.getValueIndex(vt.getValue()) + intervalIndex)));

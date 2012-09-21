@@ -21,6 +21,7 @@
     mango.longPoll.pollRequest.pendingAlarms = true;
   
     dojo.ready(function() {
+        // Wrapping setDateRange in a function appears to prevent the calendar from staying exposed.
         EventsDwr.getDateRangeDefaults(<c:out value="<%= Common.TimePeriods.DAYS %>"/>, 1, function(data) { setDateRange(data); });
         
         var x = dijit.byId("datePicker");

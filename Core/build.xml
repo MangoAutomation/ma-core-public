@@ -25,7 +25,14 @@
             <src path="src"/>
             <classpath refid="master-classpath"/>
 		</javac>
-	</target>
+        
+        <mkdir dir="${build.dir}/patches"/>
+        <javac destdir="${build.dir}/patches" debug="true" debuglevel="lines,vars,source"
+                deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
+            <src path="src-patch"/>
+            <classpath refid="master-classpath"/>
+        </javac>
+   	</target>
 	
     <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
         <tstamp>
@@ -49,7 +56,9 @@
 	<target name="build" depends="jar" description="Copy changed static assets to build directory">
         <copy todir="${build.dir}/classes" preservelastmodified="true">
             <fileset dir="classes"><include name="**/*.*"/></fileset>
+            <fileset dir="${build.dir}/patches"><include name="**/*.*"/></fileset>
         </copy>
+        <delete dir="${build.dir}/patches"/>
         <copy todir="${build.dir}/db" preservelastmodified="true">
             <fileset file="db/createTables-DERBY.sql"/>
             <fileset file="db/createTables-MSSQL.sql"/>

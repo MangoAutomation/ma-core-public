@@ -1,3 +1,9 @@
+*Version 2.0.1*
+
+* Various fixes for chart rendering
+* Fix for events page search where language is not en
+
+
 *Version 2.0.0*
 
 * Added user and system timezone

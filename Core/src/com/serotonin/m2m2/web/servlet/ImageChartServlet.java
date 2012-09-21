@@ -159,7 +159,7 @@ public class ImageChartServlet extends BaseInfoServlet {
                             data = pointValueFacade.getPointValuesBetween(from, to);
 
                         if (dp.getPointLocator().getDataTypeId() == DataTypes.NUMERIC) {
-                            TimeSeries ts = new TimeSeries(dp.getName());
+                            TimeSeries ts = new TimeSeries(dp.getName(), null, null);
                             for (PointValueTime pv : data)
                                 ImageChartUtils.addMillisecond(ts, pv.getTime(), pv.getValue().numberValue());
                             ptsc.addNumericTimeSeries(new NumericTimeSeries(dp.getPlotType(), ts, colour, null));

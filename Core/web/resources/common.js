@@ -169,7 +169,7 @@ function isShowing(node) {
     return getNodeIfString(node).style.display != "none";
 }
 
-function showMenu(node, xoffset, yoffset) {
+function showMenu(node, left, top, right, bottom) {
     node = getNodeIfString(node);
     var bounds = dojo.position(node.parentNode);
     var anc = findRelativeAncestor(node);
@@ -179,8 +179,22 @@ function showMenu(node, xoffset, yoffset) {
         bounds.x -= rbounds.x;
         bounds.y -= rbounds.y;
     }
-    node.style.left = (bounds.x + xoffset) +"px";
-    node.style.top = (bounds.y + yoffset) +"px";
+    if (typeof(left) == "number")
+        node.style.left = (bounds.x + left) +"px";
+    else
+        node.style.left = null;
+    if (typeof(top) == "number")
+        node.style.top = (bounds.y + top) +"px";
+    else
+        node.style.top = null;
+    if (typeof(right) == "number")
+        node.style.right = right +"px";
+    else
+        node.style.right = null;
+    if (typeof(bottom) == "number")
+        node.style.bottom = bottom +"px";
+    else
+        node.style.bottom = null;
     showLayer(node);
 }
 
