@@ -2,6 +2,7 @@
 
 * Various fixes for chart rendering
 * Fix for events page search where language is not en
+* Time zone handling fixes
 
 
 *Version 2.0.0*
