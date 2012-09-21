@@ -12,15 +12,17 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.view.RedirectView;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -33,6 +35,12 @@ import com.serotonin.m2m2.web.taglib.Functions;
  * @author Matthew Lohbihler
  */
 public class PublisherEditController extends ParameterizableViewController {
+    private String errorViewName;
+
+    public void setErrorViewName(String errorViewName) {
+        this.errorViewName = errorViewName;
+    }
+
     @Override
     protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
@@ -46,9 +54,14 @@ public class PublisherEditController extends ParameterizableViewController {
         if (idStr == null) {
             // Adding a new data source? Get the type id.
             String typeId = request.getParameter("typeId");
+            if (StringUtils.isBlank(typeId))
+                return new ModelAndView(new RedirectView(errorViewName));
 
             // A new publisher
-            publisherVO = ModuleRegistry.getPublisherDefinition(typeId).baseCreatePublisherVO();
+            PublisherDefinition def = ModuleRegistry.getPublisherDefinition(typeId);
+            if (def == null)
+                return new ModelAndView(new RedirectView(errorViewName));
+            publisherVO = def.baseCreatePublisherVO();
             publisherVO.setXid(new PublisherDao().generateUniqueXid());
         }
         else {
@@ -57,7 +70,7 @@ public class PublisherEditController extends ParameterizableViewController {
 
             publisherVO = Common.runtimeManager.getPublisher(id);
             if (publisherVO == null)
-                throw new ShouldNeverHappenException("Publisher not found with id " + id);
+                return new ModelAndView(new RedirectView(errorViewName));
         }
 
         // Set the id of the data source in the user object for the DWR.

@@ -122,7 +122,8 @@
 
   <bean id="publisherEditController" class="com.serotonin.m2m2.web.mvc.controller.PublisherEditController">
     <property name="viewName"><value>/WEB-INF/jsp/publisherEdit.jsp</value></property>
-  </bean>
+    <property name="errorViewName"><value>/publishers.shtm</value></property>
+    </bean>
   
   <bean id="publisherListController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
     <property name="viewName"><value>/WEB-INF/jsp/publisherList.jsp</value></property>

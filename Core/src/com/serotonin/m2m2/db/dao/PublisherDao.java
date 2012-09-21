@@ -141,6 +141,13 @@ public class PublisherDao extends BaseDao {
         });
     }
 
+    public void deletePublisherType(final String publisherType) {
+        List<Integer> pubIds = queryForList("SELECT id FROM publishers WHERE publisherType=?",
+                new Object[] { publisherType }, Integer.class);
+        for (Integer pubId : pubIds)
+            deletePublisher(pubId);
+    }
+
     public Object getPersistentData(int id) {
         return query("select rtdata from publishers where id=?", new Object[] { id },
                 new ResultSetExtractor<Serializable>() {

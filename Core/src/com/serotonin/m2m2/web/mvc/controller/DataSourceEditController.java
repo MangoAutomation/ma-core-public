@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
@@ -20,6 +21,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.CommPortConfigException;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
@@ -50,11 +52,16 @@ public class DataSourceEditController extends ParameterizableViewController {
             if (pidStr == null) {
                 // Adding a new data source? Get the type id.
                 String type = request.getParameter("typeId");
+                if (StringUtils.isBlank(type))
+                    return new ModelAndView(new RedirectView(errorViewName));
 
                 Permissions.ensureAdmin(user);
 
                 // A new data source
-                dataSourceVO = ModuleRegistry.getDataSourceDefinition(type).baseCreateDataSourceVO();
+                DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(type);
+                if (def == null)
+                    return new ModelAndView(new RedirectView(errorViewName));
+                dataSourceVO = def.baseCreateDataSourceVO();
                 dataSourceVO.setId(Common.NEW_ID);
                 dataSourceVO.setXid(new DataSourceDao().generateUniqueXid());
             }

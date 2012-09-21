@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -83,4 +84,13 @@ abstract public class PublisherDefinition extends ModuleElementDefinition {
      * @return the class of the DWR proxy.
      */
     abstract public Class<?> getDwrClass();
+
+    /**
+     * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call
+     * super.uninstall so that this code still runs.
+     */
+    @Override
+    public void uninstall() {
+        new PublisherDao().deletePublisherType(getPublisherTypeName());
+    }
 }
