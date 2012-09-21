@@ -89,8 +89,7 @@
       <textarea rows="2" cols="80" style="display:none;" name="orderJson">${json}</textarea>
       <input id="goToStore" type="submit" value="<fmt:message key="modules.update"/>" style="margin-left:20px;"/>
       <input type="button" value="<m2m2:translate key="modules.restart"/>" onclick="restartInstance();"/>
-      <input type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/>
-      <!--input type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/ -->
+<%--       <input type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/> --%>
     </form>
   </div>
   
