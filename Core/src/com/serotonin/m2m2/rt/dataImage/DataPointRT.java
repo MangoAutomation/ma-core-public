@@ -344,7 +344,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                     endValue = averagingValues.get(averagingValues.size() - 1);
                 AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue,
                         averagingValues, endValue);
-                value = new NumericValue(stats.getAverage());
+                if (stats.getAverage() == null)
+                    value = null;
+                else
+                    value = new NumericValue(stats.getAverage());
 
                 intervalValue = pointValue;
                 averagingValues.clear();
