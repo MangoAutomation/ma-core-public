@@ -30,7 +30,7 @@
 	<classpathentry kind="lib" path="lib/ant-1.6.5.jar"/>
 	<classpathentry kind="lib" path="lib/taglibs-log.jar"/>
 	<classpathentry kind="lib" path="lib-opt/tools.jar"/>
-	<classpathentry kind="lib" path="lib/m2m2-priv.jar"/>
+	<classpathentry kind="lib" path="lib/m2m2-priv.jar" sourcepath="/Core-private/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
