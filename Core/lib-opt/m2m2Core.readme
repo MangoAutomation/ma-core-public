@@ -1,0 +1,9 @@
+To import the M2M2 Core user library:
+
+1) Click Window --> Preferences
+2) Choose Java --> Build Path --> User Libraries
+3) Click Import...
+4) Browse to the m2m2Core.userlibraries file the same directory as this file
+5) Click OK
+
+Your workspace should automatically rebuild.
