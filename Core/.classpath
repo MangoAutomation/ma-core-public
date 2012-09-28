@@ -16,8 +16,8 @@
 	<classpathentry kind="lib" path="lib/jetty-server-7.4.5.v20110725.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-util-7.4.5.v20110725.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-http-7.4.5.v20110725.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-webapp-7.4.5.v20110725.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-servlet-7.4.5.v20110725.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-webapp-7.4.5.v20110725.jar" sourcepath="C:/ExternalSource/jetty/jetty-webapp-src.zip"/>
+	<classpathentry kind="lib" path="lib/jetty-servlet-7.4.5.v20110725.jar" sourcepath="C:/ExternalSource/jetty/jetty-servlet-src.zip"/>
 	<classpathentry kind="lib" path="lib/jetty-continuation-7.4.5.v20110725.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-io-7.4.5.v20110725.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-security-7.4.5.v20110725.jar"/>
