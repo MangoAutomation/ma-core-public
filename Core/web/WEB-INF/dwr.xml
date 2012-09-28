@@ -123,29 +123,4 @@
       <param name="include" value="message"/>
     </convert>
   </allow>
-  <signatures>
-    <![CDATA[
-      import java.util.List;
-      
-      import com.serotonin.db.IntValuePair;
-      import com.serotonin.m2m2.web.dwr.DataPointEditDwr;
-      import com.serotonin.m2m2.view.text.RangeValue;
-      import com.serotonin.m2m2.view.text.MultistateValue;
-      DataPointEditDwr.setRangeRenderer(String, List<RangeValue>);
-      DataPointEditDwr.setMultistateRenderer(List<MultistateValue>);
-      
-      import com.serotonin.m2m2.web.dwr.MailingListsDwr;
-      import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
-      MailingListsDwr.saveMailingList(int, String, String, List<RecipientListEntryBean>, List<Integer>);
-      MailingListsDwr.sendTestEmail(int, String, List<RecipientListEntryBean>);
-      
-      import com.serotonin.m2m2.web.dwr.MiscDwr;
-      MiscDwr.sendTestEmail(List<RecipientListEntryBean>, String, String);
-      
-      import com.serotonin.m2m2.web.dwr.UsersDwr;
-      import com.serotonin.m2m2.vo.permission.DataPointAccess;
-      UsersDwr.saveUserAdmin(int, String, String, String, String, boolean, boolean, int, boolean, List<Integer>,
-              List<DataPointAccess>);
-    ]]>
-  </signatures>
 </dwr>
