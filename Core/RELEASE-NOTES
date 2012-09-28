@@ -1,3 +1,12 @@
+*Version 2.0.2*
+
+* Added overriding of web assets
+* Fixed overriding of properties
+* Split out header and toolbar from page tag
+* Don't allow duplicate points in publishers.
+* Various fixes for chart rendering
+
+
 *Version 2.0.1*
 
 * Various fixes for chart rendering
