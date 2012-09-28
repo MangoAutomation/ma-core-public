@@ -9,7 +9,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,6 +24,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -31,6 +34,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
@@ -220,6 +224,17 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
 
         if (cacheDiscardSize <= cacheWarningSize)
             response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
+
+        Set<Integer> set = new HashSet<Integer>();
+        for (T point : points) {
+            int pointId = point.getDataPointId();
+            if (set.contains(pointId)) {
+                DataPointVO vo = new DataPointDao().getDataPoint(pointId);
+                response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
+            }
+            else
+                set.add(pointId);
+        }
     }
 
     //

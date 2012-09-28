@@ -13,9 +13,6 @@
 <tag:page dwr="${dwrClasses}" onload="initPublisher">
   <script type="text/javascript">
     function savePublisher() {
-        hide("nameMsg");
-        hide("cacheWarningSizeMsg");
-        hide("cacheDiscardSizeMsg");
         hide("message");
         setDisabled("saveBtn", true);
         
@@ -26,15 +23,9 @@
     
     function savePublisherCB(response) {
         setDisabled("saveBtn", false);
-        if (response.hasMessages) {
-            for (var i=0; i<response.messages.length; i++) {
-                var msg = response.messages[i];
-                if (msg.genericMessage)
-                    alert(msg.genericMessage);
-                else
-                    showMessage(msg.contextKey +"Msg", msg.contextualMessage);
-            }
-        }
+        hideContextualMessages($("publisherProperties"));
+        if (response.hasMessages)
+            showDwrMessages(response.messages);
         else
             showMessage("message", "<fmt:message key="publisherEdit.saved"/>");
     }
@@ -57,7 +48,7 @@
   
   <table>
     <tr>
-      <td>
+      <td id="publisherProperties">
         <c:if test="${!empty publisherEvents}">
           <table class="borderDiv marB">
             <tr><td class="smallTitle"><fmt:message key="publisherEdit.currentAlarms"/></td></tr>
@@ -84,18 +75,12 @@
             
             <tr>
               <td class="formLabelRequired"><fmt:message key="publisherEdit.name"/></td>
-              <td class="formField">
-                <input type="text" id="name" value="${publisher.name}"/>
-                <div id="nameMsg" class="formError" style="display:none;"></div>
-              </td>
+              <td class="formField"><input type="text" id="name" value="${publisher.name}"/></td>
             </tr>
             
             <tr>
               <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-              <td class="formField">
-                <input type="text" id="xid" value="${publisher.xid}"/>
-                <div id="xidMsg" class="formError" style="display:none;"></div>
-              </td>
+              <td class="formField"><input type="text" id="xid" value="${publisher.xid}"/></td>
             </tr>
             
             <tr>
@@ -105,18 +90,12 @@
             
             <tr>
               <td class="formLabelRequired"><fmt:message key="publisherEdit.cacheWarning"/></td>
-              <td class="formField">
-                <input type="text" id="cacheWarningSize" value="${publisher.cacheWarningSize}" class="formShort"/>
-                <div id="cacheWarningSizeMsg" class="formError" style="display:none;"></div>
-              </td>
+              <td class="formField"><input type="text" id="cacheWarningSize" value="${publisher.cacheWarningSize}" class="formShort"/></td>
             </tr>
             
             <tr>
               <td class="formLabelRequired"><fmt:message key="publisherEdit.cacheDiscard"/></td>
-              <td class="formField">
-                <input type="text" id="cacheDiscardSize" value="${publisher.cacheDiscardSize}" class="formShort"/>
-                <div id="cacheDiscardSizeMsg" class="formError" style="display:none;"></div>
-              </td>
+              <td class="formField"><input type="text" id="cacheDiscardSize" value="${publisher.cacheDiscardSize}" class="formShort"/></td>
             </tr>
             
             <tr>
@@ -140,7 +119,6 @@
               <td class="formField">
                 <input type="text" id="snapshotSendPeriods" value="${publisher.snapshotSendPeriods}" class="formShort"/>
                 <tag:timePeriods id="snapshotSendPeriodType" value="${publisher.snapshotSendPeriodType}" s="true" min="true" h="true"/>
-                <div id="snapshotSendPeriodsMsg" class="formError" style="display:none;"></div>
               </td>
             </tr>
           </table>
