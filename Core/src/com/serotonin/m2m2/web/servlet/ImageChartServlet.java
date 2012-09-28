@@ -32,8 +32,6 @@ import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
 import com.serotonin.m2m2.util.chart.ImageChartUtils;
 import com.serotonin.m2m2.util.chart.NumericTimeSeries;
 import com.serotonin.m2m2.util.chart.PointTimeSeriesCollection;
-import com.serotonin.m2m2.view.text.AnalogRenderer;
-import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.util.ColorUtils;
@@ -161,15 +159,9 @@ public class ImageChartServlet extends BaseInfoServlet {
                             data = pointValueFacade.getPointValuesBetween(from, to);
 
                         if (dp.getPointLocator().getDataTypeId() == DataTypes.NUMERIC) {
-                            TimeSeries ts = new TimeSeries(dp.getName(), null, null);
+                            TimeSeries ts = new TimeSeries(dp.getName(), null, dp.getTextRenderer().getMetaText());
                             for (PointValueTime pv : data)
                                 ImageChartUtils.addMillisecond(ts, pv.getTime(), pv.getValue().numberValue());
-                            if ((dp.getTextRenderer() instanceof AnalogRenderer ||
-                            		dp.getTextRenderer() instanceof PlainRenderer) && 
-                            		dp.getTextRenderer().getMetaText() != null &&
-                            		!dp.getTextRenderer().getMetaText().isEmpty()) {
-                            	ts.setRangeDescription(dp.getTextRenderer().getMetaText());
-                            }
                             ptsc.addNumericTimeSeries(new NumericTimeSeries(dp.getPlotType(), ts, colour, null));
                         }
                         else {
@@ -244,4 +236,3 @@ public class ImageChartServlet extends BaseInfoServlet {
         }
     }
 }
-
