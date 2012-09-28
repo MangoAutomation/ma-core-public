@@ -2,6 +2,20 @@
 <!--
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
+    
+    
+    ###############################################################################
+     DO NOT MODIFY THIS FILE...
+     
+     Do not make changes to this file, because when you upgrade your core your 
+     changes will be overwritten. Instead, copy this file to
+     <m2m2 home>/overrides/classes/log4j.xml and make your changes to that file.
+     The overrides directory will never be overwritten by an upgrade, so your
+     customizations will be safe.
+ 
+    ###############################################################################
+    
+    
 -->
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration>
