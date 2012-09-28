@@ -28,10 +28,10 @@ rem Uncomment the following line to start with the debugger
 rem set JPDA=-agentlib:jdwp=transport=dt_socket,address=8090,server=y,suspend=y
 
 SETLOCAL ENABLEDELAYEDEXPANSION
-set M2M2_CP=%M2M2_HOME%\overrides
+set M2M2_CP=%M2M2_HOME%\overrides\classes
 set M2M2_CP=%M2M2_CP%;%M2M2_HOME%\classes
-set M2M2_CP=%M2M2_CP%;%M2M2_HOME%\overrides
-FOR /F %%A IN ('dir /b %M2M2_HOME%\lib\*.jar') DO set M2M2_CP=!M2M2_CP!;%M2M2_HOME%\lib\%%A
+set M2M2_CP=%M2M2_CP%;%M2M2_HOME%\overrides\properties
+FOR /F %%A IN ('dir /b "%M2M2_HOME%\lib\*.jar"') DO set M2M2_CP=!M2M2_CP!;%M2M2_HOME%\lib\%%A
 rem echo %M2M2_CP%
 
 rem | Native libraries can be put into the overrides directory

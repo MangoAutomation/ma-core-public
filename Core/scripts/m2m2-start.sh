@@ -21,9 +21,9 @@ fi
 # Uncomment the following line to start with the debugger
 # JPDA=-agentlib:jdwp=transport=dt_socket,address=8090,server=y,suspend=y
 
-M2M2_CP=$M2M2_HOME/overrides
+M2M2_CP=$M2M2_HOME/overrides/classes
 M2M2_CP=$M2M2_CP:$M2M2_HOME/classes
-M2M2_CP=$M2M2_CP:$M2M2_HOME/overrides
+M2M2_CP=$M2M2_CP:$M2M2_HOME/overrides/properties
 for f in $M2M2_HOME/lib/*.jar
 do
   M2M2_CP=$M2M2_CP:$f
