@@ -28,16 +28,17 @@ public class ProcessLog {
         return ids;
     }
 
-    public static void setLogLevel(String id, LogLevel logLevel) {
-        if (logLevel == null)
-            return;
-
-        for (ProcessLog pl : processLogs) {
-            if (StringUtils.equals(pl.getId(), id)) {
-                pl.setLogLevel(logLevel);
-                pl.info("Log level changed to " + logLevel.name());
+    public static boolean setLogLevel(String id, LogLevel logLevel) {
+        if (logLevel != null) {
+            for (ProcessLog pl : processLogs) {
+                if (StringUtils.equals(pl.getId(), id)) {
+                    pl.setLogLevel(logLevel);
+                    pl.log("Log level changed to " + logLevel.name(), null, logLevel);
+                    return true;
+                }
             }
         }
+        return false;
     }
 
     public static enum LogLevel {
@@ -70,8 +71,12 @@ public class ProcessLog {
             this.logLevel = logLevel;
 
         if (out == null) {
+            File file = new File(Common.getLogsDir(), "processLog." + id + ".log");
+            if (file.exists())
+                file.delete();
+
             try {
-                out = new PrintWriter(new File(Common.getLogsDir(), "processLog." + id + ".log"));
+                out = new PrintWriter(file);
             }
             catch (FileNotFoundException e) {
                 out = new PrintWriter(new NullWriter());
