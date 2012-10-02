@@ -27,7 +27,7 @@ public class InstanceLicense {
 
     public InstanceLicense(Document doc) throws LicenseParseException {
         Element licenseElement = doc.getDocumentElement();
-        if (!StringUtils.equals("license", licenseElement.getTagName()))
+        if (licenseElement == null || !StringUtils.equals("license", licenseElement.getTagName()))
             throw new LicenseParseException("Root element must be 'license'");
 
         Element coreElement = XmlUtilsTS.getChildElement(licenseElement, "core");
@@ -43,14 +43,18 @@ public class InstanceLicense {
 
         Element featuresElement = XmlUtilsTS.getChildElement(coreElement, "features");
         List<LicenseFeature> featureList = new ArrayList<LicenseFeature>();
-        for (Element feature : XmlUtilsTS.getChildElements(featuresElement))
-            featureList.add(new LicenseFeature(feature));
+        if (featuresElement != null) {
+            for (Element feature : XmlUtilsTS.getChildElements(featuresElement))
+                featureList.add(new LicenseFeature(feature));
+        }
         features = Collections.unmodifiableList(featureList);
 
         Element modulesElement = XmlUtilsTS.getChildElement(licenseElement, "modules");
         List<ModuleLicense> moduleList = new ArrayList<ModuleLicense>();
-        for (Element module : XmlUtilsTS.getChildElements(modulesElement))
-            moduleList.add(new ModuleLicense(module));
+        if (modulesElement != null) {
+            for (Element module : XmlUtilsTS.getChildElements(modulesElement))
+                moduleList.add(new ModuleLicense(module));
+        }
         modules = Collections.unmodifiableList(moduleList);
     }
 
@@ -76,6 +80,12 @@ public class InstanceLicense {
 
     public int getVersion() {
         return version;
+    }
+
+    public boolean versionMatches(int coreVersion) {
+        if (version == -1)
+            return true;
+        return version == coreVersion;
     }
 
     public String getLicenseType() {
