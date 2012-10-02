@@ -35,7 +35,7 @@ abstract public class UrlMappingDefinition extends ModuleElementDefinition {
 
     /**
      * An instance of the handler for the URL. Called once upon startup, so the instance must be reusable and thread
-     * safe. May be null.
+     * safe. If null, a default handler will be created which forwards to the the JSP path.
      * 
      * @return an instance of the URL handler
      */
@@ -43,7 +43,7 @@ abstract public class UrlMappingDefinition extends ModuleElementDefinition {
 
     /**
      * The path to the JSP file that renders the page at this URL. The path is relative to the module directory.
-     * Required.
+     * Required if the UrlHandler is null.
      * 
      * @return the path to the JSP file.
      */
