@@ -14,6 +14,7 @@ public class DataPointBean {
     private int dataType;
     private final TranslatableMessage dataTypeMessage;
     private final String chartColour;
+    private int plotType;
 
     public DataPointBean(DataPointVO vo) {
         id = vo.getId();
@@ -22,6 +23,7 @@ public class DataPointBean {
         dataType = vo.getPointLocator().getDataTypeId();
         dataTypeMessage = vo.getDataTypeMessage();
         chartColour = vo.getChartColour();
+        plotType = vo.getPlotType();
     }
 
     public int getId() {
@@ -63,4 +65,9 @@ public class DataPointBean {
     public String getChartColour() {
         return chartColour;
     }
+    
+    public int getPlotType() {
+        return plotType;
+    }
 }
+
