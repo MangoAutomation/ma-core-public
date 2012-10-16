@@ -44,7 +44,7 @@ public class LoggedInFilter implements Filter {
 
         LicenseFeature uniqueIpAddresses = Common.licenseFeature("uniqueIpAddresses");
         if (uniqueIpAddresses == null)
-            maxUniqueIps = 2;
+            maxUniqueIps = 3;
         else {
             if ("unlimited".equals(uniqueIpAddresses.getValue()))
                 maxUniqueIps = -1;

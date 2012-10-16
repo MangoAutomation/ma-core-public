@@ -5,6 +5,7 @@
 * Split out header and toolbar from page tag
 * Don't allow duplicate points in publishers.
 * Various fixes for chart rendering
+* Set the maximum number of unique IP addresses in free mode to 3
 
 
 *Version 2.0.1*

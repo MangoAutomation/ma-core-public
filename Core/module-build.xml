@@ -68,7 +68,7 @@
                 <include name="module.properties" />
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
-                </fileset>
+            </fileset>
             <fileset dir="target/"><include name="lib/${fullName}.jar" /></fileset>
             <fileset dir=""><include name="lib/**/*.jar" /></fileset>
             <fileset dir=""><include name="web/**/*" /></fileset>
