@@ -11,7 +11,7 @@
   <tlib-version>1.0</tlib-version>
   <jsp-version>1.2</jsp-version>
   <short-name>m2m2</short-name>
-  <description>Custom tag library for the Serotonin M2M2 application. Author: Matthew Lohbihler</description>
+  <description>Custom tag library for the Mango Automation application. Author: Matthew Lohbihler</description>
   
   <tag>
     <name>translate</name>

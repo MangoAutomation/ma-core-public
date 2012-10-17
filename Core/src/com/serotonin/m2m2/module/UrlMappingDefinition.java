@@ -8,7 +8,7 @@ import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
 /**
- * A URL mapping definition creates a page - and optionally a menu item - accessible by m2m2 users.
+ * A URL mapping definition creates a page - and optionally a menu item - accessible by MA users.
  * 
  * @author Matthew Lohbihler
  */

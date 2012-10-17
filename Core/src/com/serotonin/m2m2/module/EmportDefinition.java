@@ -18,7 +18,7 @@ import com.serotonin.m2m2.web.dwr.emport.ImportContext;
  */
 abstract public class EmportDefinition extends ModuleElementDefinition {
     /**
-     * @return the emport element id. Required to be unique within the m2m2 instance.
+     * @return the emport element id. Required to be unique within the MA instance.
      */
     abstract public String getElementId();
 

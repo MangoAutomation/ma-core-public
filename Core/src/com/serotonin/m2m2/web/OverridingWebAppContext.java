@@ -13,8 +13,7 @@ public class OverridingWebAppContext extends WebAppContext {
     public OverridingWebAppContext(ClassLoader classLoader) {
         OverridingFileResource ofr;
         try {
-            ofr = new OverridingFileResource(
-                    Resource.newResource(Common.M2M2_HOME + "/overrides/" + Constants.DIR_WEB),
+            ofr = new OverridingFileResource(Resource.newResource(Common.M2M2_HOME + "/overrides/" + Constants.DIR_WEB),
                     Resource.newResource(Common.M2M2_HOME + "/" + Constants.DIR_WEB));
         }
         catch (IOException e) {

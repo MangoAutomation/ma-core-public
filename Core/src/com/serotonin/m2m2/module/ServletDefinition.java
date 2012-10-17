@@ -10,7 +10,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServlet;
 
 /**
- * A servlet definition provides the necessary information to register a servlet into the m2m2 instance. Servlets do not
+ * A servlet definition provides the necessary information to register a servlet into the MA instance. Servlets do not
  * use JSP or HTML pages to render their responses, and so can be used for tasks such as image generation, export files,
  * etc.
  * 

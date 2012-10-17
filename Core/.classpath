@@ -4,8 +4,8 @@
 	<classpathentry kind="src" path="src-test"/>
 	<classpathentry kind="src" path="src-patch"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-    <classpathentry kind="lib" path="overrides/classes"/>
-    <classpathentry kind="lib" path="classes"/>
+	<classpathentry kind="lib" path="overrides/classes"/>
+	<classpathentry kind="lib" path="classes"/>
 	<classpathentry kind="lib" path="overrides/properties"/>
 	<classpathentry kind="lib" path="lib/org.springframework.context.support-3.0.5.RELEASE.jar"/>
 	<classpathentry kind="lib" path="lib/commons-dbcp-jdbc4.jar"/>
@@ -31,7 +31,7 @@
 	<classpathentry kind="lib" path="lib/ant-1.6.5.jar"/>
 	<classpathentry kind="lib" path="lib/taglibs-log.jar"/>
 	<classpathentry kind="lib" path="lib-opt/tools.jar"/>
-	<classpathentry kind="lib" path="lib/m2m2-priv.jar" sourcepath="/Core-private/src"/>
+	<classpathentry kind="lib" path="lib/ma-priv.jar" sourcepath="/Core-private/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

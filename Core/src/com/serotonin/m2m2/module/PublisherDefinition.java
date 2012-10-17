@@ -11,10 +11,10 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.web.dwr.PublisherEditDwr;
 
 /**
- * A publisher allows point values to be written (or published) to targets outside of the m2m2 instance. Typically any
+ * A publisher allows point values to be written (or published) to targets outside of the MA instance. Typically any
  * data points can be provided to a publisher regardless of the data source.
  * 
- * When creating a publisher for m2m2, the following components are required:
+ * When creating a publisher for MA, the following components are required:
  * <dl>
  * <dt>Subclass of {@link PublisherVO}</dt>
  * <dd>A configuration object of a publisher</dd>
@@ -39,7 +39,7 @@ import com.serotonin.m2m2.web.dwr.PublisherEditDwr;
  */
 abstract public class PublisherDefinition extends ModuleElementDefinition {
     /**
-     * Used by m2m2 core code to create a new publisher instance as required. Should not be used by client code.
+     * Used by MA core code to create a new publisher instance as required. Should not be used by client code.
      */
     public PublisherVO<?> baseCreatePublisherVO() {
         PublisherVO<? extends PublishedPointVO> pub = createPublisherVO();
@@ -48,7 +48,7 @@ abstract public class PublisherDefinition extends ModuleElementDefinition {
     }
 
     /**
-     * An internal identifier for this type of publisher. Must be unique within an m2m2 instance, and is recommended to
+     * An internal identifier for this type of publisher. Must be unique within an MA instance, and is recommended to
      * be unique inasmuch as possible across all modules.
      * 
      * @return the publisher type name.

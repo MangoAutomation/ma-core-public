@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 
 /**
- * The registry of all modules in an m2m2 instance.
+ * The registry of all modules in an MA instance.
  * 
  * @author Matthew Lohbihler
  */

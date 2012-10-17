@@ -26,8 +26,9 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 public class M2M2ContextListener implements ServletContextListener {
     private final Log log = LogFactory.getLog(M2M2ContextListener.class);
 
+    @Override
     public void contextInitialized(ServletContextEvent evt) {
-        log.info("M2M2 context starting");
+        log.info("Mango Automation context starting");
 
         // Get a handle on the context.
         ServletContext ctx = evt.getServletContext();
@@ -35,9 +36,10 @@ public class M2M2ContextListener implements ServletContextListener {
         // Create all the stuff we need.
         constantsInitialize(ctx);
 
-        log.info("M2M2 context started");
+        log.info("Mango Automation context started");
     }
 
+    @Override
     public void contextDestroyed(ServletContextEvent evt) {
         // no op
     }

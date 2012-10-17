@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
-<project name="M2M2 - Core" basedir="." default="build">
+<project name="MA - Core" basedir="." default="build">
 	<property file="build.properties"/>
-    <property name="fullName" value="m2m2-${name}-${version}" />
+    <property name="fullName" value="ma-${name}-${version}" />
 	
 	<property name="build.dir" value="target"/>
 	
@@ -45,7 +45,7 @@
         </manifest>
 
         <mkdir dir="${build.dir}/lib" />
-        <jar destfile="${build.dir}/lib/m2m2-core.jar" manifest="${build.dir}/MANIFEST.MF">
+        <jar destfile="${build.dir}/lib/ma-core.jar" manifest="${build.dir}/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
         </jar>
     	

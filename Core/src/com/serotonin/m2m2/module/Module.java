@@ -67,7 +67,7 @@ public class Module {
     }
 
     /**
-     * @return the path from the m2m2 home to the module's directory. Suitable for creating File objects within Java
+     * @return the path from the MA home to the module's directory. Suitable for creating File objects within Java
      *         code
      */
     public String getDirectoryPath() {
@@ -75,7 +75,7 @@ public class Module {
     }
 
     /**
-     * @return the path from m2m2's web root to the module's directory. Suitable for creating URLs to module assets.
+     * @return the path from MA's web root to the module's directory. Suitable for creating URLs to module assets.
      */
     public String getWebPath() {
         return "/" + Constants.DIR_MODULES + "/" + name;

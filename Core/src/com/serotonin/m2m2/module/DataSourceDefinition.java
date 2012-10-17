@@ -14,10 +14,10 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.web.dwr.DataSourceEditDwr;
 
 /**
- * A data source is the means by which m2m2 gets values into a data point, and writes set point values back to source
+ * A data source is the means by which MA gets values into a data point, and writes set point values back to source
  * equipment (if possible).
  * 
- * m2m2's primary object is a data point. There are many common attributes of points, such as data type, engineering
+ * MA's primary object is a data point. There are many common attributes of points, such as data type, engineering
  * units, logging, etc. But points differ in how they get their values, and these differences are encapsulated in a
  * "point locator". For example, a Modbus point locator consists of a slave id, register range, offset, etc. An HTTP
  * retriever point consists of a regular expression that extracts data from a web page. The data source is (in this
@@ -29,9 +29,9 @@ import com.serotonin.m2m2.web.dwr.DataSourceEditDwr;
  * appropriate for the given protocol. When you are editing a data source, you are changing the attributes of the VO.
  * When you start the data source, you are providing a VO to an RT, and then running the RT.
  * 
- * DWR is how m2m2 realizes AJAX. More information is available here: http://directwebremoting.org/dwr/index.html.
+ * DWR is how MA realizes AJAX. More information is available here: http://directwebremoting.org/dwr/index.html.
  * 
- * When creating a data source for m2m2, the following components are required:
+ * When creating a data source for MA, the following components are required:
  * <dl>
  * <dt>Subclass of {@link DataSourceVO}</dt>
  * <dd>A configuration object of a data source</dd>
@@ -60,7 +60,7 @@ import com.serotonin.m2m2.web.dwr.DataSourceEditDwr;
  */
 abstract public class DataSourceDefinition extends ModuleElementDefinition {
     /**
-     * Used by m2m2 core code to create a new data source instance as required. Should not be used by client code.
+     * Used by MA core code to create a new data source instance as required. Should not be used by client code.
      */
     public final DataSourceVO<?> baseCreateDataSourceVO() {
         DataSourceVO<?> ds = createDataSourceVO();
@@ -76,7 +76,7 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
     }
 
     /**
-     * An internal identifier for this type of data source. Must be unique within an m2m2 instance, and is recommended
+     * An internal identifier for this type of data source. Must be unique within an MA instance, and is recommended
      * to be unique inasmuch as possible across all modules.
      * 
      * @return the data source type name.
@@ -115,7 +115,7 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
 
     /**
      * Override this method as required. The start priority determines the order in which data sources are started by
-     * m2m2. By default this method returns NORMAL, and should only be overridden when absolutely necessary. For
+     * MA. By default this method returns NORMAL, and should only be overridden when absolutely necessary. For
      * example, the Meta data source has a start priority of LAST because it depends up on the points from other data
      * sources.
      * 

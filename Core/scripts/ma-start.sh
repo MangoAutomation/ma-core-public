@@ -4,16 +4,16 @@
 #    @author Matthew Lohbihler
 #
 
-# Runs Mango M2M2.
+# Runs Mango Automation.
 
 # Get standard environment variables
 PRGDIR=`dirname "$0"`
 
-# Only set M2M2_HOME if not already set
-[ -z "$M2M2_HOME" ] && M2M2_HOME=`cd "$PRGDIR" >/dev/null; pwd`
+# Only set MA_HOME if not already set
+[ -z "$MA_HOME" ] && MA_HOME=`cd "$PRGDIR" >/dev/null; pwd`
 
-if [ ! -r "$M2M2_HOME"/m2m2-start.sh ]; then
-    echo The M2M2_HOME environment variable is not defined correctly
+if [ ! -r "$MA_HOME"/ma-start.sh ]; then
+    echo The MA_HOME environment variable is not defined correctly
     echo This environment variable is needed to run this program
     exit 1
 fi
@@ -21,12 +21,12 @@ fi
 # Uncomment the following line to start with the debugger
 # JPDA=-agentlib:jdwp=transport=dt_socket,address=8090,server=y,suspend=y
 
-M2M2_CP=$M2M2_HOME/overrides/classes
-M2M2_CP=$M2M2_CP:$M2M2_HOME/classes
-M2M2_CP=$M2M2_CP:$M2M2_HOME/overrides/properties
-for f in $M2M2_HOME/lib/*.jar
+MA_CP=$MA_HOME/overrides/classes
+MA_CP=$MA_CP:$MA_HOME/classes
+MA_CP=$MA_CP:$MA_HOME/overrides/properties
+for f in $MA_HOME/lib/*.jar
 do
-  M2M2_CP=$M2M2_CP:$f
+  MA_CP=$MA_CP:$f
 done
 
 if [ -z "$JAVA_HOME" ]; then
@@ -37,12 +37,12 @@ fi
 
 LOOP_EXIT=false
 while [ $LOOP_EXIT = false ]; do
-    $EXECJAVA $JPDA -server -cp $M2M2_CP \
-    -Dm2m2.home=$M2M2_HOME \
-    -Djava.library.path=$M2M2/lib:$PATH \
+    $EXECJAVA $JPDA -server -cp $MA_CP \
+    -Dma.home=$MA_HOME \
+    -Djava.library.path=$MA/lib:$PATH \
     com.serotonin.m2m2.Main
     
-    if [ ! -r "$M2M2_HOME"/RESTART ]; then
+    if [ ! -r "$MA_HOME"/RESTART ]; then
         LOOP_EXIT=true
     fi
 done

@@ -125,7 +125,7 @@ public class Common {
     }
 
     /*
-     * Updating the M2M2 version: - Create a DBUpdate subclass for the old version number. This may not do anything in
+     * Updating the MA version: - Create a DBUpdate subclass for the old version number. This may not do anything in
      * particular to the schema, but is still required to update the system settings so that the database has the
      * correct version.
      */
@@ -142,7 +142,7 @@ public class Common {
     }
 
     public static final int getMicroVersion() {
-        return 2;
+        return 3;
     }
 
     public static final int getDatabaseSchemaVersion() {
