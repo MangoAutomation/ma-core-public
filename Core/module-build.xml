@@ -71,6 +71,7 @@
             </fileset>
             <fileset dir="target/"><include name="lib/${fullName}.jar" /></fileset>
             <fileset dir=""><include name="lib/**/*.jar" /></fileset>
+            <fileset dir=""><include name="dox/**/*" /></fileset>
             <fileset dir=""><include name="web/**/*" /></fileset>
             <fileset dir=""><include name="classes/**/*" /></fileset>
         	<fileset dir="target" ><include name="src/**/*" /></fileset>

@@ -128,7 +128,8 @@ public class MiscDwr extends BaseDwr {
         else {
             // Find the file appropriate for the locale.
             Locale locale = getLocale();
-            File file = getDocumentationFile(item, locale.getLanguage(), locale.getCountry(), locale.getVariant());
+            File file = Common.documentationManifest.getDocumentationFile(item, locale.getLanguage(),
+                    locale.getCountry(), locale.getVariant());
 
             // Read the content.
             try {
@@ -161,41 +162,6 @@ public class MiscDwr extends BaseDwr {
         }
 
         return result;
-    }
-
-    private File getDocumentationFile(DocumentationItem item, String language, String country, String variant) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(item.getBasePath());
-
-        if (!StringUtils.isBlank(language)) {
-            sb.append('/').append(language);
-            if (!StringUtils.isBlank(country)) {
-                sb.append('/').append(country);
-                if (!StringUtils.isBlank(variant)) {
-                    sb.append('/').append(variant);
-                    sb.append('/').append(item.getFilename());
-                    File file = new File(sb.toString());
-                    if (file.exists())
-                        return file;
-                    return getDocumentationFile(item, language, country, null);
-                }
-
-                sb.append('/').append(item.getFilename());
-                File file = new File(sb.toString());
-                if (file.exists())
-                    return file;
-                return getDocumentationFile(item, language, null, null);
-            }
-
-            sb.append('/').append(item.getFilename());
-            File file = new File(sb.toString());
-            if (file.exists())
-                return file;
-            return getDocumentationFile(item, null, null, null);
-        }
-
-        sb.append('/').append(item.getFilename());
-        return new File(sb.toString());
     }
 
     private void addDocumentationItem(Map<String, Object> map, DocumentationItem di) {

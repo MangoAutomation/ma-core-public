@@ -1,6 +1,7 @@
 *Version 2.0.3*
 
 * Multiple references to M2M2 changed to MA
+* Allow modules to override dox folders (help documentation)
 
 
 *Version 2.0.2*
