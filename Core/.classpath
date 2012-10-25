@@ -9,7 +9,6 @@
 	<classpathentry kind="lib" path="overrides/properties"/>
 	<classpathentry kind="lib" path="lib/org.springframework.context.support-3.0.5.RELEASE.jar"/>
 	<classpathentry kind="lib" path="lib/commons-dbcp-jdbc4.jar"/>
-	<classpathentry kind="lib" path="lib/m2m2-shared.jar"/>
 	<classpathentry kind="lib" path="lib/derby.jar"/>
 	<classpathentry kind="lib" path="lib/derbytools.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.6.jar"/>

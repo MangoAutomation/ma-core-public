@@ -28,7 +28,7 @@
         <archive path="/Core/lib/jfreechart-1.0.14.jar"/>
         <archive path="/Core/lib/org.springframework.beans-3.0.5.RELEASE.jar"/>
         <archive path="/Core/lib/commons-codec-1.6.jar"/>
-        <archive path="/Core/lib/m2m2-shared.jar"/>
+        <archive path="/Core/lib/ma-shared.jar"/>
         <archive path="/Core/lib/commons-collections-3.2.1.jar"/>
         <archive path="/Core/lib/jetty-server-7.4.5.v20110725.jar"/>
         <archive path="/Core/lib/jetty-servlet-7.4.5.v20110725.jar"/>
