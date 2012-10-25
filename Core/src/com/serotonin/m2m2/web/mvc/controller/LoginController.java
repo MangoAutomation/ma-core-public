@@ -110,8 +110,10 @@ public class LoginController extends SimpleFormController {
     }
 
     private void checkDomain(HttpServletRequest request, BindException errors) {
-        if (Common.license() != null && !ControllerUtils.getDomain(request).equals(Common.license().getDomain()))
-            ValidationUtils.reject(errors, "login.validation.wrongDomain", Common.license().getDomain());
+        if (Common.license() != null && !"localhost".equals(request.getServerName())) {
+            if (!ControllerUtils.getDomain(request).equals(Common.license().getDomain()))
+                ValidationUtils.reject(errors, "login.validation.wrongDomain", Common.license().getDomain());
+        }
     }
 
     private ModelAndView performLogin(HttpServletRequest request, User user) {
