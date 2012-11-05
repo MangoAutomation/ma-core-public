@@ -30,8 +30,10 @@
   <meta name="DESCRIPTION" content="Mango Automation from Infinite Automation Systems"/>
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
-  <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.7.3/</c:set>
-<%--   <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/</c:set> --%>
+  <c:if test="${empty dojoURI}">
+    <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.7.3/</c:set>
+    <%-- <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/</c:set> --%>
+  </c:if>
   
   <!-- Style -->
   <link rel="icon" href="/images/favicon.ico"/>
