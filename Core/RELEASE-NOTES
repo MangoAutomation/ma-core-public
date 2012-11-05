@@ -2,6 +2,8 @@
 
 * Multiple references to M2M2 changed to MA
 * Allow modules to override dox folders (help documentation)
+* Allow modules to define handler interceptors
+* Allow the dojo URI to be overridden prior to JSP processing 
 
 
 *Version 2.0.2*
