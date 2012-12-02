@@ -9,6 +9,9 @@
 # Get standard environment variables
 PRGDIR=`dirname "$0"`
 
+#log output
+exec >${PRGDIR}/logs/ma.out 2>${PRGDIR}/logs/ma.err
+
 # Only set MA_HOME if not already set
 [ -z "$MA_HOME" ] && MA_HOME=`cd "$PRGDIR" >/dev/null; pwd`
 
