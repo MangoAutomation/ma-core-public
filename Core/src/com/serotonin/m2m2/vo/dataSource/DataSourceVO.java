@@ -230,12 +230,12 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
 
     @Override
     public final void addPropertyChanges(List<TranslatableMessage> list, T from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.head.name", from.name, name);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled", from.enabled, enabled);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.logging.purgeOverride", from.purgeOverride,
+        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.head.name", from.getName(), name);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.getXid(), xid);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled", from.isEnabled(), enabled);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.logging.purgeOverride", from.isPurgeOverride(),
                 purgeOverride);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.purgeType, from.purgePeriod,
+        AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.getPurgeType(), from.getPurgePeriod(),
                 purgeType, purgePeriod);
 
         addPropertyChangesImpl(list, from);
