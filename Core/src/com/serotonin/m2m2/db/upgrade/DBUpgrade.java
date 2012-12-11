@@ -33,7 +33,8 @@ abstract public class DBUpgrade extends BaseDao {
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
                 .getPackage().getName(), "core", DBUpgrade.class.getClassLoader());
-        LOG.info("Starting instance with core version " + Common.getVersion());
+        LOG.info("Starting instance with core version " + Common.getVersion() + ", db "
+                + Common.getDatabaseSchemaVersion());
     }
 
     public static void checkUpgrade(DatabaseSchemaDefinition def, ClassLoader classLoader) {
@@ -49,50 +50,56 @@ abstract public class DBUpgrade extends BaseDao {
             // Get the current schema version.
             int schemaVersion = SystemSettingsDao.getIntValue(settingsKey, -1);
 
-            if (schemaVersion == -1)
-                // Probably a new module. Put the current code version into the database.
-                new SystemSettingsDao().setIntValue(settingsKey, codeVersion);
-            else {
-                // Convert the schema version to the class name convention. This simply means replacing dots with
-                // underscores and prefixing 'Upgrade' and this package.
-                String upgradeClassname = pkg + ".Upgrade" + Integer.toString(schemaVersion);
+            if (schemaVersion == -1) {
+                if ("core".equals(moduleName))
+                    // Probably an old core. Assume the version to be 1 to do complete upgrade
+                    schemaVersion = 1;
+                else {
+                    // Probably a new module. Put the current code version into the database.
+                    new SystemSettingsDao().setIntValue(settingsKey, codeVersion);
+                    schemaVersion = codeVersion;
+                }
+            }
 
-                // See if there is a class with this name.
-                Class<?> clazz = null;
-                DBUpgrade upgrade = null;
+            // Convert the schema version to the class name convention. This simply means replacing dots with
+            // underscores and prefixing 'Upgrade' and this package.
+            String upgradeClassname = pkg + ".Upgrade" + Integer.toString(schemaVersion);
+
+            // See if there is a class with this name.
+            Class<?> clazz = null;
+            DBUpgrade upgrade = null;
+            try {
+                clazz = Class.forName(upgradeClassname, true, classLoader);
+            }
+            catch (ClassNotFoundException e) {
+                // no op
+            }
+
+            if (clazz != null) {
                 try {
-                    clazz = Class.forName(upgradeClassname, true, classLoader);
-                }
-                catch (ClassNotFoundException e) {
-                    // no op
-                }
-
-                if (clazz != null) {
-                    try {
-                        upgrade = (DBUpgrade) clazz.newInstance();
-                    }
-                    catch (Exception e) {
-                        // Should never happen so wrap in a runtime and rethrow.
-                        throw new ShouldNeverHappenException(e);
-                    }
-                }
-
-                if (upgrade == null) {
-                    if (schemaVersion != codeVersion)
-                        LOG.warn("The code version " + codeVersion + " of module " + moduleName
-                                + " does not match the schema version " + schemaVersion);
-                    break;
-                }
-
-                try {
-                    LOG.warn("Upgrading '" + moduleName + "' from " + schemaVersion + " to "
-                            + upgrade.getNewSchemaVersion());
-                    upgrade.upgrade();
-                    new SystemSettingsDao().setValue(settingsKey, upgrade.getNewSchemaVersion());
+                    upgrade = (DBUpgrade) clazz.newInstance();
                 }
                 catch (Exception e) {
+                    // Should never happen so wrap in a runtime and rethrow.
                     throw new ShouldNeverHappenException(e);
                 }
+            }
+
+            if (upgrade == null) {
+                if (schemaVersion != codeVersion)
+                    LOG.warn("The code version " + codeVersion + " of module " + moduleName
+                            + " does not match the schema version " + schemaVersion);
+                break;
+            }
+
+            try {
+                LOG.warn("Upgrading '" + moduleName + "' from " + schemaVersion + " to "
+                        + upgrade.getNewSchemaVersion());
+                upgrade.upgrade();
+                new SystemSettingsDao().setValue(settingsKey, upgrade.getNewSchemaVersion());
+            }
+            catch (Exception e) {
+                throw new ShouldNeverHappenException(e);
             }
         }
     }
