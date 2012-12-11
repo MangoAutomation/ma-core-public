@@ -32,7 +32,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     @Override
     public String toString() {
         return "{value=" + getValue() + ", ago(periodType, count), past(periodType, count), prev(periodType, count), "
-                + "previous(periodType, count)}";
+                + "previous(periodType, count), last(limit), lastValue(index)}";
     }
 
     public double ago(int periodType) {

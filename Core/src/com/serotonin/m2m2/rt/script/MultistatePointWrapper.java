@@ -29,7 +29,7 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
     @Override
     public String toString() {
         return "{value=" + getValue() + ", ago(periodType, count), past(periodType, count), prev(periodType, count), "
-                + "previous(periodType, count)}";
+                + "previous(periodType, count), last(limit), lastValue(index)}";
     }
 
     public int ago(int periodType) {

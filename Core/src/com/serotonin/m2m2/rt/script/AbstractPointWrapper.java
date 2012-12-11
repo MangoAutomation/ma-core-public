@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.script;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.script.ScriptEngine;
 
@@ -79,6 +80,21 @@ abstract public class AbstractPointWrapper {
 
     public int getYear() {
         return getCalendar().get(Calendar.YEAR);
+    }
+
+    public List<PointValueTime> last(int limit) {
+        return point.getLatestPointValues(limit);
+    }
+
+    public PointValueTime lastValue() {
+        return lastValue(0);
+    }
+
+    public PointValueTime lastValue(int index) {
+        List<PointValueTime> list = point.getLatestPointValues(index + 1);
+        if (list.size() <= index)
+            return null;
+        return list.get(index);
     }
 
     private GregorianCalendar getCalendar() {

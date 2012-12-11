@@ -31,7 +31,7 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
 
     @Override
     public String toString() {
-        return "{value=" + getValue() + ", ago(periodType, count)}";
+        return "{value=" + getValue() + ", ago(periodType, count), last(limit), lastValue(index)}";
     }
 
     public String ago(int periodType) {

@@ -123,15 +123,28 @@ public class CompiledScriptExecutor {
         }
         else if (result instanceof AbstractPointWrapper)
             value = ((AbstractPointWrapper) result).getValueImpl();
+
         // See if the type matches.
+        else if (dataTypeId == DataTypes.BINARY && result instanceof BinaryValue)
+            value = (BinaryValue) result;
         else if (dataTypeId == DataTypes.BINARY && result instanceof Boolean)
             value = new BinaryValue((Boolean) result);
+
+        else if (dataTypeId == DataTypes.MULTISTATE && result instanceof MultistateValue)
+            value = (MultistateValue) result;
         else if (dataTypeId == DataTypes.MULTISTATE && result instanceof Number)
             value = new MultistateValue(((Number) result).intValue());
+
+        else if (dataTypeId == DataTypes.NUMERIC && result instanceof NumericValue)
+            value = (NumericValue) result;
         else if (dataTypeId == DataTypes.NUMERIC && result instanceof Number)
             value = new NumericValue(((Number) result).doubleValue());
+
+        else if (dataTypeId == DataTypes.ALPHANUMERIC && result instanceof AlphanumericValue)
+            value = (AlphanumericValue) result;
         else if (dataTypeId == DataTypes.ALPHANUMERIC && result instanceof String)
             value = new AlphanumericValue((String) result);
+
         else
             // If not, ditch it.
             throw new ResultTypeException(new TranslatableMessage("event.script.convertError", result,
