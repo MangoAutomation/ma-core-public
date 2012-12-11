@@ -97,6 +97,8 @@ abstract public class DatabaseProxy {
                     if (convertType == null)
                         throw new IllegalArgumentException("Unknown convert database type: " + convertType);
 
+                    // TODO check that the convert source has the current DB version, or upgrade it if not.
+
                     DatabaseProxy sourceProxy = convertType.getImpl();
                     sourceProxy.initializeImpl("convert.");
 
