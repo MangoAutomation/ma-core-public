@@ -2,7 +2,7 @@
 
 <project name="MA - Core" basedir="." default="build">
 	<property file="build.properties"/>
-    <property name="fullName" value="ma-${name}-${version}" />
+    <property name="fullName" value="m2m2-${name}-${version}" />
 	
 	<property name="build.dir" value="target"/>
 	
