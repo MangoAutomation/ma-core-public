@@ -31,6 +31,8 @@
 	<classpathentry kind="lib" path="lib/taglibs-log.jar"/>
 	<classpathentry kind="lib" path="lib-opt/tools.jar"/>
 	<classpathentry kind="lib" path="lib/ma-priv.jar" sourcepath="/Core-private/src"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.7-bin.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
+	<classpathentry kind="con" path="DERBY_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
