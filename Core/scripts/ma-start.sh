@@ -9,11 +9,13 @@
 # Get standard environment variables
 PRGDIR=`dirname "$0"`
 
-#log output
-exec >${PRGDIR}/logs/ma.out 2>${PRGDIR}/logs/ma.err
+#Uncommnet the following to log start up error
+#exec >${PRGDIR}/logs/ma.out 2>${PRGDIR}/logs/ma.err
 
 # Only set MA_HOME if not already set
 [ -z "$MA_HOME" ] && MA_HOME=`cd "$PRGDIR" >/dev/null; pwd`
+
+cd ${PRGDIR}
 
 if [ ! -r "$MA_HOME"/ma-start.sh ]; then
     echo The MA_HOME environment variable is not defined correctly
