@@ -1,3 +1,10 @@
+*Version 2.0.4*
+
+* Improved ability to upgrade from legacy versions of M2M2
+* Added last and lastValue methods to scripting point wrappers
+* Fix for starts and runtime statistics
+
+
 *Version 2.0.3*
 
 * Multiple references to M2M2 changed to MA
