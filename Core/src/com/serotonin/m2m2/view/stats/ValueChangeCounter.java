@@ -126,22 +126,4 @@ public class ValueChangeCounter implements StatisticsGenerator {
                 + firstTime + ", lastValue: " + lastValue + ", lastTime: " + lastTime + ", periodStart: " + periodStart
                 + ", periodEnd: " + periodEnd + "}";
     }
-
-    //    public static void main(String[] args) {
-    //        AlphanumericValue startValue = new AlphanumericValue("asdf");
-    //        List<PointValueTime> values = new ArrayList<PointValueTime>();
-    //        values.add(new PointValueTime("asdf", 2000));
-    //        values.add(new PointValueTime("zxcv", 3000));
-    //        values.add(new PointValueTime("qwer", 4000));
-    //        values.add(new PointValueTime("wert", 5000));
-    //        values.add(new PointValueTime("wert", 6000));
-    //        values.add(new PointValueTime("erty", 8000));
-    //
-    //        System.out.println(new ValueChangeCounter(startValue, values, 0, 10000));
-    //        System.out.println(new ValueChangeCounter(startValue, values, 0, 10000));
-    //        System.out.println(new ValueChangeCounter((DataValue) null, values, 0, 10000));
-    //        System.out.println(new ValueChangeCounter((DataValue) null, values, 0, 10000));
-    //        System.out.println(new ValueChangeCounter((DataValue) null, new ArrayList<PointValueTime>(), 0, 10000));
-    //        System.out.println(new ValueChangeCounter(startValue, new ArrayList<PointValueTime>(), 0, 10000));
-    //    }
 }
