@@ -118,12 +118,14 @@ public class AnalogStatistics implements StatisticsGenerator {
             // The duration for which the last value was in force.
             long duration = time - latestTime;
 
-            // Determine the weighted average of the latest value. The average value at this point still needs to be
-            // divided by the total duration of the period.
-            if (average == null)
-                average = 0D;
-            average += latestValue * duration;
-            totalDuration += duration;
+            if (duration > 0) {
+                // Determine the weighted average of the latest value. The average value at this point still needs to
+                // be divided by the total duration of the period.
+                if (average == null)
+                    average = 0D;
+                average += latestValue * duration;
+                totalDuration += duration;
+            }
         }
 
         // Reset the latest value.
