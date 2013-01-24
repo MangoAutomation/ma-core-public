@@ -49,6 +49,10 @@ public class DataSourceDao extends BaseDao {
         return dss;
     }
 
+    public List<DataSourceVO<?>> getDataSourcesForType(String type) {
+        return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, new DataSourceExtractor());
+    }
+
     static class DataSourceNameComparator implements Comparator<DataSourceVO<?>> {
         @Override
         public int compare(DataSourceVO<?> ds1, DataSourceVO<?> ds2) {
@@ -133,11 +137,15 @@ public class DataSourceDao extends BaseDao {
     @SuppressWarnings("unchecked")
     private void updateDataSource(final DataSourceVO<?> vo) {
         DataSourceVO<?> old = getDataSource(vo.getId());
-        ejt.update("update dataSources set xid=?, name=?, data=? where id=?", new Object[] { vo.getXid(), vo.getName(),
-                SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                Types.BLOB, Types.INTEGER });
-
+        _updateDataSource(vo);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_SOURCE, old, (ChangeComparable<DataSourceVO<?>>) vo);
+    }
+
+    public void _updateDataSource(DataSourceVO<?> vo) {
+        ejt.update("update dataSources set xid=?, name=?, dataSourceType=?, data=? where id=?",
+                new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
+                        SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.VARCHAR,
+                        Types.VARCHAR, Types.BLOB, Types.INTEGER });
     }
 
     public void deleteDataSource(final int dataSourceId) {
