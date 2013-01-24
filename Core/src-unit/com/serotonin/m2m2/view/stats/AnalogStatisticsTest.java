@@ -1,5 +1,7 @@
 package com.serotonin.m2m2.view.stats;
 
+import java.util.ArrayList;
+
 public class AnalogStatisticsTest {
     // TODO
 
@@ -21,4 +23,14 @@ public class AnalogStatisticsTest {
     //        System.out.println(new AnalogStatistics(startValue, new ArrayList<PointValueTime>(), 1500, 15000));
     //    }
 
+    public static void main(String[] args) {
+        AnalogStatistics s = new AnalogStatistics(10000, 20000, (Double) null, new ArrayList<IValueTime>(), null);
+        System.out.println(s.getAverage()); // null
+
+        s = new AnalogStatistics(10000, 20000, (Double) null, new ArrayList<IValueTime>(), 20D);
+        System.out.println(s.getAverage()); // null
+
+        s = new AnalogStatistics(10000, 20000, 10D, new ArrayList<IValueTime>(), 20D);
+        System.out.println(s.getAverage()); // 10.0
+    }
 }
