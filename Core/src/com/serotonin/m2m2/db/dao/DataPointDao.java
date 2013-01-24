@@ -91,9 +91,14 @@ public class DataPointDao extends BaseDao {
     }
 
     public DataPointVO getDataPoint(int id) {
+        return getDataPoint(id, true);
+    }
+
+    public DataPointVO getDataPoint(int id, boolean includeRelationalData) {
         DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.id=?", new Object[] { id },
                 new DataPointRowMapper(), null);
-        setRelationalData(dp);
+        if (includeRelationalData)
+            setRelationalData(dp);
         return dp;
     }
 
