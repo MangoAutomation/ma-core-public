@@ -1,3 +1,10 @@
+*Version 2.0.5*
+
+* Added module lifecycle call "postDatabase" 
+* Performance improvements when loading points from the database
+* Fix for incorrect 0 values calculated on points with interval averaging upon initialization
+
+
 *Version 2.0.4*
 
 * Improved ability to upgrade from legacy versions of M2M2
