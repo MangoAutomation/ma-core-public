@@ -82,12 +82,21 @@ public class Module {
     }
 
     /**
-     * Called immediately after the module is loaded, before the system is initialized. Should not be used by client
-     * code.
+     * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
+     * available. Should not be used by client code.
      */
     public void preInitialize() {
         for (ModuleElementDefinition df : definitions)
             df.preInitialize();
+    }
+
+    /**
+     * Called immediately after the database is initialized, but before the event and runtime managers. Should not be
+     * used by client code.
+     */
+    public void postDatabase() {
+        for (ModuleElementDefinition df : definitions)
+            df.postDatabase();
     }
 
     /**

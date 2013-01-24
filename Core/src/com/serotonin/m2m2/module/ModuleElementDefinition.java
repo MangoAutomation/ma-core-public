@@ -35,6 +35,14 @@ abstract public class ModuleElementDefinition {
     }
 
     /**
+     * Called immediately after the database is initialized, but before the event and runtime managers. Should not be
+     * used by client code.
+     */
+    public void postDatabase() {
+        // Override as required
+    }
+
+    /**
      * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
      * available.
      */
