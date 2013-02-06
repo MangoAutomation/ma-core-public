@@ -31,6 +31,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 set MA_CP=%MA_HOME%\overrides\classes
 set MA_CP=%MA_CP%;%MA_HOME%\classes
 set MA_CP=%MA_CP%;%MA_HOME%\overrides\properties
+FOR /F %%A IN ('dir /b "%MA_HOME%\overrides\lib\*.jar"') DO set MA_CP=!MA_CP!;%MA_HOME%\overrides\lib\%%A
 FOR /F %%A IN ('dir /b "%MA_HOME%\lib\*.jar"') DO set MA_CP=!MA_CP!;%MA_HOME%\lib\%%A
 rem echo %MA_CP%
 
