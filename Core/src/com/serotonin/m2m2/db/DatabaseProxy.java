@@ -129,8 +129,8 @@ abstract public class DatabaseProxy {
                     new UserDao().saveUser(user);
 
                     // Record the current version.
-                    new SystemSettingsDao().setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getVersion()
-                            .getFullString());
+                    new SystemSettingsDao().setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                            Integer.toString(Common.getDatabaseSchemaVersion()));
                 }
             }
             else
