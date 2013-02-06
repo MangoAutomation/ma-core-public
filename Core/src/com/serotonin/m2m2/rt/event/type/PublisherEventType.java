@@ -38,8 +38,13 @@ public class PublisherEventType extends EventType {
     public String getEventSubtype() {
         return null;
     }
+    
+    @Override
+	public boolean isRateLimited() {
+		return true;
+	}
 
-    public int getPublisherEventTypeId() {
+	public int getPublisherEventTypeId() {
         return publisherEventTypeId;
     }
 

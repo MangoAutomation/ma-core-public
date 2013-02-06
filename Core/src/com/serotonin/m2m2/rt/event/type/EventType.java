@@ -128,6 +128,15 @@ abstract public class EventType implements JsonSerializable {
     public boolean isSystemMessage() {
         return false;
     }
+    
+    /**
+     * Determines if the event type is subject to rate limiting.
+     * 
+     * @return false here, but all event types to which this should apply should return true.
+     */
+    public boolean isRateLimited() {
+    	return false;
+    }
 
     /**
      * Convenience method that keeps us from having to cast.

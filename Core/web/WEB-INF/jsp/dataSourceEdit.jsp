@@ -219,7 +219,8 @@
         hideContextualMessages("pointProperties");
         var locator = currentPoint.pointLocator;
         
-        // Prevents DWR warnings
+        // Prevents DWR warnings. These properties are read-only. If sent back to the server
+        // DWR will say as much. Deleting the properties saves a bit of logging.
         delete locator.configurationDescription;
         delete locator.dataTypeMessage;
         

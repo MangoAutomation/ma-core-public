@@ -29,6 +29,14 @@ fi
 MA_CP=$MA_HOME/overrides/classes
 MA_CP=$MA_CP:$MA_HOME/classes
 MA_CP=$MA_CP:$MA_HOME/overrides/properties
+
+# Add all of the jar files in the overrides/lib dir to the classpath
+for f in $MA_HOME/overrides/lib/*.jar
+do
+  MA_CP=$MA_CP:$f
+done
+
+# Add all of the jar files in the lib dir to the classpath
 for f in $MA_HOME/lib/*.jar
 do
   MA_CP=$MA_CP:$f
@@ -44,7 +52,7 @@ LOOP_EXIT=false
 while [ $LOOP_EXIT = false ]; do
     $EXECJAVA $JPDA -server -cp $MA_CP \
     -Dma.home=$MA_HOME \
-    -Djava.library.path=$MA/lib:$PATH \
+    -Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:$PATH \
     com.serotonin.m2m2.Main
     
     if [ ! -r "$MA_HOME"/RESTART ]; then

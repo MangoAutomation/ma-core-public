@@ -34,316 +34,414 @@ import com.serotonin.util.ILifecycle;
  * @author Matthew Lohbihler
  */
 public class EventManager implements ILifecycle {
-    private final Log log = LogFactory.getLog(EventManager.class);
+	private final Log log = LogFactory.getLog(EventManager.class);
+	private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
+																	// minutes.
 
-    private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<EventManagerListenerDefinition>();
-    private final List<EventInstance> activeEvents = new CopyOnWriteArrayList<EventInstance>();
-    private EventDao eventDao;
-    private UserDao userDao;
-    private long lastAlarmTimestamp = 0;
-    private int highestActiveAlarmLevel = 0;
+	private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<EventManagerListenerDefinition>();
+	private final List<EventInstance> activeEvents = new CopyOnWriteArrayList<EventInstance>();
+	private final List<EventInstance> recentEvents = new ArrayList<EventInstance>();
+	private EventDao eventDao;
+	private UserDao userDao;
+	private long lastAlarmTimestamp = 0;
+	private int highestActiveAlarmLevel = 0;
 
-    //
-    //
-    // Basic event management.
-    //
-    public void raiseEvent(EventType type, long time, boolean rtnApplicable, int alarmLevel,
-            TranslatableMessage message, Map<String, Object> context) {
-        // Check if there is an event for this type already active.
-        EventInstance dup = get(type);
-        if (dup != null) {
-            // Check the duplicate handling.
-            int dh = type.getDuplicateHandling();
-            if (dh == EventType.DuplicateHandling.DO_NOT_ALLOW) {
-                // Create a log error...
-                log.error("An event was raised for a type that is already active: type=" + type + ", message="
-                        + message.getKey());
-                // ... but ultimately just ignore the thing.
-                return;
-            }
+	//
+	//
+	// Basic event management.
+	//
+	public void raiseEvent(EventType type, long time, boolean rtnApplicable,
+			int alarmLevel, TranslatableMessage message,
+			Map<String, Object> context) {
+		// Check if there is an event for this type already active.
+		EventInstance dup = get(type);
+		if (dup != null) {
+			// Check the duplicate handling.
+			boolean discard = canDiscard(type, message);
+			if (discard)
+				return;
 
-            if (dh == EventType.DuplicateHandling.IGNORE)
-                // Safely return.
-                return;
+			// Otherwise we just continue...
+		} else if (!rtnApplicable) {
+			// Check if we've already seen this type recently.
+			boolean recent = isRecent(type, message);
+			if (recent)
+				return;
+		}
 
-            if (dh == EventType.DuplicateHandling.IGNORE_SAME_MESSAGE) {
-                // Ignore only if the message is the same. There may be events of this type with different messages,
-                // so look through them all for a match.
-                for (EventInstance e : getAll(type)) {
-                    if (e.getMessage().equals(message))
-                        return;
-                }
-            }
+		// Determine if the event should be suppressed.
+		TranslatableMessage autoAckMessage = null;
+		for (EventManagerListenerDefinition l : listeners) {
+			autoAckMessage = l.autoAckEventWithMessage(type);
+			if (autoAckMessage != null)
+				break;
+		}
 
-            // Otherwise we just continue...
-        }
+		EventInstance evt = new EventInstance(type, time, rtnApplicable,
+				alarmLevel, message, context);
 
-        // Determine if the event should be suppressed.
-        TranslatableMessage autoAckMessage = null;
-        for (EventManagerListenerDefinition l : listeners) {
-            autoAckMessage = l.autoAckEventWithMessage(type);
-            if (autoAckMessage != null)
-                break;
-        }
+		if (autoAckMessage == null)
+			setHandlers(evt);
 
-        EventInstance evt = new EventInstance(type, time, rtnApplicable, alarmLevel, message, context);
+		// Get id from database by inserting event immediately.
+		eventDao.saveEvent(evt);
 
-        if (autoAckMessage == null)
-            setHandlers(evt);
+		// Create user alarm records for all applicable users
+		List<Integer> eventUserIds = new ArrayList<Integer>();
+		Set<String> emailUsers = new HashSet<String>();
 
-        // Get id from database by inserting event immediately.
-        eventDao.saveEvent(evt);
+		for (User user : userDao.getActiveUsers()) {
+			// Do not create an event for this user if the event type says the
+			// user should be skipped.
+			if (type.excludeUser(user))
+				continue;
 
-        // Create user alarm records for all applicable users
-        List<Integer> eventUserIds = new ArrayList<Integer>();
-        Set<String> emailUsers = new HashSet<String>();
+			if (Permissions.hasEventTypePermission(user, type)) {
+				eventUserIds.add(user.getId());
+				if (evt.isAlarm() && user.getReceiveAlarmEmails() > 0
+						&& alarmLevel >= user.getReceiveAlarmEmails())
+					emailUsers.add(user.getEmail());
+			}
+		}
 
-        for (User user : userDao.getActiveUsers()) {
-            // Do not create an event for this user if the event type says the user should be skipped.
-            if (type.excludeUser(user))
-                continue;
+		if (eventUserIds.size() > 0) {
+			eventDao.insertUserEvents(evt.getId(), eventUserIds, evt.isAlarm());
+			if (autoAckMessage == null && evt.isAlarm())
+				lastAlarmTimestamp = System.currentTimeMillis();
+		}
 
-            if (Permissions.hasEventTypePermission(user, type)) {
-                eventUserIds.add(user.getId());
-                if (evt.isAlarm() && user.getReceiveAlarmEmails() > 0 && alarmLevel >= user.getReceiveAlarmEmails())
-                    emailUsers.add(user.getEmail());
-            }
-        }
+		if (evt.isRtnApplicable())
+			activeEvents.add(evt);
+		else if (evt.getEventType().isRateLimited()) {
+			synchronized (emailUsers) {
+				recentEvents.add(evt);
+			}
+		}
 
-        if (eventUserIds.size() > 0) {
-            eventDao.insertUserEvents(evt.getId(), eventUserIds, evt.isAlarm());
-            if (autoAckMessage == null && evt.isAlarm())
-                lastAlarmTimestamp = System.currentTimeMillis();
-        }
+		if (autoAckMessage != null)
+			eventDao.ackEvent(evt.getId(), time, 0, autoAckMessage);
+		else {
+			if (evt.isRtnApplicable()) {
+				if (alarmLevel > highestActiveAlarmLevel) {
+					int oldValue = highestActiveAlarmLevel;
+					highestActiveAlarmLevel = alarmLevel;
+					SystemEventType
+							.raiseEvent(
+									new SystemEventType(
+											SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED),
+									time,
+									false,
+									getAlarmLevelChangeMessage(
+											"event.alarmMaxIncreased", oldValue));
+				}
+			}
 
-        if (evt.isRtnApplicable())
-            activeEvents.add(evt);
+			// Call raiseEvent handlers.
+			handleRaiseEvent(evt, emailUsers);
 
-        if (autoAckMessage != null)
-            eventDao.ackEvent(evt.getId(), time, 0, autoAckMessage);
-        else {
-            if (evt.isRtnApplicable()) {
-                if (alarmLevel > highestActiveAlarmLevel) {
-                    int oldValue = highestActiveAlarmLevel;
-                    highestActiveAlarmLevel = alarmLevel;
-                    SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED), time,
-                            false, getAlarmLevelChangeMessage("event.alarmMaxIncreased", oldValue));
-                }
-            }
+			if (log.isDebugEnabled())
+				log.debug("Event raised: type=" + type + ", message="
+						+ message.translate(Common.getTranslations()));
+		}
+	}
 
-            // Call raiseEvent handlers.
-            handleRaiseEvent(evt, emailUsers);
+	private boolean canDiscard(EventType type, TranslatableMessage message) {
+		// Check the duplicate handling.
+		int dh = type.getDuplicateHandling();
+		if (dh == EventType.DuplicateHandling.DO_NOT_ALLOW) {
+			// Create a log error...
+			log.error("An event was raised for a type that is already active: type="
+					+ type + ", message=" + message.getKey());
+			// ... but ultimately just ignore the thing.
+			return true;
+		}
 
-            if (log.isDebugEnabled())
-                log.debug("Event raised: type=" + type + ", message=" + message.translate(Common.getTranslations()));
-        }
-    }
+		if (dh == EventType.DuplicateHandling.IGNORE)
+			// Safely return.
+			return true;
 
-    public void returnToNormal(EventType type, long time) {
-        returnToNormal(type, time, EventInstance.RtnCauses.RETURN_TO_NORMAL);
-    }
+		if (dh == EventType.DuplicateHandling.IGNORE_SAME_MESSAGE) {
+			// Ignore only if the message is the same. There may be events of
+			// this type with different messages,
+			// so look through them all for a match.
+			for (EventInstance e : getAll(type)) {
+				if (e.getMessage().equals(message))
+					return true;
+			}
+		}
 
-    public void returnToNormal(EventType type, long time, int cause) {
-        EventInstance evt = remove(type);
+		return false;
+	}
 
-        // Loop in case of multiples
-        while (evt != null) {
-            resetHighestAlarmLevel(time);
+	private boolean isRecent(EventType type, TranslatableMessage message) {
+		long cutoff = System.currentTimeMillis() - RECENT_EVENT_PERIOD;
+		// Iterate through the recent events list.
+		synchronized (recentEvents) {
+			for (int i = recentEvents.size() - 1; i >= 0; i--) {
+				EventInstance evt = recentEvents.get(i);
+				// This method also purges the list, so we need to check if the
+				// event instance has expired or not.
+				if (cutoff > evt.getActiveTimestamp())
+					recentEvents.remove(i);
+				else if (evt.getEventType().equals(type)
+						&& evt.getMessage().equals(message))
+					return true;
+			}
+		}
+		return false;
+	}
 
-            evt.returnToNormal(time, cause);
-            eventDao.saveEvent(evt);
+	public void returnToNormal(EventType type, long time) {
+		returnToNormal(type, time, EventInstance.RtnCauses.RETURN_TO_NORMAL);
+	}
 
-            // Call inactiveEvent handlers.
-            handleInactiveEvent(evt);
+	public void returnToNormal(EventType type, long time, int cause) {
+		EventInstance evt = remove(type);
 
-            // Check for another
-            evt = remove(type);
-        }
+		// Loop in case of multiples
+		while (evt != null) {
+			resetHighestAlarmLevel(time);
 
-        if (log.isDebugEnabled())
-            log.debug("Event returned to normal: type=" + type);
-    }
+			evt.returnToNormal(time, cause);
+			eventDao.saveEvent(evt);
 
-    private void deactivateEvent(EventInstance evt, long time, int inactiveCause) {
-        activeEvents.remove(evt);
-        resetHighestAlarmLevel(time);
-        evt.returnToNormal(time, inactiveCause);
-        eventDao.saveEvent(evt);
+			// Call inactiveEvent handlers.
+			handleInactiveEvent(evt);
 
-        // Call inactiveEvent handlers.
-        handleInactiveEvent(evt);
-    }
+			// Check for another
+			evt = remove(type);
+		}
 
-    public long getLastAlarmTimestamp() {
-        return lastAlarmTimestamp;
-    }
+		if (log.isDebugEnabled())
+			log.debug("Event returned to normal: type=" + type);
+	}
 
-    //
-    //
-    // Canceling events.
-    //
-    public void cancelEventsForDataPoint(int dataPointId) {
-        for (EventInstance e : activeEvents) {
-            if (e.getEventType().getDataPointId() == dataPointId)
-                deactivateEvent(e, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
-        }
-    }
+	private void deactivateEvent(EventInstance evt, long time, int inactiveCause) {
+		activeEvents.remove(evt);
+		resetHighestAlarmLevel(time);
+		evt.returnToNormal(time, inactiveCause);
+		eventDao.saveEvent(evt);
 
-    public void cancelEventsForDataSource(int dataSourceId) {
-        for (EventInstance e : activeEvents) {
-            if (e.getEventType().getDataSourceId() == dataSourceId)
-                deactivateEvent(e, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
-        }
-    }
+		// Call inactiveEvent handlers.
+		handleInactiveEvent(evt);
+	}
 
-    public void cancelEventsForPublisher(int publisherId) {
-        for (EventInstance e : activeEvents) {
-            if (e.getEventType().getPublisherId() == publisherId)
-                deactivateEvent(e, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
-        }
-    }
+	public long getLastAlarmTimestamp() {
+		return lastAlarmTimestamp;
+	}
 
-    private void resetHighestAlarmLevel(long time) {
-        int max = 0;
-        for (EventInstance e : activeEvents) {
-            if (e.getAlarmLevel() > max)
-                max = e.getAlarmLevel();
-        }
+	//
+	//
+	// Canceling events.
+	//
+	public void cancelEventsForDataPoint(int dataPointId) {
+		for (EventInstance e : activeEvents) {
+			if (e.getEventType().getDataPointId() == dataPointId)
+				deactivateEvent(e, System.currentTimeMillis(),
+						EventInstance.RtnCauses.SOURCE_DISABLED);
+		}
 
-        if (max > highestActiveAlarmLevel) {
-            int oldValue = highestActiveAlarmLevel;
-            highestActiveAlarmLevel = max;
-            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED), time, false,
-                    getAlarmLevelChangeMessage("event.alarmMaxIncreased", oldValue));
-        }
-        else if (max < highestActiveAlarmLevel) {
-            int oldValue = highestActiveAlarmLevel;
-            highestActiveAlarmLevel = max;
-            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED), time, false,
-                    getAlarmLevelChangeMessage("event.alarmMaxDecreased", oldValue));
-        }
-    }
+		synchronized (recentEvents) {
+			for (int i = recentEvents.size() - 1; i >= 0; i--) {
+				EventInstance e = recentEvents.get(i);
+				if (e.getEventType().getDataPointId() == dataPointId)
+					recentEvents.remove(i);
+			}
+		}
+	}
 
-    private TranslatableMessage getAlarmLevelChangeMessage(String key, int oldValue) {
-        return new TranslatableMessage(key, AlarmLevels.getAlarmLevelMessage(oldValue),
-                AlarmLevels.getAlarmLevelMessage(highestActiveAlarmLevel));
-    }
+	public void cancelEventsForDataSource(int dataSourceId) {
+		for (EventInstance e : activeEvents) {
+			if (e.getEventType().getDataSourceId() == dataSourceId)
+				deactivateEvent(e, System.currentTimeMillis(),
+						EventInstance.RtnCauses.SOURCE_DISABLED);
+		}
 
-    //
-    //
-    // Lifecycle interface
-    //
-    @Override
-    public void initialize() {
-        eventDao = new EventDao();
-        userDao = new UserDao();
+		synchronized (recentEvents) {
+			for (int i = recentEvents.size() - 1; i >= 0; i--) {
+				EventInstance e = recentEvents.get(i);
+				if (e.getEventType().getDataSourceId() == dataSourceId)
+					recentEvents.remove(i);
+			}
+		}
+	}
 
-        // Get all active events from the database.
-        activeEvents.addAll(eventDao.getActiveEvents());
-        lastAlarmTimestamp = System.currentTimeMillis();
-        resetHighestAlarmLevel(lastAlarmTimestamp);
-    }
+	public void cancelEventsForPublisher(int publisherId) {
+		for (EventInstance e : activeEvents) {
+			if (e.getEventType().getPublisherId() == publisherId)
+				deactivateEvent(e, System.currentTimeMillis(),
+						EventInstance.RtnCauses.SOURCE_DISABLED);
+		}
 
-    @Override
-    public void terminate() {
-        // no op
-    }
+		synchronized (recentEvents) {
+			for (int i = recentEvents.size() - 1; i >= 0; i--) {
+				EventInstance e = recentEvents.get(i);
+				if (e.getEventType().getPublisherId() == publisherId)
+					recentEvents.remove(i);
+			}
+		}
+	}
 
-    @Override
-    public void joinTermination() {
-        // no op
-    }
+	private void resetHighestAlarmLevel(long time) {
+		int max = 0;
+		for (EventInstance e : activeEvents) {
+			if (e.getAlarmLevel() > max)
+				max = e.getAlarmLevel();
+		}
 
-    //
-    //
-    // Listeners
-    //
-    public void addListener(EventManagerListenerDefinition l) {
-        listeners.add(l);
-    }
+		if (max > highestActiveAlarmLevel) {
+			int oldValue = highestActiveAlarmLevel;
+			highestActiveAlarmLevel = max;
+			SystemEventType.raiseEvent(
+					new SystemEventType(
+							SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED),
+					time,
+					false,
+					getAlarmLevelChangeMessage("event.alarmMaxIncreased",
+							oldValue));
+		} else if (max < highestActiveAlarmLevel) {
+			int oldValue = highestActiveAlarmLevel;
+			highestActiveAlarmLevel = max;
+			SystemEventType.raiseEvent(
+					new SystemEventType(
+							SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED),
+					time,
+					false,
+					getAlarmLevelChangeMessage("event.alarmMaxDecreased",
+							oldValue));
+		}
+	}
 
-    public void removeListener(EventManagerListenerDefinition l) {
-        listeners.remove(l);
-    }
+	private TranslatableMessage getAlarmLevelChangeMessage(String key,
+			int oldValue) {
+		return new TranslatableMessage(key,
+				AlarmLevels.getAlarmLevelMessage(oldValue),
+				AlarmLevels.getAlarmLevelMessage(highestActiveAlarmLevel));
+	}
 
-    //
-    //
-    // Convenience
-    //
-    /**
-     * Returns the first event instance with the given type, or null is there is none.
-     */
-    private EventInstance get(EventType type) {
-        for (EventInstance e : activeEvents) {
-            if (e.getEventType().equals(type))
-                return e;
-        }
-        return null;
-    }
+	//
+	//
+	// Lifecycle interface
+	//
+	@Override
+	public void initialize() {
+		eventDao = new EventDao();
+		userDao = new UserDao();
 
-    private List<EventInstance> getAll(EventType type) {
-        List<EventInstance> result = new ArrayList<EventInstance>();
-        for (EventInstance e : activeEvents) {
-            if (e.getEventType().equals(type))
-                result.add(e);
-        }
-        return result;
-    }
+		// Get all active events from the database.
+		activeEvents.addAll(eventDao.getActiveEvents());
+		lastAlarmTimestamp = System.currentTimeMillis();
+		resetHighestAlarmLevel(lastAlarmTimestamp);
+	}
 
-    /**
-     * Finds and removes the first event instance with the given type. Returns null if there is none.
-     * 
-     * @param type
-     * @return
-     */
-    private EventInstance remove(EventType type) {
-        for (EventInstance e : activeEvents) {
-            if (e.getEventType().equals(type)) {
-                activeEvents.remove(e);
-                return e;
-            }
-        }
-        return null;
-    }
+	@Override
+	public void terminate() {
+		// no op
+	}
 
-    private void setHandlers(EventInstance evt) {
-        List<EventHandlerVO> vos = eventDao.getEventHandlers(evt.getEventType());
-        List<EventHandlerRT> rts = null;
-        for (EventHandlerVO vo : vos) {
-            if (!vo.isDisabled()) {
-                if (rts == null)
-                    rts = new ArrayList<EventHandlerRT>();
-                rts.add(vo.createRuntime());
-            }
-        }
-        if (rts != null)
-            evt.setHandlers(rts);
-    }
+	@Override
+	public void joinTermination() {
+		// no op
+	}
 
-    private void handleRaiseEvent(EventInstance evt, Set<String> defaultAddresses) {
-        if (evt.getHandlers() != null) {
-            for (EventHandlerRT h : evt.getHandlers()) {
-                h.eventRaised(evt);
+	//
+	//
+	// Listeners
+	//
+	public void addListener(EventManagerListenerDefinition l) {
+		listeners.add(l);
+	}
 
-                // If this is an email handler, remove any addresses to which it was sent from the default addresses
-                // so that the default users do not receive multiple notifications.
-                if (h instanceof EmailHandlerRT) {
-                    for (String addr : ((EmailHandlerRT) h).getActiveRecipients())
-                        defaultAddresses.remove(addr);
-                }
-            }
-        }
+	public void removeListener(EventManagerListenerDefinition l) {
+		listeners.remove(l);
+	}
 
-        if (!defaultAddresses.isEmpty()) {
-            // If there are still any addresses left in the list, send them the notification.
-            EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
-        }
-    }
+	//
+	//
+	// Convenience
+	//
+	/**
+	 * Returns the first event instance with the given type, or null is there is
+	 * none.
+	 */
+	private EventInstance get(EventType type) {
+		for (EventInstance e : activeEvents) {
+			if (e.getEventType().equals(type))
+				return e;
+		}
+		return null;
+	}
 
-    private void handleInactiveEvent(EventInstance evt) {
-        if (evt.getHandlers() != null) {
-            for (EventHandlerRT h : evt.getHandlers())
-                h.eventInactive(evt);
-        }
-    }
+	private List<EventInstance> getAll(EventType type) {
+		List<EventInstance> result = new ArrayList<EventInstance>();
+		for (EventInstance e : activeEvents) {
+			if (e.getEventType().equals(type))
+				result.add(e);
+		}
+		return result;
+	}
+
+	/**
+	 * Finds and removes the first event instance with the given type. Returns
+	 * null if there is none.
+	 * 
+	 * @param type
+	 * @return
+	 */
+	private EventInstance remove(EventType type) {
+		for (EventInstance e : activeEvents) {
+			if (e.getEventType().equals(type)) {
+				activeEvents.remove(e);
+				return e;
+			}
+		}
+		return null;
+	}
+
+	private void setHandlers(EventInstance evt) {
+		List<EventHandlerVO> vos = eventDao
+				.getEventHandlers(evt.getEventType());
+		List<EventHandlerRT> rts = null;
+		for (EventHandlerVO vo : vos) {
+			if (!vo.isDisabled()) {
+				if (rts == null)
+					rts = new ArrayList<EventHandlerRT>();
+				rts.add(vo.createRuntime());
+			}
+		}
+		if (rts != null)
+			evt.setHandlers(rts);
+	}
+
+	private void handleRaiseEvent(EventInstance evt,
+			Set<String> defaultAddresses) {
+		if (evt.getHandlers() != null) {
+			for (EventHandlerRT h : evt.getHandlers()) {
+				h.eventRaised(evt);
+
+				// If this is an email handler, remove any addresses to which it
+				// was sent from the default addresses
+				// so that the default users do not receive multiple
+				// notifications.
+				if (h instanceof EmailHandlerRT) {
+					for (String addr : ((EmailHandlerRT) h)
+							.getActiveRecipients())
+						defaultAddresses.remove(addr);
+				}
+			}
+		}
+
+		if (!defaultAddresses.isEmpty()) {
+			// If there are still any addresses left in the list, send them the
+			// notification.
+			EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
+		}
+	}
+
+	private void handleInactiveEvent(EventInstance evt) {
+		if (evt.getHandlers() != null) {
+			for (EventHandlerRT h : evt.getHandlers())
+				h.eventInactive(evt);
+		}
+	}
 }

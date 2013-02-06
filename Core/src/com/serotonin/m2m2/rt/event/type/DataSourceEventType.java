@@ -44,8 +44,13 @@ public class DataSourceEventType extends EventType {
     public String getEventSubtype() {
         return null;
     }
+    
+    @Override
+	public boolean isRateLimited() {
+		return true;
+	}
 
-    public int getDataSourceEventTypeId() {
+	public int getDataSourceEventTypeId() {
         return dataSourceEventTypeId;
     }
 
