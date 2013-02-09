@@ -32,7 +32,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     protected boolean pointListChanged = false;
 
     // If polling is done with millis
-    private long pollingPeriodMillis = 300000; // Default to 5 minutes just to have something here
+    private long pollingPeriodMillis = 300000; // Default to 5 minutes just to
+                                               // have something here
     private boolean quantize;
 
     // If polling is done with cron
@@ -71,18 +72,28 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             jobThreadStartTime = fireTime;
 
             // Check if there were changes to the data points list.
-            synchronized (pointListChangeLock) {
-                updateChangedPoints();
-                doPoll(fireTime);
-            }
-        }
-        finally {
+            updateChangedPoints();
+
+            doPollNoSync(fireTime);
+        } finally {
             if (terminationLock != null) {
                 synchronized (terminationLock) {
                     terminationLock.notifyAll();
                 }
             }
             jobThread = null;
+        }
+    }
+
+    /**
+     * Override this method if you do not want the poll to synchronize on
+     * pointListChangeLock
+     * 
+     * @param time
+     */
+    protected void doPollNoSync(long time) {
+        synchronized (pointListChangeLock) {
+            doPoll(time);
         }
     }
 
