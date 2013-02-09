@@ -82,9 +82,15 @@ public class DataPointDao extends BaseDao {
     }
 
     public List<DataPointVO> getDataPoints(int dataSourceId, Comparator<DataPointVO> comparator) {
+        return getDataPoints(dataSourceId, comparator, true);
+    }
+
+    public List<DataPointVO> getDataPoints(int dataSourceId, Comparator<DataPointVO> comparator,
+            boolean includeRelationalData) {
         List<DataPointVO> dps = query(DATA_POINT_SELECT + " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
-        setRelationalData(dps);
+        if (includeRelationalData)
+            setRelationalData(dps);
         if (comparator != null)
             Collections.sort(dps, comparator);
         return dps;
@@ -164,7 +170,8 @@ public class DataPointDao extends BaseDao {
                 else
                     updateDataPoint(dp);
 
-                // Reset the point hierarchy so that the new or changed point gets reflected.
+                // Reset the point hierarchy so that the new or changed point
+                // gets reflected.
                 cachedPointHierarchy = null;
             }
         });
@@ -210,8 +217,10 @@ public class DataPointDao extends BaseDao {
         DataPointVO old = getDataPoint(dp.getId());
 
         if (old.getPointLocator().getDataTypeId() != dp.getPointLocator().getDataTypeId())
-            // Delete any point values where data type doesn't match the vo, just in case the data type was changed.
-            // Only do this if the data type has actually changed because it is just really slow if the database is
+            // Delete any point values where data type doesn't match the vo,
+            // just in case the data type was changed.
+            // Only do this if the data type has actually changed because it is
+            // just really slow if the database is
             // big or busy.
             new PointValueDao().deletePointValuesWithMismatchedType(dp.getId(), dp.getPointLocator().getDataTypeId());
 
@@ -245,7 +254,7 @@ public class DataPointDao extends BaseDao {
     }
 
     public void deleteDataPoints(final int dataSourceId) {
-        List<DataPointVO> old = getDataPoints(dataSourceId, null);
+        List<DataPointVO> old = getDataPoints(dataSourceId, null, true);
 
         for (DataPointVO dp : old) {
             for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
@@ -399,8 +408,7 @@ public class DataPointDao extends BaseDao {
                                 Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                                 Types.VARCHAR, Types.DOUBLE }));
                 AuditEventType.raiseAddedEvent(AuditEventType.TYPE_POINT_EVENT_DETECTOR, ped);
-            }
-            else {
+            } else {
                 PointEventDetectorVO old = removeFromList(existingDetectors, ped.getId());
 
                 ejt.update(
@@ -418,7 +426,8 @@ public class DataPointDao extends BaseDao {
             }
         }
 
-        // Delete detectors for any remaining ids in the list of existing detectors.
+        // Delete detectors for any remaining ids in the list of existing
+        // detectors.
         for (PointEventDetectorVO ped : existingDetectors) {
             ejt.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
                     new Object[] { EventType.EventTypeNames.DATA_POINT, dp.getId(), ped.getId() });
