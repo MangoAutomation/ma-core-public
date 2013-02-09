@@ -15,14 +15,10 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.filter.LoginPageProvider;
+import com.serotonin.provider.Providers;
 
 public class LogoutController extends AbstractController {
-    private String redirectUrl;
-
-    public void setRedirectUrl(String redirectUrl) {
-        this.redirectUrl = redirectUrl;
-    }
-
     @Override
     protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response) {
         // Check if the user is logged in.
@@ -37,6 +33,7 @@ public class LogoutController extends AbstractController {
         }
 
         // Regardless of what happened above, forward to the configured view.
-        return new ModelAndView(new RedirectView(redirectUrl));
+        String uri = Providers.get(LoginPageProvider.class).getForwardUri();
+        return new ModelAndView(new RedirectView(uri));
     }
 }
