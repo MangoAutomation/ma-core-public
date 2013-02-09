@@ -461,7 +461,7 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
                 DataPointDao dataPointDao = new DataPointDao();
                 List<Integer> permittedPoints = new ArrayList<Integer>();
                 for (Integer dsId : dataSourcePermissions) {
-                    for (DataPointVO dp : dataPointDao.getDataPoints(dsId, null))
+                    for (DataPointVO dp : dataPointDao.getDataPoints(dsId, null, false))
                         permittedPoints.add(dp.getId());
                 }
 
