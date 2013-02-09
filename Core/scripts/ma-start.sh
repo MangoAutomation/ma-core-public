@@ -52,7 +52,7 @@ LOOP_EXIT=false
 while [ $LOOP_EXIT = false ]; do
     $EXECJAVA $JPDA -server -cp $MA_CP \
     -Dma.home=$MA_HOME \
-    -Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:$PATH \
+    -Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH \
     com.serotonin.m2m2.Main
     
     if [ ! -r "$MA_HOME"/RESTART ]; then
