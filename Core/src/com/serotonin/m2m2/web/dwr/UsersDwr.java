@@ -65,7 +65,8 @@ public class UsersDwr extends BaseDwr {
                 ds.put("id", dsvo.getId());
                 ds.put("name", dsvo.getName());
                 points = new LinkedList<Map<String, Object>>();
-                for (DataPointVO dpvo : dataPointDao.getDataPoints(dsvo.getId(), DataPointNameComparator.instance)) {
+                for (DataPointVO dpvo : dataPointDao.getDataPoints(dsvo.getId(), DataPointNameComparator.instance,
+                        false)) {
                     dp = new HashMap<String, Object>();
                     dp.put("id", dpvo.getId());
                     dp.put("name", dpvo.getName());
