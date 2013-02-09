@@ -83,7 +83,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return null;
 
-        List<DataPointVO> points = new DataPointDao().getDataPoints(ds.getId(), DataPointNameComparator.instance);
+        List<DataPointVO> points = new DataPointDao()
+                .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         return points;
     }
 
@@ -121,6 +122,11 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO locator,
             DataPointDefaulter defaulter) {
+        return validatePoint(id, xid, name, locator, defaulter, true);
+    }
+
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO locator,
+            DataPointDefaulter defaulter, boolean includePointList) {
         ProcessResult response = new ProcessResult();
 
         DataPointVO dp = getPoint(id, defaulter);
@@ -149,7 +155,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             if (defaulter != null)
                 defaulter.postSave(dp);
             response.addData("id", dp.getId());
-            response.addData("points", getPoints());
+            if (includePointList)
+                response.addData("points", getPoints());
         }
 
         return response;
