@@ -69,6 +69,8 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     private boolean receiveOwnAuditEvents;
     @JsonProperty
     private String timezone;
+    @JsonProperty
+    private boolean muted = true;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -80,7 +82,6 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     private transient TestingUtility testingUtility;
     private transient PublisherVO<? extends PublishedPointVO> editPublisher;
     private transient ImportTask importTask;
-    private transient boolean muted = false;
     private transient DataExportDefinition dataExportDefinition;
     private transient EventExportDefinition eventExportDefinition;
     private transient TimeZone _tz;

@@ -25,7 +25,8 @@ create table users (
   homeUrl varchar(255),
   receiveAlarmEmails int not null,
   receiveOwnAuditEvents char(1) not null,
-  timezone varchar(50)
+  timezone varchar(50),
+  muted char(1)
 );
 alter table users add constraint usersPk primary key (id);
 

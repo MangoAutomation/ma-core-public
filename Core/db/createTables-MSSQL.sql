@@ -26,6 +26,7 @@ create table users (
   receiveAlarmEmails int not null,
   receiveOwnAuditEvents char(1) not null,
   timezone nvarchar(50),
+  muted char(1),
   primary key (id)
 );
 

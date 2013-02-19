@@ -29,8 +29,8 @@ public class UserDao extends BaseDao {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final String USER_SELECT = //
-    "select id, username, password, email, phone, admin, disabled, homeUrl, "
-            + "lastLogin, receiveAlarmEmails, receiveOwnAuditEvents, timezone from users ";
+    "SELECT id, username, password, email, phone, admin, disabled, homeUrl, " //
+            + "lastLogin, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted FROM users ";
 
     public User getUser(int id) {
         User user = queryForObject(USER_SELECT + "where id=?", new Object[] { id }, new UserRowMapper(), null);
@@ -62,6 +62,7 @@ public class UserDao extends BaseDao {
             user.setReceiveAlarmEmails(rs.getInt(++i));
             user.setReceiveOwnAuditEvents(charToBool(rs.getString(++i)));
             user.setTimezone(rs.getString(++i));
+            user.setMuted(charToBool(rs.getString(++i)));
             return user;
         }
     }
@@ -118,24 +119,25 @@ public class UserDao extends BaseDao {
     }
 
     private static final String USER_INSERT = "insert into users (username, password, email, phone, admin, " //
-            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone) " //
-            + "values (?,?,?,?,?,?,?,?,?,?)";
+            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted) " //
+            + "values (?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
         int id = doInsert(
                 USER_INSERT,
                 new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                         boolToChar(user.isAdmin()), boolToChar(user.isDisabled()), user.getHomeUrl(),
-                        user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone() },
-                new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR });
+                        user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
+                        boolToChar(user.isMuted()) }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR,
+                        Types.VARCHAR, Types.VARCHAR });
         user.setId(id);
         saveRelationalData(user);
     }
 
     private static final String USER_UPDATE = "update users set " //
             + "  username=?, password=?, email=?, phone=?, admin=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=? " //
+            + "  receiveOwnAuditEvents=?, timezone=?, muted=? " //
             + "where id=?";
 
     void updateUser(User user) {
@@ -153,9 +155,9 @@ public class UserDao extends BaseDao {
                     new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                             boolToChar(user.isAdmin()), boolToChar(user.isDisabled()), user.getHomeUrl(),
                             user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
-                            user.getTimezone(), user.getId() }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                            Types.VARCHAR, Types.VARCHAR, Types.INTEGER });
+                            user.getTimezone(), boolToChar(user.isMuted()), user.getId() }, new int[] { Types.VARCHAR,
+                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                            Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER });
             saveRelationalData(user);
         }
         catch (DataIntegrityViolationException e) {
@@ -222,6 +224,10 @@ public class UserDao extends BaseDao {
 
     public void saveHomeUrl(int userId, String homeUrl) {
         ejt.update("update users set homeUrl=? where id=?", new Object[] { homeUrl, userId });
+    }
+
+    public void saveMuted(int userId, boolean muted) {
+        ejt.update("UPDATE users SET muted=? where id=?", new Object[] { boolToChar(muted), userId });
     }
 
     //

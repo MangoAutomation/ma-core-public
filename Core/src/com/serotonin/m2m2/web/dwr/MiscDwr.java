@@ -113,6 +113,7 @@ public class MiscDwr extends BaseDwr {
         User user = Common.getUser();
         if (user != null) {
             user.setMuted(!user.isMuted());
+            new UserDao().saveMuted(user.getId(), user.isMuted());
             return user.isMuted();
         }
         return false;
@@ -232,12 +233,12 @@ public class MiscDwr extends BaseDwr {
         if (url.charAt(0) == ':')
             url = url.substring(Integer.toString(request.getServerPort()).length() + 1);
 
-        // Remove the context
-        url = url.substring(request.getContextPath().length());
-
-        // Remove any leading /
-        if (url.charAt(0) == '/')
-            url = url.substring(1);
+        //        // Remove the context
+        //        url = url.substring(request.getContextPath().length());
+        //
+        //        // Remove any leading /
+        //        if (url.charAt(0) == '/')
+        //            url = url.substring(1);
 
         // Save the result
         User user = Common.getUser();
