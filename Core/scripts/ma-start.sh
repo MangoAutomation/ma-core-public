@@ -9,7 +9,7 @@
 # Get standard environment variables
 PRGDIR=`dirname "$0"`
 
-#Uncommnet the following to log start up error
+#Uncomment the following to log start up error
 #exec >${PRGDIR}/logs/ma.out 2>${PRGDIR}/logs/ma.err
 
 # Only set MA_HOME if not already set
