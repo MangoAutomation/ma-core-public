@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="MA - Core" basedir="." default="build">
+<project name="MA - Core" basedir="." default="jsp-compile">
 	<property file="build.properties"/>
     <property name="fullName" value="m2m2-${name}-${version}" />
 	
@@ -70,9 +70,9 @@
         <copy todir="${build.dir}/lib" preservelastmodified="true">
             <fileset dir="lib"><include name="**/*.*"/></fileset>
         </copy>
-        <copy todir="${build.dir}" preservelastmodified="true">
-            <fileset dir="scripts"><include name="**/*.*"/></fileset>
-        </copy>
+<!--         <copy todir="${build.dir}" preservelastmodified="true"> -->
+<!--             <fileset dir="scripts"><include name="**/*.*"/></fileset> -->
+<!--         </copy> -->
         <copy todir="${build.dir}/web" preservelastmodified="true">
             <fileset dir="web">
             	<include name="**/*.*"/>
@@ -81,6 +81,7 @@
         <!-- Empty the modules dir -->
         <delete dir="${build.dir}/web/modules" />
         <mkdir dir="${build.dir}/web/modules" />
+        <mkdir dir="${build.dir}/web/modules/_save" />
         <!-- Empty the filedata dir -->
         <delete dir="${build.dir}/web/WEB-INF/filedata" />
         <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
@@ -107,7 +108,9 @@
                 <include name="licenseTypes.xml" />
             </fileset>
 	    	<fileset dir="${build.dir}"><include name="**/*"/></fileset>
-	    </zip>
+            <zipfileset dir="scripts" includes="*.bat" />
+	    	<zipfileset dir="scripts" includes="*.sh" filemode="755" />
+        </zip>
 	</target>
 	
 	<target name="docs">
