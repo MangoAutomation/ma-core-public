@@ -17,20 +17,19 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.provider.Providers;
 
-public class LoggedInFilter implements Filter, LoginPageProvider {
+public class LoggedInFilter implements Filter {
     private final Log LOGGER = LogFactory.getLog(LoggedInFilter.class);
-
-    private String forwardUri;
 
     // Free mode checking should arguably be done in a separate filter, but it
     // becomes too easy to just comment out
@@ -41,20 +40,7 @@ public class LoggedInFilter implements Filter, LoginPageProvider {
     private String exceededIpLimitUrl;
 
     @Override
-    public void setForwardUri(String forwardUri) {
-        this.forwardUri = forwardUri;
-    }
-
-    @Override
-    public String getForwardUri() {
-        return forwardUri;
-    }
-
-    @Override
     public void init(FilterConfig config) {
-        Providers.add(LoginPageProvider.class, this);
-
-        forwardUri = config.getInitParameter("forwardUri");
         exceededIpLimitUrl = config.getInitParameter("exceededIpLimitUrl");
 
         LicenseFeature uniqueIpAddresses = Common.licenseFeature("uniqueIpAddresses");
@@ -109,6 +95,13 @@ public class LoggedInFilter implements Filter, LoginPageProvider {
         if (!loggedIn) {
             LOGGER.info("Denying access to secure page for session id " + request.getSession().getId() + ", uri="
                     + request.getRequestURI());
+
+            String forwardUri = null;
+            for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+                forwardUri = def.getLoginPageUri(request, response);
+                if (!StringUtils.isBlank(forwardUri))
+                    break;
+            }
             response.sendRedirect(forwardUri);
             return;
         }

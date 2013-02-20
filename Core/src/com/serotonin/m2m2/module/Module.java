@@ -32,12 +32,24 @@ public class Module {
         });
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends ModuleElementDefinition> List<T> getDefinitions(List<ModuleElementDefinition> definitions,
+            Class<T> clazz) {
+        List<T> defs = new ArrayList<T>();
+        for (ModuleElementDefinition def : definitions) {
+            if (clazz.isAssignableFrom(def.getClass()))
+                defs.add((T) def);
+        }
+        return defs;
+    }
+
     private final String name;
     private final String version;
     private final TranslatableMessage description;
     private final String vendor;
     private final String vendorUrl;
     private final String dependencies;
+    private final int loadOrder;
     private boolean markedForDeletion;
     //    private boolean disabled;
 
@@ -57,13 +69,14 @@ public class Module {
      * @param vendorUrl
      */
     public Module(String name, String version, TranslatableMessage description, String vendor, String vendorUrl,
-            String dependencies) {
+            String dependencies, int loadOrder) {
         this.name = name;
         this.version = version;
         this.description = description;
         this.vendor = vendor;
         this.vendorUrl = vendorUrl;
         this.dependencies = dependencies;
+        this.loadOrder = loadOrder;
     }
 
     /**
@@ -164,6 +177,10 @@ public class Module {
         return dependencies;
     }
 
+    public int getLoadOrder() {
+        return loadOrder;
+    }
+
     public ModuleLicense license() {
         if (Common.license() == null)
             return null;
@@ -190,14 +207,8 @@ public class Module {
         definitions.add(definition);
     }
 
-    @SuppressWarnings("unchecked")
     public <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
-        List<T> defs = new ArrayList<T>();
-        for (ModuleElementDefinition def : definitions) {
-            if (clazz.isAssignableFrom(def.getClass()))
-                defs.add((T) def);
-        }
-        return defs;
+        return getDefinitions(definitions, clazz);
     }
 
     public List<TranslatableMessage> getLicenseErrors() {

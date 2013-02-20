@@ -99,8 +99,6 @@
     <property name="commandName"><value>login</value></property>
     <property name="commandClass"><value>com.serotonin.m2m2.web.mvc.form.LoginForm</value></property>
     <property name="formView"><value>/WEB-INF/jsp/login.jsp</value></property>
-    <property name="successUrl"><value>data_point_details.shtm</value></property>
-    <property name="newUserUrl"><value>help.shtm</value></property>
     <property name="bindOnNewForm"><value>true</value></property>
   </bean>
   

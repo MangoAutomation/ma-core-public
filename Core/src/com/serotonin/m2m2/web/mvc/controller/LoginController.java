@@ -18,6 +18,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.form.LoginForm;
@@ -25,17 +26,6 @@ import com.serotonin.util.ValidationUtils;
 
 @SuppressWarnings("deprecation")
 public class LoginController extends SimpleFormController {
-    private String successUrl;
-    private String newUserUrl;
-
-    public void setSuccessUrl(String url) {
-        successUrl = url;
-    }
-
-    public void setNewUserUrl(String newUserUrl) {
-        this.newUserUrl = newUserUrl;
-    }
-
     @Override
     protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response, BindException errors,
             @SuppressWarnings("rawtypes") Map controlModel) throws Exception {
@@ -53,7 +43,7 @@ public class LoginController extends SimpleFormController {
             }
 
             if (user != null)
-                return performLogin(request, user);
+                return performLogin(request, response, user);
         }
 
         return super.showForm(request, response, errors, controlModel);
@@ -106,7 +96,7 @@ public class LoginController extends SimpleFormController {
         if (errors.hasErrors())
             return showForm(request, response, errors);
 
-        return performLogin(request, user);
+        return performLogin(request, response, user);
     }
 
     private void checkDomain(HttpServletRequest request, BindException errors) {
@@ -116,7 +106,7 @@ public class LoginController extends SimpleFormController {
         }
     }
 
-    private ModelAndView performLogin(HttpServletRequest request, User user) {
+    private ModelAndView performLogin(HttpServletRequest request, HttpServletResponse response, User user) {
         if (user.isDisabled())
             throw new RuntimeException("User " + user.getUsername() + " is disabled. Aborting login");
 
@@ -129,14 +119,10 @@ public class LoginController extends SimpleFormController {
         if (logger.isDebugEnabled())
             logger.debug("User object added to session");
 
-        if (user.isFirstLogin())
-            return new ModelAndView(new RedirectView(newUserUrl));
-        if (!StringUtils.isBlank(user.getHomeUrl()))
-            return new ModelAndView(new RedirectView(user.getHomeUrl()));
-
         for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class))
             def.postLogin(user);
 
-        return new ModelAndView(new RedirectView(successUrl));
+        String uri = DefaultPagesDefinition.getDefaultUri(request, response, user);
+        return new ModelAndView(new RedirectView(uri));
     }
 }

@@ -7,13 +7,18 @@ package com.serotonin.m2m2.module;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * The registry of all modules in an MA instance.
@@ -22,7 +27,7 @@ import com.serotonin.m2m2.module.license.LicenseEnforcement;
  */
 public class ModuleRegistry {
     private static final Object LOCK = new Object();
-    private static final Map<String, Module> MODULES = new HashMap<String, Module>();
+    private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
 
     private static Map<String, DataSourceDefinition> DATA_SOURCE_DEFINITIONS;
     private static Map<String, PublisherDefinition> PUBLISHER_DEFINITIONS;
@@ -33,6 +38,7 @@ public class ModuleRegistry {
     private static Map<UrlMappingDefinition.Permission, List<UrlMappingDefinition>> MENU_ITEMS;
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
+    private static final List<ModuleElementDefinition> defaultDefinitions = new ArrayList<ModuleElementDefinition>();
 
     /**
      * @return a list of all available modules in the instance.
@@ -196,6 +202,7 @@ public class ModuleRegistry {
         List<T> defs = new ArrayList<T>();
         for (Module module : MODULES.values())
             defs.addAll(module.getDefinitions(clazz));
+        defs.addAll(Module.getDefinitions(defaultDefinitions, clazz));
         return defs;
     }
 
@@ -258,5 +265,25 @@ public class ModuleRegistry {
                 result.add((T) le);
         }
         return result;
+    }
+
+    static {
+        // Add default definitions
+        defaultDefinitions.add(new DefaultPagesDefinition() {
+            @Override
+            public String getLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
+                return "/login.htm";
+            }
+
+            @Override
+            public String getLoggedInPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
+                return "/data_point_details.shtm";
+            }
+
+            @Override
+            public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
+                return "/help.shtm";
+            }
+        });
     }
 }

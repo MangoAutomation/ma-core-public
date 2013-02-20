@@ -20,6 +20,7 @@ import com.serotonin.util.ColorUtils;
 public class SystemSettingsDao extends BaseDao {
     // Database schema version
     public static final String DATABASE_SCHEMA_VERSION = "databaseSchemaVersion";
+    public static final String NEW_INSTANCE = "newInstance";
 
     // Email settings
     public static final String EMAIL_SMTP_HOST = "emailSmtpHost";

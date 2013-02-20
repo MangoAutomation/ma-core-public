@@ -13,10 +13,9 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.filter.LoginPageProvider;
-import com.serotonin.provider.Providers;
 
 public class LogoutController extends AbstractController {
     @Override
@@ -32,8 +31,6 @@ public class LogoutController extends AbstractController {
                 def.logout(request, response, user);
         }
 
-        // Regardless of what happened above, forward to the configured view.
-        String uri = Providers.get(LoginPageProvider.class).getForwardUri();
-        return new ModelAndView(new RedirectView(uri));
+        return new ModelAndView(new RedirectView(DefaultPagesDefinition.getDefaultUri(request, response, null)));
     }
 }

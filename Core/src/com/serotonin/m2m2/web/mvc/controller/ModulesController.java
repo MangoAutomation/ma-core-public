@@ -36,7 +36,7 @@ public class ModulesController extends ParameterizableViewController {
 
         Module core = new Module("core", Common.getVersion().getFullString(), new TranslatableMessage(
                 "modules.core.description"), "Serotonin Software Technologies, Inc and InfiniteAUTOMATION SYSTEMS.",
-                "http://infiniteautomation.com", null);
+                "http://infiniteautomation.com", null, -1);
 
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
         modules.add(0, core);

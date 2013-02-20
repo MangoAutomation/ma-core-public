@@ -128,9 +128,15 @@ abstract public class DatabaseProxy {
                     user.setDataPointPermissions(new LinkedList<DataPointAccess>());
                     new UserDao().saveUser(user);
 
+                    SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+
                     // Record the current version.
-                    new SystemSettingsDao().setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                    systemSettingsDao.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                             Integer.toString(Common.getDatabaseSchemaVersion()));
+
+                    // Add the settings flag that this is a new instance. This flag is removed when an administrator
+                    // logs in.
+                    systemSettingsDao.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
                 }
             }
             else
