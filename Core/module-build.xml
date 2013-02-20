@@ -24,6 +24,16 @@
 
 	<target name="compile" description="Compile main source tree java files">
 		<mkdir dir="target"/>
+        
+        <available property="lib.exists" file="lib" type="dir" />
+        <if>
+            <isset property="lib.exists"/>
+            <then></then>
+            <else>
+                <mkdir dir="lib"/>
+            </else>
+        </if>
+        
 		<javac destdir="target" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" 
                 deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
 			<src path="src" />
@@ -59,9 +69,99 @@
 		        </copy>
 			</then>
 		</if>
-	</target>
-
-    <target name="zip" depends="jar" description="Create a jar file of the compiled classes">
+        
+        <available property="scripts.exists" file="scripts" type="dir" />
+        <if>
+            <isset property="scripts.exists"/>
+            <then>
+                <copy todir="target/bin" preservelastmodified="true">
+                    <fileset dir="scripts"><include name="**/*"/></fileset>
+                </copy>
+            </then>
+        </if>
+    </target>
+    
+    <target name="jsp-compile" depends="jar" description="Conditionally compile the JSPs">
+        <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="master-classpath" /></taskdef>
+        <available property="web.exists" file="web" type="dir" />
+        <if>
+            <isset property="web.exists"/>
+            <then>
+                <available property="work.exists" file="${coreHome}/target/work/jsp" type="dir" />
+                <if>
+                    <isset property="work.exists"/>
+                    <then>
+                        <antcall target="|jsp-compile"/>
+                    </then>
+                    <else>
+                        <fail message="Run the core jsp-compile target first"/>
+                    </else>
+                </if>
+            </then>
+        </if>
+    </target>
+    
+    <target name="|jsp-compile" description="Compile the JSPs">
+        <property name="module.core" value="${coreHome}/target/web/modules/${name}" />
+        
+        <!-- Copy the web files to core dirs -->
+        <delete dir="${module.core}"/>
+        <copy todir="${module.core}/web" preservelastmodified="true">
+            <fileset dir="web">
+                <include name="**/*.jsp"/>
+                <include name="**/*.jspf"/>
+                <include name="**/*.tag"/>
+                <include name="**/*.tagf"/>
+            </fileset>
+        </copy>
+        
+        <!-- Check if there is a tags lib -->
+        <if>
+            <isset property="tagdir"/>
+            <then>
+                <!-- Move the tag dir to under the WEB-INF dir -->
+                <move todir="${coreHome}/target/web/WEB-INF/tags/${name}">
+                    <fileset dir="${module.core}/${tagdir}"/>
+                </move>
+            </then>
+        </if>
+        
+        <!-- Get the list of files to compile -->
+        <fileset id="jsps.fs" dir="${coreHome}/target/web" includes="modules/${name}/**/*"/>
+        <property name="canonical" location="${coreHome}/target/web"/>
+        <pathconvert property="jsps" pathsep="," refid="jsps.fs">
+            <map from="${canonical}" to=""/>
+        </pathconvert>
+        
+        <!-- Compile the JSPs -->
+        <jetty-jspc uriroot="${coreHome}/target/web" outputDir="${coreHome}/target/work/jsp"
+                compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
+            <classpath>
+                <path refid="master-classpath"/>
+                <pathelement path="target/lib/${fullName}.jar"/>
+            </classpath>
+        </jetty-jspc>
+        
+        <!-- Copy the compiled stuff back to the module -->
+        <property name="pkg" value="target/work/jsp/org/apache/jsp/modules/${name}"/>
+        <copy todir="${pkg}" preservelastmodified="true">
+            <fileset dir="${coreHome}/${pkg}"><include name="**/*"/></fileset>
+        </copy>
+        
+        <if>
+            <isset property="tagdir"/>
+            <then>
+                <!-- Copy the compiled tag dir back to the module -->
+                <property name="tagpkg" value="target/work/jsp/org/apache/jsp/tag/web/${name}"/>
+                <echo message="${tagpkg}"/>
+                <copy todir="${tagpkg}" preservelastmodified="true">
+                    <fileset dir="${coreHome}/${tagpkg}"><include name="**/*"/></fileset>
+                </copy>
+            </then>
+        </if>
+    </target>
+    
+    <target name="zip" depends="jsp-compile" description="Create a jar file of the compiled classes">
         <delete file="target/${fullName}.zip" />
         <zip destfile="target/${fullName}.zip">
             <fileset dir="">
@@ -74,7 +174,9 @@
             <fileset dir=""><include name="dox/**/*" /></fileset>
             <fileset dir=""><include name="web/**/*" /></fileset>
             <fileset dir=""><include name="classes/**/*" /></fileset>
-        	<fileset dir="target" ><include name="src/**/*" /></fileset>
+            <fileset dir="target"><include name="work/**/*" /></fileset>
+            <fileset dir="target" ><include name="src/**/*" /></fileset>
+            <fileset dir="target" ><include name="bin/**/*" /></fileset>
         </zip>
     </target>
     
@@ -85,5 +187,11 @@
 <!--         <copy todir="${coreHome}/target/web/modules" preservelastmodified="true"> -->
 <!--             <fileset file="target/${fullName}.zip"/> -->
 <!--         </copy> -->
+    </target>
+    
+    <target name="copy-web" description="Copy the web dir to the core - useful when developing">
+        <copy todir="${coreHome}/web/modules/${name}/web" preservelastmodified="true">
+            <fileset dir="web"><include name="**/*"/></fileset>
+        </copy>
     </target>
 </project>
