@@ -24,7 +24,7 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
     // Working fields
     private TextRenderer textRenderer;
     private final String[] data = new String[5];
-    private final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy/MM/dd HH:mm:ss");
+    private final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy/MM/dd HH:mm:ss.SSS");
     private final CsvWriter csvWriter = new CsvWriter();
 
     public ExportCsvStreamer(PrintWriter out, Translations translations) {
@@ -40,11 +40,13 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
         out.write(csvWriter.encodeRow(data));
     }
 
+    @Override
     public void startPoint(ExportPointInfo pointInfo) {
         data[0] = pointInfo.getExtendedName();
         textRenderer = pointInfo.getTextRenderer();
     }
 
+    @Override
     public void pointData(ExportDataValue rdv) {
         data[1] = dtf.print(new DateTime(rdv.getTime()));
 
@@ -63,6 +65,7 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
         out.write(csvWriter.encodeRow(data));
     }
 
+    @Override
     public void done() {
         out.flush();
         out.close();
