@@ -27,9 +27,19 @@ abstract public class ServletDefinition extends ModuleElementDefinition {
     abstract public HttpServlet getServlet();
 
     /**
-     * @return the URI pattern used to direct requests to this servlet.
+     * @return the URI pattern used to direct requests to this servlet. If the getUriPatterns method is overridden,
+     *         this method will not be called.
      */
     abstract public String getUriPattern();
+
+    /**
+     * @return the array of URI patterns used to direct requests to this servlet. Override this method in order to
+     *         return multiple URIs. The default behaviour of this method is to create an array of length 1 with the
+     *         result of getUrlPattern.
+     */
+    public String[] getUriPatterns() {
+        return new String[] { getUriPattern() };
+    }
 
     /**
      * @return the init order of the servlet
