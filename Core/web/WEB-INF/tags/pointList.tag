@@ -26,7 +26,7 @@
     </td>
 
     <td valign="top">
-      <div id="pointDetails" class="borderDiv marB" style="display: none;">
+      <div id="pointDetails" class="borderDiv marB" style="display: none; position:absolute;">
         <table width="100%">
           <tr>
             <td>
@@ -37,6 +37,7 @@
               <tag:img id="pointSaveImg" png="save" onclick="savePoint()" title="common.save"/>
               <tag:img id="pointDeleteImg" png="delete" onclick="deletePoint()" title="common.delete" />
               <tag:img png="emport" title="emport.export" onclick="exportDataPoint()"/>
+              <tag:img png="cross" title="common.close" onclick="closePoint()"/>
             </td>
           </tr>
         </table>

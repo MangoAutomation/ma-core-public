@@ -201,8 +201,14 @@
         if (typeof editPointCBImpl == 'function') 
         	cancel = editPointCBImpl(locator);
         if (!cancel) {
-           	startImageFader("editImg"+ point.id);
+            var img = "editImg"+ point.id;
+           	startImageFader(img);
            	show("pointDetails");
+           	
+            require(["dojo/_base/html", "dojo/dom-style"], function(html, domStyle){
+                var position = html.position(img, true);
+                domStyle.set("pointDetails", "top", position.y +"px");
+           	});
         }
     }
     
@@ -236,6 +242,14 @@
             editPoint(response.data.id);
             showMessage("pointMessage", "<fmt:message key="dsEdit.pointSaved"/>");
         }
+    }
+    
+    function closePoint() {
+        if (currentPoint)
+            stopImageFader("editImg"+ currentPoint.id);
+        hideContextualMessages("pointProperties");
+        hide("pointDetails");
+        currentPoint = null;
     }
     
     function getAlarms() {

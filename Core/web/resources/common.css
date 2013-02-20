@@ -442,3 +442,5 @@ span.disabled { color: #aaa; }
 table { padding: 0; border-spacing: 2px; border-collapse: separate; }
 table tr td, table tr th { border: 0; }
 table.wide { width: 100%; }
+
+#pointDetails { background-color: #FFF; }
