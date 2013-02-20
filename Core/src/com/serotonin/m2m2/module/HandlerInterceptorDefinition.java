@@ -8,7 +8,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * A handler interceptor definition intercepts the processing of a page at multiple points - pre-handle, post-handle,
- * and after completion - allowing arbitrary treatment of the request at those time.
+ * and after completion - allowing arbitrary treatment of the request at those times.
  * 
  * @author Matthew Lohbihler
  */
