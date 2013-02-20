@@ -50,7 +50,7 @@ function help(documentId, source) {
             title: mango.i18n["js.help.loading"], 
             closeable: true,
             dockable: false,
-            resizable: true,
+            resizable: true
         }, div);
         
         fp.startup();
