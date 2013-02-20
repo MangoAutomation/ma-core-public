@@ -18,6 +18,6 @@ abstract public class ModuleDwr extends BaseDwr {
     }
 
     public String getModulePath() {
-        return "/" + module.getDirectoryPath();
+        return module.getDirectoryPath();
     }
 }
