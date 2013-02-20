@@ -88,6 +88,22 @@
             $set("<c:out value="<%= SystemSettingsDao.PLOT_BACKGROUND_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.PLOT_BACKGROUND_COLOUR %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.PLOT_GRIDLINE_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.PLOT_GRIDLINE_COLOUR %>"/>);
         });
+        
+        <c:if test="${!empty param.def}">
+          // There is a section to open by default. Close all open sections.
+          require(["dojo/query"], function(query) {
+              query("div.labelled-section:not(.closed)").forEach(function(node) { mango.closeLabelledSection(node) });
+          });
+          // Open the default section.
+          var label = $("labelled-section-${param.def}");
+          mango.toggleLabelledSection(label);
+          // After a short timeout, scroll the section into view.
+          setTimeout(function() {
+              require(["dojo/window"], function(win) {
+                  win.scrollIntoView(label.parentNode);
+              });
+          }, 500);
+        </c:if>
     }
     
     function setEventTypeData(listId, eventTypes, alarmFunctions, alarmOptions, alarmLevelsList) {
@@ -552,7 +568,7 @@
   </tag:labelledSection>
   
   <c:forEach items="<%= ModuleRegistry.getDefinitions(SystemSettingsDefinition.class) %>" var="def">
-    <tag:labelledSection labelKey="${def.descriptionKey}" closed="true">
+    <tag:labelledSection labelKey="${def.descriptionKey}" closed="true" sectionId="${def.module.name}">
       <c:set var="incpage">${def.module.webPath}/${def.sectionJspPath}</c:set>
       <jsp:include page="${incpage}"/>
     </tag:labelledSection>
