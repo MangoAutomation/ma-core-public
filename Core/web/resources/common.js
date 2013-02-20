@@ -117,6 +117,18 @@ function setDisabled(node, disabled) {
     }
 }
 
+function disable(/* node list */) {
+    var node;
+    for (var i=0; i<arguments.length; i++)
+        setDisabled(arguments[i], true);
+}
+
+function enable(/* node list */) {
+    var node;
+    for (var i=0; i<arguments.length; i++)
+        setDisabled(arguments[i], false);
+}
+
 function dump(o) {
     for (var p in o)
         dojo.debug(p +"="+ o[p]);
@@ -715,7 +727,10 @@ function writeImageSQuote(id, src, png, title, onclick) {
 }
 
 function hideContextualMessages(parent) {
-    parent = getNodeIfString(parent);
+    if (parent)
+        parent = getNodeIfString(parent);
+    else
+        parent = document;
     var nodes = dojo.query(".ctxmsg", parent);
     for (var i=0; i<nodes.length; i++)
         hide(nodes[i]);
@@ -771,16 +786,24 @@ function showDwrMessages(/*ProcessResult.messages*/messages, /*tbody*/genericMes
         }
         else {
             genericMessageNode = getNodeIfString(genericMessageNode);
-            dwr.util.removeAllRows(genericMessageNode);
-            dwr.util.addRows(genericMessageNode, genericMessages, [ function(data) { return data; } ],
-                {
-                    cellCreator:function(options) {
-                        var td = document.createElement("td");
-                        td.className = "formError";
-                        return td;
-                    }
-                });
-            show(genericMessageNode);
+            if (genericMessageNode.tagName == "TBODY") {
+                dwr.util.removeAllRows(genericMessageNode);
+                dwr.util.addRows(genericMessageNode, genericMessages, [ function(data) { return data; } ],
+                    {
+                        cellCreator:function(options) {
+                            var td = document.createElement("td");
+                            td.className = "formError";
+                            return td;
+                        }
+                    });
+                show(genericMessageNode);
+            }
+            else if (genericMessageNode.tagName == "DIV" || genericMessageNode.tagName == "SPAN") {
+                var content = "";
+                for (var i=0; i<genericMessages.length; i++)
+                    content += genericMessages[i] + "<br/>";
+                genericMessageNode.innerHTML = content;
+            }
         }
     }
 }
@@ -916,7 +939,7 @@ mango.share.writeSharedUsers = function(sharedUsers) {
         );
     }
     mango.share.updateUserList(sharedUsers);
-}
+};
 
 mango.share.updateUserList = function(sharedUsers) {
     dwr.util.removeAllOptions("allShareUsersList");
@@ -934,7 +957,7 @@ mango.share.updateUserList = function(sharedUsers) {
             availUsers.push(mango.share.users[i]);
     }
     dwr.util.addOptions("allShareUsersList", availUsers, "id", "username");
-}
+};
 
 mango.toggleLabelledSection = function(labelNode) {
 	var divNode = labelNode.parentNode;
@@ -942,4 +965,15 @@ mango.toggleLabelledSection = function(labelNode) {
         dojo.removeClass(divNode, "closed");
 	else
         dojo.addClass(divNode, "closed");
-}
+};
+
+mango.closeLabelledSection = function(node) {
+    dojo.addClass(node, "closed");
+};
+
+mango.pad = function(number, length) {
+    var str = '' + number;
+    while (str.length < length)
+        str = '0' + str;
+    return str;
+};
