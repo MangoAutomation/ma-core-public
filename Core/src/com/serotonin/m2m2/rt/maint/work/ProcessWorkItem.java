@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -49,7 +50,7 @@ public class ProcessWorkItem implements WorkItem {
         }
     }
 
-    public static void executeProcessCommand(String command, int timeoutSeconds) throws IOException {
+    public static StringStringPair executeProcessCommand(String command, int timeoutSeconds) throws IOException {
         Process process = Runtime.getRuntime().exec(command);
 
         InputReader out = new InputReader(process.getInputStream());
@@ -57,6 +58,8 @@ public class ProcessWorkItem implements WorkItem {
 
         Common.backgroundProcessing.addWorkItem(out);
         Common.backgroundProcessing.addWorkItem(err);
+
+        StringStringPair result = new StringStringPair();
 
         try {
             ProcessTimeout timeout = new ProcessTimeout(process, command, timeoutSeconds);
@@ -71,16 +74,22 @@ public class ProcessWorkItem implements WorkItem {
             timeout.interrupt();
 
             String input = out.getInput();
-            if (!StringUtils.isBlank(input))
+            if (!StringUtils.isBlank(input)) {
+                result.setKey(input);
                 LOG.info("Process output: '" + input + "'");
+            }
 
             input = err.getInput();
-            if (!StringUtils.isBlank(input))
+            if (!StringUtils.isBlank(input)) {
+                result.setValue(input);
                 LOG.warn("Process error: '" + input + "'");
+            }
         }
         catch (InterruptedException e) {
             throw new IOException("Timeout while running command: '" + command + "'");
         }
+
+        return result;
     }
 
     @Override
