@@ -1,8 +1,27 @@
+*Version 2.1.0*
+
+* Input stream ePoll moved from static reference to Provider runtime reference
+* Changed var names of module script and styles, and added module JSP fragments.
+* Enhanced servlet hook that allows multiple URI mappings to a single servlet.
+* Created flag that indicates a newly installed instance so that modules can handle the condition.
+* New module hooks to allow redirection based upon new instance, first user login, login, not logged in.
+* Added load order attribute to module to determine the order in which modules are loaded.
+* Added HostUtils for modules to be able to discover details about the host platform.
+* Added milliseconds to point history download CSV files.
+* Added close button to point details editing panel.
+* Display the point details beside the line in the point list when editing to avoid having to scroll.
+* Allow modules to open the system setting to a specific section.
+* In module builds: create the lib dir if not present, copy scripts to bin dir, pre-compile JSPs and tags, and added copy-web target for development purposes.
+* Version changed to 2.1.0
+
+
 *Version 2.0.5*
 
 * Added module lifecycle call "postDatabase" 
 * Performance improvements when loading points from the database
 * Fix for incorrect 0 values calculated on points with interval averaging upon initialization
+* Added persistence to sound muting so the value is saved between sessions. New users default to being muted.
+* Removed context from user home URL. Not required in MA.
 
 
 *Version 2.0.4*
