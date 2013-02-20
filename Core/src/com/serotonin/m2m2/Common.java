@@ -31,7 +31,6 @@ import org.joda.time.Period;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
-import com.serotonin.epoll.InputStreamEPoll;
 import com.serotonin.json.JsonContext;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -65,6 +64,9 @@ import gnu.io.CommPortIdentifier;
 public class Common {
     private static final String SESSION_USER = "sessionUser";
 
+    // Note the start time of the application.
+    public static final long START_TIME = System.currentTimeMillis();
+
     public static String M2M2_HOME;
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
@@ -78,9 +80,12 @@ public class Common {
     public static BackgroundProcessing backgroundProcessing;
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
+
     public static String applicationLogo = "images/logo.png";
-    public static final List<String> applicationStyles = new ArrayList<String>();
-    public static final List<String> applicationScripts = new ArrayList<String>();
+    public static final List<String> moduleStyles = new ArrayList<String>();
+    public static final List<String> moduleScripts = new ArrayList<String>();
+    public static final List<String> moduleJspfs = new ArrayList<String>();
+
     public static final DocumentationManifest documentationManifest = new DocumentationManifest();
     public static final List<ImageSet> imageSets = new ArrayList<ImageSet>();
     public static final List<DynamicImage> dynamicImages = new ArrayList<DynamicImage>();
@@ -101,27 +106,6 @@ public class Common {
         if (license != null)
             return license.getFeature(name);
         return null;
-    }
-
-    //
-    // E-poll
-    private static InputStreamEPoll inputStreamEPoll;
-
-    public static InputStreamEPoll getInputStreamEPoll() {
-        return getInputStreamEPoll(true);
-    }
-
-    public static InputStreamEPoll getInputStreamEPoll(boolean create) {
-        if (inputStreamEPoll == null && create) {
-            synchronized (SESSION_USER) {
-                if (inputStreamEPoll == null) {
-                    inputStreamEPoll = new InputStreamEPoll();
-                    new Thread(inputStreamEPoll).start();
-                }
-            }
-        }
-
-        return inputStreamEPoll;
     }
 
     /*
@@ -146,7 +130,7 @@ public class Common {
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 6;
+        return 7;
     }
 
     public static String getWebPath(String path) {
