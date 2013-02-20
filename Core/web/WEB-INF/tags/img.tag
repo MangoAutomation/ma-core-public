@@ -11,12 +11,25 @@
 --%><%@attribute name="onmouseover" rtexprvalue="true"%><%--
 --%><%@attribute name="onmouseout"%><%--
 --%><%@attribute name="style"%><%--
+--%><%@attribute name="styleClass"%><%--
 --%><%@attribute name="align"%><%--
+--%><c:choose><%--
+  --%><c:when test="${!empty styleClass && !empty onclick}"><%--
+    --%><c:set var="classes"> class="ptr ${styleClass}"</c:set><%--
+  --%></c:when><%--
+  --%><c:when test="${!empty styleClass}"><%--
+    --%><c:set var="classes"> class="${styleClass}"</c:set><%--
+  --%></c:when><%--
+  --%><c:when test="${!empty onclick}"><%--
+    --%><c:set var="classes"> class="ptr"</c:set><%--
+  --%></c:when><%--
+--%></c:choose><%--
 --%><img<c:if test="${!empty id}"> id="${id}"</c:if><%--
 --%><c:if test="${!empty src}"> src="${src}"</c:if><%--
 --%><c:if test="${!empty png && empty src}"> src="/images/${png}.png"</c:if><%--
 --%><c:if test="${!empty title}"> alt="<fmt:message key="${title}"/>" title="<fmt:message key="${title}"/>"</c:if><%--
---%><c:if test="${!empty onclick}"> class="ptr" onclick="${onclick}"</c:if><%--
+--%>${classes}<%--
+--%><c:if test="${!empty onclick}"> onclick="${onclick}"</c:if><%--
 --%><c:if test="${!empty onmouseover}"> onmouseover="${onmouseover}"</c:if><%--
 --%><c:if test="${!empty onmouseout}"> onmouseout="${onmouseout}"</c:if><%--
 --%><c:if test="${!empty style}"> style="${style}"</c:if><%--
