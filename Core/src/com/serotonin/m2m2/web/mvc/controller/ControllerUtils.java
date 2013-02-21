@@ -129,22 +129,22 @@ public class ControllerUtils {
             // The user is in fact logged in. Invalidate the session.
             request.getSession().invalidate();
     }
-
-    public static String getDomain(HttpServletRequest request) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(request.getServerName());
-
-        int port = request.getServerPort();
-        if (!request.isSecure() && port == 80)
-            port = -1;
-        else if (request.isSecure() && port == 443)
-            port = -1;
-
-        if (port != -1)
-            sb.append(":").append(port);
-
-        sb.append(request.getContextPath());
-
-        return sb.toString();
-    }
+    //
+    //    public static String getDomain(HttpServletRequest request) {
+    //        StringBuilder sb = new StringBuilder();
+    //        sb.append(request.getServerName());
+    //
+    //        int port = request.getServerPort();
+    //        if (!request.isSecure() && port == 80)
+    //            port = -1;
+    //        else if (request.isSecure() && port == 443)
+    //            port = -1;
+    //
+    //        if (port != -1)
+    //            sb.append(":").append(port);
+    //
+    //        sb.append(request.getContextPath());
+    //
+    //        return sb.toString();
+    //    }
 }

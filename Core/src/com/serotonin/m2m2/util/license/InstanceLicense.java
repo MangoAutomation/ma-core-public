@@ -18,7 +18,6 @@ import com.serotonin.util.XmlUtilsTS;
  */
 public class InstanceLicense {
     private final String guid;
-    private final String domain;
     private final String distributor;
     private final int version;
     private final String licenseType;
@@ -35,7 +34,6 @@ public class InstanceLicense {
             throw new LicenseParseException("Missing core element");
 
         guid = XmlUtilsTS.getChildElementText(coreElement, "guid");
-        domain = XmlUtilsTS.getChildElementText(coreElement, "domain");
 
         distributor = XmlUtilsTS.getChildElementText(coreElement, "distributor");
         version = XmlUtilsTS.getChildElementTextAsInt(coreElement, "version", -1);
@@ -68,10 +66,6 @@ public class InstanceLicense {
 
     public String getGuid() {
         return guid;
-    }
-
-    public String getDomain() {
-        return domain;
     }
 
     public String getDistributor() {

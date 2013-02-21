@@ -49,7 +49,6 @@ public class ModulesController extends ParameterizableViewController {
         json.put("guid", Providers.get(ICoreLicense.class).getGuid());
         json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", Common.envProps.getString("distributor"));
-        json.put("domain", ControllerUtils.getDomain(request));
 
         Map<String, String> jsonModules = new HashMap<String, String>();
         json.put("modules", jsonModules);

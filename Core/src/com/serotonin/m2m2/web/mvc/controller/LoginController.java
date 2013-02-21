@@ -31,9 +31,6 @@ public class LoginController extends SimpleFormController {
             @SuppressWarnings("rawtypes") Map controlModel) throws Exception {
         LoginForm loginForm = (LoginForm) errors.getTarget();
 
-        if (!errors.hasErrors())
-            checkDomain(request, errors);
-
         if (!errors.hasErrors()) {
             User user = null;
             for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
@@ -52,8 +49,6 @@ public class LoginController extends SimpleFormController {
     @Override
     protected void onBindAndValidate(HttpServletRequest request, Object command, BindException errors) {
         LoginForm login = (LoginForm) command;
-
-        checkDomain(request, errors);
 
         // Make sure there is a username
         if (StringUtils.isBlank(login.getUsername()))
@@ -97,13 +92,6 @@ public class LoginController extends SimpleFormController {
             return showForm(request, response, errors);
 
         return performLogin(request, response, user);
-    }
-
-    private void checkDomain(HttpServletRequest request, BindException errors) {
-        if (Common.license() != null && !"localhost".equals(request.getServerName())) {
-            if (!ControllerUtils.getDomain(request).equals(Common.license().getDomain()))
-                ValidationUtils.reject(errors, "login.validation.wrongDomain", Common.license().getDomain());
-        }
     }
 
     private ModelAndView performLogin(HttpServletRequest request, HttpServletResponse response, User user) {

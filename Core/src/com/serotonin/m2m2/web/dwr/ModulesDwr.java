@@ -20,7 +20,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
@@ -43,7 +42,6 @@ import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
-import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.http.HttpUtils4;
 
@@ -101,7 +99,6 @@ public class ModulesDwr extends BaseDwr {
             json.put("guid", Providers.get(ICoreLicense.class).getGuid());
             json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
             json.put("distributor", Common.envProps.getString("distributor"));
-            json.put("domain", ControllerUtils.getDomain(WebContextFactory.get().getHttpServletRequest()));
 
             Map<String, String> jsonModules = new HashMap<String, String>();
             json.put("modules", jsonModules);
