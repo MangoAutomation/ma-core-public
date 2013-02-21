@@ -13,7 +13,7 @@
           <tag:menuItem href="/data_point_details.shtm" png="icon_comp" key="header.dataPoints"/>
           <tag:menuItem href="/events.shtm" png="flag_white" key="header.alarms"/>
           <c:forEach items="<%= ModuleRegistry.getMenuItems().get(UrlMappingDefinition.Permission.USER) %>" var="mi">
-            <tag:menuItem href="${mi.urlPath}" src="${mi.menuImagePath}" key="${mi.menuKey}" target="${mi.target}"/>
+            <page:menuItem mi="${mi}"/>
           </c:forEach>
                 
           <c:if test="${sessionUser.dataSourcePermission}">
@@ -21,7 +21,7 @@
             <tag:menuItem href="/event_handlers.shtm" png="cog" key="header.eventHandlers"/>
             <tag:menuItem href="/data_sources.shtm" png="icon_ds" key="header.dataSources"/>
             <c:forEach items="<%= ModuleRegistry.getMenuItems().get(UrlMappingDefinition.Permission.DATA_SOURCE) %>" var="mi">
-              <tag:menuItem href="${mi.urlPath}" src="${mi.menuImagePath}" key="${mi.menuKey}" target="${mi.target}"/>
+              <page:menuItem mi="${mi}"/>
             </c:forEach>
           </c:if>
           
@@ -36,13 +36,13 @@
             <tag:menuItem href="/modules.shtm" png="puzzle" key="modules.modules"/>
             <tag:menuItem href="/emport.shtm" png="emport" key="header.emport"/>
             <c:forEach items="<%= ModuleRegistry.getMenuItems().get(UrlMappingDefinition.Permission.ADMINISTRATOR) %>" var="mi">
-              <tag:menuItem href="${mi.urlPath}" src="${mi.menuImagePath}" key="${mi.menuKey}" target="${mi.target}"/>
+              <page:menuItem mi="${mi}"/>
             </c:forEach>
           </c:if>
           
           <img src="/images/menu_separator.png"/>
           <c:forEach items="<%= ModuleRegistry.getMenuItems().get(UrlMappingDefinition.Permission.ANONYMOUS) %>" var="mi">
-            <tag:menuItem href="${mi.urlPath}" src="${mi.menuImagePath}" key="${mi.menuKey}" target="${mi.target}"/>
+            <page:menuItem mi="${mi}"/>
           </c:forEach>
           <tag:menuItem href="/logout.htm" png="control-power" key="header.logout"/>
           <tag:menuItem href="/help.shtm" png="help" key="header.help"/>
@@ -50,7 +50,7 @@
         <c:if test="${empty sessionUser}">
           <tag:menuItem href="/login.htm" png="control_play_blue" key="header.login"/>
           <c:forEach items="<%= ModuleRegistry.getMenuItems().get(UrlMappingDefinition.Permission.ANONYMOUS) %>" var="mi">
-            <tag:menuItem href="${mi.urlPath}" src="${mi.menuImagePath}" key="${mi.menuKey}" target="${mi.target}"/>
+            <page:menuItem mi="${mi}"/>
           </c:forEach>
         </c:if>
         <div id="headerMenuDescription" class="labelDiv" style="position:absolute;display:none;"></div>

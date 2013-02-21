@@ -202,4 +202,10 @@
     <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
     <function-signature>java.lang.String getFullMinuteTime(long)</function-signature>
   </function> 
+  
+  <function>
+    <name>menuItemIsVisible</name>
+    <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
+    <function-signature>boolean menuItemIsVisible(com.serotonin.m2m2.module.UrlMappingDefinition, javax.servlet.jsp.PageContext)</function-signature>
+  </function> 
 </taglib>

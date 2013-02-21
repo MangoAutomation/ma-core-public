@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.module;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
@@ -76,5 +79,18 @@ abstract public class UrlMappingDefinition extends ModuleElementDefinition {
      */
     public String getTarget() {
         return null;
+    }
+
+    /**
+     * Allows the mapping to determine its visibility at runtime based upon the request and response.
+     * 
+     * @param request
+     *            the current request
+     * @param response
+     *            the current response
+     * @return if true the menu item is visible
+     */
+    public boolean isVisible(HttpServletRequest request, HttpServletResponse response) {
+        return true;
     }
 }
