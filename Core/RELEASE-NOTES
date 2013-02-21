@@ -1,4 +1,4 @@
-*Version 2.1.0*
+*Version 2.0.6*
 
 * Input stream ePoll moved from static reference to Provider runtime reference
 * Changed var names of module script and styles, and added module JSP fragments.
@@ -12,7 +12,8 @@
 * Display the point details beside the line in the point list when editing to avoid having to scroll.
 * Allow modules to open the system setting to a specific section.
 * In module builds: create the lib dir if not present, copy scripts to bin dir, pre-compile JSPs and tags, and added copy-web target for development purposes.
-* Version changed to 2.1.0
+* Added optional visibility to menu/toolbar items.
+* Removed domain name from license
 
 
 *Version 2.0.5*
