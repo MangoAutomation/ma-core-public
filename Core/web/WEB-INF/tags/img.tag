@@ -15,13 +15,13 @@
 --%><%@attribute name="align"%><%--
 --%><c:choose><%--
   --%><c:when test="${!empty styleClass && !empty onclick}"><%--
-    --%><c:set var="classes"> class="ptr ${styleClass}"</c:set><%--
+    --%><c:set var="classes" value=' class="ptr ${styleClass}"'/><%--
   --%></c:when><%--
   --%><c:when test="${!empty styleClass}"><%--
-    --%><c:set var="classes"> class="${styleClass}"</c:set><%--
+    --%><c:set var="classes" value=' class="${styleClass}"'/><%--
   --%></c:when><%--
   --%><c:when test="${!empty onclick}"><%--
-    --%><c:set var="classes"> class="ptr"</c:set><%--
+    --%><c:set var="classes" value=' class="ptr"'/><%--
   --%></c:when><%--
 --%></c:choose><%--
 --%><img<c:if test="${!empty id}"> id="${id}"</c:if><%--
