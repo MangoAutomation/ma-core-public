@@ -67,15 +67,15 @@
                 var folderId = $$(item, "folderId");
                 if (folderId) {
                     selectedFolderNode = widget;
-                    $set("folderName", $$(item, "folderName"));
-                    show("folderEditDiv");
+                    editFolderName(item, widget);
                 }
                 else
                     hide("folderEditDiv");
             },
-            _createTreeNode: function(/*Object*/ args){
+            _createTreeNode: function(/*Object*/ args) {
                 var tnode = new dijit._TreeNode(args);
                 tnode.labelNode.innerHTML = args.label;
+                selectedFolderNode = tnode;
                 return tnode;
             }              
         }, div);
@@ -115,20 +115,25 @@
     function newFolder() {
         setErrorMessage();
         var name = "<fmt:message key="pointHierarchy.defaultName"/>";
+//         var rootFolder = gatherTreeData();
         var item = {
                 name: "<img src='images/folder_brick.png'/> "+ name,
                 folderId: <c:out value="<%= Common.NEW_ID %>"/>,
                 folderName: name,
                 children: []
         };
-        store.newItem(item, {parent: rootItem, attribute: "children"});
+        
+        var newItem = store.newItem(item, {parent: rootItem, attribute: "children"});
+        // selectedFolderNode gets set in the _createTreeNode tree callback.
+        tree.set('path', selectedFolderNode.getTreePath());
+        var widget = tree.getNodesByItem(newItem)[0];
+        editFolderName(newItem, widget);
     }
     
     function save() {
         setErrorMessage();
         hide("folderEditDiv");
-        var rootFolder = { id: 0, name: "root", subfolders: [], points: [] };
-        gatherTreeData(tree.model.root.children[0], rootFolder);
+        var rootFolder = gatherTreeData();
         startImageFader($("saveBtn"));
         PointHierarchyDwr.savePointHierarchy(rootFolder, function(rootFolder) {
             stopImageFader($("saveBtn"));
@@ -138,7 +143,13 @@
         });
     }
     
-    function gatherTreeData(node, folder) {
+    function gatherTreeData() {
+        var rootFolder = { id: 0, name: "root", subfolders: [], points: [] };
+        gatherTreeData(tree.model.root.children[0], rootFolder);
+        return rootFolder;
+    }
+    
+    function gatherTreeDataRecur(node, folder) {
         if (node.children) {
             for (var i=0; i<node.children.length; i++) {
                 var child = node.children[i];
@@ -199,6 +210,19 @@
             show("errorMessage");
         }
     }
+    
+    function editFolderName(item, widget) {
+        $set("folderName", $$(item, "folderName"));
+        show("folderEditDiv");
+        
+        // Set the position of the editing panel to the location of the folder's row.
+        require(["dojo/_base/html", "dojo/dom-style", "dojo/window", "dijit/focus"], function(html, domStyle, win, foc) {
+            var position = html.position(widget.domNode, true);
+            domStyle.set("folderEditDiv", "top", position.y +"px");
+            win.scrollIntoView("folderEditDiv");
+            setTimeout(function() { $("folderName").focus(); }, 100);
+        });
+    }
   </script>
   
   <table>
@@ -225,7 +249,7 @@
       </td>
       
       <td valign="top">
-        <div id="folderEditDiv" class="borderDivPadded" style="display:none;">
+        <div id="folderEditDiv" class="borderDivPadded" style="display:none; position:absolute;">
           <table class="wide">
             <tr>
               <td class="smallTitle"><fmt:message key="pointHierarchy.details"/></td>
