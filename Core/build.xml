@@ -81,7 +81,6 @@
         <!-- Empty the modules dir -->
         <delete dir="${build.dir}/web/modules" />
         <mkdir dir="${build.dir}/web/modules" />
-        <mkdir dir="${build.dir}/web/modules/_save" />
         <!-- Empty the filedata dir -->
         <delete dir="${build.dir}/web/WEB-INF/filedata" />
         <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
