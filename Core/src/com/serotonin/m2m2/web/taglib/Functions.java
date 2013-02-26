@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +24,6 @@ import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
-import com.serotonin.m2m2.module.UrlMappingDefinition;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -251,9 +248,5 @@ public class Functions {
         if (dtz != null)
             dtf = dtf.withZone(dtz);
         return dtf.print(time);
-    }
-
-    public static boolean menuItemIsVisible(UrlMappingDefinition def, PageContext page) {
-        return def.isVisible((HttpServletRequest) page.getRequest(), (HttpServletResponse) page.getResponse());
     }
 }

@@ -6,7 +6,7 @@
 
 <table width="100%" cellspacing="0" cellpadding="0" border="0" id="mainHeader">
   <tr>
-    <td><img src="/<%= Common.applicationLogo %>" alt="Logo"/></td>
+    <td><img src="<%= Common.applicationLogo %>" alt="Logo"/></td>
     <c:if test="${!simple}">
       <td align="center" width="99%">
         <a href="events.shtm">

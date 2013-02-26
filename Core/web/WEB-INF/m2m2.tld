@@ -76,6 +76,37 @@
     </attribute>
   </tag>
   
+  <tag>
+    <name>menuItem</name>
+    <tag-class>com.serotonin.m2m2.web.taglib.MenuItemTag</tag-class>
+    <body-content>empty</body-content>
+    <attribute>
+      <name>def</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>href</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>png</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>src</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>key</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag>
+  
   <!-- 
     Functions
    -->
@@ -201,11 +232,5 @@
     <name>fullTime</name>
     <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
     <function-signature>java.lang.String getFullMinuteTime(long)</function-signature>
-  </function> 
-  
-  <function>
-    <name>menuItemIsVisible</name>
-    <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
-    <function-signature>boolean menuItemIsVisible(com.serotonin.m2m2.module.UrlMappingDefinition, javax.servlet.jsp.PageContext)</function-signature>
   </function> 
 </taglib>

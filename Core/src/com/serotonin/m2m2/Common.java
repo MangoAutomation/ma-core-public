@@ -81,7 +81,8 @@ public class Common {
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
 
-    public static String applicationLogo = "images/logo.png";
+    public static String applicationLogo = "/images/logo.png";
+    public static String applicationFavicon = "/images/favicon.ico";
     public static final List<String> moduleStyles = new ArrayList<String>();
     public static final List<String> moduleScripts = new ArrayList<String>();
     public static final List<String> moduleJspfs = new ArrayList<String>();

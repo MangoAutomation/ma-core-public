@@ -2,7 +2,6 @@
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
 --%><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<%@tag import="com.serotonin.m2m2.module.UrlMappingDefinition"%>
 <%@tag import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@tag import="com.serotonin.m2m2.Common"%>
 <%@include file="/WEB-INF/tags/decl.tagf"%>
@@ -36,8 +35,8 @@
   </c:if>
   
   <!-- Style -->
-  <link rel="icon" href="/images/favicon.ico"/>
-  <link rel="shortcut icon" href="/images/favicon.ico"/>
+  <link rel="icon" href="<%= Common.applicationFavicon %>"/>
+  <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
   <style type="text/css">
     @import "${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css";
     @import "${dojoURI}dojox/layout/resources/FloatingPane.css";

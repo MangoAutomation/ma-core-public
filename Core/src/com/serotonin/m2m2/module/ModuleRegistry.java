@@ -35,7 +35,7 @@ public class ModuleRegistry {
     private static Map<String, SystemEventTypeDefinition> SYSTEM_EVENT_TYPE_DEFINITIONS;
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
 
-    private static Map<UrlMappingDefinition.Permission, List<UrlMappingDefinition>> MENU_ITEMS;
+    private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> defaultDefinitions = new ArrayList<ModuleElementDefinition>();
@@ -228,22 +228,27 @@ public class ModuleRegistry {
     /**
      * @return a map by permissions type of all available menu items in this instance.
      */
-    public static Map<UrlMappingDefinition.Permission, List<UrlMappingDefinition>> getMenuItems() {
+    public static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> getMenuItems() {
         if (MENU_ITEMS == null) {
             synchronized (LOCK) {
                 if (MENU_ITEMS == null) {
-                    MENU_ITEMS = new HashMap<UrlMappingDefinition.Permission, List<UrlMappingDefinition>>();
+                    MENU_ITEMS = new HashMap<MenuItemDefinition.Visibility, List<MenuItemDefinition>>();
 
-                    for (UrlMappingDefinition url : getDefinitions(UrlMappingDefinition.class)) {
-                        if (!StringUtils.isBlank(url.getMenuKey())) {
-                            List<UrlMappingDefinition> permList = MENU_ITEMS.get(url.getPermission());
+                    for (MenuItemDefinition mi : getDefinitions(MenuItemDefinition.class)) {
+                        boolean add = true;
+                        // Special handling of url mapping definitions
+                        if (mi instanceof UrlMappingDefinition)
+                            add = !StringUtils.isBlank(((UrlMappingDefinition) mi).getMenuKey());
+
+                        if (add) {
+                            List<MenuItemDefinition> permList = MENU_ITEMS.get(mi.getVisibility());
 
                             if (permList == null) {
-                                permList = new ArrayList<UrlMappingDefinition>();
-                                MENU_ITEMS.put(url.getPermission(), permList);
+                                permList = new ArrayList<MenuItemDefinition>();
+                                MENU_ITEMS.put(mi.getVisibility(), permList);
                             }
 
-                            permList.add(url);
+                            permList.add(mi);
                         }
                     }
                 }

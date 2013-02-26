@@ -11,6 +11,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.servlet.View;
 
+/**
+ * TODO this should be renamed UriHandler
+ * 
+ * @author Matthew
+ */
 public interface UrlHandler {
     View handleRequest(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
             throws Exception;
