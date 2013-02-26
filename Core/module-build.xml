@@ -144,9 +144,15 @@
         
         <!-- Copy the compiled stuff back to the module -->
         <property name="pkg" value="target/work/jsp/org/apache/jsp/modules/${name}"/>
-        <copy todir="${pkg}" preservelastmodified="true">
-            <fileset dir="${coreHome}/${pkg}"><include name="**/*"/></fileset>
-        </copy>
+        <available property="pkg.exists" file="${pkg}" type="dir" />
+        <if>
+            <isset property="pkg.exists"/>
+            <then>
+                <copy todir="${pkg}" preservelastmodified="true">
+                    <fileset dir="${coreHome}/${pkg}"><include name="**/*"/></fileset>
+                </copy>
+            </then>
+        </if>
         
         <if>
             <isset property="tagdir"/>
