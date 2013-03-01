@@ -1,9 +1,13 @@
 <?xml version="1.0"?>
 
+<!--
+  NOTE: This module build script expects the property "coreHome" to be set and pointing - either absolutely or 
+  relatively - to the directory of your core project. In Eclipse this can be done by going to 
+  Window -> Preferences -> Any -> Runtime -> Properties and adding a the coreHome property.
+ -->
 <project name="MA - Module build" basedir=".">
     <property file="module.properties" />
 	<property name="fullName" value="m2m2-${name}-${version}" />
-	<property name="coreHome" value="../Core"/>
     <property file="${coreHome}/module-common.properties" />
     	
     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
@@ -20,7 +24,8 @@
 	</path>
 
 	<target name="clean" description="Clean the target area">
-		<delete dir="target" />
+  <echo message="${coreHome}"/>
+        		<delete dir="target" />
 	</target>
 
 	<target name="compile" description="Compile main source tree java files">
