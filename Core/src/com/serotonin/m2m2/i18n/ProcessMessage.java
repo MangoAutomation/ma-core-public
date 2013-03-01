@@ -8,6 +8,12 @@ package com.serotonin.m2m2.i18n;
  * @author Matthew Lohbihler
  */
 public class ProcessMessage {
+    public enum Level {
+        info, warning, error;
+    }
+
+    private Level level;
+
     /**
      * This represents a message that will make sense out of context from any fields that it may be associated with. It
      * can be used when messages are displayed together in a single list or in a popup. Example:
@@ -32,30 +38,66 @@ public class ProcessMessage {
     }
 
     public ProcessMessage(String genericMessageKey, Object... genericMessageParams) {
-        this(new TranslatableMessage(genericMessageKey, genericMessageParams));
+        this(Level.error, new TranslatableMessage(genericMessageKey, genericMessageParams));
     }
 
     public ProcessMessage(TranslatableMessage genericMessage) {
-        this.genericMessage = genericMessage;
+        this(Level.error, genericMessage, null, null);
     }
 
     public ProcessMessage(String contextKey, String contextualMessageKey, Object... contextualMessageParams) {
-        this(contextKey, new TranslatableMessage(contextualMessageKey, contextualMessageParams));
+        this(Level.error, contextKey, new TranslatableMessage(contextualMessageKey, contextualMessageParams));
     }
 
     public ProcessMessage(String contextKey, TranslatableMessage contextualMessage) {
-        this.contextKey = contextKey;
-        this.contextualMessage = contextualMessage;
+        this(Level.error, null, contextKey, contextualMessage);
     }
 
     public ProcessMessage(String genericMessageKey, String contextKey, String contextualMessageKey) {
-        this(new TranslatableMessage(genericMessageKey), contextKey, new TranslatableMessage(contextualMessageKey));
+        this(Level.error, new TranslatableMessage(genericMessageKey), contextKey, new TranslatableMessage(
+                contextualMessageKey));
     }
 
     public ProcessMessage(TranslatableMessage genericMessage, String contextKey, TranslatableMessage contextualMessage) {
+        this(Level.error, genericMessage, contextKey, contextualMessage);
+    }
+
+    public ProcessMessage(Level level, String genericMessageKey, Object... genericMessageParams) {
+        this(level, new TranslatableMessage(genericMessageKey, genericMessageParams));
+    }
+
+    public ProcessMessage(Level level, TranslatableMessage genericMessage) {
+        this(level, genericMessage, null, null);
+    }
+
+    public ProcessMessage(Level level, String contextKey, String contextualMessageKey,
+            Object... contextualMessageParams) {
+        this(level, contextKey, new TranslatableMessage(contextualMessageKey, contextualMessageParams));
+    }
+
+    public ProcessMessage(Level level, String contextKey, TranslatableMessage contextualMessage) {
+        this(level, null, contextKey, contextualMessage);
+    }
+
+    public ProcessMessage(Level level, String genericMessageKey, String contextKey, String contextualMessageKey) {
+        this(level, new TranslatableMessage(genericMessageKey), contextKey, new TranslatableMessage(
+                contextualMessageKey));
+    }
+
+    public ProcessMessage(Level level, TranslatableMessage genericMessage, String contextKey,
+            TranslatableMessage contextualMessage) {
+        this.level = level;
         this.genericMessage = genericMessage;
         this.contextKey = contextKey;
         this.contextualMessage = contextualMessage;
+    }
+
+    public Level getLevel() {
+        return level;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
     }
 
     public TranslatableMessage getGenericMessage() {

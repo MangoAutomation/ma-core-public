@@ -144,7 +144,7 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 /**
  * Form styles
  */
-.formLabel, .formLabelRequired, .formField, .formError, select, input, textarea {
+.formLabel, .formLabelRequired, .formField, .formError, .formWarning, .formInfo, select, input, textarea {
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 11px;
 }
@@ -156,17 +156,10 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 	padding-top: 5px;
 	vertical-align: top;
 }
-.formLabelRequired, .formError {
-	font-weight: bold;
-}
-.formField {
-	padding: 2px;
-	color: #333333;
-}
-.formError {
-	color: #FF0000;
-	padding-left: 10px;
-}
+.formLabelRequired, .formError { font-weight: bold; }
+.formField { padding: 2px; color: #333333; }
+.formError, .formWarning { color: #FF0000; }
+.formWarning, .formWarning, .formWarning { padding-left: 10px; }
 select, input, textarea {
 	color: #333333;
 	border: 1px solid #F07800;

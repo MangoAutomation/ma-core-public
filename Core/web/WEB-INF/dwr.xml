@@ -115,6 +115,7 @@
     <convert converter="bean" match="com.serotonin.m2m2.web.mvc.form.PointViewForm"/>
     
     <convert converter="bean" match="com.serotonin.m2m2.i18n.ProcessMessage"/>
+    <convert converter="enum" match="com.serotonin.m2m2.i18n.ProcessMessage$Level"/>
     <convert converter="bean" match="com.serotonin.m2m2.i18n.ProcessResult"/>
     
     <convert converter="translatableMessage" match="com.serotonin.m2m2.i18n.TranslatableMessage"/>

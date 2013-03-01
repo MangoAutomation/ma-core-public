@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 
 <project name="MA - Module build" basedir=".">
-	<property file="module.properties" />
+    <property file="module.properties" />
 	<property name="fullName" value="m2m2-${name}-${version}" />
 	<property name="coreHome" value="../Core"/>
-	
+    <property file="${coreHome}/module-common.properties" />
+    	
     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
 
 	<path id="master-classpath">
@@ -186,13 +187,16 @@
         </zip>
     </target>
     
-    <target name="deploy" depends="zip" description="Copy the zip to the MA app">
-        <copy todir="${coreHome}/web/modules" preservelastmodified="true">
-            <fileset file="target/${fullName}.zip"/>
-        </copy>
-<!--         <copy todir="${coreHome}/target/web/modules" preservelastmodified="true"> -->
+    <target name="deploy" depends="zip" description="Copy the zip to configured places">
+        <foreach list="${deploy.jar.paths}" target="|deploy" param="todir" delimiter=":">
+            <param name="deploy.file" value="target/${fullName}.zip" />
+        </foreach>
+<!--         <copy todir="${coreHome}/web/modules" preservelastmodified="true"> -->
 <!--             <fileset file="target/${fullName}.zip"/> -->
 <!--         </copy> -->
+    </target>
+    <target name="|deploy">
+        <copy todir="${todir}" preservelastmodified="true" file="${deploy.file}" />
     </target>
     
     <target name="copy-web" description="Copy the web dir to the core - useful when developing">

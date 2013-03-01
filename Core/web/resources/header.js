@@ -27,11 +27,16 @@ mango.header.onLoad = function() {
 function hMD(desc, source) {
     var c = $("headerMenuDescription");
     if (desc) {
-        var bounds = getAbsoluteNodeBounds(source);
+        var srcPosition = dojo.position(source, true);
         c.innerHTML = desc;
-        c.style.left = (bounds.x + 16) +"px";
-        c.style.top = (bounds.y - 10) +"px";
+        c.style.left = (srcPosition.x + 16) +"px";
+        c.style.top = (srcPosition.y - 10) +"px";
         show(c);
+        
+        // Check the window bound.
+        var cBounds = dojo.position(c, true);
+        if (cBounds.x + cBounds.w > window.innerWidth)
+            c.style.left = (srcPosition.x - cBounds.w) +"px";
     }
     else
         hide(c);
@@ -74,14 +79,18 @@ function help(documentId, source) {
         left = 10;
         top = 10;
     }
-    left += window.scrollX;
-    top += window.scrollY;
     
-    dojo.style(fp.domNode, {
-        width:"400px",
-        height:"300px",
-        left:left +"px",
-        top:top +"px"
+    require(["dojo/dom-style", "dojo/dom-geometry"], function(domStyle, domGeom) {
+        var scroll = domGeom.docScroll();
+        left += scroll.x;
+        top += scroll.y;
+        
+        domStyle.set(fp.domNode, {
+            width:"400px",
+            height:"300px",
+            left:left +"px",
+            top:top +"px"
+        });
     });
     
     helpImpl(documentId);

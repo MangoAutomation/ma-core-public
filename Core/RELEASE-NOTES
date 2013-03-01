@@ -14,6 +14,13 @@
 * In module builds: create the lib dir if not present, copy scripts to bin dir, pre-compile JSPs and tags, and added copy-web target for development purposes.
 * Added optional visibility to menu/toolbar items.
 * Removed domain name from license
+* Improved point hierarchy behaviour
+* Rearranged home url management, and added ability to clear home url
+* Fixed firing of point hierarchy clearing notification
+* Improved failover in configuration importing, and made output clearer by using different styles for error messages
+* Added "pre-home" category to default pages definition
+* Fixed potential race conditions in loading of cached definitions in module registry
+* Removed hard-coding of menu items in toolbar so they can be managed more dynamically
 
 
 *Version 2.0.5*

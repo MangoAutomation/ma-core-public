@@ -115,7 +115,6 @@
     function newFolder() {
         setErrorMessage();
         var name = "<fmt:message key="pointHierarchy.defaultName"/>";
-//         var rootFolder = gatherTreeData();
         var item = {
                 name: "<img src='images/folder_brick.png'/> "+ name,
                 folderId: <c:out value="<%= Common.NEW_ID %>"/>,
@@ -145,7 +144,7 @@
     
     function gatherTreeData() {
         var rootFolder = { id: 0, name: "root", subfolders: [], points: [] };
-        gatherTreeData(tree.model.root.children[0], rootFolder);
+        gatherTreeDataRecur(tree.model.root.children[0], rootFolder);
         return rootFolder;
     }
     
@@ -162,7 +161,7 @@
                             points: []
                     };
                     folder.subfolders.push(subfolder);
-                    gatherTreeData(child, subfolder);
+                    gatherTreeDataRecur(child, subfolder);
                 }
                 else {
                     var point = $$(child, "point");
@@ -263,7 +262,8 @@
           <table>
             <tr>
               <td class="formLabelRequired"><fmt:message key="pointHierarchy.name"/></td>
-              <td class="formField"><input id="folderName" type="text"/></td>
+              <td class="formField"><input id="folderName" type="text"
+                      onkeypress="if (event.keyCode==13) $('saveImg').onclick();"/></td>
             </tr>
           </table>
         </div>

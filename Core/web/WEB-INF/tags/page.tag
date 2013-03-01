@@ -75,12 +75,16 @@
           MiscDwr.setLocale(locale, function() { window.location = window.location });
       }
       
-      function setHomeUrl() {
-          MiscDwr.setHomeUrl(window.location.href, function() { alert("Home URL saved"); });
-      }
-      
       function goHomeUrl() {
           MiscDwr.getHomeUrl(function(loc) { window.location = loc; });
+      }
+      
+      function setHomeUrl() {
+          MiscDwr.setHomeUrl(window.location.href, function() { alert("<fmt:message key="header.homeUrlSaved"/>"); });
+      }
+      
+      function deleteHomeUrl() {
+          MiscDwr.deleteHomeUrl(function() { alert("<fmt:message key="header.homeUrlDeleted"/>"); });
       }
     </script>
   </c:if>

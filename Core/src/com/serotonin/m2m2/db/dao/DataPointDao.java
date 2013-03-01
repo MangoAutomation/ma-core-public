@@ -172,7 +172,7 @@ public class DataPointDao extends BaseDao {
 
                 // Reset the point hierarchy so that the new or changed point
                 // gets reflected.
-                cachedPointHierarchy = null;
+                clearPointHierarchyCache();
             }
         });
     }
@@ -308,7 +308,7 @@ public class DataPointDao extends BaseDao {
         ejt.update("delete from dataPointUsers where dataPointId in " + dataPointIdList);
         ejt.update("delete from dataPoints where id in " + dataPointIdList);
 
-        cachedPointHierarchy = null;
+        clearPointHierarchyCache();
     }
 
     public int countPointsForDataSourceType(String dataSourceType) {
@@ -408,7 +408,8 @@ public class DataPointDao extends BaseDao {
                                 Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                                 Types.VARCHAR, Types.DOUBLE }));
                 AuditEventType.raiseAddedEvent(AuditEventType.TYPE_POINT_EVENT_DETECTOR, ped);
-            } else {
+            }
+            else {
                 PointEventDetectorVO old = removeFromList(existingDetectors, ped.getId());
 
                 ejt.update(
@@ -588,6 +589,7 @@ public class DataPointDao extends BaseDao {
 
     public static void clearPointHierarchyCache() {
         cachedPointHierarchy = null;
+        PointHierarchyEventDispatcher.firePointHierarchyCleared();
     }
 
     private void addFoldersToHeirarchy(PointHierarchy ph, int parentId, Map<Integer, List<PointFolder>> folders) {

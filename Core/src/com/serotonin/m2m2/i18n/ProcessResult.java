@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.serotonin.m2m2.i18n.ProcessMessage.Level;
+
 /**
  * Represents a generic object that can be returned from a process. Standardized here so that the receiving javascript
  * code can also be standardized. Any of the fields here can be used or not, as appropriate to the context in which it
@@ -37,6 +39,22 @@ public class ProcessResult {
 
     public void addMessage(TranslatableMessage genericMessage) {
         addMessage(new ProcessMessage(genericMessage));
+    }
+
+    public void addMessage(Level level, String contextKey, TranslatableMessage contextualMessage) {
+        addMessage(new ProcessMessage(level, contextKey, contextualMessage));
+    }
+
+    public void addGenericMessage(Level level, String key, Object... params) {
+        addMessage(new ProcessMessage(level, key, params));
+    }
+
+    public void addContextualMessage(Level level, String contextKey, String contextualMessageKey, Object... params) {
+        addMessage(new ProcessMessage(level, contextKey, contextualMessageKey, params));
+    }
+
+    public void addMessage(Level level, TranslatableMessage genericMessage) {
+        addMessage(new ProcessMessage(level, genericMessage));
     }
 
     public void addMessage(String contextKey, TranslatableMessage contextualMessage) {

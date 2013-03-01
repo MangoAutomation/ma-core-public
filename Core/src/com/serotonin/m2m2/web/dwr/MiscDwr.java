@@ -247,10 +247,22 @@ public class MiscDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
+    public void deleteHomeUrl() {
+        User user = Common.getUser();
+        new UserDao().saveHomeUrl(user.getId(), null);
+        user.setHomeUrl(null);
+    }
+
+    @DwrPermission(user = true)
     public String getHomeUrl() {
         String url = Common.getUser().getHomeUrl();
         if (StringUtils.isBlank(url))
             url = "help.shtm";
         return url;
+    }
+
+    @DwrPermission(anonymous = true)
+    public void ping() {
+        // no op
     }
 }

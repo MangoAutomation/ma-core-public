@@ -218,10 +218,12 @@ function hideLayer(node) {
     getNodeIfString(node).style.visibility = "hidden";
 }
 
-function hideLayerIgnoreMissing(node) {
-	var node = getNodeIfString(node);
-	if (node)
-		node.style.visibility = "hidden";
+function hideLayersIgnoreMissing() {
+    for (var i=0; i<arguments.length; i++) {
+        var node = getNodeIfString(arguments[i]);
+        if (node)
+            node.style.visibility = "hidden";
+    }
 }
 
 function setZIndex(node, amt) {
@@ -776,23 +778,29 @@ function showDwrMessages(/*ProcessResult.messages*/messages, /*tbody*/genericMes
             }
         }
         else
-            genericMessages[genericMessages.length] = m.genericMessage;
+            genericMessages[genericMessages.length] = m;
     }
     
     if (genericMessages.length > 0) {
         if (!genericMessageNode) {
             for (i=0; i<genericMessages.length; i++)
-                alert(genericMessages[i]);
+                alert(genericMessages[i].genericMessage);
         }
         else {
             genericMessageNode = getNodeIfString(genericMessageNode);
             if (genericMessageNode.tagName == "TBODY") {
                 dwr.util.removeAllRows(genericMessageNode);
-                dwr.util.addRows(genericMessageNode, genericMessages, [ function(data) { return data; } ],
+                dwr.util.addRows(genericMessageNode, genericMessages,
+                    [ function(data) { return data.genericMessage; } ],
                     {
                         cellCreator:function(options) {
                             var td = document.createElement("td");
-                            td.className = "formError";
+                            if (options.rowData.level == 'error')
+                                td.className = "formError";
+                            else if (options.rowData.level == 'warning')
+                                td.className = "formWarning";
+                            else if (options.rowData.level == 'info')
+                                td.className = "formInfo";
                             return td;
                         }
                     });
@@ -801,7 +809,7 @@ function showDwrMessages(/*ProcessResult.messages*/messages, /*tbody*/genericMes
             else if (genericMessageNode.tagName == "DIV" || genericMessageNode.tagName == "SPAN") {
                 var content = "";
                 for (var i=0; i<genericMessages.length; i++)
-                    content += genericMessages[i] + "<br/>";
+                    content += genericMessages[i].genericMessage + "<br/>";
                 genericMessageNode.innerHTML = content;
             }
         }

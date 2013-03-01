@@ -32,9 +32,11 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
             if (uri == null) {
                 if (user.isFirstLogin())
                     uri = DefaultPagesDefinition.getFirstUserLoginUri(request, response, user);
-                else if (!StringUtils.isBlank(user.getHomeUrl()))
+                if (StringUtils.isBlank(uri))
+                    uri = DefaultPagesDefinition.getLoggedInUriPreHome(request, response, user);
+                if (StringUtils.isBlank(uri))
                     uri = user.getHomeUrl();
-                else
+                if (StringUtils.isBlank(uri))
                     uri = DefaultPagesDefinition.getLoggedInUri(request, response, user);
             }
         }
@@ -72,6 +74,16 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         return uri;
     }
 
+    private static String getLoggedInUriPreHome(HttpServletRequest request, HttpServletResponse response, User user) {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getLoggedInPageUriPreHome(request, response, user);
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
+
     private static String getLoggedInUri(HttpServletRequest request, HttpServletResponse response, User user) {
         String uri = null;
         for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
@@ -96,7 +108,8 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
 
     /**
      * Returns the URI of the page to use following the first login to the instance. If this method returns null, the
-     * next definition (if available) will be used.
+     * next definition (if available) will be used. This method will only be called *once*, so if any manner of
+     * redirect is used the implementation must do its own handling accordingly.
      * 
      * @return the URI of the page to use following the first login, or null.
      */
@@ -116,6 +129,19 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      */
     @SuppressWarnings("unused")
     public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
+        return null;
+    }
+
+    /**
+     * Returns the URI of the default page to use for logged in users, overriding the user's home URL setting. The
+     * default value is null. This method should be used with caution, as the user's preference should normally take
+     * precedence. If this method returns null, the next definition (if available) will be used. Results are not
+     * cached, so the definition can vary its response contextually.
+     * 
+     * @return the URI of the default logged in page to use, or null.
+     */
+    @SuppressWarnings("unused")
+    public String getLoggedInPageUriPreHome(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }
 

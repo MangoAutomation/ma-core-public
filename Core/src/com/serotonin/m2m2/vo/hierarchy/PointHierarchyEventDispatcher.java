@@ -25,6 +25,11 @@ public class PointHierarchyEventDispatcher {
             Common.timer.execute(new DispatcherExecution(l, root));
     }
 
+    public static void firePointHierarchyCleared() {
+        for (PointHierarchyListener l : LISTENERS)
+            Common.timer.execute(new DispatcherExecution(l, null));
+    }
+
     static class DispatcherExecution implements Runnable {
         private final PointHierarchyListener l;
         private final PointFolder root;
@@ -36,7 +41,10 @@ public class PointHierarchyEventDispatcher {
 
         @Override
         public void run() {
-            l.pointHierarchySaved(root);
+            if (root == null)
+                l.pointHierarchyCleared();
+            else
+                l.pointHierarchySaved(root);
         }
     }
 }

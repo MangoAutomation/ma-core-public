@@ -14,7 +14,14 @@ abstract public class MenuItemDefinition extends ModuleElementDefinition {
         ANONYMOUS, USER, DATA_SOURCE, ADMINISTRATOR;
     }
 
-    public final String getImagePath(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * Prepends the getImage result with the module path. This should normally not be overridden.
+     * 
+     * @param request
+     * @param response
+     * @return
+     */
+    public String getImagePath(HttpServletRequest request, HttpServletResponse response) {
         return "/" + Constants.DIR_MODULES + "/" + getModule().getName() + "/" + getImage(request, response);
     }
 
@@ -102,5 +109,15 @@ abstract public class MenuItemDefinition extends ModuleElementDefinition {
      */
     public String getTarget(HttpServletRequest request, HttpServletResponse response) {
         return null;
+    }
+
+    /**
+     * The relative ordering of the menu item from left to right compared to other menu items, from 0 to 100. Items are
+     * first categorized by their visibility, and then ordered within. Items added by the core have a value of 50.
+     * 
+     * @return the relative order of the menu item
+     */
+    public int getOrder() {
+        return 50;
     }
 }
