@@ -573,4 +573,12 @@ abstract public class BaseDwr {
         }
         return dt;
     }
+
+    /**
+     * Every DWR-enabled app needs a ping method.
+     */
+    @DwrPermission(anonymous = true)
+    public void ping() {
+        // no op
+    }
 }

@@ -260,9 +260,4 @@ public class MiscDwr extends BaseDwr {
             url = "help.shtm";
         return url;
     }
-
-    @DwrPermission(anonymous = true)
-    public void ping() {
-        // no op
-    }
 }
