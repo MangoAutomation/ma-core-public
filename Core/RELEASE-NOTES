@@ -21,6 +21,7 @@
 * Added "pre-home" category to default pages definition
 * Fixed potential race conditions in loading of cached definitions in module registry
 * Removed hard-coding of menu items in toolbar so they can be managed more dynamically
+* Added logging of failed login attempts
 
 
 *Version 2.0.5*
