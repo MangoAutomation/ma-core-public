@@ -40,7 +40,7 @@ public class DocumentationManifest {
         directories.add(directory);
 
         // Read the documentation manifest file.
-        File manifest = new File(Common.M2M2_HOME + "/" + directory, "manifest.xml");
+        File manifest = new File(Common.MA_HOME + "/" + directory, "manifest.xml");
 
         try {
             Document document = XmlUtilsTS.parse(manifest);

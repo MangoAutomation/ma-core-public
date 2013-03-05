@@ -67,7 +67,12 @@ public class Common {
     // Note the start time of the application.
     public static final long START_TIME = System.currentTimeMillis();
 
+    /**
+     * @deprecated Use MA_HOME instead
+     */
+    @Deprecated
     public static String M2M2_HOME;
+    public static String MA_HOME;
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
     public static final Charset ASCII_CS = Charset.forName("ASCII");

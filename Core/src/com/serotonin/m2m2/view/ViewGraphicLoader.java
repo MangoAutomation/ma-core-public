@@ -31,7 +31,7 @@ public class ViewGraphicLoader {
 
     private static final String IGNORE_THUMBS = "Thumbs.db";
 
-    private final String path = Common.M2M2_HOME + "/" + Constants.DIR_WEB;
+    private final String path = Common.MA_HOME + "/" + Constants.DIR_WEB;
     private List<ViewGraphic> viewGraphics;
 
     public List<ViewGraphic> loadViewGraphics() {

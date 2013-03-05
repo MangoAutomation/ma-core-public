@@ -162,7 +162,7 @@ abstract public class DatabaseProxy {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
             try {
-                runScriptFile(Common.M2M2_HOME + "/db/createTables-" + getType().name() + ".sql", new FileOutputStream(
+                runScriptFile(Common.MA_HOME + "/db/createTables-" + getType().name() + ".sql", new FileOutputStream(
                         new File(Common.getLogsDir(), "createTables.log")));
             }
             catch (FileNotFoundException e) {
