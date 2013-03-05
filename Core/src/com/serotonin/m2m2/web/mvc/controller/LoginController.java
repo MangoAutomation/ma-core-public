@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.SimpleFormController;
@@ -26,6 +28,8 @@ import com.serotonin.util.ValidationUtils;
 
 @SuppressWarnings("deprecation")
 public class LoginController extends SimpleFormController {
+    private static final Log LOG = LogFactory.getLog(LoginController.class);
+
     @Override
     protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response, BindException errors,
             @SuppressWarnings("rawtypes") Map controlModel) throws Exception {
@@ -83,8 +87,11 @@ public class LoginController extends SimpleFormController {
                 String passwordHash = Common.encrypt(login.getPassword());
 
                 // Validating the password against the database.
-                if (!passwordHash.equals(user.getPassword()))
+                if (!passwordHash.equals(user.getPassword())) {
+                    LOG.warn("Failed login attempt on user '" + user.getUsername() + "' using password '"
+                            + login.getPassword() + "' from IP +" + request.getRemoteAddr());
                     ValidationUtils.reject(errors, "login.validation.invalidLogin");
+                }
             }
         }
 
