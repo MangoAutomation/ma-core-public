@@ -11,11 +11,13 @@
         <span class="formError">${commPortError}</span>
       </c:when>
       <c:otherwise>
-          <sst:select id="commPortId" value="${dataSource.commPortId}">
+        <input id="commPortId" type="text" value="${dataSource.commPortId}"/><br/>
+        <sst:select id="commPortIds" value="${dataSource.commPortId}">
           <c:forEach items="${commPorts}" var="port">
             <sst:option value="${port.name}">${port.name}</sst:option>
           </c:forEach>
         </sst:select>
+        <tag:img src="${modulePath}/web/arrow-turn-090-left.png" onclick="$set('commPortId', $get('commPortIds'))"/>
       </c:otherwise>
     </c:choose>
   </td>
