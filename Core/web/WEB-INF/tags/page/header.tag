@@ -9,7 +9,7 @@
     <td><img src="<%= Common.applicationLogo %>" alt="Logo"/></td>
     <c:if test="${!simple}">
       <td align="center" width="99%">
-        <a href="events.shtm">
+        <a href="/events.shtm">
           <span id="__header__alarmLevelDiv" style="display:none;">
             <img id="__header__alarmLevelImg" src="/images/spacer.gif" alt="" title=""/>
             <span id="__header__alarmLevelText"></span>
