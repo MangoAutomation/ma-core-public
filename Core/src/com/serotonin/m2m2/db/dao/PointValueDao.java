@@ -403,24 +403,25 @@ public class PointValueDao extends BaseDao {
     //
     public long deletePointValuesBefore(int dataPointId, long time) {
         return deletePointValues("delete from pointValues where dataPointId=? and ts<?", new Object[] { dataPointId,
-                time });
+                time }, 0, 0);
     }
 
     public long deletePointValues(int dataPointId) {
-        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { dataPointId });
+        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { dataPointId }, 0, 0);
     }
 
     public long deleteAllPointData() {
-        return deletePointValues("delete from pointValues", null);
+        return deletePointValues("delete from pointValues", null, 0, 0);
     }
 
     public long deletePointValuesWithMismatchedType(int dataPointId, int dataType) {
         return deletePointValues("delete from pointValues where dataPointId=? and dataType<>?", new Object[] {
-                dataPointId, dataType });
+                dataPointId, dataType }, 0, 0);
     }
 
     public long deleteOrphanedPointValues() {
-        return deletePointValues("delete from pointValues where dataPointId not in (select id from dataPoints)", null);
+        return deletePointValues("DELETE FROM pointValues WHERE dataPointId NOT IN (SELECT ID FROM dataPoints)", null,
+                5000, 100000);
     }
 
     public void deleteOrphanedPointValueAnnotations() {
@@ -446,12 +447,8 @@ public class PointValueDao extends BaseDao {
         }
     }
 
-    private long deletePointValues(String sql, Object[] params) {
-        int cnt;
-        if (params == null)
-            cnt = ejt.update(sql);
-        else
-            cnt = ejt.update(sql, params);
+    private long deletePointValues(String sql, Object[] params, int chunkWait, int limit) {
+        long cnt = Common.databaseProxy.doLimitDelete(ejt, sql, params, 1000, chunkWait, limit);
         clearUnsavedPointValues();
         return cnt;
     }
@@ -577,6 +574,9 @@ public class PointValueDao extends BaseDao {
                 // MSSQL has max rows of 1000, and max parameters of 2100. In this case that works out to...
                 MAX_ROWS = 524;
             else if (Common.databaseProxy.getType() == DatabaseType.MYSQL)
+                // This appears to be an optimal value
+                MAX_ROWS = 2000;
+            else if (Common.databaseProxy.getType() == DatabaseType.POSTGRES)
                 // This appears to be an optimal value
                 MAX_ROWS = 2000;
             else

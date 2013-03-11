@@ -49,13 +49,19 @@ abstract public class DatabaseProxy {
         MSSQL {
             @Override
             DatabaseProxy getImpl() {
-                return new MSSQLAccess();
+                return new MSSQLProxy();
             }
         },
         MYSQL {
             @Override
             DatabaseProxy getImpl() {
                 return new MySQLProxy();
+            }
+        },
+        POSTGRES {
+            @Override
+            DatabaseProxy getImpl() {
+                return new PostgresProxy();
             }
         };
 
@@ -244,6 +250,38 @@ abstract public class DatabaseProxy {
     }
 
     abstract public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit);
+
+    public long doLimitDelete(ExtendedJdbcTemplate ejt, String sql, Object[] args, int chunkSize, int chunkWait,
+            int limit) {
+        sql = getLimitDelete(sql, chunkSize);
+
+        long total = 0;
+        while (true) {
+            int cnt;
+            if (args == null)
+                cnt = ejt.update(sql);
+            else
+                cnt = ejt.update(sql, args);
+
+            total += cnt;
+
+            if (cnt < chunkSize || (limit > 0 && total >= limit))
+                break;
+
+            if (chunkWait > 0) {
+                try {
+                    Thread.sleep(chunkWait);
+                }
+                catch (InterruptedException e) {
+                    // no op
+                }
+            }
+        }
+
+        return total;
+    }
+
+    abstract protected String getLimitDelete(String sql, int chunkSize);
 
     public String getDatabasePassword(String propertyPrefix) {
         String input = Common.envProps.getString(propertyPrefix + "db.password");

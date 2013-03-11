@@ -119,7 +119,7 @@ public class DataPointDao extends BaseDao {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
-            DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBlob(++i).getBinaryStream());
+            DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
             dp.setId(rs.getInt(++i));
             dp.setXid(rs.getString(++i));
             dp.setDataSourceId(rs.getInt(++i));
@@ -199,7 +199,7 @@ public class DataPointDao extends BaseDao {
                         SerializationHelper.writeObject(dp) }, //
                 new int[] { Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR,
-                        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.BLOB }));
+                        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.BINARY }));
 
         // Save the relational information.
         saveEventDetectors(dp);
@@ -250,7 +250,7 @@ public class DataPointDao extends BaseDao {
                         SerializationHelper.writeObject(dp), dp.getId() }, //
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR, Types.INTEGER,
-                        Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.BLOB, Types.INTEGER });
+                        Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.BINARY, Types.INTEGER });
     }
 
     public void deleteDataPoints(final int dataSourceId) {

@@ -37,6 +37,7 @@
 	<classpathentry kind="lib" path="lib/httpmime-4.2.1.jar"/>
 	<classpathentry kind="lib" path="lib-opt/ant-contrib-1.0b3.jar"/>
 	<classpathentry kind="lib" path="lib/ant-1.6.5.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql-9.2-1002.jdbc4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
 	<classpathentry kind="con" path="DERBY_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>

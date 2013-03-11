@@ -4,9 +4,9 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -107,7 +107,7 @@ public class PublisherDao extends BaseDao {
         @SuppressWarnings("unchecked")
         public PublisherVO<? extends PublishedPointVO> mapRow(ResultSet rs, int rowNum) throws SQLException {
             PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
-                    .readObjectInContext(rs.getBlob(4).getBinaryStream());
+                    .readObjectInContext(rs.getBinaryStream(4));
             p.setId(rs.getInt(1));
             p.setXid(rs.getString(2));
             p.setDefinition(ModuleRegistry.getPublisherDefinition(rs.getString(3)));
@@ -122,10 +122,10 @@ public class PublisherDao extends BaseDao {
                     "insert into publishers (xid, publisherType, data) values (?,?,?)",
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
                             SerializationHelper.writeObjectToArray(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                            Types.BLOB }));
+                            Types.BINARY }));
         else
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
-                    SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BLOB,
+                    SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
                     Types.INTEGER });
     }
 
@@ -156,18 +156,18 @@ public class PublisherDao extends BaseDao {
                         if (!rs.next())
                             return null;
 
-                        Blob blob = rs.getBlob(1);
-                        if (blob == null)
+                        InputStream in = rs.getBinaryStream(1);
+                        if (in == null)
                             return null;
 
-                        return (Serializable) SerializationHelper.readObjectInContext(blob.getBinaryStream());
+                        return (Serializable) SerializationHelper.readObjectInContext(in);
                     }
                 });
     }
 
     public void savePersistentData(int id, Object data) {
         ejt.update("update publishers set rtdata=? where id=?", new Object[] { SerializationHelper.writeObject(data),
-                id }, new int[] { Types.BLOB, Types.INTEGER });
+                id }, new int[] { Types.BINARY, Types.INTEGER });
     }
 
     public int countPointsForPublisherType(String publisherType, int excludeId) {

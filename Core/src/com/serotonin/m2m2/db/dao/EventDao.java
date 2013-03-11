@@ -567,8 +567,7 @@ public class EventDao extends BaseDao {
     class EventHandlerRowMapper implements RowMapper<EventHandlerVO> {
         @Override
         public EventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            EventHandlerVO h = (EventHandlerVO) SerializationHelper
-                    .readObjectInContext(rs.getBlob(4).getBinaryStream());
+            EventHandlerVO h = (EventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(4));
             h.setId(rs.getInt(1));
             h.setXid(rs.getString(2));
             h.setAlias(rs.getString(3));
@@ -608,7 +607,7 @@ public class EventDao extends BaseDao {
                 + "  (xid, alias, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2, data) " //
                 + "values (?,?,?,?,?,?,?)", new Object[] { handler.getXid(), handler.getAlias(), typeName, subtypeName,
                 typeRef1, typeRef2, SerializationHelper.writeObject(handler) }, new int[] { Types.VARCHAR,
-                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BLOB }));
+                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BINARY }));
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
     }
 
@@ -616,7 +615,7 @@ public class EventDao extends BaseDao {
         EventHandlerVO old = getEventHandler(handler.getId());
         ejt.update("update eventHandlers set xid=?, alias=?, data=? where id=?", new Object[] { handler.getXid(),
                 handler.getAlias(), SerializationHelper.writeObject(handler), handler.getId() }, new int[] {
-                Types.VARCHAR, Types.VARCHAR, Types.BLOB, Types.INTEGER });
+                Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.INTEGER });
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_EVENT_HANDLER, old, handler);
     }
 

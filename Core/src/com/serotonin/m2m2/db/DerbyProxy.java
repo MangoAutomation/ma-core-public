@@ -244,4 +244,9 @@ public class DerbyProxy extends DatabaseProxy {
     public int getIdleConnections() {
         return -1;
     }
+
+    @Override
+    protected String getLimitDelete(String sql, int chunkSize) {
+        return sql;
+    }
 }

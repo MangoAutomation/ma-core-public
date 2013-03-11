@@ -4,9 +4,9 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -99,8 +99,7 @@ public class DataSourceDao extends BaseDao {
     class DataSourceRowMapper implements RowMapper<DataSourceVO<?>> {
         @Override
         public DataSourceVO<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            DataSourceVO<?> ds = (DataSourceVO<?>) SerializationHelper.readObjectInContext(rs.getBlob(5)
-                    .getBinaryStream());
+            DataSourceVO<?> ds = (DataSourceVO<?>) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             ds.setId(rs.getInt(1));
             ds.setXid(rs.getString(2));
             ds.setName(rs.getString(3));
@@ -129,7 +128,7 @@ public class DataSourceDao extends BaseDao {
         vo.setId(doInsert("insert into dataSources (xid, name, dataSourceType, data) values (?,?,?,?)",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
                         SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                        Types.BLOB }));
+                        Types.BINARY }));
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
     }
@@ -145,7 +144,7 @@ public class DataSourceDao extends BaseDao {
         ejt.update("update dataSources set xid=?, name=?, dataSourceType=?, data=? where id=?",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
                         SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                        Types.VARCHAR, Types.BLOB, Types.INTEGER });
+                        Types.VARCHAR, Types.BINARY, Types.INTEGER });
     }
 
     public void deleteDataSource(final int dataSourceId) {
@@ -249,17 +248,23 @@ public class DataSourceDao extends BaseDao {
                         if (!rs.next())
                             return null;
 
-                        Blob blob = rs.getBlob(1);
-                        if (blob == null)
+                        InputStream in = rs.getBinaryStream(1);
+                        if (in == null)
                             return null;
 
-                        return (Serializable) SerializationHelper.readObjectInContext(blob.getBinaryStream());
+                        return (Serializable) SerializationHelper.readObjectInContext(in);
+
+                        //                        Blob blob = rs.getBlob(1);
+                        //                        if (blob == null)
+                        //                            return null;
+                        //
+                        //                        return (Serializable) SerializationHelper.readObjectInContext(blob.getBinaryStream());
                     }
                 });
     }
 
     public void savePersistentData(int id, Object data) {
         ejt.update("update dataSources set rtdata=? where id=?", new Object[] { SerializationHelper.writeObject(data),
-                id }, new int[] { Types.BLOB, Types.INTEGER });
+                id }, new int[] { Types.BINARY, Types.INTEGER });
     }
 }

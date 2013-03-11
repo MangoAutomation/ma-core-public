@@ -89,4 +89,9 @@ public class MySQLProxy extends BasePooledProxy {
     public String getTableListQuery() {
         return "show tables";
     }
+
+    @Override
+    protected String getLimitDelete(String sql, int chunkSize) {
+        return sql + " LIMIT " + chunkSize;
+    }
 }
