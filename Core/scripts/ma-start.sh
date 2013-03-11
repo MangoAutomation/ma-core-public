@@ -1,46 +1,30 @@
-#!/bin/sh
+#!/bin/bash
 #
-#    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+#    Copyright (C) 2006-2013 Serotonin Software Technologies Inc. All rights reserved.
 #    @author Matthew Lohbihler
 #
 
-# Runs Mango Automation.
+# -----------------------------------------------------------------------------
+# The start script for Mango Automation. This contains a loop for the purpose of 
+# restarting MA as required. 
 
-# Get standard environment variables
-PRGDIR=`dirname "$0"`
-
-#Uncomment the following to log start up error
-#exec >${PRGDIR}/logs/ma.out 2>${PRGDIR}/logs/ma.err
-
-# Only set MA_HOME if not already set
-[ -z "$MA_HOME" ] && MA_HOME=`cd "$PRGDIR" >/dev/null; pwd`
-
-cd ${PRGDIR}
-
-if [ ! -r "$MA_HOME"/ma-start.sh ]; then
-    echo The MA_HOME environment variable is not defined correctly
-    echo This environment variable is needed to run this program
+if [ -z $MA_HOME ]; then
+    echo Do not execute this file directly. Run \'ma.sh start\' instead.
     exit 1
 fi
 
-# Uncomment the following line to start with the debugger
-# JPDA=-agentlib:jdwp=transport=dt_socket,address=8090,server=y,suspend=y
-
-if [ -z "$JAVA_HOME" ]; then
-    EXECJAVA=java
-else
-    EXECJAVA=$JAVA_HOME/bin/java
-fi
+# This will ensure that the logs are written to the correct directories.
+cd $MA_HOME
 
 LOOP_EXIT=false
 while [ $LOOP_EXIT = false ]; do
     # Check for core upgrade
     if [ -r "$MA_HOME"/m2m2-core-*.zip ]; then
-        export MA_HOME
-        sh $MA_HOME/upgrade.sh
+        $MA_HOME/bin/upgrade.sh
         exit 0
     fi
     
+    # Construct the Java classpath
     MA_CP=$MA_HOME/overrides/classes
     MA_CP=$MA_CP:$MA_HOME/classes
     MA_CP=$MA_CP:$MA_HOME/overrides/properties
@@ -57,12 +41,49 @@ while [ $LOOP_EXIT = false ]; do
       MA_CP=$MA_CP:$f
     done
     
-    $EXECJAVA $JPDA -server -cp $MA_CP \
+    # Run enabled start extensions
+    for f in $MA_HOME/bin/ext-enabled/*.sh
+    do
+        source $f start
+    done
+    
+    # Check for output redirection
+    if [ ! -z $SYSOUT ] && [ ! -z $SYSERR ]; then
+        # Both output redirects are set
+        exec >$SYSOUT 2>$SYSERR
+    elif [ ! -z $SYSOUT ]; then
+        # Just sysout is set
+        exec >$SYSOUT
+    elif [ ! -z $SYSERR ]; then
+        # Just syserr is set
+        exec >$SYSERR
+    fi
+    
+    $EXECJAVA $JPDA $JAVAOPTS -server -cp $MA_CP \
         -Dma.home=$MA_HOME \
         -Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH \
-        com.serotonin.m2m2.Main
+        com.serotonin.m2m2.Main &
+    
+    PID=$!
+    echo $PID > $MA_HOME/bin/ma.pid
+    until !(ps $PID > /dev/null) do
+        sleep 10
+    done
+    rm $MA_HOME/bin/ma.pid
     
     if [ ! -r "$MA_HOME"/RESTART ]; then
+        LOOP_EXIT=true
+    fi
+    
+    # Run enabled restart extensions
+    for f in $MA_HOME/bin/ext-enabled/*.sh
+    do
+        source $f restart
+    done
+    
+    # Check if MA was explicitly stopped by the stop script.
+    if [ -r "$MA_HOME"/STOP ]; then
+        rm "$MA_HOME"/STOP
         LOOP_EXIT=true
     fi
 done

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #    Copyright (C) 2006-2013 Serotonin Software Technologies Inc. All rights reserved.
 #    @author Matthew Lohbihler
@@ -15,16 +15,10 @@ for f in $MA_HOME/m2m2-core-*.zip
 do
     unzip -o $f
     rm $f
-    chmod +x $MA_HOME/ma-start.sh
 done
 
-# This is a *nix script, so we don't need the start batch file
-rm $MA_HOME/ma-start.bat
-
-# If this instance has a start script in overrides, copy it in.
-if [ -r "$MA_HOME"/overrides/ma-start.sh ]; then
-    cp $MA_HOME/overrides/ma-start.sh $MA_HOME
-fi
+chmod +x $MA_HOME/bin/*.sh
+chmod +x $MA_HOME/bin/ext-available/*.sh
 
 # Start MA
-sh $MA_HOME/ma-start.sh
+$MA_HOME/bin/ma.sh start &
