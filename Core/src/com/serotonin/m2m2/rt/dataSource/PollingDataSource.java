@@ -8,17 +8,18 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
@@ -43,6 +44,9 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     private volatile Thread jobThread;
     private long jobThreadStartTime;
 
+    private final AtomicLong successfulPolls = new AtomicLong();
+    private final AtomicLong unsuccessfulPolls = new AtomicLong();
+
     public PollingDataSource(DataSourceVO<?> vo) {
         super(vo);
         this.vo = vo;
@@ -57,15 +61,33 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         this.quantize = quantize;
     }
 
+    public long getSuccessfulPolls() {
+        return successfulPolls.get();
+    }
+
+    public void incrementSuccessfulPolls() {
+        successfulPolls.incrementAndGet();
+    }
+
+    public long getUnsuccessfulPolls() {
+        return unsuccessfulPolls.get();
+    }
+
+    public void incrementUnsuccessfulPolls() {
+        unsuccessfulPolls.incrementAndGet();
+    }
+
     @Override
     public void scheduleTimeout(long fireTime) {
         if (jobThread != null) {
-            // There is another poll still running, so abort this one.
-            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
-                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
-                    + " is still running");
+            //            // There is another poll still running, so abort this one.
+            //            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
+            //                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
+            //                    + " is still running");
+            incrementUnsuccessfulPolls();
             return;
         }
+        incrementSuccessfulPolls();
 
         try {
             jobThread = Thread.currentThread();
@@ -75,7 +97,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             updateChangedPoints();
 
             doPollNoSync(fireTime);
-        } finally {
+        }
+        finally {
             if (terminationLock != null) {
                 synchronized (terminationLock) {
                     terminationLock.notifyAll();
@@ -83,6 +106,14 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             }
             jobThread = null;
         }
+    }
+
+    @Override
+    public void addStatusMessages(List<TranslatableMessage> messages) {
+        super.addStatusMessages(messages);
+        long sum = unsuccessfulPolls.longValue() + successfulPolls.longValue();
+        messages.add(new TranslatableMessage("dsEdit.discardedPolls", unsuccessfulPolls, sum, (int) (unsuccessfulPolls
+                .doubleValue() / sum * 100)));
     }
 
     /**

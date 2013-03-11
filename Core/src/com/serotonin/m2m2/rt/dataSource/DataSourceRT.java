@@ -168,15 +168,26 @@ abstract public class DataSourceRT implements ILifecycle {
         return new TranslatableMessage("event.exception2", e.getClass().getName(), e.getMessage());
     }
 
+    /**
+     * Override as required to add messages to the runtime status section of the data source edit page.
+     * 
+     * @param messages
+     *            the list to which to add messages
+     */
+    public void addStatusMessages(List<TranslatableMessage> messages) {
+        // Override as required
+    }
+
     //
-    // /
-    // / Lifecycle
-    // /
     //
+    // Lifecycle
+    //
+    @Override
     public void initialize() {
         // no op
     }
 
+    @Override
     public void terminate() {
         terminated = true;
 
@@ -184,6 +195,7 @@ abstract public class DataSourceRT implements ILifecycle {
         Common.eventManager.cancelEventsForDataSource(vo.getId());
     }
 
+    @Override
     public void joinTermination() {
         // no op
     }

@@ -133,4 +133,8 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
     public void uninstall() {
         new DataSourceDao().deleteDataSourceType(getDataSourceTypeName());
     }
+
+    public String getStatusPagePath() {
+        return null;
+    }
 }

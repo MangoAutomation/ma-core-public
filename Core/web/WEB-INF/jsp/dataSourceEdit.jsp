@@ -92,6 +92,8 @@
         });
         showMessage("dataSourceMessage");
         showMessage("pointMessage");
+        
+        getStatusMessages();
     }
     
     function saveDataSource() {
@@ -313,20 +315,33 @@
         $("dataSourcePurgePeriod").disabled = !override;
         $("dataSourcePurgeType").disabled = !override;
     }
+    
+    function getStatusMessages() {
+        DataSourceEditDwr.getGeneralStatusMessages(function(result) {
+            dwr.util.removeAllOptions("generalStatusMessages");
+            dwr.util.addOptions("generalStatusMessages", result.data.messages);
+            if (typeof getStatusMessagesImpl == 'function') getStatusMessagesImpl();
+        });
+    }
   </script>
   
-  <table class="borderDiv marB" cellpadding="0" cellspacing="0" id="alarmsTable" style="display:none;"><tr><td>
-    <table width="100%">
-      <tr>
-        <td class="smallTitle"><fmt:message key="dsEdit.currentAlarms"/></td>
-        <td align="right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getAlarms()"/></td>
-      </tr>
-    </table>
+  <tag:labelledSection labelKey="dsEdit.currentAlarms" id="alarmsTable" closed="true">
+    <div style="float: right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getAlarms()"/></div>
     <table>
       <tr id="noAlarmsMsg"><td><b><fmt:message key="dsEdit.noAlarms"/></b></td></tr>
       <tbody id="alarmsList"></tbody>
     </table>
-  </td></tr></table>
+  </tag:labelledSection>
+  
+  <tag:labelledSection labelKey="dsEdit.rtStatus" closed="true">
+    <div style="float: right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getStatusMessages()"/></div>
+    <ul id="generalStatusMessages"></ul>
+    <c:if test="${!empty dataSource.definition.statusPagePath}">
+      Module-defined status.
+      <c:set var="statpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.statusPagePath}</c:set>
+      <jsp:include page="${statpage}"/>
+    </c:if>
+  </tag:labelledSection>
   
   <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
   <jsp:include page="${incpage}"/>

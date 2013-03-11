@@ -15,7 +15,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -228,5 +230,25 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         dss.add(dp);
         data.put(EmportDwr.DATA_POINTS, dss);
         return EmportDwr.export(data);
+    }
+
+    @DwrPermission(user = true)
+    public final ProcessResult getGeneralStatusMessages() {
+        ProcessResult result = new ProcessResult();
+
+        DataSourceVO<?> vo = Common.getUser().getEditDataSource();
+        DataSourceRT rt = Common.runtimeManager.getRunningDataSource(vo.getId());
+
+        List<TranslatableMessage> messages = new ArrayList<TranslatableMessage>();
+        result.addData("messages", messages);
+        if (rt == null)
+            messages.add(new TranslatableMessage("dsEdit.notEnabled"));
+        else {
+            rt.addStatusMessages(messages);
+            if (messages.isEmpty())
+                messages.add(new TranslatableMessage("dsEdit.noStatus"));
+        }
+
+        return result;
     }
 }
