@@ -22,7 +22,7 @@
           </c:if>
           
           <img src="/images/menu_separator.png"/>
-          <m2m2:menuItem href="/users.shtm" png="user" key="header.users"/>
+          <m2m2:menuItem id="usersMi" href="/users.shtm" png="user" key="header.users"/>
           
           <c:if test="${sessionUser.admin}">
             <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ADMINISTRATOR) %>" var="mi">
@@ -36,7 +36,7 @@
           </c:forEach>
         </c:if>
         <c:if test="${empty sessionUser}">
-          <m2m2:menuItem href="/login.htm" png="control_play_blue" key="header.login"/>
+          <m2m2:menuItem id="loginMi" href="/login.htm" png="control_play_blue" key="header.login"/>
           <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ANONYMOUS) %>" var="mi">
             <m2m2:menuItem def="${mi}"/>
           </c:forEach>
@@ -47,7 +47,7 @@
       <td align="right">
         <c:if test="${!empty sessionUser}">
           <span class="copyTitle"><fmt:message key="header.user"/>: <b>${sessionUser.username}</b></span>
-          <m2m2:menuItem href="/logout.htm" png="control-power" key="header.logout"/>
+          <m2m2:menuItem id="logoutMi" href="/logout.htm" png="control-power" key="header.logout"/>
           <tag:img id="userMutedImg" onclick="MiscDwr.toggleUserMuted(setUserMuted)" onmouseover="hideLayersIgnoreMissing('userHome', 'localeEdit')"/>
           <div style="display: inline;" onmouseover="hideLayersIgnoreMissing('localeEdit'); showMenu('userHome', null, 10, 10);">
             <tag:img png="house" title="header.goHomeUrl" onclick="goHomeUrl();"/>

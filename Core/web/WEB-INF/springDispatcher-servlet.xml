@@ -26,22 +26,13 @@
     <property name="mappings">
       <props>
         <!-- All user URLs -->
-        <prop key="/data_point_details.shtm">dataPointDetailsController</prop>
         <prop key="/data_point_edit.shtm">dataPointEditController</prop>
         <prop key="/data_source_edit.shtm">dataSourceEditController</prop>
-        <prop key="/data_sources.shtm">dataSourceListController</prop>
-        <prop key="/emport.shtm">emportController</prop>
-        <prop key="/event_handlers.shtm">eventHandlersController</prop>
-        <prop key="/events.shtm">eventsController</prop>
         <prop key="/help.shtm">helpController</prop>
         <prop key="/login.htm">loginController</prop>
         <prop key="/logout.htm">logoutController</prop>
-        <prop key="/mailing_lists.shtm">mailingListsController</prop>
-        <prop key="/modules.shtm">modulesController</prop>
-        <prop key="/point_hierarchy.shtm">pointHierarchyController</prop>
         <prop key="/publisher_edit.shtm">publisherEditController</prop>
-        <prop key="/publishers.shtm">publisherListController</prop>
-        <prop key="/system_settings.shtm">systemSettingsController</prop>
+        <prop key="/unauthorized.htm">unauthorizedController</prop>
         <prop key="/users.shtm">usersController</prop>
         <prop key="/webcam_live_feed.htm">webcamLiveFeedController</prop>
       </props>
@@ -57,11 +48,6 @@
   <!--
      Controllers
   -->
-  <!-- Public Controllers -->
-  <bean id="dataPointDetailsController" class="com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController">
-    <property name="viewName"><value>/WEB-INF/jsp/dataPointDetails.jsp</value></property>
-  </bean>
-  
   <bean id="dataPointEditController" class="com.serotonin.m2m2.web.mvc.controller.DataPointEditController">
     <property name="commandName"><value>form</value></property>
     <property name="commandClass"><value>com.serotonin.m2m2.vo.DataPointVO</value></property>
@@ -74,22 +60,6 @@
     <property name="viewName"><value>/WEB-INF/jsp/dataSourceEdit.jsp</value></property>
     <property name="errorViewName"><value>/data_sources.shtm</value></property>
     </bean>
-  
-  <bean id="dataSourceListController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/dataSourceList.jsp</value></property>
-  </bean>
-  
-  <bean id="emportController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/emport.jsp</value></property>
-  </bean>
-  
-  <bean id="eventHandlersController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/eventHandlers.jsp</value></property>
-  </bean>
-  
-  <bean id="eventsController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/events.jsp</value></property>
-  </bean>
   
   <bean id="helpController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
     <property name="viewName"><value>/WEB-INF/jsp/help.jsp</value></property>
@@ -104,30 +74,10 @@
   
   <bean id="logoutController" class="com.serotonin.m2m2.web.mvc.controller.LogoutController"/>
   
-  <bean id="mailingListsController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/mailingLists.jsp</value></property>
-  </bean>
-  
-  <bean id="modulesController" class="com.serotonin.m2m2.web.mvc.controller.ModulesController">
-    <property name="viewName"><value>/WEB-INF/jsp/modules.jsp</value></property>
-  </bean>
-  
-  <bean id="pointHierarchyController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/pointHierarchy.jsp</value></property>
-  </bean>
-
   <bean id="publisherEditController" class="com.serotonin.m2m2.web.mvc.controller.PublisherEditController">
     <property name="viewName"><value>/WEB-INF/jsp/publisherEdit.jsp</value></property>
     <property name="errorViewName"><value>/publishers.shtm</value></property>
     </bean>
-  
-  <bean id="publisherListController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/publisherList.jsp</value></property>
-  </bean>
-  
-  <bean id="systemSettingsController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
-    <property name="viewName"><value>/WEB-INF/jsp/systemSettings.jsp</value></property>
-  </bean>
   
   <bean id="usersController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
     <property name="viewName"><value>/WEB-INF/jsp/users.jsp</value></property>
@@ -137,6 +87,9 @@
     <property name="viewName"><value>/WEB-INF/jsp/webcamLiveFeed.jsp</value></property>
   </bean>
   
+  <bean id="unauthorizedController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
+    <property name="viewName"><value>/WEB-INF/jsp/unauthorized.jsp</value></property>
+  </bean>
   
   
   <!-- Interceptors -->

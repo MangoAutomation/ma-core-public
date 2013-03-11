@@ -17,7 +17,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -96,12 +95,7 @@ public class LoggedInFilter implements Filter {
             LOGGER.info("Denying access to secure page for session id " + request.getSession().getId() + ", uri="
                     + request.getRequestURI());
 
-            String forwardUri = null;
-            for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-                forwardUri = def.getLoginPageUri(request, response);
-                if (!StringUtils.isBlank(forwardUri))
-                    break;
-            }
+            String forwardUri = DefaultPagesDefinition.getLoginUri(request, response);
             response.sendRedirect(forwardUri);
             return;
         }

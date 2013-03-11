@@ -21,8 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
+import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.UrlHandler;
+import com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController;
+import com.serotonin.m2m2.web.mvc.controller.ModulesController;
 
 /**
  * The registry of all modules in an MA instance.
@@ -311,38 +315,70 @@ public class ModuleRegistry {
             public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
                 return "/help.shtm";
             }
+
+            @Override
+            public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
+                return "/unauthorized.htm";
+            }
         });
 
-        preDefaults.add(createMenuItemDefinition(Visibility.USER, "header.dataPoints", "icon_comp",
+        preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
                 "/data_point_details.shtm"));
-        preDefaults.add(createMenuItemDefinition(Visibility.USER, "header.alarms", "flag_white", "/events.shtm"));
+        preDefaults.add(createMenuItemDefinition("eventsMi", Visibility.USER, "header.alarms", "flag_white",
+                "/events.shtm"));
 
-        preDefaults.add(createMenuItemDefinition(Visibility.DATA_SOURCE, "header.eventHandlers", "cog",
-                "/event_handlers.shtm"));
-        preDefaults.add(createMenuItemDefinition(Visibility.DATA_SOURCE, "header.dataSources", "icon_ds",
-                "/data_sources.shtm"));
+        preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
+                "cog", "/event_handlers.shtm"));
+        preDefaults.add(createMenuItemDefinition("dataSourcesMi", Visibility.DATA_SOURCE, "header.dataSources",
+                "icon_ds", "/data_sources.shtm"));
 
-        preDefaults.add(createMenuItemDefinition(Visibility.ADMINISTRATOR, "header.pointHierarchy", "folder_brick",
-                "/point_hierarchy.shtm"));
-        preDefaults.add(createMenuItemDefinition(Visibility.ADMINISTRATOR, "header.mailingLists", "book",
-                "/mailing_lists.shtm"));
-        preDefaults.add(createMenuItemDefinition(Visibility.ADMINISTRATOR, "header.publishers", "transmit",
-                "/publishers.shtm"));
-        preDefaults.add(createMenuItemDefinition(Visibility.ADMINISTRATOR, "header.systemSettings", "application_form",
-                "/system_settings.shtm"));
-        preDefaults
-                .add(createMenuItemDefinition(Visibility.ADMINISTRATOR, "header.modules", "puzzle", "/modules.shtm"));
-        preDefaults.add(createMenuItemDefinition(Visibility.ADMINISTRATOR, "header.emport", "emport", "/emport.shtm"));
+        preDefaults.add(createMenuItemDefinition("pointHierarchyMi", Visibility.ADMINISTRATOR, "header.pointHierarchy",
+                "folder_brick", "/point_hierarchy.shtm"));
+        preDefaults.add(createMenuItemDefinition("mailingListsMi", Visibility.ADMINISTRATOR, "header.mailingLists",
+                "book", "/mailing_lists.shtm"));
+        preDefaults.add(createMenuItemDefinition("publishersMi", Visibility.ADMINISTRATOR, "header.publishers",
+                "transmit", "/publishers.shtm"));
+        preDefaults.add(createMenuItemDefinition("systemSettingsMi", Visibility.ADMINISTRATOR, "header.systemSettings",
+                "application_form", "/system_settings.shtm"));
+        preDefaults.add(createMenuItemDefinition("modulesMi", Visibility.ADMINISTRATOR, "header.modules", "puzzle",
+                "/modules.shtm"));
+        preDefaults.add(createMenuItemDefinition("emportMi", Visibility.ADMINISTRATOR, "header.emport", "emport",
+                "/emport.shtm"));
 
-        preDefaults.add(createMenuItemDefinition(Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
+        preDefaults.add(createUriMappingDefinition(Permission.USER, "/data_point_details.shtm",
+                new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.USER, "/events.shtm", null, "/WEB-INF/jsp/events.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/event_handlers.shtm", null,
+                "/WEB-INF/jsp/eventHandlers.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/data_sources.shtm", null,
+                "/WEB-INF/jsp/dataSourceList.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/point_hierarchy.shtm", null,
+                "/WEB-INF/jsp/pointHierarchy.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/mailing_lists.shtm", null,
+                "/WEB-INF/jsp/mailingLists.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/publishers.shtm", null,
+                "/WEB-INF/jsp/publisherList.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/system_settings.shtm", null,
+                "/WEB-INF/jsp/systemSettings.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/modules.shtm", new ModulesController(),
+                "/WEB-INF/jsp/modules.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
+                "/WEB-INF/jsp/emport.jsp"));
+
+        preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
     }
 
-    static MenuItemDefinition createMenuItemDefinition(final Visibility visibility, final String textKey,
-            final String png, final String href) {
+    static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
+            final String textKey, final String png, final String href) {
         return new MenuItemDefinition() {
             @Override
             public Visibility getVisibility() {
                 return visibility;
+            }
+
+            @Override
+            public String getId(HttpServletRequest request, HttpServletResponse response) {
+                return id;
             }
 
             @Override
@@ -363,6 +399,31 @@ public class ModuleRegistry {
             @Override
             public String getHref(HttpServletRequest request, HttpServletResponse response) {
                 return href;
+            }
+        };
+    }
+
+    static UriMappingDefinition createUriMappingDefinition(final Permission permission, final String path,
+            final UrlHandler handler, final String jspPath) {
+        return new UriMappingDefinition() {
+            @Override
+            public Permission getPermission() {
+                return permission;
+            }
+
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public UrlHandler getHandler() {
+                return handler;
+            }
+
+            @Override
+            public String getJspPath() {
+                return jspPath;
             }
         };
     }

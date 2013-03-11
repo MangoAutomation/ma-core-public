@@ -44,7 +44,17 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         return uri;
     }
 
-    private static String getLoginUri(HttpServletRequest request, HttpServletResponse response) {
+    public static String getUnauthorizedUri(HttpServletRequest request, HttpServletResponse response, User user) {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getUnauthorizedPageUri(request, response, user);
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
+
+    public static String getLoginUri(HttpServletRequest request, HttpServletResponse response) {
         String uri = null;
         for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
             uri = def.getLoginPageUri(request, response);
@@ -129,6 +139,19 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      */
     @SuppressWarnings("unused")
     public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
+        return null;
+    }
+
+    /**
+     * Returns the URI of the page to which to direct a user who attempts to access a page to which they have
+     * insufficient authority. The default value is "unauthorized.htm". If this method returns null, the next
+     * definition (if available) will be used. Results are not cached, so the definition can vary its response
+     * contextually.
+     * 
+     * @return the URI of the default logged in page to use, or null.
+     */
+    @SuppressWarnings("unused")
+    public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }
 

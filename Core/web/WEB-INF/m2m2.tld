@@ -86,6 +86,11 @@
       <rtexprvalue>true</rtexprvalue>
     </attribute>
     <attribute>
+      <name>id</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
       <name>href</name>
       <required>false</required>
       <rtexprvalue>true</rtexprvalue>

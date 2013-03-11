@@ -27,6 +27,11 @@
   </filter>
   
   <filter>
+    <filter-name>UrlSecurity</filter-name>
+    <filter-class>com.serotonin.m2m2.web.filter.UrlSecurityFilter</filter-class>
+  </filter>
+  
+  <filter>
     <filter-name>WebContext</filter-name>
     <filter-class>com.serotonin.m2m2.web.filter.WebContextFilter</filter-class>
   </filter>
@@ -64,6 +69,11 @@
     <url-pattern>*.shtm</url-pattern>
   </filter-mapping>
 
+  <filter-mapping>
+    <filter-name>UrlSecurity</filter-name>
+    <url-pattern>*.shtm</url-pattern>
+  </filter-mapping>
+  
   <filter-mapping>
     <filter-name>WebContext</filter-name>
     <url-pattern>*.shtm</url-pattern>
