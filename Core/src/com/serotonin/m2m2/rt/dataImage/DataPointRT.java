@@ -287,6 +287,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         if (saveValue)
             valueCache.savePointValue(newValue, source, logValue, async);
 
+        // add annotation to newValue before firing events so event detectors can
+        // fetch the annotation
+        if (source != null) {
+            newValue = new AnnotatedPointValueTime(newValue.getValue(),
+                    newValue.getTime(), source.getSetPointSourceMessage());
+        }
+        
         // Ignore historical values.
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
