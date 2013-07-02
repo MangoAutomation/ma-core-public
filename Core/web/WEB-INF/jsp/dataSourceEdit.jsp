@@ -28,6 +28,9 @@
         
         pointListColumnHeaders.push("<fmt:message key="dsEdit.name"/>");
         pointListColumnFunctions.push(function(p) { return "<b>"+ p.name +"</b>"; });
+
+        pointListColumnHeaders.push("<fmt:message key="dsEdit.deviceName"/>");
+        pointListColumnFunctions.push(function(p) { return "<b>"+ p.deviceName +"</b>"; });
         
         pointListColumnHeaders.push("<fmt:message key="dsEdit.pointDataType"/>");
         pointListColumnFunctions.push(function(p) { return p.dataTypeMessage; });
@@ -46,7 +49,11 @@
         
         pointListColumnHeaders.push("");
         pointListColumnFunctions.push(function(p) {
-                return writeImage("editImg"+ p.id, null, "icon_comp_edit", "<fmt:message key="common.edit"/>", "editPoint("+ p.id +")");
+        	var html = writeImage("editImg"+ p.id, null, "pencil", "<fmt:message key="common.edit"/>", "editPoint("+ p.id +")");
+        	html += "<a href='/data_point_edit.shtm?dpid=" + p.id + "'>";
+        	html += writeImage("editImg"+ p.id, null, "icon_comp_edit", "<fmt:message key="pointEdit.props.props"/>",null);
+        	html += "</a>"
+        	return html;
         });
         
         var headers = $("pointListHeaders");
