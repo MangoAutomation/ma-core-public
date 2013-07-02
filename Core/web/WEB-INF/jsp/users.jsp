@@ -372,6 +372,23 @@
      
     }
     
+    /*
+     * Make a Copy of an existing user
+    */
+    function copyUser(copyImage){
+    	if (editingUserId > 0)
+            stopImageFader($("u"+ editingUserId +"Img"));
+    	
+    	editingUserId = <c:out value="<%= Common.NEW_ID %>"/>;
+    	var userId = copyImage.id.substring(6); //Strip off the first 'uImage'
+    	UsersDwr.getCopy(userId,function(response){
+    		
+    		//Load up the new User
+    		showUserCB(response.data.vo);
+    		
+    	});
+    	
+    }
     
   </script>
   
@@ -390,9 +407,10 @@
             </tr>
           </table>
           <table id="usersTable">
-            <tbody id="u_TEMPLATE_" onclick="showUser(getMangoId(this))" class="ptr" style="display:none;"><tr>
+            <tbody id="u_TEMPLATE_" class="ptr" style="display:none;"><tr>
               <td><tag:img id="u_TEMPLATE_Img" png="user_green" title="users.user"/></td>
-              <td class="link" id="u_TEMPLATE_Username"></td>
+              <td class="link" id="u_TEMPLATE_Username" onclick="showUser(getMangoId(this));"></td>
+              <td><tag:img id="uImage_TEMPLATE_" png="copy" onclick="copyUser(this);" title="common.copy" /></td>
             </tr></tbody>
           </table>
         </div>
@@ -477,4 +495,5 @@
       </td>
     </tr>
   </table>
+
 </tag:page>

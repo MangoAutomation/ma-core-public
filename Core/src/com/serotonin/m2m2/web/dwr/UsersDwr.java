@@ -261,9 +261,17 @@ public class UsersDwr extends BaseDwr {
     	User existing = dao.getUser(id);
     	
     	User newUser = new User();
+    	newUser.setUsername("Copy of " + existing.getUsername());
+ 
+    	newUser.setEmail(existing.getEmail());
     	newUser.setAdmin(existing.isAdmin());
     	newUser.setPhone(existing.getPhone());
     	newUser.setDisabled(existing.isDisabled());
+        newUser.setReceiveAlarmEmails(existing.getReceiveAlarmEmails());
+        newUser.setReceiveOwnAuditEvents(existing.isReceiveOwnAuditEvents());
+    	newUser.setTimezone(existing.getTimezone());
+    	newUser.setDataPointPermissions(existing.getDataPointPermissions());
+    	newUser.setDataSourcePermissions(existing.getDataSourcePermissions());
     	
     	result.addData("vo", newUser);
     	
