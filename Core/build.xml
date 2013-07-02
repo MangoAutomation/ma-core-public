@@ -116,4 +116,29 @@
             <classpath refid="master-classpath"/>
 		</javadoc>
 	</target>
+	
+	<target name="update-web" description="Update target web dir - Useful While Debugging">
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset dir="classes"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}/db" preservelastmodified="true">
+            <fileset file="db/createTables-DERBY.sql"/>
+            <fileset file="db/createTables-MSSQL.sql"/>
+            <fileset file="db/createTables-MYSQL.sql"/>
+            <fileset file="db/createTables-POSTGRES.sql"/>
+            </copy>
+        <copy todir="${build.dir}/ftl" preservelastmodified="true">
+            <fileset dir="ftl"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}/lib" preservelastmodified="true">
+            <fileset dir="lib"><include name="**/*.*"/></fileset>
+        </copy>
+        <copy todir="${build.dir}/web" preservelastmodified="true">
+            <fileset dir="web">
+            	<include name="**/*.*"/>
+            </fileset>
+        </copy>
+	</target>
+
+	
 </project>

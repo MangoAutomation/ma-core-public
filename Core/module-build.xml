@@ -9,7 +9,8 @@
     <property file="module.properties" />
 	<property name="fullName" value="m2m2-${name}-${version}" />
     <property file="${coreHome}/module-common.properties" />
-    	
+	<property name="deploy.jar.paths" value="${coreHome}/target/web/modules" />
+	
     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
 
 	<path id="master-classpath">
@@ -136,7 +137,7 @@
         <fileset id="jsps.fs" dir="${coreHome}/target/web" includes="modules/${name}/**/*"/>
         <property name="canonical" location="${coreHome}/target/web"/>
         <pathconvert property="jsps" pathsep="," refid="jsps.fs">
-            <map from="${canonical}" to=""/>
+            <map from="${canonical}" to="."/>
         </pathconvert>
         
         <!-- Compile the JSPs -->
@@ -193,7 +194,7 @@
     </target>
     
     <target name="deploy" depends="zip" description="Copy the zip to configured places">
-        <foreach list="${deploy.jar.paths}" target="|deploy" param="todir" delimiter=":">
+        <foreach list="${deploy.jar.paths}" target="|deploy" param="todir" delimiter="|">
             <param name="deploy.file" value="target/${fullName}.zip" />
         </foreach>
 <!--         <copy todir="${coreHome}/web/modules" preservelastmodified="true"> -->
@@ -205,7 +206,7 @@
     </target>
     
     <target name="copy-web" description="Copy the web dir to the core - useful when developing">
-        <copy todir="${coreHome}/web/modules/${name}/web" preservelastmodified="true">
+        <copy todir="${coreHome}/target/web/modules/${name}/web" preservelastmodified="true">
             <fileset dir="web"><include name="**/*"/></fileset>
         </copy>
     </target>
