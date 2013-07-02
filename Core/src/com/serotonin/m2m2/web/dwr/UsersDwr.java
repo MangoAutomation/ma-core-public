@@ -247,4 +247,27 @@ public class UsersDwr extends BaseDwr {
 
         return response;
     }
+    
+    /**
+     * Create a copy of a User
+     * @param id
+     * @return
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult getCopy(int id){
+    	ProcessResult result = new ProcessResult();
+    	
+    	UserDao dao = new UserDao();
+    	User existing = dao.getUser(id);
+    	
+    	User newUser = new User();
+    	newUser.setAdmin(existing.isAdmin());
+    	newUser.setPhone(existing.getPhone());
+    	newUser.setDisabled(existing.isDisabled());
+    	
+    	result.addData("vo", newUser);
+    	
+    	return result;
+    	
+    }
 }

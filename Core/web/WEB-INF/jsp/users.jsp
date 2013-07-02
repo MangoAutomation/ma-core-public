@@ -47,10 +47,13 @@
                 dataSources = data.dataSources;
                 for (i=0; i<dataSources.length; i++) {
                     id = "ds"+ dataSources[i].id;
+                    dshtml += "<img id='tgup" + dataSources[i].id + "' src='images/icon_toggle_plus.png' onclick='expandSource(this);'/><img id='tgdn" + dataSources[i].id + "' src='images/icon_toggle_minus.png' onclick='collapseSource(this);' style='display:none'/>";
                     dshtml += '<input type="checkbox" id="'+ id +'" onclick="dataSourceChange(this)">';
                     dshtml += '<label for="'+ id +'"> '+ dataSources[i].name +"</label>";
-                    dshtml += "<img id='tgup" + dataSources[i].id + "' src='images/icon_arrow_up.png' onclick='collapseSource(this);'/><img id='tgdn" + dataSources[i].id + "' src='images/icon_arrow_down.png' onclick='expandSource(this);'/><br/>";
-                    dshtml += '<div style="margin-left:25px;" id="dsps'+ dataSources[i].id +'">';
+                    dshtml += " <a onclick=\"bulkSetPermissions('none',"+dataSources[i].id+");\"><fmt:message key='common.access.none'/></a> ";
+                	dshtml += "<a onclick=\"bulkSetPermissions('read',"+dataSources[i].id+");\"><fmt:message key='common.access.read'/></a> ";
+                	dshtml += "<a onclick=\"bulkSetPermissions('set',"+dataSources[i].id+");\"><fmt:message key='common.access.set'/></a><br></br>";
+                    dshtml += '<div style="margin-left:25px; margin-top: -10px" id="dsps'+ dataSources[i].id +'">';
                     if (dataSources[i].points.length > 0) {
                         dshtml +=   '<table cellspacing="0" cellpadding="1">';
                         for (j=0; j<dataSources[i].points.length; j++) {
@@ -70,6 +73,8 @@
                             dshtml += '</tr>';
                         }
                         dshtml +=   '</table>';
+                    }else{
+                    	dshtml += "<fmt:message key='users.dataSources.noPoints'/>";
                     }
                     dshtml += '</div>';
                 }
@@ -263,7 +268,12 @@
     }
     
     function dataSourceChange(dscb) {
-        display("dsps"+ dscb.id.substring(2), !dscb.checked);
+    	if(dscb.checked){
+    		//Close the Points
+    		var dsId = dscb.id.substring(2);
+    		var tgup = dojo.byId("tgup" + dsId);
+    		collapseSource(tgup)
+    	}
     }
     
     function deleteUser() {
@@ -289,29 +299,59 @@
      * tgup = "xxxxID" where ID is the id of the datasource to expand
     */
     function expandSource(tgdn){
-    	display("dsps"+ tgdn.id.substring(4), true);
+    	//Get the DS ID
+    	var dsId = tgdn.id.substring(4);
+    	
+    	//Check to see if the checkbox is selected, if it is we won't open this
+    	var dscb = dojo.byId("ds" + dsId);
+    	if(!dscb.checked){
+	    	//Hide the expand image
+	    	hide("tgup"+dsId);
+	    	//Show the collapse image
+	    	show("tgdn"+dsId);
+	    	display("dsps"+ dsId, true);
+    	}
     }
     
     /**
      * tgup = "xxxxID" where ID is the id of the datasource to collapse
     */
     function collapseSource(tgup){
-    	display("dsps"+ tgup.id.substring(4), false);
+    	var dsId = tgup.id.substring(4);
+    	//Hide the collapse image
+    	hide("tgdn"+dsId);
+    	//Show the expand image
+    	show("tgup"+dsId);
+    	//Show the Data
+    	display("dsps"+ dsId, false);
     }
     
     /**
      * Bulk Set All Permissions
     **/
-    function bulkSetPermissions(type){
-    	if(type === 'none'){
-    		//Clear all permissions
-    		setAllPermissions("0");
-    	}else if(type == 'read'){
-    		//Set all to read
-    		setAllPermissions("1");
-    	}else if(type == 'set'){
-    		//Set all to set
-    		setAllPermissions("2");
+    function bulkSetPermissions(type,dsId){
+    	
+    	var permission = "0";
+    	if(type === 'none')
+    		permission = "0";
+    	else if (type === 'read')
+    		permission = "1";
+    	else if (type == 'set')
+    		permission = "2";
+    	
+    	if(dsId){
+            var i, j;
+            for (i=0; i<dataSources.length; i++) {
+	            if(dataSources[i].id === dsId){
+	                for (j=0; j<dataSources[i].points.length; j++){
+	                    	$set("dp"+ dataSources[i].points[j].id, permission);
+	                    
+	                }
+	                break; //Drop out after updating the DS We want
+            	}
+            }
+    	}else{
+	    	setAllPermissions(permission);
     	}
     }
 
@@ -422,9 +462,9 @@
               <tr>
               	<td class="formLabelRequired"><fmt:message key="users.dataSources.bulkSet"/></td>
                 <td class="formField">
-                	<button onclick="bulkSetPermissions('none');"><fmt:message key="common.access.none"/></button>
-                	<button onclick="bulkSetPermissions('read');"><fmt:message key="common.access.read"/></button>
-                	<button onclick="bulkSetPermissions('set');"><fmt:message key="common.access.set"/></button>
+                	<a onclick="bulkSetPermissions('none');"><fmt:message key="common.access.none"/></a>
+                	<a onclick="bulkSetPermissions('read');"><fmt:message key="common.access.read"/></a>
+                	<a onclick="bulkSetPermissions('set');"><fmt:message key="common.access.set"/></a>
                 </td>
               </tr>
               <tr id="dataSources">
