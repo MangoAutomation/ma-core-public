@@ -48,7 +48,8 @@
                 for (i=0; i<dataSources.length; i++) {
                     id = "ds"+ dataSources[i].id;
                     dshtml += '<input type="checkbox" id="'+ id +'" onclick="dataSourceChange(this)">';
-                    dshtml += '<label for="'+ id +'"> '+ dataSources[i].name +'</label><br/>';
+                    dshtml += '<label for="'+ id +'"> '+ dataSources[i].name +"</label>";
+                    dshtml += "<img id='tgup" + dataSources[i].id + "' src='images/icon_arrow_up.png' onclick='collapseSource(this);'/><img id='tgdn" + dataSources[i].id + "' src='images/icon_arrow_down.png' onclick='expandSource(this);'/><br/>";
                     dshtml += '<div style="margin-left:25px;" id="dsps'+ dataSources[i].id +'">';
                     if (dataSources[i].points.length > 0) {
                         dshtml +=   '<table cellspacing="0" cellpadding="1">';
@@ -110,11 +111,14 @@
         
         if (adminUser) {
             // Turn off all data sources and set all data points to 'none'.
-            var i, j, dscb, dp;
+            var i, j, dscb, dp,tgup;
             for (i=0; i<dataSources.length; i++) {
                 dscb = $("ds"+ dataSources[i].id);
                 dscb.checked = false;
                 dataSourceChange(dscb);
+                
+                tgup = $("tgup" + dataSources[i].id);
+                collapseSource(tgup); //Collapse the source
                 for (j=0; j<dataSources[i].points.length; j++)
                     $set("dp"+ dataSources[i].points[j].id, "0");
             }
@@ -123,8 +127,10 @@
             for (i=0; i<user.dataSourcePermissions.length; i++) {
                 dscb = $("ds"+ user.dataSourcePermissions[i]);
                 dscb.checked = true;
-                dataSourceChange(dscb);
+                //Just Don't expand dataSourceChange(dscb);
             }
+            
+            //TODO Collapse ALL HERE
             
             // Update the data point permissions.
             for (i=0; i<user.dataPointPermissions.length; i++)
@@ -278,6 +284,55 @@
             });
         }
     }
+    
+    /**
+     * tgup = "xxxxID" where ID is the id of the datasource to expand
+    */
+    function expandSource(tgdn){
+    	display("dsps"+ tgdn.id.substring(4), true);
+    }
+    
+    /**
+     * tgup = "xxxxID" where ID is the id of the datasource to collapse
+    */
+    function collapseSource(tgup){
+    	display("dsps"+ tgup.id.substring(4), false);
+    }
+    
+    /**
+     * Bulk Set All Permissions
+    **/
+    function bulkSetPermissions(type){
+    	if(type === 'none'){
+    		//Clear all permissions
+    		setAllPermissions("0");
+    	}else if(type == 'read'){
+    		//Set all to read
+    		setAllPermissions("1");
+    	}else if(type == 'set'){
+    		//Set all to set
+    		setAllPermissions("2");
+    	}
+    }
+
+    /**
+     * 0 for none
+     * 1 for read
+     * 2 for set
+    **/
+    function setAllPermissions(permission){
+        var i, j, dscb;
+        for (i=0; i<dataSources.length; i++) {
+            dscb = $("ds"+ dataSources[i].id);
+            dscb.checked = false;
+            dataSourceChange(dscb);
+            for (j=0; j<dataSources[i].points.length; j++)
+                $set("dp"+ dataSources[i].points[j].id, permission);
+        }
+     
+    }
+    
+    
   </script>
   
   <table>
@@ -364,6 +419,14 @@
             </tr>
             <tbody id="dataSources" style="display:none;">
               <tr><td class="horzSeparator" colspan="2"></td></tr>
+              <tr>
+              	<td class="formLabelRequired"><fmt:message key="users.dataSources.bulkSet"/></td>
+                <td class="formField">
+                	<button onclick="bulkSetPermissions('none');"><fmt:message key="common.access.none"/></button>
+                	<button onclick="bulkSetPermissions('read');"><fmt:message key="common.access.read"/></button>
+                	<button onclick="bulkSetPermissions('set');"><fmt:message key="common.access.set"/></button>
+                </td>
+              </tr>
               <tr id="dataSources">
                 <td class="formLabelRequired"><fmt:message key="users.dataSources"/></td>
                 <td class="formField" id="dataSourceList"></td>
