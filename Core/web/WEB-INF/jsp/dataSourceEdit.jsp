@@ -25,12 +25,12 @@
         changePurgeOverride();
         
         var pointListColumnHeaders = new Array();
-        
-        pointListColumnHeaders.push("<fmt:message key="dsEdit.name"/>");
-        pointListColumnFunctions.push(function(p) { return "<b>"+ p.name +"</b>"; });
 
         pointListColumnHeaders.push("<fmt:message key="dsEdit.deviceName"/>");
         pointListColumnFunctions.push(function(p) { return "<b>"+ p.deviceName +"</b>"; });
+        
+        pointListColumnHeaders.push("<fmt:message key="dsEdit.name"/>");
+        pointListColumnFunctions.push(function(p) { return "<b>"+ p.name +"</b>"; });
         
         pointListColumnHeaders.push("<fmt:message key="dsEdit.pointDataType"/>");
         pointListColumnFunctions.push(function(p) { return p.dataTypeMessage; });
