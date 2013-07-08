@@ -32,6 +32,8 @@
             <src path="src-patch"/>
             <classpath refid="master-classpath"/>
         </javac>
+		<!-- Create a backup folder -->
+		<mkdir dir="${build.dir}/backup"/>
    	</target>
     
     <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">

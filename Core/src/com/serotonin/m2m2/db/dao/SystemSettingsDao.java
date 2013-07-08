@@ -66,6 +66,12 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PLOT_BACKGROUND_COLOUR = "plotBackgroundColour";
     public static final String PLOT_GRIDLINE_COLOUR = "plotGridlineColour";
 
+    //Backup Settings
+	public static final String BACKUP_FILE_LOCATION = "backupFileLocation";
+	public static final String BACKUP_PERIOD_TYPE = "backupPeriodType";
+	public static final String BACKUP_PERIODS = "backupPeriods";
+	public static final String BACKUP_LAST_RUN_SUCCESS = "backupLastSuccessfulRun";
+
     // Value cache
     private static final Map<String, String> cache = new HashMap<String, String>();
 
@@ -185,6 +191,7 @@ public class SystemSettingsDao extends BaseDao {
     private static long FUTURE_DATE_LIMIT = -1;
 
     private static final Map<String, Object> DEFAULT_VALUES = new HashMap<String, Object>();
+	
     static {
         DEFAULT_VALUES.put(DATABASE_SCHEMA_VERSION, "0.7.0");
 
@@ -219,5 +226,11 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(CHART_BACKGROUND_COLOUR, "white");
         DEFAULT_VALUES.put(PLOT_BACKGROUND_COLOUR, "white");
         DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "silver");
+        
+        //Default Backup Settings
+        DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
+        DEFAULT_VALUES.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
+        DEFAULT_VALUES.put(BACKUP_PERIODS,1);
+        
     }
 }

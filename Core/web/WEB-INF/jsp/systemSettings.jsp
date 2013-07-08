@@ -87,6 +87,12 @@
             $set("<c:out value="<%= SystemSettingsDao.CHART_BACKGROUND_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.CHART_BACKGROUND_COLOUR %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.PLOT_BACKGROUND_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.PLOT_BACKGROUND_COLOUR %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.PLOT_GRIDLINE_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.PLOT_GRIDLINE_COLOUR %>"/>);
+
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>);
+            
         });
         
         <c:if test="${!empty param.def}">
@@ -322,6 +328,30 @@
             });
         }
     }
+    
+    /**
+     * Save the Backup Settings
+     */
+    function saveBackupSettings() {
+    	hideContextualMessages("backupSettingsTab"); //Clear out any existing msgs
+        SystemSettingsDwr.saveBackupSettings($get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"), $get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>"), $get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>"),
+	        function(response) {
+	            setDisabled("saveBackupSettingsBtn", false);
+	            if (response.hasMessages)
+	                showDwrMessages(response.messages);
+	            else
+	            	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.systemBackupSettingsSaved"/>");
+	        });
+        setUserMessage("backupSettingsMessage");
+        setDisabled("saveBackupSettingsBtn", true);
+    }
+    
+    function backupNow(){
+    	
+    	SystemSettingsDwr.queueBackup()
+    	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.backupQueued"/>");
+    }
+    
   </script>
   
   <tag:labelledSection labelKey="systemSettings.systemInformation">
@@ -599,4 +629,43 @@
       <tr><td colspan="2" id="colourMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
+  
+    <tag:labelledSection labelKey="systemSettings.backupSettings" closed="true">
+    <table id="backupSettingsTab">
+    
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.backupLastSuccessfulRun"/></td>
+        <td class="formField"><span id="<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>"></span></td>
+      </tr>
+    
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupLocation"/></td>
+        <td class="formField"><input type="text" id="<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"/> </td>
+      </tr>
+
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupFrequency"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" s="true" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" align="center">
+          <input id="executeBackupNowBtn" type="button" value="<fmt:message key="systemSettings.backupNow"/>" onclick="backupNow()"/>
+          <input id="saveBackupSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveBackupSettings()"/>
+          <tag:help id="backupSettings"/>
+        </td>
+      </tr>
+      
+      <tr><td colspan="2" id="backupSettingsMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
+  
+  
+  
+  
+  
 </tag:page>
