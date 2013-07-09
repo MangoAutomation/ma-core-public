@@ -123,7 +123,7 @@ public class DocumentationManifest {
         // We traverse the directory list in reverse order so that modules can override the core.
         File file = null;
         for (int i = directories.size() - 1; i >= 0; i--) {
-            file = new File(directories.get(i), filename);
+            file = new File(Common.MA_HOME + "/" + directories.get(i), filename);
             if (file.exists())
                 return file;
         }
