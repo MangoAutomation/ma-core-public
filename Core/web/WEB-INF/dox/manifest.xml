@@ -91,4 +91,7 @@
   <item id="colours" key="dox.colours" filename="colours.htm"/>
   
   <item id="pointHierarchy" key="dox.pointHierarchy" filename="pointHierarchy.htm"/>
+  
+  <item id="backupSettings" key="dox.backupSettings" filename="backupSettings.htm"/>
+  
 </doxManifest>

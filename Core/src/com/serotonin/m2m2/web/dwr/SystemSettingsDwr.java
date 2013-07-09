@@ -112,8 +112,6 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE));
         settings.put(SystemSettingsDao.BACKUP_PERIODS,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
-       
-       
         try{
 	        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 	        String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
@@ -123,6 +121,12 @@ public class SystemSettingsDwr extends BaseDwr {
         }catch(Exception e){
         	settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,"unknown");
         }
+        settings.put(SystemSettingsDao.BACKUP_HOUR,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_HOUR));
+        settings.put(SystemSettingsDao.BACKUP_MINUTE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_MINUTE));
+        settings.put(SystemSettingsDao.BACKUP_FILE_COUNT,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT));
         
 
         return settings;
@@ -318,8 +322,10 @@ public class SystemSettingsDwr extends BaseDwr {
      * @param backupPeriod
      */
     @DwrPermission(admin = true)
-    public ProcessResult saveBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods){
+    public ProcessResult saveBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods, int backupHour, int backupMinute, int backupHistory){
     	ProcessResult result = new ProcessResult();
+    	boolean updateTask = true;
+    	
     	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
     	//Validate
     	File tmp = new File(backupFileLocation);
@@ -339,6 +345,37 @@ public class SystemSettingsDwr extends BaseDwr {
     	//Not validating because select list.
     	systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE, backupPeriodType);
     	systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_PERIODS, backupPeriods);
+
+    	//Validate the Hour and Minute
+    	if((backupHour < 24)&&(backupHour>=0)){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_HOUR, backupHour);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_HOUR,
+    				"systemSettings.validation.backupHourInvalid");
+    	}
+    	if((backupMinute < 60)&&(backupMinute>=0)){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_MINUTE, backupMinute);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_MINUTE,
+    				"systemSettings.validation.backupMinuteInvalid");
+    	}
+    	
+    	//Validate the number of backups to keep
+    	if(backupHistory > 0){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_FILE_COUNT, backupHistory);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_FILE_COUNT,
+    				"systemSettings.validation.backupFileCountInvalid");
+    	}   	
+    	
+    	if(updateTask){
+    		//Reschedule the task
+    		BackupWorkItem.unschedule();
+    		BackupWorkItem.schedule();
+    	}
     	
     	return result;
     }

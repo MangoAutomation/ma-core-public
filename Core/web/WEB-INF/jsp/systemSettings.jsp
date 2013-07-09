@@ -92,6 +92,9 @@
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>);
             
         });
         
@@ -334,7 +337,13 @@
      */
     function saveBackupSettings() {
     	hideContextualMessages("backupSettingsTab"); //Clear out any existing msgs
-        SystemSettingsDwr.saveBackupSettings($get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"), $get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>"), $get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>"),
+        SystemSettingsDwr.saveBackupSettings(
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>"),
 	        function(response) {
 	            setDisabled("saveBackupSettingsBtn", false);
 	            if (response.hasMessages)
@@ -648,10 +657,22 @@
         <td class="formField">
           <input id="<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>" type="text" class="formShort"/>
           <c:set var="tpid"><c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/></c:set>
-          <tag:timePeriods id="${tpid}" s="true" d="true" w="true" mon="true" y="true"/>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
         </td>
       </tr>
-
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
+         </td>
+	 </tr>
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>" type="text" class="formShort"/>
+         </td>
+	 </tr>
       <tr>
         <td colspan="2" align="center">
           <input id="executeBackupNowBtn" type="button" value="<fmt:message key="systemSettings.backupNow"/>" onclick="backupNow()"/>

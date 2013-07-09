@@ -71,6 +71,9 @@ public class SystemSettingsDao extends BaseDao {
 	public static final String BACKUP_PERIOD_TYPE = "backupPeriodType";
 	public static final String BACKUP_PERIODS = "backupPeriods";
 	public static final String BACKUP_LAST_RUN_SUCCESS = "backupLastSuccessfulRun";
+	public static final String BACKUP_HOUR = "backupHour";
+	public static final String BACKUP_MINUTE = "backupMinute";
+	public static final String BACKUP_FILE_COUNT = "backupFileCount";
 
     // Value cache
     private static final Map<String, String> cache = new HashMap<String, String>();
@@ -231,6 +234,9 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
         DEFAULT_VALUES.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
         DEFAULT_VALUES.put(BACKUP_PERIODS,1);
+        DEFAULT_VALUES.put(BACKUP_FILE_COUNT,10);
+        DEFAULT_VALUES.put(BACKUP_HOUR, 0);
+        DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         
     }
 }
