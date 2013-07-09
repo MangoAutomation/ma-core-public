@@ -44,6 +44,15 @@
             </else>
         </if>
         
+		<available property="external-lib.exists" file="external-lib" type="dir" />
+		        <if>
+		            <isset property="external-lib.exists"/>
+		            <then></then>
+		            <else>
+		                <mkdir dir="external-lib"/>
+		            </else>
+		        </if>
+		
 		<javac destdir="target" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" 
                 deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
 			<src path="src" />
