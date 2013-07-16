@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jfree.util.Log;
-
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -113,7 +111,8 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.BACKUP_PERIODS,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
         try{
-	        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+        	
+	        SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
 	        String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
 	        Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
 	        lastRunString = sdf.format(lastRunDate);
@@ -127,7 +126,9 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_MINUTE));
         settings.put(SystemSettingsDao.BACKUP_FILE_COUNT,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT));
-        
+        //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
+        settings.put(SystemSettingsDao.BACKUP_ENABLED,
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true));
 
         return settings;
     }
@@ -322,7 +323,8 @@ public class SystemSettingsDwr extends BaseDwr {
      * @param backupPeriod
      */
     @DwrPermission(admin = true)
-    public ProcessResult saveBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods, int backupHour, int backupMinute, int backupHistory){
+    public ProcessResult saveBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods,
+    		int backupHour, int backupMinute, int backupHistory, boolean backupEnabled){
     	ProcessResult result = new ProcessResult();
     	boolean updateTask = true;
     	
@@ -371,10 +373,17 @@ public class SystemSettingsDwr extends BaseDwr {
     				"systemSettings.validation.backupFileCountInvalid");
     	}   	
     	
+    	boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, !backupEnabled);
+    	if(backupEnabled != oldBackupEnabled){
+    		updateTask = true;
+    		systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
+    	}
+    	    	
     	if(updateTask){
     		//Reschedule the task
     		BackupWorkItem.unschedule();
-    		BackupWorkItem.schedule();
+    		if(backupEnabled)
+    			BackupWorkItem.schedule();
     	}
     	
     	return result;

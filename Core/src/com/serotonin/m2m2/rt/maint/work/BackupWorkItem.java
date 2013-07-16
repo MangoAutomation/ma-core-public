@@ -36,15 +36,22 @@ import com.serotonin.timer.TimerTask;
 
 public class BackupWorkItem implements WorkItem {
     private static final Log LOG = LogFactory.getLog(BackupWorkItem.class);
-    public static final String BACKUP_DATE_FORMAT = "MM-dd-yyyy_HHmmss"; //Used to for filename and property value for last run
+    public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; //Used to for filename and property value for last run
     public static final SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
     
+    //Lock to ensure we don't clobber files by running a backup 
+    // during another one.
+    public static final Object lock = new Object();
+    
     private static BackupSettingsTask task; //Static holder to re-schedule task if necessary
+    private String backupLocation; //Location of backup directory on disk
+
     /**
-     * Statically Schedule this task when the app starts up.
+     * Statically Schedule a Timer Task that will run this work item.
      * 
-     * TODO Make this an RTM and add to the RuntimeManager's list of startup RTMS
-     * currently only the Module RTMs get started there.
+     * TODO For Startup Make this an RTM and add to the RuntimeManager's list of startup RTMS
+     * currently only the Module RTMs get started there.  For now this call is
+     * used within the RuntimeManager 
      */
     public static void schedule() {
         try {
@@ -64,7 +71,7 @@ public class BackupWorkItem implements WorkItem {
     }
     
     /**
-     * Safely unschedule the task if it exists
+     * Safely unschedule the timer task for this work item
      */
     public static void unschedule(){
     	if(task != null){
@@ -79,89 +86,95 @@ public class BackupWorkItem implements WorkItem {
 		return WorkItem.PRIORITY_MEDIUM;
 	}
 
+	/**
+	 * Queue a backup for execution
+	 * @param backupLocation
+	 */
 	public static void queueBackup(String backupLocation){
-		
 		BackupWorkItem item = new BackupWorkItem();
 		item.backupLocation = backupLocation;
-		
 		Common.backgroundProcessing.addWorkItem(item);
-		
 	}
-	
-    
-    private String backupLocation;
     
 	@Override
 	public void execute() {
-		LOG.info("Starting backup WorkItem.");
-		//Create the filename
-		
-		String runtimeString = dateFormatter.format(new Date());
-		String filename = "backup-";
-		filename += runtimeString;
-		filename += ".json";
-		
-		//Fill the full path
-		String fullFilePath = this.backupLocation;
-		if(fullFilePath.endsWith("/")){
-			fullFilePath += filename;
-		}else{
-			fullFilePath += "/";
-			fullFilePath += filename;
-		}
-		
-		//Collect the json backup data
-		String jsonData = getBackup();
-		
-		//Write to file
-		try{
-			File file = new File(fullFilePath);
-			if(!file.exists())
-				if(!file.createNewFile()){
-					LOG.warn("Unable to create backup file: " + fullFilePath);
-		            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-		                    System.currentTimeMillis(), false,
-		                    new TranslatableMessage("event.backup.failure", fullFilePath, "Unable to create backup file"));
-
-					return;
-				}
-			FileWriter fw = new FileWriter(file);
-			BufferedWriter bw = new BufferedWriter(fw);
-			bw.write(jsonData);
-			bw.close();
-			//Store the last successful backup time
-			SystemSettingsDao dao = new SystemSettingsDao();
-			dao.setValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,runtimeString);
-			
-			//Clean up old files, keeping the correct number as the history
+		synchronized(lock){
+			LOG.info("Starting backup WorkItem.");
+			//Create the filename
+			String filename = "Mango-Configuration";
+			String runtimeString = dateFormatter.format(new Date());
 			int maxFiles = SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
-			File backupDir = new File(this.backupLocation);
-			File[] files = backupDir.listFiles(new FilenameFilter(){
-				public boolean accept(File dir, String name){
-					return name.toLowerCase().endsWith(".json");
-				}
-			});
-			//Sort the files by date
-	        Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
-	        
-	        //Keep the desired history
-	        for(int i=maxFiles; i<files.length; i++){
-	        	try{
-	        		files[i].delete(); //Remove it
-	        	}catch(Exception e){
-	        		LOG.warn("Unable to delete file: " + files[i].getAbsolutePath(),e);
-	        	}
-	        }
-	        
-		}catch(Exception e){
-			LOG.warn(e);
-            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-                    System.currentTimeMillis(), false,
-                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
+			//If > 1 then we will use a date in the filename 
+			if(maxFiles > 1){
+				//Create Mango-Configuration-date.json
+				filename += "-";
+				filename += runtimeString;
+			}
+			filename += ".json";
+			//Fill the full path
+			String fullFilePath = this.backupLocation;
+			if(fullFilePath.endsWith("/")){
+				fullFilePath += filename;
+			}else{
+				fullFilePath += "/";
+				fullFilePath += filename;
+			}
+			
+			//Collect the json backup data
+			String jsonData = getBackup();
+			
+			//Write to file
+			try{
+				File file = new File(fullFilePath);
+				if(!file.exists())
+					if(!file.createNewFile()){
+						LOG.warn("Unable to create backup file: " + fullFilePath);
+			            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
+			                    System.currentTimeMillis(), false,
+			                    new TranslatableMessage("event.backup.failure", fullFilePath, "Unable to create backup file"));
+	
+						return;
+					}
+				FileWriter fw = new FileWriter(file,false); //Always replace if exists
+				BufferedWriter bw = new BufferedWriter(fw);
+				bw.write(jsonData);
+				bw.close();
+				//Store the last successful backup time
+				SystemSettingsDao dao = new SystemSettingsDao();
+				dao.setValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,runtimeString);
+				
+				//Clean up old files, keeping the correct number as the history
+				File backupDir = new File(this.backupLocation);
+				File[] files = backupDir.listFiles(new FilenameFilter(){
+					public boolean accept(File dir, String name){
+						return name.toLowerCase().endsWith(".json");
+					}
+				});
+				//Sort the files by date
+		        Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
+		        
+		        //Keep the desired history
+		        for(int i=maxFiles; i<files.length; i++){
+		        	try{
+		        		files[i].delete(); //Remove it
+		        	}catch(Exception e){
+		        		LOG.warn("Unable to delete file: " + files[i].getAbsolutePath(),e);
+		        	}
+		        }
+		        
+			}catch(Exception e){
+				LOG.warn(e);
+	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
+	                    System.currentTimeMillis(), false,
+	                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
+			}
 		}
-		
 	}
 
+	/**
+	 * Get a JSON Backup
+	 * @return
+	 */
 	public String getBackup(){
         Map<String, Object> data = new LinkedHashMap<String, Object>();
 
@@ -181,7 +194,11 @@ public class BackupWorkItem implements WorkItem {
         return EmportDwr.export(data);
 	}
 
-	
+	/**
+	 * Timer task that uses this Backup Work Item in its execution
+	 * @author tpacker
+	 *
+	 */
     static class BackupSettingsTask extends TimerTask {
     	BackupSettingsTask(String cronTrigger) throws ParseException {
             super(new CronTimerTrigger(cronTrigger));
@@ -210,8 +227,6 @@ public class BackupWorkItem implements WorkItem {
 	        	}else{
 		        	BackupWorkItem.queueBackup(backupLocation);
 	        	}
-	       
-	        	
         	}catch(Exception e){
         		LOG.error(e);
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
@@ -219,7 +234,7 @@ public class BackupWorkItem implements WorkItem {
 	                    new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));
 
         	}
-        }
-    }
+        }//end run
+    }// end backup settings task
 	
 }

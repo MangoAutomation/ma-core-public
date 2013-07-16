@@ -3,14 +3,17 @@
     @author Terry Packer
 -->
 <p>The application is capable of automatic backup the json configuration to a text file.  The frequency and location of these backups can be set here.  By default the configuration is saved daily and the past 10 backups are kept on the disk.</p>
+
+<p><b>Enable auto backup</b> to schedule the backup of the system configuration to a file.
+
 <p><b>Last run</b> is the time and date of the last backup.  If no backup has ever been made, the date will be unknown.</p>
 
 <p>The <b>Backup directory</b> should point to the directory where the backup files will be stored.  By default this is set to MA_HOME/backups.</p>
 
 <p><b>Backup every</b> number of periods.  Choose the frequency of backups. These are relative to the last backup time unless that is unknown and then the first backup will be run at the next date/time entered below.</p>
 
-<p><b>Backup at</b> a preferred time of day.  Choose the hour and minute of the backup, hour is from 0-23, minute from 0-59.</p>
+<p><b>Backup Time</b> a preferred time of day.  Choose the hour and minute of the backup, hour is from 0-23, minute from 0-59.</p>
 
-<p>The <b>History</b> setting allows the user to choose how many backups to keep in the directory before they are deleted.</p>
+<p>The <b>Versions to keep</b> setting allows the user to choose how many backups to keep in the directory before they are deleted. If > 1 is entered then the backup will be named Mango-Configuration-MMM-dd-yyyy_HHmmss.json, if the number entered is 1 then the file name will always remain Mango-Configuration.json and it's contents will be replaced by the most recent backup.</p>
 
 <p>The <b>Backup now</b> button allows the user to queue a job to backup the system now.  This job will execute as soon as possible.</p>

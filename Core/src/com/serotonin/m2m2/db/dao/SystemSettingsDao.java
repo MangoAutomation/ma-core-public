@@ -74,6 +74,7 @@ public class SystemSettingsDao extends BaseDao {
 	public static final String BACKUP_HOUR = "backupHour";
 	public static final String BACKUP_MINUTE = "backupMinute";
 	public static final String BACKUP_FILE_COUNT = "backupFileCount";
+	public static final String BACKUP_ENABLED = "backupEnabled";
 
     // Value cache
     private static final Map<String, String> cache = new HashMap<String, String>();
@@ -237,6 +238,6 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_FILE_COUNT,10);
         DEFAULT_VALUES.put(BACKUP_HOUR, 0);
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
-        
+        //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
     }
 }

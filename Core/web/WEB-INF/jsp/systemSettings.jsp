@@ -95,7 +95,7 @@
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>);
-            
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>);                
         });
         
         <c:if test="${!empty param.def}">
@@ -344,7 +344,8 @@
         		$get("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>"),
         		$get("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>"),
         		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>"),
-	        function(response) {
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>"),
+       		function(response) {
 	            setDisabled("saveBackupSettingsBtn", false);
 	            if (response.hasMessages)
 	                showDwrMessages(response.messages);
@@ -641,7 +642,12 @@
   
     <tag:labelledSection labelKey="systemSettings.backupSettings" closed="true">
     <table id="backupSettingsTab">
-    
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupEnable"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>" type="checkbox" />
+        </td>
+      </tr>
       <tr>
         <td class="formLabel"><fmt:message key="systemSettings.backupLastSuccessfulRun"/></td>
         <td class="formField"><span id="<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>"></span></td>
@@ -663,8 +669,8 @@
 	  <tr>
 	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
         <td class="formField">
-          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
-          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
+          <fmt:message key="systemSettings.backupHour"/><input id="<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
+          <fmt:message key="systemSettings.backupMinute"/><input id="<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
          </td>
 	 </tr>
 	  <tr>
