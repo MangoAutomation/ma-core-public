@@ -23,6 +23,8 @@
     dojo.require("dijit.Tree");
     dojo.require("dijit.tree.TreeStoreModel");
     dojo.require("dojo.data.ItemFileWriteStore");
+    dojo.require("dojo.store.Memory");
+    dojo.require("dijit.form.FilteringSelect");
     
     var allPoints;
     var defaultHandlerId;
@@ -30,6 +32,8 @@
     var escalRecipients;
     var inactiveRecipients;
     var store;
+    var targetPointSelector,activePointSelector,inactivePointSelector;
+    
     // Define a convenience function for unwrapping values in the store.
     function $$(item, attr, value) {
         if (typeof(value) == "undefined")
@@ -51,6 +55,34 @@
             var pointNode, dataSourceNode, publisherNode, etNode, wid;
             
             allPoints = data.allPoints;
+            
+            //Create the filtering Selects for the points
+            targetPointSelector = new dijit.form.FilteringSelect({
+                store: null,
+                searchAttr: "name",                  
+                autoComplete: true,
+                style: "width: 100%;",
+                onChange: function(point) {
+                    if (this.item) {
+                    	targetPointSelectChanged();
+                    }
+                },
+                required: true
+            }, "targetPointSelect");
+            activePointSelector = new dijit.form.FilteringSelect({
+                store: null,
+                searchAttr: "name",                  
+                autoComplete: true,
+                style: "width: 100%;",
+                required: true
+            }, "activePointId");
+            inactivePointSelector = new dijit.form.FilteringSelect({
+                store: null,
+                searchAttr: "name",                  
+                autoComplete: true,
+                style: "width: 100%;",
+                required: true
+            }, "inactivePointId");            
             
             emailRecipients = new mango.erecip.EmailRecipients("emailRecipients",
                     "<m2m2:translate key="eventHandlers.recipTestEmailMessage" escapeDQuotes="true"/>",
@@ -330,13 +362,19 @@
         setUserMessage("");
         
         // Set the target points.
-        var pointSelect = $("targetPointSelect");
-        dwr.util.removeAllOptions(pointSelect);
+        targetPointSelector.store = new dojo.store.Memory();
         for (var i=0; i<allPoints.length; i++) {
             dp = allPoints[i];
             if (dp.settable)
-                pointSelect.options[pointSelect.options.length] = new Option(dp.name, dp.id);
-        }
+               targetPointSelector.store.put(dp);
+        }        
+//         //Default to first in list
+//         if(targetPointSelector.store.data.length > 0){
+//             //Set selection to first in list
+//             targetPointSelector.set('value',targetPointSelector.store[0].id);
+//             targetPointSelector.set('displayedValue',targetPointSelector.store[0].name);
+//         }
+        
         
         if (selectedHandlerNode) {
             $("saveImg").src = "images/save.png";
@@ -350,7 +388,7 @@
             $set("alias", handler.alias);
             $set("disabled", handler.disabled);
             if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
-                $set("targetPointSelect", handler.targetPointId);
+                targetPointSelector.set('value',handler.targetPointId);
                 $set("activeAction", handler.activeAction);
                 $set("inactiveAction", handler.inactiveAction);
             }
@@ -421,14 +459,17 @@
     }
     
     function targetPointSelectChanged() {
-        var selectControl = $("targetPointSelect");
         
         // Make sure there are points in the list.
-        if (selectControl.options.length == 0)
+        if (targetPointSelector.store.data.length === 0)
             return;
         
         // Get the content for the value to set section.
-        var targetPointId = selectControl.value;
+        var targetPointId = targetPointSelector.value;
+		if(targetPointId === ''){
+			return; //Don't care
+		}
+        
         var activeValueStr = "";
         var inactiveValueStr = "";
         if (selectedHandlerNode) {
@@ -443,21 +484,24 @@
         
         // Update the source point lists.
         var targetDataTypeId = getPoint(targetPointId).dataType;
-        var activeSourceSelect = $("activePointId");
-        dwr.util.removeAllOptions(activeSourceSelect);
-        var inactiveSourceSelect = $("inactivePointId");
-        dwr.util.removeAllOptions(inactiveSourceSelect);
+        //Clear out the active and inactive stores
+        activePointSelector.store = new dojo.store.Memory();
+        activePointSelector.reset();
+		inactivePointSelector.store = new dojo.store.Memory();  
+		inactivePointSelector.reset();
+		//Add the necessary points
         for (var i=0; i<allPoints.length; i++) {
             dp = allPoints[i];
             if (dp.id != targetPointId && dp.dataType == targetDataTypeId) {
-                activeSourceSelect.options[activeSourceSelect.options.length] = new Option(dp.name, dp.id);
-                inactiveSourceSelect.options[activeSourceSelect.options.length] = new Option(dp.name, dp.id);
+                activePointSelector.store.put(dp);
+                inactivePointSelector.store.put(dp);
             }
         }
+		//Set the values to the currently selected handler
         if (selectedHandlerNode) {
             var handler = $$(selectedHandlerNode.item, "object");
-            $set(activeSourceSelect, handler.activePointId);
-            $set(inactiveSourceSelect, handler.inactivePointId);
+            activePointSelector.set('value',handler.activePointId);
+            inactivePointSelector.set('value',handler.inactivePointId);
         }
     }
     
@@ -533,9 +577,9 @@
         }
         else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
-                    eventType.typeRef2, handlerId, xid, alias, disabled, $get("targetPointSelect"),
-                    $get("activeAction"), $get("setPointValueActive"), $get("activePointId"), $get("inactiveAction"), 
-                    $get("setPointValueInactive"), $get("inactivePointId"), saveEventHandlerCB);
+                    eventType.typeRef2, handlerId, xid, alias, disabled, targetPointSelector.value,
+                    $get("activeAction"), $get("setPointValueActive"), activePointSelector.value, $get("inactiveAction"), 
+                    $get("setPointValueInactive"), inactivePointSelector.value, saveEventHandlerCB);
         }
         else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>) {
             EventHandlersDwr.saveProcessEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
@@ -670,7 +714,7 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.target"/></td>
               <td class="formField">
-                <select id="targetPointSelect" onchange="targetPointSelectChanged()"></select>
+                <select id="targetPointSelect"></select>
               </td>
             </tr>
             
