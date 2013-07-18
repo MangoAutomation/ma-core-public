@@ -49,10 +49,11 @@
         
         pointListColumnHeaders.push("");
         pointListColumnFunctions.push(function(p) {
-        	var html = writeImage("editImg"+ p.id, null, "pencil", "<fmt:message key="common.edit"/>", "editPoint("+ p.id +")");
-        	html += "<a href='/data_point_edit.shtm?dpid=" + p.id + "'>";
+        	var html = "<a href='/data_point_edit.shtm?dpid=" + p.id + "'>";
         	html += writeImage("editImg"+ p.id, null, "icon_comp_edit", "<fmt:message key="pointEdit.props.props"/>",null);
-        	html += "</a>"
+        	html += "</a>";
+        	html += writeImage("editImg"+ p.id, null, "pencil", "<fmt:message key="common.edit"/>", "editPoint("+ p.id +")");
+        	
         	return html;
         });
         
