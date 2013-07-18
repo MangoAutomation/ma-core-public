@@ -60,8 +60,10 @@
             targetPointSelector = new dijit.form.FilteringSelect({
                 store: null,
                 searchAttr: "name",                  
-                autoComplete: true,
-                style: "width: 100%;",
+                autoComplete: false,
+                style: "width: 100%",
+                highlightMatch: "all",
+                queryExpr: "*\${0}*",
                 onChange: function(point) {
                     if (this.item) {
                     	targetPointSelectChanged();
@@ -72,15 +74,19 @@
             activePointSelector = new dijit.form.FilteringSelect({
                 store: null,
                 searchAttr: "name",                  
-                autoComplete: true,
-                style: "width: 100%;",
+                autoComplete: false,
+                style: "width: 100%",
+                highlightMatch: "all",
+                queryExpr: "*\${0}*",
                 required: true
             }, "activePointId");
             inactivePointSelector = new dijit.form.FilteringSelect({
                 store: null,
                 searchAttr: "name",                  
-                autoComplete: true,
-                style: "width: 100%;",
+                autoComplete: false,
+                style: "width: 100%",
+                highlightMatch: "all",
+                queryExpr: "*\${0}*",
                 required: true
             }, "inactivePointId");            
             
