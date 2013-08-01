@@ -17,7 +17,7 @@
             <sst:option value="${port.name}">${port.name}</sst:option>
           </c:forEach>
         </sst:select>
-        <tag:img src="/web/images/arrow-turn-090-left.png" onclick="$set('commPortId', $get('commPortIds'))"/>
+        <tag:img title="common.access.set" png="arrow-turn-090-left" onclick="$set('commPortId', $get('commPortIds'))"/>
       </c:otherwise>
     </c:choose>
   </td>
