@@ -132,11 +132,11 @@ public class Common {
     }
 
     public static final int getMicroVersion() {
-        return 6;
+        return 7;
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 7;
+        return 8;
     }
 
     public static String getWebPath(String path) {

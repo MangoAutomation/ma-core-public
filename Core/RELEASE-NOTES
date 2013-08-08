@@ -1,3 +1,9 @@
+*Version 2.0.7*
+
+* Change PointValues and PointValueAnnotations tables to InnoDB in MySQL
+* Fixed missing graphic when using Serial Port Widget
+
+
 *Version 2.0.6*
 
 * Input stream ePoll moved from static reference to Provider runtime reference
