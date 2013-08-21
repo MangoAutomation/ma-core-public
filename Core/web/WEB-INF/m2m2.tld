@@ -111,7 +111,41 @@
       <rtexprvalue>true</rtexprvalue>
     </attribute>
   </tag>
-  
+  <tag>
+    <name>mobile-menuItem</name>
+    <tag-class>com.serotonin.m2m2.web.taglib.MobileMenuItemTag</tag-class>
+    <body-content>empty</body-content>
+    <attribute>
+      <name>def</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>id</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>href</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>png</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>src</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>key</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag> 
   <!-- 
     Functions
    -->

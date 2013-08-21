@@ -34,14 +34,9 @@ dataSources = new StoreView({
     defaultSort: [{attribute: "name"}],
     
     columns: {
-//    	name: mango.i18n['dsList.name'],
-//    	type: mangoMsg['dsList.type'],
-//		connection: mangoMsg['dsList.connection'],
-//		status: mangoMsg['dsList.status']
-    	id: "ID",
-    	name: "name",
-    	xid: "xid",
-    	enabled: "Enabled"
+    	name: mangoMsg['dsList.name'],
+    	typeDescriptionString: mangoMsg['dsList.type'],
+		connectionDescriptionString: mangoMsg['dsList.connection'],
     },
     
     buttons: ['toggle','edit','delete','copy','export'],
@@ -140,30 +135,39 @@ dataSources.open = function(id,options){
     domStyle.set(this.edit, "left", posX + "px");
     
     if (options.voToLoad) {
-        _this.setInputs(options.voToLoad);
-        //show(this.edit);
-        coreFx.combine([baseFx.fadeIn({node: _this.edit}),
-                        coreFx.wipeIn({node: _this.edit})]).play();
+    	//Copy
+    	when(DataSourceDwr.get(options.voToLoad.id, function(vo) {
+            _this.setInputs(options.voToLoad);
+            _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv,options.voToLoad.id)
+            //show(_this.edit);
+            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
+                            coreFx.wipeIn({node: _this.edit})]).play();
+        }, function(message) {
+            // wrong id, dwr error
+            addErrorDiv(message);
+        }));
+    	
     }
     else {
         // always load from dwr
         // TODO use push from the server side
         // so cache is always up to date
     	if(id > 0){
-	        when(this.editStore.dwr.get(id), function(vo) {
-	            // ok
-	            _this.setInputs(vo);
+    		//Need to overload the get Method or add get new to the DwrStore object to use this
+	        //when(this.editStore.dwr.get($get("dataSourceTypes")), function(vo) {
+    		when(DataSourceDwr.get(id, function(vo) {
+	            _this.setInputs(vo); //TODO Not using this here
+	            _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv,id)
 	            //show(_this.edit);
 	            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 	                            coreFx.wipeIn({node: _this.edit})]).play();
 	        }, function(message) {
 	            // wrong id, dwr error
 	            addErrorDiv(message);
-	        });
+	        }));
     	}else{
     		when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
-                // ok
-                _this.setInputs(vo);
+                _this.setInputs(vo); //TODO not using this here
                 _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv);
                 //show(_this.edit);
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
@@ -177,17 +181,36 @@ dataSources.open = function(id,options){
 };
 
 
-
+dataSources.copy = function(id) {
+    var _this = this;
+    when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
+        _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv,id,true)
+    }, function(message) {
+        // wrong id, dwr error
+        addErrorDiv(message);
+    }));
+},
 
 
 /**
  * Method to get Data Source Edit Page from Module
  */
-dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPane){
+dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPane,id,copy){
 	var dsType = $get("dataSourceTypes");
 	var xhrUrl = "/data_source_properties.shtm?typeId=" + dsType;
+	if(typeof id != 'undefined')
+		xhrUrl = xhrUrl + "&dsid=" + id;
+	if(typeof copy != 'undefined')
+		xhrUrl = xhrUrl + "&copy=true";
+	
 	var deferred = targetContentPane.set('href',xhrUrl); //Content Pane get
+	targetContentPane.set('class','borderDiv marB marR');
 }
 
+//Temp callback to editDataSourceDiv to replicate dojo.ready, 
+// to be replaced with scriptHasHooks concept from dojox/dijit content pane
+dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
+	   initProperties();
+	});
 
 }); // require

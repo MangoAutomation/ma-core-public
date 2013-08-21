@@ -29,13 +29,9 @@
  var pointListColumnFunctions;
  var pointListOptions;
  
- //Temp callback to editDataSourceDiv to replicate dojo.ready, 
- // to be replaced with scriptHasHooks concept from dojox/dijit content pane
- dojo.connect(editDataSourceDiv, "onLoad", function(){
-	   initProperties();
-	});
  
  function initProperties() {
+	 
      changePurgeOverride();
      pointListColumnFunctions = new Array()
      var pointListColumnHeaders = new Array();
@@ -57,7 +53,7 @@
                  return writeImage(id, null, "brick_go", "<fmt:message key='common.enabledToggle'/>", onclick);
              return writeImage(id, null, "brick_stop", "<fmt:message key='common.disabledToggle'/>", onclick);
      });
-     
+
      if (typeof appendPointListColumnFunctions == 'function')
          appendPointListColumnFunctions(pointListColumnHeaders, pointListColumnFunctions);
      
@@ -337,8 +333,12 @@
  
  function changePurgeOverride() {
      var override = $get("dataSourcePurgeOverride");
-     $("dataSourcePurgePeriod").disabled = !override;
-     $("dataSourcePurgeType").disabled = !override;
+     if(typeof override != 'undefined'){
+	     $("dataSourcePurgePeriod").disabled = !override;
+	     $("dataSourcePurgeType").disabled = !override;
+     }else{
+    	 alert('No Purge Override Settings!');
+     }
  }
  
  function getStatusMessages() {

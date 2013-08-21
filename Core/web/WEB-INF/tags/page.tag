@@ -99,7 +99,6 @@
 
 
 <table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
-<c:if test="${empty fragment}">
   <tr id="headerArea">
     <td>
       <page:header/>
@@ -107,7 +106,6 @@
       <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
     </td>
   </tr>
-</c:if>
   <tr id="contentArea">
     <td>
       <div id="mainContent" style="padding:5px;">
@@ -115,7 +113,6 @@
       </div>
     </td>
   </tr>
-<c:if test="${empty fragment}">
   <tr id="footerArea">
     <td>
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -129,7 +126,6 @@
       </table>
     </td>
   </tr>
-  </c:if>
 </table>
 
 <c:if test="${!empty onload}">

@@ -9,7 +9,14 @@
 <!-- Add in useful messages for page, also done in M2M2ContextListener, should be moved to here -->
 <%
 String[] mangoMessageKeys = {
-        "table.confirmDelete.DataSource",
+		
+	    "dsList.name",
+	    "dsList.type",
+	    "dsList.connection",
+	    "dsList.status",
+	    
+        "table.confirmDelete.DataSource",        
+        
         "table.error.wrongId",
         "table.error.dwr"
 };

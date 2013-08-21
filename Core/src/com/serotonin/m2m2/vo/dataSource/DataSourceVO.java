@@ -43,7 +43,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     abstract public DataSourceRT createDataSourceRT();
 
     abstract public ExportCodes getEventCodes();
-
+    
     final public List<EventTypeVO> getEventTypes() {
         List<EventTypeVO> eventTypes = new ArrayList<EventTypeVO>();
         addEventTypes(eventTypes);
@@ -125,7 +125,16 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         }
         return null;
     }
-
+    /**
+     * Helper to get description on Page
+     * @return
+     */
+    public String getConnectionDescriptionString(){
+    	return getConnectionDescription().translate(Common.getTranslations());
+    }
+    public void setConnectionDescriptionString(String str){
+    	//No-op
+    }
     protected EventTypeVO createEventType(int eventId, TranslatableMessage message) {
         return createEventType(eventId, message, EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
     }
@@ -136,10 +145,22 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
                 eventId, defaultAlarmLevel), duplicateHandling);
     }
 
-    public TranslatableMessage getTypeDescription() {
-        return new TranslatableMessage(getDefinition().getDescriptionKey());
+    public TranslatableMessage getTypeDescription(){
+    	return new TranslatableMessage(getDefinition().getDescriptionKey());
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public String getTypeDescriptionString() {
+        return Common.translate(getDefinition().getDescriptionKey());
     }
 
+    public void setTypeDescriptionString(String m){
+    	//no op
+    }
+    
     public void validate(ProcessResult response) {
     	super.validate(response);
         if (purgeOverride) {

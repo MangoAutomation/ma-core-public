@@ -43,6 +43,7 @@
             DataSourceEditDwr.getPoints(writePointList);
         }
         getAlarms();
+        //TODO Refresh Table here mabye?
     }
     
     
@@ -50,12 +51,5 @@
 
 
 <!-- Edit Div -->
-<div id="editDataSourceDiv" class="borderDiv marB marR"></div>
-
-  <!-- Div for data Source Properties -->
-  <div id="dataSourcePropertiesDiv" style="float:left"></div>
-  
-  <div style="float:right">
-    <tag:img id="saveDataSourceImg" png="save" onclick="dataSources.save()" title="common.save"/>
-    <tag:img id="closeDataSourceEditImg" png="cross" onclick="dataSources.close()" title="common.close"/>
-  </div>
+<div id="editDataSourceDiv"></div>
+ 
