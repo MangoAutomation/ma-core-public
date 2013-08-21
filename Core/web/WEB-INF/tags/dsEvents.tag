@@ -21,7 +21,7 @@
           <td>
             <tag:alarmLevelOptions id="alarmLevel${type.typeRef2}" onchange="alarmLevelChanged(${type.typeRef2})" value="${type.alarmLevel}"/>
             <tag:img id="alarmLevelImg${type.typeRef2}" png="flag_green" style="display:none;"/>
-            <script type="text/javascript">setAlarmLevelImg(${type.alarmLevel}, 'alarmLevelImg${type.typeRef2}')</script>
+            <script type="text/javascript">setAlarmLevelImg(${type.alarmLevel}, 'alarmLevelImg${type.typeRef2}');</script>
           </td>
         </tr>
       </c:forEach>

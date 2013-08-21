@@ -10,11 +10,13 @@
 <%@attribute name="dwr" rtexprvalue="true" %>
 <%@attribute name="js" %>
 <%@attribute name="onload" %>
+<%@attribute name="fragment" %>
 
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
 <%-- <c:set var="theme">soria</c:set> --%>
 <%-- <c:set var="theme">tundra</c:set> --%>
+
 <html>
 <head>
   <title><c:choose>
@@ -30,8 +32,8 @@
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
   <c:if test="${empty dojoURI}">
-    <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.7.3/</c:set>
-    <%-- <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/</c:set> --%>
+<%-- 	<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.9.1/</c:set> --%>
+	<c:set var="dojoURI">/resources/dojo-1.9.1/</c:set>
   </c:if>
   
   <!-- Style -->
@@ -55,6 +57,7 @@
   <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
   <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js"></script>
   <script type="text/javascript" src="/resources/common.js"></script>
+
   <c:forEach items="${dwr}" var="dwrname">
     <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>
   <c:forEach items="${js}" var="jspath">
@@ -94,14 +97,17 @@
 
 <body class="${theme}">
 
+
 <table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
+<c:if test="${empty fragment}">
   <tr id="headerArea">
     <td>
       <page:header/>
       <page:toolbar/>
+      <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
     </td>
   </tr>
-
+</c:if>
   <tr id="contentArea">
     <td>
       <div id="mainContent" style="padding:5px;">
@@ -109,7 +115,7 @@
       </div>
     </td>
   </tr>
-
+<c:if test="${empty fragment}">
   <tr id="footerArea">
     <td>
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -123,6 +129,7 @@
       </table>
     </td>
   </tr>
+  </c:if>
 </table>
 
 <c:if test="${!empty onload}">
@@ -132,5 +139,9 @@
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">
   <jsp:include page="${modJspf}" /></c:forEach>
 
+<!-- Messaging and Error/Export/Copy Views -->
+<c:if test="${empty fragment}">
+  <jsp:include page="/WEB-INF/snippet/message.jsp"/>
+</c:if>
 </body>
 </html>

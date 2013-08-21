@@ -23,12 +23,17 @@
     <create creator="new" javascript="DataPointEditDwr" scope="application">
       <param name="class" value="com.serotonin.m2m2.web.dwr.DataPointEditDwr"/>
     </create>
+    <create creator="new" javascript="DataSourceDwr" scope="application">
+      <param name="class" value="com.serotonin.m2m2.web.dwr.DataSourceDwr"/>
+    </create>
+	<!--  Remove Edit and List Dwr after testing DataSourceDwr -->
     <create creator="new" javascript="DataSourceEditDwr" scope="application">
       <param name="class" value="com.serotonin.m2m2.web.dwr.DataSourceEditDwr"/>
     </create>
     <create creator="new" javascript="DataSourceListDwr" scope="application">
       <param name="class" value="com.serotonin.m2m2.web.dwr.DataSourceListDwr"/>
     </create>
+    
     <create creator="new" javascript="EmportDwr" scope="application">
       <param name="class" value="com.serotonin.m2m2.web.dwr.EmportDwr"/>
     </create>
@@ -82,9 +87,10 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO">
       <param name="exclude" value="dataPointSaveHandler"/>
     </convert>
-    <convert converter="blabberBean" match="com.serotonin.m2m2.vo.dataSource.DataSourceVO">
+    <convert converter="blabberBean" match="com.serotonin.m2m2.vo.dataSource.DataSourceVO" javascript="DataSourceVO">
       <param name="exclude" value="definition,eventCodes"/>
     </convert>
+
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.BasicDataSourceVO"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.DataSourceDefinition"/>
     

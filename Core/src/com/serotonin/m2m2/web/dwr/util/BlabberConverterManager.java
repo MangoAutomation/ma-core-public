@@ -56,12 +56,25 @@ public class BlabberConverterManager implements ConverterManager {
      */
     public void addConverter(String match, String type, @SuppressWarnings("rawtypes") Map params)
             throws IllegalArgumentException, InstantiationException, IllegalAccessException {
-        Class<Converter> clazz = converterTypes.get(type);
+        
+    	//TODO Re-Implement in Lifecycle.class later
+        // ugly hack because Lifecyle.class is not open source
+        // no way to add params from DwrClassConversion
+//        if (type.equals("beanWithJs")) {
+//            type = "bean";
+//            String js = match.substring(match.lastIndexOf(".")+1);
+//            params.put("javascript", js);
+//        }
+
+    	Class<Converter> clazz = converterTypes.get(type);
         if (clazz == null) {
             log.info("Probably not an issue: " + match + " is not available so the " + type
                     + " converter will not load. This is only an problem if you wanted to use it.");
             return;
         }
+        
+    	String js = match.substring(match.lastIndexOf(".")+1);
+    	params.put("javascript", js);
 
         Converter converter = clazz.newInstance();
         converter.setConverterManager(this);
