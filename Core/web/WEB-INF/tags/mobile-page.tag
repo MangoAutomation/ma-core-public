@@ -10,7 +10,6 @@
 <%@attribute name="dwr" rtexprvalue="true" %>
 <%@attribute name="js" %>
 <%@attribute name="onload" %>
-<%@attribute name="fragment" %>
 
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
@@ -30,22 +29,27 @@
   <meta name="Copyright" content="&copy;2006-2011 Serotonin Software Technologies Inc."/>
   <meta name="DESCRIPTION" content="Mango Automation from Infinite Automation Systems"/>
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  
   
   <c:if test="${empty dojoURI}">
-<%-- 	<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.9.1/</c:set> --%>
 	<c:set var="dojoURI">/resources/</c:set>
   </c:if>
   
   <!-- Style -->
   <link rel="icon" href="<%= Common.applicationFavicon %>"/>
   <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
+ 
   <style type="text/css">
-    @import "${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css";
-    @import "${dojoURI}dojox/layout/resources/FloatingPane.css";
-    @import "${dojoURI}dijit/themes/${theme}/${theme}.css";
-    @import "${dojoURI}dojo/resources/dojo.css";
+    @import "${dojoURI}/dojox/mobile/themes/iphone/iphone.css" rel="stylesheet";
+    html, body{
+        height: 100%;
+        overflow: hidden;
+    }
   </style>  
   <link href="/resources/common.css" type="text/css" rel="stylesheet"/>
+  
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
     <link href="/${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
   <jsp:invoke fragment="styles"/>
@@ -65,56 +69,49 @@
   <script type="text/javascript">
     mango.i18n = <sst:convert obj="${clientSideMessages}"/>;
   </script>
-  <c:if test="${!simple}">
-    <script type="text/javascript" src="/resources/header.js"></script>
-    <script type="text/javascript">
-      dwr.util.setEscapeHtml(false);
-      <c:if test="${!empty sessionUser}">
-        dojo.ready(mango.header.onLoad);
-        dojo.ready(function() { setUserMuted(${sessionUser.muted}); });
-      </c:if>
-      
-      function setLocale(locale) {
-          MiscDwr.setLocale(locale, function() { window.location = window.location });
-      }
-      
-      function goHomeUrl() {
-          MiscDwr.getHomeUrl(function(loc) { window.location = loc; });
-      }
-      
-      function setHomeUrl() {
-          MiscDwr.setHomeUrl(window.location.href, function() { alert("<fmt:message key="header.homeUrlSaved"/>"); });
-      }
-      
-      function deleteHomeUrl() {
-          MiscDwr.deleteHomeUrl(function() { alert("<fmt:message key="header.homeUrlDeleted"/>"); });
-      }
-    </script>
-  </c:if>
+
+   <script type="text/javascript" src="/resources/header.js"></script>
+   <script type="text/javascript">
+     
+     //Load in the Mobile Libraries
+	// Load the widget parser and mobile base
+	require(["dojox/mobile/parser", "dojox/mobile/deviceTheme", "dojox/mobile/compat", "dojox/mobile"]);
+	     
+     dwr.util.setEscapeHtml(false);
+     <c:if test="${!empty sessionUser}">
+       dojo.ready(mango.header.onLoad);
+       dojo.ready(function() { setUserMuted(${sessionUser.muted}); });
+     </c:if>
+     
+     function setLocale(locale) {
+         MiscDwr.setLocale(locale, function() { window.location = window.location });
+     }
+     
+     function goHomeUrl() {
+         MiscDwr.getHomeUrl(function(loc) { window.location = loc; });
+     }
+     
+     function setHomeUrl() {
+         MiscDwr.setHomeUrl(window.location.href, function() { alert("<fmt:message key="header.homeUrlSaved"/>"); });
+     }
+     
+     function deleteHomeUrl() {
+         MiscDwr.deleteHomeUrl(function() { alert("<fmt:message key="header.homeUrlDeleted"/>"); });
+     }
+   </script>
+
   <c:forEach items="<%= Common.moduleScripts %>" var="modScript">
     <script type="text/javascript" src="/${modScript}"></script></c:forEach>
 </head>
 
-<body class="${theme}">
-
-
-<table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
-  <tr id="headerArea">
-    <td>
-      <page:header/>
-      <page:toolbar/>
-      <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
-    </td>
-  </tr>
-  <tr id="contentArea">
-    <td>
-      <div id="mainContent" style="padding:5px;">
-        <jsp:doBody/>
-      </div>
-    </td>
-  </tr>
-  <tr id="footerArea">
-    <td>
+<body>
+<div dojoType="dojox.mobile.Container">
+                
+      <page:mobile-header/>
+      <page:mobile-toolbar/>
+      
+      <jsp:doBody/>
+      
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>
         <tr>
@@ -124,9 +121,9 @@
           <td colspan="2" align="center"><a href="http://infiniteautomation.com/" ><b></b>Distributed by Infinite Automation Systems Inc.</a></td>
         </tr>
       </table>
-    </td>
-  </tr>
-</table>
+</div>
+
+<jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
 
 <c:if test="${!empty onload}">
   <script type="text/javascript">dojo.ready(${onload});</script>
@@ -136,8 +133,7 @@
   <jsp:include page="${modJspf}" /></c:forEach>
 
 <!-- Messaging and Error/Export/Copy Views -->
-<c:if test="${empty fragment}">
   <jsp:include page="/WEB-INF/snippet/message.jsp"/>
-</c:if>
+
 </body>
 </html>

@@ -117,7 +117,8 @@ public class LoginController extends SimpleFormController {
         for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class))
             def.postLogin(user);
 
-        String uri = DefaultPagesDefinition.getDefaultUri(request, response, user);
+        String uri = DefaultPagesDefinition.getDefaultUri(request, response, user);        
+        
         return new ModelAndView(new RedirectView(uri));
     }
 }

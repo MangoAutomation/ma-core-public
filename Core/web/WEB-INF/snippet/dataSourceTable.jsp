@@ -23,5 +23,4 @@
 <jsp:include page="dataSourceEdit.jsp"/>
 <!-- Include the Export Dialog -->
 <jsp:include page="/WEB-INF/snippet/exportDialog.jsp"/>
-<!-- Include the Copy Dialog -->
-<jsp:include page="/WEB-INF/snippet/copyDialog.jsp"/>
+
