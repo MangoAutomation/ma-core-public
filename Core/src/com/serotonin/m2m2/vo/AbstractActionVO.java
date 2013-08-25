@@ -10,7 +10,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 /**
  * 

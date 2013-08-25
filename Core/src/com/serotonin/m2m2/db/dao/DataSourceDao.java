@@ -205,14 +205,23 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         });
     }
 
-    public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
+
+
+    
+    //TODO See how this works, with the Device name situation
+    @Override
+	public int copy(int existingId, String newXid, String newName) {
+		return this.copyDataSource(existingId, newName,newXid, newName+"Device");
+	}
+
+
+	public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 DataPointDao dataPointDao = new DataPointDao();
 
                 DataSourceVO<?> dataSource = getDataSource(dataSourceId);
-
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = dataSource.copy();
                 dataSourceCopy.setId(Common.NEW_ID);

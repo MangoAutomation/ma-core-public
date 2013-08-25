@@ -4,7 +4,7 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<c:set var="dwrClasses">DataSourceDwr</c:set>
+<c:set var="dwrClasses">DataSourceDwr,DataPointDwr</c:set>
 <c:if test="${!empty dataSource.definition.dwrClass}">
   <c:set var="dwrClasses">${dwrClasses},${dataSource.definition.dwrClass.simpleName}</c:set>
 </c:if>
@@ -40,10 +40,7 @@
     <!-- Import the scripts for the table -->
  	<script language="javascript" type="text/javascript" src="/resources/dataSource.js"></script>
     
-    <jsp:include page="/WEB-INF/snippet/dataSourceTable.jsp"/>  
-    <jsp:include page="/WEB-INF/snippet/dataSourceEdit.jsp"/>  
-    	
-  
-
+    <jsp:include page="/WEB-INF/snippet/dataSourceTable.jsp"/>    
+    
   </jsp:body>
 </tag:page>

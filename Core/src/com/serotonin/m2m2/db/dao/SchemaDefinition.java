@@ -12,6 +12,7 @@ package com.serotonin.m2m2.db.dao;
 public class SchemaDefinition {
 	
 	public static final String DATASOURCES_TABLE = "dataSources";
+	public static final String DATAPOINTS_TABLE = "dataPoints";
 	
 	
 	

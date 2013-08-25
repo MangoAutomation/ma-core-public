@@ -59,7 +59,7 @@ return declare("deltamation.StoreView", null, {
     grid: null,
     gridId: null,
     loadingMessage: '<div class="dgridLoadNoData"><img src="/images/hourglass.png" title="' + mango.i18n['common.loading'] + '" /></div>',
-    noDataMessage: '<div class="dgridLoadNoData">' + mango.i18n['mango.view.noData'] + '</div>',
+    noDataMessage: '<div class="dgridLoadNoData">' + mangoMsg['table.noData'] + '</div>',
     renderRowHook: null,
     
     initGrid: function() {
@@ -108,9 +108,9 @@ return declare("deltamation.StoreView", null, {
             var button = this.buttons[i];
             
             var elementId = button + this.prefix + id;
-            var title =  mangoMsg['common.' + button];
+            var title =  mangoMsg['table.' + button];
             if (!title)
-                title = mangoMsg['downtime.view.' + button];
+                title = mangoTranslate('table.missingKey',"table."+button);
             
             if (button === 'toggle') {
                 if (object.enabled) {
@@ -136,7 +136,7 @@ return declare("deltamation.StoreView", null, {
         var _this = this;
         id = id || _this.currentId;
         if (id < 0)
-            return;
+            return false;
         
         confirmed = confirmed || false;
         if (confirmed || confirm(mangoMsg['table.confirmDelete.' + this.prefix])) {
@@ -162,12 +162,13 @@ return declare("deltamation.StoreView", null, {
                 if (response.dwrError || typeof response.messages === 'undefined') {
                     // timeout, dwr error etc
                     addErrorDiv(response);
-                    return;
+                    return false;
                 }
                 // error deleting
                 addMessages(response.messages);
             });
         }
+        return confirmed;
     },
     
     // edit dialog properties
@@ -189,6 +190,9 @@ return declare("deltamation.StoreView", null, {
     addYOffset: 0,
     
     open: function(id, options) {
+    	//TODO remove delete option on new Vos
+        //display("pointDeleteImg", point.id != <c:out value="<%= Common.NEW_ID %>"/>);
+
         this.currentId = id;
         var _this = this;
         options = options || {};
@@ -218,6 +222,7 @@ return declare("deltamation.StoreView", null, {
         
         if (options.voToLoad) {
             _this.setInputs(options.voToLoad);
+        	hideContextualMessages(_this.edit);
             //show(this.edit);
             coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                             coreFx.wipeIn({node: _this.edit})]).play();
@@ -229,6 +234,8 @@ return declare("deltamation.StoreView", null, {
             when(this.editStore.dwr.get(id), function(vo) {
                 // ok
                 _this.setInputs(vo);
+                //Hide contextual messages
+            	hideContextualMessages(_this.edit);
                 //show(_this.edit);
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                                 coreFx.wipeIn({node: _this.edit})]).play();
@@ -313,10 +320,16 @@ return declare("deltamation.StoreView", null, {
         var _this = this;
         
         when(_this.viewStore.dwr.get(id), function(viewVo) {
-            _this.viewStore.cache.put(viewVo, {overwrite: true});
+            _this.viewStore.cache.put(viewVo,{overwrite: true}); //Will either update or add
         });
     },
     
+    addRows: function(rows){
+    	var _this = this;
+        for (var i = 0 ; i < rows.length; i++) {
+        	_this.viewStore.cache.put(rows[i], {overwrite: true});
+    	}
+    }
     
 }); // declare
 }); // require

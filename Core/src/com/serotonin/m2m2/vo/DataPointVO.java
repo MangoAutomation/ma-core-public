@@ -46,7 +46,7 @@ import com.serotonin.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
 
-public class DataPointVO implements Serializable, Cloneable, JsonSerializable, ChangeComparable<DataPointVO>,
+public class DataPointVO extends AbstractActionVO<DataPointVO>implements Serializable, Cloneable, JsonSerializable, ChangeComparable<DataPointVO>,
         IDataPoint {
     private static final long serialVersionUID = -1;
     public static final String XID_PREFIX = "DP_";
@@ -141,8 +141,7 @@ public class DataPointVO implements Serializable, Cloneable, JsonSerializable, C
     private int dataSourceId;
     @JsonProperty
     private String deviceName;
-    @JsonProperty
-    private boolean enabled;
+
     private int pointFolderId;
     private int loggingType = LoggingTypes.ON_CHANGE;
     private int intervalLoggingPeriodType = Common.TimePeriods.MINUTES;
@@ -376,6 +375,13 @@ public class DataPointVO implements Serializable, Cloneable, JsonSerializable, C
         this.name = name;
     }
 
+    //UI Conviencience Methods
+    public String getDataTypeString() {
+        return pointLocator.getDataTypeMessage().translate(Common.getTranslations());
+    }
+    public void setDataTypeString(String type){
+    	//No Op
+    }
     @SuppressWarnings("unchecked")
     public <T extends PointLocatorVO> T getPointLocator() {
         return (T) pointLocator;
@@ -565,7 +571,14 @@ public class DataPointVO implements Serializable, Cloneable, JsonSerializable, C
 
     public DataPointVO copy() {
         try {
-            return (DataPointVO) super.clone();
+            DataPointVO copy =  (DataPointVO) super.clone();
+            
+            copy.setPointLocator(pointLocator);
+            copy.setEventDetectors(eventDetectors);
+            copy.setChartRenderer(chartRenderer);
+            copy.setTextRenderer(textRenderer);
+            
+            return copy;
         }
         catch (CloneNotSupportedException e) {
             throw new ShouldNeverHappenException(e);
@@ -789,7 +802,8 @@ public class DataPointVO implements Serializable, Cloneable, JsonSerializable, C
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("loggingType", LOGGING_TYPE_CODES.getCode(loggingType));
+
+    	writer.writeEntry("loggingType", LOGGING_TYPE_CODES.getCode(loggingType));
         writer.writeEntry("intervalLoggingPeriodType", Common.TIME_PERIOD_CODES.getCode(intervalLoggingPeriodType));
         writer.writeEntry("intervalLoggingType", INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType));
         writer.writeEntry("purgeType", Common.TIME_PERIOD_CODES.getCode(purgeType));
@@ -801,7 +815,8 @@ public class DataPointVO implements Serializable, Cloneable, JsonSerializable, C
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        String text = jsonObject.getString("loggingType");
+
+    	String text = jsonObject.getString("loggingType");
         if (text != null) {
             loggingType = LOGGING_TYPE_CODES.getId(text);
             if (loggingType == -1)

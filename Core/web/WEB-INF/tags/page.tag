@@ -96,7 +96,8 @@
 </head>
 
 <body class="${theme}">
-
+<!-- Messaging -->
+<jsp:include page="/WEB-INF/snippet/message.jsp"/>
 
 <table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
   <tr id="headerArea">
@@ -135,9 +136,5 @@
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">
   <jsp:include page="${modJspf}" /></c:forEach>
 
-<!-- Messaging and Error/Export/Copy Views -->
-<c:if test="${empty fragment}">
-  <jsp:include page="/WEB-INF/snippet/message.jsp"/>
-</c:if>
 </body>
 </html>

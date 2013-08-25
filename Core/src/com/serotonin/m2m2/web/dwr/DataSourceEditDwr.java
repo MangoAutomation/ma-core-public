@@ -157,6 +157,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             if (defaulter != null)
                 defaulter.postSave(dp);
             response.addData("id", dp.getId());
+            response.addData("vo",dp);
             if (includePointList)
                 response.addData("points", getPoints());
         }

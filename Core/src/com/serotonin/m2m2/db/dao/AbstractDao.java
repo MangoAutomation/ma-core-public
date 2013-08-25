@@ -294,15 +294,23 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
                 save(copy);
 
                 // Copy permissions. 
-                new UserDao().populateUserPermissions(Common.getUser()); //Will this work?
-                // Copy permissions. 
                 // TODO Add permissions to vo
-                // copyPermissions(dataSource.getId(), dataSourceCopy.getId());
+                copyPermissions(vo.getId(), copy.getId());
                 return copy.getId();
             }
         };
         
         return getTransactionTemplate().execute(callback);
+    }
+    
+    /**
+     * Copy Permissions from one object to another, 
+     * to be over ridden in sub class if necessary
+     * @param fromId
+     * @param toId
+     */
+    public void copyPermissions(final int fromId, final int toId){
+    	//No Op
     }
     
     /**

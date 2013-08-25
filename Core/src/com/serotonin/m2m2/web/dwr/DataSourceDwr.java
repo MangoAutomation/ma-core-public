@@ -45,7 +45,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 				"dataSources",
 				DataSourceRTM.instance,
 				"dataSources");
-		LOG = LogFactory.getLog(DataSourceListDwr.class);
+		LOG = LogFactory.getLog(DataSourceDwr.class);
 	}
 	
 

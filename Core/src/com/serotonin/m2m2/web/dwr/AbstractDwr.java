@@ -153,9 +153,9 @@ public abstract class AbstractDwr<VO extends AbstractVO<VO>, DAO extends Abstrac
             LOG.error(e);
             VO vo = dao.get(id);
             if(e instanceof DataIntegrityViolationException)
-                response.addContextualMessage(vo.getName(), "downtime.edit.unableToDeleteDueToConstraints");
+                response.addContextualMessage(vo.getName(), "table.edit.unableToDeleteDueToConstraints");
             else
-                response.addContextualMessage(vo.getName(), "downtime.edit.unableToDelete", e.getMessage());
+                response.addContextualMessage(vo.getName(), "table.edit.unableToDelete", e.getMessage());
         }
         
         response.addData("id", id);

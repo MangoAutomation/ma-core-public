@@ -46,6 +46,9 @@ return declare("deltamation.DwrStore", base, {
     // using the engine set in queryEngine
     queryLocally: false,
     
+    // set this to disable any data fetching, useful for post table load enables
+    loadData: true,
+    
     // Dwr timeout
     dwrTimeout: 5000,
     
@@ -212,12 +215,18 @@ return declare("deltamation.DwrStore", base, {
         //    ...or find all items where "even" is true:
         //
         //    |    var results = store.query({ even: true });
-        var results;
-        if (this.queryLocally)
-            results = this.localQuery(query, options);
-        else
-            results = this.remoteQuery(query, options);
-        return results;
+
+        if(this.loadData){ //Should we be loading data now?
+            var results;
+	        if (this.queryLocally)
+	            results = this.localQuery(query, options);
+	        else
+	            results = this.remoteQuery(query, options);
+	        return results;
+        }else{
+        	return new Array(); //No Data yet
+        }
+        
     },
     
     localQuery: function(query, options) {

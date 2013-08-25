@@ -24,6 +24,7 @@ dataSourcePropertiesDiv = new ContentPane({
 
 
 dataSources = new StoreView({
+	
     prefix: 'DataSource',
     varName: 'dataSources',
     viewStore: stores.dataSource,
@@ -72,7 +73,7 @@ dataSources = new StoreView({
     enabled: new CheckBox({}, "dataSourceEnabled"),
 
     /**
-     * Override Toggle Method
+     * Override Toggle Method and return state for use in window
      */
     toggle: function(id) {
     	DataSourceDwr.toggle(id, function(result) {
@@ -83,6 +84,7 @@ dataSources = new StoreView({
                         mango.i18n["common.enabledToggle"],
                         true
                 );
+                return true;
             }else{
                 updateImg(
                         $("toggleDataSource"+ result.data.id),
@@ -90,6 +92,7 @@ dataSources = new StoreView({
                         mango.i18n["common.enabledToggle"],
                         true
                 );
+                return false;
             }
         });
     },    
@@ -97,7 +100,18 @@ dataSources = new StoreView({
     editXOffset: -380,
     editYOffset: 0,
     addXOffset: 18,
-    addYOffset: -240
+    addYOffset: -240,
+    
+
+    /**
+     * Refresh the Grid
+     */
+    refresh: function(){
+    	this.grid.set('query', null);
+    },
+    
+    
+    
 });
 
 //TODO Can most likely remove when done debugging
@@ -210,7 +224,7 @@ dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPan
 //Temp callback to editDataSourceDiv to replicate dojo.ready, 
 // to be replaced with scriptHasHooks concept from dojox/dijit content pane
 dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
-	   initProperties();
+	   init();
 	});
 
 }); // require

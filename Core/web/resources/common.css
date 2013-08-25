@@ -139,6 +139,16 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 	margin-bottom: 5px;
 }
 
+/**
+ * Style for edit popup divs
+ */
+.mangoEdit {
+    background-color:#F0F0F0;
+    position:absolute;
+    z-index:3;
+    padding: 3px;
+    width: 370px;
+}
 
 
 /**
