@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.view.text.PlainRenderer;
@@ -45,13 +46,11 @@ public class DataPointImporter extends Importer {
                 vo.setTextRenderer(new PlainRenderer());
             }
         }
-        else
-            dsvo = ctx.getDataSourceDao().getDataSource(vo.getDataSourceId());
-
+        
         if (vo != null) {
             try {
                 ctx.getReader().readInto(vo, json);
-
+                
                 // If the name is not provided, default to the XID
                 if (StringUtils.isBlank(vo.getName()))
                     vo.setName(xid);
@@ -63,7 +62,27 @@ public class DataPointImporter extends Importer {
                 if (voResponse.getHasMessages())
                     setValidationMessages(voResponse, "emport.dataPoint.prefix", xid);
                 else {
-                    // Sweet. Save it.
+
+                	//We will always override the DS Info with the one from the XID Lookup
+                    dsvo = ctx.getDataSourceDao().getDataSource(vo.getDataSourceXid());
+                    if (dsvo == null)
+	                      	addFailureMessage("emport.dataPoint.badReference", xid);
+	                else {
+	                    //TODO Compare this point to the existing point in DB to ensure
+	                    // that we aren't moving a point to a different type of Data Source
+	                    DataPointDao dpDao = new DataPointDao();
+	                    DataPointVO oldPoint = dpDao.getDataPoint(vo.getId());
+	                    
+	                    //Does the old point have a different data source?
+	                    if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
+	                        vo.setDataSourceId(dsvo.getId());
+	                        vo.setDataSourceName(dsvo.getName());
+	                    }
+	
+	                    // Sweet. Save it.
+	                	DataPointDao.instance.saveFull(vo);
+                    }
+
                     boolean isnew = vo.isNew();
 
                     //                        // Check if this data source is enabled. Because data sources do automatic stuff upon the
@@ -74,7 +93,7 @@ public class DataPointImporter extends Importer {
                     //                            dsvo.setEnabled(false);
                     //                            Common.runtimeManager.saveDataSource(dsvo);
                     //                        }
-
+                    //TODO Implement save full inside of this call
                     Common.runtimeManager.saveDataPoint(vo);
                     addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
                 }

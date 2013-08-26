@@ -746,8 +746,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	@Override
 	protected List<String> getProperties() {
 		return Arrays.asList(
-				"data",
 				"id",
+				"data",
 				"xid",
 				"dataSourceId",
 				"name",
@@ -789,8 +789,9 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
+            int id = (rs.getInt(++i));
             DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
-            dp.setId(rs.getInt(++i));
+            dp.setId(id);
             dp.setXid(rs.getString(++i));
             dp.setDataSourceId(rs.getInt(++i));
             dp.setName(rs.getString(++i));
