@@ -16,6 +16,7 @@ import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
@@ -23,10 +24,13 @@ import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRTM;
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
+import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
+import com.serotonin.m2m2.web.taglib.Functions;
 
 /**
  * 
@@ -138,4 +142,53 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
         return EmportDwr.export(data, 3);
     }
 	
+	
+	/**
+	 * Get the general status messages for a given data source
+	 * @param id
+	 * @return
+	 */
+    @DwrPermission(user = true)
+    public final ProcessResult getGeneralStatusMessages(int id) {
+        ProcessResult result = new ProcessResult();
+
+        DataSourceRT rt = Common.runtimeManager.getRunningDataSource(id);
+
+        List<TranslatableMessage> messages = new ArrayList<TranslatableMessage>();
+        result.addData("messages", messages);
+        if (rt == null)
+            messages.add(new TranslatableMessage("dsEdit.notEnabled"));
+        else {
+            rt.addStatusMessages(messages);
+            if (messages.isEmpty())
+                messages.add(new TranslatableMessage("dsEdit.noStatus"));
+        }
+
+        return result;
+    }
+	
+    /**
+     * Get the current alarms for a datasource
+     * @param id
+     * @return
+     */
+    @DwrPermission(user = true)
+    public List<EventInstanceBean> getAlarms(int id) {
+        DataSourceVO<?> ds = Common.runtimeManager.getDataSource(id);
+        List<EventInstanceBean> beans = new ArrayList<EventInstanceBean>();
+
+        if(ds != null){
+	        List<EventInstance> events = new EventDao().getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
+	        if (events != null) {
+	            for (EventInstance event : events)
+	                beans.add(new EventInstanceBean(event.isActive(), event.getAlarmLevel(), Functions.getTime(event
+	                        .getActiveTimestamp()), translate(event.getMessage())));
+	        }
+        }
+        return beans;
+    }
+	    
+    
+    
+    
 }

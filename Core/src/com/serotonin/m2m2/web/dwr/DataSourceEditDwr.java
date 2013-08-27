@@ -65,6 +65,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (!response.getHasMessages()) {
             Common.runtimeManager.saveDataSource(ds);
             response.addData("id", ds.getId());
+            response.addData("vo",ds); //For new table method
         }
 
         return response;

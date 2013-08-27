@@ -6,7 +6,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
 
-<c:set var="dwrClasses">DataSourceEditDwr,DataPointDwr</c:set>
+<c:set var="dwrClasses">DataSourceEditDwr,DataSourceDwr,DataPointDwr</c:set>
 <c:if test="${!empty dataSource.definition.dwrClass}">
   <c:set var="dwrClasses">${dwrClasses},${dataSource.definition.dwrClass.simpleName}</c:set>
 </c:if>

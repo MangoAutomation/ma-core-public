@@ -331,5 +331,7 @@ return declare("deltamation.StoreView", null, {
     	}
     }
     
+    
+    
 }); // declare
 }); // require

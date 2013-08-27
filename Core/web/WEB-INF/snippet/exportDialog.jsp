@@ -6,7 +6,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <script>
-require(["dojo/parser", "dijit/Dialog", "dijit/form/Form", "dijit/form/Button"]);
+  require(["dojo/parser", "dijit/Dialog", "dijit/form/Form", "dijit/form/Button"]);
 </script>
 
 <div data-dojo-type="dijit/Dialog" data-dojo-id="exportDialog" title="<fmt:message key="emport.export"/>" style="display: none">

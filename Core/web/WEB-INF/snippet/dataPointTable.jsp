@@ -17,5 +17,3 @@
 
 <!-- Include the Edit Div -->
 <jsp:include page="dataPointEdit.jsp"/>
-<!-- Include the Export Dialog -->
-<jsp:include page="/WEB-INF/snippet/exportDialog.jsp"/>

@@ -136,5 +136,8 @@
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">
   <jsp:include page="${modJspf}" /></c:forEach>
 
+<!-- Include the Export Dialog -->
+<jsp:include page="/WEB-INF/snippet/exportDialog.jsp"/>
+
 </body>
 </html>

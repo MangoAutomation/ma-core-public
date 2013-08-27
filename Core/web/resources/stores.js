@@ -21,6 +21,7 @@ if (typeof DataPointDwr !== 'undefined') {
     // only a small list, get full on each and sort/filter locally
     stores.dataPoint.dwr.queryLocally = false;
     stores.dataPoint.dwr.loadData = false;
+    stores.dataPoint.dwr.or = false; //Use AND in Queries to restrict to DataSource of interest
 }
 
 }); // require

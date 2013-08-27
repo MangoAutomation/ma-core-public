@@ -281,14 +281,15 @@ return declare("deltamation.DwrStore", base, {
                 //if (conditions.source === '^.*$')
                 //    continue;
                 filterMap[prop] = 'RegExp:' + conditions.source;
-                break;
+                //break;
+            }else{
+	            if (conditions instanceof ArrayTester) {
+	                conditions = conditions.data;
+	            }
+	            if (typeof conditions === 'string' || typeof conditions === 'number')
+	                conditions = [conditions];
+	            filterMap[prop] = conditions.join();
             }
-            if (conditions instanceof ArrayTester) {
-                conditions = conditions.data;
-            }
-            if (typeof conditions === 'string' || typeof conditions === 'number')
-                conditions = [conditions];
-            filterMap[prop] = conditions.join();
         }
         
         var start = (isFinite(options.start)) ? options.start : null;

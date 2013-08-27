@@ -5,13 +5,16 @@
 var dataSources;
 var dataPointsDataSourceId;
 
+//TO Eventually be merged into Store View
+var pointTableFilter = new Array();
+
 require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox",
          "dojo/dom-style","dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
-         "dojo/_base/fx", "dojo/fx","dojo/query",
+         "dojo/_base/fx", "dojo/fx","dojo/query","dojo/dom-construct","dijit/form/TextBox",
          "dojo/domReady!"],
 function(StoreView, CheckBox, ValidationTextBox,
 		domStyle,html,put,when,on,
-		baseFx,coreFx,query) {
+		baseFx,coreFx,query,domConstruct,TextBox) {
 
 
 	
@@ -28,8 +31,60 @@ dataPoints = new StoreView({
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
     defaultQuery: {dataSourceId: [null]},
     columns: {
-    	deviceName: mangoMsg['dsEdit.deviceName'],
-    	name: mangoMsg['dsList.name'],
+    	
+        deviceName: {
+    		label: mangoMsg['dsEdit.deviceName'],
+    		renderHeaderCell: function(th){
+    				var div = domConstruct.create("div");
+    				var input = new TextBox({
+    					name: 'inputText',
+    					placeHolder: 'filter text',
+    					style: "width: 8em",
+    				});
+    				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsEdit.deviceName'],});
+    				domConstruct.place(label,div);
+    				input.placeAt(div);
+    				input.watch("value",function(name,oldValue,value){
+    					
+    					if(value == '')
+    						delete pointTableFilter['deviceName'];
+    					else
+    						pointTableFilter['deviceName'] = new RegExp("^.*"+value+".*$");
+    					
+    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.grid.set('query',pointTableFilter);
+    				});
+    				
+    				return div;
+    		},
+        },
+
+        name: {
+    		label: mangoMsg['dsList.name'],
+    		renderHeaderCell: function(th){
+    				var div = domConstruct.create("div");
+    				var input = new TextBox({
+    					name: 'inputText',
+    					placeHolder: 'filter text',
+    					style: "width: 10em",
+    				});
+    				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['dsList.name'],});
+    				domConstruct.place(label,div);
+    				input.placeAt(div);
+    				input.watch("value",function(name,oldValue,value){
+    					
+    					if(value == '')
+    						delete pointTableFilter['name'];
+    					else
+    						pointTableFilter['name'] = new RegExp("^.*"+value+".*$");
+    					
+    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.grid.set('query',pointTableFilter);
+    				});
+    				
+    				return div;
+    		},
+        },
     	dataTypeString : mangoMsg['dsEdit.pointDataType'],
     	
     },
@@ -91,50 +146,10 @@ dataPoints = new StoreView({
             }
         });
     },    
-
-//    save: function() {
-//        var _this = this;
-//        var vo = this.getInputs();
-//        //Wierd error messages if these are here?
-//        delete vo.pointLocator.configurationDescription;
-//        delete vo.pointLocator.dataTypeMessage;
-//        savePointImpl(vo.pointLocator);
-//        vo = this.getInputs(); //Get the filled out stuff
-//        
-//        when(this.editStore.cache.put(vo, {overwrite: true}), function(vo) {
-//            // ok
-//            _this.currentId = vo.id;
-//            if (_this.closeEditOnSave)
-//                _this.close();
-//            
-//            // get new row from view store
-//            // TODO make this a push from the server side
-//            if (_this.editUpdatesView) {
-//                when(_this.viewStore.dwr.get(vo.id), function(viewVo) {
-//                    _this.viewStore.cache.put(viewVo, {overwrite: true});
-//                });
-//            }
-//        }, function(response) {
-//            if (response.dwrError || typeof response.messages === 'undefined') {
-//                // timeout, dwr error etc
-//                addErrorDiv(response);
-//                return;
-//            }
-//            // validation error
-//            for (var i = 0 ; i < response.messages.length; i++) {
-//                var m = response.messages[i];
-//                var x = _this[m.contextKey] || _this[m.contextKey + 'Picker'];
-//                if (x) {
-//                    x.focus();
-//                    x.displayMessage(m.contextualMessage);
-//                    break;
-//                }
-//                else {
-//                    addMessage(m);
-//                }
-//            }
-//        });
-//    },
+    
+    
+    
+    
     
     /**
      * Refresh the Grid

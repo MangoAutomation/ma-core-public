@@ -11,7 +11,11 @@
  var currentPoint;
  var pointListColumnFunctions;
  var pointListOptions;
- var currentDsId; //TODO move to dataPoints
+ var currentDsId; 
+ 
+ function setCurrentDsId(dsId){
+	 currentDsId = dsId;
+ }
  
  /**
   * Init the point properties for a given data source
@@ -128,8 +132,10 @@
      else {
          showMessage("dataSourceMessage", mangoTranslate('dsEdit.saved'));
          //Need to Update the DS Table for sure
-         if(typeof dataSources != 'undefined')
+         if(typeof dataSources != 'undefined'){
+        	 dataSources.setInputs(response.data.vo);
         	 dataSources.refresh();
+         }
      }
      getAlarms();
 
@@ -145,21 +151,20 @@
      if(typeof dataSources != 'undefined'){
 	     if (!hasImageFader(imgNode)) {
 	         startImageFader(imgNode);
-	         var enabled = dataSources.toggle(currentDsId);
-	    	 setDataSourceStatusImg(enabled, imgNode);
-	    	 dataSources.refresh();
-	    	 getAlarms();
-	    	 getStatusMessages();
-	         stopImageFader(imgNode);
-	         
+	         var enabled = dataSources.toggle(dataSources.currentId, function(enabled){
+		    	 setDataSourceStatusImg(enabled, imgNode);
+		    	 getAlarms();
+		    	 getStatusMessages();
+		         stopImageFader(imgNode);
+	         });
 	     }
      }else{
-    	 //No DS Table defined
+    	 //No DS Table defined (Is this possible?)
 	     if (!hasImageFader(imgNode)) {
-	         DataSourceEditDwr.toggleEditDataSource(function(result) {
+	         DataSourceDwr.toggle(currentDsId,function(result) {
 	             var imgNode = $("dsStatusImg");
 	             stopImageFader(imgNode);
-	             setDataSourceStatusImg(result.enabled, imgNode);
+	             setDataSourceStatusImg(result.data.enabled, imgNode);
 	             getAlarms();
 	             getStatusMessages();
 	         });
@@ -293,11 +298,18 @@ function deletePoint() {
  }
  
 
+ /**
+  * Get the current alarms for a datasource
+  */
  function getAlarms() {
-	 //TODO Make this call to the DataSourceDwr
-     DataSourceEditDwr.getAlarms(writeAlarms);
+     DataSourceDwr.getAlarms(currentDsId,writeAlarms);
  }
  
+ /**
+  * Create the alarms table
+  * TODO make this a new data table
+  * @param alarms
+  */
  function writeAlarms(alarms) {
      dwr.util.removeAllRows("alarmsList");
      if (alarms.length == 0) {
@@ -329,6 +341,7 @@ function deletePoint() {
                  });
      }
  }
+
  
  function alarmLevelChanged(eventId) {
      var alarmLevel = $get("alarmLevel"+ eventId);
@@ -337,7 +350,6 @@ function deletePoint() {
  }
  
  function exportDataSource() {
-	 
      DataSourceEditDwr.exportDataSource(function(json) {
          $set("exportData", json);
          exportDialog.show();
@@ -361,11 +373,23 @@ function deletePoint() {
      }
  }
  
+ /**
+  * Get the General Status of the Data Source
+  */
  function getStatusMessages() {
-     DataSourceEditDwr.getGeneralStatusMessages(function(result) {
-         dwr.util.removeAllOptions("generalStatusMessages");
-         dwr.util.addOptions("generalStatusMessages", result.data.messages);
-         if (typeof getStatusMessagesImpl == 'function') getStatusMessagesImpl();
-     });
+	 
+	 if(typeof dataSources != 'undefined'){
+	     DataSourceDwr.getGeneralStatusMessages(dataSources.currentId,function(result) {
+	         dwr.util.removeAllOptions("generalStatusMessages");
+	         dwr.util.addOptions("generalStatusMessages", result.data.messages);
+	         if (typeof getStatusMessagesImpl == 'function') getStatusMessagesImpl();
+	     });
+	 }else{
+	     DataSourceDwr.getGeneralStatusMessages(currentDsId,function(result) {
+	         dwr.util.removeAllOptions("generalStatusMessages");
+	         dwr.util.addOptions("generalStatusMessages", result.data.messages);
+	         if (typeof getStatusMessagesImpl == 'function') getStatusMessagesImpl();
+	     });
+	 }
  }
  

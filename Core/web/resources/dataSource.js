@@ -4,13 +4,16 @@
  */
 var dataSources;
 
-require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox",
+var filters = new Array();
+
+
+require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox","dijit/form/TextBox",
          "dojo/dom-style","dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
-         "dojo/_base/fx", "dojo/fx","dojo/query", "dojox/layout/ContentPane",
+         "dojo/_base/fx", "dojo/fx","dojo/query", "dojox/layout/ContentPane","dojo/dom-construct",
          "dojo/domReady!"],
-function(StoreView, CheckBox, ValidationTextBox,
+function(StoreView, CheckBox, ValidationTextBox,TextBox,
 		domStyle,html,put,when,on,
-		baseFx,coreFx,query,ContentPane) {
+		baseFx,coreFx,query,ContentPane,domConstruct) {
 
 	//Content Div for loading in DS Pages
 dataSourcePropertiesDiv = new ContentPane({
@@ -20,7 +23,6 @@ dataSourcePropertiesDiv = new ContentPane({
 			addErrorDiv(error);
 		}
 }, "editDataSourceDiv");		
-
 
 
 dataSources = new StoreView({
@@ -35,10 +37,36 @@ dataSources = new StoreView({
     defaultSort: [{attribute: "name"}],
     
     columns: {
-    	name: mangoMsg['dsList.name'],
+    	name: {
+    		label: mangoMsg['dsList.name'],
+    		renderHeaderCell: function(th){
+    				var div = domConstruct.create("div");
+    				var input = new TextBox({
+    					name: 'inputText',
+    					placeHolder: 'filter text',
+    					style: "width: 10em",
+    				});
+    				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsList.name']});
+    				domConstruct.place(label,div);
+    				input.placeAt(div);
+    				input.watch("value",function(name,oldValue,value){
+    					
+    					if(value == '')
+    						delete filters['name'];
+    					else
+    						filters['name'] = new RegExp("^.*"+value+".*$");
+    					dataSources.grid.set('query',filters);
+    				});
+    				
+    				return div;
+    		},
+    	},
     	typeDescriptionString: mangoMsg['dsList.type'],
 		connectionDescriptionString: mangoMsg['dsList.connection'],
     },
+    
+    
+    
     
     buttons: ['toggle','edit','delete','copy','export'],
     
@@ -49,6 +77,7 @@ dataSources = new StoreView({
     },
     
     setInputs: function(vo) {
+    	
     	this.currentId = vo.id;
     	this.name.set('value',vo.name);
     	this.xid.set('value',vo.xid);
@@ -75,7 +104,7 @@ dataSources = new StoreView({
     /**
      * Override Toggle Method and return state for use in window
      */
-    toggle: function(id) {
+    toggle: function(id,callback) {
     	DataSourceDwr.toggle(id, function(result) {
             if(result.data.enabled){
                 updateImg(
@@ -84,7 +113,7 @@ dataSources = new StoreView({
                         mango.i18n["common.enabledToggle"],
                         true
                 );
-                return true;
+                if(typeof callback == 'function') callback(true);
             }else{
                 updateImg(
                         $("toggleDataSource"+ result.data.id),
@@ -92,9 +121,10 @@ dataSources = new StoreView({
                         mango.i18n["common.enabledToggle"],
                         true
                 );
-                return false;
+                if(typeof callback == 'function') callback(false);
             }
         });
+
     },    
     
     editXOffset: -380,
@@ -169,9 +199,9 @@ dataSources.open = function(id,options){
     	if(id > 0){
     		//Need to overload the get Method or add get new to the DwrStore object to use this
 	        //when(this.editStore.dwr.get($get("dataSourceTypes")), function(vo) {
-    		when(DataSourceDwr.get(id, function(vo) {
-	            _this.setInputs(vo); //TODO Not using this here
-	            _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv,id)
+    		when(DataSourceDwr.get(id, function(response) {
+	            _this.setInputs(response.data.vo); //TODO Not using this here
+	            _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv,id)
 	            //show(_this.edit);
 	            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 	                            coreFx.wipeIn({node: _this.edit})]).play();
@@ -180,9 +210,9 @@ dataSources.open = function(id,options){
 	            addErrorDiv(message);
 	        }));
     	}else{
-    		when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
-                _this.setInputs(vo); //TODO not using this here
-                _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv);
+    		when(DataSourceDwr.getNew($get("dataSourceTypes"), function(response) {
+                _this.setInputs(response.data.vo); //TODO not using this here
+                _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv);
                 //show(_this.edit);
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                                 coreFx.wipeIn({node: _this.edit})]).play();
