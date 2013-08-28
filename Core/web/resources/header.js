@@ -15,6 +15,7 @@ window.onerror = function mangoHandler(desc, page, line)  {
     return false;
 };
 
+
 mango.header = {};
 mango.header.onLoad = function() {
     if (dojo.isIE)
