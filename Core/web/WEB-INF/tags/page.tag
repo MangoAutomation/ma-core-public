@@ -96,8 +96,11 @@
 </head>
 
 <body class="${theme}">
+
 <!-- Messaging -->
 <jsp:include page="/WEB-INF/snippet/message.jsp"/>
+
+
 
 <table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
   <tr id="headerArea">

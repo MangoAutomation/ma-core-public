@@ -329,6 +329,7 @@ public class ModuleRegistry {
 
         preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
                 "cog", "/event_handlers.shtm"));
+        
         preDefaults.add(createMenuItemDefinition("dataSourcesMi", Visibility.DATA_SOURCE, "header.dataSources",
                 "icon_ds", "/data_sources.shtm"));
 
@@ -347,11 +348,12 @@ public class ModuleRegistry {
 
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp"));
+        
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/events.shtm", null, "/WEB-INF/jsp/events.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/event_handlers.shtm", null,
                 "/WEB-INF/jsp/eventHandlers.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/data_sources.shtm", null,
-                "/WEB-INF/jsp/dataSourceList.jsp"));
+                "/WEB-INF/jsp/dataSource.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/point_hierarchy.shtm", null,
                 "/WEB-INF/jsp/pointHierarchy.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/mailing_lists.shtm", null,
@@ -365,6 +367,12 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
                 "/WEB-INF/jsp/emport.jsp"));
 
+        /* MOBILE MAPPINGS */
+        preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",
+                new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
+
+        
+        
         preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
     }
 

@@ -109,9 +109,7 @@
                 
       <page:mobile-header/>
       <page:mobile-toolbar/>
-      
       <jsp:doBody/>
-      
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>
         <tr>

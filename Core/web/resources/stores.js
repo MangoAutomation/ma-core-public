@@ -24,4 +24,11 @@ if (typeof DataPointDwr !== 'undefined') {
     stores.dataPoint.dwr.or = false; //Use AND in Queries to restrict to DataSource of interest
 }
 
+if (typeof DataPointDetailsDwr !== 'undefined') {
+    stores.dataPointDetails = new CachedDwrStore(DataPointDetailsDwr, "DataPointDetailsDwr");
+    // only a small list, get full on each and sort/filter locally
+    stores.dataPointDetails.dwr.queryLocally = false;
+}
+
+
 }); // require

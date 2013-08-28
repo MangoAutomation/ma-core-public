@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,6 +58,23 @@ abstract public class DwrConversionDefinition extends ModuleElementDefinition {
         conversions.add(dcc);
     }
 
+    /**
+     * Declares that objects of the given class are allowed to be converted using the given converter type.
+     * 
+     * @param clazz
+     *            the class to allow
+     * @param converterType
+     *            the converter type with which to convert
+     * @param parameters
+     * 			  a name,value map to load into the converter's parameters
+     */
+    public void addConversion(Class<?> clazz, String converterType, Map<String,String> parameters) {
+        DwrClassConversion dcc = new DwrClassConversion(clazz,parameters);
+        dcc.setConverterType(converterType);
+        conversions.add(dcc);
+    }
+    
+    
     /**
      * Declares that objects of the given class are allowed to be converted using a bean converter. Only the given
      * properties of the class are to be converted.

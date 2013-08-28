@@ -27,11 +27,11 @@
       <props>
         <!-- All user URLs -->
         <prop key="/data_point_edit.shtm">dataPointEditController</prop>
-        <prop key="/data_source_edit.shtm">dataSourceEditController</prop>
+        <!--  <prop key="/data_source_edit.shtm">dataSourceEditController</prop> -->
         
         <prop key="/data_source.shtm">dataSourceController</prop>
         <prop key="/data_source_properties.shtm">dataSourcePropertiesController</prop>
-        <prop key="/data_source_properties_test.shtm">dataSourcePropertiesTestController</prop>
+        <prop key="/data_source_edit.shtm">dataSourceEditController</prop>
         
         
         <prop key="/help.shtm">helpController</prop>
@@ -41,6 +41,11 @@
         <prop key="/unauthorized.htm">unauthorizedController</prop>
         <prop key="/users.shtm">usersController</prop>
         <prop key="/webcam_live_feed.htm">webcamLiveFeedController</prop>
+
+        <!-- Mobile Site Mappings MOVE TO  Module Registry -->        
+        <prop key="/mobile.shtm">mobileController</prop>
+        <prop key="/mobile/users.shtm">usersController</prop>
+        
       </props>
     </property>
     
@@ -54,6 +59,10 @@
   <!--
      Controllers
   -->
+  <bean id="mobileController" class="com.serotonin.m2m2.web.mvc.controller.MobileController">
+    <property name="viewName"><value>/WEB-INF/jsp/mobile/home.jsp</value></property>
+    <property name="errorViewName"><value>/mobile.shtm</value></property>
+  </bean>
   
   <bean id="dataSourceController" class="com.serotonin.m2m2.web.mvc.controller.DataSourceController">
     <property name="viewName"><value>/WEB-INF/jsp/dataSource.jsp</value></property>
@@ -63,7 +72,7 @@
     <property name="viewName"><value>/WEB-INF/jsp/dataSourceProperties.jsp</value></property>
     <property name="errorViewName"><value>/data_source_properties_error.shtm</value></property>
   </bean>  
-  <bean id="dataSourcePropertiesTestController" class="com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController">
+  <bean id="dataSourceEditController" class="com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController">
     <property name="viewName"><value>/WEB-INF/jsp/dataSourcePropertiesTest.jsp</value></property>
     <property name="errorViewName"><value>/data_source_properties_error.shtm</value></property>
   </bean>    
@@ -76,10 +85,10 @@
     <property name="messageCodesResolver"><ref bean="defaultMessageCodeResolver"/></property>
   </bean>
   
-  <bean id="dataSourceEditController" class="com.serotonin.m2m2.web.mvc.controller.DataSourceEditController">
-    <property name="viewName"><value>/WEB-INF/jsp/dataSourceEdit.jsp</value></property>
-    <property name="errorViewName"><value>/data_sources.shtm</value></property>
-    </bean>
+<!--   <bean id="dataSourceEditController" class="com.serotonin.m2m2.web.mvc.controller.DataSourceEditController"> -->
+<!--     <property name="viewName"><value>/WEB-INF/jsp/dataSourceEdit.jsp</value></property> -->
+<!--     <property name="errorViewName"><value>/data_sources.shtm</value></property> -->
+<!--     </bean> -->
   
   <bean id="helpController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
     <property name="viewName"><value>/WEB-INF/jsp/help.jsp</value></property>

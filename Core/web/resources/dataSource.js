@@ -200,24 +200,23 @@ dataSources.open = function(id,options){
     		//Need to overload the get Method or add get new to the DwrStore object to use this
 	        //when(this.editStore.dwr.get($get("dataSourceTypes")), function(vo) {
     		when(DataSourceDwr.get(id, function(response) {
-	            _this.setInputs(response.data.vo); //TODO Not using this here
-	            _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv,id)
-	            //show(_this.edit);
+	            _this.setInputs(response.data.vo);
+	            //Due to some issue with content pane need to play fx before loading pane.
 	            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 	                            coreFx.wipeIn({node: _this.edit})]).play();
+	            _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv,id);
 	        }, function(message) {
-	            // wrong id, dwr error
 	            addErrorDiv(message);
 	        }));
     	}else{
     		when(DataSourceDwr.getNew($get("dataSourceTypes"), function(response) {
-                _this.setInputs(response.data.vo); //TODO not using this here
-                _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv);
-                //show(_this.edit);
+                _this.setInputs(response.data.vo);
+	            //Due to some issue with content pane need to play fx before loading pane.
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                                 coreFx.wipeIn({node: _this.edit})]).play();
+                _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv);
+
             }, function(message) {
-                // wrong id, dwr error
                 addErrorDiv(message);
             }));
     	}
@@ -225,6 +224,9 @@ dataSources.open = function(id,options){
 };
 
 
+/**
+ * Copy Override
+ */
 dataSources.copy = function(id) {
     var _this = this;
     when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
@@ -240,15 +242,30 @@ dataSources.copy = function(id) {
  * Method to get Data Source Edit Page from Module
  */
 dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPane,id,copy){
-	var dsType = $get("dataSourceTypes");
-	var xhrUrl = "/data_source_properties.shtm?typeId=" + dsType;
+	//Create the base URL
+	var xhrUrl = "/data_source_properties.shtm?"
+		
+	//Do we have an ID To pass in
 	if(typeof id != 'undefined')
-		xhrUrl = xhrUrl + "&dsid=" + id;
+		xhrUrl = xhrUrl + "dsid=" + id;
+	else{
+		//No id so it must be a new one, get the type of new one
+		var dsType = $get("dataSourceTypes");
+		xhrUrl+= "typeId=" + dsType;
+	}
+		
 	if(typeof copy != 'undefined')
 		xhrUrl = xhrUrl + "&copy=true";
 	
 	var deferred = targetContentPane.set('href',xhrUrl); //Content Pane get
 	targetContentPane.set('class','borderDiv marB marR');
+	deferred.then(function(value){
+		//When Done, Could put callback here
+	},function(err){
+		addErrorDiv(err);
+	},function(update){
+		//Progress Info
+	});
 }
 
 //Temp callback to editDataSourceDiv to replicate dojo.ready, 

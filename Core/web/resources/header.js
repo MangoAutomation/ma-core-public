@@ -55,19 +55,13 @@ function help(documentId, source) {
             title: mango.i18n["js.help.loading"], 
             closeable: true,
             dockable: false,
-            resizable: true
+            resizable: true,
+            style: "position: absolute; zIndex: 980; padding: 2px;"
         }, div);
         
         fp.startup();
-        fp.show();
-        
-        dojo.style(fp.domNode, {
-            position:"absolute",
-            zIndex:"980",
-            padding: "2px"
-            //border: "none"
-        });
     }
+
     
     var top, left;
     if (source) {
@@ -120,6 +114,7 @@ function helpImpl(documentId) {
                 content += "<p>"+ mango.i18n["js.help.lastUpdated"] +": "+ result.lastUpdated +"</p>";
             content = "<div>"+ content +"</div><div style='height:13px'></div>";
             fp.set('content', content);
+            fp.show();
         }
     });
 };

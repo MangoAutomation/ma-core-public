@@ -32,6 +32,15 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
+ * 
+ * Controller for Data Source View
+ * 
+ * Data Source Edit view
+ * Data Source Table view
+ * 
+ * 
+ * 
+ * 
  * @author Terry Packer
  *
  */

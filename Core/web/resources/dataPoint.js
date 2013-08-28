@@ -102,6 +102,8 @@ dataPoints = new StoreView({
     	this.currentId = vo.id;
     	this.name.set('value',vo.name);
     	this.xid.set('value',vo.xid);
+    	dataPointsDataSourceId = vo.dataSourceId;
+    	
     	//this.enabled.set('value',vo.enabled);
     	//Setup for the point Impl CB
     	currentPoint = vo;

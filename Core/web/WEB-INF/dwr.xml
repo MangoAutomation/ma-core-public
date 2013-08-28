@@ -129,9 +129,19 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.UserComment"/>
     
     <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.*" />
-
-    <!-- Not yet sure why the above didn't pick up this bean? -->
+    <!-- Not yet sure why the above didn't pick up these beans? -->
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.AutoShutOff" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.BasePointState" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.DataExportDefinition" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.DataPointBean" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.EventExportDefinition" />    
     <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.EventInstanceBean" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.EventSourceBean" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.PointDetailsState" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime" />
+    <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.TestingUtility" />
     
     <convert converter="bean" match="com.serotonin.m2m2.web.dwr.longPoll.LongPollRequest"/>
     <convert converter="bean" match="com.serotonin.m2m2.web.dwr.pair.*"/>

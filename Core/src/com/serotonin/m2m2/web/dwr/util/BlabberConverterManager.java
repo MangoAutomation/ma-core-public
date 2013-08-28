@@ -73,8 +73,8 @@ public class BlabberConverterManager implements ConverterManager {
             return;
         }
         
-    	String js = match.substring(match.lastIndexOf(".")+1);
-    	params.put("javascript", js);
+    	//String js = match.substring(match.lastIndexOf(".")+1);
+    	//params.put("javascript", js);
 
         Converter converter = clazz.newInstance();
         converter.setConverterManager(this);

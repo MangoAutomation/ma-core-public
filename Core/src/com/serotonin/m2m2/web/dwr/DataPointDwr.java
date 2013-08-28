@@ -96,7 +96,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
             DataSourceVO<?> ds = Common.getUser().getEditDataSource();
             vo.setXid(dao.generateUniqueXid());
             vo.setPointLocator(ds.createPointLocator());
-
+            vo.setDataSourceId(ds.getId());
+            vo.setDataSourceName(ds.getName());
+            vo.setDataSourceTypeName(ds.getTypeKey());
+            vo.setDataSourceXid(ds.getXid());
         }else{
             vo = dao.getFull(id);
         }
