@@ -115,8 +115,9 @@ function helpImpl(documentId) {
                 content += "<p>"+ mango.i18n["js.help.lastUpdated"] +": "+ result.lastUpdated +"</p>";
             content = "<div>"+ content +"</div><div style='height:13px'></div>";
             fp.set('content', content);
-            fp.show();
         }
+        if(fp.get('_wasShown') === true)
+        	fp.show(); //Show the values
     });
 };
 
