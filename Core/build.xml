@@ -78,6 +78,10 @@
             	<include name="**/*.*"/>
             </fileset>
         </copy>
+		<!-- Copy the Dojo JS Libraries -->
+		<unzip src="dojo-build/dist/dojo-build.zip" dest="${build.dir}/web/resources">
+		</unzip>
+		
         <!-- Empty the modules dir -->
         <delete dir="${build.dir}/web/modules" />
         <mkdir dir="${build.dir}/web/modules" />

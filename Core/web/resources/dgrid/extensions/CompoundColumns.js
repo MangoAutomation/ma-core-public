@@ -1,4 +1,0 @@
-//>>built
-define("dgrid/extensions/CompoundColumns",["dojo/_base/lang","dojo/_base/declare","dgrid/util/misc","xstyle/css!../css/extensions/CompoundColumns.css"],function(m,p,q){return p(null,{configStructure:function(){function n(e,a,f){var b=0,h=function(){},k,l;q.each(e,function(c,e){l=(k=c.children)&&!1!==c.showChildHeaders;k?b+=c.colSpan=n(k,a+1,l):(g.push(c),d[0].push(m.delegate(c,{renderHeaderCell:h})),b++);l||(c=m.delegate(c,{rowSpan:-a}));f&&(d[a]||(d[a]=[])).push(c)},this);return b}var e=this.subRows&&
-this.subRows[0]||this.columns,d=[[]],g=[];d[0].className="dgrid-spacer-row";n(e,1,!0);var e=d.length,a,f,h,b;for(a=0;a<e;a++){h=d[a];for(f=0;f<h.length;f++)b=h[f],1>b.rowSpan&&(b.rowSpan+=e)}g=[g];g.headerRows=d;this.subRows=g;this.inherited(arguments)}})});
-//@ sourceMappingURL=CompoundColumns.js.map
