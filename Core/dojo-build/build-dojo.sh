@@ -21,7 +21,7 @@ LOADERMID="app/run"
 LOADERCONF="$SRCDIR/$LOADERMID.js"
 
 # Main application package build configuration
-PROFILE="$BASEDIR/profiles/app.profile.js"
+PROFILE="$BASEDIR/profiles/mango.profile.js"
 
 # Configuration over. Main application start up!
 
