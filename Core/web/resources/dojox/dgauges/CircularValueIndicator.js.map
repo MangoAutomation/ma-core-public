@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"CircularValueIndicator.js",
+"lineCount":2,
+"mappings":"A,SAAAA,MAAA,qHAAgI,QAAA,CAASC,CAAT,CAAkBC,CAAlB,CAAuBC,CAAvB,CAA2CC,CAA3C,QACxHH,EAAA,wCAAgDE,CAAhD,qBAIcE,QAAAA,CAASC,CAATD,CAAgBE,CAAhBF,QASZC,EAAAE,WAAA,wBAAAC,UAAA,yBATYJ,CAJd,kBAwBYK,QAAAA,GACjBC,cAAA,CAAeC,SAAf,CADiBF,KAEbG,EAAIC,KAAA,CAAMC,qBAAN,CAAJF,CAAmCG,UAAnCH,CAAgDE,qBAFnCL,CAGbO,EAAQC,UAAAC,iBAAA,CAA4BN,CAA5B,CAEZO,eAAAC,aAAA,MACKH,UAAAI,QADL;GAEKJ,UAAAK,QAFL,EAGGrB,CAAAsB,OAAAC,QAAA,CAAmBR,CAAnB,CAHH,EALiBP,CAxBZ,cAmCQgB,QAAAA,CAASC,CAATD,EAKbf,cAAA,CAAeC,SAAf,CALac,KAMTE,EAASV,UAAAW,OAAAC,aAAA,CAA+BZ,UAAAI,QAA/B,CAAmDJ,UAAAK,QAAnD,CANAG,CAOTT,MAAUc,IAAAC,MAAA,CAAWL,CAAAM,MAAX,CAAyBL,CAAAM,EAAzB,CAAmCP,CAAAQ,MAAnC,CAAiDP,CAAAQ,EAAjD,CAAVnB,CAAgFc,IAAAM,GACpFC,SAAA,SAAkBpB,UAAAqB,iBAAA,CAA4BtB,CAA5B,CAAlB,CAGAb,EAAAoC,KAAA,CAAeb,CAAf,CAXaD,CAnCR,cAiDQe,QAAAA,CAASd,CAATc,EAKb9B,cAAA,CAAeC,SAAf,CALa6B,KAMTb,EAASV,UAAAW,OAAAC,aAAA,CAA+BZ,UAAAI,QAA/B,CAAmDJ,UAAAK,QAAnD,CANAkB,CAOTxB,MAAUc,IAAAC,MAAA,CAAWL,CAAAM,MAAX,CAAyBL,CAAAM,EAAzB,CAAmCP,CAAAQ,MAAnC,CAAiDP,CAAAQ,EAAjD,CAAVnB,CAAgFc,IAAAM,GACpFC,SAAA,SAAkBpB,UAAAqB,iBAAA,CAA4BtB,CAA5B,CAAlB,CARawB,CAjDR,EADwH,CAAhI;",
+"sources":["CircularValueIndicator.js.uncompressed.js"],
+"names":["define","declare","gfx","ScaleIndicatorBase","eventUtil","indicatorShapeFunc","group","indicator","createLine","setStroke","refreshRendering","inherited","arguments","v","isNaN","_transitionValue","value","angle","scale","positionForValue","_gfxGroup","setTransform","originX","originY","matrix","rotateg","_onMouseDown","event","origin","_gauge","_gaugeToPage","Math","atan2","pageY","y","pageX","x","PI","set","valueForPosition","stop","_onMouseMove"]
+}

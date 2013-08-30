@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"Loader.js",
+"lineCount":4,
+"mappings":"A,SACAA,MAAA,8FAAsG,QAAA,CAASC,CAAT,CAAeC,CAAf,CAAoBC,CAApB,EACtGD,CAAAE,QAAA,uBACAF,EAAAG,WAAA,gCAEAH,EAAAI,QAAA,iBACAJ,EAAAI,QAAA,oBAEAJ,EAAAK,QAAA,wBAAqCN,CAAAO,QAArC,CAAmDP,CAAAQ,WAAnD,YAQWP,CAAAQ,UAAA,2CARX;iQAwCaC,QAAAA,GAIPC,eAJOD,EAOPE,oBAPOF,GAQTT,CAAAY,YAAA,CAAiBC,aAAjB,eARSJ,CASTT,CAAAc,SAAA,CAAcD,aAAd,sBATSJ,EAWVM,UAAA,EAXUN,EAKVI,aAAAG,MAAAC,QALUR,OAaXS,iBAAA,CAAiBC,gBAAjB,CAIAC,eAjBWX,CAiBMY,YAAA,CAAarB,CAAb;qBACjBsB,aAlBWb,CAkBIY,YAAA,CAAarB,CAAAuB,SAAAC,UAAb,iBAlBJf,CAxCb,aA8DcS,QAAAA,CAAsBO,CAAtBP,EAGZQ,oBAAAC,UAHYT,CAGqBO,CAHrBP,CA9Dd,YAoEaU,QAAAA,CAAqBC,CAArBD,EAGX7B,CAAA+B,cAAA,CAAoBjB,aAApB,IAAuCgB,CAAAE,QAAvC,CAAiDC,YAAjD,GAAiEH,CAAAI,QAAjE,CAA2ED,YAA3E,cAHWJ,CApEb,OA0EQM,QAAAA,GAGNlC,CAAAmC,QAAA,gCACGzB,gBAJGwB,GAKFvB,oBALEuB,GAMJE,oBANIF,CAMmBb,YAAA,CAAagB,QAAb,4BANnBH,EAQLlC,CAAAgB,MAAA,CAAWH,aAAX,wBARKqB,CAWLlC,CAAAsC,OAAA,OAAoBzB,aAApB;SAA4C0B,aAA5C,EAAAC,KAAA,EAXKN,EA1ER,OAyFQnB,QAAAA,GAGNf,CAAAmC,QAAA,8BACGzB,gBAJGK,GAKFJ,oBALEI,EAMJ0B,eAAA,CAAgBL,oBAAhB,CANIrB,CAQLf,CAAA0C,QAAA,OACO7B,aADP,UAEU0B,aAFV,OAGQvC,CAAA2C,QAAA,CAAa3C,CAAAgB,MAAb,CAAyBH,aAAzB,kBAHR,EAAA2B,KAAA,EARKzB,EAzFR,EAPsG,CAAtG;",
+"sources":["Loader.js.uncompressed.js"],
+"names":["define","dijit","dojo","dojox","provide","deprecated","require","declare","_Widget","_Templated","moduleUrl","postCreate","hasVisuals","attachToPointer","removeClass","loadNode","addClass","_hide","style","display","_setMessage","loadMessage","_xhrStart","connect","_xhrEnd","Deferred","prototype","message","loadMessageNode","innerHTML","_putLoader","e","placeOnScreen","clientX","_offset","clientY","_show","publish","_pointerConnect","document","fadeIn","duration","play","disconnect","fadeOut","partial"]
+}
