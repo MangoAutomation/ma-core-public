@@ -51,7 +51,8 @@
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
-  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
+  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
+  
   <script type="text/javascript" src="/dwr/engine.js"></script>
   <script type="text/javascript" src="/dwr/util.js"></script>
   <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
@@ -132,9 +133,21 @@
   </tr>
 </table>
 
+<script type="text/javascript">
+
+//     //The Dojo Bootloader
+//     require({
+//     	// The base path for all packages and modules. If you don't provide this, baseUrl defaults to the directory
+//         // that contains dojo.js. Since all packages are in the root, we just leave it blank. (If you change this, you
+//         // will also need to update `app.profile.js`).
+//     	baseUrl: 'resources',
+//     	packages: ['dojo','dijit','dojox']
+//     });
+
 <c:if test="${!empty onload}">
-  <script type="text/javascript">dojo.ready(${onload});</script>
+  dojo.ready(${onload});
 </c:if>
+</script>
 
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">
   <jsp:include page="${modJspf}" /></c:forEach>

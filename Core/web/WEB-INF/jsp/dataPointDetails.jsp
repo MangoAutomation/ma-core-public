@@ -8,37 +8,38 @@
 <tag:page dwr="DataPointDetailsDwr" js="/resources/view.js">
   <c:if test="${!empty point}">
     <script type="text/javascript">
-      dojo.require("dojo.store.Memory");
-      dojo.require("dijit.form.FilteringSelect");
-      
-      mango.view.initPointDetails();
-
-      dojo.ready(function() {
-          getHistoryTableData();
-          <c:if test="${!empty periodType}">
-            DataPointDetailsDwr.getDateRangeDefaults(${periodType}, ${periodCount}, function(data) {
-                setDateRange(data);
-                getImageChart();
-            });
-          </c:if>
-          <c:if test="${!empty flipbookLimit}">getFlipbookChart();</c:if>
-          getStatsChart();
-          
-          // Point lookup
-          new dijit.form.FilteringSelect({
-              store: new dojo.store.Memory({ data: pointList }),
-              autoComplete: false,
-              style: "width: 250px;",
-              queryExpr: "*\${0}*",
-              highlightMatch: "all",
-              required: false,
-              onChange: function(point) {
-                  if (this.item)
-                      window.location='data_point_details.shtm?dpid='+ this.item.id;
-              }
-          }, "picker");        
-      });
-    
+    require(["dojo","dojo/store/Memory","dijit/form/FilteringSelect"], function(dojo,Memory,FilteringSelect){
+// 	      dojo.require("dojo.store.Memory");
+// 	      dojo.require("dijit.form.FilteringSelect");
+	      
+	      mango.view.initPointDetails();
+	
+	      dojo.ready(function() {
+	          getHistoryTableData();
+	          <c:if test="${!empty periodType}">
+	            DataPointDetailsDwr.getDateRangeDefaults(${periodType}, ${periodCount}, function(data) {
+	                setDateRange(data);
+	                getImageChart();
+	            });
+	          </c:if>
+	          <c:if test="${!empty flipbookLimit}">getFlipbookChart();</c:if>
+	          getStatsChart();
+	          
+	          // Point lookup
+	          new dijit.form.FilteringSelect({
+	              store: new dojo.store.Memory({ data: pointList }),
+	              autoComplete: false,
+	              style: "width: 250px;",
+	              queryExpr: "*\${0}*",
+	              highlightMatch: "all",
+	              required: false,
+	              onChange: function(point) {
+	                  if (this.item)
+	                      window.location='data_point_details.shtm?dpid='+ this.item.id;
+	              }
+	          }, "picker");        
+	      });
+    });
       //
       // History
       //

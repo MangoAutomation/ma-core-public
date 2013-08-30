@@ -26,7 +26,7 @@ PROFILE="$BASEDIR/profiles/mango.profile.js"
 # Configuration over. Main application start up!
 
 if [ ! -d "$TOOLSDIR" ]; then
-	echo "Can't find Dojo build tools -- did you initialise submodules? (git submodule update --init --recursive)"
+	echo "Can't find Dojo build tools -- please download from http://dojotoolkit.org/download/#sdk into src folder"
 	exit 1
 fi
 
