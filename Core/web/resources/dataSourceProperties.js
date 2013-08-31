@@ -6,7 +6,6 @@
  dojo.require("dijit.Dialog");
  dojo.require("dijit.form.Form");
  dojo.require("dijit.form.Button");
-
  
  var currentPoint;
  var pointListColumnFunctions;
@@ -106,6 +105,7 @@
      showMessage("pointMessage");
      
      getStatusMessages();
+     
  }
  
 
@@ -210,6 +210,13 @@
      hideContextualMessages("pointProperties");
      
      addPointImpl(ref);
+     
+     //Format the tabs
+     var dataSourceTabContainer = dijit.byId("pointDetails");
+     dataSourceTabContainer.set('selected',true);
+     dataSourceTabContainer.set('disabled',false);
+     
+     
  }
  
 // function editPoint(pointId) {

@@ -2,6 +2,8 @@
 
 * Change PointValues and PointValueAnnotations tables to InnoDB in MySQL
 * Fixed missing graphic when using Serial Port Widget
+* Upgraded Dojo frontend library to 1.9.1, added DGrid tables and local use of scripts instead of from CDN
+* Data Source View upgraded to use filtered and sortable tables
 
 
 *Version 2.0.6*

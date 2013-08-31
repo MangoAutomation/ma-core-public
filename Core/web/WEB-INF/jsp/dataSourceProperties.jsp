@@ -27,7 +27,7 @@
       
       
   </script>
-  
+<!--   <div data-dojo-type="dijit/layout/TabContainer" style="height: auto;"> -->
   <tag:labelledSection labelKey="dsEdit.currentAlarms" id="alarmsTable" closed="true">
     <div style="float: right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getAlarms()"/></div>
     <table>
@@ -45,13 +45,13 @@
       <jsp:include page="${statpage}"/>
     </c:if>
   </tag:labelledSection>
-  
-  <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
-  <jsp:include page="${incpage}"/>
 
-  <!-- Import the Table and Scripts -->
-  <script language="javascript" type="text/javascript" src="/resources/stores.js"></script>
-  <script language="javascript" type="text/javascript" src="/resources/dataPoint.js"></script>
-  <jsp:include page="/WEB-INF/snippet/dataPointTable.jsp"/>
-
-  
+    <div id="dataSourcePropertiesTabContainer" data-dojo-props="doLayout: false" data-dojo-type="dijit/layout/TabContainer" style="height: auto;">
+      <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
+      <jsp:include page="${incpage}"/>
+      <!-- Import the Table and Scripts -->
+      <script language="javascript" type="text/javascript" src="/resources/stores.js"></script>
+      <script language="javascript" type="text/javascript" src="/resources/dataPoint.js"></script>
+      <jsp:include page="/WEB-INF/snippet/dataPointTable.jsp"/>
+      
+    </div>

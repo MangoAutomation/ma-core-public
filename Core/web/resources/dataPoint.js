@@ -150,9 +150,6 @@ dataPoints = new StoreView({
     },    
     
     
-    
-    
-    
     /**
      * Refresh the Grid
      */
@@ -160,7 +157,65 @@ dataPoints = new StoreView({
     	this.grid.set('query',{dataSourceId: [dataPointsDataSourceId]});
     },
     
-    
+    open: function(id, options) {
+    	//TODO remove delete option on new Vos
+        //display("pointDeleteImg", point.id != <c:out value="<%= Common.NEW_ID %>"/>);
+
+        this.currentId = id;
+        var _this = this;
+        options = options || {};
+        var posX = options.posX;
+        var posY = options.posY;
+        
+        // firstly position the div
+        if (typeof posY == 'undefined' || typeof posX == 'undefined') {
+            //Get the img for the edit of this entry and key off of it for position
+            var img, offsetX, offsetY;
+            if (id > 0) {
+                img = "edit" + this.prefix + id;
+                offsetX = this.editXOffset;
+                offsetY = this.editYOffset;
+            }
+            else {
+                img = "add" + this.prefix;
+                offsetX = this.addXOffset;
+                offsetY = this.addYOffset;
+            }
+            var position = html.position(img, true);
+            posX = position.x + offsetX;
+            posY = position.y + offsetY;
+        }
+        domStyle.set(this.edit, "top", posY + "px");
+        domStyle.set(this.edit, "left", posX + "px");
+        
+        if (options.voToLoad) {
+            _this.setInputs(options.voToLoad);
+        	hideContextualMessages(_this.edit);
+        	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
+        	myEdit.selectChild('pointDetails');
+
+//            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
+//                            coreFx.wipeIn({node: _this.edit})]).play();
+        }
+        else {
+            // always load from dwr
+            // TODO use push from the server side
+            // so cache is always up to date
+            when(this.editStore.dwr.get(id), function(vo) {
+                // ok
+                _this.setInputs(vo);
+                //Hide contextual messages
+            	hideContextualMessages(_this.edit);
+            	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
+            	myEdit.selectChild('pointDetails');
+                //coreFx.combine([baseFx.fadeIn({node: _this.edit}),
+                //                coreFx.wipeIn({node: _this.edit})]).play();
+            }, function(message) {
+                // wrong id, dwr error
+                addErrorDiv(message);
+            });
+        }
+    },
     
 });
 

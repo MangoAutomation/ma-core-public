@@ -272,6 +272,8 @@ dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPan
 // to be replaced with scriptHasHooks concept from dojox/dijit content pane
 dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
 	   init();
+	   dataSourcePropertiesDiv.startup();
+	   dataSourcePropertiesDiv.resize();
 	});
 
 }); // require

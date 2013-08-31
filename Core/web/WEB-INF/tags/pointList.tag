@@ -5,8 +5,10 @@
 <%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@attribute name="pointHelpId" %>
 
+<div data-dojo-type="dijit/layout/ContentPane" title="Point Details" style="overflow-y:auto" id="pointDetails" style="display: none; ">
+       <div  class="borderDiv marB">
 
-    <div id="pointDetails" class="borderDiv marB mangoEdit" style="display: none; position:absolute;">
+<!--     <div id="pointDetails" class="borderDiv marB mangoEdit" style="display: none; "> -->
         <table width="100%">
           <tr>
             <td>
@@ -34,10 +36,12 @@
           </tr>
           
           <jsp:doBody/>
-          
-        </table>
+        </table>        
       </div>
-
+      <div  class="borderDiv marB">
+        Could put the point settings here.  Would require fresh re-write of that page to fit here and have binding js and dwr.
+      </div>
+</div>
 
 
 <!-- <table cellpadding="0" cellspacing="0" id="pointProperties" style="display:none;"> -->

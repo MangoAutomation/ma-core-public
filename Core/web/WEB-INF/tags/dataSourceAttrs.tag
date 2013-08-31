@@ -5,7 +5,9 @@
 --%><%@attribute name="descriptionKey" required="true" rtexprvalue="true" %><%--
 --%><%@attribute name="helpId" rtexprvalue="true" %><%--
 --%><%@attribute name="extraPanels" fragment="true" %><%--
---%><table cellpadding="0" cellspacing="0">
+--%>
+<div id="dataSourcePropertiesTab" data-dojo-type="dijit/layout/ContentPane" title="Data Source" data-dojo-props="selected:true" style="overflow-y:auto" >
+<table cellpadding="0" cellspacing="0">
   <tr>
     <td valign="top">
       <div class="borderDiv marB marR" id="dataSourceProperties">
@@ -50,7 +52,6 @@
           <jsp:doBody/>
           
         </table>
-        
         <tag:dsEvents/>
       </div>
     </td>
@@ -60,3 +61,4 @@
     </c:if>
   </tr>
 </table>
+</div>

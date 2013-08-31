@@ -102,24 +102,16 @@
 <jsp:include page="/WEB-INF/snippet/message.jsp"/>
 
 
-
-<table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
-  <tr id="headerArea">
-    <td>
-      <page:header/>
-      <page:toolbar/>
-      <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
-    </td>
-  </tr>
-  <tr id="contentArea">
-    <td>
-      <div id="mainContent" style="padding:5px;">
+<div id="mainContainer" style="height:100%">
+    <div id="headerArea">      
+        <page:header/>
+        <page:toolbar/>
+        <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
+    </div>
+    <div id="mainContent" style="padding:5px; ">
         <jsp:doBody/>
-      </div>
-    </td>
-  </tr>
-  <tr id="footerArea">
-    <td>
+    </div>
+    <div id="footerArea" style="float:left; width:100%; height:60px;">
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>
         <tr>
@@ -128,26 +120,17 @@
         <tr>
           <td colspan="2" align="center"><a href="http://infiniteautomation.com/" ><b></b>Distributed by Infinite Automation Systems Inc.</a></td>
         </tr>
-      </table>
-    </td>
-  </tr>
-</table>
+      </table>    
+    </div>
+</div>
 
-<script type="text/javascript">
-
-//     //The Dojo Bootloader
-//     require({
-//     	// The base path for all packages and modules. If you don't provide this, baseUrl defaults to the directory
-//         // that contains dojo.js. Since all packages are in the root, we just leave it blank. (If you change this, you
-//         // will also need to update `app.profile.js`).
-//     	baseUrl: 'resources',
-//     	packages: ['dojo','dijit','dojox']
-//     });
 
 <c:if test="${!empty onload}">
-  dojo.ready(${onload});
+  <script type="text/javascript">
+    dojo.ready(${onload});
+  </script>
+
 </c:if>
-</script>
 
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">
   <jsp:include page="${modJspf}" /></c:forEach>
