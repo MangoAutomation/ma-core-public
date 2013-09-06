@@ -96,8 +96,8 @@
                 $get("fromMinute"), $get("fromSecond"), $get("fromNone"), $get("toYear"), $get("toMonth"),
                 $get("toDay"), $get("toHour"), $get("toMinute"), $get("toSecond"), $get("toNone"), function(data) {
               stopImageFader($("chartDataImg"));
-              window.location = "chartExport/pointData.csv";
-          });
+              window.location = "chartExport/pointData.xlsx";
+          });          
       }
       
       //
@@ -321,6 +321,8 @@
                               onclick="getImageChart()"/>
                       <tag:img id="chartDataImg" png="bullet_down" title="pointDetails.chartDataButton"
                               onclick="getChartData()"/>
+                       <tag:img png="arrow_up" onclick="showPointValueEmport();" title="emport.import"/>
+                              
                     </td>
                   </tr>
                   <tr><td colspan="3" id="imageChartDiv"></td></tr>
@@ -473,6 +475,7 @@
       <%@ include file="/WEB-INF/jsp/include/userComment.jsp" %>
     </c:otherwise>
   </c:choose>
+  <jsp:include page="/WEB-INF/snippet/tables/pointValue/pointValueEmport.jsp"/>
 </tag:page>
 
 <script type="text/javascript">

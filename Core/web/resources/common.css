@@ -446,5 +446,117 @@ table { padding: 0; border-spacing: 2px; border-collapse: separate; }
 table tr td, table tr th { border: 0; }
 table.wide { width: 100%; }
 
+
 #pointDetails { background-color: #FFF; }
 #folderEditDiv { background-color: #FFF; }
+
+
+/**
+ * DGRID Settings
+ */
+ /*
+ * dgrid
+ */
+ 
+ .dgrid {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+ 
+.deltaContainer .dgrid {
+    height: 500px;
+}
+
+.expandingGrid {
+    height: auto !important;
+}
+
+.expandingGrid .dgrid-scroller {
+    position: relative;
+    line-height: 1.5em;
+    max-height: 12em;
+    overflow: auto;
+}
+
+.longExpandingGrid .dgrid-scroller {
+    max-height: 24em;
+}
+
+.deltaListDiv .dgrid {
+    height: auto;
+}
+
+.deltaListDiv .dgrid .dgrid-scroller {
+    position: relative;
+    line-height: 1.5em;
+    max-height: 12em; /* 8 * 1.5em = 12em i.e. 8 rows */
+    overflow: auto;
+}
+
+.dgrid-row {
+    background-color: #F0F0F0;
+}
+
+.dgrid-row-odd{
+	background-color: #DCDCDC;
+}
+
+.dgrid-header {
+    color: #FFFFFF;
+}
+
+.greenRow {
+    background-color: #CCEBCC;
+}
+
+.redRow {
+    background-color: #FFCCCC;
+}
+
+.organgeRow {
+    background-color: #FFE0CC;
+}
+
+.dgrid-header th {
+    font-weight: bold;
+     background-color: #F07800;
+}
+
+.dgrid-loading, .dgrid-no-data {
+    font-weight: bold;
+    text-align: center;
+    color: #777;
+}
+
+div.dgridLoadNoData {
+    padding-top: 10px;
+}
+
+
+.dgrid img.removeSelected {
+    float: right;
+    cursor: pointer;
+    margin: 2px;
+    height: 1em;
+    width: 1em;
+}
+
+/* resizable attribute doesnt seem to work, set !important width to stop it */
+.dgrid-column-buttons {
+    width: 100px;
+}
+
+.deltaListDiv .dgrid-column-buttons {
+    width: 75px !important;
+}
+ 
+ 
+.mangoDownloadLinks {
+    float: right;
+    text-align: right;
+    margin-bottom: 5px;
+}
+
+
+
+

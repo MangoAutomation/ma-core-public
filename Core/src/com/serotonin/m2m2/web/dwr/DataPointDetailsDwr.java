@@ -126,6 +126,8 @@ public class DataPointDetailsDwr extends DataPointDwr {
         DataExportDefinition def = new DataExportDefinition(new int[] { getDataPointVO().getId() }, from, to);
         user.setDataExportDefinition(def);
     }
+    
+    
 
     @DwrPermission(user = true)
     public ProcessResult getStatsChartData(int periodType, int period, boolean includeSum) {

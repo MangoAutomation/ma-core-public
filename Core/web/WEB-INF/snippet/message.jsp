@@ -24,6 +24,9 @@ String[] mangoMessageKeys = {
 	    "dsEdit.dataSourceSaved",
 	    "dsEdit.saved",
 	    
+	    "emport.export",
+	    "emport.import",
+	    
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",
         
@@ -36,7 +39,12 @@ String[] mangoMessageKeys = {
         "table.noData",
         "table.missingKey",
         "table.error.wrongId",
-        "table.error.dwr"
+        "table.error.dwr",
+        
+        "view.browse",
+        "view.clear",
+        "view.submit",
+        
 };
 application.setAttribute("mangoMessageKeys",mangoMessageKeys);
 

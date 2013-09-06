@@ -217,6 +217,13 @@ dataPoints = new StoreView({
         }
     },
     
+    
+    download: function() {
+        window.location = "/download.shtm?downloadFile=true&dataType=dataPoint&dsId=" +dataPointsDataSourceId; 
+        	
+    },
+    
+    
 });
 
 }); // require

@@ -21,6 +21,7 @@ public class ExportPointInfo {
     private float weight;
     private boolean consolidatedChart;
     private int plotType;
+    private String xid;
 
     public String getExtendedName() {
         return deviceName + " - " + pointName;
@@ -105,4 +106,16 @@ public class ExportPointInfo {
     public void setPlotType(int plotType) {
         this.plotType = plotType;
     }
+
+	/**
+	 * @param xid
+	 */
+	public void setXid(String xid) {
+		this.xid = xid;
+		
+	}
+	
+	public String getXid(){
+		return this.xid;
+	}
 }

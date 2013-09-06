@@ -544,4 +544,17 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     public void terminateHistorical() {
         terminateIntervalLogging();
     }
+
+	/**
+	 * @param pvt
+	 * @param object
+	 * @param b
+	 * @param c
+	 */
+	public void updatePointValueInCache(PointValueIdTime newValue, SetPointSource source, boolean logValue,
+            boolean async) {
+        valueCache.updatePointValue(newValue, source, logValue, async);
+
+		
+	}
 }
