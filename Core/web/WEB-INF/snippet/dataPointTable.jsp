@@ -4,22 +4,22 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<div id="pointTableDiv" data-dojo-type="dijit/layout/ContentPane" title="Data Points" data-dojo-props="selected:true" style="overflow-y:auto" class="borderDivPadded marB" >
+<div id="pointTableDiv" class="borderDivPadded marB" >
     
-   <div class="mangoDownloadLinks">
-      <a href="javascript:dataPoints.download()"><fmt:message key="emport.export" /></a>
-      <tag:img png="arrow_down" onclick="dataPoints.download();" title="emport.export"/>
+<!--    <div class="mangoDownloadLinks"> -->
+<%--       <a href="javascript:dataPoints.download()"><fmt:message key="emport.export" /></a> --%>
+<%--       <tag:img png="arrow_down" onclick="dataPoints.download();" title="emport.export"/> --%>
       
-      <a href="javascript:showDataPointEmport()"><fmt:message key="emport.import" /></a>
-      <tag:img png="arrow_up" onclick="showDataPointEmport();" title="emport.import"/>
+<%--       <a href="javascript:showDataPointEmport()"><fmt:message key="emport.import" /></a> --%>
+<%--       <tag:img png="arrow_up" onclick="showDataPointEmport();" title="emport.import"/> --%>
    
-   </div>
+<!--    </div> -->
     
     <tag:img png="icon_comp_edit" title="dsEdit.points.details"/>
     <span class="smallTitle"><fmt:message key="dsEdit.points.details"/></span>
     <c:if test="${!empty pointHelpId}"><tag:help id="${pointHelpId}"/></c:if>
 
-    
+    <div id="dataPointTableFilter"></div>
     <div id="dataPointTable"></div>
 
     <span class="smallTitle"><fmt:message key="common.add"/></span>
@@ -27,4 +27,4 @@
 <!-- Include the Edit Div -->
 <jsp:include page="dataPointEdit.jsp"/>
 </div>
-<jsp:include page="/WEB-INF/snippet/dataPointEmport.jsp"/>
+<%-- <jsp:include page="/WEB-INF/snippet/dataPointEmport.jsp"/> --%>

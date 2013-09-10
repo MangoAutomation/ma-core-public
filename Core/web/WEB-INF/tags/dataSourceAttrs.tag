@@ -6,7 +6,8 @@
 --%><%@attribute name="helpId" rtexprvalue="true" %><%--
 --%><%@attribute name="extraPanels" fragment="true" %><%--
 --%>
-<div id="dataSourcePropertiesTab" data-dojo-type="dijit/layout/ContentPane" title="Data Source" data-dojo-props="selected:true" style="overflow-y:auto" >
+<!-- <div id="dataSourcePropertiesTab" data-dojo-type="dijit/layout/ContentPane" title="Data Source" data-dojo-props="selected:true" style="overflow-y:auto" > -->
+<div id="dataSourcePropertiesTab">
 <table cellpadding="0" cellspacing="0">
   <tr>
     <td valign="top">

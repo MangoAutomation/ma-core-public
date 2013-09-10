@@ -400,3 +400,52 @@ function deletePoint() {
 	 }
  }
  
+ //On load tab pane creation
+ 
+ require(["dojo/dom-construct","dijit/layout/TabContainer", "dijit/layout/ContentPane", "dojo/domReady!"], 
+		 	function(domConstruct, TabContainer, ContentPane){
+	    var tc = new TabContainer({
+	        style: "height: auto",
+	        doLayout: false,
+	    }, "dataSourcePropertiesTabContainer");
+
+	    var cp2 = new ContentPane({
+	         title: "Data Source",
+	         style: "overflow-y: auto",
+	         selected: true,
+	         content: "<div id='dataSourceDetails-content'></div>",
+	         id: 'dataSourceDetails-tab',
+	    });
+	    tc.addChild(cp2);
+	    var pd = dojo.byId("dataSourcePropertiesTab");
+	    domConstruct.place(pd,"dataSourceDetails-content");
+
+	    //Setup Data Points List
+	    var cp3 = new ContentPane({
+	         title: "Data Points",
+	         style: "overflow-y: auto",
+	         content: "<div id='pointTable-content'></div>"
+	    });
+	    tc.addChild(cp3);
+
+	    var pd = dojo.byId("pointTableDiv");
+	    domConstruct.place(pd,"pointTable-content");
+
+	    //Setup the Point Details Tab
+	    var cp1 = new ContentPane({
+	         title: mangoTranslate('dsEdit.points.details'),
+	         content: "<div id='pointDetails-content'></div>",
+	         id: 'dataPointDetails-tab',
+	    });
+	    tc.addChild(cp1);
+
+	    var pd = dojo.byId("pointDetails");
+	    domConstruct.place(pd,"pointDetails-content");
+
+	    tc.startup();
+	});
+ 
+ 
+ 
+ 
+ 

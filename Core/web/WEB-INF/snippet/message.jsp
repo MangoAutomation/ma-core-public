@@ -23,6 +23,7 @@ String[] mangoMessageKeys = {
 	    "dsEdit.pointSaved",
 	    "dsEdit.dataSourceSaved",
 	    "dsEdit.saved",
+	    "dsEdit.points.details",
 	    
 	    "emport.export",
 	    "emport.import",

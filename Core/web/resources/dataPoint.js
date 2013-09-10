@@ -29,11 +29,19 @@ dataPoints = new StoreView({
     gridId: 'dataPointTable',
     editId: 'pointDetails',
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
-    defaultQuery: {dataSourceId: [null]},
+    defaultQuery: {dataSourceId: [dataPointsDataSourceId]},
+    
+    sortMap: [
+              {attribute: "deviceName", descending:true},
+              {attribute: "name", descending:true},
+              {attribute: "dataType", descending:true},
+              ],
+    
     columns: {
     	
         deviceName: {
     		label: mangoMsg['dsEdit.deviceName'],
+    		sortable: false,
     		renderHeaderCell: function(th){
     				var div = domConstruct.create("div");
     				var input = new TextBox({
@@ -54,14 +62,34 @@ dataPoints = new StoreView({
     					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
     					dataPoints.grid.set('query',pointTableFilter);
     				});
+    				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+    				on(sortLink,'click',function(event){
+    					
+    					//Flip through the list to see if we already have an order?
+    					for(var i =0; i<dataPoints.sortMap.length; i++){
+    						if(dataPoints.sortMap[i].attribute === "deviceName"){
+    							dataPoints.sortMap[i].descending = !dataPoints.sortMap[i].descending;
+    							break;
+    						}
+    					}
+    					var options = {};
+    					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
+    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.grid.set("query",pointTableFilter,options);
+    				});
     				
+    				
+    				
+    				domConstruct.place(sortLink,div);
     				return div;
     		},
         },
 
         name: {
     		label: mangoMsg['dsList.name'],
+    		sortable: false,
     		renderHeaderCell: function(th){
+    			
     				var div = domConstruct.create("div");
     				var input = new TextBox({
     					name: 'inputText',
@@ -81,11 +109,74 @@ dataPoints = new StoreView({
     					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
     					dataPoints.grid.set('query',pointTableFilter);
     				});
-    				
+    				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+    				on(sortLink,'click',function(event){
+    					
+    					//Flip through the list to see if we already have an order?
+    					for(var i =0; i<dataPoints.sortMap.length; i++){
+    						if(dataPoints.sortMap[i].attribute === "name"){
+    							dataPoints.sortMap[i].descending = !dataPoints.sortMap[i].descending;
+    							break;
+    						}
+    					}
+    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+    					var options = {};
+    					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
+    					
+    					dataPoints.grid.set("query",pointTableFilter,options);
+    					//dataPoints.grid.updateSortArrow(dataPoints.sortMap);
+    				});
+       				domConstruct.place(sortLink,div);
+
     				return div;
     		},
         },
-    	dataTypeString : mangoMsg['dsEdit.pointDataType'],
+    	dataTypeString :{
+    		label: mangoMsg['dsEdit.pointDataType'],
+    		sortable: false,
+    		renderHeaderCell: function(th){
+    			
+				var div = domConstruct.create("div");
+				var input = new TextBox({
+					name: 'inputText',
+					placeHolder: 'filter text',
+					style: "width: 10em",
+				});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['dsEdit.pointDataType'],});
+				domConstruct.place(label,div);
+				input.placeAt(div);
+				input.watch("value",function(name,oldValue,value){
+					
+					if(value == '')
+						delete pointTableFilter['dataType'];
+					else
+						pointTableFilter['dataType'] = new RegExp("^.*"+value+".*$");
+					
+					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+					dataPoints.grid.set('query',pointTableFilter);
+				});
+				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+				on(sortLink,'click',function(event){
+					
+					//Flip through the list to see if we already have an order?
+					for(var i =0; i<dataPoints.sortMap.length; i++){
+						if(dataPoints.sortMap[i].attribute === "dataType"){
+							dataPoints.sortMap[i].descending = !dataPoints.sortMap[i].descending;
+							break;
+						}
+					}
+					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+					var options = {};
+					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
+					
+					dataPoints.grid.set("query",pointTableFilter,options);
+					//dataPoints.grid.updateSortArrow(dataPoints.sortMap);
+				});
+   				domConstruct.place(sortLink,div);
+
+				return div;
+		},
+    	}
     	
     },
     
@@ -192,7 +283,7 @@ dataPoints = new StoreView({
             _this.setInputs(options.voToLoad);
         	hideContextualMessages(_this.edit);
         	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
-        	myEdit.selectChild('pointDetails');
+        	myEdit.selectChild('dataPointDetails-tab');
 
 //            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 //                            coreFx.wipeIn({node: _this.edit})]).play();
@@ -207,7 +298,7 @@ dataPoints = new StoreView({
                 //Hide contextual messages
             	hideContextualMessages(_this.edit);
             	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
-            	myEdit.selectChild('pointDetails');
+            	myEdit.selectChild('dataPointDetails-tab');
                 //coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                 //                coreFx.wipeIn({node: _this.edit})]).play();
             }, function(message) {
@@ -225,5 +316,7 @@ dataPoints = new StoreView({
     
     
 });
+
+
 
 }); // require

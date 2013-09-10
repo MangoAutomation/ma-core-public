@@ -20,7 +20,6 @@
   <script type="text/javascript" src="/resources/dataSourceProperties.js"></script>
   
     <script type="text/javascript">      
-      //Load up our ds, MAY NOT NEED THIS ....
       function init(){
             initProperties(${dataSource.id},${dataSource.enabled});
       }
@@ -46,7 +45,7 @@
     </c:if>
   </tag:labelledSection>
 
-    <div id="dataSourcePropertiesTabContainer" data-dojo-props="doLayout: false" data-dojo-type="dijit/layout/TabContainer" style="height: auto;">
+    <div id="dataSourcePropertiesTabContainer" data-dojo-props="doLayout: false"  style="height: auto;">    </div>
       <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
       <jsp:include page="${incpage}"/>
       <!-- Import the Table and Scripts -->
@@ -54,4 +53,3 @@
       <script language="javascript" type="text/javascript" src="/resources/dataPoint.js"></script>
       <jsp:include page="/WEB-INF/snippet/dataPointTable.jsp"/>
       
-    </div>
