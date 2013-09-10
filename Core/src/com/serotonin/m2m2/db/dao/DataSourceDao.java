@@ -344,6 +344,68 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                 );
 	}
 
+	@Override
+	protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
+		HashMap<String,Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<String,Comparator<DataSourceVO<?>>>();
+		
+		comparatorMap.put("typeDescriptionString", new Comparator<DataSourceVO<?>>(){
+			public int compare(DataSourceVO<?> lhs, DataSourceVO<?>rhs){
+				return lhs.getTypeDescriptionString().compareTo(rhs.getTypeDescriptionString());
+			}
+		});
+		
+		comparatorMap.put("connectionDescriptionString", new Comparator<DataSourceVO<?>>(){
+			public int compare(DataSourceVO<?> lhs, DataSourceVO<?>rhs){
+				return lhs.getConnectionDescriptionString().compareTo(rhs.getConnectionDescriptionString());
+			}
+		});
+		
+		return comparatorMap;
+	}
+
+	@Override
+	protected Map<String, IFilter<DataSourceVO<?>>> getFilterMap(){
+		HashMap<String, IFilter<DataSourceVO<?>>> filterMap = new HashMap<String,IFilter<DataSourceVO<?>>>();
+		
+		filterMap.put("typeDescriptionString", new IFilter<DataSourceVO<?>>(){
+			
+			private String regex;
+			@Override
+			public boolean filter(DataSourceVO<?> vo) {
+				return !vo.getTypeDescriptionString().matches(regex);
+			}
+
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches;
+				
+			}
+			
+		});
+		
+		filterMap.put("connectionDescriptionString", new IFilter<DataSourceVO<?>>(){
+			private String regex;
+			@Override
+			public boolean filter(DataSourceVO<?> vo) {
+				return !vo.getConnectionDescriptionString().matches(regex);
+			}
+
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches; //Make case insensitive like DB
+				
+				
+			}
+			
+		});		
+		
+		return filterMap;
+	}
+	
+	
+	
+	
+	
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()

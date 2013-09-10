@@ -768,6 +768,45 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 				);
 	}
 
+	
+	@Override
+	protected Map<String, Comparator<DataPointVO>> getComparatorMap() {
+		HashMap<String,Comparator<DataPointVO>> comparatorMap = new HashMap<String,Comparator<DataPointVO>>();
+		
+		comparatorMap.put("dataTypeString", new Comparator<DataPointVO>(){
+			public int compare(DataPointVO lhs, DataPointVO rhs){
+				return lhs.getDataTypeString().compareTo(rhs.getDataTypeString());
+			}
+		});
+		
+		return comparatorMap;
+	}
+
+	@Override
+	protected Map<String, IFilter<DataPointVO>> getFilterMap(){
+		HashMap<String, IFilter<DataPointVO>> filterMap = new HashMap<String,IFilter<DataPointVO>>();
+		
+		filterMap.put("dataTypeString", new IFilter<DataPointVO>(){
+			
+			private String regex;
+			@Override
+			public boolean filter(DataPointVO vo) {
+				return !vo.getDataTypeString().matches(regex);
+			}
+
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches;
+				
+			}
+			
+		});
+		
+		return filterMap;
+	}
+	
+	
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
 	 */

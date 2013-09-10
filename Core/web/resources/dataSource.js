@@ -36,33 +36,139 @@ dataSources = new StoreView({
     editId: 'editDataSourceDiv',
     defaultSort: [{attribute: "name"}],
     
+    filters: new Array(),
+	sortMap: [
+	          {attribute: "name", descending:true},
+	          {attribute: "typeDescriptionString", descending:true},
+	          {attribute: "connectionDescriptionString", descending:true},
+	         ],
+    
     columns: {
     	name: {
     		label: mangoMsg['dsList.name'],
+    		sortable: false,
     		renderHeaderCell: function(th){
     				var div = domConstruct.create("div");
     				var input = new TextBox({
     					name: 'inputText',
     					placeHolder: 'filter text',
     					style: "width: 10em",
+    					intermediateChanges: true,
     				});
     				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsList.name']});
     				domConstruct.place(label,div);
     				input.placeAt(div);
     				input.watch("value",function(name,oldValue,value){
-    					
     					if(value == '')
-    						delete filters['name'];
+    						delete dataSources.filters['name'];
     					else
-    						filters['name'] = new RegExp("^.*"+value+".*$");
-    					dataSources.grid.set('query',filters);
+    						dataSources.filters['name'] = new RegExp("^.*"+value+".*$","i");
+    					dataSources.grid.set('query',dataSources.filters);
     				});
     				
+    				//Create sort link
+    				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+    				on(sortLink,'click',function(event){
+    					
+    					//Flip through the list to see if we already have an order?
+    					for(var i =0; i<dataSources.sortMap.length; i++){
+    						if(dataSources.sortMap[i].attribute === "name"){
+    							dataSources.sortMap[i].descending = !dataSources.sortMap[i].descending;
+    							break;
+    						}
+    					}
+    					var options = {};
+    					options.sort = [{attribute: dataSources.sortMap[i].attribute, descending: dataSources.sortMap[i].descending}];
+    					dataSources.grid.set("query",dataSources.filters,options);
+    				});
+    				domConstruct.place(sortLink,div);
     				return div;
     		},
     	},
-    	typeDescriptionString: mangoMsg['dsList.type'],
-		connectionDescriptionString: mangoMsg['dsList.connection'],
+    	typeDescriptionString: {
+    		label: mangoMsg['dsList.type'],
+    		sortable: false,
+    		renderHeaderCell: function(th){
+				var div = domConstruct.create("div");
+				var input = new TextBox({
+					name: 'inputText',
+					placeHolder: 'filter text',
+					style: "width: 10em",
+					intermediateChanges: true,
+				});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsList.type']});
+				domConstruct.place(label,div);
+				input.placeAt(div);
+				
+				input.watch("value",function(name,oldValue,value){
+					if(value == '')
+						delete dataSources.filters['typeDescriptionString'];
+					else
+						dataSources.filters['typeDescriptionString'] = new RegExp("^.*"+value+".*$");
+					dataSources.grid.set('query',dataSources.filters);
+				});
+				
+				//Create sort link
+				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+				on(sortLink,'click',function(event){
+					
+					//Flip through the list to see if we already have an order?
+					for(var i =0; i<dataSources.sortMap.length; i++){
+						if(dataSources.sortMap[i].attribute === "typeDescriptionString"){
+							dataSources.sortMap[i].descending = !dataSources.sortMap[i].descending;
+							break;
+						}
+					}
+					var options = {};
+					options.sort = [{attribute: dataSources.sortMap[i].attribute, descending: dataSources.sortMap[i].descending}];
+					dataSources.grid.set("query",dataSources.filters,options);
+				});
+				domConstruct.place(sortLink,div);
+				return div;
+		},
+    	},
+    	
+		connectionDescriptionString: {
+			label: mangoMsg['dsList.connection'],
+    		sortable: false,
+    		renderHeaderCell: function(th){
+				var div = domConstruct.create("div");
+				var input = new TextBox({
+					name: 'inputText',
+					placeHolder: 'filter text',
+					style: "width: 10em",
+					intermediateChanges: true,
+				});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsList.connection']});
+				domConstruct.place(label,div);
+				input.placeAt(div);
+				input.watch("value",function(name,oldValue,value){
+					if(value == '')
+						delete dataSources.filters['connectionDescriptionString'];
+					else
+						dataSources.filters['connectionDescriptionString'] = new RegExp("^.*"+value+".*$","i");
+					dataSources.grid.set('query',dataSources.filters);
+				});
+				
+				//Create sort link
+				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+				on(sortLink,'click',function(event){
+					
+					//Flip through the list to see if we already have an order?
+					for(var i =0; i<dataSources.sortMap.length; i++){
+						if(dataSources.sortMap[i].attribute === "connectionDescriptionString"){
+							dataSources.sortMap[i].descending = !dataSources.sortMap[i].descending;
+							break;
+						}
+					}
+					var options = {};
+					options.sort = [{attribute: dataSources.sortMap[i].attribute, descending: dataSources.sortMap[i].descending}];
+					dataSources.grid.set("query",dataSources.filters,options);
+				});
+				domConstruct.place(sortLink,div);
+				return div;
+		},
+		}
     },
     
     

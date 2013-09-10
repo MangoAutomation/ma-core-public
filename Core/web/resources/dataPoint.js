@@ -34,7 +34,7 @@ dataPoints = new StoreView({
     sortMap: [
               {attribute: "deviceName", descending:true},
               {attribute: "name", descending:true},
-              {attribute: "dataType", descending:true},
+              {attribute: "dataTypeString", descending: true},
               ],
     
     columns: {
@@ -48,6 +48,7 @@ dataPoints = new StoreView({
     					name: 'inputText',
     					placeHolder: 'filter text',
     					style: "width: 8em",
+    					intermediateChanges: true,
     				});
     				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsEdit.deviceName'],});
     				domConstruct.place(label,div);
@@ -77,9 +78,6 @@ dataPoints = new StoreView({
     					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
     					dataPoints.grid.set("query",pointTableFilter,options);
     				});
-    				
-    				
-    				
     				domConstruct.place(sortLink,div);
     				return div;
     		},
@@ -95,6 +93,7 @@ dataPoints = new StoreView({
     					name: 'inputText',
     					placeHolder: 'filter text',
     					style: "width: 10em",
+    					intermediateChanges: true,
     				});
     				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['dsList.name'],});
     				domConstruct.place(label,div);
@@ -131,7 +130,7 @@ dataPoints = new StoreView({
     				return div;
     		},
         },
-    	dataTypeString :{
+    	dataTypeString: {
     		label: mangoMsg['dsEdit.pointDataType'],
     		sortable: false,
     		renderHeaderCell: function(th){
@@ -141,6 +140,7 @@ dataPoints = new StoreView({
 					name: 'inputText',
 					placeHolder: 'filter text',
 					style: "width: 10em",
+					intermediateChanges: true,
 				});
 				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['dsEdit.pointDataType'],});
 				domConstruct.place(label,div);
@@ -148,9 +148,9 @@ dataPoints = new StoreView({
 				input.watch("value",function(name,oldValue,value){
 					
 					if(value == '')
-						delete pointTableFilter['dataType'];
+						delete pointTableFilter['dataTypeString'];
 					else
-						pointTableFilter['dataType'] = new RegExp("^.*"+value+".*$");
+						pointTableFilter['dataTypeString'] = new RegExp("^.*"+value+".*$");
 					
 					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
 					dataPoints.grid.set('query',pointTableFilter);
@@ -160,7 +160,7 @@ dataPoints = new StoreView({
 					
 					//Flip through the list to see if we already have an order?
 					for(var i =0; i<dataPoints.sortMap.length; i++){
-						if(dataPoints.sortMap[i].attribute === "dataType"){
+						if(dataPoints.sortMap[i].attribute === "dataTypeString"){
 							dataPoints.sortMap[i].descending = !dataPoints.sortMap[i].descending;
 							break;
 						}
@@ -175,8 +175,8 @@ dataPoints = new StoreView({
    				domConstruct.place(sortLink,div);
 
 				return div;
-		},
-    	}
+    		},
+    	 },
     	
     },
     

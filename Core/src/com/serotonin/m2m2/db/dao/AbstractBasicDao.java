@@ -5,14 +5,18 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.logging.Log;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.BaseDao;
 
 /**
  * Provides an API to retrieve, update and save
@@ -26,7 +30,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     
     protected final List<String> properties = getProperties();
     protected final Map<String, String> propertiesMap = getPropertiesMap();
-
+    protected final Map<String, Comparator<T>> comparatorMap = getComparatorMap();
+    protected final Map<String, IFilter<T>> filterMap = getFilterMap();
     /**
      * Gets a list of properties/db column names for the Dao object
      * First property should always be "id"
@@ -39,6 +44,26 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     protected abstract List<String> getProperties();
 
     /**
+     * Override to add a mapping for properties that are not 
+     * directly accessible via a database column.
+     * 
+	 * @return
+	 */
+	protected Map<String, Comparator<T>> getComparatorMap() {
+		return new HashMap<String,Comparator<T>>();
+	}
+	
+	/**
+	 * Override to add mappings for properties that are not
+	 * directly accessible via a database column.
+	 * @return
+	 */
+	protected Map<String, IFilter<T>> getFilterMap(){
+		return new HashMap<String,IFilter<T>>();
+	}
+	
+
+	/**
      * Returns a map which maps a virtual property to a real one used
      * for sorting/filtering from the database
      * e.g. dateFormatted -> timestamp
@@ -211,6 +236,81 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         List<T> results = query(selectSql, selectArgs.toArray(), getRowMapper());
         int count = ejt.queryForInt(countSql, countArgs.toArray());
         
+        //Do Filtering for more complex members that may not be mapped properties
+        filterComplexMembers(results,query);
+        //Sort the remaining list
+        sortComplexMembers(results,sort);
+        
+        
         return new ResultsWithTotal(results, count);
     }
+
+	/**
+	 * @param results
+	 * @param query
+	 */
+	private void filterComplexMembers(List<T> results, Map<String, String> query) {
+		
+		List<IFilter<T>> filters = new ArrayList<IFilter<T>>();
+		
+		for (String prop : query.keySet()) {
+			 if(filterMap.containsKey(prop)){
+				IFilter<T> filter = filterMap.get(prop);
+				
+	            String condition = query.get(prop);
+	            if (condition.startsWith("RegExp:")) {
+	                condition = condition.substring(7, condition.length());
+	                // simple RegExp handling
+	                if (condition.startsWith("^") && condition.endsWith("$")) {
+	                    condition = condition.substring(1, condition.length() - 1);
+	                    filter.setFilter(condition);
+	                }
+	                filters.add(filter); //Save for use later
+	             } //end if is regex
+			 }//end if in filterMap
+		 }
+		
+		//Now do the filter of the list
+		if(filters.size() > 0){
+			for(Iterator<T> i = results.iterator(); i.hasNext();){
+				T vo = i.next();
+				for(IFilter<T> filter : filters){
+					if(filter.filter(vo)){
+						i.remove();
+					}
+				}
+				
+			}
+			
+		}
+
+	}
+
+	/**
+	 * Sort on any members that are not directly accessible via the database query
+	 * 
+	 * Members must be mapped to a comparator in the comparatorMap
+	 * 
+	 * @param results
+	 * @param sort
+	 */
+	private void sortComplexMembers(List<T> results, List<SortOption> sort) {
+		
+		ComparatorChain chain = new ComparatorChain();
+		boolean comparable = false;
+		
+		for (SortOption option : sort) {
+            String prop = option.getAttribute();
+            if(comparatorMap.containsKey(prop)){
+            	chain.addComparator(comparatorMap.get(prop),option.isDesc());
+            	comparable = true;
+            }
+		}
+		
+		//Do the sort if we added at least one comparator
+		if(comparable)
+			Collections.sort(results,chain);
+	}
+
+
 }
