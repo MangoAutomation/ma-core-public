@@ -5,9 +5,9 @@
 
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<script type="text/javascript" src="/resources/pointValueEmport.js"></script>
+<script type="text/javascript" src="/resources/view/pointValue/pointValueEmport.js"></script>
 
-<div id="pointValueEmport" style="display: none">
+<div id="pointValueEmport" >
   <div id="pointValueEmportContent" class="dijitDialogPaneContentArea">
     <form id="msForm" method="post" action="/upload.shtm" enctype="multipart/form-data">
       <fieldset>
@@ -22,7 +22,7 @@
       
     </form>
     
-    <div id="uploaderStatus" style="height: 100px;"></div>
+    <div id="uploaderStatus" style="height: 100px; width:350px;"></div>
   </div>
   
   <div class="dijitDialogPaneActionBar">

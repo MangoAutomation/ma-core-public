@@ -44,6 +44,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     private static final String[] headers = {
     	Common.translate("emport.pointValue.id"),
     	Common.translate("emport.dataPoint.xid"),
+    	Common.translate("pointEdit.props.deviceName"),
         Common.translate("common.pointName"),
         Common.translate("common.time"),
         Common.translate("common.value"),
@@ -62,6 +63,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     private static final CellType[] columnTypes = {
     	CellType.NUMERIC,
     	CellType.STRING,
+    	CellType.STRING,
         CellType.STRING,
         CellType.DATE,
         CellType.STRING, //May be able to change to NUMERIC
@@ -77,7 +79,9 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     
     // nb. 256 = one character
     private static final int[] columnWidths = {
+    	
     	25*256,
+        25*256,
         25*256,
         30*256,
         25*256,
@@ -114,8 +118,12 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	DataPointRT dpRt = Common.runtimeManager.getDataPoint(dp.getId());
     	PointValueIdTime pvt;
     	
-    	//Cell Extended name (Not using Here)
+    	//Cell Device name (Not using Here)
     	cellNum++;
+
+    	//Cell Point name (Not using Here)
+    	cellNum++;
+
     	
     	//Cell Time
     	Date time = rowData.getCell(cellNum++).getDateCellValue();
@@ -138,7 +146,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     		cellNum++;
         default:
         	//TODO Fix this up with Translatable messages
-        	throw new SpreadsheetException("Unsupported Cell type in column 3!");
+        	throw new SpreadsheetException("Unsupported Cell type in column ", cellNum);
     	}
     	 
      	//Cell Rendered Value (Not using yet)
@@ -203,9 +211,14 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         cell = row.createCell(cellNum++);
         cell.setCellValue(this.pointInfo.getXid());
         
-        //Set the Extended Name
+        //Set the Device Name
         cell = row.createCell(cellNum++);
-        cell.setCellValue(this.pointInfo.getExtendedName());
+        cell.setCellValue(this.pointInfo.getDeviceName());
+
+        //Set the Point Name
+        cell = row.createCell(cellNum++);
+        cell.setCellValue(this.pointInfo.getPointName());
+
         
         //Time
         cell = row.createCell(cellNum++);

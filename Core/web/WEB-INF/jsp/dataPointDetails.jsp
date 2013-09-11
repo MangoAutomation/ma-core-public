@@ -8,9 +8,8 @@
 <tag:page dwr="DataPointDetailsDwr" js="/resources/view.js">
   <c:if test="${!empty point}">
     <script type="text/javascript">
-    require(["dojo","dojo/store/Memory","dijit/form/FilteringSelect"], function(dojo,Memory,FilteringSelect){
-// 	      dojo.require("dojo.store.Memory");
-// 	      dojo.require("dijit.form.FilteringSelect");
+    require(["dojo","dojo/store/Memory","dijit/form/FilteringSelect","dijit/form/Select"], 
+    		function(dojo,Memory,FilteringSelect,Select){
 	      
 	      mango.view.initPointDetails();
 	
@@ -38,7 +37,25 @@
 	                      window.location='data_point_details.shtm?dpid='+ this.item.id;
 	              }
 	          }, "picker");        
+	      
+	          
+	          //Setup the File Download Selector
+	          var uploadTypeChoice = new Select({
+	              name: "downloadTypeSelect",
+	              options: [
+	                  { label: "Excel", value: ".xlsx", selected: true},
+	                  { label: "Comma Separated Value (CSV)", value: ".csv", },
+	              ]
+	          },"downloadTypeSelect");
+	       
+	      
+	      
 	      });
+	      
+	      
+	      
+	      
+	      
     });
       //
       // History
@@ -96,7 +113,9 @@
                 $get("fromMinute"), $get("fromSecond"), $get("fromNone"), $get("toYear"), $get("toMonth"),
                 $get("toDay"), $get("toHour"), $get("toMinute"), $get("toSecond"), $get("toNone"), function(data) {
               stopImageFader($("chartDataImg"));
-              window.location = "chartExport/pointData.xlsx";
+              var downloadTypeSelect = dijit.byId("downloadTypeSelect");
+              var downloadUrl = "chartExport/pointData" + downloadTypeSelect.get('value');
+              window.location = downloadUrl;
           });          
       }
       
@@ -319,13 +338,15 @@
                     <td>
                       <tag:img id="imageChartImg" png="control_play_blue" title="pointDetails.imageChartButton"
                               onclick="getImageChart()"/>
+                      <!-- TODO Add selectable type here xslx or csv, Maybe Create Tag... -->
+                      <input id="downloadTypeSelect"></input>
                       <tag:img id="chartDataImg" png="bullet_down" title="pointDetails.chartDataButton"
                               onclick="getChartData()"/>
-                       <tag:img png="arrow_up" onclick="showPointValueEmport();" title="emport.import"/>
+                       
                               
                     </td>
                   </tr>
-                  <tr><td colspan="3" id="imageChartDiv"></td></tr>
+                  <tr><td colspan="4" id="imageChartDiv"></td></tr>
                 </table>
               </div>
             </td>
