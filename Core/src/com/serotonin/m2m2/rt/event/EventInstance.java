@@ -16,8 +16,9 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.web.taglib.Functions;
 
-public class EventInstance {
-    public interface RtnCauses {
+public class EventInstance{
+    
+	public interface RtnCauses {
         int RETURN_TO_NORMAL = 1;
         int SOURCE_DISABLED = 4;
     }
@@ -310,4 +311,6 @@ public class EventInstance {
     public Map<String, Object> getContext() {
         return context;
     }
+
+
 }

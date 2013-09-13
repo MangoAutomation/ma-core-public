@@ -19,6 +19,9 @@ import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.collections.comparators.NullComparator;
 import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.type.JsonObject;
@@ -68,12 +71,20 @@ public class DeltamationCommon {
      */
     public static TranslatableMessage formatDurationIntoTranslatableMessage(Long value) {
         //TODO Implement this using JodaTime (It's already a dep for the core).
-        if (value < 86400000) {
-            return new TranslatableMessage("delta.util.view.durationStd",String.format("%d:%02d:%02d", value/3600000L, (value%3600000L)/60000L, ((value%3600000L)%60000L)/1000L));
+        Period duration = new Period((long)value);
+    	if (value < 86400000) {
+    		PeriodFormatter formatter = new PeriodFormatterBuilder()
+    			.minimumPrintedDigits(2)
+    			.printZeroAlways()
+    			.appendHours().appendSuffix(":")
+    			.appendMinutes().appendSuffix(":")
+    			.appendSeconds()
+    			.toFormatter();
+    		return new TranslatableMessage("common.durationStd",formatter.print(duration));
+    		//return new TranslatableMessage("common.durationStd",String.format("%d:%02d:%02d", value/3600000L, (value%3600000L)/60000L, ((value%3600000L)%60000L)/1000L));
             //This seems buggy? The spreadsheets don't match the screen? return new TranslatableMessage("delta.util.view.durationStd", durationFormatter.format(new Date(value)));
-        }
-        else {
-            return new TranslatableMessage("delta.util.view.durationDays", dayFormatter.format(value/86400000D));
+        }else {
+            return new TranslatableMessage("common.durationDays", dayFormatter.format(value/86400000D));
         }
     }
     
@@ -88,7 +99,33 @@ public class DeltamationCommon {
         return TranslatableMessage.translate(Common.getTranslations(), message.getKey(), message.getArgs());
     }
     
-    
+	/**
+	 * HH:mm:ss or
+	 * if > 1 Day x.x Days
+	 * 
+	 * @param durationString
+	 * @return
+	 */
+	public static long unformatDuration(String durationString) throws NumberFormatException{
+		if(durationString.contains(":")){
+			String parts[] = durationString.split(":");
+			Double ms = Double.parseDouble(parts[2]) * 1000; //Seconds
+			ms += Double.parseDouble(parts[1]) * 60000; //Minutes
+			ms += Double.parseDouble(parts[0]) * 3600000; //Hrs
+			return ms.longValue();
+		}else if(durationString.contains("Days")){
+			String parts[] = durationString.split("Days");
+			Double days = Double.parseDouble(parts[0]);
+			days = days * 86400000;
+			return days.longValue();
+		}else{
+			throw new NumberFormatException("Invalid Format for Duration. HH:mm:ss or x.x Days"); //Not possible
+		}
+	}
+	
+	
+	
+	
     /**
      * Format a Unix Date as: yyyy-MM-dd HH:mm:ss
      * @param value
@@ -332,4 +369,5 @@ public class DeltamationCommon {
         
         return point;
     }
+
 }

@@ -28,6 +28,12 @@ import com.serotonin.m2m2.vo.pair.LongPair;
 import com.serotonin.m2m2.web.dwr.beans.EventExportDefinition;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
+/**
+ * Deprecated as of Sept 11, 2013, use EventInstanceDwr instead
+ * - Terry Packer
+ *
+ */
+@Deprecated
 public class EventsDwr extends BaseDwr {
     private static final int PAGE_SIZE = 50;
     private static final int PAGINATION_RADIUS = 3;

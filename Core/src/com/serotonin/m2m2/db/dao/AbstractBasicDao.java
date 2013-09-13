@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DeltamationCommon;
 
 /**
  * Provides an API to retrieve, update and save
@@ -32,6 +33,22 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     protected final Map<String, String> propertiesMap = getPropertiesMap();
     protected final Map<String, Comparator<T>> comparatorMap = getComparatorMap();
     protected final Map<String, IFilter<T>> filterMap = getFilterMap();
+    
+    public final String tablePrefix;  //Select * from table as tablePrefix
+    
+    public AbstractBasicDao(){
+    	tablePrefix = "";
+    }
+
+    /**
+     * Provide a table prefix to use for complex queries.  Ie. Joins
+     * Do not include the . at the end of the prefix
+     * @param tablePrefix
+     */
+    public AbstractBasicDao(String tablePrefix){
+    		this.tablePrefix = tablePrefix + ".";
+    }
+    
     /**
      * Gets a list of properties/db column names for the Dao object
      * First property should always be "id"
@@ -142,45 +159,61 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             for (String prop : query.keySet()) {
                 boolean mapped = false;
                 String dbProp = prop;
-                if (propertiesMap.containsKey(prop)) {
-                    dbProp = propertiesMap.get(prop);
-                    mapped = true;
-                }
-                
-                if (mapped || properties.contains(prop)) {
-                    String tempSql = (i == 0) ? " WHERE " : (or ? " OR " : " AND ");
-                    
-                    String condition = query.get(prop);
-                    if (condition.startsWith("RegExp:")) {
-                        condition = condition.substring(7, condition.length());
-                        // simple RegExp handling
-                        if (condition.startsWith("^") && condition.endsWith("$")) {
-                            condition = condition.substring(1, condition.length() - 1);
-                            condition = condition.replace(".*.*", "%");
-                            condition = condition.replace(".*", "%");
-                            tempSql += dbProp + " LIKE '" + condition + "'";
-                        }
-                        else {
-                            // all other cases, add condition which will ensure no results are returned
-                            tempSql += "id = '-1'";
-                        }
-                    }
-                    else {
-                        //if (condition.isEmpty()) // occurs when empty array is set in query
-                        //    continue;
-                        
-                        String[] parts = condition.split(",");
-                        String qMarks = "";
-                        for (int j = 0; j < parts.length; j++) {
-                            args.add(parts[j]);
-                            qMarks += j == 0 ? "?" : ",?";
-                        }
-                        // TODO not sure if IN will work with string values
-                        tempSql += dbProp + " IN (" + qMarks + ")";
-                    }
-                    sql += tempSql;
-                    i++;
-                }
+                //Don't allow filtering on properties with a filter
+                //this will be done after the query
+                if(!filterMap.containsKey(prop)){ 
+	                if (propertiesMap.containsKey(prop)) {
+	                    dbProp = propertiesMap.get(prop);
+	                    mapped = true;
+	                }
+	                
+	                if (mapped || properties.contains(prop)) {
+	                    String tempSql = (i == 0) ? " WHERE " : (or ? " OR " : " AND ");
+	                    
+	                    String condition = query.get(prop);
+	                    if (condition.startsWith("RegExp:")) {
+	                        condition = condition.substring(7, condition.length());
+	                        // simple RegExp handling
+	                        if (condition.startsWith("^") && condition.endsWith("$")) {
+	                            condition = condition.substring(1, condition.length() - 1);
+	                            condition = condition.replace(".*.*", "%");
+	                            condition = condition.replace(".*", "%");
+	                            tempSql += this.tablePrefix  + dbProp + " LIKE '" + condition + "'";
+	                        }
+	                        else {
+	                            // all other cases, add condition which will ensure no results are returned
+	                            tempSql += this.tablePrefix + "id = '-1'";
+	                        }
+	                    }else if(condition.startsWith("Long:")){
+	                    	//Parse the value as Long:operatorvalue - Long:>10000
+	                    	String ms = condition.substring(6,condition.length());
+	                    	String compare = condition.substring(5, 6);
+	                    	tempSql += this.tablePrefix + dbProp + " " + compare + " " + ms;
+	                    }else if(condition.startsWith("Duration:")){
+	                    	//Parse the value as Duration:operatorvalue - Duration:>1:00:00
+	                    	String durationString = condition.substring(10,condition.length());
+	                    	String compare = condition.substring(9, 10);
+	                    	Long longValue = DeltamationCommon.unformatDuration(durationString);
+	                    	tempSql += this.tablePrefix + dbProp + " " + compare + " " + longValue;
+	                    	
+	                    }
+	                    else {
+	                        //if (condition.isEmpty()) // occurs when empty array is set in query
+	                        //    continue;
+	                        
+	                        String[] parts = condition.split(",");
+	                        String qMarks = "";
+	                        for (int j = 0; j < parts.length; j++) {
+	                            args.add(parts[j]);
+	                            qMarks += j == 0 ? "?" : ",?";
+	                        }
+	                        // TODO not sure if IN will work with string values
+	                        tempSql += this.tablePrefix + dbProp + " IN (" + qMarks + ")";
+	                    }
+	                    sql += tempSql;
+	                    i++;
+	                }
+                }//end if in filter map
             }
         }
         return sql;
@@ -198,19 +231,21 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             String prop = option.getAttribute();
             
             boolean mapped = false;
-            if (propertiesMap.containsKey(prop)) {
-                prop = propertiesMap.get(prop);
-                mapped = true;
-            }
-            
-            if (mapped || properties.contains(prop)) {
-                sql += i++ == 0 ? " ORDER BY " : ", ";
-                
-                sql += prop;
-                if (option.isDesc()) {
-                    sql += " DESC";
-                }
-            }
+            if(!comparatorMap.containsKey(prop)){ //Don't allow sorting on values that have a comparator
+	            if (propertiesMap.containsKey(prop)) {
+	                prop = propertiesMap.get(prop);
+	                mapped = true;
+	            }
+	            
+	            if (mapped || properties.contains(prop)) {
+	                sql += i++ == 0 ? " ORDER BY " : ", ";
+	                
+	                sql += this.tablePrefix + prop;
+	                if (option.isDesc()) {
+	                    sql += " DESC";
+	                }
+	            }
+	        }
         }
         return sql;
     }
@@ -231,13 +266,15 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         
         selectSql = applySort(selectSql, sort);
         selectSql = applyRange(selectSql, selectArgs, offset, limit);
-        
+        if(LOG !=null)
+        	LOG.info("Dojo Query: " + selectSql + " Args: " + selectArgs.toString());
         // TODO work out how to do this in one transaction
         List<T> results = query(selectSql, selectArgs.toArray(), getRowMapper());
         int count = ejt.queryForInt(countSql, countArgs.toArray());
-        
+        LOG.info("DB Has: " + count);
         //Do Filtering for more complex members that may not be mapped properties
-        filterComplexMembers(results,query);
+        count = filterComplexMembers(results,query,count);
+        LOG.info("After filter: " + count);
         //Sort the remaining list
         sortComplexMembers(results,sort);
         
@@ -249,7 +286,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	 * @param results
 	 * @param query
 	 */
-	private void filterComplexMembers(List<T> results, Map<String, String> query) {
+	private int filterComplexMembers(List<T> results, Map<String, String> query, int count) {
 		
 		List<IFilter<T>> filters = new ArrayList<IFilter<T>>();
 		
@@ -277,12 +314,14 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 				for(IFilter<T> filter : filters){
 					if(filter.filter(vo)){
 						i.remove();
+						count--; //Decrement the count
 					}
 				}
 				
 			}
 			
 		}
+		return count;
 
 	}
 

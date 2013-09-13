@@ -11,7 +11,26 @@
 <%
 String[] mangoMessageKeys = {
 		
-
+	    "common.active",
+	    "common.alarmLevel",
+	    "common.alarmLevel.none",
+	    "common.alarmLevel.none.rtn",
+	    "common.alarmLevel.info",
+	    "common.alarmLevel.info.rtn",
+	    "common.alarmLevel.urgent",
+	    "common.alarmLevel.urgent.rtn",
+	    "common.alarmLevel.critical",
+	    "common.alarmLevel.critical.rtn",
+	    "common.alarmLevel.lifeSafety",
+	    "common.alarmLevel.lifeSafety.rtn",
+	    "common.alarmLevel.unknown",
+	    "common.all",
+	    "common.duration",
+	    "common.durationStd",
+	    "common.durationDays",
+	    "common.time",
+	    "common.inactiveTime",
+		"common.nortn",
 		
 	    "dsList.name",
 	    "dsList.type",
@@ -27,6 +46,21 @@ String[] mangoMessageKeys = {
 	    
 	    "emport.export",
 	    "emport.import",
+	    
+        "events.acknowledge",
+        "events.acknowledged",
+        "events.editDataSource",
+        "events.editEventHandler",
+        "events.editPublisher",
+	    "events.id",
+        "events.msg",
+        "events.pointDetails",
+	    "events.silence",
+        "events.unsilence",
+	    
+        "modules.modules",
+        
+	    "notes.addNote",
 	    
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",

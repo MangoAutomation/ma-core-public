@@ -50,7 +50,7 @@ return declare("deltamation.DwrStore", base, {
     loadData: true,
     
     // Dwr timeout
-    dwrTimeout: 5000,
+    dwrTimeout: 10000,
     
     get: function(id) {
         // summary:

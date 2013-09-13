@@ -26,6 +26,9 @@
     <create creator="new" javascript="DataPointDwr" scope="application">
       <param name="class" value="com.serotonin.m2m2.web.dwr.DataPointDwr"/>
     </create>
+    <create creator="new" javascript="EventInstanceDwr" scope="application">
+      <param name="class" value="com.serotonin.m2m2.web.dwr.EventInstanceDwr"/>
+    </create>
     
 	<!--  Remove Edit and List Dwr after testing DataSourceDwr -->
 
@@ -103,9 +106,16 @@
     </convert>
 
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.BasicDataSourceVO"/>
-<!--     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.DataSourceDefinition" /> -->
     
     <convert converter="bean" javascript="SortOption" match="com.serotonin.m2m2.db.dao.SortOption"/>
+    
+    <!-- Adding JS functionality for all these beans  -->
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.EventInstanceVO" javascript="EventInstanceVO"/>
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.AuditEventType"/>
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.SystemEventType"/>
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.DataSourceEventType"/>
+    <!--  -->
+    
     
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.handlers.*"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.EventHandlerVO"/>

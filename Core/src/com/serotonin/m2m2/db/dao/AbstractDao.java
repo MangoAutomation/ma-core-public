@@ -43,13 +43,70 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     public final String xidPrefix;
     
     protected final String typeName; //Type name for Audit Events
+
+    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
+        super(tablePrefix);
+        this.typeName = typeName;
+        tableName = getTableName();
+        xidPrefix = getXidPrefix();
+       
+        
+        // generate SQL statements
+        
+        String selectAll = "SELECT ";
+        String insert = "INSERT INTO " + tableName + " (";
+        String insertValues = "";
+        String update = "UPDATE " + tableName + " SET ";
+        
+        // don't the first property - "id", in the insert statements
+        for (int i = 0; i < properties.size(); i++) {
+            String prop = properties.get(i);
+            
+            String selectPrefix = (i == 0) ? this.tablePrefix : "," + this.tablePrefix;
+            selectAll += selectPrefix + prop;
+            
+            String insertPrefix = (i == 1) ? "" : ",";
+            if (i >= 1) {
+                insert += insertPrefix + prop;
+                insertValues += insertPrefix + "?";
+                update += insertPrefix + prop + "=?";
+            }
+        }
+        
+        for(String prop : extraProperties){
+        	selectAll += "," + prop;
+        }
+        //this.tablePrefix will end in a . where the local tablePrefix shouldn't
+        if(extraSQL != null)
+        	SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
+        else
+        	SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix;
+ 
+        SELECT_ALL_SORT = SELECT_ALL + " ORDER BY ";
+        if (properties.contains("name")) {
+            SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY "+ this.tablePrefix + "name ASC";
+        }
+        else {
+            SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY " + this.tablePrefix + "id ASC";
+        }
+        
+        SELECT_BY_ID = SELECT_ALL + " WHERE " +  this.tablePrefix + "id=?";
+        SELECT_BY_XID = SELECT_ALL + " WHERE " + this.tablePrefix + "xid=?";
+        SELECT_BY_NAME = SELECT_ALL + " WHERE " + this.tablePrefix + "name=?";
+        INSERT = insert + ") VALUES (" + insertValues + ")";
+        UPDATE = update + " WHERE id=?";
+        DELETE = "DELETE FROM " + tableName + " WHERE id=?";
+        COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix ;
+        
+    }
     
+    //TODO Make this call the other constructor
     protected AbstractDao(String typeName) {
         super();
         this.typeName = typeName;
         tableName = getTableName();
         xidPrefix = getXidPrefix();
-        
+       
         // generate SQL statements
         
         String selectAll = "SELECT ";

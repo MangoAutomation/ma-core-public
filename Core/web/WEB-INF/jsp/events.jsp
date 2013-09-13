@@ -9,143 +9,87 @@
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.module.EventTypeDefinition"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<tag:page dwr="EventsDwr">
+<tag:page dwr="EventsDwr,EventInstanceDwr" onload="init">
   <%@ include file="/WEB-INF/jsp/include/userComment.jsp" %>
   <style>
     .incrementControl { width: 2em; }
+    
+    .dgrid-column-id {text-align: center;}
+    .dgrid-column-activeTimestampString {text-align: center;}
   </style>
-  <script type="text/javascript">
-    dojo.require("dijit.Calendar");
-    
-    // Tell the log poll that we're interested in monitoring pending alarms.
-    mango.longPoll.pollRequest.pendingAlarms = true;
+  <script type="text/javascript" src="/resources/stores.js"></script>
+  <script type="text/javascript" src="resources/events.js"></script>
+  <script type="text/javascript" src="/resources/view/eventInstance/eventInstanceView.js"></script>
   
-    dojo.ready(function() {
-        // Wrapping setDateRange in a function appears to prevent the calendar from staying exposed.
-        EventsDwr.getDateRangeDefaults(<c:out value="<%= Common.TimePeriods.DAYS %>"/>, 1, function(data) { setDateRange(data); });
-        
-        var x = dijit.byId("datePicker");
-        x.goToToday();
-        x.onChange = jumpToDateClicked;
-        hide("datePickerDiv");
-    });
-    
-    function updatePendingAlarmsContent(content) {
-        hide("hourglass");
-        
-        $set("pendingAlarms", content);
-        if (content) {
-            show("ackAllDiv");
-            hide("noAlarms");
-        }
-        else {
-            $set("pendingAlarms", "");
-            hide("ackAllDiv");
-            show("noAlarms");
-        }
-    }
-    
-    function doSearch(page, date) {
-        setDisabled("searchBtn", true);
-        $set("searchMessage", "<fmt:message key="events.search.searching"/>");
-        EventsDwr.search($get("eventId"), $get("eventType"), $get("eventStatus"), $get("alarmLevel"),
-                $get("keywords"), $get("dateRangeType"), $get("relativeType"), $get("prevPeriodCount"), 
-                $get("prevPeriodType"), $get("pastPeriodCount"), $get("pastPeriodType"), $get("fromNone"), 
-                $get("fromYear"), $get("fromMonth"), $get("fromDay"), $get("fromHour"), $get("fromMinute"), 
-                $get("fromSecond"), $get("toNone"), $get("toYear"), $get("toMonth"), $get("toDay"), $get("toHour"), 
-                $get("toMinute"), $get("toSecond"), page, date, function(results) {
-            $set("searchResults", results.data.content);
-            setDisabled("searchBtn", false);
-            $set("searchMessage", results.data.resultCount);
-        });
-    }
+  <script type="text/javascript">
+  
+  //For use on page to compare Event Types2
+  var constants_DATA_POINT = '${applicationScope['constants.EventType.EventTypeNames.DATA_POINT']}';
+  var constants_DATA_SOURCE = '${applicationScope['constants.EventType.EventTypeNames.DATA_SOURCE']}';
+  var constants_SYSTEM = '${applicationScope['constants.EventType.EventTypeNames.SYSTEM']}';
+  var constants_TYPE_SET_POINT_HANDLER_FAILURE = '${applicationScope['constants.SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE']}';
+  var constants_TYPE_LICENSE_CHECK = '${applicationScope['constants.SystemEventType.TYPE_LICENSE_CHECK']}';
+  var constants_PUBLISHER = '${applicationScope['constants.EventType.EventTypeNames.PUBLISHER']}';
+  var constants_AUDIT = '${applicationScope['constants.EventType.EventTypeNames.AUDIT']}';
+  var constants_AUDIT_TYPE_DATA_SOURCE = '${applicationScope['constants.AuditEventType.TYPE_DATA_SOURCE']}';
+  var constants_AUDIT_TYPE_DATA_POINT = '${applicationScope['constants.AuditEventType.TYPE_DATA_POINT']}';
+  var constants_AUDIT_TYPE_POINT_EVENT_DETECTOR = '${applicationScope['constants.AuditEventType.TYPE_POINT_EVENT_DETECTOR']}';
+  var constants_AUDIT_TYPE_EVENT_HANDLER = '${applicationScope['constants.AuditEventType.TYPE_EVENT_HANDLER']}';
+  
+  require(["dojo/parser","dijit/Calendar","dojo/domReady!"]);
 
-    function jumpToDate(parent) {
-        var div = $("datePickerDiv");
-        show(div);
-        var bounds = getAbsoluteNodeBounds(parent);
-        div.style.top = bounds.y +"px";
-        div.style.left = bounds.x +"px";
-    }
+	 function init(){
+	      // Wrapping setDateRange in a function appears to prevent the calendar from staying exposed.
+	      EventsDwr.getDateRangeDefaults(<c:out value="<%= Common.TimePeriods.DAYS %>"/>, 1, function(data) { setDateRange(data); });
+	      
+	      var x = dijit.byId("datePicker");
+	      x.goToToday();
+	      x.onChange = jumpToDateClicked;
+	      hide("datePickerDiv");
 
-    var dptimeout = null;
-    function expireDatePicker() {
-        dptimeout = setTimeout(function() { hide("datePickerDiv"); }, 500);
-    }
-
-    function cancelDatePickerExpiry() {
-        if (dptimeout) {
-            clearTimeout(dptimeout);
-            dptimeout = null;
-        }
-    }
-
-    function jumpToDateClicked(date) {
-        var div = $("datePickerDiv");
-        if (isShowing(div)) {
-            hide(div);
-            doSearch(0, date);
-        }
-    }
-
-    function newSearch() {
-        var x = dijit.byId("datePicker");
-        x.goToToday();
-        doSearch(0);
-    }
-    
-    function silenceAll() {
-        MiscDwr.silenceAll(function(result) {
-            var silenced = result.data.silenced;
-            for (var i=0; i<silenced.length; i++)
-                setSilenced(silenced[i], true);
-        });
-    }
-    
-    function updateDateRangeFields() {
-        var dateRangeType = $get("dateRangeType");
-        if (dateRangeType == <c:out value="<%= EventsDwr.DATE_RANGE_TYPE_RELATIVE %>"/>) {
-            show("dateRangeRelative");
-            hide("dateRangeSpecific");
-            
-            var relativeType = $get("relativeType");
-            if (relativeType == 1) {
-                setDisabled("prevPeriodCount", false);
-                setDisabled("prevPeriodType", false);
-                setDisabled("pastPeriodCount", true);
-                setDisabled("pastPeriodType", true);
-            }
-            else {
-                setDisabled("prevPeriodCount", true);
-                setDisabled("prevPeriodType", true);
-                setDisabled("pastPeriodCount", false);
-                setDisabled("pastPeriodType", false);
-            }
-        }
-        else if (dateRangeType == <c:out value="<%= EventsDwr.DATE_RANGE_TYPE_SPECIFIC %>"/>) {
-            hide("dateRangeRelative");
-            show("dateRangeSpecific");
-            updateDateRange();
-        }
-        else {
-            hide("dateRangeRelative");
-            hide("dateRangeSpecific");
-        }
-    }
-    
-    function exportEvents() {
-        startImageFader($("exportEventsImg"));
-        EventsDwr.exportEvents($get("eventId"), $get("eventSourceType"), $get("eventStatus"), $get("alarmLevel"),
-                $get("keywords"), $get("dateRangeType"), $get("relativeType"), $get("prevPeriodCount"), 
-                $get("prevPeriodType"), $get("pastPeriodCount"), $get("pastPeriodType"), $get("fromNone"), 
-                $get("fromYear"), $get("fromMonth"), $get("fromDay"), $get("fromHour"), $get("fromMinute"), 
-                $get("fromSecond"), $get("toNone"), $get("toYear"), $get("toMonth"), $get("toDay"), $get("toHour"), 
-                $get("toMinute"), $get("toSecond"), function(data) {
-            stopImageFader($("exportEventsImg"));
-            window.location = "eventExport/eventData.csv";
-        });
-    }
+	      };
+  
+  
+  function updateDateRangeFields() {
+      var dateRangeType = $get("dateRangeType");
+      if (dateRangeType == <c:out value="<%= EventsDwr.DATE_RANGE_TYPE_RELATIVE %>"/>) {
+          show("dateRangeRelative");
+          hide("dateRangeSpecific");
+          
+          var relativeType = $get("relativeType");
+          if (relativeType == 1) {
+              setDisabled("prevPeriodCount", false);
+              setDisabled("prevPeriodType", false);
+              setDisabled("pastPeriodCount", true);
+              setDisabled("pastPeriodType", true);
+          }
+          else {
+              setDisabled("prevPeriodCount", true);
+              setDisabled("prevPeriodType", true);
+              setDisabled("pastPeriodCount", false);
+              setDisabled("pastPeriodType", false);
+          }
+      }
+      else if (dateRangeType == <c:out value="<%= EventsDwr.DATE_RANGE_TYPE_SPECIFIC %>"/>) {
+          hide("dateRangeRelative");
+          show("dateRangeSpecific");
+          updateDateRange();
+      }
+      else {
+          hide("dateRangeRelative");
+          hide("dateRangeSpecific");
+      }
+  }
   </script>
+  
+  
+  <jsp:include page="/WEB-INF/snippet/view/eventInstance/eventInstanceTable.jsp"/>
+  
+  
+  
+  
+  
+  
   
   <div class="borderDiv marB" style="float:left;">
     <div class="smallTitle titlePadding" style="float:left;">
