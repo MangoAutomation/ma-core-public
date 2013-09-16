@@ -538,4 +538,41 @@ eventInstances = new StoreView({
 	}); // Store View
 
 
+	//Setup the date pickers at the top of the table
+	var div = dojo.byId("eventDateSelectionDiv");
+	var fromDate = new DateTextBox({
+	    value: null,
+	    style: "width: 10em; color: gray",
+	}, "fromDate");
+	var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['common.dateRangeFrom']});
+	domConstruct.place(label,div);
+	fromDate.placeAt(div);
+	fromDate.watch("value",function(name,oldValue,value){
+		if(value === null)
+			delete eventInstances.filters['activeTimestampString'];
+		else{
+			var date = new Date(value);
+			eventInstances.filters['activeTimestampString'] = "Long:>" + date.getTime();
+		}
+		eventInstances.grid.set('query',eventInstances.filters);
+	});
+
+	var toDate = new DateTextBox({
+	    value: null,
+	    style: "width: 10em; color: gray",
+	}, "toDate");
+	var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['common.dateRangeTo']});
+	domConstruct.place(label,div);
+	toDate.placeAt(div);
+	toDate.watch("value",function(name,oldValue,value){
+		if(value === null)
+			delete eventInstances.filters['activeTimestampString'];
+		else{
+			var date = new Date(value);
+			eventInstances.filters['activeTimestampString'] = "Long:<" + date.getTime();
+		}
+		eventInstances.grid.set('query',eventInstances.filters);
+	});
+
+
 }); // require

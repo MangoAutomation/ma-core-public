@@ -28,6 +28,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -39,6 +40,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
@@ -46,6 +48,7 @@ import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.BasePointState;
 import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
@@ -379,6 +382,54 @@ abstract public class BaseDwr {
             }
 
             if (pollRequest.isMaxAlarm() && user != null) {
+            	
+            	List<EventInstanceVO> events = EventInstanceDao.instance.getUnsilencedEvents(user.getId());
+            	//Sort into lists for the different types
+            	int lifeSafetyTotal=0, noneTotal=0, informationTotal=0, urgentTotal=0;
+            	for(EventInstanceVO event : events){
+            		switch(event.getAlarmLevel()){
+            		case AlarmLevels.NONE:
+            			noneTotal++;
+            			break;
+            		case AlarmLevels.INFORMATION:
+            			informationTotal++;
+            			break;
+            		case AlarmLevels.URGENT:
+            			urgentTotal++;
+            			break;
+            		case AlarmLevels.LIFE_SAFETY:
+            			lifeSafetyTotal++;
+            			break;
+            		default:
+            			//Nothing for now...
+            		}
+            	}
+            	response.put("alarmsNone", noneTotal);
+            	if(noneTotal == 1){
+	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.NONE);
+	                response.put("noneEvent",event);
+            	}
+
+            	response.put("alarmsInformation", informationTotal);
+            	if(informationTotal == 1){
+	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.INFORMATION);
+	                response.put("informationEvent",event);
+            	}
+
+            	response.put("alarmsUrgent", urgentTotal);
+            	if(urgentTotal == 1){
+	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.URGENT);
+	                response.put("urgentEvent",event);
+            	}
+
+            	response.put("alarmsLifeSafety", lifeSafetyTotal);
+            	if(lifeSafetyTotal == 1){
+	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.LIFE_SAFETY);
+	                response.put("lifeSafetyEvent",event);
+            	}
+
+            	
+            	
                 // Check the max alarm. First check if the events have changed since the last time this request checked.
                 long lastEMUpdate = Common.eventManager.getLastAlarmTimestamp();
                 if (state.getLastAlarmLevelChange() < lastEMUpdate) {
@@ -386,6 +437,7 @@ abstract public class BaseDwr {
 
                     // The events have changed. See if the user's particular max alarm level has changed.
                     int maxAlarmLevel = eventDao.getHighestUnsilencedAlarmLevel(user.getId());
+                   
                     if (maxAlarmLevel != state.getMaxAlarmLevel()) {
                         response.put("highestUnsilencedAlarmLevel", maxAlarmLevel);
                         state.setMaxAlarmLevel(maxAlarmLevel);

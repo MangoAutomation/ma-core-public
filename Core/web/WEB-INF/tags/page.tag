@@ -44,6 +44,7 @@
     @import "${dojoURI}dojox/layout/resources/FloatingPane.css";
     @import "${dojoURI}dijit/themes/${theme}/${theme}.css";
     @import "${dojoURI}dojo/resources/dojo.css";
+    @import "${dojoURI}dojox/widget/Toaster/Toaster.css";
   </style>  
   <link href="/resources/common.css" type="text/css" rel="stylesheet"/>
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">

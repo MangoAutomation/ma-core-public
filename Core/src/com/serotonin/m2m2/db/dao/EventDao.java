@@ -41,6 +41,7 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.dwr.EventsDwr;
 import com.serotonin.util.SerializationHelper;
@@ -705,4 +706,5 @@ public class EventDao extends BaseDao {
     public static void clearCache() {
         pendingEventCache.clear();
     }
+
 }

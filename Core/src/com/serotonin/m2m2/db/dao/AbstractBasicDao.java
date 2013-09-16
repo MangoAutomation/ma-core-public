@@ -271,10 +271,12 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         // TODO work out how to do this in one transaction
         List<T> results = query(selectSql, selectArgs.toArray(), getRowMapper());
         int count = ejt.queryForInt(countSql, countArgs.toArray());
-        LOG.info("DB Has: " + count);
+        if(LOG !=null)
+        	LOG.info("DB Has: " + count);
         //Do Filtering for more complex members that may not be mapped properties
         count = filterComplexMembers(results,query,count);
-        LOG.info("After filter: " + count);
+        if(LOG !=null)
+        	LOG.info("After filter: " + count);
         //Sort the remaining list
         sortComplexMembers(results,sort);
         

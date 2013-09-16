@@ -6,9 +6,11 @@
 
 <!-- Table Div -->
 <div id="eventInstanceTableDiv" class="borderDivPadded marB" >
+
     <tag:img png="flag_white" title="events.alarms"/>
     <span class="smallTitle"><fmt:message key="events.pending"/></span>
     <tag:help id="eventInstance"/>
+    
     
     <div id="ackAllDiv" class="titlePadding" style="float:right;">
       <fmt:message key="events.acknowledgeAll"/>
@@ -16,7 +18,10 @@
       <fmt:message key="events.silenceAll"/>
       <tag:img png="sound_mute" onclick="silenceAll()" title="events.silenceAll"/><br/>
     </div>
-    
+
+    <div id="eventDateSelectionDiv" style="float:right" ></div>
+
+
     <div id="eventInstanceTable"></div>
 
     <span class="smallTitle"><fmt:message key="events.search"/></span>

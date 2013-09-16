@@ -25,6 +25,8 @@ String[] mangoMessageKeys = {
 	    "common.alarmLevel.lifeSafety.rtn",
 	    "common.alarmLevel.unknown",
 	    "common.all",
+	    "common.dateRangeFrom",
+	    "common.dateRangeTo",
 	    "common.duration",
 	    "common.durationStd",
 	    "common.durationDays",

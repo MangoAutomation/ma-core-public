@@ -114,6 +114,8 @@
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.AuditEventType"/>
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.SystemEventType"/>
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.DataSourceEventType"/>
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.DataPointEventType"/>
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.PublisherEventType"/>
     <!--  -->
     
     

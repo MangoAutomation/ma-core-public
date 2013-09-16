@@ -22,6 +22,7 @@ import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -311,6 +312,29 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     }
     
     
+	/**
+	 * @param userId
+	 * @param level 
+	 * @return
+	 */
+	public EventInstanceVO getHighestUnsilencedEvent(int userId, int level) {
+        return ejt.queryForObject(SELECT_ALL
+                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
+
+	}
+
+	/**
+	 * @param userId
+	 * @return
+	 */
+	public List<EventInstanceVO> getUnsilencedEvents(int userId) {
+        return ejt.query(SELECT_ALL
+                + "where ue.silenced=? and ue.userId=?", new Object[] { boolToChar(false), userId },getRowMapper());
+
+	}
+	
+	
+	
     static EventType createEventType(ResultSet rs, int offset) throws SQLException {
         String typeName = rs.getString(offset);
         String subtypeName = rs.getString(offset + 1);
@@ -335,5 +359,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         }
         return type;
     }
+
     
 }

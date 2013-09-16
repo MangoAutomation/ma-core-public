@@ -4,6 +4,12 @@
 --%><%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@tag import="com.serotonin.m2m2.Common"%>
 
+<!-- Message Popups -->
+<div data-dojo-type="dojox/widget/Toaster" data-dojo-props="positionDirection:'tc-down'"
+     messageTopic="alarmTopic"
+     id="alarmToaster">
+</div>
+
 <table width="100%" cellspacing="0" cellpadding="0" border="0" id="mainHeader">
   <tr>
     <td><img src="<%= Common.applicationLogo %>" alt="Logo"/></td>
@@ -15,6 +21,7 @@
             <span id="__header__alarmLevelText"></span>
           </span>
         </a>
+
       </td>
     </c:if>
     <c:if test="${!empty instanceDescription}">
