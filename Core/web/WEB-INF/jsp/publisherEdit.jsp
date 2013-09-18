@@ -10,7 +10,7 @@
   <c:set var="dwrClasses">${dwrClasses},${publisher.definition.dwrClass.simpleName}</c:set>
 </c:if>
 
-<tag:page dwr="${dwrClasses}" onload="initPublisher">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="${dwrClasses}" onload="initPublisher">
   <script type="text/javascript">
     function savePublisher() {
         hide("message");

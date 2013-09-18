@@ -4,9 +4,11 @@
 --%><%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@tag import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@tag import="com.serotonin.m2m2.module.MenuItemDefinition"%>
+<%@attribute name="showToolbar" %>
+
 
 <c:if test="${!simple}">
-  <table width="100%" cellspacing="0" cellpadding="0" border="0" id="subHeader">
+  <table width="100%" cellspacing="0" cellpadding="0" border="0" id="subHeader" <c:if test="${!empty showToolbar}">style="display:none;"</c:if>>
     <tr>
       <td style="cursor:default">
         <c:if test="${!empty sessionUser}">

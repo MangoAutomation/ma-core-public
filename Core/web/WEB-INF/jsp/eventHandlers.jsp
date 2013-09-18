@@ -10,7 +10,7 @@
 <%@page import="com.serotonin.m2m2.DataTypes"%>
 <c:set var="NEW_ID"><%= Common.NEW_ID %></c:set>
 
-<tag:page dwr="EventHandlersDwr" js="/resources/emailRecipients.js">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="EventHandlersDwr" js="/resources/emailRecipients.js">
 <jsp:attribute name="styles">
   <style>
     html > body .dijitTreeNodeLabelSelected { background-color: inherit; color: inherit; }

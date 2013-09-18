@@ -7,7 +7,7 @@
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.module.MenuItemDefinition"%>
 
-<tag:page dwr="DataSourceListDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="DataSourceListDwr" onload="init">
   <style type="text/css">
     .mangoForm ul { margin: 0; padding: 0; }
     .mangoForm ul li { margin-bottom: 5px; list-style: none; }

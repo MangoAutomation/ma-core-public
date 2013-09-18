@@ -4,7 +4,7 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
-<tag:page dwr="PointHierarchyDwr">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="PointHierarchyDwr">
 <jsp:attribute name="styles">
   <style>
     html > body .dijitTreeNodeLabelSelected { background-color: inherit; color: inherit; }

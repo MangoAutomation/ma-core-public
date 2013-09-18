@@ -4,7 +4,7 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<tag:page dwr="DataPointEditDwr">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="DataPointEditDwr">
   <%@ include file="/WEB-INF/jsp/pointEdit/pointName.jsp" %>
   
   <form action="" method="post">

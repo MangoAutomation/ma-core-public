@@ -351,7 +351,8 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp"));
         
-        preDefaults.add(createUriMappingDefinition(Permission.USER, "/events.shtm", null, "/WEB-INF/jsp/events.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.USER, "/events.shtm", null, "/WEB-INF/jsp/eventsReport.jsp"));
+        
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/event_handlers.shtm", null,
                 "/WEB-INF/jsp/eventHandlers.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/data_sources.shtm", null,

@@ -5,7 +5,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.vo.UserComment"%>
 
-<tag:page dwr="DataPointDetailsDwr" js="/resources/view.js">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="DataPointDetailsDwr" js="/resources/view.js">
   <c:if test="${!empty point}">
     <script type="text/javascript">
     require(["dojo","dojo/store/Memory","dijit/form/FilteringSelect","dijit/form/Select"], 
@@ -262,7 +262,7 @@
                   </tr>
                 </c:if>
                 <tr><td colspan="2">
-                        <div style='height:100px; overflow-y: scroll'>
+                        <div style='max-height:100px; overflow-y: scroll'>
                             <table><tr><td id="pointMessages"></td></tr>
                             </table>
                         </div>

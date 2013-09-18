@@ -10,7 +10,9 @@
 <%@attribute name="dwr" rtexprvalue="true" %>
 <%@attribute name="js" %>
 <%@attribute name="onload" %>
-<%@attribute name="fragment" %>
+<%@attribute name="showHeader" %>
+<%@attribute name="showToolbar" %>
+
 
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
@@ -104,9 +106,9 @@
 
 
 <div id="mainContainer" style="height:100%">
-    <div id="headerArea">      
-        <page:header/>
-        <page:toolbar/>
+    <div id="headerArea">
+        <page:header showHeader="${showHeader}"/>
+        <page:toolbar showToolbar="${showToolbar}"/>
         <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
     </div>
     <div id="mainContent" style="padding:5px; ">

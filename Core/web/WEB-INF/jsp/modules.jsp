@@ -5,7 +5,7 @@
 <%@page import="com.serotonin.m2m2.Common"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<tag:page dwr="ModulesDwr">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="ModulesDwr">
   <script type="text/javascript">
     function toggleDeletion(name) {
         var id = "module-"+name;

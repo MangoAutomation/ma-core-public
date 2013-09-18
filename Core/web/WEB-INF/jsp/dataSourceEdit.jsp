@@ -11,7 +11,7 @@
   <c:set var="dwrClasses">${dwrClasses},${dataSource.definition.dwrClass.simpleName}</c:set>
 </c:if>
 
-<tag:page dwr="${dwrClasses}" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="${dwrClasses}" onload="init">
   <script type="text/javascript">
     dojo.require("dijit.Dialog");
     dojo.require("dijit.form.Form");

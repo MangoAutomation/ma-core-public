@@ -5,7 +5,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
 
-<tag:page dwr="UsersDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="UsersDwr" onload="init">
   <script type="text/javascript">
     var userId = ${sessionUser.id};
     var editingUserId;

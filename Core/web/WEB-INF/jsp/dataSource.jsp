@@ -9,7 +9,7 @@
   <c:set var="dwrClasses">${dwrClasses},${dataSource.definition.dwrClass.simpleName}</c:set>
 </c:if>
 
-<tag:page dwr="${dwrClasses}" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="${dwrClasses}" onload="init">
   <jsp:attribute name="styles">
   <style type="text/css">
     .mangoForm ul { margin: 0; padding: 0; }

@@ -24,6 +24,7 @@ public class CommonDataInterceptor implements HandlerInterceptor {
         request.setAttribute("lang", ControllerUtils.getLocale(request).getLanguage());
         request.setAttribute("instanceDescription", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         request.setAttribute("NEW_ID", Common.NEW_ID);
+        
         return true;
     }
 

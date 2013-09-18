@@ -7,7 +7,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <c:set var="definitions" value="<%= ModuleRegistry.getDefinitions(EmportDefinition.class) %>"/>
-<tag:page dwr="EmportDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="EmportDwr" onload="init">
   <script type="text/javascript">
     function init() {
         setDisabled("cancelBtn", true);
