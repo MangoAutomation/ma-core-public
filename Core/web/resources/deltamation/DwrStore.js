@@ -264,6 +264,7 @@ return declare("deltamation.DwrStore", base, {
         }
         else if (options.sort && typeof options.sort.length === 'number') {
             sortArray = [];
+         
             for (var i = 0; i < options.sort.length; i++) {
                 op = new SortOption();
                 op.attribute = options.sort[i].attribute;
@@ -301,7 +302,7 @@ return declare("deltamation.DwrStore", base, {
                 if (typeof _this.queryCallback === 'function') {
                     _this.queryCallback(response);
                 }
-
+                
                 deferred.resolve(response.data.list);
                 deferred.total.resolve(response.data.total);
             },
@@ -313,7 +314,7 @@ return declare("deltamation.DwrStore", base, {
             },
             timeout: this.dwrTimeout
         });
-        
+                
         return QueryResults(deferred);
     },
     

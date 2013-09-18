@@ -1,5 +1,7 @@
 <%--
-  Define a global store for the messages to use in translations
+  Define a global store for the messages to use in translations on pages via 
+  the mangoMsg['key'] javascript array
+  
   Copyright (C) 2013 Infinite Automation. All rights reserved.
   @author Terry Packer, Jared Wiltshire
 --%>
@@ -57,8 +59,10 @@ String[] mangoMessageKeys = {
 	    "events.id",
         "events.msg",
         "events.pointDetails",
+        "events.pointEdit",
 	    "events.silence",
         "events.unsilence",
+        "events.unacknowledged",
 	    
         "modules.modules",
         

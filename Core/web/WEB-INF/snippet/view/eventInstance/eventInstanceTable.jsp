@@ -12,14 +12,14 @@
     <tag:help id="eventInstance"/>
     
     
-    <div id="ackAllDiv" class="titlePadding" style="float:right;">
+    <div id="ackAllDiv" class="titlePadding" style="padding-left: 10px; float:right;">
       <fmt:message key="events.acknowledgeAll"/>
       <tag:img png="tick" onclick="MiscDwr.acknowledgeAllPendingEvents()" title="events.acknowledgeAll"/>&nbsp;
       <fmt:message key="events.silenceAll"/>
       <tag:img png="sound_mute" onclick="silenceAll()" title="events.silenceAll"/><br/>
     </div>
 
-    <div id="eventDateSelectionDiv" style="float:right" ></div>
+    <div id="eventDateSelectionDiv" class="titlePadding" style="float:right" ></div>
 
 
     <div id="eventInstanceTable"></div>

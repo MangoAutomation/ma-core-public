@@ -22,7 +22,6 @@ import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -120,27 +119,42 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	@Override
 	protected Map<String, String> getPropertiesMap() {
 		Map<String,String> map = new HashMap<String,String>();
-		map.put("activeTimestamp", "activeTs");
-		map.put("activeTimestampString", "activeTs");
-		map.put("rtnTimestampString", "rtnTs");
+		map.put("activeTimestamp", "evt.activeTs");
+		map.put("activeTimestampString", "evt.activeTs");
+		map.put("rtnTimestampString", "evt.rtnTs");
+		map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
+		map.put("messageString", "evt.message");
+		map.put("rtnTimestampString", "evt.rtnTs");
+		map.put("userNotified", "ue.silenced");
 		return map;
 	}
 
+	protected Map<String, PropertyArguments> getPropertyArgumentsMap(){
+		Map<String,PropertyArguments> map = new HashMap<String,PropertyArguments>();
+		map.put("totalTimeString", new PropertyArguments(){
+			public Object[] getArguments(){
+				return new Object[]{new Date().getTime()};
+			}
+			});
+		
+		return map;
+	}
+	
 	@Override
 	protected Map<String, Comparator<EventInstanceVO>> getComparatorMap() {
 		HashMap<String,Comparator<EventInstanceVO>> comparatorMap = new HashMap<String,Comparator<EventInstanceVO>>();
 		
-		comparatorMap.put("messageString", new Comparator<EventInstanceVO>(){
-			public int compare(EventInstanceVO lhs, EventInstanceVO rhs){
-				return lhs.getMessageString().compareTo(rhs.getMessageString());
-			}
-		});
+//		comparatorMap.put("messageString", new Comparator<EventInstanceVO>(){
+//			public int compare(EventInstanceVO lhs, EventInstanceVO rhs){
+//				return lhs.getMessageString().compareTo(rhs.getMessageString());
+//			}
+//		});
 
-		comparatorMap.put("totalTimeString", new Comparator<EventInstanceVO>(){
-			public int compare(EventInstanceVO lhs, EventInstanceVO rhs){
-				return lhs.getTotalTime().compareTo(rhs.getTotalTime());
-			}
-		});
+//		comparatorMap.put("totalTimeString", new Comparator<EventInstanceVO>(){
+//			public int compare(EventInstanceVO lhs, EventInstanceVO rhs){
+//				return lhs.getTotalTime().compareTo(rhs.getTotalTime());
+//			}
+//		});
 
 		
 		return comparatorMap;
@@ -241,7 +255,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	public RowMapper<EventInstanceVO> getRowMapper() {
 		return new UserEventInstanceVORowMapper();
 	}
-
 	
     public static class EventInstanceVORowMapper implements RowMapper<EventInstanceVO> {
         @Override
@@ -259,7 +272,16 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             	event.setMessage(new TranslatableMessage("common.noMessage"));
             else
             	event.setMessage(message);
-            
+            /*
+             * IF(evt.rtnTs=null,
+             * 		IF(evt.rtnApplicable='Y',
+             * 			(NOW() - evt.activeTs),
+             * 			-1),
+             * 		IF(evt.rtnApplicable='Y',
+             * 			(evt.rtnTs - evt.activeTs),
+             * 			-1)
+             *  )
+             */
             //Set the Return to normal
             long rtnTs = rs.getLong(8);
             if (!rs.wasNull()){
@@ -293,8 +315,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
                 event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
             }
             
-            event.setHasComments(rs.getInt(16) > 0);
-                        
+            event.setHasComments(rs.getInt(16) > 0);         
             
             return event;
         }
@@ -310,6 +331,9 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             return event;
         }
     }
+    
+
+    
     
     
 	/**

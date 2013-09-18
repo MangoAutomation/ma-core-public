@@ -38,6 +38,7 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -423,8 +424,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 	public RowMapper<DataSourceVO<?>> getRowMapper() {
 		return new DataSourceRowMapper();
 	}
-
-
 
 
 

@@ -96,8 +96,11 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         INSERT = insert + ") VALUES (" + insertValues + ")";
         UPDATE = update + " WHERE id=?";
         DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-        COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix ;
-        
+        if(extraSQL != null)
+        	COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
+        else
+           	COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix ;
+               	
     }
     
     //TODO Make this call the other constructor

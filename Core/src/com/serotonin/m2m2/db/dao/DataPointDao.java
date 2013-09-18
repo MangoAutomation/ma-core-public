@@ -823,7 +823,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		return new DataPointMapper();
 	}
 	
-	
     class DataPointMapper implements RowMapper<DataPointVO> {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {

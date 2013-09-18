@@ -66,8 +66,11 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
             if (pidStr == null) {
                 // Adding a new data source? Get the type id.
                 String type = request.getParameter("typeId");
-                if (StringUtils.isBlank(type))
-                    return new ModelAndView(new RedirectView(errorViewName));
+                if (StringUtils.isBlank(type)){
+                	Map<String,Object> model = new HashMap<String,Object>();
+                	model.put("key", "dsEdit.error.noTypeProvided");
+                    return new ModelAndView(new RedirectView(errorViewName), model);
+                }
 
                 Permissions.ensureAdmin(user);
 
@@ -82,9 +85,13 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
             else {
                 int pid = Integer.parseInt(pidStr);
                 DataPointVO dp = new DataPointDao().getDataPoint(pid);
-                if (dp == null)
+                if (dp == null){
                     // The requested data point doesn't exist. Return to the list page.
-                    return new ModelAndView(new RedirectView(errorViewName));
+                	Map<String,Object> model = new HashMap<String,Object>();
+                	model.put("key", "dsEdit.error.pointDNE");
+                	model.put("params", pid);
+                    return new ModelAndView(new RedirectView(errorViewName),model);
+                }
                 id = dp.getDataSourceId();
             }
         }
@@ -94,10 +101,14 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
         
         if (id != Common.NEW_ID) {
             dataSourceVO = Common.runtimeManager.getDataSource(id);
- 
-            if (dataSourceVO == null)
+            if (dataSourceVO == null){
                 // The requested data source doesn't exist. Return to the list page.
-                return new ModelAndView(new RedirectView(errorViewName));
+            	Map<String,Object> model = new HashMap<String,Object>();
+            	model.put("key", "dsEdit.error.dataSourceDNE");
+            	model.put("params", id);
+                return new ModelAndView(new RedirectView(errorViewName), model);
+
+            }
             Permissions.ensureDataSourcePermission(user, id);
         }
         

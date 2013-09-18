@@ -75,7 +75,7 @@ public class FileDownloadController implements UrlHandler{
                     	emporters = this.prepareDataPoint(request, response, model, user);
                     }else{
                     	//Not available for download
-                    	//LOG.error("Usupported type for downloading");
+                    	LOG.error("Usupported type for downloading");
                     	return;
                     }
                     
