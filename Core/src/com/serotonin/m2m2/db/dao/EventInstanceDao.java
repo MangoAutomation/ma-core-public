@@ -317,8 +317,25 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             
             event.setHasComments(rs.getInt(16) > 0);         
             
+            //This makes another query!
+            this.attachRelationalInfo(event);
+            
+            
             return event;
         }
+        
+        private static final String EVENT_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT //
+                + "where uc.commentType= " + UserComment.TYPE_EVENT //
+                + " and uc.typeKey=? " //
+                + "order by uc.ts";
+
+        void attachRelationalInfo(EventInstanceVO event) {
+            if (event.isHasComments())
+                event.setEventComments(EventInstanceDao.instance.query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
+                        new UserCommentRowMapper()));
+        }
+
+        
     }
 	
     class UserEventInstanceVORowMapper extends EventInstanceVORowMapper {

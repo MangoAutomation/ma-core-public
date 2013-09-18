@@ -216,7 +216,13 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
 		this.acknowledgedTimestamp = acknowledgedTimestamp;
 	}
 
-
+	public String getAcknowledgedTimestampString(){
+		return DeltamationCommon.formatDate(this.acknowledgedTimestamp);
+	}
+	public void setAcknowledgedTimestamp(String s){
+		//NoOp
+	}
+	
 	public int getAcknowledgedByUserId() {
 		return acknowledgedByUserId;
 	}
@@ -356,6 +362,52 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     	return totalTime;
     }
     
+    public void setAckMessageString(String s){
+    	//NoOp
+    }
+    /**
+     * Get a formatted message
+     * time - username for the acknowledgement
+     * @return
+     */
+    public String getAckMessageString() {
+        if (isAcknowledged()) {
+        	String msg = this.getAcknowledgedTimestampString() + " ";
+            if (acknowledgedByUserId != 0)
+                msg += new TranslatableMessage("events.ackedByUser", acknowledgedByUsername).translate(Common.getTranslations());
+            if (alternateAckSource != null)
+                msg += alternateAckSource.translate(Common.getTranslations());
+            return msg;
+        }
+        return "";
+    }
+    
+    /**
+     * Construct the comments html
+     * @return
+     */
+    public String getCommentsHTML(){
+    	StringBuilder builder = new StringBuilder("");
+    	if(eventComments != null){
+    		builder.append("</br>");
+	    	for(UserComment comment : this.eventComments){
+	    		builder.append("<span class='copyTitle'>");
+	    		builder.append("<img style='padding-right: 5px' src='/images/comment.png' title='").append(Common.translate("notes.note")).append("'/>");
+	    		builder.append(DeltamationCommon.formatDate(comment.getTs())).append(" ");
+	    		builder.append(Common.translate("notes.by")).append(" ");
+	    		if(comment.getUsername() == null)
+	    			builder.append(Common.translate("common.deleted"));
+	    		else
+	    			builder.append(comment.getUsername());
+	    		builder.append("</span></br>");
+	    		builder.append(comment.getComment()).append("</br>");
+	    	}
+    	}
+    	return builder.toString();
+    }
+    public void setCommentsHTML(String s){
+    	//NoOp
+    }
 	/* (non-Javadoc)
 	 * 
 	 * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()

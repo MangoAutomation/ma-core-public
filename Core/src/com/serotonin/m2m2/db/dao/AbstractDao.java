@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -387,12 +388,47 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         save(vo);
     }
     
+    /**
+     * Method callback for when a row is returned from the DB
+     * but will not make it to the VIEW due to filtering of the result set
+     * 
+	 * @return
+	 */
+	protected DojoQueryCallback<T> getOnFilterCallback() {
+		return new DojoQueryCallback<T>(false);
+	}
+
+	/**
+	 * 
+	 * Method callback for when a row is returned from the DB
+	 * and isn't filtered and will for sure be returned to the View
+	 * 
+	 * @return
+	 */
+	protected DojoQueryCallback<T> getOnResultCallback() {
+		return new DojoQueryCallback<T>(true);
+	}
+    
+    
     /* (non-Javadoc)
      * @see com.deltamation.mango.downtime.db.AbstractBasicDao#dojoQuery(java.util.Map, java.util.List, java.lang.Integer, java.lang.Integer, boolean)
      */
     @Override
     public ResultsWithTotal dojoQuery(Map<String, String> query,
             List<SortOption> sort, Integer offset, Integer limit, boolean or) {
-        return dojoQuery(SELECT_ALL, COUNT, query, sort, offset, limit, or);
+        return dojoQuery(SELECT_ALL, COUNT, query, sort, offset, limit, or,getOnResultCallback(),getOnFilterCallback());
     }
+
+	/* (non-Javadoc)
+     * @see com.deltamation.mango.downtime.db.AbstractBasicDao#dojoQuery(java.util.Map, java.util.List, java.lang.Integer, java.lang.Integer, boolean)
+     */
+    @Override
+    public void exportQuery(Map<String, String> query,
+            List<SortOption> sort, Integer offset, Integer limit, boolean or, DojoQueryCallback<T> onResultCallback) {
+        dojoQuery(SELECT_ALL, COUNT, query, sort, offset, limit, or,onResultCallback,null);
+    }
+ 
+    
+    
+    
 }

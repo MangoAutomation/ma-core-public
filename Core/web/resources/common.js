@@ -90,7 +90,7 @@ mango.longPoll.pollCB = function(response) {
     	            		mangoMsg['events.acknowledge'] +
     	            		"' style='float:right'/>",
     	            	type: "message",
-    	            	duration: -1, //Don't Go Away
+    	            	duration: 5000, //Don't Go Away
     	            }]);
             	}
 
@@ -100,7 +100,7 @@ mango.longPoll.pollCB = function(response) {
 		            dojo.publish("alarmTopic",[{
 		            	message: "<span style='color: yellow'>" + response.alarmsUrgent + " Urgent Events <a style='float:right' href='/events.shtm'>View</a></span>",
 		            	type: "warning",
-    	            	duration: 5000, //-1, //Don't Go Away
+    	            	duration: -1, //Don't Go Away
 		            }]);
             	}else{
             		//For only 1
@@ -122,7 +122,7 @@ mango.longPoll.pollCB = function(response) {
 		            dojo.publish("alarmTopic",[{
 		            	message: "<span style='color: orange'>" + response.alarmsCritical + " Critical Events <a style='float:right' href='/events.shtm'>View</a></span>",
 		            	type: "error",
-    	            	duration: 5000, //-1, //Don't Go Away
+    	            	duration: -1, //Don't Go Away
 		            }]);
             	}else{
             		//For only 1 event
@@ -144,7 +144,7 @@ mango.longPoll.pollCB = function(response) {
 	            dojo.publish("alarmTopic",[{
 	            	message: "<span style='color: red'>" + response.alarmsLifeSafety + " Life Safety Events <a style='float:right' href='/events.shtm'>View</a></span>",
 	            	type: "fatal",
-	            	duration: 5000, //-1, //Don't Go Away
+	            	duration: -1, //Don't Go Away
 	            }]);
             	}else{
             		//For only 1 message

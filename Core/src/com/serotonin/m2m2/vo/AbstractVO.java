@@ -74,7 +74,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
     @Override
     public void addProperties(List<TranslatableMessage> list) {
         AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "downtime.properties.name", name);
+        AuditEventType.addPropertyMessage(list, "common.name", name);
     }
 
     /* (non-Javadoc)
@@ -83,7 +83,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
     @Override
     public void addPropertyChanges(List<TranslatableMessage> list, T from) {
         AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "downtime.properties.name", from.name, name);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "common.name", from.name, name);
     }
     
     /*

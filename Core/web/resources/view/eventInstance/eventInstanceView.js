@@ -5,11 +5,11 @@
 
 var eventInstances;
 
-require(["deltamation/StoreView", "dijit/form/DateTextBox","dijit/form/TimeTextBox", "dijit/form/Select", "dijit/form/ValidationTextBox","dijit/form/TextBox",
+require(["deltamation/StoreView", "dijit/form/DateTextBox","dijit/form/TimeTextBox", "dijit/form/MultiSelect", "dijit/form/Select", "dijit/form/ValidationTextBox","dijit/form/TextBox",
          "dojo/date", "dojo/dom-style","dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
          "dojo/_base/fx", "dojo/fx","dojo/query", "dojox/layout/ContentPane","dojo/dom-construct",
          "dojo/domReady!"],
-function(StoreView, DateTextBox,TimeTextBox, Select, ValidationTextBox,TextBox,
+function(StoreView, DateTextBox,TimeTextBox, MultiSelect, Select, ValidationTextBox,TextBox,
 		date, domStyle,html,put,when,on,
 		baseFx,coreFx,query,ContentPane,domConstruct) {
 
@@ -23,10 +23,14 @@ eventInstances = new StoreView({
     gridId: 'eventInstanceTable',
     editId: 'editEventInstanceDiv',
     defaultSort: [{attribute: "activeTimestamp", descending: true}],
-    defaultQuery: {alarmLevel: [1,2,3,4]},
+    defaultQuery: {
+    				alarmLevel: [1,2,3,4],
+    				userNotified: 'N'
+    			  },
     
     filters: {
-    			alarmLevel: [1,2,3,4]
+    			alarmLevel: [1,2,3,4],
+    			userNotified: 'N'
     		 },
              
     
@@ -88,11 +92,13 @@ eventInstances = new StoreView({
     		sortable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
+				
 				var input = new Select({
 					name: 'alarmLevelFilter',
 					style: "width: 10em; color: gray",
+					multiple: true,
 					options: [
-					    {label : mangoMsg['common.all'], value: ''},
+					    {label : mangoMsg['common.all'], value: '-1'},
 						{label : mangoMsg['common.alarmLevel.none'], value: '0'},
 						{label : mangoMsg['common.alarmLevel.info'], value: '1'},
 						{label : mangoMsg['common.alarmLevel.urgent'], value: '2'},
@@ -106,7 +112,7 @@ eventInstances = new StoreView({
 				input.placeAt(div);
 				
 				input.watch("value",function(name,oldValue,value){
-					if(value === '')
+					if(value == '-1')
 						delete eventInstances.filters['alarmLevel'];
 					else
 						eventInstances.filters['alarmLevel'] = value; //new RegExp("^.*"+value+".*$");
@@ -271,8 +277,16 @@ eventInstances = new StoreView({
     		renderCell: function(eventInstance, messageString, cell){
     			var div = document.createElement("div");
     			div.style.textAlign = "center";
-    			//TODO Add comments too!
-    			div.innerHTML = messageString;
+
+    			var html = messageString;
+    			html += "<img src='/images/comment_add.png' onclick='openCommentDialog(" 
+    				+ constants_USER_COMMENT_TYPE_EVENT + "," + eventInstance.id + ")' title='"
+    				+ mangoMsg['notes.addNote'] + "'/>";
+        			//TODO Add comments too!
+    			var comments = eventInstance.commentsHTML;
+    			if(comments != '')
+    				html += comments;
+    			div.innerHTML = html;
     			
     			return div;
     		},
@@ -392,6 +406,7 @@ eventInstances = new StoreView({
 						{label : mangoMsg['events.unacknowledged'], value: 'N'},
 					],
 				});
+				input.set('value', 'N'); //DEFAULT FOR PAGE
 				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['events.acknowledged']});
 				domConstruct.place(label,div);
 				input.placeAt(div);
@@ -436,17 +451,20 @@ eventInstances = new StoreView({
     	    			html += mangoMsg['events.acknowledged'];
     	    			html += "'/>";
     	    		}else{
-    	    			html = "<img src='images/tick.png' title='";
+    	    			html = "<img src='images/tick.png' id='ackImg";
+    	    			html += eventInstance.id + "' title='";
     	    			html += mangoMsg['events.acknowledge'];
     	    			html += "' onclick='ackEvent(" + eventInstance.id;
     	    			html += ")'/>";
     	    			if(eventInstance.silenced){
-    	        			html += "<img src='images/sound_mute.png' title='";
+    	        			html += "<img src='images/sound_mute.png' id='silenceImg";
+    	        			html += eventInstance.id + "' title='";
     	        			html += mangoMsg['events.unsilence'];
     	        			html += "' onclick='toggleSilence(" + eventInstance.id;
     	        			html += ")'/>";
     	    			}else{
-    	        			html += "<img src='images/sound_none.png' title='";
+    	        			html += "<img src='images/sound_none.png' id='silenceImg";
+    	        			html += eventInstance.id + "' title='";
     	        			html += mangoMsg['events.silence'];
     	        			html += "' onclick='toggleSilence(" + eventInstance.id;
     	        			html += ")'/>";
@@ -515,6 +533,10 @@ eventInstances = new StoreView({
     					html += response;
     				});
     			}
+    	    	
+    	    	//Add on the timestamp if it was acknowledged
+    	    	html += " " + eventInstance.ackMessageString;
+    	    	
     	    	div.innerHTML = html;
     	    	return div;
     		}//end render cell
@@ -524,103 +546,6 @@ eventInstances = new StoreView({
     
     //Not using these buttons, but just keep them here to ensure the renderButtons method happens
     //buttons: ['toggle','edit','delete','copy','export'],
-    
-    /**
-     * Override the renderButtons method
-     */
-    renderButtons: function(eventInstance, value, node, options) {
-    	var div = document.createElement("div");
-		div.style.textAlign = "center";
-		var html = "";
-    	if(eventInstance.userNotified){
-    		if(eventInstance.acknowledged){
-    			html = "<img src='images/tick_off.png' title='";
-    			html += mangoMsg['events.acknowledged'];
-    			html += "'/>";
-    		}else{
-    			html = "<img src='images/tick.png' title='";
-    			html += mangoMsg['events.acknowledge'];
-    			html += "' onclick='ackEvent(" + eventInstance.id;
-    			html += ")'/>";
-    			if(eventInstance.silenced){
-        			html += "<img src='images/sound_mute.png' title='";
-        			html += mangoMsg['events.unsilence'];
-        			html += "' onclick='toggleSilence(" + eventInstance.id;
-        			html += ")'/>";
-    			}else{
-        			html += "<img src='images/sound_none.png' title='";
-        			html += mangoMsg['events.silence'];
-        			html += "' onclick='toggleSilence(" + eventInstance.id;
-        			html += ")'/>";
-    			}
-    		}// end if not ack
-    	}//end if user notified
-    	
-    	//TODO Add in the link for a given data type edit
-    	if(eventInstance.eventType.eventType === constants_DATA_POINT){
-    		html += "<a href='data_point_details.shtm?dpid=" + eventInstance.eventType.dataPointId + "'><img src='/images/icon_comp.png' title='";
-    		html += mangoMsg['events.pointDetails'];
-    		html += "'/></a>";
-    		
-    	}else if(eventInstance.eventType.eventType === constants_DATA_SOURCE){
-    		html += "<a href='data_source_edit.shtm?dsid=" + eventInstance.eventType.dataSourceId + "'><img src='/images/icon_ds_edit.png' title='";
-    		html += mangoMsg['events.editDataSource'];
-    		html += "'/></a>";
-    		
-    	}else if(eventInstance.eventType.eventType === constants_SYSTEM){
-    		if(eventInstance.eventType.systemEentType === constants_TYPE_SET_POINT_HANDLER_FAILURE){
-        		html += "<a href='event_handlers.shtm?ehid=" + eventInstance.eventType.referenceId1 + "'><img src='/images/cog.png' title='";
-        		html += mangoMsg['events.editEventHandler'];
-        		html += "'/></a>";
-        		
-        	}else if(eventInstance.eventType.systemEventType === constants_TYPE_LICENSE_CHECK){
-        		html += "<a href='modules.shtm'><img src='/images/puzzle.png' title='";
-        		html += mangoMsg['modules.modules'] + "'/></a>";
-        	}else{
-        		//TODO Add systemEventTypeLinkHere
-        	}
-    	}else if(eventInstance.eventType.eventType === constants_PUBLISHER){
-    		html += "<a href='publisher_edit.shtm?pid='>"+ eventInstance.eventType.publisherId +"<img src='/images/transmit_edit.png' title='";
-    		html += mangoMsg['events.editPublisher'] + "'/></a>";
-    	}else if(eventInstance.eventType.eventType === constants_AUDIT){
-	   		if(eventInstance.eventType.systemEentType === constants_AUDIT_TYPE_DATA_SOURCE){
-	    		html += "<a href='data_source_edit.shtm?dsid=" + eventInstance.eventType.referenceId1 + "'><img src='/images/icon_ds_edit.png' title='";
-	    		html += mangoMsg['events.editDataSource'];
-	    		html += "'/></a>";
-	    		
-	    	}else if(eventInstance.eventType.auditEventType === constants_AUDIT_TYPE_DATA_POINT){
-	    		html += "<a href='data_point_edit.shtm?dpid=" + eventInstance.eventType.referenceId1 + "'><img src='/images/icon_comp_edit.png' title='";
-	    		html += mangoMsg['events.pointEdit'];
-	    		html += "'/></a>";
-	    		//TODO This is probably wrong refid 2 maybe?
-	    		html += "<a href='data_source_edit.shtm?pid=" + eventInstance.eventType.referenceId1 + "'><img src='/images/icon_ds_edit.png' title='";
-	    		html += mangoMsg['events.editDataSource'];
-	    		html += "'/></a>";
-	    		
-	    	}else if(eventInstance.eventType.auditEventType === constants_AUDIT_TYPE_POINT_EVENT_DETECTOR){
-	    		html += "<a href='data_point_edit.shtm?pedid=" + eventInstance.eventType.referenceId1 + "'><img src='/images/icon_comp_edit.png' title='";
-	    		html += mangoMsg['events.pointEdit'];
-	    		html += "'/></a>";
-	    	}else if(eventInstance.eventType.auditEventType === constants_AUDIT_TYPE_EVENT_HANDLER){
-	    		html += "<a href='event_handlers.shtm?ehid=" + eventInstance.eventType.referenceId1 + "'><img src='/images/cog.png' title='";
-	    		html += mangoMsg['events.editHandler'];
-	    		html += "'/></a>";
-	    	}else{
-	    		//TODO auditEvenTypeLink here
-	    	}
-		}else{
-			//TODO eventTypeLink here
-		}
-
-    	
-    	
-    	
-    	
-    	div.innerHTML = html;
-		return div;
-    },
-    
-    
     
     preInit: function() {
     },
@@ -652,14 +577,37 @@ eventInstances = new StoreView({
      * Refresh the Grid
      */
     refresh: function(){
-    	this.grid.set('query', null);
+    	//this.grid.set('query', null);
+    	this.grid.set("query",eventInstances.filters,null);
     },
+	
+    download: function() {
+    	//The Export Query will be set every time a DOJO Query is run
+    	// so we can export whenever
+        //TODO Implement this in the data exporter servlet window.location = "/download.shtm?downloadFile=true&dataType=eventInstance"; 
+        window.location = "eventExport/eventData.xlsx";	
+    },
+    
+    acknowledgeAll: function(){
+    	MiscDwr.acknowledgeAllPendingEvents(function(response){
+    		eventInstances.grid.refresh();
+    	});
+    	
+    }
+    
     
     
     
 	}); // Store View
 
-
+	stores.eventInstances.dwr.queryCallback = function(response){
+		var countDiv = dojo.byId("totalEventInstancesInView");
+		countDiv.innerHTML = "<span class='smallTitle'>" + mangoMsg['common.totalResults'] + " " + response.data.total + "</span>";
+	};
+	
+	
+	
+	
 	//Setup the date pickers at the top of the table
 	var eventInstanceReportFromDate,eventInstanceReportFromTime,eventInstanceReportToDate,eventInstanceReportToTime;
 	var div = dojo.byId("eventDateSelectionDiv");
@@ -807,5 +755,6 @@ eventInstances = new StoreView({
 
 		eventInstances.filters['activeTimestampString'] = filterString;
 	}
+	
 
 }); // require

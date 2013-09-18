@@ -4,14 +4,21 @@
  */
 package com.serotonin.m2m2.vo.event;
 
+import java.util.Date;
 import java.util.List;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.joda.time.DateTime;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.CellType;
-import com.serotonin.m2m2.emport.SpreadsheetException;
 
 /**
  * 
@@ -51,7 +58,7 @@ public class EventInstanceEmporter extends AbstractSheetEmporter{
 	private final CellType[] columnTypes = {
 			CellType.NUMERIC,
 			CellType.STRING,
-			CellType.STRING,
+			CellType.DATE,
 			CellType.STRING,
 			CellType.DATE,
 			CellType.STRING
@@ -104,8 +111,64 @@ public class EventInstanceEmporter extends AbstractSheetEmporter{
 		
 	}
 
-	
-	
-	
-	
+
+
+	/**
+	 * @param vo
+	 */
+	public void exportRow(EventInstanceVO vo) {
+    	int cellNum = 0;
+        Cell cell;
+        Row row;
+        row = sheet.createRow(this.rowNum++);
+        
+        //Set Event Id
+        cell = row.createCell(cellNum++);
+        cell.setCellValue(vo.getId());
+        
+        //Alarm Level
+        cell = row.createCell(cellNum++);
+        cell.setCellValue(AlarmLevels.getAlarmLevelMessage(vo.getAlarmLevel()).translate(Common.getTranslations()));
+        
+        //Active Time
+        cell = row.createCell(cellNum++);
+        cell.setCellValue(new Date(vo.getActiveTimestamp()));
+        cell.setCellStyle(dateStyle);
+
+        //Message
+        cell = row.createCell(cellNum++);
+        cell.setCellValue(vo.getMessageString());
+        
+        //Status
+        cell = row.createCell(cellNum++);
+        if (vo.isActive())
+        	cell.setCellValue(Common.translate("common.active"));
+        else if (!vo.isRtnApplicable())
+            cell.setCellValue("");
+        else
+            cell.setCellValue(vo.getRtnTimestampString() + " - " + vo.getRtnMessageString());
+
+        //Ack Time     
+        //Ack User      
+        cell = row.createCell(cellNum++);
+        Cell ackMsgCell = row.createCell(cellNum++);
+        cell.setCellStyle(dateStyle);
+        if (vo.isAcknowledged()) {
+            cell.setCellValue(new Date(vo.getAcknowledgedTimestamp()));
+            TranslatableMessage ackMessage;
+            if(vo.getAcknowledgedByUserId() != 0){
+            	ackMessage = new TranslatableMessage("events.export.ackedByUser", vo.getAcknowledgedByUsername());
+            }else{
+            	ackMessage = vo.getAlternateAckSource();
+            }
+            if(ackMessage != null)
+            	ackMsgCell.setCellValue(ackMessage.translate(Common.getTranslations()));
+        }else{
+        	//Do we need to set the cell to null explicitly
+        }
+        
+
+		
+	}
+
 }

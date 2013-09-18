@@ -261,7 +261,13 @@
                     <td class="formField">${hierPath}</td>
                   </tr>
                 </c:if>
-                <tr><td colspan="2" id="pointMessages"></td></tr>
+                <tr><td colspan="2">
+                        <div style='height:100px; overflow-y: scroll'>
+                            <table><tr><td id="pointMessages"></td></tr>
+                            </table>
+                        </div>
+                   </td>
+                </tr>
               </table>
             </div>
             

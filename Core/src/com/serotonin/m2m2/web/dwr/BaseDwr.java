@@ -385,7 +385,7 @@ abstract public class BaseDwr {
             	
             	List<EventInstanceVO> events = EventInstanceDao.instance.getUnsilencedEvents(user.getId());
             	//Sort into lists for the different types
-            	int lifeSafetyTotal=0, noneTotal=0, informationTotal=0, urgentTotal=0;
+            	int lifeSafetyTotal=0, noneTotal=0, informationTotal=0, criticalTotal=0, urgentTotal=0;
             	for(EventInstanceVO event : events){
             		switch(event.getAlarmLevel()){
             		case AlarmLevels.NONE:
@@ -396,6 +396,9 @@ abstract public class BaseDwr {
             			break;
             		case AlarmLevels.URGENT:
             			urgentTotal++;
+            			break;
+            		case AlarmLevels.CRITICAL:
+            			criticalTotal++;
             			break;
             		case AlarmLevels.LIFE_SAFETY:
             			lifeSafetyTotal++;
@@ -421,7 +424,12 @@ abstract public class BaseDwr {
 	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.URGENT);
 	                response.put("urgentEvent",event);
             	}
-
+            	response.put("alarmsCritical", criticalTotal);
+            	if(criticalTotal == 1){
+	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.CRITICAL);
+	                response.put("criticalEvent",event);
+            	}
+            	
             	response.put("alarmsLifeSafety", lifeSafetyTotal);
             	if(lifeSafetyTotal == 1){
 	                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.LIFE_SAFETY);

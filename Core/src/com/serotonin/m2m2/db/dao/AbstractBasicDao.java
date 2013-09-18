@@ -16,6 +16,7 @@ import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.logging.Log;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 
@@ -290,13 +291,26 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     }
     
 
+    /**
+     * Perform export query, using callback to stream data to destination
+     * @param query
+     * @param sort
+     * @param offset
+     * @param limit
+     * @param or
+     * @param callback
+     */
+    public abstract void exportQuery(Map<String, String> query, List<SortOption> sort, Integer offset,
+    		Integer limit, boolean or, DojoQueryCallback<T> callback);
     
     public abstract ResultsWithTotal dojoQuery(
             Map<String, String> query, List<SortOption> sort, Integer offset, Integer limit, boolean or);
 
     protected ResultsWithTotal dojoQuery(
             String selectSql, String countSql,
-            Map<String, String> query, List<SortOption> sort, Integer offset, Integer limit, boolean or) {
+            Map<String, String> query, List<SortOption> sort, Integer offset, 
+            Integer limit, boolean or, 
+            DojoQueryCallback<T> onKeepCallback, DojoQueryCallback<T> onFilterCallback) {
         List<Object> selectArgs = new ArrayList<Object>();
         List<Object> countArgs = new ArrayList<Object>();
       
@@ -310,16 +324,17 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         if(LOG !=null){
         	LOG.info("Dojo Query: " + selectSql + " \nArgs: " + selectArgs.toString());
         }
-        	// TODO work out how to do this in one transaction
         
-        //FilterListCallback<T> filter = new FilterListCallback<T>(createFilters(query));
+        FilterListCallback<T> filter = new FilterListCallback<T>(createFilters(query), onKeepCallback, onFilterCallback);
         //FilterListCallback<T> filter = new FilterListCallback<T>(createFilters(query),createComparatorChain(sort));
       
-        //query(selectSql, selectArgs.toArray(), getRowMapper(),filter);
-        List<T> results = query(selectSql, selectArgs.toArray(), getRowMapper());
+        query(selectSql, selectArgs.toArray(), getRowMapper(),filter);
+        //List<T> results = query(selectSql, selectArgs.toArray(), getRowMapper());
         //TODO modify this ...
         //filter.orderResults();
         //List<T> results = filter.getResults();
+
+        // TODO work out how to do this in one transaction
         int count = ejt.queryForInt(countSql, countArgs.toArray());
         if(LOG !=null)
         	LOG.info("DB Has: " + count);
@@ -334,10 +349,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         
         
         //Do Filtering for more complex members that may not be mapped properties
-        int removed = filterComplexMembers(results,query);
-        count = count - removed;
-        
-        //count = count - filter.getFilteredResults().size();
+        //int removed = filterComplexMembers(results,query);
+        //count = count - removed;
+        if(onFilterCallback != null)
+        	count = count - onFilterCallback.getResultCount();
         if(LOG !=null)
         	LOG.info("After filter: " + count);
         //Sort the remaining list
@@ -345,9 +360,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         //sortComplexMembers(results,sort);
         
         
-        return new ResultsWithTotal(results, count);
+        return new ResultsWithTotal(onKeepCallback.getResults(), count);
     }
 
+    
     /**
      * Create a list of filters for the complex members
      * @param query
