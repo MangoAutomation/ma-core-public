@@ -344,8 +344,8 @@
             for (i=0; i<dataSources.length; i++) {
 	            if(dataSources[i].id === dsId){
 	                for (j=0; j<dataSources[i].points.length; j++){
-	                    	$set("dp"+ dataSources[i].points[j].id, permission);
-	                    
+	                	//Check to see if point is settable
+	                    setPoint(dataSources[i].points[j],permission);
 	                }
 	                break; //Drop out after updating the DS We want
             	}
@@ -355,6 +355,22 @@
     	}
     }
 
+    /**
+     * Set a points permission, ensure that if it is not settable in can only be either none or read-only
+     */
+    function setPoint(point,permission){
+    	 if(point === null)
+    		 return; //Can't set a null point
+    	 if(permission === "2"){ //Are we going to set to read/wrtie
+    		  if(point.settable === true)
+    			  $set("dp"+ point.id, permission); 
+    		  else
+    			  $set("dp"+ point.id, 1);
+    	 }else{
+    		 $set("dp"+ point.id, permission); // Set read only at most
+    	 }
+    }
+    
     /**
      * 0 for none
      * 1 for read
@@ -366,8 +382,9 @@
             dscb = $("ds"+ dataSources[i].id);
             dscb.checked = false;
             dataSourceChange(dscb);
-            for (j=0; j<dataSources[i].points.length; j++)
-                $set("dp"+ dataSources[i].points[j].id, permission);
+            for (j=0; j<dataSources[i].points.length; j++){
+            	setPoint(dataSources[i].points[j], permission);
+            }
         }
      
     }
