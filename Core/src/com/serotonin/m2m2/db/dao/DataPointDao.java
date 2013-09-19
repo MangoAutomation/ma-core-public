@@ -371,7 +371,13 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                         + "where dataPointId=? " + "order by id", new Object[] { dp.getId() },
                 new EventDetectorRowMapper(dp));
     }
-
+    
+    public PointEventDetectorVO getEventDetector(int id){
+    	return ejt.queryForObject( "select id, xid, alias, detectorType, alarmLevel, stateLimit, duration, durationType, binaryState, "
+                        + "  multistateState, changeCount, alphanumericState, weight " + "from pointEventDetectors "
+                        + "where id=? ", new Object[] { id }, new EventDetectorRowMapper(null));
+    }
+    
     class EventDetectorRowMapper implements RowMapper<PointEventDetectorVO> {
         private final DataPointVO dp;
 

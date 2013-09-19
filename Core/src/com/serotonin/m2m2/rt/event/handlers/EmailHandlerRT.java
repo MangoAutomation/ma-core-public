@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -21,11 +22,16 @@ import com.serotonin.m2m2.email.UsedImagesDirective;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.type.DataPointEventType;
+import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailInline;
 
@@ -143,12 +149,29 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
             }
         }
 
-        Translations translations = Common.getTranslations();
-
+       Translations translations = Common.getTranslations();
+       //These null checks may not be necessary, but I don't know yet
+       if((evt.getEventType() != null)&&(evt.getEventType().getEventType() != null)){
+	       if(evt.getEventType().getEventType().equals("DATA_POINT")){
+	    	   DataPointEventType type = (DataPointEventType) evt.getEventType();
+	    	   PointEventDetectorVO vo = DataPointDao.instance.getEventDetector(type.getPointEventDetectorId());
+	    	   //With this DetectorVO we can get all the nice info on this event
+	    	   if(alias == "" && vo != null)
+	    		   alias = vo.getDescription().translate(translations);
+	       }else if(evt.getEventType().getEventType().equals("DATA_SOURCE")){
+	    	   DataSourceEventType type = (DataSourceEventType) evt.getEventType();
+	    	   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getDataSourceId());
+	    	   EventTypeVO evtVO = vo.getEventType(type.getDataSourceEventTypeId());
+	    	   if((alias == "") && (evtVO!=null))
+	    		   alias = evtVO.getDescription().translate(translations);
+	       }
+       }
+       
         // Determine the subject to use.
         TranslatableMessage subjectMsg;
         TranslatableMessage notifTypeMsg = new TranslatableMessage(notificationType.getKey());
         if (StringUtils.isBlank(alias)) {
+        	//Make these more descriptive
             if (evt.getId() == Common.NEW_ID)
                 subjectMsg = new TranslatableMessage("ftl.subject.default", notifTypeMsg);
             else
@@ -163,6 +186,10 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
 
         String subject = subjectMsg.translate(translations);
 
+        //Trim the subject if its too long
+        if(subject.length() > 200)
+        	subject = subject.substring(0,200);
+        
         try {
             String[] toAddrs = addresses.toArray(new String[0]);
             UsedImagesDirective inlineImages = new UsedImagesDirective();
