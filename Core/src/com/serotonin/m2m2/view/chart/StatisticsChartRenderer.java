@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -135,4 +137,7 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
         else if (ver == 2)
             includeSum = in.readBoolean();
     }
+    
+    
+    
 }

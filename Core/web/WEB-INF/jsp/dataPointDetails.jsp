@@ -502,7 +502,6 @@
       <%@ include file="/WEB-INF/jsp/include/userComment.jsp" %>
     </c:otherwise>
   </c:choose>
-  <jsp:include page="/WEB-INF/snippet/tables/pointValue/pointValueEmport.jsp"/>
 </tag:page>
 
 <script type="text/javascript">

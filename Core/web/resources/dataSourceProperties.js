@@ -6,6 +6,7 @@
  dojo.require("dijit.Dialog");
  dojo.require("dijit.form.Form");
  dojo.require("dijit.form.Button");
+ dojo.require("dojo._base.lang"); //For bug with AbstractPointLocator not working with DWR yet
  
  var currentPoint;
  var pointListColumnFunctions;
@@ -277,15 +278,23 @@ function deletePoint() {
  function savePoint() {
      startImageFader("pointSaveImg", true);
      hideContextualMessages("pointProperties");
-     
+
+     //Call back to collect all inputs
+     currentPoint = dataPoints.getInputs();
      var locator = currentPoint.pointLocator;
      
+     //Store the Edit Properties
+     var myPoint = dojo.clone(currentPoint);
+     delete myPoint.pointLocator; //For bug where we aren't mapping the subclasses via dwr appropriately
+
      // Prevents DWR warnings. These properties are read-only. If sent back to the server
      // DWR will say as much. Deleting the properties saves a bit of logging.
      delete locator.configurationDescription;
      delete locator.dataTypeMessage;
-     
-     savePointImpl(locator);
+
+     DataPointDwr.storeEditProperties(myPoint,function(){
+         savePointImpl(locator);
+     });
  }
  
  /**
@@ -294,14 +303,28 @@ function deletePoint() {
   * @param response
   */
  function savePointCB(response) {
-     stopImageFader("pointSaveImg");
-     if (response.hasMessages)
-         showDwrMessages(response.messages);
-     else {
+	 stopImageFader("pointSaveImg");
+     if(!response.hasMessages){
          showMessage("pointMessage", mangoTranslate('dsEdit.pointSaved'));
          dataPoints.setInputs(response.data.vo);
          dataPoints.refresh();
-     }
+     }else if (response.hasMessages)
+         showDwrMessages(response.messages);
+     
+	 //Do another DWRCall to save the settings too 
+	 //TODO Can't save the full point due to the pointlocator superclass issue in DWR
+//	 DataPointDwr.saveFull(currentPoint,function(saveSettingsResponse){
+//		 stopImageFader("pointSaveImg");
+//	     if(!response.hasMessages && !saveSettingsResponse.hasMessages){
+//	         showMessage("pointMessage", mangoTranslate('dsEdit.pointSaved'));
+//	         dataPoints.setInputs(response.data.vo);
+//	         dataPoints.refresh();
+//	     }else if (response.hasMessages)
+//	         showDwrMessages(response.messages);
+//	     else if (saveSettingsResponse.hasMessages)
+//	    	 showDwrMessages(saveSettingsResponse.messages);
+//		 
+//	 });
  }
  
 

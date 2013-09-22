@@ -96,7 +96,6 @@ eventInstances = new StoreView({
 				var input = new Select({
 					name: 'alarmLevelFilter',
 					style: "width: 10em; color: gray",
-					multiple: true,
 					options: [
 					    {label : mangoMsg['common.all'], value: '-1'},
 						{label : mangoMsg['common.alarmLevel.none'], value: '0'},

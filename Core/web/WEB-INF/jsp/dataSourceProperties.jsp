@@ -1,12 +1,12 @@
 <%--
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
-    @author Matthew Lohbihler
+    Copyright (C) 2013 Infinite Automation. All rights reserved.
+    @author Terry Packer
 --%>
 <%@page import="com.serotonin.m2m2.Constants"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
 
-<c:set var="dwrClasses">DataSourceEditDwr,DataSourceDwr,DataPointDwr</c:set>
+<c:set var="dwrClasses">DataSourceEditDwr,DataSourceDwr,DataPointDwr,DataPointEditDwr</c:set>
 <c:if test="${!empty dataSource.definition.dwrClass}">
   <c:set var="dwrClasses">${dwrClasses},${dataSource.definition.dwrClass.simpleName}</c:set>
 </c:if>

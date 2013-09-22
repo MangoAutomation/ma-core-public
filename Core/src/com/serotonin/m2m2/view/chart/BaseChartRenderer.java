@@ -119,4 +119,8 @@ abstract public class BaseChartRenderer implements ChartRenderer, JsonSerializab
             return clazz;
         }
     }
+    
+    public void setTypeName(String typeName){
+    	//NoOp
+    }
 }

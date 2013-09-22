@@ -65,6 +65,8 @@ a.titleLink:hover {
 
 img { border-style: none; }
 
+
+
 /**
  * Header styles
  */
@@ -138,6 +140,8 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 .marB {
 	margin-bottom: 5px;
 }
+
+.styled-hr {border-top: 1px solid #F07800; }
 
 /**
  * Style for edit popup divs

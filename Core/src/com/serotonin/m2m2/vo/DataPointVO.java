@@ -134,10 +134,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO>implements Seriali
     // Properties
     //
     private int id = Common.NEW_ID;
-    @JsonProperty(read = false)
-    private String xid;
-    @JsonProperty
-    private String name;
+    //@JsonProperty(read = false)
+    //private String xid; //TODO Deal with this because it is part of the AbstractDao class
+//    @JsonProperty
+//    private String name;
     private int dataSourceId;
     @JsonProperty
     private String deviceName;
@@ -802,7 +802,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO>implements Seriali
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-
+        writer.writeEntry("xid", xid);
+        writer.writeEntry("name", name);
     	writer.writeEntry("loggingType", LOGGING_TYPE_CODES.getCode(loggingType));
         writer.writeEntry("intervalLoggingPeriodType", Common.TIME_PERIOD_CODES.getCode(intervalLoggingPeriodType));
         writer.writeEntry("intervalLoggingType", INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType));
@@ -815,7 +816,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO>implements Seriali
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-
+        
+    	//Don't read it ever xid = jsonObject.getString("xid");
+        name = jsonObject.getString("name");
+        
     	String text = jsonObject.getString("loggingType");
         if (text != null) {
             loggingType = LOGGING_TYPE_CODES.getId(text);

@@ -88,8 +88,27 @@
     
     <convert converter="bean" match="com.serotonin.m2m2.util.IntMessagePair"/>
     
-    <convert converter="bean" match="com.serotonin.m2m2.view.chart.*"/>
-    <convert converter="bean" match="com.serotonin.m2m2.view.text.*"/>
+<!-- <convert converter="bean" match="com.serotonin.m2m2.view.chart.*" /> -->
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.ChartRenderer" javascript="ChartRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.BaseChartRenderer" javascript="BaseChartRenderer"/>    
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.ImageChartRenderer" javascript="ImageChartRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.ImageFlipbookRenderer" javascript="ImageFlipbookRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.StatisticsChartRenderer" javascript="StatisticsChartRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.TableChartRenderer" javascript="TableChartRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.chart.TimePeriodChartRenderer" javascript="TimePeriodChartRenderer"/>
+    
+<!--     <convert converter="bean" match="com.serotonin.m2m2.view.text.*"/> -->
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.AnalogRenderer" javascript="AnalogRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.BaseTextRenderer" javascript="BaseTextRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.BinaryTextRenderer" javascript="BinaryTextRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.MultistateRenderer" javascript="MultistateRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.NoneRenderer" javascript="NoneRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.PlainRenderer" javascript="PlainRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.RangeRenderer" javascript="RangeRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.TextRenderer" javascript="TextRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.TimeRenderer" javascript="TimeRenderer"/>    
+    
+    
     <convert converter="bean" match="com.serotonin.m2m2.view.DynamicImage"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.ImageSet"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.ImplDefinition"/>
@@ -97,6 +116,7 @@
     
     <convert converter="bean" match="com.serotonin.m2m2.vo.bean.*"/>
     
+    <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.PointLocatorVO" javascript="PointLocatorVO"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO" javascript="AbstractPointLocatorVO">
       <param name="exclude" value="dataPointSaveHandler"/>
     </convert>
@@ -132,8 +152,8 @@
       <param name="exclude" value="definition,eventCodes"/>
     </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointSummary"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointVO">
-      <param name="include" value="id,xid,name,extendedName,dataSourceId,enabled,dataTypeMessage,configurationDescription,pointLocator,deviceName,dataTypeString"/>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointVO" javascript="DataPointVO">
+        <param name="exclude" value="typeKey"/>
     </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.User">
       <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,dataSourcePermissions,dataPointPermissions"/>

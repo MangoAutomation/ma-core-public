@@ -36,7 +36,17 @@
           </tr>
           
           <jsp:doBody/>
-        </table>        
+        </table> 
+        <hr class="styled-hr"></hr>
+        <jsp:include page="/WEB-INF/snippet/view/dataPoint/pointProperties.jsp" />
+        <hr class="styled-hr"></hr>
+        <jsp:include page="/WEB-INF/snippet/view/dataPoint/loggingProperties.jsp" />
+        <hr class="styled-hr"></hr>
+        <jsp:include page="/WEB-INF/snippet/view/dataPoint/textRenderer.jsp" />
+        <hr class="styled-hr"></hr>
+        <jsp:include page="/WEB-INF/snippet/view/dataPoint/chartRenderer.jsp" />
+        
+      
       </div>
 <!--       <div  class="borderDiv marB"> -->
 <!--         Could put the point settings here.  Would require fresh re-write of that page to fit here and have binding js and dwr. -->

@@ -86,4 +86,14 @@ abstract public class AbstractPointLocatorVO implements PointLocatorVO {
     public void validate(ProcessResult response, DataPointVO dpvo) {
         validate(response);
     }
+    
+    public String getClassName(){
+    	return getClass().getSimpleName();
+    }
+    
+    public void setClassName(String s){
+    	//NoOp
+    }
+    
+    
 }

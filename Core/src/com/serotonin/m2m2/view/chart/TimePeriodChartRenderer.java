@@ -14,6 +14,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 
 abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
@@ -28,13 +29,18 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
         return System.currentTimeMillis() - getDuration();
     }
 
+    public void setStartTime(long t){
+    	//NoOp
+    }
     /**
      * Convenience method for getting the duration of the chart period.
      */
     public long getDuration() {
         return Common.getMillis(timePeriod, numberOfPeriods);
     }
-
+    public void setDuration(long l){
+    	//NoOp
+    }
     public TimePeriodChartRenderer() {
         // no op
     }
@@ -103,4 +109,21 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
             throw new TranslatableJsonException("emport.error.chart.invalid", "timePeriodType", text,
                     Common.TIME_PERIOD_CODES.getCodeList());
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.view.chart.ChartRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult result) {
+		
+		if(!Common.TIME_PERIOD_CODES.isValidId(timePeriod)){
+			result.addContextualMessage("timePeriod", "validate.invalidValue");
+		}
+		
+		if(numberOfPeriods < 1)
+			result.addContextualMessage("numberOfPeriods", "validate.invalidValue");
+		
+	}
+    
+    
 }

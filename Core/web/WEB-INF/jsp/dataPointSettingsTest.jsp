@@ -1,18 +1,15 @@
 <%--
 
-    Page originally designed to test js, but now used as edit_data_source page
+    Page to test js on Data Point Settings View
 
     Copyright (C) 2013 Infinite Automation. All rights reserved.
     @author Terry Packer
 --%>
-
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<c:set var="dwrClasses">DataSourceDwr,DataPointDwr,DataPointEditDwr</c:set>
-<c:if test="${!empty dataSource.definition.dwrClass}">
-  <c:set var="dwrClasses">${dwrClasses},${dataSource.definition.dwrClass.simpleName}</c:set>
-</c:if>
-<tag:page dwr="${dwrClasses}" onload="init">
+<c:set var="dwrClasses">DataPointDwr,DataPointEditDwr</c:set>
+
+<tag:page dwr="${dwrClasses}" onload="initDataPointSettings">
   <jsp:attribute name="styles">
   <style type="text/css">
     .mangoForm ul { margin: 0; padding: 0; }
@@ -25,23 +22,12 @@
     <link href="${dojoURI}dojox/form/resources/Rating.css" type="text/css" rel="stylesheet"/>
   </style>
   
-  <script type="text/javascript">
-
-//       //Collect the table js interface
-//       var dojoConfig = {packages:[{name: "deltamation", location: "/resources/deltamation"}]};
-      
-//       //Load up our ds
-//       function init(){
-//     	    initProperties(${dataSource.id},${dataSource.enabled});
-//       }
-      
-      
-     </script>
+  <script type="text/javascript"></script>
   </jsp:attribute>
   
   <jsp:body>
        
-  <jsp:include page="/WEB-INF/jsp/dataSourceProperties.jsp"/>
+  <jsp:include page="/WEB-INF/snippet/view/dataPoint/dataPointSettings.jsp"/>
     
   </jsp:body>
 </tag:page>

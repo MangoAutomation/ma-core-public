@@ -57,7 +57,7 @@ abstract public class DwrConversionDefinition extends ModuleElementDefinition {
         dcc.setConverterType(converterType);
         conversions.add(dcc);
     }
-
+    
     /**
      * Declares that objects of the given class are allowed to be converted using the given converter type.
      * 
@@ -127,6 +127,14 @@ abstract public class DwrConversionDefinition extends ModuleElementDefinition {
      * @return a list of all conversions provided by this definition
      */
     public List<DwrClassConversion> getConversions() {
+    	
+    	//Ugly Hack for now to ensure all module conversions are javascript enabled
+    	if(conversions != null)
+	    	for(DwrClassConversion conversion : conversions){
+	    		String js = conversion.getClazz().getCanonicalName().substring(conversion.getClazz().getCanonicalName().lastIndexOf(".")+1);
+	    		conversion.addParameter("javascript", js);
+	    	}
+    	
         return conversions;
     }
 }

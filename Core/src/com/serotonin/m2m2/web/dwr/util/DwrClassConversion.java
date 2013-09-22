@@ -64,4 +64,11 @@ public class DwrClassConversion {
     public List<String> getExcludes() {
         return excludes;
     }
+
+	/**
+	 * @return
+	 */
+	public Map<String,String> getParameters() {
+		return parameters;
+	}
 }

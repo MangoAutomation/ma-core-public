@@ -39,7 +39,7 @@ public class DataPointEditDwr extends BaseDwr {
         Permissions.ensureDataSourcePermission(user, dataPoint.getDataSourceId());
         return dataPoint;
     }
-
+    
     //
     // Set text renderer
     //

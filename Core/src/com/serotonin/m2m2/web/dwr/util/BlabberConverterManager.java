@@ -56,15 +56,6 @@ public class BlabberConverterManager implements ConverterManager {
      */
     public void addConverter(String match, String type, @SuppressWarnings("rawtypes") Map params)
             throws IllegalArgumentException, InstantiationException, IllegalAccessException {
-        
-    	//TODO Re-Implement in Lifecycle.class later
-        // ugly hack because Lifecyle.class is not open source
-        // no way to add params from DwrClassConversion
-//        if (type.equals("beanWithJs")) {
-//            type = "bean";
-//            String js = match.substring(match.lastIndexOf(".")+1);
-//            params.put("javascript", js);
-//        }
 
     	Class<Converter> clazz = converterTypes.get(type);
         if (clazz == null) {
@@ -73,8 +64,9 @@ public class BlabberConverterManager implements ConverterManager {
             return;
         }
         
-    	//String js = match.substring(match.lastIndexOf(".")+1);
-    	//params.put("javascript", js);
+        //TODO fix this by modifying the ma-priv code, but until we have a good copy this is my plan!
+//    	String js = match.substring(match.lastIndexOf(".")+1);
+//    	params.put("javascript", js);
 
         Converter converter = clazz.newInstance();
         converter.setConverterManager(this);
@@ -274,7 +266,7 @@ public class BlabberConverterManager implements ConverterManager {
                     Map.Entry<String, Converter> entry = it.next();
                     String match = entry.getKey();
                     Converter conv = entry.getValue();
-
+                    
                     // JavaScript mapping is only applicable for compound converters
                     if (conv instanceof NamedConverter) {
                         NamedConverter boConv = (NamedConverter) conv;
@@ -302,7 +294,7 @@ public class BlabberConverterManager implements ConverterManager {
                 }
             }
         }
-
+        
         return null;
     }
 

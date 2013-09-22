@@ -12,6 +12,7 @@ import java.util.Map;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -89,4 +90,17 @@ public class ImageFlipbookRenderer extends BaseChartRenderer {
             limit = in.readInt();
         }
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.view.chart.ChartRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult result) {
+		
+		if((limit < 2)||(limit>50))
+			result.addContextualMessage("limit", "pointEdit.chart.invalidLimit");
+		
+	}
+    
+    
 }

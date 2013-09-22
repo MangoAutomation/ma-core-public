@@ -18,6 +18,9 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.view.ImplDefinition;
+import com.serotonin.m2m2.view.chart.BaseChartRenderer;
+import com.serotonin.m2m2.view.text.BaseTextRenderer;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -88,12 +91,16 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     @Override
     public ProcessResult getFull(int id) {
         DataPointVO vo;
-    
+    	User user = Common.getUser();
+        
+       
+ 
+        
         if(id == Common.NEW_ID){
             vo = dao.getNewVo();
             //TODO Need to sort this out another way, this will wreck 
             // when users have mulitple tabs open in a browser
-            DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+            DataSourceVO<?> ds = user.getEditDataSource();
             vo.setXid(dao.generateUniqueXid());
             vo.setPointLocator(ds.createPointLocator());
             vo.setDataSourceId(ds.getId());
@@ -103,7 +110,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
         }else{
             vo = dao.getFull(id);
         }
-        
+
+        //Should check permissions?
+        //Permissions.ensureDataSourcePermission(user, vo.getDataSourceId());
+        user.setEditPoint(vo);
         //TODO NEed to deal with point value defaulter
         
         ProcessResult response = new ProcessResult();
@@ -146,7 +156,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * 
      * @return
      */
-    @DwrPermission(admin = true)
+    @DwrPermission(user = true)
     public ProcessResult saveFull(DataPointVO vo) { // TODO combine with save()
         ProcessResult response = new ProcessResult();
         
@@ -191,5 +201,111 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
         response.addData("id", vo.getId()); //Add in case it fails
         return response;
     }
+    
+    /**
+     * Get a list of available Chart Renderers for this point
+     * @param vo
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult getChartRendererOptions(int dataTypeId) { 
+    	ProcessResult response = new ProcessResult();
+    	List<ImplDefinition> list = BaseChartRenderer.getImplementations(dataTypeId);
+    	response.addData("options",list);
+    	return response;
+    	
+    }
+    
+    /**
+     * Get a list of available Chart Renderers for this point
+     * @param vo
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult getTextRendererOptions(int dataTypeId) { 
+    	ProcessResult response = new ProcessResult();
+    	List<ImplDefinition> list = BaseTextRenderer.getImplementation(dataTypeId);
+    	response.addData("options",list);
+    	return response;
+    	
+    }
+    
+    
+    
+    /**
+     * Store the logging properties into the 
+     * current user's edit point
+     * 
+     * @param type
+     * @param period
+     * @param periodType
+     * @param intervalType
+     * @param tolerance
+     * @param discardExtremeValues
+     * @param discardHighLimit
+     * @param discardLowLimit
+     * @param purgeOverride
+     * @param purgeType
+     * @param purgePeriod
+     * @param defaultCacheSize
+     */
+    @DwrPermission(user = true)
+    public void storeEditLoggingProperties(int type, int period, int periodType,
+    		int intervalType, double tolerance, boolean discardExtremeValues, 
+    		double discardHighLimit, double discardLowLimit, 
+    		boolean purgeOverride, int purgeType, int purgePeriod, int defaultCacheSize) {
+    	
+    	DataPointVO dp = Common.getUser().getEditPoint();  
+    	if(dp!=null){
+    		dp.setLoggingType(type);
+    		dp.setIntervalLoggingPeriod(period);
+    		dp.setIntervalLoggingPeriodType(periodType);
+    		dp.setIntervalLoggingType(intervalType);
+    		dp.setTolerance(tolerance);
+    		dp.setDiscardExtremeValues(discardExtremeValues);
+    		dp.setDiscardHighLimit(discardHighLimit);
+    		dp.setDiscardLowLimit(discardLowLimit);
+    		dp.setPurgeOverride(purgeOverride);
+    		dp.setPurgeType(purgeType);
+    		dp.setPurgePeriod(purgePeriod);
+    		dp.setDefaultCacheSize(defaultCacheSize);
+    	}
+    	
+    }
+ 
+    @DwrPermission(user = true)
+    public void storeEditProperties(DataPointVO newDp){
+    	DataPointVO dp = Common.getUser().getEditPoint();  
+    	if(dp!=null){
+    		//Do we want the details set here?
+    		
+    		//General Properties
+    		dp.setEngineeringUnits(newDp.getEngineeringUnits());
+    		dp.setChartColour(newDp.getChartColour());
+    		dp.setPlotType(newDp.getPlotType());
+    		
+    		
+    		//Logging Properties
+    		dp.setLoggingType(newDp.getLoggingType());
+    		dp.setIntervalLoggingPeriod(newDp.getIntervalLoggingPeriod());
+    		dp.setIntervalLoggingPeriodType(newDp.getIntervalLoggingPeriodType());
+    		dp.setIntervalLoggingType(newDp.getIntervalLoggingType());
+    		dp.setTolerance(newDp.getTolerance());
+    		dp.setDiscardExtremeValues(newDp.isDiscardExtremeValues());
+    		dp.setDiscardHighLimit(newDp.getDiscardHighLimit());
+    		dp.setDiscardLowLimit(newDp.getDiscardLowLimit());
+    		dp.setPurgeOverride(newDp.isPurgeOverride());
+    		dp.setPurgeType(newDp.getPurgeType());
+    		dp.setPurgePeriod(newDp.getPurgePeriod());
+    		dp.setDefaultCacheSize(dp.getDefaultCacheSize());
+    		
+    		//Chart Renderer
+    		dp.setChartRenderer(newDp.getChartRenderer());
+    		
+    		//Text Renderer
+    		dp.setTextRenderer(newDp.getTextRenderer());
+    	}
+    }
+
     
 }

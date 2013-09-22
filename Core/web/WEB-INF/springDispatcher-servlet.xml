@@ -27,6 +27,9 @@
       <props>
         <!-- All user URLs -->
         <prop key="/data_point_edit.shtm">dataPointEditController</prop>
+        <prop key="/data_point_settings.shtm">dataPointSettingsController</prop>
+        <prop key="/data_point_settings_test.shtm">dataPointSettingsTestController</prop>
+        
         <!--  <prop key="/data_source_edit.shtm">dataSourceEditController</prop> -->
         
         <prop key="/data_source.shtm">dataSourceController</prop>
@@ -92,6 +95,21 @@
     <property name="messageCodesResolver"><ref bean="defaultMessageCodeResolver"/></property>
   </bean>
   
+  <!-- Kludge for now to route a special version of the edit controller to the data point view -->
+  <bean id="dataPointSettingsController" class="com.serotonin.m2m2.web.mvc.controller.DataPointEditController">
+    <property name="commandName"><value>form</value></property>
+    <property name="commandClass"><value>com.serotonin.m2m2.vo.DataPointVO</value></property>
+    <property name="formView"><value>/WEB-INF/snippet/view/dataPoint/dataPointSettings.jsp</value></property>
+    <property name="successView"><value>data_point_settings.shtm</value></property>
+    <property name="messageCodesResolver"><ref bean="defaultMessageCodeResolver"/></property>
+  </bean> 
+  <bean id="dataPointSettingsTestController" class="com.serotonin.m2m2.web.mvc.controller.DataPointEditController">
+    <property name="commandName"><value>form</value></property>
+    <property name="commandClass"><value>com.serotonin.m2m2.vo.DataPointVO</value></property>
+    <property name="formView"><value>/WEB-INF/jsp/dataPointSettingsTest.jsp</value></property>
+    <property name="successView"><value>data_point_settings.shtm</value></property>
+    <property name="messageCodesResolver"><ref bean="defaultMessageCodeResolver"/></property>
+  </bean>   
 <!--   <bean id="dataSourceEditController" class="com.serotonin.m2m2.web.mvc.controller.DataSourceEditController"> -->
 <!--     <property name="viewName"><value>/WEB-INF/jsp/dataSourceEdit.jsp</value></property> -->
 <!--     <property name="errorViewName"><value>/data_sources.shtm</value></property> -->

@@ -37,6 +37,11 @@ String[] mangoMessageKeys = {
 	    "common.time",
 		"common.totalResults",
 		
+		"chartRenderer.none",
+		"chartRenderer.image",
+		"chartRenderer.flipbook",
+		"chartRenderer.statistics",
+		"chartRenderer.table",
 		
 	    "dsList.name",
 	    "dsList.type",
@@ -70,6 +75,17 @@ String[] mangoMessageKeys = {
         
 	    "notes.addNote",
 	    
+	    "pointEdit.chart.missingLimit",
+	    "pointEdit.chart.invalidLimit",
+	    "pointEdit.chart.missingPeriods",
+	    "pointEdit.chart.invalidPeriods",
+	    "pointEdit.logging.type.change",
+	    "pointEdit.logging.type.all",
+	    "pointEdit.logging.type.never",
+	    "pointEdit.logging.type.interval",
+	    "pointEdit.logging.type.tsChange",
+	    
+	    
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",
         
@@ -83,6 +99,15 @@ String[] mangoMessageKeys = {
         "table.missingKey",
         "table.error.wrongId",
         "table.error.dwr",
+        
+        "textRenderer.analog",
+        "textRenderer.binary",
+        "textRenderer.multistate",
+        "textRenderer.none",
+        "textRenderer.plain",
+        "textRenderer.range",
+        "textRenderer.time",
+        "textRenderer.engineeringUnits",        
         
         "view.browse",
         "view.clear",

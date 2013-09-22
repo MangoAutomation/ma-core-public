@@ -8,11 +8,11 @@ var dataPointsDataSourceId;
 //TO Eventually be merged into Store View
 var pointTableFilter = new Array();
 
-require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox",
+require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox","dojox/layout/ContentPane",
          "dojo/dom-style","dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
          "dojo/_base/fx", "dojo/fx","dojo/query","dojo/dom-construct","dijit/form/TextBox",
          "dojo/domReady!"],
-function(StoreView, CheckBox, ValidationTextBox,
+function(StoreView, CheckBox, ValidationTextBox,ContentPane,
 		domStyle,html,put,when,on,
 		baseFx,coreFx,query,domConstruct,TextBox) {
 
@@ -195,14 +195,35 @@ dataPoints = new StoreView({
     	this.xid.set('value',vo.xid);
     	dataPointsDataSourceId = vo.dataSourceId;
     	
+    	//Point Properties
+    	setPointProperties(vo);
+    	setLoggingProperties(vo);
+    	setTextRenderer(vo);
+    	setChartRenderer(vo);
+    	
     	//this.enabled.set('value',vo.enabled);
     	//Setup for the point Impl CB
     	currentPoint = vo;
     	if( typeof editPointCBImpl == 'function') editPointCBImpl(vo.pointLocator);
+		
+    	
 
     },
     
     getInputs: function() {
+    	
+    	//This doesn't work right yet
+    	//Work a little magic to set the abstract point locator classname
+    	//if(currentPoint.pointLocator !== null)
+    	//	currentPoint.pointLocator['$dwrClassName'] = currentPoint.pointLocator.className;
+    	
+    	//Point Properties
+    	getPointProperties(currentPoint); //Set the values from the inputs
+    	getLoggingProperties(currentPoint);
+    	getTextRenderer(currentPoint);
+    	getChartRenderer(currentPoint);
+    	
+    	
         //Just return the global that the modules use
         return currentPoint;
  
@@ -282,11 +303,9 @@ dataPoints = new StoreView({
         if (options.voToLoad) {
             _this.setInputs(options.voToLoad);
         	hideContextualMessages(_this.edit);
+
         	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
         	myEdit.selectChild('dataPointDetails-tab');
-
-//            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
-//                            coreFx.wipeIn({node: _this.edit})]).play();
         }
         else {
             // always load from dwr
@@ -297,10 +316,9 @@ dataPoints = new StoreView({
                 _this.setInputs(vo);
                 //Hide contextual messages
             	hideContextualMessages(_this.edit);
+            	            	
             	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
             	myEdit.selectChild('dataPointDetails-tab');
-                //coreFx.combine([baseFx.fadeIn({node: _this.edit}),
-                //                coreFx.wipeIn({node: _this.edit})]).play();
             }, function(message) {
                 // wrong id, dwr error
                 addErrorDiv(message);
@@ -315,7 +333,49 @@ dataPoints = new StoreView({
     },
     
     
+    loadSettings: function(id,targetContentPane){
+    	//Create the base URL
+    	var xhrUrl = "/data_point_settings.shtm?"
+    		
+    	//Do we have an ID To pass in
+    	if(typeof id != 'undefined')
+    		xhrUrl = xhrUrl + "dpid=" + id; //could also use pedid
+    	else{
+    		//For now don't allow new points settings as old page didn't
+    	}
+    		
+    	var deferred = targetContentPane.set('href',xhrUrl); //Content Pane get
+ 
+    	deferred.then(function(value){
+    		//When Done, Could put callback here
+    	},function(err){
+    		addErrorDiv(err);
+    	},function(update){
+    		//Progress Info
+    	});
+    	
+    	
+    }
+    
+    
 });
+
+////Content Div for loading in DS Pages
+//dataPointSettingsDiv = new ContentPane({
+//		executeScripts: true,
+//		parseOnLoad: true,
+//		onDownloadError: function(error){
+//			addErrorDiv(error);
+//		}
+//}, "dataPointSettingsDiv");	
+
+//Temp callback to editDataSourceDiv to replicate dojo.ready, 
+//to be replaced with scriptHasHooks concept from dojox/dijit content pane
+//dojo.connect(dataPointSettingsDiv, "onDownloadEnd", function(){
+//	   initDataPointSettings(); //Call to inside of div
+//	   dataPointSettingsDiv.startup();
+//	   dataPointSettingsDiv.resize();
+//	});
 
 
 

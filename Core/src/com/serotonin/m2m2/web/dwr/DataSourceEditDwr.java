@@ -97,28 +97,31 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     }
 
     protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-
-        DataPointVO dp;
-        if (pointId == Common.NEW_ID) {
-            dp = new DataPointVO();
-            dp.setXid(new DataPointDao().generateUniqueXid());
-            dp.setDataSourceId(ds.getId());
-            dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
-            dp.setDeviceName(ds.getName());
-            dp.setPointLocator(ds.createPointLocator());
-            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-            dp.defaultTextRenderer();
-            if (defaulter != null)
-                defaulter.setDefaultValues(dp);
-        }
-        else {
-            dp = new DataPointDao().getDataPoint(pointId);
-            if (dp != null && dp.getDataSourceId() != ds.getId())
-                throw new RuntimeException("Data source id mismatch");
-            if (defaulter != null)
-                defaulter.updateDefaultValues(dp);
-        }
+        //Added to allow saving point settings from data point edit view
+        DataPointVO dp = Common.getUser().getEditPoint();  
+       
+//        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        
+//        DataPointVO dp;
+//        if (pointId == Common.NEW_ID) {
+//            dp = new DataPointVO();
+//            dp.setXid(new DataPointDao().generateUniqueXid());
+//            dp.setDataSourceId(ds.getId());
+//            dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
+//            dp.setDeviceName(ds.getName());
+//            dp.setPointLocator(ds.createPointLocator());
+//            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+//            dp.defaultTextRenderer();
+//            if (defaulter != null)
+//                defaulter.setDefaultValues(dp);
+//        }
+//        else {
+//            dp = new DataPointDao().getDataPoint(pointId);
+//            if (dp != null && dp.getDataSourceId() != ds.getId())
+//                throw new RuntimeException("Data source id mismatch");
+//            if (defaulter != null)
+//                defaulter.updateDefaultValues(dp);
+//        }
 
         return dp;
     }
@@ -140,16 +143,27 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (id == Common.NEW_ID)
             // Limit enforcement.
             DataSourceTypePointsLimit.checkLimit(dp.getDataSourceTypeName(), response);
-
-        if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (!new DataPointDao().isXidUnique(xid, id))
-            response.addContextualMessage("xid", "validate.xidUsed");
-        else if (StringValidation.isLengthGreaterThan(xid, 50))
-            response.addContextualMessage("xid", "validate.notLongerThan", 50);
-
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("name", "dsEdit.validate.required");
+        
+        //New validation on save for all settings
+        dp.validate(response);
+        
+        if(dp.getChartRenderer() != null)
+        	dp.getChartRenderer().validate(response);
+        
+        //TODO Need to validate
+        //dp.getTextRenderer().validate()
+        
+        
+        
+//        if (StringUtils.isBlank(xid))
+//            response.addContextualMessage("xid", "validate.required");
+//        else if (!new DataPointDao().isXidUnique(xid, id))
+//            response.addContextualMessage("xid", "validate.xidUsed");
+//        else if (StringValidation.isLengthGreaterThan(xid, 50))
+//            response.addContextualMessage("xid", "validate.notLongerThan", 50);
+//
+//        if (StringUtils.isBlank(name))
+//            response.addContextualMessage("name", "dsEdit.validate.required");
 
         locator.validate(response, dp);
 
