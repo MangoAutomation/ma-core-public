@@ -4,8 +4,8 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.vo.event.PointEventDetectorVO"%>
-<div class="borderDiv">
-  <table id="eventDetectorTable">
+<div>
+  <table>
     <tr><td colspan="2">
       <span class="smallTitle"><fmt:message key="pointEdit.detectors.eventDetectors"/></span>
       <tag:help id="eventDetectors"/>
@@ -14,11 +14,7 @@
     <tr>
       <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.type"/></td>
       <td class="formField">
-        <select id="eventDetectorSelect">
-          <c:forEach items="${eventDetectors}" var="eddef">
-            <option value="${eddef.id}"><fmt:message key="${eddef.nameKey}"/></option>
-          </c:forEach>
-        </select>
+        <input id="eventDetectorSelect"></input>
         <tag:img png="add" title="common.add" onclick="pointEventDetectorEditor.addEventDetector();"/>
       </td>
     </tr>
@@ -28,7 +24,9 @@
         <fmt:message key="pointEdit.detectors.empty"/>
       </div>
     </td></tr>
+   
   </table>
+  <table id="eventDetectorTable"></table>
   
   <table style="display:none;">
     <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>">
@@ -457,6 +455,42 @@
 </div>
 
 <script type="text/javascript">
+  dojo.require("dijit.form.Select");
+  
+  function setEventDetectors(vo){
+	  
+	  DataPointDwr.getEventDetectorOptions(vo.pointLocator.dataTypeId,function(response){
+
+          var options = [];
+          for(var i=0; i<response.data.options.length; i++){
+              options.push({
+                  label: mangoMsg[response.data.options[i].nameKey],
+                  value: response.data.options[i].id,
+              })
+          }
+          pointEventDetectorEditor.eventDetectorSelect.options = [];
+          pointEventDetectorEditor.eventDetectorSelect.addOption(options);
+
+		  //Remove all rows from the table
+		  dwr.util.removeAllRows("eventDetectorTable");
+          show("emptyListMessage");
+		  //Fill with our event detectors
+	      DataPointEditDwr.getEventDetectors(pointEventDetectorEditor.initCB);
+	  });
+	  
+  }
+  
+  
+  /*
+   * For now just use a DWR Call to fuse the saving into the current point
+   * This is messy but this page is huge
+   */
+  function getEventDetectors(vo,callback){
+	  pointEventDetectorEditor.save(callback);
+  }
+  
+  
+  
   function getPedId(node) {
       while (!(node.pedId))
           node = node.parentNode;
@@ -465,18 +499,27 @@
 
   function PointEventDetectorEditor() {
       var detectorCount = 0;
-  
+      
+      this.eventDetectorSelect = new dijit.form.Select({
+          name: 'eventDetectorSelect',
+          
+      },"eventDetectorSelect");
+      
       this.init = function() {
-          DataPointEditDwr.getEventDetectors(this.initCB);
+    	   //Nothing for now
+    	  
       }
       
       this.initCB = function(detectorList) {
-          for (var i=0; i<detectorList.length; i++)
-              pointEventDetectorEditor.addEventDetectorCB(detectorList[i]);
+   		  for (var i=0; i<detectorList.length; i++)
+   			  pointEventDetectorEditor.addEventDetectorCB(detectorList[i]);
+
       }
       
       this.addEventDetector = function() {
-          DataPointEditDwr.addEventDetector($get("eventDetectorSelect"), this.addEventDetectorCB);
+    	  var value = this.eventDetectorSelect.value;
+    	  
+          DataPointEditDwr.addEventDetector(value, this.addEventDetectorCB);
       }
   
       this.addEventDetectorCB = function(detector) {
@@ -785,5 +828,5 @@
       }
   }
   var pointEventDetectorEditor = new PointEventDetectorEditor();
-  dojo.ready(pointEventDetectorEditor, "init");
+  
 </script>

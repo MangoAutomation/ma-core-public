@@ -107,6 +107,12 @@
      
      getStatusMessages();
      
+     //Init the point settings
+     textRendererEditor.init();
+     pointEventDetectorEditor.init();
+     
+     
+     
  }
  
 
@@ -139,7 +145,7 @@
          }
      }
      getAlarms();
-
+     
  }
  
  /**
@@ -281,12 +287,30 @@ function deletePoint() {
 
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
+     
+	//Point Properties
+	getPointProperties(currentPoint); //Set the values from the inputs
+	getLoggingProperties(currentPoint);
+	getTextRenderer(currentPoint);
+	getChartRenderer(currentPoint);
+	getEventDetectors(currentPoint,finishSavePoint); //
+
+ }
+ 
+ function collectPointSettings(callback){
+	 
+ }
+ 
+ function finishSavePoint(){
+	 
+	 currentPoint = dataPoints.getInputs();
      var locator = currentPoint.pointLocator;
      
      //Store the Edit Properties
      var myPoint = dojo.clone(currentPoint);
      delete myPoint.pointLocator; //For bug where we aren't mapping the subclasses via dwr appropriately
 
+	 
      // Prevents DWR warnings. These properties are read-only. If sent back to the server
      // DWR will say as much. Deleting the properties saves a bit of logging.
      delete locator.configurationDescription;
@@ -296,6 +320,7 @@ function deletePoint() {
          savePointImpl(locator);
      });
  }
+ 
  
  /**
   * Method CB from Dwr save in module

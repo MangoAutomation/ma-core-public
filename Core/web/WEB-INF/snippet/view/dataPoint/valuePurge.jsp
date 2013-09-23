@@ -5,6 +5,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <script type="text/javascript">
+
   function purgeNowAllChanged() {
       var all = $get("purgeNowAll");
       setDisabled("purgeNowPeriod", all);
@@ -30,7 +31,7 @@
   }
 </script>
 
-<div class="borderDiv marB marR">
+<div>
   <table>
     <tr><td colspan="3">
       <span class="smallTitle"><fmt:message key="pointEdit.purge.purgeNow"/></span>
@@ -40,8 +41,8 @@
     <tr>
       <td class="formLabelRequired"><fmt:message key="pointEdit.purge.olderThan"/></td>
       <td class="formField">
-        <input id="purgeNowPeriod" type="text" value="${form.purgePeriod}" class="formShort"/>
-        <tag:timePeriods id="purgeNowType" value="${form.purgeType}" min="true" h="true" d="true" w="true" mon="true" y="true"/>
+        <input id="purgeNowPeriod" type="text" value="1" class="formShort"/>
+        <tag:timePeriods id="purgeNowType" value="7" min="true" h="true" d="true" w="true" mon="true" y="true"/>
       </td>
     </tr>
     

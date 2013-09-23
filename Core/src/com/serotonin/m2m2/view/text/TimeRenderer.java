@@ -12,6 +12,7 @@ import java.util.Date;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -121,4 +122,15 @@ public class TimeRenderer extends BaseTextRenderer {
             conversionExponent = in.readInt();
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult result) {
+		if((format == null)||(format.equals("")))
+			result.addContextualMessage("format", "validate.required");
+
+		
+	}
 }

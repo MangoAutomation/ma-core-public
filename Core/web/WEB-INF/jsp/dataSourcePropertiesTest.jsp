@@ -29,11 +29,12 @@
 
 //       //Collect the table js interface
 //       var dojoConfig = {packages:[{name: "deltamation", location: "/resources/deltamation"}]};
+      dojo.ready(init);
       
-//       //Load up our ds
-//       function init(){
-//     	    initProperties(${dataSource.id},${dataSource.enabled});
-//       }
+      //Load up our ds
+      function init(){
+    	    initProperties(${dataSource.id},${dataSource.enabled});
+      }
       
       
      </script>

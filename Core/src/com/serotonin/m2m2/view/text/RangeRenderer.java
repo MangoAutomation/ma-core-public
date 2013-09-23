@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -144,4 +145,23 @@ public class RangeRenderer extends BaseTextRenderer {
             rangeValues = (List<RangeValue>) in.readObject();
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult result) {
+		if((format == null)||(format.equals("")))
+			result.addContextualMessage("format", "validate.required");
+		
+		if((rangeValues == null)||(rangeValues.size() == 0))
+			result.addContextualMessage("rangeValues", "validate.atLeast1");
+		
+		//TODO Validate the range values too
+	}
+    
+    
+    
+    
+    
 }

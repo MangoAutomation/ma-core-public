@@ -39,8 +39,36 @@
     <script language="javascript" type="text/javascript" src="/resources/stores.js"></script>
     <!-- Import the scripts for the table -->
  	<script language="javascript" type="text/javascript" src="/resources/dataSource.js"></script>
+    <script language="javascript" type="text/javascript" src="/resources/view/dataPoint/allDataPoints.js"></script>
+
+    <div data-dojo-type="dijit/layout/TabContainer" data-dojo-props="doLayout: false"  style="height: auto;">
+        <div data-dojo-type="dijit/layout/ContentPane" title='<fmt:message key="dsList.dataSources"/>' >
+	        <!-- Table Div -->
+	        <div id="dataSourceTableDiv" class="borderDivPadded marB" >
+	            <tag:img png="icon_ds" title="dsList.dataSources"/>
+	            <span class="smallTitle"><fmt:message key="dsList.dataSources"/></span>
+	            <tag:help id="dataSourceList"/>
+	            
+	            <div id="dataSourceTable"></div>
+	        
+	            <span class="smallTitle"><fmt:message key="common.add"/></span>
+	            <tag:img png="add" title="common.add" id="addDataSource" onclick="dataSources.open(-1)"/>
+	            <!-- Select Type of DataSource -->
+	            <select id="dataSourceTypes" ></select>
+	            
+	         </div>
+        </div>  
+
+	    <div data-dojo-type="dijit/layout/ContentPane" title='<fmt:message key="header.dataPoints"/>'>
+		    <div id="allPointsTableDiv" class="borderDivPadded marB" >
+		        <tag:img png="icon_comp" title="dsEdit.points.details"/>
+		        <span class="smallTitle"><fmt:message key="header.dataPoints"/></span>
+		        <div id="allDataPointsTable"></div>
+		    </div>  
+        </div>
+    </div>
     
-    <jsp:include page="/WEB-INF/snippet/dataSourceTable.jsp"/>    
-    
+<!-- Include the Edit Div -->
+<jsp:include page="/WEB-INF/snippet/dataSourceEdit.jsp"/>    
   </jsp:body>
 </tag:page>

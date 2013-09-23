@@ -42,9 +42,13 @@
         <hr class="styled-hr"></hr>
         <jsp:include page="/WEB-INF/snippet/view/dataPoint/loggingProperties.jsp" />
         <hr class="styled-hr"></hr>
+        <jsp:include page="/WEB-INF/snippet/view/dataPoint/valuePurge.jsp" />
+        <hr class="styled-hr"></hr>
         <jsp:include page="/WEB-INF/snippet/view/dataPoint/textRenderer.jsp" />
         <hr class="styled-hr"></hr>
         <jsp:include page="/WEB-INF/snippet/view/dataPoint/chartRenderer.jsp" />
+        <hr class="styled-hr"></hr>
+        <jsp:include page="/WEB-INF/snippet/view/dataPoint/eventDetectors.jsp" />
         
       
       </div>

@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -167,4 +168,22 @@ public class BinaryTextRenderer extends BaseTextRenderer {
             oneColour = SerializationHelper.readSafeUTF(in);
         }
     }
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult result) {
+		
+		//The colours can be null (that's default)
+		if((zeroLabel == null)||(zeroLabel.equals("")))
+			result.addContextualMessage("zeroLabel", "validate.required");
+		if((oneLabel == null)||(oneLabel.equals("")))
+			result.addContextualMessage("oneLabel", "validate.required");
+		
+	}
+  
+    
+    
 }

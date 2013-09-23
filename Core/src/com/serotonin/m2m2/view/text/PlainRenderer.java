@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -108,4 +109,10 @@ public class PlainRenderer extends BaseTextRenderer {
             suffix = SerializationHelper.readSafeUTF(in);
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult result) {}
 }

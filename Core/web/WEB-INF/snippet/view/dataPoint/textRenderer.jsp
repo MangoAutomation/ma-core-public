@@ -27,7 +27,7 @@
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.text.format"/></td>
         <td class="formField">
-          <input id="textRendererTimeFormat" type="text"/>
+          <input id="format" type="text"/>
           <div id="datetimeFormatHelpDiv"><tag:help id="datetimeFormats"/></div>
         </td>
       </tr>
@@ -126,10 +126,6 @@
     </tbody>
     <tbody id="rangeValuesRow" style="display:none;">
       <tr>
-        <td class="formLabelRequired"><fmt:message key="pointEdit.text.format"/></td>
-        <td class="formField"><input id="textRendererRangeFormat" type="text"/></td>
-      </tr>
-      <tr>
         <td colspan="2">
           <table>
             <tr>
@@ -175,12 +171,6 @@
 <script type="text/javascript">
   dojo.require("dijit.ColorPalette");
   dojo.require("dijit.form.Select");
-
-  var textRendererSelect = new dijit.form.Select({
-      name: 'textRendererSelect',
-  },"textRendererSelect");
-  
-  textRendererSelect.watch("value",textRendererChanged);
   
   /**
    * On Select change re-render view
@@ -203,6 +193,7 @@
           hide("conversionExponentRow");
           hide("multistateValuesRow");
       }else if (value == "textRendererMultistate"){
+    	  textRendererEditor.refreshMultistateList(); //Refresh the html table
     	  hide("datetimeFormatHelpDiv");
           hide("suffixRow");
           hide("formatRow");
@@ -227,6 +218,7 @@
           hide("multistateValuesRow");
           hide("binaryValuesRow");
       }else if (value == "textRendererRange"){
+    	  textRendererEditor.refreshRangeList(); //Refresh the html table
     	  hide("datetimeFormatHelpDiv");
     	  show("formatRow");
     	  hide("suffixRow");
@@ -261,29 +253,30 @@
                   value: response.data.options[i].name,
               })
           }
-          textRendererSelect.options = [];
-          textRendererSelect.addOption(options);
-          
+          textRendererEditor.textRendererSelect.options = [];
+          textRendererEditor.textRendererSelect.addOption(options);
+          textRendererEditor.multistateValues = new Array(); //clear out
+          textRendererEditor.rangeValues = new Array(); //clear out
           if(vo.textRenderer != null){
-              textRendererSelect.set('value',vo.textRenderer.typeName);
+        	  textRendererEditor.textRendererSelect.set('value',vo.textRenderer.typeName);
 
               if (vo.textRenderer.typeName == "textRendererAnalog"){
             	  dojo.byId("format").value = vo.textRenderer.format;
                   dojo.byId("suffix").value = vo.textRenderer.suffix;
               }else if (vo.textRenderer.typeName == "textRendererBinary"){
             	  dojo.byId("zeroLabel").value = vo.textRenderer.zeroLabel;
-            	  dijit.byId("zeroColour").selectedColour = vo.textRenderer.zeroColour;
+            	  textRendererEditor.handlerBinaryZeroColour( vo.textRenderer.zeroColour);
             	  dojo.byId("oneLabel").value = vo.textRenderer.oneLabel;
-            	  dijit.byId("oneColour").selectedColour = vo.textRenderer.oneColour;
+            	  textRendererEditor.handlerBinaryOneColour(vo.textRenderer.oneColour);
               }else if (vo.textRenderer.typeName == "textRendererMultistate"){
-            	  setMultistateValues(vo.textRenderer.multistateValues);
+            	  textRendererEditor.setMultistateValues(vo.textRenderer.multistateValues);
               }else if (vo.textRenderer.typeName == "textRendererNone"){
             	  //Nothing
               }else if (vo.textRenderer.typeName == "textRendererPlain"){
             	  dojo.byId("suffix").value = vo.textRenderer.suffix;
               }else if (vo.textRenderer.typeName == "textRendererRange"){
             	  dojo.byId("format").value = vo.textRenderer.format;
-            	  setRangeValues(vo.textRenderer.rangeValues);
+            	  textRendererEditor.setRangeValues(vo.textRenderer.rangeValues);
               }else if (vo.textRenderer.typeName == "textRendererTime"){
             	  dojo.byId("format").value = vo.textRenderer.format;
             	  dojo.byId("conversionExponent").value = vo.textRenderer.conversionExponent;
@@ -298,87 +291,63 @@
    * Get the values from the page and put into current data point VO
    */
   function getTextRenderer(vo){
-      if(vo.textRenderer != null){
-          textRendererSelect.set('value',vo.textRenderer.typeName);
 
-          if (vo.textRenderer.typeName == "textRendererAnalog"){
-              dojo.byId("format").value = vo.textRenderer.format;
-              dojo.byId("suffix").value = vo.textRenderer.suffix;
-          }else if (vo.textRenderer.typeName == "textRendererBinary"){
-              dojo.byId("zeroLabel").value = vo.textRenderer.zeroLabel;
-              dijit.byId("zeroColour").selectedColour = vo.textRenderer.zeroColour;
-              dojo.byId("oneLabel").value = vo.textRenderer.oneLabel;
-              dijit.byId("oneColour").selectedColour = vo.textRenderer.oneColour;
-          }else if (vo.textRenderer.typeName == "textRendererMultistate"){
-              setMultistateValues(vo.textRenderer.multistateValues);
-          }else if (vo.textRenderer.typeName == "textRendererNone"){
-              //Nothing
-          }else if (vo.textRenderer.typeName == "textRendererPlain"){
-              vo.textRenderer.suffix = dojo.byId("suffix").value;
-          }else if (vo.textRenderer.typeName == "textRendererRange"){
-              dojo.byId("format").value = vo.textRenderer.format;
-              setRangeValues(vo.textRenderer.rangeValues);
-          }else if (vo.textRenderer.typeName == "textRendererTime"){
-              dojo.byId("format").value = vo.textRenderer.format;
-              dojo.byId("conversionExponent").value = vo.textRenderer.conversionExponent;
-          }else{
-              alert("Unknown text renderer: " + vo.textRenderer.typeName);
-          }
-      }//Not null
+	   var typeName = textRendererEditor.textRendererSelect.get('value');
+
+       if (typeName == "textRendererAnalog"){
+     	  vo.textRenderer = new AnalogRenderer();
+           vo.textRenderer.format = dojo.byId("format").value;
+           vo.textRenderer.suffix = dojo.byId("suffix").value;
+       }else if (typeName == "textRendererBinary"){
+     	  vo.textRenderer = new BinaryTextRenderer();
+           vo.textRenderer.zeroLabel = dojo.byId("zeroLabel").value;
+           vo.textRenderer.zeroColour = dijit.byId("zeroColour").selectedColour;
+           vo.textRenderer.oneLabel = dojo.byId("oneLabel").value;
+           vo.textRenderer.oneColour = dijit.byId("oneColour").selectedColour;
+       }else if (typeName == "textRendererMultistate"){
+     	  vo.textRenderer = new MultistateRenderer();
+     	  vo.textRenderer.multistateValues = textRendererEditor.multistateValues;
+       }else if (typeName == "textRendererNone"){
+           vo.textRenderer = new NoneRenderer();
+       }else if (typeName == "textRendererPlain"){
+     	  vo.textRenderer = new PlainRenderer();
+           vo.textRenderer.suffix = dojo.byId("suffix").value;
+       }else if (typeName == "textRendererRange"){
+     	  vo.textRenderer = new RangeRenderer();
+           vo.textRenderer.format = dojo.byId("format").value;
+           vo.textRenderer.rangeValues = textRendererEditor.rangeValues;
+       }else if (typeName == "textRendererTime"){
+     	  vo.textRenderer = new TimeRenderer();
+           vo.textRenderer.format = dojo.byId("format").value;
+           vo.textRenderer.conversionExponent = dojo.byId("conversionExponent").value;
+       }else{
+           alert("Unknown text renderer: " + vo.textRenderer.typeName);
+       }
   }
   
+  /**
+   * Main Editing Logic
+   */
   function TextRendererEditor() {
+	  this.textRendererSelect;
       var currentTextRenderer;
-      var multistateValues = new Array();
-      var rangeValues = new Array();
+      
+      this.multistateValues = new Array();
+      this.rangeValues = new Array();
+      
       
       this.init = function() {
           // Colour handler events
           dijit.byId("textRendererRangeColour").onChange = this.handlerRangeColour;
           dijit.byId("textRendererMultistateColour").onChange = this.handlerMultistateColour;
-          dijit.byId("textRendererBinaryZeroColour").onChange = this.handlerBinaryZeroColour;
-          dijit.byId("textRendererBinaryOneColour").onChange = this.handlerBinaryOneColour;
+          dijit.byId("zeroColour").onChange = this.handlerBinaryZeroColour;
+          dijit.byId("oneColour").onChange = this.handlerBinaryOneColour;
           
-          // Figure out which fields to populate with data.
-          <c:choose>
-            <c:when test='${form.textRenderer.typeName == "textRendererAnalog"}'>
-              $set("textRendererAnalogFormat", "${sst:dquotEncode(form.textRenderer.format)}");
-              $set("textRendererAnalogSuffix", "${sst:dquotEncode(form.textRenderer.suffix)}");
-            </c:when>
-            <c:when test='${form.textRenderer.typeName == "textRendererBinary"}'>
-              $set("textRendererBinaryZero", "${sst:dquotEncode(form.textRenderer.zeroLabel)}");
-              textRendererEditor.handlerBinaryZeroColour("${sst:dquotEncode(form.textRenderer.zeroColour)}");
-              $set("textRendererBinaryOne", "${sst:dquotEncode(form.textRenderer.oneLabel)}");
-              textRendererEditor.handlerBinaryOneColour("${sst:dquotEncode(form.textRenderer.oneColour)}");
-            </c:when>
-            <c:when test='${form.textRenderer.typeName == "textRendererMultistate"}'>
-              <c:forEach items="${form.textRenderer.multistateValues}" var="msValue">
-                textRendererEditor.addMultistateValue("${sst:dquotEncode(msValue.key)}",
-                		"${sst:dquotEncode(msValue.text)}", "${sst:dquotEncode(msValue.colour)}");
-              </c:forEach>
-            </c:when>
-            <c:when test='${form.textRenderer.typeName == "textRendererNone"}'>
-            </c:when>
-            <c:when test='${form.textRenderer.typeName == "textRendererPlain"}'>
-              $set("textRendererPlainSuffix", "${sst:dquotEncode(form.textRenderer.suffix)}");
-            </c:when>
-            <c:when test='${form.textRenderer.typeName == "textRendererRange"}'>
-              $set("textRendererRangeFormat", "${sst:dquotEncode(form.textRenderer.format)}");
-              <c:forEach items="${form.textRenderer.rangeValues}" var="rgValue">
-                textRendererEditor.addRangeValue("${rgValue.from}", "${rgValue.to}", "${sst:dquotEncode(rgValue.text)}",
-                        "${sst:dquotEncode(rgValue.colour)}");
-              </c:forEach>
-            </c:when>
-            <c:when test='${form.textRenderer.typeName == "textRendererTime"}'>
-              $set("textRendererTimeFormat", "${sst:dquotEncode(form.textRenderer.format)}");
-              $set("textRendererTimeConversionExponent", "${sst:dquotEncode(form.textRenderer.conversionExponent)}");
-            </c:when>
-            <c:otherwise>
-              dojo.debug("Unknown text renderer: ${form.textRenderer.typeName}");
-            </c:otherwise>
-          </c:choose>
+          this.textRendererSelect = new dijit.form.Select({
+              name: 'textRendererSelect',
+          },"textRendererSelect");
           
-          textRendererEditor.change();
+          this.textRendererSelect.watch("value",textRendererChanged);
       }
   
       this.change = function() {
@@ -386,30 +355,6 @@
               hide($(currentTextRenderer));
           currentTextRenderer = $("textRendererSelect").value
           show($(currentTextRenderer));
-      };
-      
-      this.save = function(callback) {
-          var typeName = $get("textRendererSelect");
-          if (typeName == "textRendererAnalog")
-              DataPointEditDwr.setAnalogTextRenderer($get("textRendererAnalogFormat"),
-                      $get("textRendererAnalogSuffix"), callback);
-          else if (typeName == "textRendererBinary")
-              DataPointEditDwr.setBinaryTextRenderer($get("textRendererBinaryZero"), 
-                      dijit.byId("textRendererBinaryZeroColour").selectedColour, $get("textRendererBinaryOne"),
-                      dijit.byId("textRendererBinaryOneColour").selectedColour, callback);
-          else if (typeName == "textRendererMultistate")
-              DataPointEditDwr.setMultistateRenderer(multistateValues, callback);
-          else if (typeName == "textRendererNone")
-              DataPointEditDwr.setNoneRenderer(callback);
-          else if (typeName == "textRendererPlain")
-              DataPointEditDwr.setPlainRenderer($get("textRendererPlainSuffix"), callback);
-          else if (typeName == "textRendererRange")
-              DataPointEditDwr.setRangeRenderer($get("textRendererRangeFormat"), rangeValues, callback);
-          else if (typeName == "textRendererTime")
-              DataPointEditDwr.setTimeTextRenderer($get("textRendererTimeFormat"),
-                      $get("textRendererTimeConversionExponent"), callback);
-          else
-              callback();
       };
       
       //
@@ -427,6 +372,19 @@
           this.colour;
       };
       
+      
+      /*
+       * Create a new set of values from an existing vo's list
+       */
+      this.setMultistateValues = function(list){
+    	  //Clear the list
+    	  this.multistateValues = new Array();
+    	  this.refreshMultistateList();
+    	  for(var i=0; i<list.length; i++){
+    		  this.addMultistateValue(list[i].key,list[i].text,list[i].colour);
+    	  }
+      }
+      
       //
       // Multistate list manipulation
       this.addMultistateValue = function(theKey, text, colour) {
@@ -434,12 +392,12 @@
               theKey = $get("textRendererMultistateKey");
           var theNumericKey = parseInt(theKey);
           if (isNaN(theNumericKey)) {
-              alert("<fmt:message key="pointEdit.text.errorParsingKey"/>");
+              alert("<fmt:message key='pointEdit.text.errorParsingKey'/>");
               return false;
           }
-          for (var i=multistateValues.length-1; i>=0; i--) {
+          for (var i=this.multistateValues.length-1; i>=0; i--) {
               if (multistateValues[i].key == theNumericKey) {
-                  alert("<fmt:message key="pointEdit.text.listContainsKey"/> "+ theNumericKey);
+                  alert("<fmt:message key='pointEdit.text.listContainsKey'/> "+ theNumericKey);
                   return false;
               }
           }
@@ -454,7 +412,7 @@
               theValue.colour = colour;
           else
               theValue.colour = dijit.byId("textRendererMultistateColour").selectedColour;
-          multistateValues[multistateValues.length] = theValue;
+          this.multistateValues[this.multistateValues.length] = theValue;
           this.sortMultistateValues();
           this.refreshMultistateList();
           $set("textRendererMultistateKey", theNumericKey+1);
@@ -463,21 +421,21 @@
       };
       
       this.removeMultistateValue = function(theValue) {
-          for (var i=multistateValues.length-1; i>=0; i--) {
-              if (multistateValues[i].key == theValue)
-                  multistateValues.splice(i, 1);
+          for (var i=this.multistateValues.length-1; i>=0; i--) {
+              if (this.multistateValues[i].key == theValue)
+                  this.multistateValues.splice(i, 1);
           }
           this.refreshMultistateList();
           return false;
       };
       
       this.sortMultistateValues = function() {
-          multistateValues.sort( function(a,b) { return a.key-b.key; } );
+          this.multistateValues.sort( function(a,b) { return a.key-b.key; } );
       };
       
       this.refreshMultistateList = function() {
           dwr.util.removeAllRows("textRendererMultistateTable");
-          dwr.util.addRows("textRendererMultistateTable", multistateValues, [
+          dwr.util.addRows("textRendererMultistateTable", this.multistateValues, [
                   function(data) { return data.key; },
                   function(data) { 
                       if (data.colour)
@@ -492,31 +450,45 @@
                   ], null);
       };
       
+      /*
+       * Set the range values from the vo's list
+       */
+      this.setRangeValues = function(list){
+          //Clear the list
+          this.rangeValues = new Array();
+          this.refreshRangeList();
+          for(var i=0; i<list.length; i++){
+              this.addRangeValue(list[i].from,list[i].to,list[i].text,list[i].colour);
+          }
+
+      }
+      
+      
       //
       // Range list manipulation
       this.addRangeValue = function(theFrom, theTo, text, colour) {
-          if (!theFrom)
+          if (typeof theFrom === 'undefined')
               theFrom = parseFloat($get("textRendererRangeFrom"));
           if (isNaN(theFrom)) {
-              alert("<fmt:message key="pointEdit.text.errorParsingFrom"/>");
+              alert("<fmt:message key='pointEdit.text.errorParsingFrom'/>");
               return false;
           }
           
-          if (!theTo)
+          if (typeof theTo === 'undefined')
               theTo = parseFloat($get("textRendererRangeTo"));
           if (isNaN(theTo)) {
-              alert("<fmt:message key="pointEdit.text.errorParsingTo"/>");
+              alert("<fmt:message key='pointEdit.text.errorParsingTo'/>");
               return false;
           }
           
           if (isNaN(theTo >= theFrom)) {
-              alert("<fmt:message key="pointEdit.text.toGreaterThanFrom"/>");
+              alert("<fmt:message key='pointEdit.text.toGreaterThanFrom'/>");
               return false;
           }
           
-          for (var i=0; i<rangeValues.length; i++) {
-              if (rangeValues[i].from == theFrom && rangeValues[i].to == theTo) {
-                  alert("<fmt:message key="pointEdit.text.listContainsRange"/> "+ theFrom +" - "+ theTo);
+          for (var i=0; i<this.rangeValues.length; i++) {
+              if (this.rangeValues[i].from == theFrom && this.rangeValues[i].to == theTo) {
+                  alert("<fmt:message key='pointEdit.text.listContainsRange'/> "+ theFrom +" - "+ theTo);
                   return false;
               }
           }
@@ -532,7 +504,7 @@
               theValue.colour = colour;
           else
               theValue.colour = dijit.byId("textRendererRangeColour").selectedColour;
-          rangeValues[rangeValues.length] = theValue;
+          this.rangeValues[this.rangeValues.length] = theValue;
           this.sortRangeValues();
           this.refreshRangeList();
           $set("textRendererRangeFrom", theTo);
@@ -541,16 +513,16 @@
       };
       
       this.removeRangeValue = function(theFrom, theTo) {
-          for (var i=rangeValues.length-1; i>=0; i--) {
-              if (rangeValues[i].from == theFrom && rangeValues[i].to == theTo)
-                  rangeValues.splice(i, 1);
+          for (var i=this.rangeValues.length-1; i>=0; i--) {
+              if (this.rangeValues[i].from == theFrom && this.rangeValues[i].to == theTo)
+                  this.rangeValues.splice(i, 1);
           }
           this.refreshRangeList();
           return false;
       };
       
       this.sortRangeValues = function() {
-          rangeValues.sort( function(a,b) {
+          this.rangeValues.sort( function(a,b) {
               if (a.from == b.from)
                   return a.to-b.to;
               return a.from-b.from;
@@ -559,7 +531,7 @@
       
       this.refreshRangeList = function() {
           dwr.util.removeAllRows("textRendererRangeTable");
-          dwr.util.addRows("textRendererRangeTable", rangeValues, [
+          dwr.util.addRows("textRendererRangeTable", this.rangeValues, [
                   function(data) { return data.from; },
                   function(data) { return data.to; },
                   function(data) { 
@@ -586,14 +558,16 @@
           $("textRendererMultistateText").style.color = colour;
       };
       this.handlerBinaryZeroColour = function(colour) {
-          dijit.byId("textRendererBinaryZeroColour").selectedColour = colour;
-          $("textRendererBinaryZero").style.color = colour;
+          dijit.byId("zeroColour").selectedColour = colour;
+          $("zeroLabel").style.color = colour;
       };
       this.handlerBinaryOneColour = function(colour) {
-          dijit.byId("textRendererBinaryOneColour").selectedColour = colour;
-          $("textRendererBinaryOne").style.color = colour;
+          dijit.byId("oneColour").selectedColour = colour;
+          $("oneLabel").style.color = colour;
       };
   }
   var textRendererEditor = new TextRendererEditor();
-  dojo.ready(textRendererEditor, "init");
+  
+  
+  
 </script>

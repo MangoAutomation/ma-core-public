@@ -20,6 +20,13 @@ if (typeof DataPointDwr !== 'undefined') {
     stores.dataPoint.dwr.queryLocally = false;
     stores.dataPoint.dwr.loadData = false;
     stores.dataPoint.dwr.or = false; //Use AND in Queries to restrict to DataSource of interest
+
+    stores.allDataPoints = new CachedDwrStore(DataPointDwr, "DataPointDwr");
+    stores.allDataPoints.dwr.queryLocally = false;
+    stores.allDataPoints.dwr.loadData = true;
+    stores.allDataPoints.dwr.or = false; //Use AND in Queries to restrict to DataSource of interest
+
+
 }
 
 if (typeof DataPointDetailsDwr !== 'undefined') {

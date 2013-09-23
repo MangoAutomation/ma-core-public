@@ -6,6 +6,7 @@ package com.serotonin.m2m2.view.text;
 
 import java.io.Serializable;
 
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -72,4 +73,11 @@ public interface TextRenderer extends Serializable {
     public String getSetPointSnippetFilename();
 
     public DataValue parseText(String s, int dataType);
+    
+    /**
+     * Validate the settings of the renderer
+     * @param result
+     */
+    public void validate(ProcessResult result);
+    
 }

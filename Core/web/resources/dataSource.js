@@ -256,7 +256,7 @@ dataSources.openImpl = dataSources.open;
 /**
  * Override Open Method
  */
-dataSources.open = function(id,options){
+dataSources.open = function(id,options,callback){
     this.currentId = id;
     var _this = this;
     options = options || {};
@@ -288,7 +288,7 @@ dataSources.open = function(id,options){
     	//Copy
     	when(DataSourceDwr.get(options.voToLoad.id, function(vo) {
             _this.setInputs(options.voToLoad);
-            _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv,options.voToLoad.id)
+            _this.loadView(callback, vo.data.editPagePath,dataSourcePropertiesDiv,options.voToLoad.id)
             //show(_this.edit);
             coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                             coreFx.wipeIn({node: _this.edit})]).play();
@@ -310,7 +310,7 @@ dataSources.open = function(id,options){
 	            //Due to some issue with content pane need to play fx before loading pane.
 	            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 	                            coreFx.wipeIn({node: _this.edit})]).play();
-	            _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv,id);
+	            _this.loadView(callback,response.data.editPagePath,dataSourcePropertiesDiv,id);
 	        }, function(message) {
 	            addErrorDiv(message);
 	        }));
@@ -320,7 +320,7 @@ dataSources.open = function(id,options){
 	            //Due to some issue with content pane need to play fx before loading pane.
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                                 coreFx.wipeIn({node: _this.edit})]).play();
-                _this.loadView(response.data.editPagePath,dataSourcePropertiesDiv);
+                _this.loadView(callback,response.data.editPagePath,dataSourcePropertiesDiv);
 
             }, function(message) {
                 addErrorDiv(message);
@@ -336,7 +336,7 @@ dataSources.open = function(id,options){
 dataSources.copy = function(id) {
     var _this = this;
     when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
-        _this.loadView(vo.data.editPagePath,dataSourcePropertiesDiv,id,true)
+        _this.loadView(null,vo.data.editPagePath,dataSourcePropertiesDiv,id,true)
     }, function(message) {
         // wrong id, dwr error
         addErrorDiv(message);
@@ -347,7 +347,7 @@ dataSources.copy = function(id) {
 /**
  * Method to get Data Source Edit Page from Module
  */
-dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPane,id,copy){
+dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetContentPane,id,copy){
 	//Create the base URL
 	var xhrUrl = "/data_source_properties.shtm?"
 		
@@ -366,7 +366,8 @@ dataSources.loadView = function loadDataSourceView(editPagePath,targetContentPan
 	var deferred = targetContentPane.set('href',xhrUrl); //Content Pane get
 	targetContentPane.set('class','borderDiv marB marR');
 	deferred.then(function(value){
-		//When Done, Could put callback here
+		if(callback != null)
+			callback();
 	},function(err){
 		addErrorDiv(err);
 	},function(update){

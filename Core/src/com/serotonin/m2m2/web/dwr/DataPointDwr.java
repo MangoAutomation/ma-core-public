@@ -26,6 +26,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
+import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -229,7 +230,19 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	return response;
     	
     }
-    
+    /**
+     * Get a list of available Point Event Detectors for this point
+     * @param vo
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult getEventDetectorOptions(int dataTypeId) { 
+    	ProcessResult response = new ProcessResult();
+    	List<ImplDefinition> list = PointEventDetectorVO.getImplementations(dataTypeId);
+    	response.addData("options",list);
+    	return response;
+    	
+    }
     
     
     /**
