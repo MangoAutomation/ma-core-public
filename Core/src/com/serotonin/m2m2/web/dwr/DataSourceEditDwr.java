@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -116,19 +117,36 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         dp.setName(name);
         dp.setPointLocator(locator);
 
-        if (id == Common.NEW_ID)
+        
+        //If we are a new point then only validate the basics
+        if (id == Common.NEW_ID){
             // Limit enforcement.
             DataSourceTypePointsLimit.checkLimit(dp.getDataSourceTypeName(), response);
-        
-        //New validation on save for all settings
-        dp.validate(response);
-        
-        if(dp.getChartRenderer() != null)
-        	dp.getChartRenderer().validate(response);
-        
-        if(dp.getChartRenderer() != null)
-        	dp.getTextRenderer().validate(response);
-        
+            
+            if (StringUtils.isBlank(xid))
+                response.addContextualMessage("xid", "validate.required");
+            else if (StringValidation.isLengthGreaterThan(xid, 50))
+                response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+            else if (!new DataPointDao().isXidUnique(xid, id))
+                response.addContextualMessage("xid", "validate.xidUsed");
+
+            if (StringUtils.isBlank(name))
+                response.addContextualMessage("name", "validate.required");
+            
+            //Should really be done elsewhere
+            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>());
+            
+        }else{
+	        //New validation on save for all settings on existing points
+        	
+	        dp.validate(response);
+	        
+	        if(dp.getChartRenderer() != null)
+	        	dp.getChartRenderer().validate(response);
+	        
+	        if(dp.getTextRenderer() != null)
+	        	dp.getTextRenderer().validate(response);
+        }
         //Validate Locator
         locator.validate(response, dp);
 

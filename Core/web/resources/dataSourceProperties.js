@@ -288,19 +288,28 @@ function deletePoint() {
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
      
-	//Point Properties
-	getPointProperties(currentPoint); //Set the values from the inputs
-	getLoggingProperties(currentPoint);
-	getTextRenderer(currentPoint);
-	getChartRenderer(currentPoint);
-	getEventDetectors(currentPoint,finishSavePoint); //
+     if(currentPoint.id != -1){
+		//Point Properties
+		getPointProperties(currentPoint); //Set the values from the inputs
+		getLoggingProperties(currentPoint);
+		getTextRenderer(currentPoint);
+		getChartRenderer(currentPoint);
+		getEventDetectors(currentPoint,finishSavePoint); //
+     }else{
+    	 //For now because values aren't set before DWR Call
+    	 delete currentPoint.discardLowLimit;
+    	 delete currentPoint.discardHighLimit;    	 
+    	 finishSavePoint();
+     }
 
  }
  
  function collectPointSettings(callback){
 	 
  }
- 
+ /*
+  * Ensure all is stored in the edit point and then call the save point impl from the module
+  */
  function finishSavePoint(){
 	 
 	 currentPoint = dataPoints.getInputs();
@@ -484,6 +493,7 @@ function deletePoint() {
 	         title: mangoTranslate('dsEdit.points.details'),
 	         content: "<div id='pointDetails-content'></div>",
 	         id: 'dataPointDetails-tab',
+	         disabled: true
 	    });
 	    tc.addChild(cp1);
 

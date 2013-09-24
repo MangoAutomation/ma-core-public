@@ -8,7 +8,7 @@
 <!-- <div data-dojo-type="dijit/layout/ContentPane" title="Point Details" style="overflow-y:auto" id="pointDetails" style="display: none;"> -->
 <!--      <div  class="borderDiv marB"> -->
 
-    <div id="pointDetails" class="borderDiv marB">
+    <div id="pointDetails" class="borderDiv marB" >
         <table width="100%">
           <tr>
             <td>
@@ -36,7 +36,8 @@
           </tr>
           
           <jsp:doBody/>
-        </table> 
+        </table>
+        <div id="extraPointSettings">
         <hr class="styled-hr"></hr>
         <jsp:include page="/WEB-INF/snippet/view/dataPoint/pointProperties.jsp" />
         <hr class="styled-hr"></hr>
@@ -49,7 +50,7 @@
         <jsp:include page="/WEB-INF/snippet/view/dataPoint/chartRenderer.jsp" />
         <hr class="styled-hr"></hr>
         <jsp:include page="/WEB-INF/snippet/view/dataPoint/eventDetectors.jsp" />
-        
+        </div>
       
       </div>
 <!--       <div  class="borderDiv marB"> -->

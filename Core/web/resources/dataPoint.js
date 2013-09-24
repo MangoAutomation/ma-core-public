@@ -195,13 +195,19 @@ dataPoints = new StoreView({
     	this.xid.set('value',vo.xid);
     	dataPointsDataSourceId = vo.dataSourceId;
     	
-    	//Point Properties
-    	setPointProperties(vo);
-    	setLoggingProperties(vo);
-    	setTextRenderer(vo);
-    	setChartRenderer(vo);
-    	setEventDetectors(vo);
-    	
+    	//For new data points don't bother with the settings
+    	if(vo.id != -1){
+	    	//Point Properties
+	    	setPointProperties(vo);
+	    	setLoggingProperties(vo);
+	    	setTextRenderer(vo);
+	    	setChartRenderer(vo);
+	    	setEventDetectors(vo);
+	    	show("extraPointSettings");
+    	}else{
+    		//Disable the point settings inputs
+    		hide("extraPointSettings");
+    	}
     	//this.enabled.set('value',vo.enabled);
     	//Setup for the point Impl CB
     	currentPoint = vo;

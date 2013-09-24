@@ -511,8 +511,9 @@
       }
       
       this.initCB = function(detectorList) {
-   		  for (var i=0; i<detectorList.length; i++)
-   			  pointEventDetectorEditor.addEventDetectorCB(detectorList[i]);
+    	  if(detectorList != null)
+	   		  for (var i=0; i<detectorList.length; i++)
+	   			  pointEventDetectorEditor.addEventDetectorCB(detectorList[i]);
 
       }
       
