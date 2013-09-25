@@ -359,8 +359,10 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	 * @return
 	 */
 	public EventInstanceVO getHighestUnsilencedEvent(int userId, int level) {
+//        return ejt.queryForObject(SELECT_ALL
+//                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
         return ejt.queryForObject(SELECT_ALL
-                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
+                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
 
 	}
 
