@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.RowMapper;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -122,7 +123,24 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		map.put("activeTimestamp", "evt.activeTs");
 		map.put("activeTimestampString", "evt.activeTs");
 		map.put("rtnTimestampString", "evt.rtnTs");
-		map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
+		
+        /*
+         * IF(evt.rtnTs=null,
+         * 		IF(evt.rtnApplicable='Y',
+         * 			(NOW() - evt.activeTs),
+         * 			-1),
+         * 		IF(evt.rtnApplicable='Y',
+         * 			(evt.rtnTs - evt.activeTs),
+         * 			-1)
+         *  )
+         */
+		if((Common.databaseProxy.getType() == DatabaseType.MYSQL)||(Common.databaseProxy.getType() == DatabaseType.MYSQL))
+			map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
+		else if(Common.databaseProxy.getType() == DatabaseType.DERBY)
+			map.put("totalTimeString",   "CASE WHEN evt.rtnTs IS NULL THEN "
+		                               + "CASE WHEN evt.rtnApplicable='Y' THEN (? - evt.activeTs) ELSE -1 END "
+		                               + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END");
+		
 		map.put("messageString", "evt.message");
 		map.put("rtnTimestampString", "evt.rtnTs");
 		map.put("userNotified", "ue.silenced");
@@ -272,16 +290,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             	event.setMessage(new TranslatableMessage("common.noMessage"));
             else
             	event.setMessage(message);
-            /*
-             * IF(evt.rtnTs=null,
-             * 		IF(evt.rtnApplicable='Y',
-             * 			(NOW() - evt.activeTs),
-             * 			-1),
-             * 		IF(evt.rtnApplicable='Y',
-             * 			(evt.rtnTs - evt.activeTs),
-             * 			-1)
-             *  )
-             */
+ 
             //Set the Return to normal
             long rtnTs = rs.getLong(8);
             if (!rs.wasNull()){

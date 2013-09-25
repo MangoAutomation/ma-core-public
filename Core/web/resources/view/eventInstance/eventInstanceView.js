@@ -255,22 +255,24 @@ eventInstances = new StoreView({
 					eventInstances.grid.set('query',eventInstances.filters);
 				});
 				
-				//Create sort link
-				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
-				on(sortLink,'click',function(event){
-					
-					//Flip through the list to see if we already have an order?
-					for(var i =0; i<eventInstances.sortMap.length; i++){
-						if(eventInstances.sortMap[i].attribute === "messageString"){
-							eventInstances.sortMap[i].descending = !eventInstances.sortMap[i].descending;
-							break;
+				//Create sort link if the databaseType if right (This is set on the JSP Page)
+				if(databaseType === 'MYSQL'){
+					var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+					on(sortLink,'click',function(event){
+						
+						//Flip through the list to see if we already have an order?
+						for(var i =0; i<eventInstances.sortMap.length; i++){
+							if(eventInstances.sortMap[i].attribute === "messageString"){
+								eventInstances.sortMap[i].descending = !eventInstances.sortMap[i].descending;
+								break;
+							}
 						}
-					}
-					var options = {};
-					options.sort = [{attribute: eventInstances.sortMap[i].attribute, descending: eventInstances.sortMap[i].descending}];
-					eventInstances.grid.set("query",eventInstances.filters,options);
-				});
-				domConstruct.place(sortLink,div);
+						var options = {};
+						options.sort = [{attribute: eventInstances.sortMap[i].attribute, descending: eventInstances.sortMap[i].descending}];
+						eventInstances.grid.set("query",eventInstances.filters,options);
+					});
+					domConstruct.place(sortLink,div);
+				}
 				return div;
     		},
     		renderCell: function(eventInstance, messageString, cell){

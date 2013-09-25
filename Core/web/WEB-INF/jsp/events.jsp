@@ -11,13 +11,16 @@
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.module.EventTypeDefinition"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
+
+
 <tag:page dwr="EventsDwr">
   <%@ include file="/WEB-INF/jsp/include/userComment.jsp" %>
   <style>
     .incrementControl { width: 2em; }
   </style>
   <script type="text/javascript">
-    dojo.require("dijit.Calendar");
+
+  dojo.require("dijit.Calendar");
     
     // Tell the log poll that we're interested in monitoring pending alarms.
     mango.longPoll.pollRequest.pendingAlarms = true;

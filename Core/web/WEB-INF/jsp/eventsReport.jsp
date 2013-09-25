@@ -23,7 +23,8 @@
   <script type="text/javascript" src="/resources/view/eventInstance/eventInstanceView.js"></script>
   
   <script type="text/javascript">
-  
+  var databaseType = '<c:out value="<%= Common.databaseProxy.getType() %>"></c:out>';
+
   //For use on page to compare Event Types2
   var constants_DATA_POINT = '${applicationScope['constants.EventType.EventTypeNames.DATA_POINT']}';
   var constants_DATA_SOURCE = '${applicationScope['constants.EventType.EventTypeNames.DATA_SOURCE']}';
@@ -86,11 +87,6 @@
   
   
   <jsp:include page="/WEB-INF/snippet/view/eventInstance/eventInstanceTable.jsp"/>
-  
-  
-  
-  
-  
   
   
   <div class="borderDiv marB" style="float:left;">
