@@ -381,23 +381,4 @@ dataPoints = new StoreView({
     
 });
 
-////Content Div for loading in DS Pages
-//dataPointSettingsDiv = new ContentPane({
-//		executeScripts: true,
-//		parseOnLoad: true,
-//		onDownloadError: function(error){
-//			addErrorDiv(error);
-//		}
-//}, "dataPointSettingsDiv");	
-
-//Temp callback to editDataSourceDiv to replicate dojo.ready, 
-//to be replaced with scriptHasHooks concept from dojox/dijit content pane
-//dojo.connect(dataPointSettingsDiv, "onDownloadEnd", function(){
-//	   initDataPointSettings(); //Call to inside of div
-//	   dataPointSettingsDiv.startup();
-//	   dataPointSettingsDiv.resize();
-//	});
-
-
-
 }); // require

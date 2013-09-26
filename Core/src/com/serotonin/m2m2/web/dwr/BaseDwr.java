@@ -497,8 +497,11 @@ abstract public class BaseDwr {
                 currentContent = com.serotonin.util.StringUtils.trimWhitespace(currentContent);
 
                 if (!StringUtils.equals(currentContent, state.getPendingAlarmsContent())) {
+                	response.put("newAlarms",true);
                     response.put("pendingAlarmsContent", currentContent);
                     state.setPendingAlarmsContent(currentContent);
+                }else{
+                	response.put("newAlarms", false);
                 }
             }
 

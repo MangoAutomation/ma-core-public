@@ -483,19 +483,23 @@ function deletePoint() {
   * Will only create the tab if it doesn't already exist
   */
  	function createDataPointsTab(){
- 		var tc = dijit.byId("dataSourcePropertiesTabContainer");
-	    //Setup Data Points List
-	    var cp3 = new dijit.layout.ContentPane({
-	         title: mangoTranslate('header.dataPoints'),
-	         style: "overflow-y: auto",
-	         content: "<div id='pointTable-content'></div>",
-	         id: 'pointTable-tab',
-	       
-	    });
-	    tc.addChild(cp3);
-	    var pd = dojo.byId("pointTableDiv");
-	    dojo.place(pd,"pointTable-content");
-	    show("pointTableDiv"); //Show the hidden table
+ 		if(dojo.byId("pointTable-tab") == null){
+	 		var tc = dijit.byId("dataSourcePropertiesTabContainer");
+		    //Setup Data Points List
+		    var cp3 = new dijit.layout.ContentPane({
+		         title: mangoTranslate('header.dataPoints'),
+		         style: "overflow-y: auto",
+		         content: "<div id='pointTable-content'></div>",
+		         id: 'pointTable-tab',
+		       
+		    });
+		    tc.addChild(cp3);
+		    var pd = dojo.byId("pointTableDiv");
+		    dojo.place(pd,"pointTable-content");
+		    show("pointTableDiv"); //Show the hidden table
+ 		}else{
+ 			show("pointTableDiv"); //Show the hidden table
+ 		}
  }
  
 

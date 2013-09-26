@@ -5,7 +5,7 @@
 <%@tag import="com.serotonin.m2m2.Common"%>
 <%@attribute name="showHeader" %>
 
-<!-- Message Popups -->
+<!-- Message Popups TODO Make snippet -->
 <div data-dojo-type="dojox/widget/Toaster" data-dojo-props="positionDirection:'tc-down'"
      messageTopic="alarmTopic"
      id="alarmToaster">

@@ -63,6 +63,7 @@ mango.longPoll.pollCB = function(response) {
     if (response.terminated)
         return;
     
+    //For Alarms Widget in Header
     if (typeof(response.highestUnsilencedAlarmLevel) != "undefined") {
         if (response.highestUnsilencedAlarmLevel > 0) {
             setAlarmLevelImg(response.highestUnsilencedAlarmLevel, $("__header__alarmLevelImg"));
@@ -177,6 +178,13 @@ mango.longPoll.pollCB = function(response) {
     
     if (typeof(response.pendingAlarmsContent) != "undefined")
         updatePendingAlarmsContent(response.pendingAlarmsContent);
+    
+    //Update the alarms table if in view and has new data
+    if (typeof(response.newAlarms) != "undefined"){
+        if(typeof eventInstances != 'undefined')
+        	if(response.newAlarms == true)
+        		eventInstances.refresh();
+    }
     
     if (mango.longPoll.lastPoll) {
         var duration = new Date().getTime() - mango.longPoll.lastPoll;
@@ -965,11 +973,16 @@ function setUserMuted(muted) {
 }
 
 function ackEvent(eventId) {
-    hide("silenceImg"+ eventId);
-    var imgNode = $("ackImg"+ eventId);
-    updateImg(imgNode, "/images/tick_off.png", mango.i18n["events.acknowledged"], true, "inline");
-    imgNode.onclick = function() {};
-    dojo.removeClass(imgNode, "ptr");
+	var silenceImageId = "silenceImg"+ eventId;
+	if(dojo.byId(silenceImageId) != null)
+		hide(silenceImageId);
+	var imgNodeId = "ackImg" + eventId;
+	if(dojo.byId(imgNodeId) != null){
+	    var imgNode = $(imgNodeId);
+	    updateImg(imgNode, "/images/tick_off.png", mango.i18n["events.acknowledged"], true, "inline");
+	    imgNode.onclick = function() {};
+	    dojo.removeClass(imgNode, "ptr");
+	}
     MiscDwr.acknowledgeEvent(eventId);
 
 }
