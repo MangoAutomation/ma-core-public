@@ -57,7 +57,7 @@
       <spring:bind path="form.engineeringUnits">
         <tr>
           <td class="formLabelRequired"><fmt:message key="pointEdit.props.engineeringUnits"/></td>
-          <td class="formField"><tag:engineeringUnits name="engineeringUnits" value="${status.value}"/></td>
+<%--           <td class="formField"><tag:engineeringUnits name="engineeringUnits" value="${status.value}"/></td> --%>
           <td class="formError">${status.errorMessage}</td>
         </tr>
       </spring:bind>
