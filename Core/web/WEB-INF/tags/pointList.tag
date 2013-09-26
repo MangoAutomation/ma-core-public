@@ -16,6 +16,7 @@
               <c:if test="${!empty pointHelpId}"><tag:help id="${pointHelpId}"/></c:if>
             </td>
             <td align="right">
+              <tag:img id="toggleDataPoint" png="icon_ds" onclick="togglePoint()" style="display:none" />
               <tag:img id="pointSaveImg" png="save" onclick="savePoint()" title="common.save"/>
               <tag:img id="pointDeleteImg" png="delete" onclick="deletePoint()" title="common.delete" />
               <tag:img png="emport" title="emport.export" onclick="exportDataPoint()"/>

@@ -212,6 +212,7 @@
      }
  }
  
+
 // function togglePoint(pointId) {
 //     startImageFader("toggleImg"+ pointId, true);
 //     DataSourceEditDwr.togglePoint(pointId, function(response) {
@@ -308,6 +309,38 @@ function deletePoint() {
  function closePoint() {
 	 dataPoints.close();
      currentPoint = null;
+ }
+
+ /**
+  * Show the point control icon
+  * @param vo
+  * @returns
+  */
+ function showPointStatus(enabled){
+         if(enabled){
+             updateImg(
+                     $("toggleDataPoint"),
+                     mangoImg("database_go.png"),
+                     mango.i18n["common.enabledToggle"],
+                     true
+             );
+         }else{
+             updateImg(
+                     $("toggleDataPoint"),
+                     mangoImg("database_stop.png"),
+                     mango.i18n["common.enabledToggle"],
+                     true
+             );
+         }
+ }
+ 
+ function togglePoint(){
+     //Call back to collect all inputs
+     currentPoint = dataPoints.getInputs();
+     if(currentPoint.id != -1){
+    	 dataPoints.toggle(currentPoint.id);
+     }
+
  }
  
  /**

@@ -220,6 +220,7 @@ dataPoints = new StoreView({
     	//For new data points don't bother with the settings
     	if(vo.id != -1){
 	    	//Point Properties
+    		showPointStatus(vo.enabled); //Show Disable/Enable toggle
 	    	setPointProperties(vo);
 	    	setLoggingProperties(vo);
 	    	setTextRenderer(vo);
@@ -263,6 +264,7 @@ dataPoints = new StoreView({
      * Override Toggle Method
      */
     toggle: function(id) {
+    	var _this = this;
     	DataPointDwr.toggle(id, function(result) {
             if(result.data.enabled){
                 updateImg(
@@ -279,6 +281,9 @@ dataPoints = new StoreView({
                         true
                 );
             }
+            //Show on details page only if this one is being viewed
+            if(id == _this.currentId)
+            	showPointStatus(result.data.enabled);
         });
     },    
     
