@@ -30,23 +30,23 @@
         <table>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.head.name"/></td>
-            <td class="formField"><input type="text" id="dataSourceName" value="${dataSource.name}"/></td>
+            <td class="formField"><input type="text" id="dataSource.name" value="${dataSource.name}"/></td>
           </tr>
           <tr>
             <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-            <td class="formField"><input type="text" id="dataSourceXid" value="${dataSource.xid}"/></td>
+            <td class="formField"><input type="text" id="dataSource.xid" value="${dataSource.xid}"/></td>
           </tr>
           <tr>
             <td class="formLabel"><fmt:message key="dsEdit.logging.purge"/></td>
             <td class="formField">
               <div>
-                <sst:checkbox id="dataSourcePurgeOverride" selectedValue="${dataSource.purgeOverride}" onclick="changePurgeOverride()"/>
-                <label for="dataSourcePurgeOverride"><fmt:message key="dsEdit.logging.purgeOverride"/></label>
+                <sst:checkbox id="dataSource.purgeOverride" selectedValue="${dataSource.purgeOverride}" onclick="changePurgeOverride()"/>
+                <label for="dataSource.purgeOverride"><fmt:message key="dsEdit.logging.purgeOverride"/></label>
               </div>
               <div>
                 <fmt:message key="pointEdit.logging.after"/>
-                <input type="text" id="dataSourcePurgePeriod" value="${dataSource.purgePeriod}" class="formShort"/>
-                <tag:timePeriods id="dataSourcePurgeType" value="${dataSource.purgeType}" d="true" w="true" mon="true" y="true"/>
+                <input type="text" id="dataSource.purgePeriod" value="${dataSource.purgePeriod}" class="formShort"/>
+                <tag:timePeriods id="dataSource.purgeType" value="${dataSource.purgeType}" d="true" w="true" mon="true" y="true"/>
               </div>
             </td>
           </tr>          

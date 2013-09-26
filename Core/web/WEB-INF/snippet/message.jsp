@@ -71,6 +71,8 @@ String[] mangoMessageKeys = {
         "events.unsilence",
         "events.unacknowledged",
 	    
+        "header.dataPoints",
+        
         "modules.modules",
         
 	    "notes.addNote",

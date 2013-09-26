@@ -185,27 +185,27 @@ dataSources = new StoreView({
     setInputs: function(vo) {
     	
     	this.currentId = vo.id;
-    	this.name.set('value',vo.name);
-    	this.xid.set('value',vo.xid);
-    	this.enabled.set('value',vo.enabled);
+//    	this.name.set('value',vo.name);
+//    	this.xid.set('value',vo.xid);
+//    	this.enabled.set('value',vo.enabled);
     },
     
     getInputs: function() {
         var vo = new DataSourceVO();
         vo.id = this.currentId;
-        vo.name = this.name.get('value');
-        vo.xid = this.xid.get('value');
-        if (this.enabled.get('value')) // sometimes value is returned as "on" rather than true
-            vo.enabled = true;
-        else
-            vo.enabled = false;
+//        vo.name = this.name.get('value');
+//        vo.xid = this.xid.get('value');
+//        if (this.enabled.get('value')) // sometimes value is returned as "on" rather than true
+//            vo.enabled = true;
+//        else
+//            vo.enabled = false;
         return vo;
  
     },
-
-    name: new ValidationTextBox({}, "dataSourceName"),
-    xid: new ValidationTextBox({}, "dataSourceXid"),
-    enabled: new CheckBox({}, "dataSourceEnabled"),
+    //Dont use these, the tag requires the values be passed into it for setting them
+//    name: new ValidationTextBox({}, "name"),
+//    xid: new ValidationTextBox({}, "xid"),
+//    enabled: new CheckBox({}, "enabled"),
 
     /**
      * Override Toggle Method and return state for use in window
@@ -245,9 +245,7 @@ dataSources = new StoreView({
     refresh: function(){
     	this.grid.set('query', null);
     },
-    
-    
-    
+        
 });
 
 //TODO Can most likely remove when done debugging
@@ -310,6 +308,7 @@ dataSources.open = function(id,options,callback){
 	            //Due to some issue with content pane need to play fx before loading pane.
 	            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 	                            coreFx.wipeIn({node: _this.edit})]).play();
+	            
 	            _this.loadView(callback,response.data.editPagePath,dataSourcePropertiesDiv,id);
 	        }, function(message) {
 	            addErrorDiv(message);
@@ -362,12 +361,14 @@ dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetC
 		
 	if(typeof copy != 'undefined')
 		xhrUrl = xhrUrl + "&copy=true";
+	dataSources.loadViewCallback = callback;
+
 	
 	var deferred = targetContentPane.set('href',xhrUrl); //Content Pane get
 	targetContentPane.set('class','borderDiv marB marR');
 	deferred.then(function(value){
-		if(callback != null)
-			callback();
+//		if(callback != null)
+//			callback();
 	},function(err){
 		addErrorDiv(err);
 	},function(update){
@@ -381,6 +382,7 @@ dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
 	   init();
 	   dataSourcePropertiesDiv.startup();
 	   dataSourcePropertiesDiv.resize();
+	   dataSources.loadViewCallback();
 	});
 
 }); // require

@@ -193,7 +193,29 @@ dataPoints = new StoreView({
     	this.currentId = vo.id;
     	this.name.set('value',vo.name);
     	this.xid.set('value',vo.xid);
+    	this.deviceName.set('value',vo.deviceName);
+    	
     	dataPointsDataSourceId = vo.dataSourceId;
+    	
+    	//The first open call will create a tab for the point details
+    	var cp1 = dojo.byId("dataPointDetails-tab");
+    	if(cp1 == null){
+    		var tc = dijit.byId("dataSourcePropertiesTabContainer");
+    		
+		    //Setup the Point Details Tab
+		    var cp1 = new ContentPane({
+		         title: mangoTranslate('dsEdit.points.details'),
+		         content: "<div id='pointDetails-content'></div>",
+		         id: 'dataPointDetails-tab',
+		    });
+		    tc.addChild(cp1);
+		    var pd = dojo.byId("pointDetails");
+		    domConstruct.place(pd,"pointDetails-content");
+		    //Set the point details div to be visible
+		    show("pointDetails");
+		    
+    	}
+
     	
     	//For new data points don't bother with the settings
     	if(vo.id != -1){
@@ -218,7 +240,7 @@ dataPoints = new StoreView({
     },
     
     getInputs: function() {
-
+    	currentPoint.deviceName = this.deviceName.get('value');
         //Just return the global that the modules use
     	// We actually collect the values in savePoint() in dataSourceProperties.js
         return currentPoint;
@@ -228,6 +250,8 @@ dataPoints = new StoreView({
     
     name: new ValidationTextBox({}, "name"),
     xid: new ValidationTextBox({}, "xid"),
+    deviceName: new ValidationTextBox({},"deviceName"),
+    
     //enabled: new CheckBox({}, "enabled"),
     
     editXOffset: -380,

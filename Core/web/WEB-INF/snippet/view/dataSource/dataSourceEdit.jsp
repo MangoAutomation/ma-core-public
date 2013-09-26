@@ -26,11 +26,11 @@
         hideContextualMessages($("dataSourceProperties"));
 
     	saveDataSourceImpl({
-            name: $get("dataSourceName"),
-            xid: $get("dataSourceXid"),
-            purgeOverride: $get("dataSourcePurgeOverride"),
-            purgePeriod: $get("dataSourcePurgePeriod"),
-            purgeType: $get("dataSourcePurgeType")
+            name: $get("name"),
+            xid: $get("xid"),
+            purgeOverride: $get("purgeOverride"),
+            purgePeriod: $get("purgePeriod"),
+            purgeType: $get("purgeType")
         });
     }
 

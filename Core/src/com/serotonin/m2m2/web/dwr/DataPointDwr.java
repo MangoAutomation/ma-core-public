@@ -290,13 +290,13 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     public void storeEditProperties(DataPointVO newDp){
     	DataPointVO dp = Common.getUser().getEditPoint();  
     	if(dp!=null){
-    		//Do we want the details set here?
+    		//Do we want the details set here? (The ID Name,XID and Locator are stored via the modules)
+    		dp.setDeviceName(newDp.getDeviceName());
     		
     		//General Properties
     		dp.setEngineeringUnits(newDp.getEngineeringUnits());
     		dp.setChartColour(newDp.getChartColour());
     		dp.setPlotType(newDp.getPlotType());
-    		
     		
     		//Logging Properties
     		dp.setLoggingType(newDp.getLoggingType());

@@ -1,0 +1,19 @@
+<%--
+    Copyright (C) 2013 Infinite Automation Software. All rights reserved.
+    @author Terry Packer
+--%>
+<%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
+
+<!-- Table Div -->
+<div id="dataSourceTableDiv" class="borderDivPadded marB" >
+    <tag:img png="icon_ds" title="dsList.dataSources"/>
+    <span class="smallTitle"><fmt:message key="dsList.dataSources"/></span>
+    <tag:help id="dataSourceList"/>
+    
+    <!-- Select Type of DataSource -->
+    <select id="dataSourceTypes" ></select>             
+    <tag:img png="add" title="common.add" id="addDataSource" onclick="dataSources.open(-1)"/>
+    
+    <div id="dataSourceTable"></div>
+    
+</div>

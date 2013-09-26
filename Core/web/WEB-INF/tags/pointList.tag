@@ -8,7 +8,7 @@
 <!-- <div data-dojo-type="dijit/layout/ContentPane" title="Point Details" style="overflow-y:auto" id="pointDetails" style="display: none;"> -->
 <!--      <div  class="borderDiv marB"> -->
 
-    <div id="pointDetails" class="borderDiv marB" >
+    <div id="pointDetails" class="borderDiv marB" style="display:none" >
         <table width="100%">
           <tr>
             <td>
@@ -26,6 +26,10 @@
         <div id="pointMessage" class="ctxmsg formError"></div>
         
         <table>
+          <tr>
+            <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>
+            <td class="formField"><input id="deviceName"/></td>
+          </tr>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.points.name"/></td>
             <td class="formField"><input type="text" id="name"/></td>

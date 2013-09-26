@@ -6,7 +6,9 @@
  dojo.require("dijit.Dialog");
  dojo.require("dijit.form.Form");
  dojo.require("dijit.form.Button");
- dojo.require("dojo._base.lang"); //For bug with AbstractPointLocator not working with DWR yet
+ dojo.require("dojo.dom-construct");
+ dojo.require("dijit.layout.TabContainer");
+ dojo.require("dijit.layout.ContentPane");
  
  var currentPoint;
  var pointListColumnFunctions;
@@ -23,6 +25,31 @@
   * @param dsId - ID of Datasource
   */
  function initProperties(dataSourceId,dataSourceEnabled) {
+	 
+	    var tc = new dijit.layout.TabContainer({
+	        style: "height: auto",
+	        doLayout: false,
+	    }, "dataSourcePropertiesTabContainer");
+
+	    var cp2 = new dijit.layout.ContentPane({
+	         title: "Data Source",
+	         style: "overflow-y: auto",
+	         selected: true,
+	         content: "<div id='dataSourceDetails-content'></div>",
+	         id: 'dataSourceDetails-tab',
+	    });
+	    tc.addChild(cp2);
+	    var pd = dojo.byId("dataSourcePropertiesTab");
+	    dojo.place(pd,"dataSourceDetails-content");
+	    
+	    if(dataSourceId > 0){
+	    	createDataPointsTab();
+	    }
+	    tc.startup();
+
+	 
+	 
+	 
 	 
 	 //For now set the current ID to use for toggle
 	 currentDsId = dataSourceId;
@@ -120,11 +147,11 @@
      startImageFader("dsSaveImg", true);
      hideContextualMessages($("dataSourceProperties"));
      saveDataSourceImpl({
-         name: $get("dataSourceName"),
-         xid: $get("dataSourceXid"),
-         purgeOverride: $get("dataSourcePurgeOverride"),
-         purgePeriod: $get("dataSourcePurgePeriod"),
-         purgeType: $get("dataSourcePurgeType")
+         name: $get("dataSource.name"),
+         xid: $get("dataSource.xid"),
+         purgeOverride: $get("dataSource.purgeOverride"),
+         purgePeriod: $get("dataSource.purgePeriod"),
+         purgeType: $get("dataSource.purgeType")
      });
  }
  
@@ -134,10 +161,15 @@
   */
  function saveDataSourceCB(response) {
      stopImageFader("dsSaveImg");
-     if (response.hasMessages)
-         showDwrMessages(response.messages, "dataSourceGenericMessages");
-     else {
+     if (response.hasMessages){
+    	 //Prefix every message with dataSource. so we can use on same page as other members with context key's of name and xid, etc.
+    	 for(var i=0; i<response.messages.length; i++){
+    		 response.messages[i].contextKey = 'dataSource.' + response.messages[i].contextKey;
+    	 }
+    	 showDwrMessages(response.messages);
+     }else {
          showMessage("dataSourceMessage", mangoTranslate('dsEdit.saved'));
+    	 createDataPointsTab(); //For The saving of new sources
          //Need to Update the DS Table for sure
          if(typeof dataSources != 'undefined'){
         	 dataSources.setInputs(response.data.vo);
@@ -342,23 +374,13 @@ function deletePoint() {
          showMessage("pointMessage", mangoTranslate('dsEdit.pointSaved'));
          dataPoints.setInputs(response.data.vo);
          dataPoints.refresh();
+         
+         //Also refresh the all data points if it is in this view
+         if(typeof allDataPoints != 'undefined')
+        	 allDataPoints.refresh(); 
+         
      }else if (response.hasMessages)
          showDwrMessages(response.messages);
-     
-	 //Do another DWRCall to save the settings too 
-	 //TODO Can't save the full point due to the pointlocator superclass issue in DWR
-//	 DataPointDwr.saveFull(currentPoint,function(saveSettingsResponse){
-//		 stopImageFader("pointSaveImg");
-//	     if(!response.hasMessages && !saveSettingsResponse.hasMessages){
-//	         showMessage("pointMessage", mangoTranslate('dsEdit.pointSaved'));
-//	         dataPoints.setInputs(response.data.vo);
-//	         dataPoints.refresh();
-//	     }else if (response.hasMessages)
-//	         showDwrMessages(response.messages);
-//	     else if (saveSettingsResponse.hasMessages)
-//	    	 showDwrMessages(saveSettingsResponse.messages);
-//		 
-//	 });
  }
  
 
@@ -457,52 +479,26 @@ function deletePoint() {
 	 }
  }
  
- //On load tab pane creation
- 
- require(["dojo/dom-construct","dijit/layout/TabContainer", "dijit/layout/ContentPane", "dojo/domReady!"], 
-		 	function(domConstruct, TabContainer, ContentPane){
-	    var tc = new TabContainer({
-	        style: "height: auto",
-	        doLayout: false,
-	    }, "dataSourcePropertiesTabContainer");
-
-	    var cp2 = new ContentPane({
-	         title: "Data Source",
-	         style: "overflow-y: auto",
-	         selected: true,
-	         content: "<div id='dataSourceDetails-content'></div>",
-	         id: 'dataSourceDetails-tab',
-	    });
-	    tc.addChild(cp2);
-	    var pd = dojo.byId("dataSourcePropertiesTab");
-	    domConstruct.place(pd,"dataSourceDetails-content");
-
+ /**
+  * Will only create the tab if it doesn't already exist
+  */
+ 	function createDataPointsTab(){
+ 		var tc = dijit.byId("dataSourcePropertiesTabContainer");
 	    //Setup Data Points List
-	    var cp3 = new ContentPane({
-	         title: "Data Points",
+	    var cp3 = new dijit.layout.ContentPane({
+	         title: mangoTranslate('header.dataPoints'),
 	         style: "overflow-y: auto",
-	         content: "<div id='pointTable-content'></div>"
+	         content: "<div id='pointTable-content'></div>",
+	         id: 'pointTable-tab',
+	       
 	    });
 	    tc.addChild(cp3);
-
 	    var pd = dojo.byId("pointTableDiv");
-	    domConstruct.place(pd,"pointTable-content");
-
-	    //Setup the Point Details Tab
-	    var cp1 = new ContentPane({
-	         title: mangoTranslate('dsEdit.points.details'),
-	         content: "<div id='pointDetails-content'></div>",
-	         id: 'dataPointDetails-tab',
-	         disabled: true
-	    });
-	    tc.addChild(cp1);
-
-	    var pd = dojo.byId("pointDetails");
-	    domConstruct.place(pd,"pointDetails-content");
-
-	    tc.startup();
-	});
+	    dojo.place(pd,"pointTable-content");
+	    show("pointTableDiv"); //Show the hidden table
+ }
  
+
  
  
  
