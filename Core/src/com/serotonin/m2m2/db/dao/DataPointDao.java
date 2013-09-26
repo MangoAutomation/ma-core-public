@@ -776,7 +776,34 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 				"engineeringUnits"
 				);
 	}
-
+	
+	@Override
+	protected Integer getIndexType(){
+		return Types.INTEGER;
+	}
+	@Override
+	protected List<Integer> getPropertyTypes(){
+		return Arrays.asList(
+					Types.BLOB,
+					Types.VARCHAR,
+					Types.INTEGER,
+					Types.VARCHAR,
+					Types.VARCHAR,
+					Types.CHAR,
+					Types.INTEGER,
+					Types.INTEGER,
+					Types.INTEGER,
+					Types.INTEGER,
+					Types.DOUBLE,
+					Types.CHAR,
+					Types.INTEGER,
+					Types.INTEGER,
+					Types.INTEGER,
+					Types.CHAR,
+					Types.INTEGER
+				
+				);		
+	}
 	
 	@Override
 	protected Map<String, Comparator<DataPointVO>> getComparatorMap() {
@@ -837,7 +864,10 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
             int id = (rs.getInt(++i));
+            
+            //TODO Should catch Stream exceptions when a module is missing for an existing Datasource.
             DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
+
             dp.setId(id);
             dp.setXid(rs.getString(++i));
             dp.setDataSourceId(rs.getInt(++i));

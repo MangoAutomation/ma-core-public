@@ -344,7 +344,19 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                 "data"
                 );
 	}
-
+	@Override
+	protected Integer getIndexType(){
+		return Types.INTEGER;
+	}
+	@Override
+	protected List<Integer> getPropertyTypes(){
+		return Arrays.asList(
+					Types.VARCHAR,
+					Types.VARCHAR,
+					Types.VARCHAR,
+					Types.BLOB
+				);		
+	}
 	@Override
 	protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
 		HashMap<String,Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<String,Comparator<DataSourceVO<?>>>();

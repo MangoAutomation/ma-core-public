@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +32,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     protected Log LOG;
     
     protected final List<String> properties = getProperties();
+    protected final List<Integer> propertyTypes = getPropertyTypes();
+    protected final Integer indexType = getIndexType();
     protected final Map<String, String> propertiesMap = getPropertiesMap();
     protected final Map<String, Comparator<T>> comparatorMap = getComparatorMap();
     protected final Map<String, IFilter<T>> filterMap = getFilterMap();
@@ -44,12 +47,44 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     }
 
     /**
+     * 
+     * Required for Derby Tables that have BLOB Types
+     * because auto-detection doesn't work.
+     * 
+     * Set all properties except the Index in same order as properties array
+     * 
+     * If using a table with and LOB types this must be overridden
+     * 
+	 * @return
+	 */
+	protected List<Integer> getPropertyTypes() {
+		return null;
+	}
+
+    /**
+     * Required for Derby Updates to tables with LOB columns
+     * 
+     * Return the type of Index
+     * ex. Types.INTEGER
+     * 
+	 * @return
+	 */
+	protected Integer getIndexType() {
+		return Types.INTEGER;
+	}
+	
+
+	
+	/**
      * Provide a table prefix to use for complex queries.  Ie. Joins
      * Do not include the . at the end of the prefix
      * @param tablePrefix
      */
     public AbstractBasicDao(String tablePrefix){
+    	if(tablePrefix != null)
     		this.tablePrefix = tablePrefix + ".";
+    	else
+    		this.tablePrefix = "";
     }
     
     /**
