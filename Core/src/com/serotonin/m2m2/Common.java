@@ -478,6 +478,12 @@ public class Common {
         return systemTranslations;
     }
 
+        
+    public static Locale getLocale() {
+        ensureI18n();
+        return parseLocale(systemLanguage);
+    }
+    
     private static void ensureI18n() {
         if (systemLanguage == null) {
             synchronized (i18nLock) {

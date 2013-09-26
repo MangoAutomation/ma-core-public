@@ -44,8 +44,8 @@ public class DataPointEditDwr extends BaseDwr {
     // Set text renderer
     //
     @DwrPermission(user = true)
-    public void setAnalogTextRenderer(String format, String suffix) {
-        setTextRenderer(new AnalogRenderer(format, suffix));
+    public void setAnalogTextRenderer(String format, String suffix,boolean useUnitAsSuffix) {
+        setTextRenderer(new AnalogRenderer(format, suffix,useUnitAsSuffix));
     }
 
     @DwrPermission(user = true)
@@ -67,8 +67,8 @@ public class DataPointEditDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
-    public void setPlainRenderer(String suffix) {
-        setTextRenderer(new PlainRenderer(suffix));
+    public void setPlainRenderer(String suffix,boolean useUnitAsSuffix) {
+        setTextRenderer(new PlainRenderer(suffix,useUnitAsSuffix));
     }
 
     @DwrPermission(user = true)

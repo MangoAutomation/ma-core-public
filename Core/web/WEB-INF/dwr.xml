@@ -141,6 +141,9 @@
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.PublisherEventType"/>
     <!--  -->
     
+    <convert converter="bean" match="javax.measure.converter.UnitConverter"/>
+    <convert converter="bean" match="javax.measure.unit.*"/>
+    
     
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.handlers.*"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.EventHandlerVO"/>
@@ -156,7 +159,7 @@
     </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointSummary"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointVO" javascript="DataPointVO">
-        <param name="exclude" value="typeKey"/>
+        <param name="exclude" value="typeKey,unit,renderedUnit,integralUnit"/>
     </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.User">
       <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,dataSourcePermissions,dataPointPermissions"/>

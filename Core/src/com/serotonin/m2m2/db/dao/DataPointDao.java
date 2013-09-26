@@ -152,12 +152,15 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
+           
 
             // Data source information.
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
 
+            dp.ensureUnitsCorrect();
+            
             return dp;
         }
     }
@@ -853,7 +856,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
-
+            
+            dp.ensureUnitsCorrect();
             return dp;
         }
     }

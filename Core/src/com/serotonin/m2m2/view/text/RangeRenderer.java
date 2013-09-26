@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.measure.unit.Unit;
+
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -19,7 +21,7 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class RangeRenderer extends BaseTextRenderer {
+public class RangeRenderer extends ConvertingRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererRange", "RANGE", "textRenderer.range",
             new int[] { DataTypes.NUMERIC });
 
@@ -40,14 +42,25 @@ public class RangeRenderer extends BaseTextRenderer {
     @JsonProperty
     private String format;
     @JsonProperty
-    private List<RangeValue> rangeValues = new ArrayList<RangeValue>();
-
+    private List<RangeValue> rangeValues;
+    
     public RangeRenderer() {
-        // no op
+        super();
     }
-
+    
+    /**
+     * @param format
+     */
     public RangeRenderer(String format) {
+        super();
         this.format = format;
+    }
+    
+    @Override
+    protected void setDefaults() {
+        super.setDefaults();
+        format = "";
+        rangeValues = new ArrayList<RangeValue>();
     }
 
     public void addRangeValues(double from, double to, String text, String colour) {
@@ -79,7 +92,10 @@ public class RangeRenderer extends BaseTextRenderer {
 
     @Override
     public String getText(double value, int hint) {
-        if (hint == HINT_RAW || hint == HINT_SPECIFIC)
+        if ((hint & HINT_NO_CONVERT) == 0)
+            value = unit.getConverterTo(renderedUnit).convert(value);
+        
+        if ((hint & HINT_RAW) != 0 || (hint & HINT_SPECIFIC) != 0)
             return new DecimalFormat(format).format(value);
 
         RangeValue range = getRangeValue(value);
@@ -127,25 +143,36 @@ public class RangeRenderer extends BaseTextRenderer {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         SerializationHelper.writeSafeUTF(out, format);
         out.writeObject(rangeValues);
+        out.writeBoolean(useUnitAsSuffix);
+        out.writeObject(unit);
+        out.writeObject(renderedUnit);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-
+        
+        setDefaults();
+        
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             format = SerializationHelper.readSafeUTF(in);
             rangeValues = (List<RangeValue>) in.readObject();
         }
+        else if (ver == 2) {
+            format = SerializationHelper.readSafeUTF(in);
+            rangeValues = (List<RangeValue>) in.readObject();
+            useUnitAsSuffix = in.readBoolean();
+            unit = (Unit<?>) in.readObject();
+            renderedUnit = (Unit<?>) in.readObject();
+        }
     }
-
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
 	 */

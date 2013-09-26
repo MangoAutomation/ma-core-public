@@ -11,9 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -40,10 +38,10 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
     public ImplDefinition getDef() {
         return definition;
     }
-
+    
     @JsonProperty
     private boolean includeSum;
-
+    
     public StatisticsChartRenderer() {
         // no op
     }
@@ -100,6 +98,7 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
                     model.put("sum", stats.getSum());
                 model.put("count", stats.getCount());
                 model.put("noData", stats.getAverage() == null);
+                model.put("integral", stats.getIntegral());
             }
             else if (dataTypeId == DataTypes.ALPHANUMERIC) {
                 ValueChangeCounter stats = new ValueChangeCounter(startTime, endTime, startVT, values);
@@ -114,7 +113,7 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
     public String getChartSnippetFilename() {
         return "statsChart.jsp";
     }
-
+    
     //
     // /
     // / Serialization
@@ -137,7 +136,4 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
         else if (ver == 2)
             includeSum = in.readBoolean();
     }
-    
-    
-    
 }

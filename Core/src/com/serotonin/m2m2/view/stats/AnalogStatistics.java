@@ -22,6 +22,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Double maximumValue;
     private Long maximumTime;
     private Double average;
+    private Double integral;
     private double sum;
     private Double firstValue;
     private Long firstTime;
@@ -105,12 +106,16 @@ public class AnalogStatistics implements StatisticsGenerator {
             // duration calculation.
             updateAverage(endValue, periodEnd);
 
-        if (average != null)
+        if (average != null) {
+            integral = average / 1000; // integrate over seconds not msecs
             average /= totalDuration;
-        else
+        }
+        else {
             // Special case: if there was no start value and no end value, and only one value in the data set, we will
             // have a latest value, and a duration of zero. For this value we set the average equal to that value.
             average = lastValue;
+            integral = 0.0;
+        }
     }
 
     private void updateAverage(double value, long time) {
@@ -130,7 +135,7 @@ public class AnalogStatistics implements StatisticsGenerator {
 
         // Reset the latest value.
         latestValue = value;
-        lastTime = time;
+        latestTime = time;
     }
 
     @Override
@@ -161,6 +166,10 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     public Double getAverage() {
         return average;
+    }
+    
+    public Double getIntegral() {
+        return integral;
     }
 
     public double getSum() {

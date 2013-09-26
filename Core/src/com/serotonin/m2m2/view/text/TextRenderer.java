@@ -31,7 +31,11 @@ public interface TextRenderer extends Serializable {
      * obfuscating a numeric into a descriptor.
      */
     public static final int HINT_SPECIFIC = 3;
-
+    /**
+     * Do not convert when rendering
+     */
+    public static final int HINT_NO_CONVERT = 8;
+    
     public static final String UNKNOWN_VALUE = "(n/a)";
 
     public String getText(int hint);

@@ -20,6 +20,13 @@
     <tbody id="suffixRow">
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.text.suffix"/></td>
+        <td class="formField">
+            <input id="useUnitAsSuffix" type="checkbox" checked="checked" />
+            <label for="useUnitAsSuffix"><fmt:message key="pointEdit.props.useUnitAsSuffix"/></label>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
         <td class="formField"><input id="suffix" type="text"/></td>
       </tr>
     </tbody>
@@ -100,7 +107,7 @@
     
     
     
-    
+    <!--  I think we can delete this -->
     <tbody id="textRendererAnalog" style="display:none;">
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.text.format"/></td>
@@ -348,6 +355,14 @@
           },"textRendererSelect");
           
           this.textRendererSelect.watch("value",textRendererChanged);
+          
+          var useUnitAsSuffix = dojo.byId("useUnitAsSuffix");
+          var suffix = dojo.byId("suffix");
+          useUnitAsSuffix.onchange = function(value){
+        	  suffix.disabled = useUnitAsSuffix.checked;
+          }
+          
+          
       }
   
       this.change = function() {

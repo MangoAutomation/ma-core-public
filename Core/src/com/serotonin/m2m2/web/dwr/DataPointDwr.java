@@ -262,6 +262,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * @param purgePeriod
      * @param defaultCacheSize
      */
+    @Deprecated //I Think this isn't being used anymore
     @DwrPermission(user = true)
     public void storeEditLoggingProperties(int type, int period, int periodType,
     		int intervalType, double tolerance, boolean discardExtremeValues, 
@@ -295,6 +296,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		
     		//General Properties
     		dp.setEngineeringUnits(newDp.getEngineeringUnits());
+    		dp.setUseIntegralUnit(newDp.isUseIntegralUnit());
+    		dp.setUseRenderedUnit(newDp.isUseRenderedUnit());
+    		dp.setUnit(newDp.getUnit());
+    		dp.setRenderedUnit(newDp.getRenderedUnit());
+    		dp.setIntegralUnit(newDp.getIntegralUnit());
     		dp.setChartColour(newDp.getChartColour());
     		dp.setPlotType(newDp.getPlotType());
     		
