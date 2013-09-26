@@ -323,7 +323,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
                     event.setAcknowledgedByUsername(rs.getString(15));
                 event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
             }
-            
             event.setHasComments(rs.getInt(16) > 0);         
             
             //This makes another query!

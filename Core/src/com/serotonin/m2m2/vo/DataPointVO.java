@@ -237,11 +237,15 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public String getExtendedName() {
 		return getExtendedName(this);
 	}
-
+	
 	public static String getExtendedName(IDataPoint dp) {
 		return dp.getDeviceName() + " - " + dp.getName();
 	}
 
+	public void setExtendedName(String name){
+		//No-Op
+	}
+	
 	public void defaultTextRenderer() {
 		if (pointLocator == null)
 			setTextRenderer(new PlainRenderer("", false));
@@ -706,7 +710,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         return "";
 	}
 	public void setUnitString(String unit){
-		setUnit(UnitUtil.parseLocal(unit));
+		try{
+			setUnit(UnitUtil.parseLocal(unit));
+		}catch(Exception e){
+			setUnit(defaultUnit());
+		}
 	}
 	
 	public String getRenderedUnitString(){
@@ -718,7 +726,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         return "";
 	}
 	public void setRenderedUnitString(String unit){
-		setRenderedUnit(UnitUtil.parseLocal(unit));
+		try{
+			setRenderedUnit(UnitUtil.parseLocal(unit));
+		}catch(Exception e){
+			setRenderedUnit(defaultUnit());
+		}
 	}
 	
 	public String getIntegralUnitString(){
@@ -730,8 +742,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         return "";
 	}
 	public void setIntegralUnitString(String unit){
-		setIntegralUnit(UnitUtil.parseLocal(unit));
-	}	/* ############################## */
+		try{
+			setIntegralUnit(UnitUtil.parseLocal(unit));
+		}catch(Exception e){
+			setIntegralUnit(defaultUnit());
+		}
+	}
+	
+	/* ############################## */
 	public DataPointVO copy() {
 		try {
 			DataPointVO copy = (DataPointVO) super.clone();

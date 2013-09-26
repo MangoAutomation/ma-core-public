@@ -157,10 +157,13 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.publish.PublisherVO">
       <param name="exclude" value="definition,eventCodes"/>
     </convert>
+    
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointSummary"/>
+    
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointVO" javascript="DataPointVO">
-        <param name="exclude" value="typeKey,unit,renderedUnit,integralUnit"/>
+        <param name="exclude" value="typeKey,unit,renderedUnit,integralUnit,integralConverter,new,configurationDescription,dataTypeMessage"/>
     </convert>
+
     <convert converter="bean" match="com.serotonin.m2m2.vo.User">
       <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,dataSourcePermissions,dataPointPermissions"/>
     </convert>
