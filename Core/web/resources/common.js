@@ -63,111 +63,117 @@ mango.longPoll.pollCB = function(response) {
     if (response.terminated)
         return;
     
-    //For Alarms Widget in Header
-    if (typeof(response.highestUnsilencedAlarmLevel) != "undefined") {
-        if (response.highestUnsilencedAlarmLevel > 0) {
-            setAlarmLevelImg(response.highestUnsilencedAlarmLevel, $("__header__alarmLevelImg"));
-            setAlarmLevelText(response.highestUnsilencedAlarmLevel, $("__header__alarmLevelText"));
-            if (!mango.header.evtVisualizer.started)
-                mango.header.evtVisualizer.start();
-            show("__header__alarmLevelDiv");
-            mango.soundPlayer.play("level"+ response.highestUnsilencedAlarmLevel);
-
-            if(response.alarmsInformation > 0){
-            	if(response.alarmsInformation > 1){
-    	            dojo.publish("alarmTopic",[{
-    	            	message: "<span style='color: blue'>" + response.alarmsInformation  + " Information Events <a style='float:right' href='/events.shtm'>View</a></span>",
-    	            	type: "message",
-    	            	duration: 5000, //-1, //Don't Go Away
-    	            }]);            		
-            	}else{
-            		//For only 1
-    	            dojo.publish("alarmTopic",[{
-    	            	message: "<span style='color: blue'>" + response.informationEvent.messageString  + "<img src='/images/tick.png' id='ackImg"+
-    	            		response.informationEvent.id +
-    	            		"' onclick='ackEvent(" +
-    	            		response.informationEvent.id + 	
-    	            		")' title='" + 
-    	            		mangoMsg['events.acknowledge'] +
-    	            		"' style='float:right'/>",
-    	            	type: "message",
-    	            	duration: 5000, //Don't Go Away
-    	            }]);
-            	}
-
-            }
-            if(response.alarmsUrgent > 0){
-            	if(response.alarmsUrgent > 1){
+//    //For Alarms Widget in Header
+//    if (typeof(response.highestUnsilencedAlarmLevel) != "undefined") {
+//
+//        if (response.highestUnsilencedAlarmLevel > 0) {
+//            setAlarmLevelImg(response.highestUnsilencedAlarmLevel, $("__header__alarmLevelImg"));
+//            setAlarmLevelText(response.highestUnsilencedAlarmLevel, $("__header__alarmLevelText"));
+//            if (!mango.header.evtVisualizer.started)
+//                mango.header.evtVisualizer.start();
+//            show("__header__alarmLevelDiv");
+//            mango.soundPlayer.play("level"+ response.highestUnsilencedAlarmLevel);
+//        }
+//        else {
+//            hide("__header__alarmLevelDiv");
+//            mango.header.evtVisualizer.stop();
+//            mango.soundPlayer.stop();
+//        }
+//    }
+    
+	//Do we have updated information for the toaster
+    if(typeof(response.alarmsUpdated != 'undefined')){
+		if(response.alarmsUpdated == true){
+	    	//Clear out toaster message
+			dojo.publish("alarmTopic",[{
+					message:"",
+					type: "clear",
+					duration: -1,}]
+			);
+			
+			//Check to see if we need to add new
+	        if(response.alarmsInformation > 0){
+	        	if(response.alarmsInformation > 1){
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span style='color: yellow'>" + response.alarmsUrgent + " Urgent Events <a style='float:right' href='/events.shtm'>View</a></span>",
+		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_blue.png'/> " + response.alarmsInformation  + " Information Events</a>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);            		
+	        	}else{
+	        		//For only 1
+		            dojo.publish("alarmTopic",[{
+		            	message: "<span><img src='/images/flag_blue.png'/> " + response.informationEvent.messageString  + 
+		            	" <a class='ptr' onclick='ackEvent(" + response.informationEvent.id + ")'>" +	
+		            	"<img src='/images/tick.png' id='ackImg" + response.informationEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);
+	        	}
+	
+	        }
+	        if(response.alarmsUrgent > 0){
+	        	if(response.alarmsUrgent > 1){
+		            dojo.publish("alarmTopic",[{
+		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_yellow.png'/> " + response.alarmsUrgent + " Urgent Events</a>",
 		            	type: "warning",
-    	            	duration: -1, //Don't Go Away
+		            	duration: -1, //Don't Go Away
 		            }]);
-            	}else{
-            		//For only 1
-    	            dojo.publish("alarmTopic",[{
-    	            	message: "<span style='color: yellow'>" + response.urgentEvent.messageString  + "<img src='/images/tick.png' id='ackImg"+
-	            		response.urgentEvent.id +
-	            		"' onclick='ackEvent(" +
-	            		response.urgentEvent.id + 	
-	            		")' title='" + 
-	            		mangoMsg['events.acknowledge'] +
-	            		"' style='float:right'/>",
-	            	type: "message",
-	            	duration: -1, //Don't Go Away
-    	            }]);
-            	}
-            }
-            if(response.alarmsCritical > 0){
-            	if(response.alarmsCritical > 1){
+	        	}else{
+	        		//For only 1
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span style='color: orange'>" + response.alarmsCritical + " Critical Events <a style='float:right' href='/events.shtm'>View</a></span>",
-		            	type: "error",
-    	            	duration: -1, //Don't Go Away
-		            }]);
-            	}else{
-            		//For only 1 event
-    	            dojo.publish("alarmTopic",[{
-    	            	message: "<span style='color: orange'>" + response.criticalEvent.messageString  + "<img src='/images/tick.png' id='ackImg"+
-	            		response.criticalEvent.id +
-	            		"' onclick='ackEvent(" +
-	            		response.criticalEvent.id + 	
-	            		")' title='" + 
-	            		mangoMsg['events.acknowledge'] +
-	            		"' style='float:right'/>",
+		            	message: "<span><img src='/images/flag_yellow.png'/> " + response.urgentEvent.messageString  + 
+		            	" <a class='ptr' onclick='ackEvent(" + response.urgentEvent.id + ")'>" + 
+		            	"<img src='/images/tick.png' id='ackImg"+ response.urgentEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 	            	type: "message",
 	            	duration: -1, //Don't Go Away
-    	            }]);
-            	}
-            }
-            if(response.alarmsLifeSafety > 0){
-            	if(response.alarmsLifeSafety > 1){
+		            }]);
+	        	}
+	        }
+	        if(response.alarmsCritical > 0){
+	        	if(response.alarmsCritical > 1){
+		            dojo.publish("alarmTopic",[{
+		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_orange.png'/> " + response.alarmsCritical + " Critical Events</a>",
+		            	type: "error",
+		            	duration: -1, //Don't Go Away
+		            }]);
+	        	}else{
+	        		//For only 1 event
+		            dojo.publish("alarmTopic",[{
+		            	message: "<span><img src='/images/flag_orange.png'/> " + response.criticalEvent.messageString  + 
+		            	" <a class='ptr'onclick='ackEvent(" + response.criticalEvent.id + ")'>" + 
+		            	"<img src='/images/tick.png' id='ackImg" + response.criticalEvent.id + "'  title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
+	            	type: "message",
+	            	duration: -1, //Don't Go Away
+		            }]);
+	        	}
+	        }
+	        if(response.alarmsLifeSafety > 0){
+	        	if(response.alarmsLifeSafety > 1){
 	            dojo.publish("alarmTopic",[{
-	            	message: "<span style='color: red'>" + response.alarmsLifeSafety + " Life Safety Events <a style='float:right' href='/events.shtm'>View</a></span>",
+	            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_red.png'/> " + response.alarmsLifeSafety + " Life Safety Events</a>",
 	            	type: "fatal",
 	            	duration: -1, //Don't Go Away
 	            }]);
-            	}else{
-            		//For only 1 message
-    	            dojo.publish("alarmTopic",[{
-       	            	message: "<span style='color: red'>" + response.lifeSafetyEvent.messageString  + "<img src='/images/tick.png' id='ackImg"+
-	            		response.lifeSafetyEvent.id +
-	            		"' onclick='ackEvent(" +
-	            		response.lifeSafetyEvent.id + 	
-	            		")' title='" + 
-	            		mangoMsg['events.acknowledge'] +
-	            		"' style='float:right'/>",
+	        	}else{
+	        		//For only 1 message
+		            dojo.publish("alarmTopic",[{
+	   	            	message: "<span><img src='/images/flag_red.png'/> " + response.lifeSafetyEvent.messageString  +
+	   	            	" <a class='ptr' onclick='ackEvent(" + response.lifeSafetyEvent.id + ")'>" +
+	   	            	"<img src='/images/tick.png' id='ackImg" + response.lifeSafetyEvent.id +"' title='" + mangoMsg['events.acknowledge'] +"'/></a></span>",
 	            	type: "message",
 	            	duration: -1, //Don't Go Away
-    	            }]);            		
-            	}
-            }
-        }
-        else {
-            hide("__header__alarmLevelDiv");
-            mango.header.evtVisualizer.stop();
-            mango.soundPlayer.stop();
-        }
+		            }]);            		
+	        	}
+	        }
+		}
+    }else{//end if the alarm indicator was not defined
+    	//Clear out toaster message
+		dojo.publish("alarmTopic",[{
+				message:"",
+				type: "clear",
+				duration: -1,}]
+		);
+
     }
     
     for (var i=0; i<mango.longPoll.handlers.length; i++)

@@ -134,6 +134,9 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 .borderDivPadded {
 	padding: 3px;
 }
+.borderlessDiv, .borderDivPadded{
+    border: 0px;
+}
 .marR {
 	margin-right: 5px;
 }
@@ -561,32 +564,8 @@ div.dgridLoadNoData {
     margin-bottom: 5px;
 }
 
-div.dijitToasterContainer {
-
-    font-family: sans-serif;
-    width: 20em;
-    display: inline;
-    
-}
-div.dijitToasterContent {
-	background: light-grey
-    background-color: grey;
-    font-size: 14px;
-    border-radius: 0.5em;
-    opacity: 0.75;
-    filter:alpha(opacity=75); /* For IE8 and earlier */
+/* Style for Alarms Widget */
+#alarmToaster {
+	
 }
 
-.dijitToasterMessage,
-.dijitToasterWarning,
-.dijitToasterError,
-.dijitToasterFatal{
-    font-weight: normal;
-}
-
-.dijitToasterMessage .dijitToasterContent,
-.dijitToasterWarning .dijitToasterContent,
-.dijitToasterError .dijitToasterContent,
-.dijitToasterFatal .dijitToasterContent{
-    background: gray;
-} 

@@ -20,9 +20,11 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
+import com.serotonin.m2m2.db.dao.EventDao.UserEventInstanceRowMapper;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -411,5 +413,9 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return type;
     }
 
+    
+    
+    
+    
     
 }

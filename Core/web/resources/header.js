@@ -18,10 +18,11 @@ window.onerror = function mangoHandler(desc, page, line)  {
 
 mango.header = {};
 mango.header.onLoad = function() {
-    if (dojo.isIE)
-        mango.header.evtVisualizer = new IEBlinker($("__header__alarmLevelDiv"), 500, 200);
-    else
-        mango.header.evtVisualizer = new ImageFader($("__header__alarmLevelDiv"), 75, .2);
+	//Removed when replaced alarm notification widget
+//    if (dojo.isIE)
+//        mango.header.evtVisualizer = new IEBlinker($("__header__alarmLevelDiv"), 500, 200);
+//    else
+//        mango.header.evtVisualizer = new ImageFader($("__header__alarmLevelDiv"), 75, .2);
     mango.longPoll.start();
 };
 
