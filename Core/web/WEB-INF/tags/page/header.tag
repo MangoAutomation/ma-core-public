@@ -5,33 +5,15 @@
 <%@tag import="com.serotonin.m2m2.Common"%>
 <%@attribute name="showHeader" %>
 
-
-  <script type="text/javascript">
-  require(["dojo/on", "dojo/topic", "dojo/dom-construct", "dojo/dom", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"],
-		    function(on, topic, domConstruct, dom) {
-
-		    // Register the alerting routine with the "alertUser" topic.
-	        topic.subscribe("alarmTopic", function(message){
-	        	//Message has members:
-	            // duration - int
-	            // message - string
-	            // type - string
-	            var alarmMessageDiv = dojo.byId("alarmToaster");
-	            if(message.type == 'clear')
-	            	alarmMessageDiv.innerHTML = "";
-	            else{
-	            	alarmMessageDiv.innerHTML += message.message + "</br>";
-	            }	
-	        });
-		 
-		});
-  </script>
+    
   
 <div id="mainHeader" data-dojo-type="dijit/layout/BorderContainer" style="width:100%; height: 85px" >
      <div style="border:0px; padding:0px" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'leading'" ><img src="<%= Common.applicationLogo %>" alt="Logo"/></div>
      
      <c:if test="${!simple}">
-     <div id="alarmToaster" style="border:0px; padding:.2em 0em 0em 5em;" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'"></div>
+     <div id="alarmToaster" style="border:0px; padding:.2em 0em 0em 5em;" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'">
+        <div style="width:100%; height:100%"></div>
+     </div>
      </c:if>
      
      <div style="border:0px; padding:0px;" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'trailing'">
@@ -42,4 +24,31 @@
         </c:if>
      </div>
 <!-- Could put toolbar here later     <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'bottom'">Bottom pane</div> -->
-</div>  
+</div>
+
+
+  <script type="text/javascript">
+  require(["dojo/parser", "dijit/registry", "dojo/on", "dojo/topic", "dojo/dom-construct", "dojo/dom", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"],
+            function(parser,registry, on, topic, domConstruct, dom) {
+	    
+	    parser.parse();
+	    var mainHeader = registry.byId("mainHeader");
+	    mainHeader.resize();
+	    
+       // Register the alerting routine with the "alertUser" topic.
+       topic.subscribe("alarmTopic", function(message){
+           //Message has members:
+           // duration - int
+           // message - string
+           // type - string
+           var alarmMessageDiv = dojo.byId("alarmToaster");
+           if(message.type == 'clear')
+               alarmMessageDiv.innerHTML = "";
+           else{
+               alarmMessageDiv.innerHTML += message.message + "</br>";
+           }   
+       });
+    
+   });
+  </script>
+  
