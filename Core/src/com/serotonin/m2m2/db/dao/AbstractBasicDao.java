@@ -233,10 +233,24 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                            condition = condition.substring(1, condition.length() - 1);
 	                            condition = condition.replace(".*.*", "%");
 	                            condition = condition.replace(".*", "%");
-	                            if(mapped)
-	                            	tempSql += dbProp + " LIKE '" + condition + "'";
-	                            else
-	                            	tempSql += this.tablePrefix  + dbProp + " LIKE '" + condition + "'";
+	                            //Derby doesn't handle LIKE for anything but varchars
+	                            switch (Common.databaseProxy.getType()) {
+	                            case MYSQL:
+	                            case POSTGRES:
+	                            case MSSQL:
+		                            if(mapped)
+		                            	tempSql += dbProp + " LIKE '" + condition + "'";
+		                            else
+		                            	tempSql += this.tablePrefix  + dbProp + " LIKE '" + condition + "'";
+		                            break;
+	                            case DERBY:
+		                            if(mapped)
+		                            	tempSql += "(CHAR(" + dbProp + ") LIKE '" + condition + "')";
+		                            else
+		                            	tempSql += "(CHAR(" + this.tablePrefix + dbProp + ") LIKE '" + condition + "')";
+	                            	break;
+	                            default:
+	                            }
 	                        }
 	                        else {
 	                            // all other cases, add condition which will ensure no results are returned

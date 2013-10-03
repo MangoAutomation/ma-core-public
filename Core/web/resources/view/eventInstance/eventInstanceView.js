@@ -68,7 +68,7 @@ eventInstances = new StoreView({
     					if(value == '')
     						delete eventInstances.filters['id'];
     					else
-    						eventInstances.filters['id'] = "Int:=" + value;//new RegExp("^.*"+value+".*$","i");
+    						eventInstances.filters['id'] = new RegExp("^.*"+value+".*$","i");
     					eventInstances.grid.set('query',eventInstances.filters);
     				});
     				
