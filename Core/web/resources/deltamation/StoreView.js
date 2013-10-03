@@ -75,6 +75,7 @@ return declare("deltamation.StoreView", null, {
             };
         
         this.grid = dojo.declare([OnDemandGrid, ColumnResizer])({
+        	adjustLastColumn: false, /* Don't expand last row to fill */
             store: _this.viewStore.cache,
             columns: _this.columns,
             loadingMessage: _this.loadingMessage,

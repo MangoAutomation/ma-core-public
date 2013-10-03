@@ -31,10 +31,6 @@
   require(["dojo/parser", "dijit/registry", "dojo/on", "dojo/topic", "dojo/dom-construct", "dojo/dom", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"],
             function(parser,registry, on, topic, domConstruct, dom) {
 	    
-	    parser.parse();
-	    var mainHeader = registry.byId("mainHeader");
-	    mainHeader.resize();
-	    
        // Register the alerting routine with the "alertUser" topic.
        topic.subscribe("alarmTopic", function(message){
            //Message has members:

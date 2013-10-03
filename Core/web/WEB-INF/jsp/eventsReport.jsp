@@ -14,9 +14,17 @@
   <%@ include file="/WEB-INF/jsp/include/userComment.jsp" %>
   <style>
     .incrementControl { width: 2em; }
+
+    #eventInstanceTable .dgrid-column-id {text-align: center; width: 12em;}
+    #eventInstanceTable .dgrid-column-alarmLevel {width: 18em !important;} /* Important because all cell contents are actually smaller */
+    #eventInstanceTable .dgrid-column-activeTimestampString {text-align: center; width: 15em;}
+    #eventInstanceTable .dgrid-column-messageString {text-align: left;}
+    #eventInstanceTable .dgrid-column-rtnTimestampString {text-align: center; width: 20em;}
+    #eventInstanceTable .dgrid-column-alarmLevel {text-align: center; width: 9em;}
+    #eventInstanceTable .dgrid-column-totalTimeString {text-align: center; width: 12em;}
+    #eventInstanceTable .dgrid-column-acknowledged {text-align: center; width: 19em !important;}/* Important because all cell contents are actually smaller */
     
-    .dgrid-column-id {text-align: center;}
-    .dgrid-column-activeTimestampString {text-align: center;}
+    
   </style>
   <script type="text/javascript" src="/resources/stores.js"></script>
   <script type="text/javascript" src="resources/events.js"></script>
@@ -85,9 +93,9 @@
   }
   </script>
   
-  
+  <div class="mangoContainer">
   <jsp:include page="/WEB-INF/snippet/view/eventInstance/eventInstanceTable.jsp"/>
-  
+  </div>
   
   <div class="borderDiv marB" style="float:left;">
     <div class="smallTitle titlePadding" style="float:left;">

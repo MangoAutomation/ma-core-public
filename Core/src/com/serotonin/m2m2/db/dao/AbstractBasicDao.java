@@ -198,6 +198,15 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         }
     }
     
+    /**
+     * TODO This needs to be reworked to use the args list
+     * to avoid SQL Injection Attacks
+     * @param sql
+     * @param args
+     * @param query
+     * @param or
+     * @return
+     */
     protected String applyConditions(String sql, List<Object> args, Map<String, String> query, boolean or) {
         if (query != null && !query.isEmpty()) {
             int i = 0;
@@ -233,6 +242,17 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                            // all other cases, add condition which will ensure no results are returned
 	                            tempSql += this.tablePrefix + "id = '-1'";
 	                        }
+	                    }else if(condition.startsWith("Int:")){
+	                    	//Parse the value as Int:operatorvalue - Int:>10000 OR Int:>=
+	                    	int endAt = 5;
+	                    	if(condition.charAt(5) == '=')
+	                    		endAt = 6;
+	                    	String value = condition.substring(endAt,condition.length());
+	                    	String compare = condition.substring(4, endAt);
+	                    	if(mapped)
+	                    		tempSql += dbProp + " " + compare + " " + value;
+	                    	else
+	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + value;
 	                    }else if(condition.startsWith("Long:")){
 	                    	//Parse the value as Long:operatorvalue - Long:>10000
 	                    	String ms = condition.substring(6,condition.length());
@@ -263,6 +283,30 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                    	else
 	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + longValue;
 	                    	
+	                    }else if(condition.startsWith("BooleanIs:")){
+	                    	//Parse the value as BooleanIs:value
+	                    	String booleanString = condition.substring(10,condition.length());
+	                    	//Boolean value = Boolean.parseBoolean(booleanString);
+	                    	if(mapped)
+	                    		tempSql += dbProp + " IS " + booleanString;
+	                    	else
+	                    		tempSql += this.tablePrefix + dbProp + " = " + booleanString;
+	                    	
+	                    }else if(condition.startsWith("NullCheck:")){
+	                    	//Parse the value as NullCheck:true or NullCheck:false
+	                    	String checkForString = condition.substring(10,condition.length());
+	                    	Boolean checkFor = Boolean.parseBoolean(checkForString);
+	                    	if(checkFor){
+		                    	if(mapped)
+		                    		tempSql += dbProp + " IS NULL";
+		                    	else
+		                    		tempSql += this.tablePrefix + dbProp + " IS NULL";
+	                    	}else{
+		                    	if(mapped)
+		                    		tempSql += dbProp + " IS NOT NULL";
+		                    	else
+		                    		tempSql += this.tablePrefix + dbProp + " IS NOT NULL";
+	                    	}
 	                    }
 	                    else {
 	                        //if (condition.isEmpty()) // occurs when empty array is set in query

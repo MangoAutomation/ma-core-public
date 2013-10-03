@@ -469,8 +469,11 @@ table.wide { width: 100%; }
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
+.mangoContainer {
+}
  
-.deltaContainer .dgrid {
+.mangoContainer .dgrid {
     height: 500px;
 }
 
@@ -488,12 +491,14 @@ table.wide { width: 100%; }
 .longExpandingGrid .dgrid-scroller {
     max-height: 24em;
 }
-
-.deltaListDiv .dgrid {
+.mangoListDiv table {
+    width: 100%;
+}
+.mangoListDiv .dgrid {
     height: auto;
 }
 
-.deltaListDiv .dgrid .dgrid-scroller {
+.mangoListDiv .dgrid .dgrid-scroller {
     position: relative;
     line-height: 1.5em;
     max-height: 12em; /* 8 * 1.5em = 12em i.e. 8 rows */
@@ -553,7 +558,7 @@ div.dgridLoadNoData {
     width: 100px;
 }
 
-.deltaListDiv .dgrid-column-buttons {
+.mangoListDiv .dgrid-column-buttons {
     width: 75px !important;
 }
  

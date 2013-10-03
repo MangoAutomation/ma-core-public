@@ -15,6 +15,11 @@ String[] mangoMessageKeys = {
 		
 	    "common.active",
 	    "common.alarmLevel",
+	    "common.alarmLevel.greaterthan.none",
+	    "common.alarmLevel.greaterthan.info",
+	    "common.alarmLevel.greaterthan.urgent",
+	    "common.alarmLevel.greaterthan.critical",
+	    "common.alarmLevel.greaterthan.lifeSafety",
 	    "common.alarmLevel.none",
 	    "common.alarmLevel.none.rtn",
 	    "common.alarmLevel.info",
@@ -34,8 +39,10 @@ String[] mangoMessageKeys = {
 	    "common.durationDays",
 	    "common.inactiveTime",
 		"common.nortn",
+		"common.status",
 	    "common.time",
 		"common.totalResults",
+		"common.clearDates",
 		
 		"chartRenderer.none",
 		"chartRenderer.image",
@@ -57,6 +64,8 @@ String[] mangoMessageKeys = {
 	    
 	    "emport.export",
 	    "emport.import",
+	    
+	    "event.rtn.rtn",
 	    
         "events.acknowledge",
         "events.acknowledged",

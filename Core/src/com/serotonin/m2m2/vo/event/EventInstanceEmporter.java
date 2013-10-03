@@ -7,6 +7,7 @@ package com.serotonin.m2m2.vo.event;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.joda.time.DateTime;
@@ -135,9 +136,13 @@ public class EventInstanceEmporter extends AbstractSheetEmporter{
         cell.setCellValue(new Date(vo.getActiveTimestamp()));
         cell.setCellStyle(dateStyle);
 
-        //Message
+        //Message (Remove any HTML)
         cell = row.createCell(cellNum++);
-        cell.setCellValue(vo.getMessageString());
+        String messageStringHTML = vo.getMessageString();
+        String messageString = StringEscapeUtils.unescapeHtml4(messageStringHTML);
+        //Since we have <br/> in the code and that isn't proper HTML we need to remove it by hand
+        messageString = messageString.replace("<br/>", "\n");
+        cell.setCellValue(messageString);
         
         //Status
         cell = row.createCell(cellNum++);
