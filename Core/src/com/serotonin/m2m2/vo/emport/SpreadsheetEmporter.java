@@ -47,7 +47,10 @@ public class SpreadsheetEmporter {
     private int rowsProcessed;
     private int rowErrors;
     private int rowNum; // current row
-        
+    
+    /* Date Format for date cells can be set before export (This is the Excel Format not the Java Simple Date Format) */
+    private String dateFormat = "dd/mm/yy hh:mm:ss.000"; //Show Milliseconds for default
+    
     public enum FileType {
         AUTO, UNKNOWN, XLS, XLSX
     }
@@ -335,7 +338,7 @@ public class SpreadsheetEmporter {
         
         CreationHelper createHelper = wb.getCreationHelper();
         CellStyle dateStyle = wb.createCellStyle();
-        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/mm/yy hh:mm:ss"));
+        dateStyle.setDataFormat(createHelper.createDataFormat().getFormat(this.getDateFormat()));
         sheetEmporter.setDateStyle(dateStyle);
         
         CellStyle percentStyle = wb.createCellStyle();
@@ -368,7 +371,22 @@ public class SpreadsheetEmporter {
     
 
     
-    public void finishExport(){
+    /**
+     * Get the Date Format for date cells
+	 * @return
+	 */
+	private String getDateFormat() {
+		return this.dateFormat;
+	}
+
+	/**
+	 * Set the date format for date cells.
+	 * @param format
+	 */
+	public void setDateFormat(String format){
+		this.dateFormat = format;
+	}
+	public void finishExport(){
         try {
             wb.write(outStream);
             outStream.close();
