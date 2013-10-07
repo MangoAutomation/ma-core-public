@@ -22,7 +22,7 @@ function(StoreView, CheckBox, ValidationTextBox,ContentPane,Deferred,
 allDataPoints = new StoreView({
 	
 	
-    prefix: 'DataPoint',
+    prefix: 'AllDataPoints',
     varName: 'allDataPoints',
     viewStore: stores.allDataPoints,
     editStore: stores.allDataPoints,
@@ -207,24 +207,37 @@ allDataPoints = new StoreView({
      * Override Toggle Method
      */
     toggle: function(id) {
+    	var _this = this;
     	DataPointDwr.toggle(id, function(result) {
-            if(result.data.enabled){
-                updateImg(
-                        $("toggleDataPoint"+ result.data.id),
-                        mangoImg("database_go.png"),
-                        mango.i18n["common.enabledToggle"],
-                        true
-                );
-            }else{
-                updateImg(
-                        $("toggleDataPoint"+ result.data.id),
-                        mangoImg("database_stop.png"),
-                        mango.i18n["common.enabledToggle"],
-                        true
-                );
-            }
+    		_this.updateStatus(result.data.id,result.data.enabled);
+            
+            //If the data points view is enabled, update that too
+            if(typeof(dataPoints) != 'undefined')
+            	dataPoints.updateStatus(result.data.id,result.data.enabled);
         });
     },    
+    
+    /**
+     * Used to update the image
+     */
+    updateStatus: function(id,enabled){
+        if(enabled){
+            updateImg(
+                    $("toggleAllDataPoints"+ id),
+                    mangoImg("database_go.png"),
+                    mango.i18n["common.enabledToggle"],
+                    true
+            );
+        }else{
+            updateImg(
+                    $("toggleAllDataPoints"+ id),
+                    mangoImg("database_stop.png"),
+                    mango.i18n["common.enabledToggle"],
+                    true
+            );
+        }
+
+    },
     
     
     /**

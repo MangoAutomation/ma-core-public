@@ -27,6 +27,10 @@
       
   </script>
 <!--   <div data-dojo-type="dijit/layout/TabContainer" style="height: auto;"> -->
+  <!-- Name for current editing data source -->
+  <div class="smallTitle">
+    ${dataSource.name}
+  </div>
   <tag:labelledSection labelKey="dsEdit.currentAlarms" id="alarmsTable" closed="true">
     <div style="float: right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getAlarms()"/></div>
     <table>

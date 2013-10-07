@@ -2,6 +2,8 @@
  * Copyright (C) 2013 Infinite Automation. All rights reserved.
  * @author Terry Packer
  */
+
+//@ sourceURL=dynamicScript.js
 var dataSources;
 var dataPointsDataSourceId;
 
@@ -266,27 +268,44 @@ dataPoints = new StoreView({
     toggle: function(id) {
     	var _this = this;
     	DataPointDwr.toggle(id, function(result) {
-            if(result.data.enabled){
-                updateImg(
-                        $("toggleDataPoint"+ result.data.id),
-                        mangoImg("database_go.png"),
-                        mango.i18n["common.enabledToggle"],
-                        true
-                );
-            }else{
-                updateImg(
-                        $("toggleDataPoint"+ result.data.id),
-                        mangoImg("database_stop.png"),
-                        mango.i18n["common.enabledToggle"],
-                        true
-                );
-            }
-            //Show on details page only if this one is being viewed
-            if(id == _this.currentId)
-            	showPointStatus(result.data.enabled);
+    		_this.updateStatus(result.data.id,result.data.enabled);
+    		
+            //If the data points view is enabled, update that too
+            if(typeof(allDataPoints) != 'undefined')
+            	allDataPoints.updateStatus(result.data.id,result.data.enabled);
+
         });
     },    
     
+    /**
+     * Used to update the image
+     */
+    updateStatus: function(id,enabled){
+    	var _this = this;
+    	var node = $("toggleDataPoint"+ id);
+    	//Check to see if the node is visible
+    	if(node == null)
+    		return;
+        if(enabled){
+            updateImg(
+                    node,
+                    mangoImg("database_go.png"),
+                    mango.i18n["common.enabledToggle"],
+                    true
+            );
+        }else{
+            updateImg(
+                    node,
+                    mangoImg("database_stop.png"),
+                    mango.i18n["common.enabledToggle"],
+                    true
+            );
+        }
+        //Show on details page only if this one is being viewed
+        if(id == _this.currentId)
+        	showPointStatus(enabled);
+        
+    },
     
     /**
      * Refresh the Grid
