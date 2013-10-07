@@ -637,6 +637,7 @@ eventInstances = new StoreView({
 	/* Clear Button */
 	var clearButton = new Button({
 		label: mangoMsg['common.clearDates'],
+		class: "marR",
 		onClick: function(){
 			//Disable the query so we don't run it 2 times
 			updateOnDateTimeChange = false;
