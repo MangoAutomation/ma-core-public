@@ -781,26 +781,30 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	protected Integer getIndexType(){
 		return Types.INTEGER;
 	}
+	/**
+	 * TODO make this a map to sync with voToObjectArray
+	 */
 	@Override
 	protected List<Integer> getPropertyTypes(){
 		return Arrays.asList(
-					Types.BLOB,
-					Types.VARCHAR,
-					Types.INTEGER,
-					Types.VARCHAR,
-					Types.VARCHAR,
-					Types.CHAR,
-					Types.INTEGER,
-					Types.INTEGER,
-					Types.INTEGER,
-					Types.INTEGER,
-					Types.DOUBLE,
-					Types.CHAR,
-					Types.INTEGER,
-					Types.INTEGER,
-					Types.INTEGER,
-					Types.CHAR,
-					Types.INTEGER
+					Types.BLOB, //Locator
+					Types.VARCHAR, //Xid
+					Types.INTEGER, //Dsid
+					Types.VARCHAR, //Name
+					Types.VARCHAR, //Device Name
+					Types.CHAR,	   //Enabled
+					Types.INTEGER, //Point Folder Id
+					Types.INTEGER, //Logging Type
+					Types.INTEGER, //Interval Logging Period Type
+					Types.INTEGER, //Interval Logging Period
+					Types.DOUBLE,  //Interval Logging Type
+					Types.CHAR,	   //Tolerance
+					Types.INTEGER, //Purge Override
+					Types.INTEGER, //Purge Type
+					Types.INTEGER, //Purge Period
+					Types.INTEGER, //Default Cache Size
+					Types.CHAR,    //Discard Extremem Values
+					Types.INTEGER //get Engineering Units
 				
 				);		
 	}

@@ -99,7 +99,16 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
         //Added to allow saving point settings from data point edit view
-        DataPointVO dp = Common.getUser().getEditPoint();  
+        DataPointVO dp = Common.getUser().getEditPoint();
+        
+        //Use the defaulter
+        if(defaulter != null){
+        	if(dp.getId() == Common.NEW_ID)
+        		defaulter.setDefaultValues(dp);
+        	else
+        		defaulter.updateDefaultValues(dp);
+        }
+        
         return dp;
     }
 

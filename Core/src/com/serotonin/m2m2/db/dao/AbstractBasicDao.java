@@ -53,7 +53,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * 
      * Set all properties except the Index in same order as properties array
      * 
-     * If using a table with and LOB types this must be overridden
+     * If using a table with LOB types this must be overridden
      * 
 	 * @return
 	 */
