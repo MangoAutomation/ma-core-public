@@ -21,13 +21,17 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.email.UsedImagesDirective;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
@@ -150,23 +154,50 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
         }
 
        Translations translations = Common.getTranslations();
-       //These null checks may not be necessary, but I don't know yet
-       if((evt.getEventType() != null)&&(evt.getEventType().getEventType() != null)){
-	       if(evt.getEventType().getEventType().equals("DATA_POINT")){
+       if(StringUtils.isBlank(alias)){
+	       if(evt.getEventType() instanceof DataPointEventType){
 	    	   DataPointEventType type = (DataPointEventType) evt.getEventType();
 	    	   PointEventDetectorVO vo = DataPointDao.instance.getEventDetector(type.getPointEventDetectorId());
 	    	   //With this DetectorVO we can get all the nice info on this event
-	    	   if(alias == "" && vo != null)
+	    	   if(vo != null)
 	    		   alias = vo.getDescription().translate(translations);
-	       }else if(evt.getEventType().getEventType().equals("DATA_SOURCE")){
+	    	   else
+	    		   alias = Common.translate("eventHandlers.pointEventDetector");
+	       }else if(evt.getEventType() instanceof DataSourceEventType){
 	    	   DataSourceEventType type = (DataSourceEventType) evt.getEventType();
 	    	   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getDataSourceId());
 	    	   EventTypeVO evtVO = vo.getEventType(type.getDataSourceEventTypeId());
-	    	   if((alias == "") && (evtVO!=null))
+	    	   if(evtVO!=null)
 	    		   alias = evtVO.getDescription().translate(translations);
+	    	   else
+	    		   alias = Common.translate("eventHandlers.dataSourceEvents");
+	       }else if(evt.getEventType() instanceof SystemEventType){
+	    	   SystemEventType type = (SystemEventType) evt.getEventType();
+	    	   alias = Common.translate("eventHandlers.systemEvents");
+	       }else if(evt.getEventType() instanceof PublisherEventType){
+	    	   PublisherEventType type = (PublisherEventType)evt.getEventType();
+	    	   alias = Common.translate("eventHandlers.publisherEvents");
+	    	   
+	       }else if(evt.getEventType() instanceof AuditEventType){
+	    	   AuditEventType type = (AuditEventType)evt.getEventType();	    	   
+	    	   if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_SOURCE)){
+	    		   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getReferenceId1());
+	    		   if(vo != null)
+	    			   alias = vo.getName();
+	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_POINT)){
+	    		   DataPointRT rt = Common.runtimeManager.getDataPoint(type.getReferenceId1());
+	    		   if(rt != null){
+	    			   alias = rt.getVO().getName();
+	    		   }
+	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_EVENT_HANDLER)){
+	    		   alias = Common.translate("eventHandlers.auditEvents");
+	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_POINT_EVENT_DETECTOR)){
+	    		   alias = Common.translate("eventHandlers.auditEvents");
+	    	   }
+	    	   else
+	    		   alias = Common.translate("eventHandlers.auditEvents");
 	       }
-       }
-       
+       }//end if alias was blank
         // Determine the subject to use.
         TranslatableMessage subjectMsg;
         TranslatableMessage notifTypeMsg = new TranslatableMessage(notificationType.getKey());
