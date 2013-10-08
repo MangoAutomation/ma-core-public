@@ -182,7 +182,67 @@ dataPoints = new StoreView({
     	
     },
     
-    buttons: ['toggle','edit','delete','copy','export'],
+    imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', pointDetails: 'icon_comp'},
+    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run', pointDetails: 'view'},
+
+    buttons: ['toggle','edit','delete','copy','export','pointDetails'],
+    /**
+     * Override to show point value on mouseover
+     */
+    renderButtons: function(object, value, node, options) {
+        var id = object.id;
+        
+        var span = put('span');
+        for (var i = 0; i < this.buttons.length; i++) {
+            var button = this.buttons[i];
+            
+            var elementId = button + this.prefix + id;
+            var title =  mangoMsg['table.' + button];
+            if (!title)
+                title = mangoTranslate('table.missingKey',"table."+button);
+            
+            if (button === 'toggle') {
+                if (object.enabled) {
+                    button = 'toggleOn';
+                }
+                else {
+                    button = 'toggleOff';
+                }
+            }
+            
+            var src = this.imgMap[button];
+            if (src.substring(0,1) !== '/')
+                src = '/images/' + src + '.png';
+            
+            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+            if(button === 'pointDetails'){
+            	var over = this.varName + ".showPointValue(" + id + ")";
+            	var out = this.varName + ".hidePointValue(" + id + ")";
+            	var divId = "pointValue" + this.prefix + id;
+            	
+            	var img = put(span, 'img.ptr#$[src=$][title=$][onclick=$][onmouseover=$][onmouseout=$]', elementId, src, title, action,over,out);
+            	var div = put(span, 'div#$[style=$]',divId,"display:none;top:10px;left:1px;z-index:1000");
+            }
+            else
+            	var img = put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
+        }
+        return span;
+    },
+    
+    
+    showPointValue: function(id){
+    	var divId = "pointValue" + this.prefix + id;
+    	var div = $(divId);
+    	DataPointDwr.getMostRecentValue(id,function(response){
+        	div.innerHTML = response.data.pointValue;
+        	show(divId);
+    	});
+
+    },
+    hidePointValue: function(id){
+    	hide("pointValue" + this.prefix + id);
+    },
+    
     
     preInit: function() {
     },
@@ -321,29 +381,6 @@ dataPoints = new StoreView({
         this.currentId = id;
         var _this = this;
         options = options || {};
-        var posX = options.posX;
-        var posY = options.posY;
-        
-        // firstly position the div
-        if (typeof posY == 'undefined' || typeof posX == 'undefined') {
-            //Get the img for the edit of this entry and key off of it for position
-            var img, offsetX, offsetY;
-            if (id > 0) {
-                img = "edit" + this.prefix + id;
-                offsetX = this.editXOffset;
-                offsetY = this.editYOffset;
-            }
-            else {
-                img = "add" + this.prefix;
-                offsetX = this.addXOffset;
-                offsetY = this.addYOffset;
-            }
-            var position = html.position(img, true);
-            posX = position.x + offsetX;
-            posY = position.y + offsetY;
-        }
-        domStyle.set(this.edit, "top", posY + "px");
-        domStyle.set(this.edit, "left", posX + "px");
         
         if (options.voToLoad) {
             _this.setInputs(options.voToLoad);
@@ -371,6 +408,12 @@ dataPoints = new StoreView({
         }
     },
     
+    /**
+     * Redirect the user to the point details view
+     */
+    view: function(id){
+        window.location = "/data_point_details.shtm?dpid=" +id; 
+    },
     
     download: function() {
         window.location = "/download.shtm?downloadFile=true&dataType=dataPoint&dsId=" +dataPointsDataSourceId; 

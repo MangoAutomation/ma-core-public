@@ -504,7 +504,10 @@ table.wide { width: 100%; }
     max-height: 12em; /* 8 * 1.5em = 12em i.e. 8 rows */
     overflow: auto;
 }
-
+.dgrid-cell{
+	min-width: 40px;
+	text-overflow: ellipsis;
+}
 .dgrid-row {
     background-color: #F0F0F0;
 }
@@ -556,6 +559,14 @@ div.dgridLoadNoData {
 /* resizable attribute doesnt seem to work, set !important width to stop it */
 .dgrid-column-buttons {
     width: 100px;
+}
+
+/* For extra button */
+#allPointsTableDiv .dgrid-column-buttons{
+	width: 120px;
+}
+#pointTableDiv .dgrid-column-buttons{
+	width: 120px;
 }
 
 .mangoListDiv .dgrid-column-buttons {

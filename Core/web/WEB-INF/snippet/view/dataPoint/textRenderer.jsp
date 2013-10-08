@@ -21,7 +21,7 @@
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.text.suffix"/></td>
         <td class="formField">
-            <input id="useUnitAsSuffix" type="checkbox" checked="checked" />
+            <input id="useUnitAsSuffix" data-dojo-type="dijit/form/CheckBox" type="checkbox" />
             <label for="useUnitAsSuffix"><fmt:message key="pointEdit.props.useUnitAsSuffix"/></label>
         </td>
       </tr>
@@ -266,10 +266,11 @@
           textRendererEditor.rangeValues = new Array(); //clear out
           if(vo.textRenderer != null){
         	  textRendererEditor.textRendererSelect.set('value',vo.textRenderer.typeName);
-
+        	  
               if (vo.textRenderer.typeName == "textRendererAnalog"){
             	  dojo.byId("format").value = vo.textRenderer.format;
                   dojo.byId("suffix").value = vo.textRenderer.suffix;
+                  dijit.byId("useUnitAsSuffix").set('checked',vo.textRenderer.useUnitAsSuffix);
               }else if (vo.textRenderer.typeName == "textRendererBinary"){
             	  dojo.byId("zeroLabel").value = vo.textRenderer.zeroLabel;
             	  textRendererEditor.handlerBinaryZeroColour( vo.textRenderer.zeroColour);
@@ -281,6 +282,7 @@
             	  //Nothing
               }else if (vo.textRenderer.typeName == "textRendererPlain"){
             	  dojo.byId("suffix").value = vo.textRenderer.suffix;
+            	  dijit.byId("useUnitAsSuffix").set('checked',vo.textRenderer.useUnitAsSuffix);
               }else if (vo.textRenderer.typeName == "textRendererRange"){
             	  dojo.byId("format").value = vo.textRenderer.format;
             	  textRendererEditor.setRangeValues(vo.textRenderer.rangeValues);
@@ -300,11 +302,12 @@
   function getTextRenderer(vo){
 
 	   var typeName = textRendererEditor.textRendererSelect.get('value');
-
+	   
        if (typeName == "textRendererAnalog"){
      	  vo.textRenderer = new AnalogRenderer();
            vo.textRenderer.format = dojo.byId("format").value;
            vo.textRenderer.suffix = dojo.byId("suffix").value;
+           vo.textRenderer.useUnitAsSuffix = dojo.byId("useUnitAsSuffix").checked;
        }else if (typeName == "textRendererBinary"){
      	  vo.textRenderer = new BinaryTextRenderer();
            vo.textRenderer.zeroLabel = dojo.byId("zeroLabel").value;
@@ -319,6 +322,7 @@
        }else if (typeName == "textRendererPlain"){
      	  vo.textRenderer = new PlainRenderer();
            vo.textRenderer.suffix = dojo.byId("suffix").value;
+           vo.textRenderer.useUnitAsSuffix = dojo.byId("useUnitAsSuffix").checked;
        }else if (typeName == "textRendererRange"){
      	  vo.textRenderer = new RangeRenderer();
            vo.textRenderer.format = dojo.byId("format").value;
@@ -356,11 +360,14 @@
           
           this.textRendererSelect.watch("value",textRendererChanged);
           
-          var useUnitAsSuffix = dojo.byId("useUnitAsSuffix");
+          var useUnitAsSuffix = dijit.byId("useUnitAsSuffix");
           var suffix = dojo.byId("suffix");
-          useUnitAsSuffix.onchange = function(value){
-        	  suffix.disabled = useUnitAsSuffix.checked;
-          }
+          useUnitAsSuffix.watch('checked',function(value){
+        	  if(useUnitAsSuffix.checked)
+        		  hide("suffix");
+        	  else
+        		  show("suffix");
+          });
           
           
       }
@@ -411,7 +418,7 @@
               return false;
           }
           for (var i=this.multistateValues.length-1; i>=0; i--) {
-              if (multistateValues[i].key == theNumericKey) {
+              if (this.multistateValues[i].key == theNumericKey) {
                   alert("<fmt:message key='pointEdit.text.listContainsKey'/> "+ theNumericKey);
                   return false;
               }

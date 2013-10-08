@@ -56,54 +56,70 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
             throws Exception {
         DataSourceVO<?> dataSourceVO = null;
         User user = Common.getUser(request);
+        // Create the model.
+        Map<String, Object> model = new HashMap<String, Object>();
 
         // Get the id.
         int id = Common.NEW_ID;
         String idStr = request.getParameter("dsid");
-        if (idStr == null) {
-            // Check for a data point id
-            String pidStr = request.getParameter("pid");
-            if (pidStr == null) {
-                // Adding a new data source? Get the type id.
-                String type = request.getParameter("typeId");
-                if (StringUtils.isBlank(type)){
-                	Map<String,Object> model = new HashMap<String,Object>();
-                	model.put("key", "dsEdit.error.noTypeProvided");
-                    return new ModelAndView(new RedirectView(errorViewName), model);
-                }
-
-                Permissions.ensureAdmin(user);
-
-                // A new data source
-                DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(type);
-                if (def == null)
-                    return new ModelAndView(new RedirectView(errorViewName));
-                dataSourceVO = def.baseCreateDataSourceVO();
-                dataSourceVO.setId(Common.NEW_ID);
-                dataSourceVO.setXid(new DataSourceDao().generateUniqueXid());
-            }
-            else {
-                int pid = Integer.parseInt(pidStr);
-                DataPointVO dp = new DataPointDao().getDataPoint(pid);
-                if (dp == null){
-                    // The requested data point doesn't exist. Return to the list page.
-                	Map<String,Object> model = new HashMap<String,Object>();
-                	model.put("key", "dsEdit.error.pointDNE");
-                	model.put("params", pid);
-                    return new ModelAndView(new RedirectView(errorViewName),model);
-                }
-                id = dp.getDataSourceId();
-            }
+        // Check for a data point id
+        String pidStr = request.getParameter("dpid");
+        //Get the Type
+        String type = request.getParameter("typeId");
+        
+        //For legacy use of PID from the point details page
+        if(request.getParameter("pid")!=null)
+        	pidStr = request.getParameter("pid");
+        
+        //If type and dsid and pid are null then don't perform any actions here
+        if((idStr == null)&&(pidStr == null)&&(type == null)){
+            return new ModelAndView(getViewName(), model);
         }
-        else
-        // An existing configuration or copy
-        id = Integer.parseInt(idStr);
+        
+      //Is this a new datasource?
+        if(type != null){
+	        if(StringUtils.isBlank(type)){
+	        	model.put("key", "dsEdit.error.noTypeProvided");
+	            return new ModelAndView(new RedirectView(errorViewName), model);
+	        }else{
+	        	//Prepare the DS        
+	        	Permissions.ensureAdmin(user);
+	
+	            // A new data source
+	            DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(type);
+	            if (def == null)
+	                return new ModelAndView(new RedirectView(errorViewName));
+	            dataSourceVO = def.baseCreateDataSourceVO();
+	            dataSourceVO.setId(Common.NEW_ID);
+	            dataSourceVO.setXid(new DataSourceDao().generateUniqueXid());
+	        }
+        }
+        
+        //Are we editing a point?
+        if(pidStr != null){
+        	int pid = Integer.parseInt(pidStr);
+            DataPointVO dp = new DataPointDao().getDataPoint(pid);
+            if (dp == null){
+                // The requested data point doesn't exist. Return to the list page.
+            	model.put("key", "dsEdit.error.pointDNE");
+            	model.put("params", pid);
+                return new ModelAndView(new RedirectView(errorViewName),model);
+            }else{
+            	model.put("dataPoint", dp);
+            }
+            id = dp.getDataSourceId();
+        }
+        
+        if(idStr != null){
+        	 // An existing configuration or copy
+            id = Integer.parseInt(idStr);
+        }
+        
         
         if (id != Common.NEW_ID) {
             dataSourceVO = Common.runtimeManager.getDataSource(id);
             if (dataSourceVO == null){
                 // The requested data source doesn't exist. Return to the list page.
-            	Map<String,Object> model = new HashMap<String,Object>();
             	model.put("key", "dsEdit.error.dataSourceDNE");
             	model.put("params", id);
                 return new ModelAndView(new RedirectView(errorViewName), model);
@@ -131,9 +147,6 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
         
         // Set the id of the data source in the user object for the DWR.
         user.setEditDataSource(dataSourceVO);
-
-        // Create the model.
-        Map<String, Object> model = new HashMap<String, Object>();
 
         // The data source
         model.put("dataSource", dataSourceVO);

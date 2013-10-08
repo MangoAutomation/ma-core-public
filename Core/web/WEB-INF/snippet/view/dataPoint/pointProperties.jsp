@@ -12,13 +12,46 @@
     * Set the input values on the page using this vo
     */
    function setPointProperties(vo) {
+	   
+      var useIntegralUnit = dijit.byId('useIntegralUnit');
+      var integralUnit = dojo.byId('integralUnit');
+      useIntegralUnit.watch('checked',function(value) {
+         if(useIntegralUnit.checked){
+        	 show("integralUnit");
+         }else{
+        	hide("integralUnit"); 
+         }
+      });
+      
+      
+      var useRenderedUnit = dijit.byId('useRenderedUnit');
+      var renderedUnit = dojo.byId('renderedUnit');
+      useRenderedUnit.watch('checked',function(value) {
+          if(useRenderedUnit.checked){
+        	  show("renderedUnit");
+          }else{
+        	  hide("renderedUnit");
+          }
+      });
+      
+	      
 	   //Set all necessary values
        dojo.byId("unit").value = vo.unitString;
 	   dojo.byId("renderedUnit").value = vo.renderedUnitString;
 	   dojo.byId("integralUnit").value = vo.integralUnitString;
 	   
-	   dojo.byId("useRenderedUnit").value = vo.useRenderedUnit;
-	   dojo.byId("useIntegralUnit").value = vo.useIntegralUnit;
+	   //Not sure why the watch isn't working
+	   useRenderedUnit.set('checked',vo.useRenderedUnit);
+	   if(vo.useRenderedUnit)
+		   show("renderedUnit");
+	   else
+		   hide("renderedUnit");
+	   
+	   useIntegralUnit.set('checked',vo.useIntegralUnit);
+	   if(vo.useIntegralUnit)
+		   show("integralUnit");
+	   else 
+		   hide("integralUnit");
 
        dojo.byId("chartColour").value = vo.chartColour;
        dojo.byId("plotType").value = vo.plotType;
@@ -30,20 +63,6 @@
           $set("plotType", <%= DataPointVO.PlotTypes.STEP %>);
       }
       
-      var useIntegralUnit = dojo.byId('useIntegralUnit');
-      var integralUnit = dojo.byId('integralUnit');
-      useIntegralUnit.onchange = function(value) {
-          integralUnit.disabled = !useIntegralUnit.checked;
-      }
-      useIntegralUnit.onchange();
-      
-      var useRenderedUnit = dojo.byId('useRenderedUnit');
-      var renderedUnit = dojo.byId('renderedUnit');
-      useRenderedUnit.onchange = function(value) {
-          renderedUnit.disabled = !useRenderedUnit.checked;
-      }
-      useRenderedUnit.onchange();
-      
    }
    
    /*
@@ -54,8 +73,8 @@
        vo.unitString = dojo.byId("unit").value;
        vo.renderedUnitString = dojo.byId("renderedUnit").value;
        vo.integralUnitString = dojo.byId("integralUnit").value;
-	   vo.useRenderedUnit = dojo.byId("useRenderedUnit").value;
-       vo.useIntegralUnit = dojo.byId("useIntegralUnit").value;
+	   vo.useRenderedUnit = dijit.byId("useRenderedUnit").get('checked');
+       vo.useIntegralUnit = dijit.byId("useIntegralUnit").get('checked');
 
 	   vo.chartColour = dojo.byId("chartColour").value;
        vo.plotType =  dojo.byId("plotType").value;
@@ -85,7 +104,7 @@
        <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.props.renderedUnit"/></td>
         <td class="formField">
-          <sst:checkbox id="useRenderedUnit" name="useRenderedUnit" />
+          <input data-dojo-type="dijit/form/CheckBox" id="useRenderedUnit" name="useRenderedUnit" />
           <label for="useRenderedUnit"><fmt:message key="pointEdit.props.useRenderedUnit"/></label>
         </td>
       </tr>
@@ -96,7 +115,7 @@
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.props.integralUnit"/></td>
         <td class="formField">
-          <sst:checkbox id="useIntegralUnit" name="useIntegralUnit" />
+          <input data-dojo-type="dijit/form/CheckBox" id="useIntegralUnit" name="useIntegralUnit" />
           <label for="useIntegralUnit"><fmt:message key="pointEdit.props.useIntegralUnit"/></label>
         </td>
       </tr>

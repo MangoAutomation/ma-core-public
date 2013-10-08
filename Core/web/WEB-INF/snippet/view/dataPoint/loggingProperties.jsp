@@ -215,7 +215,7 @@
       <td class="formLabelRequired"><fmt:message key="pointEdit.logging.purge"/></td>
       <td class="formField">
         <div>
-          <sst:checkbox id="purgeOverride" name="purgeOverride"
+          <input data-dojo-type="dijit/form/CheckBox" id="purgeOverride" name="purgeOverride"
                   onclick="changePurgeOverride()"/>
           <label for="purgeOverride"><fmt:message key="pointEdit.logging.purgeOverride"/></label>
         </div>

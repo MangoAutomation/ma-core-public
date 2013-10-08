@@ -85,6 +85,7 @@ String[] mangoMessageKeys = {
         "modules.modules",
         
 	    "notes.addNote",
+	    "notes.enterComment",
 	    
 	    "pointEdit.chart.missingLimit",
 	    "pointEdit.chart.invalidLimit",
@@ -119,6 +120,7 @@ String[] mangoMessageKeys = {
         "table.missingKey",
         "table.error.wrongId",
         "table.error.dwr",
+        "table.pointDetails",
         
         "textRenderer.analog",
         "textRenderer.binary",

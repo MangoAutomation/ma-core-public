@@ -284,8 +284,8 @@ eventInstances = new StoreView({
     			var div = document.createElement("div");
 
     			var html = messageString;
-    			html += "<img src='/images/comment_add.png' onclick='openCommentDialog(" 
-    				+ constants_USER_COMMENT_TYPE_EVENT + "," + eventInstance.id + ")' title='"
+    			html += "<img src='/images/comment_add.png' onclick='eventInstances.openAlarmCommentDialog(" 
+    				+ eventInstance.id + ")' title='"
     				+ mangoMsg['notes.addNote'] + "'/>";
         			//TODO Add comments too!
     			var comments = eventInstance.commentsHTML;
@@ -565,8 +565,8 @@ eventInstances = new StoreView({
 			
     },
     
-    //Not using these buttons, but just keep them here to ensure the renderButtons method happens
-    //buttons: ['toggle','edit','delete','copy','export'],
+    //Not using these buttons, 
+    buttons: [],
     
     preInit: function() {
     },
@@ -586,8 +586,20 @@ eventInstances = new StoreView({
 
     },
 
+    openAlarmCommentDialog: function(referenceId){
+    	openCommentDialog(constants_USER_COMMENT_TYPE_EVENT,referenceId,this.saveCommentCallback)
+    },
 
-
+    saveCommentCallback: function(comment){
+        if (!comment)
+            alert(mangoMsg['notes.enterComment']);
+        else{
+            closeCommentDialog();
+            eventInstances.refresh();
+        }
+   
+    },
+    
     editXOffset: -380,
     editYOffset: 0,
     addXOffset: 18,

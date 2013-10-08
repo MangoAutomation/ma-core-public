@@ -86,7 +86,8 @@ public class PlainRenderer extends ConvertingRenderer {
         if (value instanceof BinaryValue) {
             if (value.getBooleanValue())
                 raw = "1";
-            raw = "0";
+            else
+            	raw = "0";
         }
         else if (value instanceof NumericValue) {
             double dblValue = value.getDoubleValue();

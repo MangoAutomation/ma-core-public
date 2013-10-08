@@ -69,6 +69,9 @@ return declare("deltamation.StoreView", null, {
                 label: ' ',
                 sortable: false,
                 resizable: false,// resizable doesnt seem to work, do in css as well
+                renderHeaderCell: function(th){
+                	return _this.renderButtonsHeader(th);
+                },
                 renderCell: function(object, value, node, options) {
                     return _this.renderButtons(object, value, node, options);
                 }
@@ -76,6 +79,7 @@ return declare("deltamation.StoreView", null, {
         
         this.grid = dojo.declare([OnDemandGrid, ColumnResizer])({
         	adjustLastColumn: false, /* Don't expand last row to fill */
+        	minWidth: 40, /* min width of adjustable columns */
             store: _this.viewStore.cache,
             columns: _this.columns,
             loadingMessage: _this.loadingMessage,
@@ -100,6 +104,10 @@ return declare("deltamation.StoreView", null, {
     
     imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue'},
     fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run'},
+    
+    renderButtonsHeader: function(th){
+    	
+    },
     
     renderButtons: function(object, value, node, options) {
         var id = object.id;

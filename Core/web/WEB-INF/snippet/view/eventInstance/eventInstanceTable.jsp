@@ -7,10 +7,10 @@
 <!-- Table Div -->
 <div id="eventInstanceTableDiv" class="borderDivPadded marB" >
    
-    <tag:img png="flag_white" title="events.alarms"/>
-    <span class="smallTitle"><fmt:message key="events.pending"/></span>
+    <tag:img png="flag_white" title="events.report"/>
+    <span class="smallTitle"><fmt:message key="event.report"/></span>
     <tag:help id="eventInstance"/>
-	   
+	<a href="/pending_alarms.shtm"><fmt:message key="event.legacyAlarmsPage"/></a>
 	   <div class="mangoDownloadLinks" style="float:right">
 	      <a href="javascript:eventInstances.download()"><fmt:message key="emport.export" /></a>
 	      <tag:img png="arrow_down" onclick="eventInstances.download();" title="emport.export"/>

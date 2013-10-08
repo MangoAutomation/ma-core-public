@@ -7,7 +7,6 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
@@ -15,22 +14,24 @@ import org.springframework.dao.DuplicateKeyException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
-import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.chart.BaseChartRenderer;
 import com.serotonin.m2m2.view.text.BaseTextRenderer;
+import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
+import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
-import com.serotonin.validation.StringValidation;
+import com.serotonin.m2m2.web.taglib.Functions;
 
 /**
  * @author Terry Packer
@@ -326,5 +327,35 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	}
     }
 
-    
+    /**
+     * Helper to get the most recent value for a point
+     * @param id
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult getMostRecentValue(int id) {
+    	ProcessResult result = new ProcessResult();
+
+    	if(Common.runtimeManager.isDataPointRunning(id)){
+    		DataPointRT rt = Common.runtimeManager.getDataPoint(id);
+    		//Check to see if the data source is running
+    		if(Common.runtimeManager.isDataSourceRunning(rt.getDataSourceId())){
+		        PointValueFacade facade = new PointValueFacade(rt.getVO().getId());
+		        PointValueTime value = facade.getPointValue();
+        		if(value != null){
+    				RenderedPointValueTime rpvt = new RenderedPointValueTime();
+    		        rpvt.setValue(Functions.getHtmlText(rt.getVO(), value));
+    		        rpvt.setTime(Functions.getTime(value));
+    				result.getData().put("pointValue",rpvt.getValue()); //Could return time and value?
+    			}else
+    				result.getData().put("pointValue", translate("event.setPoint.activePointValue"));
+    		}else{
+    			result.getData().put("pointValue",translate("common.pointWarning"));
+    		}
+    	}else{
+    		result.getData().put("pointValue",translate("common.pointWarning"));
+    	}
+
+    	return result;
+    }
 }

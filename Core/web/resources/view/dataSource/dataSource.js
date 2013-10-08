@@ -41,6 +41,7 @@ dataSources = new StoreView({
 	          {attribute: "name", descending:true},
 	          {attribute: "typeDescriptionString", descending:true},
 	          {attribute: "connectionDescriptionString", descending:true},
+	          {attribute: "enabled", descending:true},
 	         ],
     
     columns: {
@@ -171,10 +172,34 @@ dataSources = new StoreView({
 		}
     },
     
-    
-    
+    /**
+     * Not using this because filtering on Enable/Disable would require accessing the blob from the db.
+     */
+//    renderButtonsHeader: function(th){
+//		var div = domConstruct.create("div");
+//		
+//		//Create sort link
+//		var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+//		on(sortLink,'click',function(event){
+//			
+//			//Flip through the list to see if we already have an order?
+//			for(var i =0; i<dataSources.sortMap.length; i++){
+//				if(dataSources.sortMap[i].attribute === "enabled"){
+//					dataSources.sortMap[i].descending = !dataSources.sortMap[i].descending;
+//					break;
+//				}
+//			}
+//			var options = {};
+//			options.sort = [{attribute: dataSources.sortMap[i].attribute, descending: dataSources.sortMap[i].descending}];
+//			dataSources.grid.set("query",dataSources.filters,options);
+//		});
+//		domConstruct.place(sortLink,div);
+//		return div;
+//    },
     
     buttons: ['toggle','edit','delete','copy','export'],
+    
+    
     
     preInit: function() {
     },
@@ -258,29 +283,6 @@ dataSources.open = function(id,options,callback){
     this.currentId = id;
     var _this = this;
     options = options || {};
-    var posX = options.posX;
-    var posY = options.posY;
-    
-    // firstly position the div
-    if (typeof posY == 'undefined' || typeof posX == 'undefined') {
-        //Get the img for the edit of this entry and key off of it for position
-        var img, offsetX, offsetY;
-        if (id > 0) {
-            img = "edit" + this.prefix + id;
-            offsetX = this.editXOffset;
-            offsetY = this.editYOffset;
-        }
-        else {
-            img = "add" + this.prefix;
-            offsetX = this.addXOffset;
-            offsetY = this.addYOffset;
-        }
-        var position = html.position(img, true);
-        posX = position.x + offsetX;
-        posY = position.y + offsetY;
-    }
-    domStyle.set(this.edit, "top", posY + "px");
-    domStyle.set(this.edit, "left", posX + "px");
     
     if (options.voToLoad) {
     	//Copy
