@@ -9,6 +9,7 @@ html > body {
 	background-color: #FFFFFF;
 	margin: 0px;
 	padding: 0px;
+	width: 100%;
 }
 a, a:visited, a:link, .link {
 	color: #804000;

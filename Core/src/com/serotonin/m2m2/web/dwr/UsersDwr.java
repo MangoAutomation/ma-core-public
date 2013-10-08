@@ -207,7 +207,7 @@ public class UsersDwr extends BaseDwr {
         updateUser.validate(response);
 
         if (!response.getHasMessages()) {
-            userDao.saveUser(user);
+            userDao.saveUser(updateUser);
 
             // Update the user object in session too. Why not?
             Common.setUser(request, updateUser);

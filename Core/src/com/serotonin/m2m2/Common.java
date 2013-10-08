@@ -99,7 +99,7 @@ public class Common {
     public static final RealTimeTimer timer = new RealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
-
+    
     //
     // License
     static InstanceLicense license;

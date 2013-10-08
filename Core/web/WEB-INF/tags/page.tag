@@ -100,7 +100,7 @@
 
 <body class="${theme}">
 
-<!-- Messaging -->
+<!-- i18n Messaging Layer, there is also a servlet that does this -->
 <jsp:include page="/WEB-INF/snippet/message.jsp"/>
 
 
