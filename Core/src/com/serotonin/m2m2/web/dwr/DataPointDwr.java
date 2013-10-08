@@ -243,7 +243,50 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	
     }
     
- 
+    /**
+     * Store the logging properties into the 
+     * current user's edit point.
+     * 
+     * This is still being used on the page, but could be brought forward by putting the logging properties
+     * into the DWR system
+     * 
+     * @param type
+     * @param period
+     * @param periodType
+     * @param intervalType
+     * @param tolerance
+     * @param discardExtremeValues
+     * @param discardHighLimit
+     * @param discardLowLimit
+     * @param purgeOverride
+     * @param purgeType
+     * @param purgePeriod
+     * @param defaultCacheSize
+     */
+    @Deprecated //I Think this isn't being used anymore
+    @DwrPermission(user = true)
+    public void storeEditLoggingProperties(int type, int period, int periodType,
+    		int intervalType, double tolerance, boolean discardExtremeValues, 
+    		double discardHighLimit, double discardLowLimit, 
+    		boolean purgeOverride, int purgeType, int purgePeriod, int defaultCacheSize) {
+    	
+    	DataPointVO dp = Common.getUser().getEditPoint();  
+    	if(dp!=null){
+    		dp.setLoggingType(type);
+    		dp.setIntervalLoggingPeriod(period);
+    		dp.setIntervalLoggingPeriodType(periodType);
+    		dp.setIntervalLoggingType(intervalType);
+    		dp.setTolerance(tolerance);
+    		dp.setDiscardExtremeValues(discardExtremeValues);
+    		dp.setDiscardHighLimit(discardHighLimit);
+    		dp.setDiscardLowLimit(discardLowLimit);
+    		dp.setPurgeOverride(purgeOverride);
+    		dp.setPurgeType(purgeType);
+    		dp.setPurgePeriod(purgePeriod);
+    		dp.setDefaultCacheSize(defaultCacheSize);
+    	}
+    	
+    }
     /**
      * This method is used to pre-stage the vo for saving by the custom modules.  
      * 
