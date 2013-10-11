@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -155,49 +156,58 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
 
        Translations translations = Common.getTranslations();
        if(StringUtils.isBlank(alias)){
-	       if(evt.getEventType() instanceof DataPointEventType){
-	    	   DataPointEventType type = (DataPointEventType) evt.getEventType();
-	    	   PointEventDetectorVO vo = DataPointDao.instance.getEventDetector(type.getPointEventDetectorId());
-	    	   //With this DetectorVO we can get all the nice info on this event
-	    	   if(vo != null)
-	    		   alias = vo.getDescription().translate(translations);
-	    	   else
-	    		   alias = Common.translate("eventHandlers.pointEventDetector");
-	       }else if(evt.getEventType() instanceof DataSourceEventType){
-	    	   DataSourceEventType type = (DataSourceEventType) evt.getEventType();
-	    	   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getDataSourceId());
-	    	   EventTypeVO evtVO = vo.getEventType(type.getDataSourceEventTypeId());
-	    	   if(evtVO!=null)
-	    		   alias = evtVO.getDescription().translate(translations);
-	    	   else
-	    		   alias = Common.translate("eventHandlers.dataSourceEvents");
-	       }else if(evt.getEventType() instanceof SystemEventType){
-	    	   SystemEventType type = (SystemEventType) evt.getEventType();
-	    	   alias = Common.translate("eventHandlers.systemEvents");
-	       }else if(evt.getEventType() instanceof PublisherEventType){
-	    	   PublisherEventType type = (PublisherEventType)evt.getEventType();
-	    	   alias = Common.translate("eventHandlers.publisherEvents");
-	    	   
-	       }else if(evt.getEventType() instanceof AuditEventType){
-	    	   AuditEventType type = (AuditEventType)evt.getEventType();	    	   
-	    	   if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_SOURCE)){
-	    		   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getReferenceId1());
-	    		   if(vo != null)
-	    			   alias = vo.getName();
-	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_POINT)){
-	    		   DataPointRT rt = Common.runtimeManager.getDataPoint(type.getReferenceId1());
-	    		   if(rt != null){
-	    			   alias = rt.getVO().getName();
-	    		   }
-	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_EVENT_HANDLER)){
-	    		   alias = Common.translate("eventHandlers.auditEvents");
-	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_POINT_EVENT_DETECTOR)){
-	    		   alias = Common.translate("eventHandlers.auditEvents");
-	    	   }
-	    	   else
-	    		   alias = Common.translate("eventHandlers.auditEvents");
-	       }
+    	   //Just set the subject to the message
+    	   alias = evt.getMessage().translate(translations);
+    	   
+    	   //Strip out the HTML and the &nbsp
+    	   alias = StringEscapeUtils.unescapeHtml4(alias);
+           //Since we have <br/> in the code and that isn't proper HTML we need to remove it by hand
+           alias = alias.replace("<br/>", "\n");
+    	   
+//	       if(evt.getEventType() instanceof DataPointEventType){
+//	    	   DataPointEventType type = (DataPointEventType) evt.getEventType();
+//	    	   PointEventDetectorVO vo = DataPointDao.instance.getEventDetector(type.getPointEventDetectorId());
+//	    	   //With this DetectorVO we can get all the nice info on this event
+//	    	   if(vo != null)
+//	    		   alias = vo.getDescription().translate(translations);
+//	    	   else
+//	    		   alias = Common.translate("eventHandlers.pointEventDetector");
+//	       }else if(evt.getEventType() instanceof DataSourceEventType){
+//	    	   DataSourceEventType type = (DataSourceEventType) evt.getEventType();
+//	    	   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getDataSourceId());
+//	    	   EventTypeVO evtVO = vo.getEventType(type.getDataSourceEventTypeId());
+//	    	   if(evtVO!=null)
+//	    		   alias = evtVO.getDescription().translate(translations);
+//	    	   else
+//	    		   alias = Common.translate("eventHandlers.dataSourceEvents");
+//	       }else if(evt.getEventType() instanceof SystemEventType){
+//	    	   SystemEventType type = (SystemEventType) evt.getEventType();
+//	    	   alias = Common.translate("eventHandlers.systemEvents");
+//	       }else if(evt.getEventType() instanceof PublisherEventType){
+//	    	   PublisherEventType type = (PublisherEventType)evt.getEventType();
+//	    	   alias = Common.translate("eventHandlers.publisherEvents");
+//	    	   
+//	       }else if(evt.getEventType() instanceof AuditEventType){
+//	    	   AuditEventType type = (AuditEventType)evt.getEventType();	    	   
+//	    	   if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_SOURCE)){
+//	    		   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getReferenceId1());
+//	    		   if(vo != null)
+//	    			   alias = vo.getName();
+//	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_POINT)){
+//	    		   DataPointRT rt = Common.runtimeManager.getDataPoint(type.getReferenceId1());
+//	    		   if(rt != null){
+//	    			   alias = rt.getVO().getName();
+//	    		   }
+//	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_EVENT_HANDLER)){
+//	    		   alias = Common.translate("eventHandlers.auditEvents");
+//	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_POINT_EVENT_DETECTOR)){
+//	    		   alias = Common.translate("eventHandlers.auditEvents");
+//	    	   }
+//	    	   else
+//	    		   alias = Common.translate("eventHandlers.auditEvents");
+//	       }
        }//end if alias was blank
+       
         // Determine the subject to use.
         TranslatableMessage subjectMsg;
         TranslatableMessage notifTypeMsg = new TranslatableMessage(notificationType.getKey());
