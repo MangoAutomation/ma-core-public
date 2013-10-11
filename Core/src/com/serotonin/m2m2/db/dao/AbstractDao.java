@@ -351,7 +351,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * Insert a new vo and assign the ID
      * @param vo to insert
      */
-    private void insert(T vo) {
+    protected void insert(T vo) {
         if (vo.getXid() == null) {
             vo.setXid(generateUniqueXid());
         }
@@ -365,7 +365,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * Update a vo
      * @param vo to update
      */
-    private void update(T vo) {
+    protected void update(T vo) {
         List<Object> list = new ArrayList<Object>();
         list.addAll(Arrays.asList(voToObjectArray(vo)));
         list.add(vo.getId());

@@ -47,6 +47,16 @@ import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.util.Tuple;
 
+/**
+ * This class is a Half-Breed between the legacy Dao and the new type that extends AbstractDao.
+ * 
+ * The top half of the code is the legacy code, the bottom is the new style.
+ * 
+ * Eventually all the method innards will be reworked, leaving the names the same.
+ * 
+ * @author Terry Packer
+ *
+ */
 public class DataPointDao extends AbstractDao<DataPointVO> {
 	
 	public static final DataPointDao instance = new DataPointDao();
@@ -935,6 +945,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		return list;
 	}
 	
+	@Override
+	public void saveFull(DataPointVO vo){
+		//TODO Eventually Fix this up by using the new AbstractDao for the query
+		this.saveDataPoint(vo);
+	}
 	
 	
 }
