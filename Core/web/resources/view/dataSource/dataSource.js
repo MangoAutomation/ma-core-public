@@ -236,6 +236,8 @@ dataSources = new StoreView({
      * Override Toggle Method and return state for use in window
      */
     toggle: function(id,callback) {
+    	
+    	var _this = this;
     	DataSourceDwr.toggle(id, function(result) {
             if(result.data.enabled){
                 updateImg(
@@ -254,7 +256,20 @@ dataSources = new StoreView({
                 );
                 if(typeof callback == 'function') callback(false);
             }
+            
+            /* Only Update the datasource image if we are editing this one */
+            if(id == _this.currentId){
+	            var imgNode = $("dsStatusImg");
+	            if(imgNode != 'undefined'){
+		            setDataSourceStatusImg(result.data.enabled, imgNode);
+			    	getAlarms();
+			    	getStatusMessages();
+			        stopImageFader(imgNode);
+	            }
+            }
+            
         });
+    	
 
     },    
     

@@ -156,4 +156,15 @@
             </classpath>
         </jetty-jspc>
     </target>
+	
+	<target name="backup-modules" description="Backup modules">
+	        <move file="${build.dir}/web/modules" tofile="${build.dir}/module-backup"/>
+	    </target>
+	    
+    <target name="restore-modules" description="Restore modules">
+        <move file="${build.dir}/module-backup" tofile="${build.dir}/web/modules"/>
+    </target>
+    	    
+
+	
 </project>

@@ -190,16 +190,12 @@
      if(typeof dataSources != 'undefined'){
 	     if (!hasImageFader(imgNode)) {
 	         startImageFader(imgNode);
-	         var enabled = dataSources.toggle(dataSources.currentId, function(enabled){
-		    	 setDataSourceStatusImg(enabled, imgNode);
-		    	 getAlarms();
-		    	 getStatusMessages();
-		         stopImageFader(imgNode);
-	         });
+	         var enabled = dataSources.toggle(dataSources.currentId);
 	     }
      }else{
     	 //No DS Table defined (Is this possible?)
 	     if (!hasImageFader(imgNode)) {
+	    	 startImageFader(imgNode);
 	         DataSourceDwr.toggle(currentDsId,function(result) {
 	             var imgNode = $("dsStatusImg");
 	             stopImageFader(imgNode);
@@ -207,7 +203,6 @@
 	             getAlarms();
 	             getStatusMessages();
 	         });
-	         startImageFader(imgNode);
 	     }
      }
  }
