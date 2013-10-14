@@ -251,7 +251,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
     	super.jsonWrite(writer);
-
+    	
+    	//Write the type
+    	writer.writeEntry("type",this.definition.getDataSourceTypeName());
+    	
         ExportCodes eventCodes = getEventCodes();
         if (eventCodes != null && eventCodes.size() > 0) {
             Map<String, String> alarmCodeLevels = new HashMap<String, String>();
@@ -272,7 +275,9 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
     	super.jsonRead(reader, jsonObject);
         // Can't change the type.
-
+    	//TODO Figure out why we have to read/write the enabled annotation'd property
+    	enabled = jsonObject.getBoolean("enabled");
+    	
         JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
         if (alarmCodeLevels != null) {
             ExportCodes eventCodes = getEventCodes();

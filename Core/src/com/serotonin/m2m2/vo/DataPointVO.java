@@ -136,7 +136,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	//
 	// Properties
 	//
-	private int id = Common.NEW_ID;
+	//private int id = Common.NEW_ID;
 	// @JsonProperty(read = false)
 	// private String xid; //TODO Deal with this because it is part of the
 	// AbstractDao class
@@ -285,9 +285,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
 	@Override
 	public void addProperties(List<TranslatableMessage> list) {
-		AuditEventType.addPropertyMessage(list, "common.xid", xid);
-		AuditEventType.addPropertyMessage(list, "dsEdit.points.name", name);
-		AuditEventType.addPropertyMessage(list, "common.enabled", enabled);
+		super.addProperties(list);
+//		AuditEventType.addPropertyMessage(list, "common.xid", xid);
+//		AuditEventType.addPropertyMessage(list, "dsEdit.points.name", name);
+//		AuditEventType.addPropertyMessage(list, "common.enabled", enabled);
 		AuditEventType.addExportCodeMessage(list, "pointEdit.logging.type",
 				LOGGING_TYPE_CODES, loggingType);
 		AuditEventType.addPeriodMessage(list, "pointEdit.logging.period",
@@ -320,12 +321,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	@Override
 	public void addPropertyChanges(List<TranslatableMessage> list,
 			DataPointVO from) {
-		AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid",
-				from.xid, xid);
-		AuditEventType.maybeAddPropertyChangeMessage(list,
-				"dsEdit.points.name", from.name, name);
-		AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled",
-				from.enabled, enabled);
+		super.addPropertyChanges(list, from);
+//		AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid",
+//				from.xid, xid);
+//		AuditEventType.maybeAddPropertyChangeMessage(list,
+//				"dsEdit.points.name", from.name, name);
+//		AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled",
+//				from.enabled, enabled);
 		AuditEventType.maybeAddExportCodeChangeMessage(list,
 				"pointEdit.logging.type", LOGGING_TYPE_CODES, from.loggingType,
 				loggingType);
@@ -766,16 +768,17 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	}
 
 	public void validate(ProcessResult response) {
-		if (StringUtils.isBlank(xid))
-			response.addContextualMessage("xid", "validate.required");
-		else if (StringValidation.isLengthGreaterThan(xid, 50))
-			response.addMessage("xid", new TranslatableMessage(
-					"validate.notLongerThan", 50));
-		else if (!new DataPointDao().isXidUnique(xid, id))
-			response.addContextualMessage("xid", "validate.xidUsed");
-
-		if (StringUtils.isBlank(name))
-			response.addContextualMessage("name", "validate.required");
+		super.validate(response);
+//		if (StringUtils.isBlank(xid))
+//			response.addContextualMessage("xid", "validate.required");
+//		else if (StringValidation.isLengthGreaterThan(xid, 50))
+//			response.addMessage("xid", new TranslatableMessage(
+//					"validate.notLongerThan", 50));
+//		else if (!new DataPointDao().isXidUnique(xid, id))
+//			response.addContextualMessage("xid", "validate.xidUsed");
+//
+//		if (StringUtils.isBlank(name))
+//			response.addContextualMessage("name", "validate.required");
 
 		if (!LOGGING_TYPE_CODES.isValidId(loggingType))
 			response.addContextualMessage("loggingType",
@@ -950,7 +953,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	private void readObject(ObjectInputStream in) throws IOException,
 			ClassNotFoundException {
 		int ver = in.readInt();
-
+		
 		// Switch on the version of the class so that version changes can be
 		// elegantly handled.
 		if (ver == 1) {
@@ -1100,8 +1103,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	@Override
 	public void jsonWrite(ObjectWriter writer) throws IOException,
 			JsonException {
-		writer.writeEntry("xid", xid);
-		writer.writeEntry("name", name);
+		super.jsonWrite(writer);
+//		writer.writeEntry("xid", xid);
+//		writer.writeEntry("name", name);
 		writer.writeEntry("loggingType",
 				LOGGING_TYPE_CODES.getCode(loggingType));
 		writer.writeEntry("intervalLoggingPeriodType",
@@ -1123,8 +1127,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	@Override
 	public void jsonRead(JsonReader reader, JsonObject jsonObject)
 			throws JsonException {
-
+		
 		// Don't read it ever xid = jsonObject.getString("xid");
+		enabled = jsonObject.getBoolean("enabled");
 		name = jsonObject.getString("name");
 
 		String text = jsonObject.getString("loggingType");

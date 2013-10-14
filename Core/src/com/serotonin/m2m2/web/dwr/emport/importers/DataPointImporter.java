@@ -80,7 +80,7 @@ public class DataPointImporter extends Importer {
 	                    }
 	
 	                    // Sweet. Save it.
-	                	DataPointDao.instance.saveFull(vo);
+	                	//Why would you save it 2x? DataPointDao.instance.saveFull(vo);
                     }
 
                     boolean isnew = vo.isNew();
@@ -93,7 +93,7 @@ public class DataPointImporter extends Importer {
                     //                            dsvo.setEnabled(false);
                     //                            Common.runtimeManager.saveDataSource(dsvo);
                     //                        }
-                    //TODO Implement save full inside of this call
+             
                     Common.runtimeManager.saveDataPoint(vo);
                     addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
                 }
