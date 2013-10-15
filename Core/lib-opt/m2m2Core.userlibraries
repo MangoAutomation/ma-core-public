@@ -42,7 +42,9 @@
         <archive path="/Core/lib/stax-api-1.0.1.jar"/>
         <archive path="/Core/lib/xmlbeans-2.3.0.jar"/>
         <archive path="/Core/lib/dom4j-1.6.1.jar"/>
-        <archive path="/Core/lib/serotonin-JSON.jar"/>
+        <archive path="/Core/lib/serotonin-JSON.jar" source="/serotonin-json"/>
         <archive path="/Core/lib/dwr-2.0.10.jar" source="/dwr20"/>
+        <archive path="/Core/lib/javolution-5.2.3.jar"/>
+        <archive path="/Core/lib/jscience-4.3.1.jar"/>
     </library>
 </eclipse-userlibraries>
