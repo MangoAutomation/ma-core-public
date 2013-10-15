@@ -41,6 +41,8 @@ abstract public class BasePooledProxy extends DatabaseProxy {
         dataSource.setPassword(getDatabasePassword(propertyPrefix));
         dataSource.setMaxActive(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 10));
         dataSource.setMaxIdle(Common.envProps.getInt(propertyPrefix + "db.pool.maxIdle", 10));
+        dataSource.setValidationQuery("SELECT 1");
+        dataSource.setTestOnBorrow(true);
     }
 
     protected String getUrl(String propertyPrefix) {
