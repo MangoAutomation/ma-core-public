@@ -77,6 +77,7 @@ String[] mangoMessageKeys = {
         "events.pointDetails",
         "events.pointEdit",
 	    "events.silence",
+	    "events.showAuditEvents",
         "events.unsilence",
         "events.unacknowledged",
 	    

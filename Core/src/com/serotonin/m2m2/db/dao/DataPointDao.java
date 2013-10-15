@@ -306,6 +306,14 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         }
     }
 
+    /**
+     * Override the delete method to perform extra work
+     */
+    @Override
+    public void delete(int id){
+    	deleteDataPoint(id);
+    }
+    
     public void deleteDataPoint(final int dataPointId) {
         DataPointVO dp = getDataPoint(dataPointId);
         if (dp != null) {

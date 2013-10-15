@@ -53,6 +53,7 @@ eventInstances = new StoreView({
     	id: {
     		label: mangoMsg['events.id'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
     				var div = domConstruct.create("div");
     				var input = new TextBox({
@@ -94,6 +95,7 @@ eventInstances = new StoreView({
     	alarmLevel: {
     		label: mangoMsg['common.alarmLevel'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
 				
@@ -199,6 +201,7 @@ eventInstances = new StoreView({
 		activeTimestampString: {
 			label: mangoMsg['common.time'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
 //				var input = new DateTextBox({
@@ -241,6 +244,7 @@ eventInstances = new StoreView({
 		messageString: {
 			label: mangoMsg['events.msg'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
 				var input = new TextBox({
@@ -299,6 +303,7 @@ eventInstances = new StoreView({
 		rtnTimestampString: {
 			label: mangoMsg['common.status'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
 				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['common.status']});
@@ -369,6 +374,7 @@ eventInstances = new StoreView({
 		totalTimeString: {
 			label: mangoMsg['common.duration'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
 //				var input = new TextBox({
@@ -414,6 +420,7 @@ eventInstances = new StoreView({
 		acknowledged:{
 			label: mangoMsg['events.acknowledged'],
     		sortable: false,
+    		resizable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
 				var input = new Select({
@@ -626,8 +633,16 @@ eventInstances = new StoreView({
     		eventInstances.grid.refresh();
     	});
     	
-    }
+    },
     
+    /**
+     * Add a user to filter on,
+     * should be called during page init.
+     * Currently being done in EventInstanceDwr query call
+     */
+    filterUser: function(id){
+    	this.filters['userId'] = id;
+    }
     
     
     

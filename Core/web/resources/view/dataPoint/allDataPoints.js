@@ -210,7 +210,7 @@ allDataPoints = new StoreView({
             	var divId = "pointValue" + this.prefix + id;
             	
             	var img = put(span, 'img.ptr#$[src=$][title=$][onclick=$][onmouseover=$][onmouseout=$]', elementId, src, title, action,over,out);
-            	var div = put(span, 'div#$[style=$]',divId,"display:none;position:absolute;z-index:1000");
+            	var div = put(span, 'div#$[style=$]',divId,"display:none;top:10px;left:1px;z-index:1000");
             }
             else
             	var img = put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
@@ -256,6 +256,7 @@ allDataPoints = new StoreView({
        dataPoints.getInputs();
  
     },
+    
     
     
     name: new ValidationTextBox({}, "name"),

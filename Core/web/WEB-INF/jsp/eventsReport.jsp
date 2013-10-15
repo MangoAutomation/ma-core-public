@@ -31,8 +31,9 @@
   
   <script type="text/javascript">
   var databaseType = '<c:out value="<%= Common.databaseProxy.getType() %>"></c:out>';
-
-  //For use on page to compare Event Types2
+  var eventReportUserId = ${sessionUser.id}; //Get the UserId
+  
+  //For use on page to compare Event Types 2
   var constants_DATA_POINT = '${applicationScope['constants.EventType.EventTypeNames.DATA_POINT']}';
   var constants_DATA_SOURCE = '${applicationScope['constants.EventType.EventTypeNames.DATA_SOURCE']}';
   var constants_SYSTEM = '${applicationScope['constants.EventType.EventTypeNames.SYSTEM']}';
@@ -45,6 +46,7 @@
   var constants_AUDIT_TYPE_POINT_EVENT_DETECTOR = '${applicationScope['constants.AuditEventType.TYPE_POINT_EVENT_DETECTOR']}';
   var constants_AUDIT_TYPE_EVENT_HANDLER = '${applicationScope['constants.AuditEventType.TYPE_EVENT_HANDLER']}';
   var constants_USER_COMMENT_TYPE_EVENT = "${applicationScope['constants.UserComment.TYPE_EVENT']}";
+  
   
   require(["dojo/parser","dijit/Calendar","dojo/domReady!"]);
 

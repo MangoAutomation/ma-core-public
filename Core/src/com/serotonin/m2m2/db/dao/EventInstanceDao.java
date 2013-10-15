@@ -147,6 +147,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		map.put("rtnTimestampString", "evt.rtnTs");
 		map.put("userNotified", "ue.silenced");
 		map.put("acknowledged", "evt.ackTs");
+		map.put("userId", "ue.userId"); //Mapping for user 
 		return map;
 	}
 
