@@ -134,7 +134,7 @@
     <tbody id="rangeValuesRow" style="display:none;">
       <tr>
         <td colspan="2">
-          <table>
+          <table id="rangeValues"> <!-- For contextual field -->
             <tr>
               <th><fmt:message key="pointEdit.text.from"/></th>
               <th><fmt:message key="pointEdit.text.to"/></th>
