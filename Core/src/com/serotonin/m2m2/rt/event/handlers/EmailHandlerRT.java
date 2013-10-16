@@ -15,28 +15,19 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.email.UsedImagesDirective;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.rt.event.type.DataPointEventType;
-import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
-import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
-import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
-import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailInline;
 
@@ -224,8 +215,9 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
             else
                 subjectMsg = new TranslatableMessage("ftl.subject.alias.id", alias, notifTypeMsg, evt.getId());
         }
+        String alarmLevel = AlarmLevels.getAlarmLevelMessage(evt.getAlarmLevel()).translate(translations);
 
-        String subject = subjectMsg.translate(translations);
+        String subject = alarmLevel + " - " + subjectMsg.translate(translations);
 
         //Trim the subject if its too long
         if(subject.length() > 200)
