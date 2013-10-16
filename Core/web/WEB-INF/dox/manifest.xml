@@ -94,4 +94,6 @@
   
   <item id="backupSettings" key="dox.backupSettings" filename="backupSettings.htm"/>
   
+  <item id="eventReport" key="dox.eventReport" filename="eventReport.htm"/>
+  
 </doxManifest>

@@ -9,7 +9,7 @@
    
     <tag:img png="flag_white" title="events.report"/>
     <span class="smallTitle"><fmt:message key="event.report"/></span>
-    <tag:help id="eventInstance"/>
+    <tag:help id="eventReport"/>
 	<a href="/pending_alarms.shtm"><fmt:message key="event.legacyAlarmsPage"/></a>
 	   <div class="mangoDownloadLinks" style="float:right">
 	      <a href="javascript:eventInstances.download()"><fmt:message key="emport.export" /></a>
