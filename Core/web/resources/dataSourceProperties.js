@@ -2,6 +2,9 @@
  * Copyright (C) 2013 Infinite Automation. All rights reserved.
  * @author Terry Packer
  */
+//Ensure Debugger loads the js file on browser
+//@ sourceURL=/resources/dataSourceProperties_ajaxLoaded.js
+
  //TODO Make new AMD format
  dojo.require("dijit.Dialog");
  dojo.require("dijit.form.Form");
@@ -162,9 +165,14 @@
  function saveDataSourceCB(response) {
      stopImageFader("dsSaveImg");
      if (response.hasMessages){
-    	 //Prefix every message with dataSource. so we can use on same page as other members with context key's of name and xid, etc.
+    	 //Prefix the common base DataSourceVO property  message with dataSource. so we can use on same page as other members with context key's of name and xid, etc.
     	 for(var i=0; i<response.messages.length; i++){
+    		 if((response.messages[i].contextKey === 'name')||
+    				 (response.messages[i].contextKey === 'purgeOverride')||
+    				 (response.messages[i].contextKey === 'purgePeriod')||
+    				 (response.messages[i].contextKey === 'purgeType')){
     		 response.messages[i].contextKey = 'dataSource.' + response.messages[i].contextKey;
+    		 }
     	 }
     	 showDwrMessages(response.messages);
      }else {
@@ -233,34 +241,49 @@
 // }
  
  function addPoint(ref) {
-     if (!isShowing("pointProperties")) {
-         alert(mangoTranslate('dsEdit.saveWarning'));
-         return;
-     }
-     
-     if (currentPoint)
-         stopImageFader("editImg"+ currentPoint.id);
-     
-     startImageFader("editImg"+ mango.newId);
-     hideContextualMessages("pointProperties");
-     
+	 //dataPoints.open(-1);
+	 
+//	 //Ensure data source is saved, by confirming that the 
+//	 // data points list tab is viewable 
+//	 var pointTableDiv = dojo.byId("pointTableDiv");
+//     if (pointTableDiv == null) {
+//         alert(mangoTranslate('dsEdit.saveWarning'));
+//         return;
+//     }
+//     
+//     if (currentPoint)
+//         stopImageFader("editImg"+ currentPoint.id);
+//     
+//     //Confirm that we are saving an editing point,
+//     // this can also be called by utilities that auto-save points
+//     var dataSourceTabContainer = dijit.byId("pointDetails");
+//     if(typeof dataSourceTabContainer != 'undefined'){
+//	     startImageFader("editImg"+ mango.newId);
+//	     hideContextualMessages("pointProperties");
+//	     
+//	     //Format the tabs
+//	     dataSourceTabContainer.set('selected',true);
+//	     dataSourceTabContainer.set('disabled',false);
+//     }
      addPointImpl(ref);
-     
-     //Format the tabs
-     var dataSourceTabContainer = dijit.byId("pointDetails");
-     dataSourceTabContainer.set('selected',true);
-     dataSourceTabContainer.set('disabled',false);
-     
      
  }
  
-// function editPoint(pointId) {
-//     hideContextualMessages("pointProperties");
-//     DataSourceEditDwr.getPoint(pointId, editPointCB);
-// }
+ function editPoint(pointId) {
+     hideContextualMessages("pointProperties");
+     DataSourceEditDwr.getPoint(pointId, editPointCB);
+ }
  
-// // This method can be used by implementations to add a new point from e.g. a tool. See Modbus for an example.
-// function editPointCB(point) {
+ // This method can be used by implementations to add a new point from e.g. a tool. See Modbus for an example.
+ function editPointCB(point) {
+	 
+	 //Open the point in the view...
+	 dataPoints.setInputs(point);
+	 //Give focus to the tab
+  	 var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
+ 	 myEdit.selectChild('dataPointDetails-tab');
+
+
 //     currentPoint = point;
 //     display("pointDeleteImg", point.id != mango.newId);
 //     var locator = currentPoint.pointLocator;
@@ -280,7 +303,7 @@
 //             domStyle.set("pointDetails", "top", position.y +"px");
 //         });
 //     }
-// }
+ }
 
 
 /*

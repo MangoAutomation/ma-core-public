@@ -3,7 +3,7 @@
  * @author Terry Packer
  */
 
-//@ sourceURL=dynamicScript.js
+//@ sourceURL=dataPoint_ajaxLoaded.js
 var dataSources;
 var dataPointsDataSourceId;
 
