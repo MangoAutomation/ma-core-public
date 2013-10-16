@@ -7,6 +7,8 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.measure.unit.Unit;
+
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
@@ -14,14 +16,15 @@ import org.springframework.dao.DuplicateKeyException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.chart.BaseChartRenderer;
 import com.serotonin.m2m2.view.text.BaseTextRenderer;
-import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -306,6 +309,9 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		dp.setUseIntegralUnit(newDp.isUseIntegralUnit());
     		dp.setUseRenderedUnit(newDp.isUseRenderedUnit());
     		dp.setUnit(newDp.getUnit());
+    		dp.setUnitString(newDp.getUnitString());
+    		dp.setRenderedUnitString(newDp.getRenderedUnitString());
+    		dp.setIntegralUnitString(newDp.getIntegralUnitString());
     		dp.setRenderedUnit(newDp.getRenderedUnit());
     		dp.setIntegralUnit(newDp.getIntegralUnit());
     		dp.setChartColour(newDp.getChartColour());
@@ -333,6 +339,24 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	}
     }
 
+    @DwrPermission(user = true)
+    public ProcessResult validateUnit(String unit){
+    	ProcessResult result = new ProcessResult();
+    	try{
+    		UnitUtil.parseLocal(unit);
+    		result.addData("validUnit",true);
+    		result.addData("message", new TranslatableMessage("validate.unitValid").translate(getTranslations()));
+    	}catch(Exception e){
+    		result.addData("validUnit", false);
+    		if(e instanceof IllegalArgumentException){
+    			result.addData("message",((IllegalArgumentException)e).getCause().getMessage());
+    		}else{
+    			result.addData("message", e.getMessage());
+    		}
+    	}
+    	return result;
+    }
+    
     /**
      * Helper to get the most recent value for a point
      * @param id
@@ -364,4 +388,5 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
 
     	return result;
     }
+    
 }

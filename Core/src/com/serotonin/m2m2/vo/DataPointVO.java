@@ -180,11 +180,15 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	private int engineeringUnits = com.serotonin.m2m2.util.EngineeringUnits.noUnits;
 	// Replaces Engineering Units
 	Unit<?> unit = defaultUnit();
+	private String unitString =  UnitUtil.formatLocal(unit); //For input on page
 	// replaces integralEngUnits
 	Unit<?> integralUnit = defaultIntegralUnit();
+	private String integralUnitString = UnitUtil.formatLocal(integralUnit); //For input on page
+	
 	// unit used for rendering if the renderer supports it
 	Unit<?> renderedUnit = defaultUnit();
-
+	private String renderedUnitString = UnitUtil.formatLocal(renderedUnit); //For input on page
+	
 	boolean useIntegralUnit = false;
 	boolean useRenderedUnit = false;
 
@@ -704,54 +708,25 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	}
 	/* Helpers for Use on JSP Page */
 	public String getUnitString(){
-        Object value = getUnit();
-        if (value instanceof Unit<?>) {
-            Unit<?> unit = (Unit<?>) value;
-            return UnitUtil.formatLocal(unit);
-        }
-        return "";
+		return this.unitString;
 	}
 	public void setUnitString(String unit){
-		try{
-			setUnit(UnitUtil.parseLocal(unit));
-		}catch(Exception e){
-			setUnit(defaultUnit());
-		}
+		this.unitString = unit;
 	}
-	
 	public String getRenderedUnitString(){
-        Object value = getRenderedUnit();
-        if (value instanceof Unit<?>) {
-            Unit<?> unit = (Unit<?>) value;
-            return UnitUtil.formatLocal(unit);
-        }
-        return "";
+		return this.renderedUnitString;
 	}
 	public void setRenderedUnitString(String unit){
-		try{
-			setRenderedUnit(UnitUtil.parseLocal(unit));
-		}catch(Exception e){
-			setRenderedUnit(defaultUnit());
-		}
+		this.renderedUnitString = unit;
 	}
-	
 	public String getIntegralUnitString(){
-        Object value = getIntegralUnit();
-        if (value instanceof Unit<?>) {
-            Unit<?> unit = (Unit<?>) value;
-            return UnitUtil.formatLocal(unit);
-        }
-        return "";
+       return this.integralUnitString;
 	}
 	public void setIntegralUnitString(String unit){
-		try{
-			setIntegralUnit(UnitUtil.parseLocal(unit));
-		}catch(Exception e){
-			setIntegralUnit(defaultUnit());
-		}
+		this.integralUnitString = unit;
 	}
-	
 	/* ############################## */
+
 	public DataPointVO copy() {
 		try {
 			DataPointVO copy = (DataPointVO) super.clone();
@@ -850,44 +825,83 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 				&& pointLocator.getDataTypeId() != DataTypes.NUMERIC)
 			response.addContextualMessage("plotType", "validate.invalidValue");
         
-		if (!validateIntegralUnit()) {
-            response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
-        }
+		//Validate the unit
+		try{
+			setUnit(UnitUtil.parseLocal(this.unitString));
+		}catch(Exception e){
+			if(e instanceof IllegalArgumentException){
+				response.addContextualMessage("unit", "validate.unitInvalid", ((IllegalArgumentException)e).getCause().getMessage());
+    		}else{
+    			response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
+    		}
+			
+		}
+		
+		try{
+			if (!validateIntegralUnit()) {
+	            response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
+	        }
+		}catch(Exception e){
+			if(e instanceof IllegalArgumentException){
+				response.addContextualMessage("integralUnit", "validate.unitInvalid", ((IllegalArgumentException)e).getCause().getMessage());
+    		}else{
+    			response.addContextualMessage("integralUnit", "validate.unitInvalid", e.getMessage());
+    		}
+		}
         
-        if (!validateRenderedUnit()) {
-            response.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
-        }
+		try{
+			 if (!validateRenderedUnit()) {
+				 response.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
+		     }
+		}catch(Exception e){
+			if(e instanceof IllegalArgumentException){
+				response.addContextualMessage("renderedUnit", "validate.unitInvalid", ((IllegalArgumentException)e).getCause().getMessage());
+    		}else{
+    			response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
+    		}
+		}
+       
 
 	}
 
-
-    public boolean validateIntegralUnit() {
+	/**
+	 * Validate the Integral Unit
+	 * Setting a default if its not enabled
+	 * @return
+	 */
+    public boolean validateIntegralUnit(){
         if (!useIntegralUnit) {
             integralUnit = defaultIntegralUnit();
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
             return true;
         }
         
         // integral unit should have same dimensions as the default integrated unit
         if (integralUnit == null)
             return false;
+        setIntegralUnit(UnitUtil.parseLocal(this.integralUnitString));
+        
         return integralUnit.isCompatible(defaultIntegralUnit());
     }
     
     public boolean validateRenderedUnit() {
         if (!useRenderedUnit) {
             renderedUnit = unit;
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             return true;
         }
         
         // integral unit should have same dimensions as the default integrated unit
         if (renderedUnit == null)
             return false;
+		setRenderedUnit(UnitUtil.parseLocal(this.renderedUnitString));
+
         return renderedUnit.isCompatible(unit);
     }
     
     // default unit is ONE ie no units
     private Unit<?> defaultUnit() {
-        return Unit.ONE;
+    	return Unit.ONE;
     }
     
     // default integrated unit is the base unit times seconds
@@ -1060,9 +1074,16 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
+            
             unit = (Unit<?>) in.readObject();
+            unitString = UnitUtil.formatLocal(unit);
+            
             integralUnit = (Unit<?>) in.readObject();
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
             renderedUnit = (Unit<?>) in.readObject();
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
         }
@@ -1206,18 +1227,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         text = jsonObject.getString("unit");
         if (text != null) {
             unit = parseUnitString(text, "unit");
+            unitString = UnitUtil.formatUcum(unit);
         }
         
         text = jsonObject.getString("integralUnit");
         if (text != null) {
             useIntegralUnit = true;
             integralUnit = parseUnitString(text, "integralUnit");
+            integralUnitString = UnitUtil.formatUcum(integralUnit);
         }
         
         text = jsonObject.getString("renderedUnit");
         if (text != null) {
             useRenderedUnit = true;
             renderedUnit = parseUnitString(text, "renderedUnit");
+            renderedUnitString = UnitUtil.formatUcum(renderedUnit);
         }
         
         text = jsonObject.getString("plotType");

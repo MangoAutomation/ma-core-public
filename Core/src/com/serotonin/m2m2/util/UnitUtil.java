@@ -36,7 +36,10 @@ public class UnitUtil {
         localFormat.label(NonSI.REVOLUTION.divide(NonSI.MINUTE), "rpm");
         localFormat.label(Unit.ONE.divide(1000000), "ppm");
         localFormat.label(Unit.ONE.divide(1000000000), "ppb");
+        
+        //Define any aliases
         localFormat.alias(SI.CELSIUS, "Celsius"); // easier to type
+        localFormat.alias(NonSI.FAHRENHEIT, "Fahrenheit");
     }
     
     @SuppressWarnings("deprecation")
