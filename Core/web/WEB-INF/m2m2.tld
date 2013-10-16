@@ -182,6 +182,15 @@
   </function> 
   
   <function>
+    <name>integralText</name>
+    <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
+    <function-signature>
+      String getIntegralText(com.serotonin.m2m2.vo.DataPointVO, double)
+    </function-signature>
+  </function>
+  
+  
+  <function>
     <name>rawText</name>
     <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
     <function-signature>
