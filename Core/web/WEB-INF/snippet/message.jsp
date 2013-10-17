@@ -81,6 +81,7 @@ String[] mangoMessageKeys = {
 	    "events.showAuditEvents",
         "events.unsilence",
         "events.unacknowledged",
+        
 	    
         "header.dataPoints",
         
@@ -102,6 +103,8 @@ String[] mangoMessageKeys = {
 	    "pointEdit.detectors.noUpdate",
 	    "pointEdit.detectors.posCusum",
 	    "pointEdit.detectors.negCusum",
+	    "pointEdit.detectors.regexState",
+	    
 	    "pointEdit.logging.type.change",
 	    "pointEdit.logging.type.all",
 	    "pointEdit.logging.type.never",

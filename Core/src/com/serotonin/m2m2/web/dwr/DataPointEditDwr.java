@@ -293,6 +293,18 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
     }
+    
+    @DwrPermission(user = true)
+    public void updateAlphanumericRegexStateDetector(int pedId, String xid, String alias, String state, int duration,
+            int durationType, int alarmLevel) {
+        PointEventDetectorVO ped = getEventDetector(pedId);
+        ped.setXid(xid);
+        ped.setAlias(alias);
+        ped.setAlphanumericState(state);
+        ped.setDuration(duration);
+        ped.setDurationType(durationType);
+        ped.setAlarmLevel(alarmLevel);
+    }
 
     @DwrPermission(user = true)
     public void updatePositiveCusumDetector(int pedId, String xid, String alias, double limit, double weight,

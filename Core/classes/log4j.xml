@@ -39,7 +39,7 @@
   </appender>
   
   <category name="org"><level value="info"/></category>
-  <category name="org.directwebremoting"><level value="fatal"/></category>
+  <category name="org.directwebremoting"><level value="info"/></category>
   <category name="org.springframework"><level value="error"/></category>
   <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
   <category name="com.serotonin.m2m2"><level value="info"/></category>
