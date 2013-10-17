@@ -135,6 +135,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             DataPointDefaulter defaulter, boolean includePointList) {
         ProcessResult response = new ProcessResult();
 
+        //This saving of the point into the User is a bad idea, need to rework to
+        // pass the point back and forth to page.  
         DataPointVO dp = getPoint(id, defaulter);
         dp.setXid(xid);
         dp.setName(name);
@@ -181,6 +183,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             response.addData("vo",dp);
             if (includePointList)
                 response.addData("points", getPoints());
+            //Set the User Point
+            Common.getUser().setEditPoint(dp);
         }
 
         return response;

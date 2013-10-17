@@ -324,9 +324,12 @@ allDataPoints = new StoreView({
         	
             //First open the data sources tabs
             dataSources.open(options.voToLoad.dataSourceId,{},function(value){
-                _this.setInputs(options.voToLoad);
+            	
+            	//The open the data point with DwrCall to set the edit point in the User (Need to fix this)
+            	dataPoints.open(options.voToLoad.id);
+                //_this.setInputs(options.voToLoad);
             	hideContextualMessages(_this.edit);
-
+            	
             	var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
             	myEdit.selectChild('dataPointDetails-tab');            	
             });
@@ -335,11 +338,12 @@ allDataPoints = new StoreView({
         }
         else {
 
-        	dwr.engine.beginBatch();
+        	dwr.engine.beginBatch(); //Force batching of the next calls
             when(this.editStore.dwr.get(id), function(vo) {
             	dataSources.open(vo.dataSourceId,{},function(){
-                // ok
-                _this.setInputs(vo);
+                // Load the data point on the dataPoints view
+                //
+                dataPoints.open(vo.id); //Very inefficient but we need to reset the User.editDataPoint
                 //Hide contextual messages
             	hideContextualMessages(_this.edit);
             	            	
@@ -350,7 +354,7 @@ allDataPoints = new StoreView({
                 // wrong id, dwr error
                 addErrorDiv(message);
             });
-            dwr.engine.endBatch();
+            dwr.engine.endBatch(); //Stop batching
         }
     },
     

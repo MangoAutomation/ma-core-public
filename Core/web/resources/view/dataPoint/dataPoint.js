@@ -32,6 +32,7 @@ dataPoints = new StoreView({
     editId: 'pointDetails',
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
     defaultQuery: {dataSourceId: [dataPointsDataSourceId]},
+    closeEditOnSave: false,  /* We are managing this ourselves */
     
     sortMap: [
               {attribute: "deviceName", descending:true},
@@ -273,11 +274,10 @@ dataPoints = new StoreView({
 		    tc.addChild(cp1);
 		    var pd = dojo.byId("pointDetails");
 		    domConstruct.place(pd,"pointDetails-content");
-		    //Set the point details div to be visible
-		    show("pointDetails");
-		    
     	}
 
+	    //Set the point details div to be visible
+	    show("pointDetails");
     	
     	//For new data points don't bother with the settings
     	if(vo.id != -1){

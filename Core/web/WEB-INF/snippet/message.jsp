@@ -111,6 +111,7 @@ String[] mangoMessageKeys = {
 	    
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",
+        "table.confirmDelete.AllDataPoints",
         
         "table.edit",
         "table.add",

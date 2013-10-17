@@ -114,6 +114,8 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 			if(id > 0){
 				response = super.get(id);
 				//Kludge for modules to be able to use a default edit point for some of thier tools (Bacnet for example needs this for adding lots of points)
+				//This is an issue for opening AllDataPoints Point because it opens the Datasource too.
+				//TODO to fix this we need to fix DataSourceEditDwr to not save the editing DataPoint state in the User, this will propogate into existing modules...
 				DataSourceVO<?> vo = (DataSourceVO<?>)response.getData().get("vo");
 				DataPointVO pointVo = new DataPointVO();
 				pointVo.setXid(DataPointDao.instance.generateUniqueXid());

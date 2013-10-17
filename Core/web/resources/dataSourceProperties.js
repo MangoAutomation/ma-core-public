@@ -245,6 +245,10 @@
 //     dwr.util.addRows("pointsList", points, pointListColumnFunctions, pointListOptions);
 // }
  
+ 
+ /**
+  * Method for legacy modules to add a point
+  */
  function addPoint(ref) {
 	 
 	 //Ensure data source is saved, by confirming that the 
@@ -260,6 +264,10 @@
      
  }
  
+ /**
+  * Not sure if still being used
+  * @param pointId
+  */
  function editPoint(pointId) {
      hideContextualMessages("pointProperties");
      DataSourceEditDwr.getPoint(pointId, editPointCB);
@@ -270,7 +278,9 @@
 	 
 	 //Load in the proper values
 	 var locator = point.pointLocator;
-	 dataPoints.setInputs(point);
+	 //dataPoints.setInputs(point);
+	 dataPoints.open(point.id,{voToLoad: point});
+	 
 	 if (typeof editPointCBImpl == 'function') 
 		 cancel = editPointCBImpl(locator);
 	 if (!cancel) {
@@ -318,11 +328,15 @@ function deletePoint() {
 
  
  /**
-  * Close the Edit Window
+  * Close out the point details tab
   */
  function closePoint() {
-	 dataPoints.close();
-     currentPoint = null;
+	 var tc = dijit.byId("dataSourcePropertiesTabContainer");
+	 var cp1 = dijit.byId("dataPointDetails-tab");
+	 //tc.removeChild(cp1);  (Hard to recreate tab later then)
+	
+	 tc.selectChild('pointTable-tab');
+	 cp1.set('disabled',true);
  }
 
  /**
@@ -362,7 +376,7 @@ function deletePoint() {
   */
  function savePoint() {
      startImageFader("pointSaveImg", true);
-     hideContextualMessages("pointProperties");
+     hideContextualMessages("pointDetails");
 
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();

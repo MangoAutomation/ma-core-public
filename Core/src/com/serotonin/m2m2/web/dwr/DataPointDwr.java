@@ -94,6 +94,15 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      */
     @DwrPermission(user = true)
     @Override
+    public ProcessResult get(int id) {
+    	return this.getFull(id);
+    }
+    
+    /* (non-Javadoc)
+     * @see com.deltamation.mango.downtime.web.AbstractBasicDwr#getFull(int)
+     */
+    @DwrPermission(user = true)
+    @Override
     public ProcessResult getFull(int id) {
         DataPointVO vo;
     	User user = Common.getUser();
@@ -109,6 +118,13 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
             vo.setDataSourceName(ds.getName());
             vo.setDataSourceTypeName(ds.getTypeKey());
             vo.setDataSourceXid(ds.getXid());
+            vo.setDeviceName(ds.getName());
+            
+            vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+            vo.defaultTextRenderer();
+
+            
+            
         }else{
             vo = dao.getFull(id);
         }
@@ -302,6 +318,9 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	DataPointVO dp = Common.getUser().getEditPoint();  
     	if(dp!=null){
     		//Do we want the details set here? (The ID Name,XID and Locator are stored via the modules)
+    		dp.setId(newDp.getId());
+    		dp.setXid(newDp.getXid());
+    		//dp.setPointLocator(newDp.getPointLocator());
     		dp.setDeviceName(newDp.getDeviceName());
     		
     		//General Properties

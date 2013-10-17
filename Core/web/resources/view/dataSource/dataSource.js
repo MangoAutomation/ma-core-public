@@ -35,7 +35,8 @@ dataSources = new StoreView({
     gridId: 'dataSourceTable',
     editId: 'editDataSourceDiv',
     defaultSort: [{attribute: "name"}],
-    
+    closeEditOnSave: false,  /* We are managing this ourselves */
+
     filters: new Array(),
 	sortMap: [
 	          {attribute: "name", descending:true},
