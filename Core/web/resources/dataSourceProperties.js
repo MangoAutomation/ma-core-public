@@ -13,6 +13,7 @@
  dojo.require("dijit.layout.TabContainer");
  dojo.require("dijit.layout.ContentPane");
  
+ 
  var currentPoint;
  var pointListColumnFunctions;
  var pointListOptions;
@@ -245,30 +246,16 @@
 // }
  
  function addPoint(ref) {
-	 dataPoints.open(-1);
 	 
-//	 //Ensure data source is saved, by confirming that the 
-//	 // data points list tab is viewable 
-//	 var pointTableDiv = dojo.byId("pointTableDiv");
-//     if (pointTableDiv == null) {
-//         alert(mangoTranslate('dsEdit.saveWarning'));
-//         return;
-//     }
-//     
-//     if (currentPoint)
-//         stopImageFader("editImg"+ currentPoint.id);
-//     
-//     //Confirm that we are saving an editing point,
-//     // this can also be called by utilities that auto-save points
-//     var dataSourceTabContainer = dijit.byId("pointDetails");
-//     if(typeof dataSourceTabContainer != 'undefined'){
-//	     startImageFader("editImg"+ mango.newId);
-//	     hideContextualMessages("pointProperties");
-//	     
-//	     //Format the tabs
-//	     dataSourceTabContainer.set('selected',true);
-//	     dataSourceTabContainer.set('disabled',false);
-//     }
+	 //Ensure data source is saved, by confirming that the 
+	 // data points list tab is viewable (this is the same as legacy code for now)
+	 // TODO replace pointProperties with the pointTable-content 
+	 // @See createDataPointsTab() below
+	 if (!isShowing("pointProperties")) {
+         alert(mangoTranslate('dsEdit.saveWarning'));
+         return;
+     }
+
      addPointImpl(ref);
      
  }
@@ -556,6 +543,11 @@ function deletePoint() {
 		    tc.addChild(cp3);
 		    var pd = dojo.byId("pointTableDiv");
 		    dojo.place(pd,"pointTable-content");
+		    
+		    //Now to trick the legacy modules to think the pointProperties div is viewable
+		    var ppDiv = dojo.byId("pointProperties");
+		    show("pointProperties");
+		    dojo.place(ppDiv,"pointTable-content");
 		    show("pointTableDiv"); //Show the hidden table
  		}else{
  			show("pointTableDiv"); //Show the hidden table

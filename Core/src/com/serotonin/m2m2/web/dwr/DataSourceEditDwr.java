@@ -104,6 +104,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         
         //Another Kludge to allow modules to get new-ish data points via this method...
         if(pointId == Common.NEW_ID){
+        	dp = new DataPointVO();
         	dp.setId(pointId);
         	dp.setXid(DataPointDao.instance.generateUniqueXid());
             dp.setDataSourceId(ds.getId());

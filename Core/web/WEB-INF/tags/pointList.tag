@@ -7,11 +7,8 @@
 
 <!-- <div data-dojo-type="dijit/layout/ContentPane" title="Point Details" style="overflow-y:auto" id="pointDetails" style="display: none;"> -->
 <!--      <div  class="borderDiv marB"> -->
-
     <div id="pointDetails" class="borderDiv marB" style="display:none" >
-        <!-- For legacy reference but not used maybe should rename above to pointProperties-->
-      <div id="pointProperties"></div>
-    
+    <div id="pointProperties" style="display:none"></div> <!-- For tricking the legacy modules to believe this is still in use, it will be "shown" when a data source is saved or viewed -->    
         <table width="100%">
           <tr>
             <td>
