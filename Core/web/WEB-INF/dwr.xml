@@ -104,8 +104,13 @@
     <convert converter="bean" match="com.serotonin.m2m2.view.text.MultistateRenderer" javascript="MultistateRenderer"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.MultistateValue" javascript="MultistateValue"/>
     
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.ConvertingRenderer">
+        <param name="exclude" value="unit,renderedUnit"/>
+    </convert>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.NoneRenderer" javascript="NoneRenderer"/>
-    <convert converter="bean" match="com.serotonin.m2m2.view.text.PlainRenderer" javascript="PlainRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.PlainRenderer" javascript="PlainRenderer">
+            <param name="exclude" value="unit,renderedUnit"/>
+    </convert>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.RangeRenderer" javascript="RangeRenderer"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.RangeValue" javascript="RangeValue"/>   
     <convert converter="bean" match="com.serotonin.m2m2.view.text.TextRenderer" javascript="TextRenderer"/>
