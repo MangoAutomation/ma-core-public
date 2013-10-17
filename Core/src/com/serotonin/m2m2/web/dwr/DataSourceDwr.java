@@ -25,6 +25,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRTM;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
@@ -110,9 +111,15 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
     public ProcessResult get(int id) {
 		ProcessResult response;
 		try{
-			if(id > 0)
+			if(id > 0){
 				response = super.get(id);
-			else{
+				//Kludge for modules to be able to use a default edit point for some of thier tools (Bacnet for example needs this for adding lots of points)
+				DataSourceVO<?> vo = (DataSourceVO<?>)response.getData().get("vo");
+				DataPointVO pointVo = new DataPointVO();
+				pointVo.setPointLocator(vo.createPointLocator());
+				Common.getUser().setEditPoint(pointVo);
+			
+			}else{
 				throw new ShouldNeverHappenException("Unable to get a new DataSource.");
 			}
 	        //Setup the page info
