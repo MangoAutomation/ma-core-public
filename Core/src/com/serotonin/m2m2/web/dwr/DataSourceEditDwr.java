@@ -100,6 +100,18 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
         //Added to allow saving point settings from data point edit view
         DataPointVO dp = Common.getUser().getEditPoint();
+        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        
+        //Another Kludge to allow modules to get new-ish data points via this method...
+        if(pointId == Common.NEW_ID){
+        	dp.setXid(DataPointDao.instance.generateUniqueXid());
+            dp.setDataSourceId(ds.getId());
+            dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
+            dp.setDeviceName(ds.getName());
+            dp.setPointLocator(ds.createPointLocator());
+            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+            dp.defaultTextRenderer();
+        }
         
         //Use the defaulter
         if(defaulter != null){
