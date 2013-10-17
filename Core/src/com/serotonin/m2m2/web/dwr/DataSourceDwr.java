@@ -116,6 +116,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 				//Kludge for modules to be able to use a default edit point for some of thier tools (Bacnet for example needs this for adding lots of points)
 				DataSourceVO<?> vo = (DataSourceVO<?>)response.getData().get("vo");
 				DataPointVO pointVo = new DataPointVO();
+				pointVo.setXid(DataPointDao.instance.generateUniqueXid());
 				pointVo.setPointLocator(vo.createPointLocator());
 				Common.getUser().setEditPoint(pointVo);
 			

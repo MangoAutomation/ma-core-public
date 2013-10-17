@@ -145,6 +145,10 @@
      
  }
  
+ function writePointList(points){
+	 dataPoints.refresh();
+	 allDataPoints.refresh();
+ }
 
  function saveDataSource() {
      startImageFader("dsSaveImg", true);
@@ -241,7 +245,7 @@
 // }
  
  function addPoint(ref) {
-	 //dataPoints.open(-1);
+	 dataPoints.open(-1);
 	 
 //	 //Ensure data source is saved, by confirming that the 
 //	 // data points list tab is viewable 
@@ -277,11 +281,16 @@
  // This method can be used by implementations to add a new point from e.g. a tool. See Modbus for an example.
  function editPointCB(point) {
 	 
-	 //Open the point in the view...
+	 //Load in the proper values
+	 var locator = point.pointLocator;
 	 dataPoints.setInputs(point);
-	 //Give focus to the tab
-  	 var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
- 	 myEdit.selectChild('dataPointDetails-tab');
+	 if (typeof editPointCBImpl == 'function') 
+		 cancel = editPointCBImpl(locator);
+	 if (!cancel) {
+		 //Give focus to the tab
+		 var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
+		 myEdit.selectChild('dataPointDetails-tab');
+	 }
 
 
 //     currentPoint = point;
