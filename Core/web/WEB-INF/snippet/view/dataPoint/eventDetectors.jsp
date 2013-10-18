@@ -366,6 +366,45 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
+    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE %>">
+      <tr><td class="horzSeparator" colspan="2"></td></tr>
+      <tr>
+        <td class="formLabelRequired">
+          <tag:img png="delete" title="common.delete" onclick="pointEventDetectorEditor.deleteDetector(getPedId(this))"/>
+          <fmt:message key="pointEdit.detectors.type"/>
+        </td>
+        <td class="formField"><fmt:message key="pointEdit.detectors.stateDet"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
+        <td class="formField">
+          <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
+                  onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.regexState"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_State" type="text" class="formLong"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
+    </tbody>
+    
     <tbody id="detectorType<%= PointEventDetectorVO.TYPE_POSITIVE_CUSUM %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
@@ -458,8 +497,8 @@
   dojo.require("dijit.form.Select");
   
   function setEventDetectors(vo){
-	  
-	  DataPointDwr.getEventDetectorOptions(vo.pointLocator.dataTypeId,function(response){
+      
+      DataPointDwr.getEventDetectorOptions(vo.pointLocator.dataTypeId,function(response){
 
           var options = [];
           for(var i=0; i<response.data.options.length; i++){
@@ -471,13 +510,13 @@
           pointEventDetectorEditor.eventDetectorSelect.options = [];
           pointEventDetectorEditor.eventDetectorSelect.addOption(options);
 
-		  //Remove all rows from the table
-		  dwr.util.removeAllRows("eventDetectorTable");
+          //Remove all rows from the table
+          dwr.util.removeAllRows("eventDetectorTable");
           show("emptyListMessage");
-		  //Fill with our event detectors
-	      DataPointEditDwr.getEventDetectors(pointEventDetectorEditor.initCB);
-	  });
-	  
+          //Fill with our event detectors
+          DataPointEditDwr.getEventDetectors(pointEventDetectorEditor.initCB);
+      });
+      
   }
   
   
@@ -486,7 +525,7 @@
    * This is messy but this page is huge
    */
   function getEventDetectors(vo,callback){
-	  pointEventDetectorEditor.save(callback);
+      pointEventDetectorEditor.save(callback);
   }
   
   
@@ -506,20 +545,20 @@
       },"eventDetectorSelect");
       
       this.init = function() {
-    	   //Nothing for now
-    	  
+           //Nothing for now
+          
       }
       
       this.initCB = function(detectorList) {
-    	  if(detectorList != null)
-	   		  for (var i=0; i<detectorList.length; i++)
-	   			  pointEventDetectorEditor.addEventDetectorCB(detectorList[i]);
+          if(detectorList != null)
+              for (var i=0; i<detectorList.length; i++)
+                  pointEventDetectorEditor.addEventDetectorCB(detectorList[i]);
 
       }
       
       this.addEventDetector = function() {
-    	  var value = this.eventDetectorSelect.value;
-    	  
+          var value = this.eventDetectorSelect.value;
+          
           DataPointEditDwr.addEventDetector(value, this.addEventDetectorCB);
       }
   
@@ -571,6 +610,11 @@
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_STATE %>) {
+              $set("eventDetector"+ detector.id +"State", detector.alphanumericState);
+              $set("eventDetector"+ detector.id +"Duration", detector.duration);
+              $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+          }
+          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE %>) {
               $set("eventDetector"+ detector.id +"State", detector.alphanumericState);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
@@ -762,6 +806,23 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateAlphanumericStateDetector(pedId, xid, alias, state, duration, durationType, 
+                              alarmLevel, saveCB);
+                  }
+              }
+              else if (pedType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
+                  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
+                  var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  
+                  if (state && state.length > 128)
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidState"/>";
+                  else if (isNaN(duration))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
+                  else if (duration < 0)
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                  else {
+                      saveCBCount++;
+                      DataPointEditDwr.updateAlphanumericRegexStateDetector(pedId, xid, alias, state, duration, durationType, 
                               alarmLevel, saveCB);
                   }
               }
