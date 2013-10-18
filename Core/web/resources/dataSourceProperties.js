@@ -321,8 +321,16 @@
   */
 function deletePoint() {
 	 if(currentPoint){
-		 if(dataPoints.remove(currentPoint.id))
-			 currentPoint = null;
+		 if(confirm(mangoMsg['table.confirmDelete.DataPoint'])){
+			 //TODO May need to batch the DWR Calls to ensure that all Data Points doesn't refresh before the remove call
+			//dwr.engine.beginBatch(); //Force batching of the next calls
+			dataPoints.remove(currentPoint.id, true); //Force no showing of the confirm again
+	    	closePoint(); //Close the tab
+			 //Also refresh the all data points if it is in this view
+	         if(typeof allDataPoints != 'undefined')
+	        	 allDataPoints.refresh(); 
+	         //dwr.engine.endBatch(); //Force batching of the next calls
+		 }
 	 }
 }
 

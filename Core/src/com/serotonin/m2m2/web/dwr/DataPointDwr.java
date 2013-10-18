@@ -222,6 +222,22 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     }
     
     /**
+     * Override the copy method as to manage the User.editingPoint so it is avaiable on copy
+     */
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult getCopy(int id) {
+    	ProcessResult result = super.getCopy(id);
+    	
+    	//Store the edit point
+    	DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
+    	Common.getUser().setEditPoint(editPoint);
+    	
+    	return result;
+    }
+    
+    
+    /**
      * Get a list of available Chart Renderers for this point
      * @param vo
      * @return

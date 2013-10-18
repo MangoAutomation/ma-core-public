@@ -26,7 +26,7 @@ allDataPoints = new StoreView({
     varName: 'allDataPoints',
     viewStore: stores.allDataPoints,
     editStore: stores.allDataPoints,
-    editUpdatesView: true,
+    editUpdatesView: false, //Is this really what we want?  The editstore and viewstore are the same for data points.
     gridId: 'allDataPointsTable',
     editId: 'pointDetails',
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
@@ -326,7 +326,7 @@ allDataPoints = new StoreView({
             dataSources.open(options.voToLoad.dataSourceId,{},function(value){
             	
             	//The open the data point with DwrCall to set the edit point in the User (Need to fix this)
-            	dataPoints.open(options.voToLoad.id);
+            	dataPoints.open(options.voToLoad.id,options);
                 //_this.setInputs(options.voToLoad);
             	hideContextualMessages(_this.edit);
             	

@@ -27,7 +27,7 @@ dataPoints = new StoreView({
     varName: 'dataPoints',
     viewStore: stores.dataPoint,
     editStore: stores.dataPoint,
-    editUpdatesView: true,
+    editUpdatesView: false, //Is this really what we want?  The editstore and viewstore are the same for data points.
     gridId: 'dataPointTable',
     editId: 'pointDetails',
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
@@ -407,6 +407,7 @@ dataPoints = new StoreView({
             });
         }
     },
+        
     
     /**
      * Redirect the user to the point details view
