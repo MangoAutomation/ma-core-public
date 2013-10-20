@@ -24,6 +24,14 @@ dataSourcePropertiesDiv = new ContentPane({
 		}
 }, "editDataSourceDiv");		
 
+/**
+ * Add hook for modules to disable thier utilities and clean up before being removed
+ */
+dataSourcePropertiesDiv.onUnload = function(){
+	//Clean up module js before we load new pane.
+	if(typeof(cleanUpDataSourceImpl) != 'undefined')
+	cleanUpDataSourceImpl();
+};
 
 dataSources = new StoreView({
 	
@@ -366,7 +374,7 @@ dataSources.copy = function(id) {
  */
 dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetContentPane,id,copy){
 	//Create the base URL
-	var xhrUrl = "/data_source_properties.shtm?"
+	var xhrUrl = "/data_source_properties.shtm?";
 		
 	//Do we have an ID To pass in
 	if(typeof id != 'undefined')
