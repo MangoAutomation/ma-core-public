@@ -400,7 +400,7 @@ dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
 	   init();
 	   dataSourcePropertiesDiv.startup();
 	   dataSourcePropertiesDiv.resize();
-	   if(typeof(dataSources.loadViewCallback != 'undefined'))
+	   if(typeof(dataSources.loadViewCallback) != 'undefined')
 		   dataSources.loadViewCallback();
 	});
 
