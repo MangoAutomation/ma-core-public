@@ -519,10 +519,10 @@ function deletePoint() {
  }
  
  function changeDataSourcePurgeOverride() {
-     var override = $get("dataSourcePurgeOverride");
+     var override = $get("dataSource.purgeOverride");
      if(typeof override != 'undefined'){
-	     $("dataSourcePurgePeriod").disabled = !override;
-	     $("dataSourcePurgeType").disabled = !override;
+	     $("dataSource.purgePeriod").disabled = !override;
+	     $("dataSource.purgeType").disabled = !override;
      }else{
     	 alert('No Purge Override Settings!');
      }
