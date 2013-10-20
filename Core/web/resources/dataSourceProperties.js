@@ -64,7 +64,7 @@
 	 dataPoints.refresh(); //TODO Need to make page empty at start, not load 2x
 	 
 	 
-     changePurgeOverride();
+	 changeDataSourcePurgeOverride();
      pointListColumnFunctions = new Array();
      var pointListColumnHeaders = new Array();
 
@@ -518,7 +518,7 @@ function deletePoint() {
      });
  }
  
- function changePurgeOverride() {
+ function changeDataSourcePurgeOverride() {
      var override = $get("dataSourcePurgeOverride");
      if(typeof override != 'undefined'){
 	     $("dataSourcePurgePeriod").disabled = !override;
