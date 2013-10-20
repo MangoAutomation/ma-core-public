@@ -30,7 +30,7 @@ dataSourcePropertiesDiv = new ContentPane({
 dataSourcePropertiesDiv.onUnload = function(){
 	//Clean up module js before we load new pane.
 	if(typeof(cleanUpDataSourceImpl) != 'undefined')
-	cleanUpDataSourceImpl();
+		unInitImpl();
 };
 
 dataSources = new StoreView({
