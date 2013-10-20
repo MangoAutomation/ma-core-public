@@ -15,15 +15,6 @@ function(StoreView, CheckBox, ValidationTextBox,TextBox,
 		domStyle,html,put,when,on,
 		baseFx,coreFx,query,ContentPane,domConstruct) {
 
-	//Content Div for loading in DS Pages
-dataSourcePropertiesDiv = new ContentPane({
-		executeScripts: true,
-		parseOnLoad: true,
-		onDownloadError: function(error){
-			addErrorDiv(error);
-		}
-}, "editDataSourceDiv");		
-
 
 dataSources = new StoreView({
 	
@@ -304,7 +295,7 @@ dataSources.open = function(id,options,callback){
     	//Copy
     	when(DataSourceDwr.get(options.voToLoad.id, function(vo) {
             _this.setInputs(options.voToLoad);
-            _this.loadView(callback, vo.data.editPagePath,dataSourcePropertiesDiv,options.voToLoad.id)
+            _this.loadView(callback, vo.data.editPagePath,"editDataSourceDiv",options.voToLoad.id)
             //show(_this.edit);
             coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                             coreFx.wipeIn({node: _this.edit})]).play();
@@ -327,7 +318,7 @@ dataSources.open = function(id,options,callback){
 	            coreFx.combine([baseFx.fadeIn({node: _this.edit}),
 	                            coreFx.wipeIn({node: _this.edit})]).play();
 	            
-	            _this.loadView(callback,response.data.editPagePath,dataSourcePropertiesDiv,id);
+	            _this.loadView(callback,response.data.editPagePath,"editDataSourceDiv",id);
 	        }, function(message) {
 	            addErrorDiv(message);
 	        }));
@@ -337,7 +328,7 @@ dataSources.open = function(id,options,callback){
 	            //Due to some issue with content pane need to play fx before loading pane.
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                                 coreFx.wipeIn({node: _this.edit})]).play();
-                _this.loadView(callback,response.data.editPagePath,dataSourcePropertiesDiv);
+                _this.loadView(callback,response.data.editPagePath,"editDataSourceDiv");
 
             }, function(message) {
                 addErrorDiv(message);
@@ -353,7 +344,7 @@ dataSources.open = function(id,options,callback){
 dataSources.copy = function(id) {
     var _this = this;
     when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
-        _this.loadView(null,vo.data.editPagePath,dataSourcePropertiesDiv,id,true)
+        _this.loadView(null,vo.data.editPagePath,"editDataSourceDiv",id,true)
     }, function(message) {
         // wrong id, dwr error
         addErrorDiv(message);
@@ -364,9 +355,15 @@ dataSources.copy = function(id) {
 /**
  * Method to get Data Source Edit Page from Module
  */
-dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetContentPane,id,copy){
+dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetId,id,copy){
 	//Create the base URL
-	var xhrUrl = "/data_source_properties.shtm?"
+	var xhrUrl = "/data_source_properties.shtm?";
+	
+	//Kill the old one if it exists
+    var oldTarget = dijit.byId(targetId);
+    delete oldTarget; 
+	
+    var targetContentPane = createContentPane(targetId);
 		
 	//Do we have an ID To pass in
 	if(typeof id != 'undefined')
@@ -394,12 +391,35 @@ dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetC
 	});
 }
 
+/**
+ * Create a content pane
+ */
+function createContentPane(id){
+	var cp = new ContentPane({
+		executeScripts: true,
+		parseOnLoad: true,
+		onDownloadError: function(error){
+			addErrorDiv(error);
+		}
+	}, id);
+}
+////Content Div for loading in DS Pages
+//dataSourcePropertiesDiv = new ContentPane({
+//		executeScripts: true,
+//		parseOnLoad: true,
+//		onDownloadError: function(error){
+//			addErrorDiv(error);
+//		}
+//}, "editDataSourceDiv");	
+
+
+
 //Temp callback to editDataSourceDiv to replicate dojo.ready, 
 // to be replaced with scriptHasHooks concept from dojox/dijit content pane
-dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
+dojo.connect(div, "onDownloadEnd", function(){
 	   init();
-	   dataSourcePropertiesDiv.startup();
-	   dataSourcePropertiesDiv.resize();
+	   div.startup();
+	   div.resize();
 	   if(typeof(dataSources.loadViewCallback) != 'undefined')
 		   dataSources.loadViewCallback();
 	});
