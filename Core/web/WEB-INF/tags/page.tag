@@ -53,7 +53,7 @@
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
-  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
+  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': false}, async: false, parseOnLoad: true, isDebug:false, extraLocale: ['${lang}']"></script>
   
   <script type="text/javascript" src="/dwr/engine.js"></script>
   <script type="text/javascript" src="/dwr/util.js"></script>

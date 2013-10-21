@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"var.js",
+"lineCount":1,
+"mappings":"A,SAGAA,MAAA,sBAA6B,QAAA,CAASC,CAAT,oBAEfC,QAAAA,CAASC,CAATD,CAAeE,CAAfF,CAAsBG,CAAtBH,EACPI,CADOJ,CACMG,CADNH,QAGNK,EAASD,CAAAE,UAATD,EAAiCD,CAAAE,UAAA,CAAqBL,CAArB,CACrCG,EAJUJ,CAIGI,CAAAG,OAJHP,QAKHK,CALGL,CAOXG,EAAAK,aAAA,CAAkBL,CAAAM,SAAlB,CAAiCR,CAAjC,MAA+CE,CAAAO,IAAA,CAAST,CAAT,CAAAU,QAAA,iBAAwCN,CAAxC,CAA/C,CAPWL,CAFe,EAA7B;",
+"sources":["var.js.uncompressed.js"],
+"names":["define","vendor","onFunction","name","value","rule","parentRule","target","variables","parent","addSheetRule","selector","get","replace"]
+}

@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"scrollbar.js",
+"lineCount":2,
+"mappings":"A,SAQAA,MAAA,wBACyB,QAAA,GAMvBC,QAASA,EAATA,OAIKC,aAJLD,CAKKE,EAASC,QAAAC,cAAA,OACbF,EAAAG,MAAAC,QANDN,uGAOCG,SAAAI,KAAAC,YAAA,CAA0BN,CAA1B,CAPDF,KASEC,CATFD,IAUME,CAAAO,YAVNT,CAU2BU,IAAAC,IAAA,CAAST,CAAAU,YAAT,CAA6BV,CAAAW,YAA7B,CAV3Bb,GAWME,CAAAY,aAXNd,CAW4BU,IAAAC,IAAA,CAAST,CAAAa,aAAT,CAA8Bb,CAAAc,aAA9B,CAX5BhB,EAaEG,QAAAI,KAAAU,YAAA,CAA0Bf,CAA1B,CAbFF,OAeQkB,CAfRlB,SAkBQC,EAlBRD,CAqBAmB,QAASA,EAATA,OACKlB,EAASD,CAAA,EADdmB,CAEClB,KAAcA,CAAAmB,EAAdnB,QAAkCA,CAAAoB,EAAlCpB,MACAkB,EAHDA,CAGaA,QAAAA,SAAqBlB,EAArBkB,CAHbA,OAIQlB,EAJRkB,CA3BuB,IAEnBG;gCAFmB,gBAoCbC,QAAAA,CAAUC,CAAVD,CAAiBE,CAAjBF,CAAuBG,CAAvBH,QACDC,EAAAG,QAAA,CAAcL,CAAd,CAA+B,QAAA,CAAUM,CAAV,CAAgBC,CAAhB,iBAC9BA,CAD8B,CACXV,CAAA,EAAAC,EADW,CACKD,CAAA,EAAAE,EADL,CAA/B,CADCE,CApCa,EADzB;",
+"sources":["scrollbar.js.uncompressed.js"],
+"names":["define","getScrollbarSize","sbSize","testEl","document","createElement","style","cssText","body","appendChild","offsetWidth","Math","max","clientWidth","scrollWidth","offsetHeight","clientHeight","scrollHeight","removeChild","ex","getSbSize","w","h","scrollbarPropRx","onValue","value","rule","name","replace","full","which"]
+}

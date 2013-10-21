@@ -20,10 +20,12 @@ src/util
 
 3. From the dojo-build directory run the build script build-dojo.js
 
-Files:
+Files In this folder:
 
 build-dojo.sh - Generate the build into the dist folder using the mango.profile.js build profile
+build-dojo-debug.sh - Generate the build into the debug folder using the mango-debug.profile.  This is used for testing and debugging mango.
 
 src/ - where the source js files go
 
 profiles/mango.profile.js - The dojo build profile 
+profiles/mango.debug.profile.js - The debug dojo build profile

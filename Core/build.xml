@@ -3,7 +3,6 @@
 <project name="MA - Core" basedir="." default="jsp-compile">
 	<property file="build.properties"/>
     <property name="fullName" value="m2m2-${name}-${version}" />
-	
 	<property name="build.dir" value="target"/>
 	
 	<path id="master-classpath">
@@ -78,9 +77,12 @@
             	<include name="**/*.*"/>
             </fileset>
         </copy>
-		<!-- Copy the Dojo JS Libraries -->
-		<unzip src="dojo-build/dist/dojo-build.zip" dest="${build.dir}/web/resources">
-		</unzip>
+		<!-- Copy the Dojo Debug JS Libraries -->
+        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
+               <fileset dir="dojo-build/dist/">
+                 <include name="**/*.*"/>
+               </fileset>
+        </copy>
 		
         <!-- Empty the modules dir -->
         <delete dir="${build.dir}/web/modules" />
@@ -94,6 +96,7 @@
 	</target>
     
     <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="master-classpath" /></taskdef>
+	
     <target name="jsp-compile" depends="build" description="Compile the JSPs">
         <jetty-jspc uriroot="${build.dir}/web" outputDir="${build.dir}/work/jsp" compile="true"
                 compilerSourceVM="1.5" compilerTargetVM="1.5">
@@ -106,6 +109,11 @@
     
 	<target name="zip" depends="jsp-compile">
         <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
+		<!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
+		<delete>
+			<fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
+		</delete>
+		
         <zip destfile="${fullName}.zip">
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
@@ -121,6 +129,15 @@
 		<javadoc sourcepath="src" packagenames="com.serotonin.m2m2.module" destdir="${build.dir}/docs">
             <classpath refid="master-classpath"/>
 		</javadoc>
+	</target>
+	
+	<target name="update-dojo" description="copy dojo debug files to target/web/resources">
+       <!-- Copy the Dojo Debug JS Libraries -->
+        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
+               <fileset dir="dojo-build/dist/">
+                 <include name="**/*.*"/>
+               </fileset>
+        </copy>
 	</target>
 	
 	<target name="update-web" description="Update target web dir - Useful While Debugging">
