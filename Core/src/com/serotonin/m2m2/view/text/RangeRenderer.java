@@ -164,6 +164,7 @@ public class RangeRenderer extends ConvertingRenderer {
         if (ver == 1) {
             format = SerializationHelper.readSafeUTF(in);
             rangeValues = (List<RangeValue>) in.readObject();
+            useUnitAsSuffix = false;
         }
         else if (ver == 2) {
             format = SerializationHelper.readSafeUTF(in);

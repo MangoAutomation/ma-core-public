@@ -166,6 +166,7 @@ public class AnalogRenderer extends ConvertingRenderer {
         if (ver == 1) {
             format = SerializationHelper.readSafeUTF(in);
             suffix = SerializationHelper.readSafeUTF(in);
+            useUnitAsSuffix = false;
         }
         else if (ver == 2) {
             format = SerializationHelper.readSafeUTF(in);
