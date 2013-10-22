@@ -153,6 +153,7 @@ public class PlainRenderer extends ConvertingRenderer {
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             suffix = SerializationHelper.readSafeUTF(in);
+            useUnitAsSuffix = false; //Default to not use Units after upgrade in case they already have a suffix
         }
         else if (ver == 2) {
             suffix = SerializationHelper.readSafeUTF(in);
