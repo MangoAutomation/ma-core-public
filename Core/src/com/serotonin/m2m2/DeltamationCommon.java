@@ -335,7 +335,7 @@ public class DeltamationCommon {
         String xid = jsonObject.getString(name);
         DataPointVO point = points.getDataPoint(xid);
         if (point == null) {
-            throw new TranslatableJsonException("delta.validate.pointMissing", name, xid);
+            throw new TranslatableJsonException("validate.pointMissing", name, xid);
         }
         return point.getId();
     }
@@ -353,17 +353,17 @@ public class DeltamationCommon {
         
         DataPointVO point = points.getDataPoint(pointId);
         if (point == null) {
-            response.addContextualMessage(name, "delta.validate.noPoint");
+            response.addContextualMessage(name, "validate.noPoint");
             return null;
         }
         
         if (requireSettable && !point.getPointLocator().isSettable()) {
-            response.addContextualMessage(name, "delta.validate.pointNotSettable",
+            response.addContextualMessage(name, "validate.pointNotSettable",
                     point.getName());
         }
         
         if (dataType != null && point.getPointLocator().getDataTypeId() != dataType) {
-            response.addContextualMessage(name, "delta.validate.pointWrongType",
+            response.addContextualMessage(name, "validate.pointWrongType",
                     point.getName());
         }
         

@@ -293,9 +293,14 @@ dataPoints = new StoreView({
     		//Disable the point settings inputs
     		hide("extraPointSettings");
     	}
-    	//this.enabled.set('value',vo.enabled);
+    	
+
     	//Setup for the point Impl CB
     	currentPoint = vo;
+    	
+    	//Set the enabled value
+    	this.updateStatus(vo.id,vo.enabled);
+    	
     	if( typeof editPointCBImpl == 'function') editPointCBImpl(vo.pointLocator);
 		
     	
@@ -304,6 +309,7 @@ dataPoints = new StoreView({
     
     getInputs: function() {
     	currentPoint.deviceName = this.deviceName.get('value');
+    	currentPoint.enabled = this.enabled;
         //Just return the global that the modules use
     	// We actually collect the values in savePoint() in dataSourceProperties.js
         return currentPoint;
@@ -314,8 +320,7 @@ dataPoints = new StoreView({
     name: new ValidationTextBox({}, "name"),
     xid: new ValidationTextBox({}, "xid"),
     deviceName: new ValidationTextBox({},"deviceName"),
-    
-    //enabled: new CheckBox({}, "enabled"),
+    enabled: false, //Internal value, only toggle-able
     
     editXOffset: -380,
     editYOffset: 0,
@@ -342,6 +347,13 @@ dataPoints = new StoreView({
      */
     updateStatus: function(id,enabled){
     	var _this = this;
+        
+    	//Show on details page only if this one is being viewed
+        if(id == _this.currentId){
+        	showPointStatus(enabled);
+        	_this.enabled = enabled;
+        }
+        
     	var node = $("toggleDataPoint"+ id);
     	//Check to see if the node is visible
     	if(node == null)
@@ -361,9 +373,7 @@ dataPoints = new StoreView({
                     true
             );
         }
-        //Show on details page only if this one is being viewed
-        if(id == _this.currentId)
-        	showPointStatus(enabled);
+
         
     },
     

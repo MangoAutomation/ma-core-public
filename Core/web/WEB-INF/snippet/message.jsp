@@ -39,6 +39,7 @@ String[] mangoMessageKeys = {
 	    "common.durationDays",
 	    "common.inactiveTime",
 		"common.nortn",
+		"common.name",
 		"common.status",
 	    "common.time",
 		"common.totalResults",

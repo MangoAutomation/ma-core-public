@@ -198,6 +198,10 @@ return declare("deltamation.StoreView", null, {
     addXOffset: 18,
     addYOffset: 0,
     
+    /**
+     * id of item to open
+     * options - { posX: posY: voToLoad: }
+     */
     open: function(id, options) {
     	//TODO remove delete option on new Vos
         //display("pointDeleteImg", point.id != <c:out value="<%= Common.NEW_ID %>"/>);
@@ -235,6 +239,8 @@ return declare("deltamation.StoreView", null, {
             //show(this.edit);
             coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                             coreFx.wipeIn({node: _this.edit})]).play();
+            if(_this.openCallback)
+            	_this.openCallback();
         }
         else {
             // always load from dwr
@@ -248,19 +254,25 @@ return declare("deltamation.StoreView", null, {
                 //show(_this.edit);
                 coreFx.combine([baseFx.fadeIn({node: _this.edit}),
                                 coreFx.wipeIn({node: _this.edit})]).play();
+                if(_this.openCallback)
+                	_this.openCallback();
             }, function(message) {
                 // wrong id, dwr error
                 addErrorDiv(message);
             });
         }
     },
+    openCallback: null,
     
     // close the window
     close: function() {
         //hide(this.edit);
         coreFx.combine([baseFx.fadeOut({node: this.edit}),
                         coreFx.wipeOut({node: this.edit})]).play();
+        if(this.closeCallback)
+        	this.closeCallback();
     },
+    closeCallback: null,
     
     save: function() {
         var _this = this;

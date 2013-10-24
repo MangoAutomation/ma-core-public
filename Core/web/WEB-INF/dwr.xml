@@ -133,6 +133,7 @@
       <param name="exclude" value="definition,eventCodes"/>
     </convert>
 
+    <convert converter="bean" match="com.serotonin.m2m2.web.dojo.*"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.BasicDataSourceVO"/>
     
     <convert converter="bean" javascript="SortOption" match="com.serotonin.m2m2.db.dao.SortOption"/>

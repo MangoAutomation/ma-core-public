@@ -28,8 +28,9 @@
 	</path>
 
 	<target name="clean" description="Clean the target area">
-  <echo message="${coreHome}"/>
-        		<delete dir="target" />
+	    <echo message="${coreHome}"/>
+	    <delete dir="target" />
+		<delete dir="${coreHome}/target/web/modules/${name}"/>
 	</target>
 
 	<target name="compile" description="Compile main source tree java files">

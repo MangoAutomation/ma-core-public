@@ -586,3 +586,37 @@ div.dgridLoadNoData {
 	
 }
 
+/*  Edit Div Properties */
+/*
+ * Delta form elements
+ */
+label.formLabelRequired, label.formLabel {
+    display:block;
+    float:left;
+    white-space: normal;
+    padding-top: 0;
+}
+
+.mangoEditDiv label.formLabelRequired,
+.mangoEditDiv label.formLabel {
+    width:150px;
+}
+
+.formField {
+    padding-top: 0;
+}
+
+.formField > div {
+    margin-bottom: 3px;
+}
+
+.mangoEditDiv .formField {
+    margin-left:160px;
+}
+
+.formItem {
+    clear: left;
+    margin-top:5px;
+}
+
+

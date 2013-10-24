@@ -67,9 +67,9 @@ public abstract class AbstractRTDwr<VO extends AbstractActionVO<VO>,
             LOG.error(e); 
             //TODO Clean up and generify these messages to some central place
             if(e instanceof DataIntegrityViolationException)
-                response.addMessage(this.keyName + "Errors", new TranslatableMessage("downtime.edit.unableToDeleteDueToConstraints"));
+                response.addMessage(this.keyName + "Errors", new TranslatableMessage("dsEdit.unableToDeleteDueToConstraints"));
             else
-                response.addMessage(this.keyName + "Errors", new TranslatableMessage("downtime.edit.unableToDelete"));
+                response.addMessage(this.keyName + "Errors", new TranslatableMessage("dsEdit.unableToDelete"));
 
         }
         
@@ -93,9 +93,9 @@ public abstract class AbstractRTDwr<VO extends AbstractActionVO<VO>,
                 //Handle the exceptions.
                 LOG.error(e); //TODO Clean up and generify these messages to some central place
                 if(e instanceof DuplicateKeyException)
-                    response.addMessage(this.keyName + "Errors", new TranslatableMessage("downtime.edit.alreadyExists"));
+                    response.addMessage(this.keyName + "Errors", new TranslatableMessage("dsEdit.alreadyExists"));
                 else
-                    response.addMessage(this.keyName + "Errors", new TranslatableMessage("downtime.edit.unableToSave"));
+                    response.addMessage(this.keyName + "Errors", new TranslatableMessage("dsEdit.unableToSave"));
             }
         }
         response.addData("vo", vo);

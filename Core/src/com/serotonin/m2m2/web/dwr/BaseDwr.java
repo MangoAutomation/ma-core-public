@@ -222,7 +222,6 @@ abstract public class BaseDwr {
                 double convertedValue = converter.convert(value.getDoubleValue());
                 value = new NumericValue(convertedValue);
             }
-
             
             Common.runtimeManager.setDataPointValue(point.getId(), value, source);
         }

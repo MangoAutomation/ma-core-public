@@ -338,17 +338,18 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		dp.setXid(newDp.getXid());
     		//dp.setPointLocator(newDp.getPointLocator());
     		dp.setDeviceName(newDp.getDeviceName());
+    		dp.setEnabled(newDp.isEnabled());
     		
     		//General Properties
     		dp.setEngineeringUnits(newDp.getEngineeringUnits());
     		dp.setUseIntegralUnit(newDp.isUseIntegralUnit());
     		dp.setUseRenderedUnit(newDp.isUseRenderedUnit());
-    		dp.setUnit(newDp.getUnit());
+    		dp.setUnit(UnitUtil.parseLocal(newDp.getUnitString()));  //These won't come back from the UI as they aren't converted
     		dp.setUnitString(newDp.getUnitString());
+    		dp.setRenderedUnit(UnitUtil.parseLocal(newDp.getRenderedUnitString()));
     		dp.setRenderedUnitString(newDp.getRenderedUnitString());
+    		dp.setIntegralUnit(UnitUtil.parseLocal(newDp.getIntegralUnitString()));
     		dp.setIntegralUnitString(newDp.getIntegralUnitString());
-    		dp.setRenderedUnit(newDp.getRenderedUnit());
-    		dp.setIntegralUnit(newDp.getIntegralUnit());
     		dp.setChartColour(newDp.getChartColour());
     		dp.setPlotType(newDp.getPlotType());
     		
@@ -366,6 +367,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		dp.setPurgePeriod(newDp.getPurgePeriod());
     		dp.setDefaultCacheSize(dp.getDefaultCacheSize());
     		
+    	
     		//Chart Renderer
     		dp.setChartRenderer(newDp.getChartRenderer());
     		
