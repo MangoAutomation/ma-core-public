@@ -86,7 +86,6 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         if (!renderedUnit.equals(unit))
             writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
         
-        writer.writeEntry("useUnitAsSuffix", useUnitAsSuffix);
     }
     
     @Override
@@ -114,9 +113,6 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         }
         else {
             renderedUnit = unit;
-        }
-        
-        useUnitAsSuffix = jsonObject.getBoolean("useUnitAsSuffix");
-        
+        }        
     }
 }

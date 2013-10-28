@@ -153,7 +153,7 @@ public class PlainRenderer extends ConvertingRenderer {
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             suffix = SerializationHelper.readSafeUTF(in);
-            useUnitAsSuffix = false; //Default to not use Units after upgrade in case they already have a suffix
+            useUnitAsSuffix = false;
         }
         else if (ver == 2) {
             suffix = SerializationHelper.readSafeUTF(in);
@@ -170,26 +170,21 @@ public class PlainRenderer extends ConvertingRenderer {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        
-        if (!useUnitAsSuffix)
-            writer.writeEntry("suffix", suffix);
+        writer.writeEntry("suffix", suffix);
     }
     
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        
-        if (useUnitAsSuffix) {
-            suffix = "";
-        } else {
-            String text = jsonObject.getString("suffix");
-            if (text != null) {
-                suffix = text;
-            }
-            else {
-                suffix = "";
-            }
+
+        String text = jsonObject.getString("suffix");
+        if (text != null) {
+            suffix = text;
         }
+        else {
+            suffix = "";
+        }
+        
     }
 
 	/* (non-Javadoc)
