@@ -85,9 +85,9 @@ public abstract class AbstractDwr<VO extends AbstractVO<VO>, DAO extends Abstrac
                 }
                 
                 if(e instanceof DuplicateKeyException)
-                    response.addContextualMessage(context, "downtime.edit.alreadyExists");
+                    response.addContextualMessage(context, "table.edit.alreadyExists");
                 else
-                    response.addContextualMessage(context, "downtime.edit.unableToSave", e.getMessage());
+                    response.addContextualMessage(context, "table.edit.unableToSave", e.getMessage());
             }
         }
         response.addData("vo", vo);
@@ -128,9 +128,9 @@ public abstract class AbstractDwr<VO extends AbstractVO<VO>, DAO extends Abstrac
                 }
                 
                 if(e instanceof DuplicateKeyException)
-                    response.addContextualMessage(context, "downtime.edit.alreadyExists");
+                    response.addContextualMessage(context, "table.edit.alreadyExists");
                 else
-                    response.addContextualMessage(context, "downtime.edit.unableToSave", e.getMessage());
+                    response.addContextualMessage(context, "table.edit.unableToSave", e.getMessage());
             }
         }
         response.addData("vo", vo);

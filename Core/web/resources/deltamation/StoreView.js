@@ -198,14 +198,15 @@ return declare("deltamation.StoreView", null, {
     addXOffset: 18,
     addYOffset: 0,
     
+    preOpen: null, //Performed Prior to Dwr Get Method
+    openCallback: null, //Performed after Dwr Get Method
+    
     /**
      * id of item to open
      * options - { posX: posY: voToLoad: }
      */
     open: function(id, options) {
-    	//TODO remove delete option on new Vos
-        //display("pointDeleteImg", point.id != <c:out value="<%= Common.NEW_ID %>"/>);
-
+ 
         this.currentId = id;
         var _this = this;
         options = options || {};
@@ -232,6 +233,9 @@ return declare("deltamation.StoreView", null, {
         }
         domStyle.set(this.edit, "top", posY + "px");
         domStyle.set(this.edit, "left", posX + "px");
+        
+        if(_this.preOpen)
+        	_this.preOpen();
         
         if (options.voToLoad) {
             _this.setInputs(options.voToLoad);
@@ -262,8 +266,8 @@ return declare("deltamation.StoreView", null, {
             });
         }
     },
-    openCallback: null,
-    
+
+    closeCallback: null, //Performed post close
     // close the window
     close: function() {
         //hide(this.edit);
@@ -272,10 +276,14 @@ return declare("deltamation.StoreView", null, {
         if(this.closeCallback)
         	this.closeCallback();
     },
-    closeCallback: null,
     
+    preSave: null, //Preformed pre save Dwr before Get Inputs
+    saveCallback: null, //Performed post save Dwr on successful saves only
     save: function() {
         var _this = this;
+        if(_this.preSave)
+        	_this.preSave();
+        
         var vo = this.getInputs();
         
         when(this.editStore.cache.put(vo, {overwrite: true}), function(vo) {
@@ -291,6 +299,8 @@ return declare("deltamation.StoreView", null, {
                     _this.viewStore.cache.put(viewVo, {overwrite: true});
                 });
             }
+            if(_this.saveCallback)
+            	_this.saveCallback();
         }, function(response) {
             if (response.dwrError || typeof response.messages === 'undefined') {
                 // timeout, dwr error etc
