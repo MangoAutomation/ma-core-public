@@ -45,7 +45,8 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     
     protected final String typeName; //Type name for Audit Events
     
-    protected int[] updateStatementPropertyTypes;
+    protected int[] updateStatementPropertyTypes; //Required for Derby LOBs
+    protected int[] insertStatementPropertyTypes; //Required for Derby LOBs
     
     protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
         super(tablePrefix);
@@ -137,10 +138,14 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         //Create the Update Properties
         if(this.getPropertyTypes() != null){
         	this.updateStatementPropertyTypes = new int[this.propertyTypes.size() + 1];
-        	//Add on the index property
+        	this.insertStatementPropertyTypes = new int[this.propertyTypes.size()];
+ 
         	int i = 0;
-        	for(i=0; i<this.propertyTypes.size(); i++)
+        	for(i=0; i<this.propertyTypes.size(); i++){
         		this.updateStatementPropertyTypes[i] = this.propertyTypes.get(i);
+           		this.insertStatementPropertyTypes[i] = this.propertyTypes.get(i);
+        	}
+        	
         	this.updateStatementPropertyTypes[i] = getIndexType();
         }
         
@@ -355,8 +360,11 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         if (vo.getXid() == null) {
             vo.setXid(generateUniqueXid());
         }
-        
-        int id = doInsert(INSERT, voToObjectArray(vo));
+        int id = -1;
+        if(insertStatementPropertyTypes == null)
+        	id = doInsert(INSERT, voToObjectArray(vo));
+        else
+        	id = doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
         vo.setId(id);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
     }
