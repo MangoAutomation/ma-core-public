@@ -41,9 +41,9 @@ public class PrimitiveConverter extends BaseV20Converter implements Converter
         // EDIT- Terry Packer
         // To deal with bug where 1.0023e+32 gets coded to 1.0023e 32 and can't be converted
         boolean scientific = false;
-        if(paramType.getName().equalsIgnoreCase("double")){
+        if(paramType.getName().equalsIgnoreCase("double")&&(value.contains("+"))){
         	scientific = true;
-        }else if(paramType.getName().equalsIgnoreCase("float"))
+        }else if(paramType.getName().equalsIgnoreCase("float")&&(value.contains("+")))
         	scientific = true;
         
         if(!scientific)
