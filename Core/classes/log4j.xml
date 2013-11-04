@@ -38,14 +38,14 @@
     <appender-ref ref="logfile"/>
   </appender>
   
-  <category name="org"><level value="info"/></category>
-  <category name="org.directwebremoting"><level value="info"/></category>
+  <category name="org"><level value="error"/></category>
+  <category name="org.directwebremoting"><level value="error"/></category>
   <category name="org.springframework"><level value="error"/></category>
   <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
-  <category name="com.serotonin.m2m2"><level value="info"/></category>
+  <category name="com.serotonin.m2m2"><level value="error"/></category>
   
   <root>
-    <level value="info"/>
+    <level value="error"/>
     <appender-ref ref="async"/>
     <appender-ref ref="stdout"/>
   </root>
