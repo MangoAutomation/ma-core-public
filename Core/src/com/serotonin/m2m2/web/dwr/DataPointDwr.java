@@ -380,7 +380,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     public ProcessResult validateUnit(String unit){
     	ProcessResult result = new ProcessResult();
     	try{
-    		UnitUtil.parseLocal(unit);
+    		UnitUtil.parseUcum(unit);
     		result.addData("validUnit",true);
     		result.addData("message", new TranslatableMessage("validate.unitValid").translate(getTranslations()));
     	}catch(Exception e){

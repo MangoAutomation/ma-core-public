@@ -331,6 +331,10 @@ dataPoints = new StoreView({
      * Override Toggle Method
      */
     toggle: function(id) {
+    	//Don't allow toggle of new ids
+    	if(id<0)
+    		return;
+    	
     	var _this = this;
     	DataPointDwr.toggle(id, function(result) {
     		_this.updateStatus(result.data.id,result.data.enabled);

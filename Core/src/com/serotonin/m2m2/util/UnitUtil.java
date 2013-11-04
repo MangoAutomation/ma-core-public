@@ -22,7 +22,7 @@ import com.serotonin.m2m2.Common;
  */
 public class UnitUtil {
     static final UnitFormat localFormat = UnitFormat.getInstance(Common.getLocale());
-    static final UnitFormat ucumFormat = UnitFormat.getUCUMInstance();
+    static final UnitFormat ucumFormat = UnitFormat.getInstance();//UnitFormat.getUCUMInstance();
     
     public static final Unit<Energy> BTU = SI.JOULE.times(1055.05585262D);
     public static final Unit<Energy> THERM = BTU.times(100000);
@@ -65,7 +65,7 @@ public class UnitUtil {
         }
     }
     
-    public static String formatUcum(Unit<?> unit) {
+    public static String formatUcum(Unit<?> unit) {    	
         return ucumFormat.format(unit);
     }
     

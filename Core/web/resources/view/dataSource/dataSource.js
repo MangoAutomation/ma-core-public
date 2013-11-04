@@ -245,8 +245,20 @@ dataSources = new StoreView({
      * Override Toggle Method and return state for use in window
      */
     toggle: function(id,callback) {
-    	
     	var _this = this;
+    	
+    	//Ensure we don't try to toggle new items
+    	if(id < 1){
+    		
+    		if(id == _this.currentId){
+	            var imgNode = $("dsStatusImg");
+	            if(imgNode != 'undefined'){
+			        stopImageFader(imgNode);
+	            }
+            }
+    		return;
+    	}
+
     	DataSourceDwr.toggle(id, function(result) {
             if(result.data.enabled){
                 updateImg(

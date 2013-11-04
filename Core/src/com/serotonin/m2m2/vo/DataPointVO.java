@@ -946,7 +946,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	//
 	// Serialization
 	//
-	private static final int version = 6;
+	private static final int version = 9; //Skipped 7,8 to catch up with Deltamation
 
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		out.writeInt(version);
@@ -957,9 +957,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		out.writeDouble(discardHighLimit);
 		SerializationHelper.writeSafeUTF(out, chartColour);
 		out.writeInt(plotType);
-        out.writeObject(unit);
-        out.writeObject(integralUnit);
-        out.writeObject(renderedUnit);
+		SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
+		SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(integralUnit));
+		SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
         out.writeBoolean(useIntegralUnit);
         out.writeBoolean(useRenderedUnit);
 	}
@@ -1086,6 +1086,26 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
+        }else if (ver == 9) {
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            pointLocator = (PointLocatorVO) in.readObject();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            plotType = in.readInt();
+            
+            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            unitString = UnitUtil.formatLocal(unit);
+            
+            integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
+            renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
+            useIntegralUnit = in.readBoolean();
+            useRenderedUnit = in.readBoolean();
         }
 
 		// Check the purge type. Weird how this could have been set to 0.
@@ -1138,7 +1158,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		writer.writeEntry("pointLocator", pointLocator);
 		writer.writeEntry("eventDetectors", eventDetectors);
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
+        
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
+        
         if (useIntegralUnit)
             writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));
         if (useRenderedUnit)
@@ -1226,6 +1248,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
         text = jsonObject.getString("unit");
         if (text != null) {
+        	
             unit = parseUnitString(text, "unit");
             unitString = UnitUtil.formatUcum(unit);
         }

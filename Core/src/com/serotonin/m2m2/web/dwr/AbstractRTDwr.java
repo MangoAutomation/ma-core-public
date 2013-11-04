@@ -39,20 +39,23 @@ public abstract class AbstractRTDwr<VO extends AbstractActionVO<VO>,
     
     @DwrPermission(admin = true)
     public ProcessResult toggle(int id) {
+
+        ProcessResult response = new ProcessResult();
         VO mon = dao.get(id);
         
-        mon.setEnabled(!mon.isEnabled());
-
-        // Validate
-        ProcessResult response = new ProcessResult();
-        mon.validate(response);
-
-        if (!response.getHasMessages()) {
-            runtimeManager.save(mon);
+        if(mon != null){
+	        mon.setEnabled(!mon.isEnabled());
+	
+	    	 // Validate
+	        mon.validate(response);
+	
+	        if (!response.getHasMessages()) {
+	            runtimeManager.save(mon);
+	        }
+	 
+	        response.addData("enabled", mon.isEnabled());
+	        response.addData("id", mon.getId());
         }
- 
-        response.addData("enabled", mon.isEnabled());
-        response.addData("id", mon.getId());
         return response;
     }  
     
