@@ -128,15 +128,15 @@ public class Common {
     }
 
     public static final int getMinorVersion() {
-        return 0;
+        return 1;
     }
 
     public static final int getMicroVersion() {
-        return 7;
+        return 0;
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 8;
+        return 9;
     }
 
     public static String getWebPath(String path) {

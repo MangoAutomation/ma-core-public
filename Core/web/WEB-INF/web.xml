@@ -246,7 +246,7 @@
     Other stuff.
    -->
   <session-config>
-    <session-timeout>30</session-timeout>
+    <session-timeout>2880</session-timeout>
   </session-config>
     
   <welcome-file-list>

@@ -1,8 +1,13 @@
+*Version 2.1.0*
+* Upgraded Active Alarm display at the top of every page
+* Added Alarm Report to allow for filtering and searching alarms
+* Reworked Data Source area for easier modification of points and data sources
+
 *Version 2.0.7*
 
 * Change PointValues and PointValueAnnotations tables to InnoDB in MySQL
 * Fixed missing graphic when using Serial Port Widget
-* Upgraded Dojo frontend library to 1.9.1, added DGrid tables and local use of scripts instead of from CDN
+* Upgraded Dojo frontend library to 1.9.1, added DGrid tables and local use of scripts instead of download from CDN
 * Legacy Dojo Module will break this core, remove the DOJO Module if installed.
 * Data Source View upgraded to use filtered and sortable tables
 * Ability to download chart data as XLSX file and CSV, XLSX file can be used to import data via the Point Data Import module
