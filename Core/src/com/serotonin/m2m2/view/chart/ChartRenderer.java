@@ -7,6 +7,7 @@ package com.serotonin.m2m2.view.chart;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -23,4 +24,10 @@ public interface ChartRenderer extends Serializable {
     public ImplDefinition getDef();
 
     public String getChartSnippetFilename();
+    
+    /**
+     * Validate the settings
+     * @param result
+     */
+    public void validate(ProcessResult result);
 }

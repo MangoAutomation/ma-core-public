@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
@@ -45,8 +47,30 @@ import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.util.Tuple;
 
-public class DataPointDao extends BaseDao {
-    //
+/**
+ * This class is a Half-Breed between the legacy Dao and the new type that extends AbstractDao.
+ * 
+ * The top half of the code is the legacy code, the bottom is the new style.
+ * 
+ * Eventually all the method innards will be reworked, leaving the names the same.
+ * 
+ * @author Terry Packer
+ *
+ */
+public class DataPointDao extends AbstractDao<DataPointVO> {
+	
+	public static final DataPointDao instance = new DataPointDao();
+	
+    /**
+	 * TODO make protected, remove access to constructor
+	 * 
+	 * @param typeName
+	 */
+	public DataPointDao() {
+		super(AuditEventType.TYPE_DATA_POINT);
+	}
+
+	//
     //
     // Data Points
     //
@@ -138,12 +162,15 @@ public class DataPointDao extends BaseDao {
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
+           
 
             // Data source information.
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
 
+            dp.ensureUnitsCorrect();
+            
             return dp;
         }
     }
@@ -279,6 +306,14 @@ public class DataPointDao extends BaseDao {
         }
     }
 
+    /**
+     * Override the delete method to perform extra work
+     */
+    @Override
+    public void delete(int id){
+    	deleteDataPoint(id);
+    }
+    
     public void deleteDataPoint(final int dataPointId) {
         DataPointVO dp = getDataPoint(dataPointId);
         if (dp != null) {
@@ -357,7 +392,13 @@ public class DataPointDao extends BaseDao {
                         + "where dataPointId=? " + "order by id", new Object[] { dp.getId() },
                 new EventDetectorRowMapper(dp));
     }
-
+    
+    public PointEventDetectorVO getEventDetector(int id){
+    	return ejt.queryForObject( "select id, xid, alias, detectorType, alarmLevel, stateLimit, duration, durationType, binaryState, "
+                        + "  multistateState, changeCount, alphanumericState, weight " + "from pointEventDetectors "
+                        + "where id=? ", new Object[] { id }, new EventDetectorRowMapper(null));
+    }
+    
     class EventDetectorRowMapper implements RowMapper<PointEventDetectorVO> {
         private final DataPointVO dp;
 
@@ -667,4 +708,256 @@ public class DataPointDao extends BaseDao {
                     + ")", folder.getId());
         }
     }
+
+    
+    /**
+     * Methods for AbstractDao below here
+     */
+        
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
+	 */
+	@Override
+	protected String getTableName() {
+		return SchemaDefinition.DATAPOINTS_TABLE;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
+	 */
+	@Override
+	protected String getXidPrefix() {
+		return DataPointVO.XID_PREFIX;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
+	 */
+	@Override
+	protected Object[] voToObjectArray(DataPointVO vo) {
+		return 
+			new Object[] { 
+				SerializationHelper.writeObject(vo),
+				vo.getXid(),
+				vo.getDataSourceId(),
+				vo.getName(),
+				vo.getDeviceName(),
+                boolToChar(vo.isEnabled()),
+                vo.getPointFolderId(),
+                vo.getLoggingType(),
+                vo.getIntervalLoggingPeriodType(),
+                vo.getIntervalLoggingPeriod(),
+                vo.getIntervalLoggingType(),
+                vo.getTolerance(),
+                boolToChar(vo.isPurgeOverride()),
+                vo.getPurgeType(),
+                vo.getPurgePeriod(),
+                vo.getDefaultCacheSize(),
+                boolToChar(vo.isDiscardExtremeValues()),
+                vo.getEngineeringUnits(),
+               
+		};
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
+	 */
+	@Override
+	public DataPointVO getNewVo() {
+		return new DataPointVO();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
+	 */
+	@Override
+	protected List<String> getProperties() {
+		return Arrays.asList(
+				"id",
+				"data",
+				"xid",
+				"dataSourceId",
+				"name",
+				"deviceName",
+				"enabled",
+				"pointFolderId",
+				"loggingType",
+				"intervalLoggingPeriodType",
+				"intervalLoggingPeriod",
+				"intervalLoggingType",
+				"tolerance",
+				"purgeOverride",
+				"purgeType",
+				"purgePeriod",
+				"defaultCacheSize",
+				"discardExtremeValues",
+				"engineeringUnits"
+				);
+	}
+	
+	@Override
+	protected Integer getIndexType(){
+		return Types.INTEGER;
+	}
+	/**
+	 * TODO make this a map to sync with voToObjectArray
+	 */
+	@Override
+	protected List<Integer> getPropertyTypes(){
+		return Arrays.asList(
+					Types.BLOB, //Locator
+					Types.VARCHAR, //Xid
+					Types.INTEGER, //Dsid
+					Types.VARCHAR, //Name
+					Types.VARCHAR, //Device Name
+					Types.CHAR,	   //Enabled
+					Types.INTEGER, //Point Folder Id
+					Types.INTEGER, //Logging Type
+					Types.INTEGER, //Interval Logging Period Type
+					Types.INTEGER, //Interval Logging Period
+					Types.DOUBLE,  //Interval Logging Type
+					Types.CHAR,	   //Tolerance
+					Types.INTEGER, //Purge Override
+					Types.INTEGER, //Purge Type
+					Types.INTEGER, //Purge Period
+					Types.INTEGER, //Default Cache Size
+					Types.CHAR,    //Discard Extremem Values
+					Types.INTEGER //get Engineering Units
+				
+				);		
+	}
+	
+	@Override
+	protected Map<String, Comparator<DataPointVO>> getComparatorMap() {
+		HashMap<String,Comparator<DataPointVO>> comparatorMap = new HashMap<String,Comparator<DataPointVO>>();
+		
+		comparatorMap.put("dataTypeString", new Comparator<DataPointVO>(){
+			public int compare(DataPointVO lhs, DataPointVO rhs){
+				return lhs.getDataTypeString().compareTo(rhs.getDataTypeString());
+			}
+		});
+		
+		return comparatorMap;
+	}
+
+	@Override
+	protected Map<String, IFilter<DataPointVO>> getFilterMap(){
+		HashMap<String, IFilter<DataPointVO>> filterMap = new HashMap<String,IFilter<DataPointVO>>();
+		
+		filterMap.put("dataTypeString", new IFilter<DataPointVO>(){
+			
+			private String regex;
+			@Override
+			public boolean filter(DataPointVO vo) {
+				return !vo.getDataTypeString().matches(regex);
+			}
+
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches;
+				
+			}
+			
+		});
+		
+		return filterMap;
+	}
+	
+	
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
+	 */
+	@Override
+	protected Map<String, String> getPropertiesMap() {
+		return new HashMap<String,String>();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
+	 */
+	@Override
+	public RowMapper<DataPointVO> getRowMapper() {
+		return new DataPointMapper();
+	}
+	
+    class DataPointMapper implements RowMapper<DataPointVO> {
+        @Override
+        public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            int i = 0;
+            int id = (rs.getInt(++i));
+            
+            //TODO Should catch Stream exceptions when a module is missing for an existing Datasource.
+            DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
+
+            dp.setId(id);
+            dp.setXid(rs.getString(++i));
+            dp.setDataSourceId(rs.getInt(++i));
+            dp.setName(rs.getString(++i));
+            dp.setDeviceName(rs.getString(++i));
+            dp.setEnabled(charToBool(rs.getString(++i)));
+            dp.setPointFolderId(rs.getInt(++i));
+            dp.setLoggingType(rs.getInt(++i));
+            dp.setIntervalLoggingPeriodType(rs.getInt(++i));
+            dp.setIntervalLoggingPeriod(rs.getInt(++i));
+            dp.setIntervalLoggingType(rs.getInt(++i));
+            dp.setTolerance(rs.getDouble(++i));
+            dp.setPurgeOverride(charToBool(rs.getString(++i)));
+            dp.setPurgeType(rs.getInt(++i));
+            dp.setPurgePeriod(rs.getInt(++i));
+            dp.setDefaultCacheSize(rs.getInt(++i));
+            dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
+            dp.setEngineeringUnits(rs.getInt(++i));
+            
+            dp.ensureUnitsCorrect();
+            return dp;
+        }
+    }
+
+	@Override
+	public DataPointVO getFull(int id) {
+		//Get the values from local table
+		DataPointVO vo = this.get(id);
+
+		this.loadDataSource(vo);
+		this.setEventDetectors(vo);
+        this.setPointComments(vo);
+		return vo;
+	}
+
+	/**
+	 * Load the datasource info into the DataPoint
+	 * @param vo
+	 * @return
+	 */
+	public void loadDataSource(DataPointVO vo){
+		
+		//Get the values from the datasource table
+		//TODO Could speed this up if necessary...
+		DataSourceVO<?> dsVo = DataSourceDao.instance.get(vo.getDataSourceId());
+		vo.setDataSourceName(dsVo.getName());
+		vo.setDataSourceTypeName(dsVo.getTypeDescriptionString());
+		vo.setDataSourceXid(dsVo.getXid());
+
+	}
+		
+	
+	@Override
+	public List<DataPointVO> getAllFull() {
+		List<DataPointVO> list = this.getAll();
+		for(DataPointVO vo : list){
+			this.loadDataSource(vo);
+			this.setEventDetectors(vo);
+	        this.setPointComments(vo);
+		}
+		return list;
+	}
+	
+	@Override
+	public void saveFull(DataPointVO vo){
+		//TODO Eventually Fix this up by using the new AbstractDao for the query
+		this.saveDataPoint(vo);
+	}
+	
+	
 }

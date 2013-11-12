@@ -2,8 +2,12 @@
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
 --%>
+<%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<tag:page dwr="DataSourceListDwr" onload="init">
+<%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
+<%@page import="com.serotonin.m2m2.module.MenuItemDefinition"%>
+
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="DataSourceListDwr" onload="init">
   <style type="text/css">
     .mangoForm ul { margin: 0; padding: 0; }
     .mangoForm ul li { margin-bottom: 5px; list-style: none; }

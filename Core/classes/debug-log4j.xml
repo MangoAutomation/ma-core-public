@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    @author Matthew Lohbihler
+    
+    
+    ###############################################################################
+     DO NOT MODIFY THIS FILE...
+     
+     Do not make changes to this file, because when you upgrade your core your 
+     changes will be overwritten. Instead, copy this file to
+     <MA_HOME>/overrides/classes/log4j.xml and make your changes to that file.
+     The overrides directory will never be overwritten by an upgrade, so your
+     customizations will be safe.
+ 
+    ###############################################################################
+    
+    
+-->
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration>
+  <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+    </layout>
+  </appender>
+  
+  <appender name="logfile" class="org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="logs/ma.log"/>
+    <param name="DatePattern" value="yyyy-MM-dd"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+    </layout>
+  </appender>
+  
+  <appender name="async" class="org.apache.log4j.AsyncAppender">
+    <param name="LocationInfo" value="true"/>
+    <appender-ref ref="logfile"/>
+  </appender>
+  
+  <category name="org"><level value="error"/></category>
+  <category name="org.directwebremoting"><level value="error"/></category>
+  <category name="org.springframework"><level value="error"/></category>
+  <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
+  <category name="com.serotonin.m2m2"><level value="info"/></category>
+  
+  <root>
+    <level value="error"/>
+    <appender-ref ref="async"/>
+    <appender-ref ref="stdout"/>
+  </root>
+
+</log4j:configuration>

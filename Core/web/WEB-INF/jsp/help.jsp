@@ -3,7 +3,7 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<tag:page>
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" >
   <div class="smallTitle"><fmt:message key="common.help"/></div>
   <br/>
   

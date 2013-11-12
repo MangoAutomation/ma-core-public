@@ -21,7 +21,40 @@
   where there are multiple points with the same name.
 </p>
 <p>
-  <b>Engineering units</b> can be provided for a point. This is used for human reference only.
+  You can specify a <b>Unit</b> for a point. Type in the symbol for the unit e.g. kg, L, mA, Hz, lb.
+  Note that for some units there are multiple ways of entering the unit, e.g. for degrees celsius you can enter &deg;C or
+  Celsius, for ohms you can use &Omega; or Ohm. Also remember that there are sometimes multiple definitions of a unit, e.g. there are metric tonnes (t),
+  short tons (ton_us) and long tons (ton_uk). You can use all SI prefixes on SI units, e.g. you can enter W for watt
+  and also &micro;W (microwatt), MW (megawatt) etc.
+  <br>
+  For SI Units see the list here <a href='http://jscience.org/api/javax/measure/unit/SI.html' target='blank'>here</a>.
+  <br>
+  For NonSI Units see the list <a href='http://jscience.org/api/javax/measure/unit/NonSI.html' target='blank'>here</a>.
+  <br>
+  Note that there are also some units internally defined in this system:
+  <ul>
+    <li>btu - British thermal unit</li>
+    <li>thm - Thermal Unit (BTU * 100000)</li>
+    <li>psi - Pounds per square inch</li>
+    <li>rpm - Revolutions per minute</li>
+    <li>ppm - Part per million</li>
+    <li>ppb - Part per billion</li>
+  </ul>
+    
+    There are also some aliases for common units defined here:
+  <ul>
+    <li>Celsius - &deg;C</li>
+    <li>Fahrenheit - &deg;F</li>
+  </ul>
+  
+</p>
+<p>
+  The <b>Displayed unit</b> specifies which unit the renderer should convert to for display (if supported by the renderer).
+  Input format is the same as for Unit. 
+</p>
+<p>
+  The <b>Integral unit</b> used in the display of statistic and specifies which unit the integrated total should be
+  displayed in. Input format is the same as for Unit.
 </p>
 <p>
   The <b>Chart colour</b> is the default colour of the point's line in images charts of multiple points. Colour values 

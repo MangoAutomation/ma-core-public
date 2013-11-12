@@ -23,6 +23,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.AlphanumericRegexStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogHighLimitDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogLowLimitDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
@@ -56,6 +57,7 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
     public static final int TYPE_ALPHANUMERIC_STATE = 9;
     public static final int TYPE_POSITIVE_CUSUM = 10;
     public static final int TYPE_NEGATIVE_CUSUM = 11;
+    public static final int TYPE_ALPHANUMERIC_REGEX_STATE = 12;
 
     private static List<ImplDefinition> definitions;
 
@@ -73,6 +75,8 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             d.add(new ImplDefinition(TYPE_MULTISTATE_STATE, null, "pointEdit.detectors.state",
                     new int[] { DataTypes.MULTISTATE }));
             d.add(new ImplDefinition(TYPE_ALPHANUMERIC_STATE, null, "pointEdit.detectors.state",
+                    new int[] { DataTypes.ALPHANUMERIC }));
+            d.add(new ImplDefinition(TYPE_ALPHANUMERIC_REGEX_STATE, null, "pointEdit.detectors.regexState",
                     new int[] { DataTypes.ALPHANUMERIC }));
             d.add(new ImplDefinition(TYPE_STATE_CHANGE_COUNT, null, "pointEdit.detectors.changeCount", new int[] {
                     DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC }));
@@ -149,6 +153,8 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             return new NoUpdateDetectorRT(this);
         case TYPE_ALPHANUMERIC_STATE:
             return new AlphanumericStateDetectorRT(this);
+        case TYPE_ALPHANUMERIC_REGEX_STATE:
+            return new AlphanumericRegexStateDetectorRT(this);
         case TYPE_POSITIVE_CUSUM:
             return new PositiveCusumDetectorRT(this);
         case TYPE_NEGATIVE_CUSUM:
@@ -218,6 +224,8 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
                 message = new TranslatableMessage("event.detectorVo.statePeriod", dataPoint.getTextRenderer().getText(
                         alphanumericState, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
+        else if (detectorType == TYPE_ALPHANUMERIC_REGEX_STATE)
+            message = new TranslatableMessage("pointEdit.detectors.regexState", durationDesc);
         else if (detectorType == TYPE_POSITIVE_CUSUM) {
             if (durationDesc == null)
                 message = new TranslatableMessage("event.detectorVo.posCusum", dataPoint.getTextRenderer().getText(
@@ -410,6 +418,7 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
         TYPE_CODES.addElement(TYPE_NO_CHANGE, "NO_CHANGE");
         TYPE_CODES.addElement(TYPE_NO_UPDATE, "NO_UPDATE");
         TYPE_CODES.addElement(TYPE_ALPHANUMERIC_STATE, "ALPHANUMERIC_STATE");
+        TYPE_CODES.addElement(TYPE_ALPHANUMERIC_REGEX_STATE, "ALPHANUMERIC_REGEX_STATE");
         TYPE_CODES.addElement(TYPE_POSITIVE_CUSUM, "POSITIVE_CUSUM");
         TYPE_CODES.addElement(TYPE_NEGATIVE_CUSUM, "NEGATIVE_CUSUM");
     }
@@ -450,6 +459,10 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             addDuration(writer);
             break;
         case TYPE_ALPHANUMERIC_STATE:
+            writer.writeEntry("state", alphanumericState);
+            addDuration(writer);
+            break;
+        case TYPE_ALPHANUMERIC_REGEX_STATE:
             writer.writeEntry("state", alphanumericState);
             addDuration(writer);
             break;
@@ -514,6 +527,10 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             updateDuration(jsonObject);
             break;
         case TYPE_ALPHANUMERIC_STATE:
+            alphanumericState = getString(jsonObject, "state");
+            updateDuration(jsonObject);
+            break;
+        case TYPE_ALPHANUMERIC_REGEX_STATE:
             alphanumericState = getString(jsonObject, "state");
             updateDuration(jsonObject);
             break;

@@ -16,6 +16,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.AbstractRT;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -37,7 +38,7 @@ import com.serotonin.util.ILifecycle;
  * 
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceRT implements ILifecycle {
+abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implements ILifecycle {
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
     private final DataSourceVO<?> vo;
@@ -69,6 +70,7 @@ abstract public class DataSourceRT implements ILifecycle {
     private boolean terminated;
 
     public DataSourceRT(DataSourceVO<?> vo) {
+    	super(vo);
         this.vo = vo;
 
         eventTypes = new ArrayList<DataSourceEventType>();
@@ -125,11 +127,11 @@ abstract public class DataSourceRT implements ILifecycle {
 
     abstract public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
 
-    public void relinquish(@SuppressWarnings("unused") DataPointRT dataPoint) {
+    public void relinquish(DataPointRT dataPoint) {
         throw new ShouldNeverHappenException("not implemented in " + getClass());
     }
 
-    public void forcePointRead(@SuppressWarnings("unused") DataPointRT dataPoint) {
+    public void forcePointRead(DataPointRT dataPoint) {
         // No op by default. Override as required.
     }
 

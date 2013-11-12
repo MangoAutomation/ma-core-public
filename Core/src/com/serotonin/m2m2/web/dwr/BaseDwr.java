@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.measure.converter.UnitConverter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -25,9 +26,11 @@ import org.joda.time.IllegalFieldValueException;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -39,13 +42,18 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
+import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
+import com.serotonin.m2m2.view.text.ConvertingRenderer;
+import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.BasePointState;
 import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
@@ -205,6 +213,16 @@ abstract public class BaseDwr {
         else {
             // Convert the string value into an object.
             DataValue value = DataValue.stringToValue(valueStr, point.getPointLocator().getDataTypeId());
+            // do reverse conversion of renderer
+            TextRenderer tr = point.getTextRenderer();
+            if (point.getPointLocator().getDataTypeId() == DataTypes.NUMERIC && 
+                    tr instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) tr;
+                UnitConverter converter = cr.getRenderedUnit().getConverterTo(cr.getUnit());
+                double convertedValue = converter.convert(value.getDoubleValue());
+                value = new NumericValue(convertedValue);
+            }
+            
             Common.runtimeManager.setDataPointValue(point.getId(), value, source);
         }
     }
@@ -379,19 +397,92 @@ abstract public class BaseDwr {
             }
 
             if (pollRequest.isMaxAlarm() && user != null) {
-                // Check the max alarm. First check if the events have changed since the last time this request checked.
+
+                //Track the last alarm count to see if we need to update the alarm toaster
+            	Integer lastUnsilencedAlarmCount = (Integer) data.getState().getAttribute("lastUnsilencedAlarmCount");
+            	//Ensure we have one, as we won't on first run
+            	if(lastUnsilencedAlarmCount == null)
+            		lastUnsilencedAlarmCount = 0;
+            	
+            	List<EventInstanceVO> events = EventInstanceDao.instance.getUnsilencedEvents(user.getId());
+            	//Sort into lists for the different types
+            	int lifeSafetyTotal=0, noneTotal=0, informationTotal=0, criticalTotal=0, urgentTotal=0;
+            	for(EventInstanceVO event : events){
+            		switch(event.getAlarmLevel()){
+            		case AlarmLevels.NONE:
+            			noneTotal++;
+            			break;
+            		case AlarmLevels.INFORMATION:
+            			informationTotal++;
+            			break;
+            		case AlarmLevels.URGENT:
+            			urgentTotal++;
+            			break;
+            		case AlarmLevels.CRITICAL:
+            			criticalTotal++;
+            			break;
+            		case AlarmLevels.LIFE_SAFETY:
+            			lifeSafetyTotal++;
+            			break;
+            		default:
+            			//Nothing for now...
+            		}
+            	}
+            	int currentUnsilencedAlarmCount = noneTotal + informationTotal + urgentTotal + criticalTotal + lifeSafetyTotal;
+            	//If we have some new information we should show it
+            	if(lastUnsilencedAlarmCount != currentUnsilencedAlarmCount ){
+            		data.getState().setAttribute("lastUnsilencedAlarmCount", currentUnsilencedAlarmCount); //Update the value
+            		response.put("alarmsUpdated",true); //Indicate to UI that there is a new alarm
+	            	response.put("alarmsNone", noneTotal);
+	            	if(noneTotal == 1){
+		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.NONE);
+		                response.put("noneEvent",event);
+	            	}
+	
+	            	response.put("alarmsInformation", informationTotal);
+	            	if(informationTotal == 1){
+		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.INFORMATION);
+		                response.put("informationEvent",event);
+	            	}
+	
+	            	response.put("alarmsUrgent", urgentTotal);
+	            	if(urgentTotal == 1){
+		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.URGENT);
+		                response.put("urgentEvent",event);
+	            	}
+	            	response.put("alarmsCritical", criticalTotal);
+	            	if(criticalTotal == 1){
+		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.CRITICAL);
+		                response.put("criticalEvent",event);
+	            	}
+	            	
+	            	response.put("alarmsLifeSafety", lifeSafetyTotal);
+	            	if(lifeSafetyTotal == 1){
+		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.LIFE_SAFETY);
+		                response.put("lifeSafetyEvent",event);
+	            	}
+	            }else{//end if new alarm toaster info
+	            	response.put("alarmsUpdated",false);
+	            }
+            	// The events have changed. See if the user's particular max alarm level has changed.
+                int maxAlarmLevel = eventDao.getHighestUnsilencedAlarmLevel(user.getId());
+               
+                if (maxAlarmLevel != state.getMaxAlarmLevel()) {
+                    response.put("highestUnsilencedAlarmLevel", maxAlarmLevel);
+                    state.setMaxAlarmLevel(maxAlarmLevel);
+                }
+            	
+            	
+            	
+            	// Check the max alarm. First check if the events have changed since the last time this request checked.
                 long lastEMUpdate = Common.eventManager.getLastAlarmTimestamp();
+                //If there is a new alarm then do stuff
                 if (state.getLastAlarmLevelChange() < lastEMUpdate) {
                     state.setLastAlarmLevelChange(lastEMUpdate);
-
-                    // The events have changed. See if the user's particular max alarm level has changed.
-                    int maxAlarmLevel = eventDao.getHighestUnsilencedAlarmLevel(user.getId());
-                    if (maxAlarmLevel != state.getMaxAlarmLevel()) {
-                        response.put("highestUnsilencedAlarmLevel", maxAlarmLevel);
-                        state.setMaxAlarmLevel(maxAlarmLevel);
-                    }
+                }else{//end no new alarms
+                	response.put("alarmsUpdated",false);
                 }
-            }
+            }//end for max alarms
 
             if (pollRequest.isPointDetails() && user != null) {
                 PointDetailsState newState = DataPointDetailsDwr.getPointData();
@@ -410,7 +501,8 @@ abstract public class BaseDwr {
                     state.setPointDetailsState(newState);
                 }
             }
-
+            
+            //TODO This is dead code as of 2.0.7, can remove eventually
             if (pollRequest.isPendingAlarms() && user != null) {
                 // Create the list of most current pending alarm content.
                 Map<String, Object> model = new HashMap<String, Object>();
@@ -421,8 +513,11 @@ abstract public class BaseDwr {
                 currentContent = com.serotonin.util.StringUtils.trimWhitespace(currentContent);
 
                 if (!StringUtils.equals(currentContent, state.getPendingAlarmsContent())) {
+                	response.put("newAlarms",true);
                     response.put("pendingAlarmsContent", currentContent);
                     state.setPendingAlarmsContent(currentContent);
+                }else{
+                	response.put("newAlarms", false);
                 }
             }
 

@@ -24,6 +24,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
@@ -34,6 +35,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -74,7 +76,7 @@ public class RuntimeManager {
         // Set the started indicator to true.
         started = true;
 
-        // Get the RTM defs and sort by init priority.
+        //Get the RTM defs from modules
         List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
         Collections.sort(defs, new Comparator<RuntimeManagerDefinition>() {
             @Override
@@ -139,6 +141,12 @@ public class RuntimeManager {
                 else
                     startPublisher(vo);
             }
+        }
+        
+        //Schedule the Backup Task if necessary
+        // No way to set the default value for Bools in SystemSettingsDao so must do here
+        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true)){
+       		BackupWorkItem.schedule();
         }
     }
 

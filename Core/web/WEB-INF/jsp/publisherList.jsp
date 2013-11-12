@@ -3,7 +3,7 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<tag:page dwr="PublisherListDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="PublisherListDwr" onload="init">
   <script type="text/javascript">
     function init() {
         PublisherListDwr.init(function(response) {

@@ -1,6 +1,8 @@
 <%--
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
+    
+    @Deprecated - Use jsp files in snippet/view/dataPoint/ instead
 --%>
 <%@page import="com.serotonin.m2m2.vo.DataPointVO"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
@@ -57,7 +59,7 @@
       <spring:bind path="form.engineeringUnits">
         <tr>
           <td class="formLabelRequired"><fmt:message key="pointEdit.props.engineeringUnits"/></td>
-          <td class="formField"><tag:engineeringUnits name="engineeringUnits" value="${status.value}"/></td>
+<%--           <td class="formField"><tag:engineeringUnits name="engineeringUnits" value="${status.value}"/></td> --%>
           <td class="formError">${status.errorMessage}</td>
         </tr>
       </spring:bind>

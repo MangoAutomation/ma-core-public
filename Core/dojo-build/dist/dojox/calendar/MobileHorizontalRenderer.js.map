@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"MobileHorizontalRenderer.js",
+"lineCount":4,
+"mappings":"A,SAAAA,OAAA,SACA,4DADA,wtCAEAC;MAAA,2CAAkD,6JAAA,MAAA,KAAlD,CAQA,QAAA,CACAC,CADA,CAEAC,CAFA,CAGAC,CAHA,CAIAC,CAJA,CAKAC,CALA,CAMAC,CANA,QAQQL,EAAA,4CAAoDE,CAApD,CAAiEC,CAAjE,CAAkFC,CAAlF,kBAKUC,CALV;kBAyBaC,QAAAA,CAASC,CAATD,CAAcE,CAAdF,CAA2BG,CAA3BH,CAAsCI,CAAtCJ,MACdK,CACAC,EAFcN,CAERO,kBAAA,EAFQP,mBAIfC,CAJeD,GAKdQ,mBALcR,GAKUM,CALVN,EAKiBG,CALjBH,GAK+BM,CAL/BN,EAKsCE,CALtCF,EAMhBL,CAAAc,IAAA,CAAaD,mBAAb,eAAiDE,iBAAjD,MANgBV,CAQhBL,CAAAc,IAAA,CAAaD,mBAAb,iBARgBR,CAUdQ,mBAVcR,IAUWM,CAVXN,EAUkBG,CAVlBH,EAU+BM,CAV/BN,EAUsCE,CAVtCF,EAWhBL,CAAAc,IAAA,CAAaD,mBAAb,cAAgDE,iBAAhD,MAXgBV,CAahBL,CAAAc,IAAA,CAAaD,mBAAb,gBAbgBR,SAiBXC,CAjBWD,wBAmBhBK,CAnBgBL,CAmBZW,SAAAC,UAnBYZ,IAoBbW,SAAAE,OApBab,EAoBOc,UAAAC,aAAA,CAAwBV,CAAxB,CApBPL,uCAyBhBK,CAzBgBL;AAyBZW,SAAAK,QAzBYhB,CA0BbW,SAAAE,OA1Bab,EA0BOc,UAAAC,aAAA,CAAwBV,CAAxB,CA1BPL,gBA+BXiB,eAAA,CAAeC,SAAf,CA/BWlB,CAzBb,YA2DMmB,QAAAA,GACXF,cAAA,CAAeC,SAAf,CACAE,sBAAA,EAFWD,CA3DN,EARR,CARA;",
+"sources":["MobileHorizontalRenderer.js.uncompressed.js"],
+"names":["require","define","declare","domStyle","_WidgetBase","_TemplatedMixin","_RendererMixin","template","_isElementVisible","elt","startHidden","endHidden","size","d","ltr","isLeftToRight","labelContainer","set","arrowPadding","item","startTime","allDay","owner","isStartOfDay","endTime","inherited","arguments","postCreate","_applyAttributes"]
+}

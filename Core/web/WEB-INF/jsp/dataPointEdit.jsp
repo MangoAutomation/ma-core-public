@@ -1,36 +1,20 @@
 <%--
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
-    @author Matthew Lohbihler
+    Edit Data Point View, same as data sources page but loads focused on a data point for editing.
+    
+    Copyright (C) 2013 Infinite Automation. All rights reserved.
+    @author Terry Packer
 --%>
+
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<tag:page dwr="DataPointEditDwr">
-  <%@ include file="/WEB-INF/jsp/pointEdit/pointName.jsp" %>
-  
-  <form action="" method="post">
-    <input type="hidden" id="taskName" name="asdf" value=""/>
-    <table width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td valign="top">
-          <%@ include file="/WEB-INF/jsp/pointEdit/pointProperties.jsp" %>
-          <%@ include file="/WEB-INF/jsp/pointEdit/loggingProperties.jsp" %>
-          <%@ include file="/WEB-INF/jsp/pointEdit/valuePurge.jsp" %>
-          <%@ include file="/WEB-INF/jsp/pointEdit/textRenderer.jsp" %>
-          <%@ include file="/WEB-INF/jsp/pointEdit/chartRenderer.jsp" %>
-        </td>
-        <td valign="top">
-          <%@ include file="/WEB-INF/jsp/pointEdit/eventDetectors.jsp" %>
-        </td>
-      </tr>
-    </table>
-  
-    <%@ include file="/WEB-INF/jsp/pointEdit/buttons.jsp" %>
-  </form>
-</tag:page>
+<jsp:include page="/WEB-INF/jsp/dataSource.jsp"/>
 
 <script type="text/javascript">
-  var pointList = [
-    <c:forEach items="${userPoints}" var="point">{id:${point.id},name:"${sst:dquotEncode(point.extendedName)}"},
-    </c:forEach>
-  ];
+<!--
+<c:if test="${!empty dataPoint}">
+dojo.ready(function(){
+    allDataPoints.open(${dataPoint.id});    
+});
+</c:if>
+//-->
 </script>

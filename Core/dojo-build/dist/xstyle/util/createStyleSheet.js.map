@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"createStyleSheet.js",
+"lineCount":1,
+"mappings":"A,SAAAA,MAAA,mCAA2C,QAAA,OAItCC,EAAOC,QAAAD,KAJ+B,OAKnCE,SAAAA,CAAmBC,CAAnBD,KAHED,QAAAG,iBAGFF,MAUDG,EAAaJ,QAAAG,iBAAA,EACjBC,EAAAC,QAXKJ,CAWgBC,CAXhBD,OAYEG,EAAAE,cAZFL,CAGLG,CAHKH,CAGQD,QAAAO,cAAA,SACbH,EAAAI,aAAA,mBACAJ,EAAAK,YAAA,CAAuBT,QAAAU,eAAA,CAAwBR,CAAxB,CAAvB,CACAH,EAAAY,aAAA,CAAkBP,CAAlB,CAA8BL,CAAAa,WAA9B,CANKX,OAOEG,EAPFH,CALmC,CAA3C;",
+"sources":["createStyleSheet.js.uncompressed.js"],
+"names":["define","head","document","insertCss","css","createStyleSheet","styleSheet","cssText","owningElement","createElement","setAttribute","appendChild","createTextNode","insertBefore","firstChild"]
+}

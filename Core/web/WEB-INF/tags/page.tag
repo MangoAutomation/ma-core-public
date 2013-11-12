@@ -10,11 +10,15 @@
 <%@attribute name="dwr" rtexprvalue="true" %>
 <%@attribute name="js" %>
 <%@attribute name="onload" %>
+<%@attribute name="showHeader" %>
+<%@attribute name="showToolbar" %>
+
 
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
 <%-- <c:set var="theme">soria</c:set> --%>
 <%-- <c:set var="theme">tundra</c:set> --%>
+
 <html>
 <head>
   <title><c:choose>
@@ -30,8 +34,8 @@
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
   <c:if test="${empty dojoURI}">
-    <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.7.3/</c:set>
-    <%-- <c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/</c:set> --%>
+<%-- 	<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.9.1/</c:set> --%>
+	<c:set var="dojoURI">/resources/</c:set>
   </c:if>
   
   <!-- Style -->
@@ -49,12 +53,14 @@
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
-  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
+  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': false}, async: false, parseOnLoad: true, isDebug:false, extraLocale: ['${lang}']"></script>
+  
   <script type="text/javascript" src="/dwr/engine.js"></script>
   <script type="text/javascript" src="/dwr/util.js"></script>
   <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
   <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js"></script>
   <script type="text/javascript" src="/resources/common.js"></script>
+
   <c:forEach items="${dwr}" var="dwrname">
     <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>
   <c:forEach items="${js}" var="jspath">
@@ -94,24 +100,20 @@
 
 <body class="${theme}">
 
-<table id="mainContainer" width="100%" cellspacing="0" cellpadding="0" border="0">
-  <tr id="headerArea">
-    <td>
-      <page:header/>
-      <page:toolbar/>
-    </td>
-  </tr>
+<!-- i18n Messaging Layer, there is also a servlet that does this -->
+<jsp:include page="/WEB-INF/snippet/message.jsp"/>
 
-  <tr id="contentArea">
-    <td>
-      <div id="mainContent" style="padding:5px;">
+
+<div id="mainContainer" style="height:100%">
+    <div id="headerArea">
+        <page:header showHeader="${showHeader}"/>
+        <page:toolbar showToolbar="${showToolbar}"/>
+        <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
+    </div>
+    <div id="mainContent" style="padding:5px; ">
         <jsp:doBody/>
-      </div>
-    </td>
-  </tr>
-
-  <tr id="footerArea">
-    <td>
+    </div>
+    <div id="footerArea" style="float:left; width:100%; height:60px;">
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>
         <tr>
@@ -120,17 +122,23 @@
         <tr>
           <td colspan="2" align="center"><a href="http://infiniteautomation.com/" ><b></b>Distributed by Infinite Automation Systems Inc.</a></td>
         </tr>
-      </table>
-    </td>
-  </tr>
-</table>
+      </table>    
+    </div>
+</div>
+
 
 <c:if test="${!empty onload}">
-  <script type="text/javascript">dojo.ready(${onload});</script>
+  <script type="text/javascript">
+    dojo.ready(${onload});
+  </script>
+
 </c:if>
 
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">
   <jsp:include page="${modJspf}" /></c:forEach>
+
+<!-- Include the Export Dialog -->
+<jsp:include page="/WEB-INF/snippet/exportDialog.jsp"/>
 
 </body>
 </html>

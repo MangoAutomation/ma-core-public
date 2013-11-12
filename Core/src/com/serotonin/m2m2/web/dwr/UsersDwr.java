@@ -207,7 +207,7 @@ public class UsersDwr extends BaseDwr {
         updateUser.validate(response);
 
         if (!response.getHasMessages()) {
-            userDao.saveUser(user);
+            userDao.saveUser(updateUser);
 
             // Update the user object in session too. Why not?
             Common.setUser(request, updateUser);
@@ -246,5 +246,36 @@ public class UsersDwr extends BaseDwr {
             new UserDao().deleteUser(id);
 
         return response;
+    }
+    
+    /**
+     * Create a copy of a User
+     * @param id
+     * @return
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult getCopy(int id){
+    	ProcessResult result = new ProcessResult();
+    	
+    	UserDao dao = new UserDao();
+    	User existing = dao.getUser(id);
+    	
+    	User newUser = new User();
+    	newUser.setUsername("Copy of " + existing.getUsername());
+ 
+    	newUser.setEmail(existing.getEmail());
+    	newUser.setAdmin(existing.isAdmin());
+    	newUser.setPhone(existing.getPhone());
+    	newUser.setDisabled(existing.isDisabled());
+        newUser.setReceiveAlarmEmails(existing.getReceiveAlarmEmails());
+        newUser.setReceiveOwnAuditEvents(existing.isReceiveOwnAuditEvents());
+    	newUser.setTimezone(existing.getTimezone());
+    	newUser.setDataPointPermissions(existing.getDataPointPermissions());
+    	newUser.setDataSourcePermissions(existing.getDataSourcePermissions());
+    	
+    	result.addData("vo", newUser);
+    	
+    	return result;
+    	
     }
 }

@@ -12,9 +12,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -33,16 +36,24 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
-public class DataSourceDao extends BaseDao {
-    static final Log LOG = LogFactory.getLog(DataSourceDao.class);
+public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
+    
+	static final Log LOG = LogFactory.getLog(DataSourceDao.class);
     private static final String DATA_SOURCE_SELECT = "select id, xid, name, dataSourceType, data from dataSources ";
 
+    public static final DataSourceDao instance = new DataSourceDao();
+    
+    public DataSourceDao(){
+    	super(AuditEventType.TYPE_DATA_SOURCE);
+    }
+    
+    
     public List<DataSourceVO<?>> getDataSources() {
         List<DataSourceVO<?>> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
         Collections.sort(dss, new DataSourceNameComparator());
@@ -135,9 +146,11 @@ public class DataSourceDao extends BaseDao {
 
     @SuppressWarnings("unchecked")
     private void updateDataSource(final DataSourceVO<?> vo) {
-        DataSourceVO<?> old = getDataSource(vo.getId());
-        _updateDataSource(vo);
-        AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_SOURCE, old, (ChangeComparable<DataSourceVO<?>>) vo);
+    	super.save(vo);
+        //DataSourceVO<?> old = getDataSource(vo.getId());
+        
+        //_updateDataSource(vo);
+        //AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_SOURCE, old, (ChangeComparable<DataSourceVO<?>>) vo);
     }
 
     public void _updateDataSource(DataSourceVO<?> vo) {
@@ -193,14 +206,23 @@ public class DataSourceDao extends BaseDao {
         });
     }
 
-    public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
+
+
+    
+    //TODO See how this works, with the Device name situation
+    @Override
+	public int copy(int existingId, String newXid, String newName) {
+		return this.copyDataSource(existingId, newName,newXid, newName+"Device");
+	}
+
+
+	public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 DataPointDao dataPointDao = new DataPointDao();
 
                 DataSourceVO<?> dataSource = getDataSource(dataSourceId);
-
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = dataSource.copy();
                 dataSourceCopy.setId(Common.NEW_ID);
@@ -267,4 +289,154 @@ public class DataSourceDao extends BaseDao {
         ejt.update("update dataSources set rtdata=? where id=?", new Object[] { SerializationHelper.writeObject(data),
                 id }, new int[] { Types.BINARY, Types.INTEGER });
     }
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
+	 */
+	@Override
+	protected String getTableName() {
+		return SchemaDefinition.DATASOURCES_TABLE;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
+	 */
+	@Override
+	protected String getXidPrefix() {
+		return DataSourceVO.XID_PREFIX;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
+	 */
+	@Override
+	protected Object[] voToObjectArray(DataSourceVO<?> vo) {
+		return new Object[] { 
+				vo.getXid(), 
+				vo.getName(), 
+				vo.getDefinition().getDataSourceTypeName(),
+                SerializationHelper.writeObject(vo)};
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
+	 */
+	@Override
+	public DataSourceVO<?> getNewVo() {
+		throw new ShouldNeverHappenException("Unable to create generic data source, must supply a type");
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
+	 */
+	@Override
+	protected List<String> getProperties() {
+		return Arrays.asList(
+                "id",
+                "xid",
+                "name",
+                "dataSourceType",
+                "data"
+                );
+	}
+	@Override
+	protected Integer getIndexType(){
+		return Types.INTEGER;
+	}
+	@Override
+	protected List<Integer> getPropertyTypes(){
+		return Arrays.asList(
+					Types.VARCHAR,
+					Types.VARCHAR,
+					Types.VARCHAR,
+					Types.BLOB
+				);		
+	}
+	@Override
+	protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
+		HashMap<String,Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<String,Comparator<DataSourceVO<?>>>();
+		
+		comparatorMap.put("typeDescriptionString", new Comparator<DataSourceVO<?>>(){
+			public int compare(DataSourceVO<?> lhs, DataSourceVO<?>rhs){
+				return lhs.getTypeDescriptionString().compareTo(rhs.getTypeDescriptionString());
+			}
+		});
+		
+		comparatorMap.put("connectionDescriptionString", new Comparator<DataSourceVO<?>>(){
+			public int compare(DataSourceVO<?> lhs, DataSourceVO<?>rhs){
+				return lhs.getConnectionDescriptionString().compareTo(rhs.getConnectionDescriptionString());
+			}
+		});
+		
+		return comparatorMap;
+	}
+
+	@Override
+	protected Map<String, IFilter<DataSourceVO<?>>> getFilterMap(){
+		HashMap<String, IFilter<DataSourceVO<?>>> filterMap = new HashMap<String,IFilter<DataSourceVO<?>>>();
+		
+		filterMap.put("typeDescriptionString", new IFilter<DataSourceVO<?>>(){
+			
+			private String regex;
+			@Override
+			public boolean filter(DataSourceVO<?> vo) {
+				return !vo.getTypeDescriptionString().matches(regex);
+			}
+
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches;
+				
+			}
+			
+		});
+		
+		filterMap.put("connectionDescriptionString", new IFilter<DataSourceVO<?>>(){
+			private String regex;
+			@Override
+			public boolean filter(DataSourceVO<?> vo) {
+				return !vo.getConnectionDescriptionString().matches(regex);
+			}
+
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches; //Make case insensitive like DB
+				
+				
+			}
+			
+		});		
+		
+		return filterMap;
+	}
+	
+	
+	
+	
+	
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
+	 */
+	@Override
+	protected Map<String, String> getPropertiesMap() {
+		return new HashMap<String,String>();
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
+	 */
+	@Override
+	public RowMapper<DataSourceVO<?>> getRowMapper() {
+		return new DataSourceRowMapper();
+	}
+
+
+
 }

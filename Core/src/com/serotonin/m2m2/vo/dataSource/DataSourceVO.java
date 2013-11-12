@@ -7,23 +7,18 @@ package com.serotonin.m2m2.vo.dataSource;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -33,14 +28,12 @@ import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.validation.StringValidation;
 
-abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Serializable, Cloneable, JsonSerializable,
-        ChangeComparable<T> {
+abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractActionVO<DataSourceVO<?>>{
     public static final String XID_PREFIX = "DS_";
 
     abstract public TranslatableMessage getConnectionDescription();
@@ -50,7 +43,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
     abstract public DataSourceRT createDataSourceRT();
 
     abstract public ExportCodes getEventCodes();
-
+    
     final public List<EventTypeVO> getEventTypes() {
         List<EventTypeVO> eventTypes = new ArrayList<EventTypeVO>();
         addEventTypes(eventTypes);
@@ -65,12 +58,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
 
     private DataSourceDefinition definition;
 
-    private int id = Common.NEW_ID;
-    private String xid;
-    @JsonProperty
-    private String name;
-    @JsonProperty
-    private boolean enabled;
     private Map<Integer, Integer> alarmLevels = new HashMap<Integer, Integer>();
 
     @JsonProperty
@@ -95,30 +82,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
         this.enabled = enabled;
     }
 
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getXid() {
-        return xid;
-    }
-
-    public void setXid(String xid) {
-        this.xid = xid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public void setAlarmLevel(int eventId, int level) {
         alarmLevels.put(eventId, level);
@@ -162,7 +125,16 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
         }
         return null;
     }
-
+    /**
+     * Helper to get description on Page
+     * @return
+     */
+    public String getConnectionDescriptionString(){
+    	return getConnectionDescription().translate(Common.getTranslations());
+    }
+    public void setConnectionDescriptionString(String str){
+    	//No-op
+    }
     protected EventTypeVO createEventType(int eventId, TranslatableMessage message) {
         return createEventType(eventId, message, EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
     }
@@ -173,23 +145,24 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
                 eventId, defaultAlarmLevel), duplicateHandling);
     }
 
-    public TranslatableMessage getTypeDescription() {
-        return new TranslatableMessage(getDefinition().getDescriptionKey());
+    public TranslatableMessage getTypeDescription(){
+    	return new TranslatableMessage(getDefinition().getDescriptionKey());
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public String getTypeDescriptionString() {
+        return Common.translate(getDefinition().getDescriptionKey());
     }
 
+    public void setTypeDescriptionString(String m){
+    	//no op
+    }
+    
     public void validate(ProcessResult response) {
-        if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (!new DataSourceDao().isXidUnique(xid, id))
-            response.addContextualMessage("xid", "validate.xidUsed");
-        else if (StringValidation.isLengthGreaterThan(xid, 50))
-            response.addContextualMessage("xid", "validate.notLongerThan", 50);
-
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("dataSourceName", "validate.nameRequired");
-        if (StringValidation.isLengthGreaterThan(name, 40))
-            response.addContextualMessage("dataSourceName", "validate.nameTooLong");
-
+    	super.validate(response);
         if (purgeOverride) {
             if (purgeType != PurgeTypes.DAYS && purgeType != PurgeTypes.MONTHS && purgeType != PurgeTypes.WEEKS
                     && purgeType != PurgeTypes.YEARS)
@@ -203,14 +176,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
         return new TranslatableMessage(key, args).translate(translations);
     }
 
-    public DataSourceVO<?> copy() {
-        try {
-            return (DataSourceVO<?>) super.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            throw new ShouldNeverHappenException(e);
-        }
-    }
+
 
     @Override
     public String getTypeKey() {
@@ -219,20 +185,16 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
 
     @Override
     public final void addProperties(List<TranslatableMessage> list) {
-        AuditEventType.addPropertyMessage(list, "dsEdit.head.name", name);
-        AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "common.enabled", enabled);
+    	super.addProperties(list);
         AuditEventType.addPropertyMessage(list, "dsEdit.logging.purgeOverride", purgeOverride);
         AuditEventType.addPeriodMessage(list, "dsEdit.logging.purge", purgeType, purgePeriod);
 
         addPropertiesImpl(list);
     }
 
-    @Override
-    public final void addPropertyChanges(List<TranslatableMessage> list, T from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.head.name", from.getName(), name);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.getXid(), xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled", from.isEnabled(), enabled);
+
+    public void addPropertyChanges(List<TranslatableMessage> list, T from) {
+    	super.addPropertyChanges(list,from);
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.logging.purgeOverride", from.isPurgeOverride(),
                 purgeOverride);
         AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.getPurgeType(), from.getPurgePeriod(),
@@ -280,13 +242,19 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
             purgeType = in.readInt();
             purgePeriod = in.readInt();
         }
+        else{
+        	throw new ShouldNeverHappenException("Unknown serialization version.");
+        }
+        	
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("xid", xid);
-        writer.writeEntry("type", definition.getDataSourceTypeName());
-
+    	super.jsonWrite(writer);
+    	
+    	//Write the type
+    	writer.writeEntry("type",this.definition.getDataSourceTypeName());
+    	
         ExportCodes eventCodes = getEventCodes();
         if (eventCodes != null && eventCodes.size() > 0) {
             Map<String, String> alarmCodeLevels = new HashMap<String, String>();
@@ -305,8 +273,11 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> implements Seriali
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+    	super.jsonRead(reader, jsonObject);
         // Can't change the type.
-
+    	//TODO Figure out why we have to read/write the enabled annotation'd property
+    	enabled = jsonObject.getBoolean("enabled");
+    	
         JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
         if (alarmCodeLevels != null) {
             ExportCodes eventCodes = getEventCodes();

@@ -38,10 +38,10 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
     public ImplDefinition getDef() {
         return definition;
     }
-
+    
     @JsonProperty
     private boolean includeSum;
-
+    
     public StatisticsChartRenderer() {
         // no op
     }
@@ -98,6 +98,7 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
                     model.put("sum", stats.getSum());
                 model.put("count", stats.getCount());
                 model.put("noData", stats.getAverage() == null);
+                model.put("integral", stats.getIntegral());
             }
             else if (dataTypeId == DataTypes.ALPHANUMERIC) {
                 ValueChangeCounter stats = new ValueChangeCounter(startTime, endTime, startVT, values);
@@ -112,7 +113,7 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
     public String getChartSnippetFilename() {
         return "statsChart.jsp";
     }
-
+    
     //
     // /
     // / Serialization

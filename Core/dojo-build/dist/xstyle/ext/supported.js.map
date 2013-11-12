@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"supported.js",
+"lineCount":1,
+"mappings":"A,SAAAA,MAAA,2BAAmC,QAAA,OAC9BC,qFAD8B,iBAGvBC,QAAAA,CAASC,CAATD,CAAeE,CAAfF,MACLG,IACJD,EAAAE,SAAAC,QAAA,CAAsBN,CAAtB,CAAqC,QAAA,CAASO,CAAT,CAAYC,CAAZ,CAAwBC,CAAxB,CAA2CC,CAA3C,CAAmDC,CAAnD,CAA0DC,CAA1D,CAAoEC,CAApE,MAChCC,CADgC,IAEjCH,CAFiC,GAEvBD,CAFuB,GAI/BK,CAJ+B,CAIdC,CAAAF,CAAAE,CAAUC,QAAAC,cAAA,CAAuBP,CAAvB,CAAVK,UAAA,EAJc,gCAKhCD,CALgC,cAKkBA,CALlB,GAMlCX,CANkC,WAUjCQ,CAViC,GAYnCE,CAAAK,aAAA,CAAqBP,CAArB,CAA+BC,CAA/B,CAZmC,CAahCC,CAAA,CAAQF,CAAR,CAbgC,EAaXC,CAbW,GAclCT,CAdkC,MAArC,CAkBGA,EApBMH,gBAoBQC,CApBRD,GAsBRE,CAAAiB,IAAA,CAASjB,CAAAE,SAAT,CAAyBF,CAAAE,SAAAC,QAAA,sBAAzB,CAAuEH,CAAAkB,QAAvE,CAtBQpB,CAHuB,EAAnC;",
+"sources":["supported.js.uncompressed.js"],
+"names":["define","selectorParse","onPseudo","name","rule","supported","selector","replace","t","combinator","siblingCombinator","prefix","value","attrName","attrValue","element","elementString","toString","document","createElement","setAttribute","add","cssText"]
+}

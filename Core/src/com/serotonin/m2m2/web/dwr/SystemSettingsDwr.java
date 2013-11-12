@@ -5,6 +5,8 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.DataPurge;
+import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -99,6 +102,33 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getValue(SystemSettingsDao.PLOT_BACKGROUND_COLOUR));
         settings.put(SystemSettingsDao.PLOT_GRIDLINE_COLOUR,
                 SystemSettingsDao.getValue(SystemSettingsDao.PLOT_GRIDLINE_COLOUR));
+        
+        //Backup Settings
+        settings.put(SystemSettingsDao.BACKUP_FILE_LOCATION,
+                SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
+        settings.put(SystemSettingsDao.BACKUP_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.BACKUP_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
+        try{
+        	
+	        SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
+	        String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
+	        Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
+	        lastRunString = sdf.format(lastRunDate);
+	        settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,lastRunString);
+        }catch(Exception e){
+        	settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,"unknown");
+        }
+        settings.put(SystemSettingsDao.BACKUP_HOUR,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_HOUR));
+        settings.put(SystemSettingsDao.BACKUP_MINUTE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_MINUTE));
+        settings.put(SystemSettingsDao.BACKUP_FILE_COUNT,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT));
+        //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
+        settings.put(SystemSettingsDao.BACKUP_ENABLED,
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true));
 
         return settings;
     }
@@ -284,5 +314,89 @@ public class SystemSettingsDwr extends BaseDwr {
 
         for (Map.Entry<String, String> entry : settings.entrySet())
             systemSettingsDao.setValue(entry.getKey(), entry.getValue());
+    }
+    
+    
+    /**
+     * Save the Backup Settings to the DB.
+     * @param backupFileLocation
+     * @param backupPeriod
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult saveBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods,
+    		int backupHour, int backupMinute, int backupHistory, boolean backupEnabled){
+    	ProcessResult result = new ProcessResult();
+    	boolean updateTask = true;
+    	
+    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+    	//Validate
+    	File tmp = new File(backupFileLocation);
+    	if(!tmp.exists()){
+    		//Doesn't exist, push up message
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_FILE_LOCATION,
+    				"systemSettings.validation.backupLocationNotExists");
+    		return result;
+    	}
+    	if(!tmp.canWrite()){
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_FILE_LOCATION,
+    				"systemSettings.validation.cannotWriteToBackupFileLocation");
+    		return result;
+    	}
+    	systemSettingsDao.setValue(SystemSettingsDao.BACKUP_FILE_LOCATION, backupFileLocation);
+
+    	//Not validating because select list.
+    	systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE, backupPeriodType);
+    	systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_PERIODS, backupPeriods);
+
+    	//Validate the Hour and Minute
+    	if((backupHour < 24)&&(backupHour>=0)){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_HOUR, backupHour);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_HOUR,
+    				"systemSettings.validation.backupHourInvalid");
+    	}
+    	if((backupMinute < 60)&&(backupMinute>=0)){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_MINUTE, backupMinute);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_MINUTE,
+    				"systemSettings.validation.backupMinuteInvalid");
+    	}
+    	
+    	//Validate the number of backups to keep
+    	if(backupHistory > 0){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_FILE_COUNT, backupHistory);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.BACKUP_FILE_COUNT,
+    				"systemSettings.validation.backupFileCountInvalid");
+    	}   	
+    	
+    	boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, !backupEnabled);
+    	if(backupEnabled != oldBackupEnabled){
+    		updateTask = true;
+    		systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
+    	}
+    	    	
+    	if(updateTask){
+    		//Reschedule the task
+    		BackupWorkItem.unschedule();
+    		if(backupEnabled)
+    			BackupWorkItem.schedule();
+    	}
+    	
+    	return result;
+    }
+    
+    /**
+     * Queue a backup to run now.
+     * @param backupLocation
+     */
+    @DwrPermission(admin=true)
+    public void queueBackup(){
+    	
+    	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+    	BackupWorkItem.queueBackup(backupLocation);
     }
 }

@@ -46,6 +46,15 @@ public class Functions {
             return "-";
         return point.getTextRenderer().getText(pointValue, TextRenderer.HINT_FULL);
     }
+    
+    public static String getIntegralText(DataPointVO point, double integralValue) {
+        if (point == null || Double.valueOf(integralValue).isNaN())
+            return "-";
+        String result = point.createIntegralRenderer().getText(integralValue, TextRenderer.HINT_SPECIFIC);
+        if (!StringUtils.isBlank(result))
+            return encodeDQuot(result);
+        return result;
+    }
 
     public static String getRawText(DataPointVO point, PointValueTime pointValue) {
         if (point == null)

@@ -5,7 +5,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
 
-<tag:page dwr="UsersDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="UsersDwr" onload="init">
   <script type="text/javascript">
     var userId = ${sessionUser.id};
     var editingUserId;
@@ -47,9 +47,13 @@
                 dataSources = data.dataSources;
                 for (i=0; i<dataSources.length; i++) {
                     id = "ds"+ dataSources[i].id;
+                    dshtml += "<img id='tgup" + dataSources[i].id + "' src='images/icon_toggle_plus.png' onclick='expandSource(this);'/><img id='tgdn" + dataSources[i].id + "' src='images/icon_toggle_minus.png' onclick='collapseSource(this);' style='display:none'/>";
                     dshtml += '<input type="checkbox" id="'+ id +'" onclick="dataSourceChange(this)">';
-                    dshtml += '<label for="'+ id +'"> '+ dataSources[i].name +'</label><br/>';
-                    dshtml += '<div style="margin-left:25px;" id="dsps'+ dataSources[i].id +'">';
+                    dshtml += '<label for="'+ id +'"> '+ dataSources[i].name +"</label>";
+                    dshtml += " <a onclick=\"bulkSetPermissions('none',"+dataSources[i].id+");\"><fmt:message key='common.access.none'/></a> ";
+                	dshtml += "<a onclick=\"bulkSetPermissions('read',"+dataSources[i].id+");\"><fmt:message key='common.access.read'/></a> ";
+                	dshtml += "<a onclick=\"bulkSetPermissions('set',"+dataSources[i].id+");\"><fmt:message key='common.access.set'/></a><br></br>";
+                    dshtml += '<div style="margin-left:25px; margin-top: -10px" id="dsps'+ dataSources[i].id +'">';
                     if (dataSources[i].points.length > 0) {
                         dshtml +=   '<table cellspacing="0" cellpadding="1">';
                         for (j=0; j<dataSources[i].points.length; j++) {
@@ -69,6 +73,8 @@
                             dshtml += '</tr>';
                         }
                         dshtml +=   '</table>';
+                    }else{
+                    	dshtml += "<fmt:message key='users.dataSources.noPoints'/>";
                     }
                     dshtml += '</div>';
                 }
@@ -110,11 +116,14 @@
         
         if (adminUser) {
             // Turn off all data sources and set all data points to 'none'.
-            var i, j, dscb, dp;
+            var i, j, dscb, dp,tgup;
             for (i=0; i<dataSources.length; i++) {
                 dscb = $("ds"+ dataSources[i].id);
                 dscb.checked = false;
                 dataSourceChange(dscb);
+                
+                tgup = $("tgup" + dataSources[i].id);
+                collapseSource(tgup); //Collapse the source
                 for (j=0; j<dataSources[i].points.length; j++)
                     $set("dp"+ dataSources[i].points[j].id, "0");
             }
@@ -123,8 +132,10 @@
             for (i=0; i<user.dataSourcePermissions.length; i++) {
                 dscb = $("ds"+ user.dataSourcePermissions[i]);
                 dscb.checked = true;
-                dataSourceChange(dscb);
+                //Just Don't expand dataSourceChange(dscb);
             }
+            
+            //TODO Collapse ALL HERE
             
             // Update the data point permissions.
             for (i=0; i<user.dataPointPermissions.length; i++)
@@ -257,7 +268,12 @@
     }
     
     function dataSourceChange(dscb) {
-        display("dsps"+ dscb.id.substring(2), !dscb.checked);
+    	if(dscb.checked){
+    		//Close the Points
+    		var dsId = dscb.id.substring(2);
+    		var tgup = dojo.byId("tgup" + dsId);
+    		collapseSource(tgup)
+    	}
     }
     
     function deleteUser() {
@@ -278,6 +294,119 @@
             });
         }
     }
+    
+    /**
+     * tgup = "xxxxID" where ID is the id of the datasource to expand
+    */
+    function expandSource(tgdn){
+    	//Get the DS ID
+    	var dsId = tgdn.id.substring(4);
+    	
+    	//Check to see if the checkbox is selected, if it is we won't open this
+    	var dscb = dojo.byId("ds" + dsId);
+    	if(!dscb.checked){
+	    	//Hide the expand image
+	    	hide("tgup"+dsId);
+	    	//Show the collapse image
+	    	show("tgdn"+dsId);
+	    	display("dsps"+ dsId, true);
+    	}
+    }
+    
+    /**
+     * tgup = "xxxxID" where ID is the id of the datasource to collapse
+    */
+    function collapseSource(tgup){
+    	var dsId = tgup.id.substring(4);
+    	//Hide the collapse image
+    	hide("tgdn"+dsId);
+    	//Show the expand image
+    	show("tgup"+dsId);
+    	//Show the Data
+    	display("dsps"+ dsId, false);
+    }
+    
+    /**
+     * Bulk Set All Permissions
+    **/
+    function bulkSetPermissions(type,dsId){
+    	
+    	var permission = "0";
+    	if(type === 'none')
+    		permission = "0";
+    	else if (type === 'read')
+    		permission = "1";
+    	else if (type == 'set')
+    		permission = "2";
+    	
+    	if(dsId){
+            var i, j;
+            for (i=0; i<dataSources.length; i++) {
+	            if(dataSources[i].id === dsId){
+	                for (j=0; j<dataSources[i].points.length; j++){
+	                	//Check to see if point is settable
+	                    setPoint(dataSources[i].points[j],permission);
+	                }
+	                break; //Drop out after updating the DS We want
+            	}
+            }
+    	}else{
+	    	setAllPermissions(permission);
+    	}
+    }
+
+    /**
+     * Set a points permission, ensure that if it is not settable in can only be either none or read-only
+     */
+    function setPoint(point,permission){
+    	 if(point === null)
+    		 return; //Can't set a null point
+    	 if(permission === "2"){ //Are we going to set to read/wrtie
+    		  if(point.settable === true)
+    			  $set("dp"+ point.id, permission); 
+    		  else
+    			  $set("dp"+ point.id, 1);
+    	 }else{
+    		 $set("dp"+ point.id, permission); // Set read only at most
+    	 }
+    }
+    
+    /**
+     * 0 for none
+     * 1 for read
+     * 2 for set
+    **/
+    function setAllPermissions(permission){
+        var i, j, dscb;
+        for (i=0; i<dataSources.length; i++) {
+            dscb = $("ds"+ dataSources[i].id);
+            dscb.checked = false;
+            dataSourceChange(dscb);
+            for (j=0; j<dataSources[i].points.length; j++){
+            	setPoint(dataSources[i].points[j], permission);
+            }
+        }
+     
+    }
+    
+    /*
+     * Make a Copy of an existing user
+    */
+    function copyUser(copyImage){
+    	if (editingUserId > 0)
+            stopImageFader($("u"+ editingUserId +"Img"));
+    	
+    	editingUserId = <c:out value="<%= Common.NEW_ID %>"/>;
+    	var userId = copyImage.id.substring(6); //Strip off the first 'uImage'
+    	UsersDwr.getCopy(userId,function(response){
+    		
+    		//Load up the new User
+    		showUserCB(response.data.vo);
+    		
+    	});
+    	
+    }
+    
   </script>
   
   <table>
@@ -295,9 +424,10 @@
             </tr>
           </table>
           <table id="usersTable">
-            <tbody id="u_TEMPLATE_" onclick="showUser(getMangoId(this))" class="ptr" style="display:none;"><tr>
+            <tbody id="u_TEMPLATE_" class="ptr" style="display:none;"><tr>
               <td><tag:img id="u_TEMPLATE_Img" png="user_green" title="users.user"/></td>
-              <td class="link" id="u_TEMPLATE_Username"></td>
+              <td class="link" id="u_TEMPLATE_Username" onclick="showUser(getMangoId(this));"></td>
+              <td><tag:img id="uImage_TEMPLATE_" png="copy" onclick="copyUser(this);" title="common.copy" /></td>
             </tr></tbody>
           </table>
         </div>
@@ -364,6 +494,14 @@
             </tr>
             <tbody id="dataSources" style="display:none;">
               <tr><td class="horzSeparator" colspan="2"></td></tr>
+              <tr>
+              	<td class="formLabelRequired"><fmt:message key="users.dataSources.bulkSet"/></td>
+                <td class="formField">
+                	<a onclick="bulkSetPermissions('none');"><fmt:message key="common.access.none"/></a>
+                	<a onclick="bulkSetPermissions('read');"><fmt:message key="common.access.read"/></a>
+                	<a onclick="bulkSetPermissions('set');"><fmt:message key="common.access.set"/></a>
+                </td>
+              </tr>
               <tr id="dataSources">
                 <td class="formLabelRequired"><fmt:message key="users.dataSources"/></td>
                 <td class="formField" id="dataSourceList"></td>
@@ -374,4 +512,5 @@
       </td>
     </tr>
   </table>
+
 </tag:page>

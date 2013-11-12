@@ -7,7 +7,7 @@
 <%@page import="com.serotonin.m2m2.vo.mailingList.EmailRecipient"%>
 <c:set var="NEW_ID"><%= Common.NEW_ID %></c:set>
 
-<tag:page dwr="MailingListsDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="MailingListsDwr" onload="init">
   <script>
     var users = new Array();
     var editingMailingList;

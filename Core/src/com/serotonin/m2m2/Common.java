@@ -99,7 +99,7 @@ public class Common {
     public static final RealTimeTimer timer = new RealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
-
+    
     //
     // License
     static InstanceLicense license;
@@ -128,15 +128,15 @@ public class Common {
     }
 
     public static final int getMinorVersion() {
-        return 0;
+        return 1;
     }
 
     public static final int getMicroVersion() {
-        return 6;
+        return 0;
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 7;
+        return 9;
     }
 
     public static String getWebPath(String path) {
@@ -478,6 +478,12 @@ public class Common {
         return systemTranslations;
     }
 
+        
+    public static Locale getLocale() {
+        ensureI18n();
+        return parseLocale(systemLanguage);
+    }
+    
     private static void ensureI18n() {
         if (systemLanguage == null) {
             synchronized (i18nLock) {

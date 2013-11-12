@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -65,6 +66,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (!response.getHasMessages()) {
             Common.runtimeManager.saveDataSource(ds);
             response.addData("id", ds.getId());
+            response.addData("vo",ds); //For new table method
         }
 
         return response;
@@ -96,29 +98,32 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     }
 
     protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
+        //Added to allow saving point settings from data point edit view
+        DataPointVO dp = Common.getUser().getEditPoint();
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-
-        DataPointVO dp;
-        if (pointId == Common.NEW_ID) {
-            dp = new DataPointVO();
-            dp.setXid(new DataPointDao().generateUniqueXid());
+        
+        //Another Kludge to allow modules to get new-ish data points via this method...
+        //TODO This is going to cause some issues with the DataSource Tools
+        if((dp==null)&&(pointId == Common.NEW_ID)){
+        	dp = new DataPointVO();
+        	dp.setId(pointId);       	
+        	dp.setXid(DataPointDao.instance.generateUniqueXid());
             dp.setDataSourceId(ds.getId());
             dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
             dp.setDeviceName(ds.getName());
             dp.setPointLocator(ds.createPointLocator());
             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
             dp.defaultTextRenderer();
-            if (defaulter != null)
-                defaulter.setDefaultValues(dp);
         }
-        else {
-            dp = new DataPointDao().getDataPoint(pointId);
-            if (dp != null && dp.getDataSourceId() != ds.getId())
-                throw new RuntimeException("Data source id mismatch");
-            if (defaulter != null)
-                defaulter.updateDefaultValues(dp);
+        
+        //Use the defaulter
+        if(defaulter != null){
+        	if(dp.getId() == Common.NEW_ID)
+        		defaulter.setDefaultValues(dp);
+        	else
+        		defaulter.updateDefaultValues(dp);
         }
-
+        
         return dp;
     }
 
@@ -131,25 +136,44 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             DataPointDefaulter defaulter, boolean includePointList) {
         ProcessResult response = new ProcessResult();
 
+        //This saving of the point into the User is a bad idea, need to rework to
+        // pass the point back and forth to page.  
         DataPointVO dp = getPoint(id, defaulter);
         dp.setXid(xid);
         dp.setName(name);
         dp.setPointLocator(locator);
 
-        if (id == Common.NEW_ID)
+        
+        //If we are a new point then only validate the basics
+        if (id == Common.NEW_ID){
             // Limit enforcement.
             DataSourceTypePointsLimit.checkLimit(dp.getDataSourceTypeName(), response);
+            
+            if (StringUtils.isBlank(xid))
+                response.addContextualMessage("xid", "validate.required");
+            else if (StringValidation.isLengthGreaterThan(xid, 50))
+                response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+            else if (!new DataPointDao().isXidUnique(xid, id))
+                response.addContextualMessage("xid", "validate.xidUsed");
 
-        if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (!new DataPointDao().isXidUnique(xid, id))
-            response.addContextualMessage("xid", "validate.xidUsed");
-        else if (StringValidation.isLengthGreaterThan(xid, 50))
-            response.addContextualMessage("xid", "validate.notLongerThan", 50);
-
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("name", "dsEdit.validate.required");
-
+            if (StringUtils.isBlank(name))
+                response.addContextualMessage("name", "validate.required");
+            
+            //Should really be done elsewhere
+            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>());
+            
+        }else{
+	        //New validation on save for all settings on existing points
+        	
+	        dp.validate(response);
+	        
+	        if(dp.getChartRenderer() != null)
+	        	dp.getChartRenderer().validate(response);
+	        
+	        if(dp.getTextRenderer() != null)
+	        	dp.getTextRenderer().validate(response);
+        }
+        //Validate Locator
         locator.validate(response, dp);
 
         if (!response.getHasMessages()) {
@@ -157,8 +181,11 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             if (defaulter != null)
                 defaulter.postSave(dp);
             response.addData("id", dp.getId());
+            response.addData("vo",dp);
             if (includePointList)
                 response.addData("points", getPoints());
+            //Set the User Point
+            Common.getUser().setEditPoint(dp);
         }
 
         return response;

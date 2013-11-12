@@ -56,12 +56,17 @@ public class BlabberConverterManager implements ConverterManager {
      */
     public void addConverter(String match, String type, @SuppressWarnings("rawtypes") Map params)
             throws IllegalArgumentException, InstantiationException, IllegalAccessException {
-        Class<Converter> clazz = converterTypes.get(type);
+
+    	Class<Converter> clazz = converterTypes.get(type);
         if (clazz == null) {
             log.info("Probably not an issue: " + match + " is not available so the " + type
                     + " converter will not load. This is only an problem if you wanted to use it.");
             return;
         }
+        
+        //TODO fix this by modifying the ma-priv code, but until we have a good copy this is my plan!
+//    	String js = match.substring(match.lastIndexOf(".")+1);
+//    	params.put("javascript", js);
 
         Converter converter = clazz.newInstance();
         converter.setConverterManager(this);
@@ -261,7 +266,7 @@ public class BlabberConverterManager implements ConverterManager {
                     Map.Entry<String, Converter> entry = it.next();
                     String match = entry.getKey();
                     Converter conv = entry.getValue();
-
+                    
                     // JavaScript mapping is only applicable for compound converters
                     if (conv instanceof NamedConverter) {
                         NamedConverter boConv = (NamedConverter) conv;
@@ -289,7 +294,7 @@ public class BlabberConverterManager implements ConverterManager {
                 }
             }
         }
-
+        
         return null;
     }
 

@@ -111,7 +111,41 @@
       <rtexprvalue>true</rtexprvalue>
     </attribute>
   </tag>
-  
+  <tag>
+    <name>mobile-menuItem</name>
+    <tag-class>com.serotonin.m2m2.web.taglib.MobileMenuItemTag</tag-class>
+    <body-content>empty</body-content>
+    <attribute>
+      <name>def</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>id</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>href</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>png</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>src</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>key</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag> 
   <!-- 
     Functions
    -->
@@ -146,6 +180,15 @@
       String getSpecificHtmlTextValue(com.serotonin.m2m2.vo.DataPointVO, double)
     </function-signature>
   </function> 
+  
+  <function>
+    <name>integralText</name>
+    <function-class>com.serotonin.m2m2.web.taglib.Functions</function-class>
+    <function-signature>
+      String getIntegralText(com.serotonin.m2m2.vo.DataPointVO, double)
+    </function-signature>
+  </function>
+  
   
   <function>
     <name>rawText</name>

@@ -11,6 +11,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 public class DataPointEventType extends EventType {
     private int dataSourceId = -1;
@@ -39,8 +40,11 @@ public class DataPointEventType extends EventType {
 
     @Override
     public int getDataSourceId() {
-        if (dataSourceId == -1)
-            dataSourceId = new DataPointDao().getDataPoint(dataPointId).getDataSourceId();
+        if (dataSourceId == -1){
+        	DataPointVO vo = DataPointDao.instance.getDataPoint(dataPointId);
+        	if(vo != null) //In case the point has been deleted
+        		dataSourceId = vo.getDataSourceId();
+        }
         return dataSourceId;
     }
 

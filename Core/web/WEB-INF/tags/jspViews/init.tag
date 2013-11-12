@@ -6,7 +6,7 @@
 --%><%@tag body-content="empty"%><%--
 --%><%@attribute name="username" required="true"%>
 <c:set var="modulePath" value="/modules/jspViews"/>
-<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.7.2/</c:set>
+<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.9.1/</c:set>
 <script type="text/javascript" src="${dojoURI}/dojo/dojo.js" data-dojo-config="async: false, parseOnLoad: true, isDebug:true, extraLocale: ['en-us', 'nl', 'nl-nl', 'ja-jp', 'fi-fi', 'sv-se', 'zh-cn', 'zh-tw','xx']"></script>
 <script type="text/javascript" src="/dwr/engine.js"></script>
 <script type="text/javascript" src="/dwr/util.js"></script>

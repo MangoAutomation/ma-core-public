@@ -35,7 +35,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.servlet.ImageValueServlet;
 import com.serotonin.m2m2.web.taglib.Functions;
 
-public class DataPointDetailsDwr extends BaseDwr {
+public class DataPointDetailsDwr extends DataPointDwr {
     public static PointDetailsState getPointData() {
         // Get the point from the user's session. It should have been set by the controller.
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
@@ -126,6 +126,8 @@ public class DataPointDetailsDwr extends BaseDwr {
         DataExportDefinition def = new DataExportDefinition(new int[] { getDataPointVO().getId() }, from, to);
         user.setDataExportDefinition(def);
     }
+    
+    
 
     @DwrPermission(user = true)
     public ProcessResult getStatsChartData(int periodType, int period, boolean includeSum) {

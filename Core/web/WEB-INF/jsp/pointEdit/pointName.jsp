@@ -1,6 +1,8 @@
 <%--
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
     @author Matthew Lohbihler
+    
+    @Deprecated - Use jsp files in snippet/view/dataPoint/ instead
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <script type="text/javascript">

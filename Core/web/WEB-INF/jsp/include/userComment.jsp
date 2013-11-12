@@ -16,9 +16,20 @@
   
   var commentTypeId;
   var commentReferenceId;
-  function openCommentDialog(typeId, referenceId) {
+  var saveCommentCallback;
+  
+  /**
+   * Open a comment dialog and allow a user defined callback
+  **/
+  function openCommentDialog(typeId, referenceId,callback) {
       commentTypeId = typeId;
       commentReferenceId = referenceId;
+      
+      if(typeof(callback) == 'function')
+    	  saveCommentCallback = callback;
+      else
+    	  saveCommentCallback = saveCommentCB;
+      
       $set("commentText", "");
       dijit.byId("CommentDialog").show();
       $("commentText").focus();
@@ -26,7 +37,7 @@
   
   function saveComment() {
       var comment = $get("commentText");
-      MiscDwr.addUserComment(commentTypeId, commentReferenceId, comment, saveCommentCB);
+      MiscDwr.addUserComment(commentTypeId, commentReferenceId, comment, saveCommentCallback);
   }
   
   function saveCommentCB(comment) {
@@ -36,16 +47,20 @@
           closeCommentDialog();
           
           // Add a row for the comment by cloning the template.
-          var content = $("comment_TEMPLATE_").cloneNode(true);
-          updateTemplateNode(content, comment.ts);
+         
           var commentsNode;
           if (commentTypeId == <%= UserComment.TYPE_EVENT %>)
               commentsNode = $("eventComments"+ commentReferenceId);
           else if (commentTypeId == <%= UserComment.TYPE_POINT %>)
               commentsNode = $("pointComments"+ commentReferenceId);
-          commentsNode.appendChild(content);
-          $("comment"+ comment.ts +"UserTime").innerHTML = comment.prettyTime +" <fmt:message key="notes.by"/> "+ comment.username;
-          $("comment"+ comment.ts +"Text").innerHTML = comment.comment;
+          //Since we are now using this outside of the old format
+          if(commentsNode != null){
+        	  var content = $("comment_TEMPLATE_").cloneNode(true);
+              updateTemplateNode(content, comment.ts);
+	          commentsNode.appendChild(content);
+	          $("comment"+ comment.ts +"UserTime").innerHTML = comment.prettyTime +" <fmt:message key="notes.by"/> "+ comment.username;
+	          $("comment"+ comment.ts +"Text").innerHTML = comment.comment;
+          }
       }
   }
   

@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -24,6 +25,7 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -35,8 +37,10 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueIdTime;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.PointValueIdTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
@@ -158,6 +162,7 @@ public class PointValueDao extends BaseDao {
         }
 
         clearUnsavedPointValues();
+        clearUnsavedPointUpdates();
 
         return id;
     }
@@ -229,6 +234,195 @@ public class PointValueDao extends BaseDao {
         return id;
     }
 
+    
+    //Update Point Values
+    private static List<UnsavedPointUpdate> UNSAVED_POINT_UPDATES = new ArrayList<UnsavedPointUpdate>();
+
+    private static final String POINT_VALUE_UPDATE = "UPDATE pointValues SET dataPointId=?, dataType=?, pointValue=?, ts=? ";
+    private static final String POINT_VALUE_ANNOTATION_UPDATE = "UPDATE pointValueAnnotations SET"
+            + "textPointValueShort=?, textPointValueLong=?, sourceMessage=?  ";
+
+    /**
+     * Only the PointValueCache should call this method during runtime. Do not use.
+     */
+    public PointValueIdTime updatePointValueSync(int pointId, PointValueIdTime pointValue, SetPointSource source) {
+        long id = updatePointValueImpl(pointId, pointValue, source, false);
+
+        PointValueIdTime savedPointValue;
+        int retries = 5;
+        while (true) {
+            try {
+                savedPointValue = getPointValueId(id);
+                break;
+            }
+            catch (ConcurrencyFailureException e) {
+                if (retries <= 0)
+                    throw e;
+                retries--;
+            }
+        }
+
+        return savedPointValue;
+    }
+
+    /**
+     * Only the PointValueCache should call this method during runtime. Do not use.
+     */
+    public void updatePointValueAsync(int pointId, PointValueIdTime pointValue, SetPointSource source) {
+        updatePointValueImpl(pointId, pointValue, source, true);
+    }
+
+    long updatePointValueImpl(final int pointId, final PointValueIdTime pointValue, final SetPointSource source,
+            boolean async) {
+        DataValue value = pointValue.getValue();
+        final int dataType = DataTypes.getDataType(value);
+        double dvalue = 0;
+        String svalue = null;
+
+        if (dataType == DataTypes.IMAGE) {
+            ImageValue imageValue = (ImageValue) value;
+            dvalue = imageValue.getType();
+            if (imageValue.isSaved())
+                svalue = Long.toString(imageValue.getId());
+        }
+        else if (value.hasDoubleRepresentation())
+            dvalue = value.getDoubleValue();
+        else
+            svalue = value.getStringValue();
+
+        // Check if we need to create an annotation.
+        long id;
+        try {
+            if (svalue != null || source != null || dataType == DataTypes.IMAGE)
+                async = false;
+            id = updatePointValue(pointValue.getPointValueId(), pointId, dataType, dvalue, pointValue.getTime(), svalue, source, async);
+        }
+        catch (ConcurrencyFailureException e) {
+            // Still failed to insert after all of the retries. Store the data
+            synchronized (UNSAVED_POINT_UPDATES) {
+                UNSAVED_POINT_UPDATES.add(new UnsavedPointUpdate(pointId, pointValue, source));
+            }
+            return -1;
+        }
+
+        // Check if we need to save an image
+        if (dataType == DataTypes.IMAGE) {
+            ImageValue imageValue = (ImageValue) value;
+            if (!imageValue.isSaved()) {
+                imageValue.setId(id);
+
+                File file = new File(Common.getFiledataPath(), imageValue.getFilename());
+
+                // Write the file.
+                FileOutputStream out = null;
+                try {
+                    out = new FileOutputStream(file);
+                    StreamUtils.transfer(new ByteArrayInputStream(imageValue.getData()), out);
+                }
+                catch (IOException e) {
+                    // Rethrow as an RTE
+                    throw new ImageSaveException(e);
+                }
+                finally {
+                    try {
+                        if (out != null)
+                            out.close();
+                    }
+                    catch (IOException e) {
+                        // no op
+                    }
+                }
+
+                // Allow the data to be GC'ed
+                imageValue.setData(null);
+            }
+        }
+
+        clearUnsavedPointUpdates();
+
+        return id;
+    }
+
+    private void clearUnsavedPointUpdates() {
+        if (!UNSAVED_POINT_UPDATES.isEmpty()) {
+            synchronized (UNSAVED_POINT_UPDATES) {
+                while (!UNSAVED_POINT_UPDATES.isEmpty()) {
+                    UnsavedPointUpdate data = UNSAVED_POINT_UPDATES.remove(0);
+                    updatePointValueImpl(data.getPointId(), data.getPointValue(), data.getSource(), false);
+                }
+            }
+        }
+    }
+
+    long updatePointValue(final long pointValueId, final int pointId, final int dataType, double dvalue, final long time, final String svalue,
+            final SetPointSource source, boolean async) {
+        // Apply database specific bounds on double values.
+        dvalue = Common.databaseProxy.applyBounds(dvalue);
+
+        if (async) {
+        	//TODO add annotation updates to batch
+            BatchUpdateBehind.add(new BatchUpdateBehindEntry(pointValueId, pointId, dataType, dvalue, time), ejt);
+            if(svalue!=null)
+            	this.updatePointValueAnnotation(pointValueId,dataType,svalue,source);
+            return -1;
+        }
+
+        int retries = 5;
+        while (true) {
+            try {
+                return updatePointValueImpl(pointValueId, pointId, dataType, dvalue, time, svalue, source);
+            }
+            catch (ConcurrencyFailureException e) {
+                if (retries <= 0)
+                    throw e;
+                retries--;
+            }
+            catch (RuntimeException e) {
+                throw new RuntimeException("Error saving point value: dataType=" + dataType + ", dvalue=" + dvalue, e);
+            }
+        }
+    }
+
+    private long updatePointValueImpl(long pointValueId, int pointId, int dataType, double dvalue, long time, String svalue,
+            SetPointSource source) {
+        long id =  doInsertLong(POINT_VALUE_UPDATE + " WHERE id = ?", new Object[] { pointId, dataType, dvalue, time, pointValueId });
+
+        this.updatePointValueAnnotation(id,dataType,svalue,source);
+        
+        return id;
+    }
+    
+    private void updatePointValueAnnotation(long id,int dataType, String svalue,
+            SetPointSource source){
+
+        if (svalue == null && dataType == DataTypes.IMAGE)
+            svalue = Long.toString(id);
+
+        // Check if we need to create an annotation.
+        TranslatableMessage sourceMessage = null;
+        if (source != null)
+            sourceMessage = source.getSetPointSourceMessage();
+
+        if (svalue != null || sourceMessage != null) {
+            String shortString = null;
+            String longString = null;
+            if (svalue != null) {
+                if (svalue.length() > 128)
+                    longString = svalue;
+                else
+                    shortString = svalue;
+            }
+
+            ejt.update(POINT_VALUE_ANNOTATION_UPDATE + "WHERE pointValueId = ?", //
+                    new Object[] {shortString, longString, writeTranslatableMessage(sourceMessage),id }, //
+                    new int[] {Types.VARCHAR, Types.CLOB, Types.CLOB, Types.INTEGER });
+        }
+
+    }
+    
+    
+    
+    
     //
     //
     // Queries
@@ -238,6 +432,8 @@ public class PointValueDao extends BaseDao {
             + "from pointValues pv " //
             + "  left join pointValueAnnotations pva on pv.id = pva.pointValueId";
 
+    
+    
     //
     //
     // Single point
@@ -340,6 +536,66 @@ public class PointValueDao extends BaseDao {
         }
     }
 
+    /*
+     * Queries for Point Values with Ids
+     */
+    private static final String POINT_VALUE_ID_SELECT = //
+    "select pv.id, pv.dataType, pv.pointValue, pva.textPointValueShort, pva.textPointValueLong, pv.ts, pva.sourceMessage " //
+            + "from pointValues pv " //
+            + "  left join pointValueAnnotations pva on pv.id = pva.pointValueId";
+    
+    public PointValueIdTime getPointValueIdAt(int dataPointId, long time) {
+        return pointValueIdQuery(POINT_VALUE_ID_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { dataPointId,
+                time });
+    }
+    private PointValueIdTime getPointValueId(long id) {
+        return pointValueIdQuery(POINT_VALUE_ID_SELECT + " where pv.id=?", new Object[] { id });
+    }
+    
+    public List<PointValueIdTime> getPointValuesWithIdsBetween(int dataPointId, long from, long to) {
+        return pointValuesIdsQuery(POINT_VALUE_ID_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
+                new Object[] { dataPointId, from, to }, 0);
+    }
+    public void getPointValuesWithIdsBetween(int dataPointId, long from, long to, MappedRowCallback<PointValueIdTime> callback) {
+        query(POINT_VALUE_ID_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts", new Object[] {
+                dataPointId, from, to }, new PointValueIdRowMapper(), callback);
+    }
+
+    private List<PointValueIdTime> pointValuesIdsQuery(String sql, Object[] params, int limit) {
+        return Common.databaseProxy.doLimitQuery(this, sql, params, new PointValueIdRowMapper(), limit);
+    }
+    
+    private List<PointValueIdTime> pointValueIdsQuery(String sql, Object[] params, int limit) {
+        return Common.databaseProxy.doLimitQuery(this, sql, params, new PointValueIdRowMapper(), limit);
+    }
+
+    private PointValueIdTime pointValueIdQuery(String sql, Object[] params) {
+        List<PointValueIdTime> result = pointValueIdsQuery(sql, params, 1);
+        if (result.size() == 0)
+            return null;
+        return result.get(0);
+    }
+    
+    class PointValueIdRowMapper implements RowMapper<PointValueIdTime> {
+        @Override
+        public PointValueIdTime mapRow(ResultSet rs, int rowNum) throws SQLException {
+            int id = rs.getInt(1);
+        	DataValue value = createDataValue(rs, 2);
+        	
+            long time = rs.getLong(6);
+
+            TranslatableMessage sourceMessage = BaseDao.readTranslatableMessage(rs, 7);
+            if (sourceMessage == null)
+                // No annotations, just return a point value.
+                return new PointValueIdTime(id,value, time);
+
+            // There was a source for the point value, so return an annotated version.
+            return new AnnotatedPointValueIdTime(id,value, time, sourceMessage);
+        }
+    }
+   
+    
+    
     DataValue createDataValue(ResultSet rs, int firstParameter) throws SQLException {
         int dataType = rs.getInt(firstParameter);
         DataValue value;
@@ -527,6 +783,36 @@ public class PointValueDao extends BaseDao {
         }
     }
 
+    /**
+     * Class that stored point value data when it could not be saved to the database due to concurrency errors.
+     * 
+     * @author Matthew Lohbihler
+     */
+    class UnsavedPointUpdate {
+        private final int pointId;
+        private final PointValueIdTime pointValue;
+        private final SetPointSource source;
+
+        public UnsavedPointUpdate(int pointId, PointValueIdTime pointValue, SetPointSource source) {
+            this.pointId = pointId;
+            this.pointValue = pointValue;
+            this.source = source;
+        }
+
+        public int getPointId() {
+            return pointId;
+        }
+
+        public PointValueIdTime getPointValue() {
+            return pointValue;
+        }
+
+        public SetPointSource getSource() {
+            return source;
+        }
+    }
+    
+    
     class BatchWriteBehindEntry {
         private final int pointId;
         private final int dataType;
@@ -692,4 +978,191 @@ public class PointValueDao extends BaseDao {
             return WorkItem.PRIORITY_HIGH;
         }
     }
+    
+    //
+    //Batch Updating
+    //
+    //
+    class BatchUpdateBehindEntry {
+    	private final long pointValueId;
+        private final int pointId;
+        private final int dataType;
+        private final double dvalue;
+        private final long time;
+
+        public BatchUpdateBehindEntry(long pointValueId, int pointId, int dataType, double dvalue, long time) {
+            this.pointValueId = pointValueId;
+        	this.pointId = pointId;
+            this.dataType = dataType;
+            this.dvalue = dvalue;
+            this.time = time;
+        }
+
+        public void writeInto(Object[] params, int index) {
+
+            params[index++] = pointId;
+            params[index++] = dataType;
+            params[index++] = dvalue;
+            params[index++] = time;
+            params[index++] = pointValueId;
+        }
+    }
+
+    public static final String ENTRIES_UPDATE_MONITOR_ID = BatchUpdateBehind.class.getName() + ".ENTRIES_MONITOR";
+    public static final String INSTANCES_UPDATE_MONITOR_ID = BatchUpdateBehind.class.getName() + ".INSTANCES_MONITOR";
+
+    static class BatchUpdateBehind implements WorkItem {
+        private static final ObjectQueue<BatchUpdateBehindEntry> ENTRIES = new ObjectQueue<PointValueDao.BatchUpdateBehindEntry>();
+        private static final CopyOnWriteArrayList<BatchUpdateBehind> instances = new CopyOnWriteArrayList<BatchUpdateBehind>();
+        private static Log LOG = LogFactory.getLog(BatchUpdateBehind.class);
+        private static final int SPAWN_THRESHOLD = 10000;
+        private static final int MAX_INSTANCES = 5;
+        private static int MAX_ROWS = 1000;
+        private static final IntegerMonitor ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_UPDATE_MONITOR_ID,
+                "internal.monitor.BATCH_ENTRIES");
+        private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_UPDATE_MONITOR_ID,
+                "internal.monitor.BATCH_INSTANCES");
+
+        private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
+
+        static {
+            if (Common.databaseProxy.getType() == DatabaseType.DERBY)
+                // This has not been tested to be optimal
+                MAX_ROWS = 1000;
+            else if (Common.databaseProxy.getType() == DatabaseType.MSSQL)
+                // MSSQL has max rows of 1000, and max parameters of 2100. In this case that works out to...
+                MAX_ROWS = 524;
+            else if (Common.databaseProxy.getType() == DatabaseType.MYSQL)
+                // This appears to be an optimal value
+                MAX_ROWS = 2000;
+            else if (Common.databaseProxy.getType() == DatabaseType.POSTGRES)
+                // This appears to be an optimal value
+                MAX_ROWS = 2000;
+            else
+                throw new ShouldNeverHappenException("Unknown database type: " + Common.databaseProxy.getType());
+
+            Common.MONITORED_VALUES.addIfMissingStatMonitor(ENTRIES_MONITOR);
+            Common.MONITORED_VALUES.addIfMissingStatMonitor(INSTANCES_MONITOR);
+
+            retriedExceptions.add(RecoverableDataAccessException.class);
+            retriedExceptions.add(TransientDataAccessException.class);
+            retriedExceptions.add(TransientDataAccessResourceException.class);
+            retriedExceptions.add(CannotGetJdbcConnectionException.class);
+        }
+
+        static void add(BatchUpdateBehindEntry e, ExtendedJdbcTemplate ejt) {
+            synchronized (ENTRIES) {
+                ENTRIES.push(e);
+                ENTRIES_MONITOR.setValue(ENTRIES.size());
+                if (ENTRIES.size() > instances.size() * SPAWN_THRESHOLD) {
+                    if (instances.size() < MAX_INSTANCES) {
+                        BatchUpdateBehind bwb = new BatchUpdateBehind(ejt);
+                        instances.add(bwb);
+                        INSTANCES_MONITOR.setValue(instances.size());
+                        try {
+                            Common.backgroundProcessing.addWorkItem(bwb);
+                        }
+                        catch (RejectedExecutionException ree) {
+                            instances.remove(bwb);
+                            INSTANCES_MONITOR.setValue(instances.size());
+                            throw ree;
+                        }
+                    }
+                }
+            }
+        }
+
+        private final ExtendedJdbcTemplate ejt;
+
+        public BatchUpdateBehind(ExtendedJdbcTemplate ejt) {
+            this.ejt = ejt;
+        }
+
+        @Override
+        public void execute() {
+            try {
+                BatchUpdateBehindEntry[] updates;
+                while (true) {
+                    synchronized (ENTRIES) {
+                        if (ENTRIES.size() == 0)
+                            break;
+
+                        updates = new BatchUpdateBehindEntry[ENTRIES.size() < MAX_ROWS ? ENTRIES.size() : MAX_ROWS];
+                        ENTRIES.pop(updates);
+                        ENTRIES_MONITOR.setValue(ENTRIES.size());
+                    }
+
+                    // Create the sql and parameters
+                    final int batchSize = updates.length;
+                    final Object[][] params = new Object[updates.length][5];
+                    //sb.append(POINT_VALUE_UPDATE + "WHERE id = ?");
+                    for (int i = 0; i < updates.length; i++) {
+                        updates[i].writeInto(params[i], 0);
+                    }
+                    
+                    
+                    // Insert the data
+                    int retries = 10;
+                    while (true) {
+                        try {
+                            ejt.batchUpdate(POINT_VALUE_UPDATE +" WHERE id = ?", new BatchPreparedStatementSetter() {
+                                @Override
+                                public int getBatchSize() {
+                                    return batchSize;
+                                }
+
+                                @Override
+                                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                                    ps.setInt(1, (Integer)params[i][0]);
+                                    ps.setInt(2, (Integer)params[i][1]);
+                                    ps.setDouble(3, (Double)params[i][2]);
+                                    ps.setLong(4, (Long)params[i][3]);
+                                    ps.setLong(5, (Long)params[i][4]);
+                                }
+                            });                    
+                            break;
+                        }
+                        catch (RuntimeException e) {
+                            if (retriedExceptions.contains(e.getClass())) {
+                                if (retries <= 0) {
+                                    LOG.error("Concurrency failure saving " + updates.length
+                                            + " batch updates after 10 tries. Data lost.");
+                                    break;
+                                }
+
+                                int wait = (10 - retries) * 100;
+                                try {
+                                    if (wait > 0) {
+                                        synchronized (this) {
+                                            wait(wait);
+                                        }
+                                    }
+                                }
+                                catch (InterruptedException ie) {
+                                    // no op
+                                }
+
+                                retries--;
+                            }
+                            else {
+                                LOG.error("Error saving " + updates.length + " batch updates. Data lost.", e);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            finally {
+                instances.remove(this);
+                INSTANCES_MONITOR.setValue(instances.size());
+            }
+        }
+
+        @Override
+        public int getPriority() {
+            return WorkItem.PRIORITY_HIGH;
+        }
+    }
+    
+    
 }

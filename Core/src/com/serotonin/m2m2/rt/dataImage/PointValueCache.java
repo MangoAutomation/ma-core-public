@@ -41,6 +41,48 @@ public class PointValueCache {
 
     private int maxSize = 0;
 
+    /**
+     * Update a value in the system
+     * @param pvt
+     * @param source
+     * @param logValue - Store in DB and Cache or Just Cache
+     * @param async
+     * @return true if point value existed and was updated, false if value DNE in cache
+     * 
+     */
+    public void updatePointValue(PointValueIdTime pvt, SetPointSource source, boolean logValue, boolean async){
+    	
+        if (logValue) {
+            if (async)
+                dao.updatePointValueAsync(dataPointId, pvt, source);
+            else
+                pvt = dao.updatePointValueSync(dataPointId, pvt, source);
+        }
+    	
+        
+        //Update our point in the cache if it exists
+        List<PointValueTime> c = cache;
+        List<PointValueTime> newCache = new ArrayList<PointValueTime>(c.size() + 1);
+        newCache.addAll(c);
+
+        // Insert the value in the cache.
+        if (newCache.size() == 0)
+            return; //Empty anyway
+        else {
+        	for(PointValueTime cachedValue : newCache){
+        		if(cachedValue.getTime() == pvt.getTime()){
+        			cachedValue = pvt; //Replace it and break out
+        			break;
+        		}
+        	}
+        }
+
+        cache = newCache;
+    	return;
+    }
+    
+    
+    
     public void savePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async) {
         if (logValue) {
             if (async)

@@ -15,12 +15,14 @@ window.onerror = function mangoHandler(desc, page, line)  {
     return false;
 };
 
+
 mango.header = {};
 mango.header.onLoad = function() {
-    if (dojo.isIE)
-        mango.header.evtVisualizer = new IEBlinker($("__header__alarmLevelDiv"), 500, 200);
-    else
-        mango.header.evtVisualizer = new ImageFader($("__header__alarmLevelDiv"), 75, .2);
+	//Removed when replaced alarm notification widget
+//    if (dojo.isIE)
+//        mango.header.evtVisualizer = new IEBlinker($("__header__alarmLevelDiv"), 500, 200);
+//    else
+//        mango.header.evtVisualizer = new ImageFader($("__header__alarmLevelDiv"), 75, .2);
     mango.longPoll.start();
 };
 
@@ -55,19 +57,13 @@ function help(documentId, source) {
             title: mango.i18n["js.help.loading"], 
             closeable: true,
             dockable: false,
-            resizable: true
+            resizable: true,
+            style: "position: absolute; zIndex: 980; padding: 2px;"
         }, div);
         
         fp.startup();
-        fp.show();
-        
-        dojo.style(fp.domNode, {
-            position:"absolute",
-            zIndex:"980",
-            padding: "2px"
-            //border: "none"
-        });
     }
+
     
     var top, left;
     if (source) {
@@ -121,6 +117,8 @@ function helpImpl(documentId) {
             content = "<div>"+ content +"</div><div style='height:13px'></div>";
             fp.set('content', content);
         }
+        if(fp.get('_wasShown') === true)
+        	fp.show(); //Show the values
     });
 };
 

@@ -6,6 +6,7 @@ package com.serotonin.m2m2.view.text;
 
 import java.io.Serializable;
 
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
@@ -29,8 +30,12 @@ public interface TextRenderer extends Serializable {
      * Render the value in a way that does not generalize. Currently only used to prevent analog range renderers from
      * obfuscating a numeric into a descriptor.
      */
-    public static final int HINT_SPECIFIC = 3;
-
+    public static final int HINT_SPECIFIC = 4;
+    /**
+     * Do not convert when rendering
+     */
+    public static final int HINT_NO_CONVERT = 8;
+    
     public static final String UNKNOWN_VALUE = "(n/a)";
 
     public String getText(int hint);
@@ -72,4 +77,11 @@ public interface TextRenderer extends Serializable {
     public String getSetPointSnippetFilename();
 
     public DataValue parseText(String s, int dataType);
+    
+    /**
+     * Validate the settings of the renderer
+     * @param result
+     */
+    public void validate(ProcessResult result);
+    
 }

@@ -13,7 +13,7 @@
 <%@page import="java.util.TimeZone"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<tag:page dwr="SystemSettingsDwr" onload="init">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="SystemSettingsDwr" onload="init">
   <script type="text/javascript">
     var systemEventAlarmLevels = new Array();
     var auditEventAlarmLevels = new Array();
@@ -87,6 +87,15 @@
             $set("<c:out value="<%= SystemSettingsDao.CHART_BACKGROUND_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.CHART_BACKGROUND_COLOUR %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.PLOT_BACKGROUND_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.PLOT_BACKGROUND_COLOUR %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.PLOT_GRIDLINE_COLOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.PLOT_GRIDLINE_COLOUR %>"/>);
+
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>);                
         });
         
         <c:if test="${!empty param.def}">
@@ -322,6 +331,37 @@
             });
         }
     }
+    
+    /**
+     * Save the Backup Settings
+     */
+    function saveBackupSettings() {
+    	hideContextualMessages("backupSettingsTab"); //Clear out any existing msgs
+        SystemSettingsDwr.saveBackupSettings(
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>"),
+       		function(response) {
+	            setDisabled("saveBackupSettingsBtn", false);
+	            if (response.hasMessages)
+	                showDwrMessages(response.messages);
+	            else
+	            	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.systemBackupSettingsSaved"/>");
+	        });
+        setUserMessage("backupSettingsMessage");
+        setDisabled("saveBackupSettingsBtn", true);
+    }
+    
+    function backupNow(){
+    	
+    	SystemSettingsDwr.queueBackup()
+    	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.backupQueued"/>");
+    }
+    
   </script>
   
   <tag:labelledSection labelKey="systemSettings.systemInformation">
@@ -599,4 +639,60 @@
       <tr><td colspan="2" id="colourMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
+  
+    <tag:labelledSection labelKey="systemSettings.backupSettings" closed="true">
+    <table id="backupSettingsTab">
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupEnable"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>" type="checkbox" />
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.backupLastSuccessfulRun"/></td>
+        <td class="formField"><span id="<c:out value="<%= SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS %>"/>"></span></td>
+      </tr>
+    
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupLocation"/></td>
+        <td class="formField"><input type="text" id="<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"/> </td>
+      </tr>
+
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupFrequency"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
+        <td class="formField">
+          <fmt:message key="systemSettings.backupHour"/><input id="<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
+          <fmt:message key="systemSettings.backupMinute"/><input id="<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
+         </td>
+	 </tr>
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>" type="text" class="formShort"/>
+         </td>
+	 </tr>
+      <tr>
+        <td colspan="2" align="center">
+          <input id="executeBackupNowBtn" type="button" value="<fmt:message key="systemSettings.backupNow"/>" onclick="backupNow()"/>
+          <input id="saveBackupSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveBackupSettings()"/>
+          <tag:help id="backupSettings"/>
+        </td>
+      </tr>
+      
+      <tr><td colspan="2" id="backupSettingsMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
+  
+  
+  
+  
+  
 </tag:page>

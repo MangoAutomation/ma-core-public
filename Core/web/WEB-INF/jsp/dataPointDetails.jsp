@@ -5,40 +5,58 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.vo.UserComment"%>
 
-<tag:page dwr="DataPointDetailsDwr" js="/resources/view.js">
+<tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="DataPointDetailsDwr" js="/resources/view.js">
   <c:if test="${!empty point}">
     <script type="text/javascript">
-      dojo.require("dojo.store.Memory");
-      dojo.require("dijit.form.FilteringSelect");
-      
-      mango.view.initPointDetails();
-
-      dojo.ready(function() {
-          getHistoryTableData();
-          <c:if test="${!empty periodType}">
-            DataPointDetailsDwr.getDateRangeDefaults(${periodType}, ${periodCount}, function(data) {
-                setDateRange(data);
-                getImageChart();
-            });
-          </c:if>
-          <c:if test="${!empty flipbookLimit}">getFlipbookChart();</c:if>
-          getStatsChart();
-          
-          // Point lookup
-          new dijit.form.FilteringSelect({
-              store: new dojo.store.Memory({ data: pointList }),
-              autoComplete: false,
-              style: "width: 250px;",
-              queryExpr: "*\${0}*",
-              highlightMatch: "all",
-              required: false,
-              onChange: function(point) {
-                  if (this.item)
-                      window.location='data_point_details.shtm?dpid='+ this.item.id;
-              }
-          }, "picker");        
-      });
-    
+    require(["dojo","dojo/store/Memory","dijit/form/FilteringSelect","dijit/form/Select"], 
+    		function(dojo,Memory,FilteringSelect,Select){
+	      
+	      mango.view.initPointDetails();
+	
+	      dojo.ready(function() {
+	          getHistoryTableData();
+	          <c:if test="${!empty periodType}">
+	            DataPointDetailsDwr.getDateRangeDefaults(${periodType}, ${periodCount}, function(data) {
+	                setDateRange(data);
+	                getImageChart();
+	            });
+	          </c:if>
+	          <c:if test="${!empty flipbookLimit}">getFlipbookChart();</c:if>
+	          getStatsChart();
+	          
+	          // Point lookup
+	          new dijit.form.FilteringSelect({
+	              store: new dojo.store.Memory({ data: pointList }),
+	              autoComplete: false,
+	              style: "width: 250px;",
+	              queryExpr: "*\${0}*",
+	              highlightMatch: "all",
+	              required: false,
+	              onChange: function(point) {
+	                  if (this.item)
+	                      window.location='data_point_details.shtm?dpid='+ this.item.id;
+	              }
+	          }, "picker");        
+	      
+	          
+	          //Setup the File Download Selector
+	          var uploadTypeChoice = new Select({
+	              name: "downloadTypeSelect",
+	              options: [
+	                  { label: "Excel", value: ".xlsx", selected: true},
+	                  { label: "Comma Separated Value (CSV)", value: ".csv", },
+	              ]
+	          },"downloadTypeSelect");
+	       
+	      
+	      
+	      });
+	      
+	      
+	      
+	      
+	      
+    });
       //
       // History
       //
@@ -95,8 +113,10 @@
                 $get("fromMinute"), $get("fromSecond"), $get("fromNone"), $get("toYear"), $get("toMonth"),
                 $get("toDay"), $get("toHour"), $get("toMinute"), $get("toSecond"), $get("toNone"), function(data) {
               stopImageFader($("chartDataImg"));
-              window.location = "chartExport/pointData.csv";
-          });
+              var downloadTypeSelect = dijit.byId("downloadTypeSelect");
+              var downloadUrl = "chartExport/pointData" + downloadTypeSelect.get('value');
+              window.location = downloadUrl;
+          });          
       }
       
       //
@@ -241,7 +261,13 @@
                     <td class="formField">${hierPath}</td>
                   </tr>
                 </c:if>
-                <tr><td colspan="2" id="pointMessages"></td></tr>
+                <tr><td colspan="2">
+                        <div style='max-height:100px; overflow-y: scroll'>
+                            <table><tr><td id="pointMessages"></td></tr>
+                            </table>
+                        </div>
+                   </td>
+                </tr>
               </table>
             </div>
             
@@ -318,11 +344,15 @@
                     <td>
                       <tag:img id="imageChartImg" png="control_play_blue" title="pointDetails.imageChartButton"
                               onclick="getImageChart()"/>
+                      <!-- TODO Add selectable type here xslx or csv, Maybe Create Tag... -->
+                      <input id="downloadTypeSelect"></input>
                       <tag:img id="chartDataImg" png="bullet_down" title="pointDetails.chartDataButton"
                               onclick="getChartData()"/>
+                       
+                              
                     </td>
                   </tr>
-                  <tr><td colspan="3" id="imageChartDiv"></td></tr>
+                  <tr><td colspan="4" id="imageChartDiv"></td></tr>
                 </table>
               </div>
             </td>

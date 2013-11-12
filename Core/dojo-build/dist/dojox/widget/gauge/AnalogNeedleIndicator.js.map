@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"AnalogNeedleIndicator.js",
+"lineCount":1,
+"mappings":"A,SACAA,MAAA,uHAA+H,QAAA,CAASC,CAAT,CAAeC,CAAf,CAAoBC,CAApB,EAC/HD,CAAAE,QAAA,4CACAF,EAAAG,QAAA,sCAEAF,EAAAG,OAAAC,MAAAC,sBAJ+H,CAIpFL,CAAAM,OAAAD,sBAJoF,CAA/H;",
+"sources":["AnalogNeedleIndicator.js.uncompressed.js"],
+"names":["define","dijit","dojo","dojox","provide","require","widget","gauge","AnalogNeedleIndicator","gauges"]
+}
