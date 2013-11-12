@@ -435,16 +435,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		this.name = name;
 	}
 
-	// UI Conviencience Methods
-	public String getDataTypeString() {
-		return pointLocator.getDataTypeMessage().translate(
-				Common.getTranslations());
-	}
-
-	public void setDataTypeString(String type) {
-		// No Op
-	}
-
 	@SuppressWarnings("unchecked")
 	public <T extends PointLocatorVO> T getPointLocator() {
 		return (T) pointLocator;
@@ -725,6 +715,35 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public void setIntegralUnitString(String unit){
 		this.integralUnitString = unit;
 	}
+	
+	public String getDataTypeString() {
+		return pointLocator.getDataTypeMessage().translate(
+				Common.getTranslations());
+	}
+
+	public void setDataTypeString(String type) {
+		// No Op
+	}
+	
+	public String getLoggingTypeString() {
+		return Common.translate(LOGGING_TYPE_CODES.getKey(loggingType));
+	}
+
+	public void setLoggingTypeString(String type) {
+		// No Op
+	}
+	
+	public String getLoggingIntervalString() {
+		if(this.loggingType == LoggingTypes.INTERVAL)
+			return Common.getPeriodDescription(intervalLoggingPeriodType, intervalLoggingPeriod).translate(Common.getTranslations()) + " " + Common.translate(INTERVAL_LOGGING_TYPE_CODES.getKey(intervalLoggingType));
+		else
+			return "N/A";
+	}
+
+	public void setLoggingIntervalString(String type) {
+		// No Op
+	}	
+	
 	/* ############################## */
 
 	public DataPointVO copy() {

@@ -35,7 +35,12 @@ allDataPoints = new StoreView({
     sortMap: [
               {attribute: "deviceName", descending:true},
               {attribute: "name", descending:true},
+              {attribute: "xid", descending:true},              
               {attribute: "dataTypeString", descending: true},
+              {attribute: "loggingTypeString", descending: true},
+              {attribute: "loggingIntervalString", descending: true},
+              {attribute: "tolerance", descending: true},
+              
               ],
     
     columns: {
@@ -126,6 +131,52 @@ allDataPoints = new StoreView({
     				return div;
     		},
         },
+        
+        xid: {
+    		label: mangoMsg['common.xid'],
+    		sortable: false,
+    		renderHeaderCell: function(th){
+    			
+    				var div = domConstruct.create("div");
+    				var input = new TextBox({
+    					name: 'inputText',
+    					placeHolder: 'filter text',
+    					style: "width: 10em",
+    					intermediateChanges: true,
+    				});
+    				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['common.xid'],});
+    				domConstruct.place(label,div);
+    				input.placeAt(div);
+    				input.watch("value",function(name,oldValue,value){
+    					
+    					if(value == '')
+    						delete allDataPoints.filter['xid'];
+    					else
+    						allDataPoints.filter['xid'] = new RegExp("^.*"+value+".*$");
+    					
+    					allDataPoints.grid.set('query',allDataPoints.filter);
+    				});
+    				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+    				on(sortLink,'click',function(event){
+    					
+    					//Flip through the list to see if we already have an order?
+    					for(var i =0; i<allDataPoints.sortMap.length; i++){
+    						if(allDataPoints.sortMap[i].attribute === "xid"){
+    							allDataPoints.sortMap[i].descending = !allDataPoints.sortMap[i].descending;
+    							break;
+    						}
+    					}
+    					var options = {};
+    					options.sort = [{attribute: allDataPoints.sortMap[i].attribute, descending: allDataPoints.sortMap[i].descending}];
+    					
+    					allDataPoints.grid.set("query",allDataPoints.filter,options);
+    				});
+       				domConstruct.place(sortLink,div);
+
+    				return div;
+    		},
+        },
+        
     	dataTypeString: {
     		label: mangoMsg['dsEdit.pointDataType'],
     		sortable: false,
@@ -170,7 +221,137 @@ allDataPoints = new StoreView({
 				return div;
     		},
     	 },
-    	
+ 
+    	 
+     	loggingTypeString: {
+    		sortable: false,
+    		renderHeaderCell: function(th){
+				var div = domConstruct.create("div");
+				var input = new TextBox({
+					name: 'inputText',
+					placeHolder: 'filter text',
+					style: "width: 10em",
+					intermediateChanges: true,
+				});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['pointEdit.logging.type'],});
+				domConstruct.place(label,div);
+				input.placeAt(div);
+				input.watch("value",function(name,oldValue,value){
+					
+					if(value == '')
+						delete allDataPoints.filter['loggingTypeString'];
+					else
+						allDataPoints.filter['loggingTypeString'] = new RegExp("^.*"+value+".*$");
+					
+					allDataPoints.grid.set('query',allDataPoints.filter);
+				});
+				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+				on(sortLink,'click',function(event){
+					
+					//Flip through the list to see if we already have an order?
+					for(var i =0; i<allDataPoints.sortMap.length; i++){
+						if(allDataPoints.sortMap[i].attribute === "loggingTypeString"){
+							allDataPoints.sortMap[i].descending = !allDataPoints.sortMap[i].descending;
+							break;
+						}
+					}
+					var options = {};
+					options.sort = [{attribute: allDataPoints.sortMap[i].attribute, descending: allDataPoints.sortMap[i].descending}];
+					
+					allDataPoints.grid.set("query",allDataPoints.filter,options);
+				});
+   				domConstruct.place(sortLink,div);
+
+				return div;
+    		},
+    	 },
+    	 
+      	loggingIntervalString: {
+    		sortable: false,
+    		renderHeaderCell: function(th){
+				var div = domConstruct.create("div");
+				var input = new TextBox({
+					name: 'inputText',
+					placeHolder: 'filter text',
+					style: "width: 10em",
+					intermediateChanges: true,
+				});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['pointEdit.logging.period'],});
+				domConstruct.place(label,div);
+				input.placeAt(div);
+				input.watch("value",function(name,oldValue,value){
+					
+					if(value == '')
+						delete allDataPoints.filter['loggingIntervalString'];
+					else
+						allDataPoints.filter['loggingIntervalString'] = new RegExp("^.*"+value+".*$");
+					
+					allDataPoints.grid.set('query',allDataPoints.filter);
+				});
+				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+				on(sortLink,'click',function(event){
+					
+					//Flip through the list to see if we already have an order?
+					for(var i =0; i<allDataPoints.sortMap.length; i++){
+						if(allDataPoints.sortMap[i].attribute === "loggingIntervalString"){
+							allDataPoints.sortMap[i].descending = !allDataPoints.sortMap[i].descending;
+							break;
+						}
+					}
+					var options = {};
+					options.sort = [{attribute: allDataPoints.sortMap[i].attribute, descending: allDataPoints.sortMap[i].descending}];
+					
+					allDataPoints.grid.set("query",allDataPoints.filter,options);
+				});
+   				domConstruct.place(sortLink,div);
+
+				return div;
+    		},
+    	 },
+    	 
+      	tolerance: {
+    		sortable: false,
+    		renderHeaderCell: function(th){
+				var div = domConstruct.create("div");
+				var input = new TextBox({
+					name: 'inputText',
+					placeHolder: 'filter text',
+					style: "width: 10em",
+					intermediateChanges: true,
+				});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['pointEdit.logging.tolerance'],});
+				domConstruct.place(label,div);
+				input.placeAt(div);
+				input.watch("value",function(name,oldValue,value){
+					
+					if(value == '')
+						delete allDataPoints.filter['tolerance'];
+					else
+						allDataPoints.filter['tolerance'] = new RegExp("^.*"+value+".*$");
+					
+					allDataPoints.grid.set('query',allDataPoints.filter);
+				});
+				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+				on(sortLink,'click',function(event){
+					
+					//Flip through the list to see if we already have an order?
+					for(var i =0; i<allDataPoints.sortMap.length; i++){
+						if(allDataPoints.sortMap[i].attribute === "tolerance"){
+							allDataPoints.sortMap[i].descending = !allDataPoints.sortMap[i].descending;
+							break;
+						}
+					}
+					var options = {};
+					options.sort = [{attribute: allDataPoints.sortMap[i].attribute, descending: allDataPoints.sortMap[i].descending}];
+					
+					allDataPoints.grid.set("query",allDataPoints.filter,options);
+				});
+   				domConstruct.place(sortLink,div);
+
+				return div;
+    		},
+    	 },
+    	 
     },
     
     imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', pointDetails: 'icon_comp'},

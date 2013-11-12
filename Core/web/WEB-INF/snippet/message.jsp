@@ -44,6 +44,7 @@ String[] mangoMessageKeys = {
 	    "common.time",
 		"common.totalResults",
 		"common.clearDates",
+		"common.xid",
 		
 		"chartRenderer.none",
 		"chartRenderer.image",
@@ -106,12 +107,16 @@ String[] mangoMessageKeys = {
 	    "pointEdit.detectors.negCusum",
 	    "pointEdit.detectors.regexState",
 	    
+	    "pointEdit.logging.period",
+	    
+	    "pointEdit.logging.tolerance",
+	    
+	    "pointEdit.logging.type",
 	    "pointEdit.logging.type.change",
 	    "pointEdit.logging.type.all",
 	    "pointEdit.logging.type.never",
 	    "pointEdit.logging.type.interval",
 	    "pointEdit.logging.type.tsChange",
-	    
 	    
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",

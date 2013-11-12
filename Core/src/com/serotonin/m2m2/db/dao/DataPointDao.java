@@ -837,6 +837,18 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			}
 		});
 		
+		comparatorMap.put("loggingTypeString", new Comparator<DataPointVO>(){
+			public int compare(DataPointVO lhs, DataPointVO rhs){
+				return lhs.getLoggingTypeString().compareTo(rhs.getLoggingTypeString());
+			}
+		});		
+		
+		comparatorMap.put("loggingIntervalString", new Comparator<DataPointVO>(){
+			public int compare(DataPointVO lhs, DataPointVO rhs){
+				return lhs.getLoggingIntervalString().compareTo(rhs.getLoggingIntervalString());
+			}
+		});		
+		
 		return comparatorMap;
 	}
 
@@ -858,6 +870,32 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 				
 			}
 			
+		});
+		
+		filterMap.put("loggingTypeString", new IFilter<DataPointVO>(){
+			private String regex;
+			@Override
+			public boolean filter(DataPointVO vo) {
+				return !vo.getLoggingTypeString().matches(regex);
+			}
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches;
+				
+			}
+		});
+		
+		filterMap.put("loggingIntervalString", new IFilter<DataPointVO>(){
+			private String regex;
+			@Override
+			public boolean filter(DataPointVO vo) {
+				return !vo.getLoggingIntervalString().matches(regex);
+			}
+			@Override
+			public void setFilter(Object matches) {
+				this.regex = "(?i)"+(String)matches;
+				
+			}
 		});
 		
 		return filterMap;
