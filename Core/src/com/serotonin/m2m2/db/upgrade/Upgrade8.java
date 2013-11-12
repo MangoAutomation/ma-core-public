@@ -21,9 +21,15 @@ public class Upgrade8 extends DBUpgrade {
         return "9";
     }
 
-    private final String[] derbyScript = { };
+    private final String[] derbyScript = {
+    		"create index performance1 on userEvents (userId ASC, silenced ASC);",
+    		"create index performance1 on events (activeTs ASC);"
+    };
 
     private final String[] mssqlScript = { };
 
-    private final String[] mysqlScript = { };
+    private final String[] mysqlScript = {
+    		"ALTER TABLE `mango`.`userEvents` ADD INDEX `performance1` (`userId` ASC, `silenced` ASC);",
+    		"ALTER TABLE `mango`.`events` ADD INDEX `performance1` (`activeTs` ASC);"
+    };
 }
