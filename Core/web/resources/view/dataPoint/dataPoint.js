@@ -183,6 +183,47 @@ dataPoints = new StoreView({
     	
     },
     
+    //Add any columns from the data source
+    addColumns: function(){
+    	var _this = this;
+    	//Globals for legacy column support
+    	var pointListColumnHeaders = new Array();
+    	var pointListColumnFunctions = new Array();
+    	
+    	
+    	if(typeof appendPointListColumnFunctions === 'function'){
+    		appendPointListColumnFunctions(pointListColumnHeaders, pointListColumnFunctions);
+    	
+    		for(var i=0; i<pointListColumnHeaders.length; i++){
+    			//_this.columns[pointListColumnHeaders[i]] = pointListColumnFunctions[i];
+    			var index = "dataPoints"+i;
+    			var header = pointListColumnHeaders[i];
+    			var content = pointListColumnFunctions[i];
+    			_this.columns[index] = _this.createColumn(header,content)();
+    				
+    		}
+    	}
+    },
+    
+    createColumn: function(header,content){
+    	return function(){
+    		return {
+    			sortable: false,
+				renderHeaderCell: function(th){
+	                var div = dojo.create("div");
+	                div.innerHTML = header;
+	                return div;
+	            },
+	            renderCell: function(point, alarmLevel, cell){
+	                var div = document.createElement("div");
+	                div.innerHTML = content(point);
+	                cell.appendChild(div);
+	                return div;
+	            }
+    		};
+    	}
+    },
+    
     imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', pointDetails: 'icon_comp'},
     fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run', pointDetails: 'view'},
 

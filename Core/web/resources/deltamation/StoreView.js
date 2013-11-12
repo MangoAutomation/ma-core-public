@@ -61,9 +61,14 @@ return declare("deltamation.StoreView", null, {
     loadingMessage: '<div class="dgridLoadNoData"><img src="/images/hourglass.png" title="' + mango.i18n['common.loading'] + '" /></div>',
     noDataMessage: '<div class="dgridLoadNoData">' + mangoMsg['table.noData'] + '</div>',
     renderRowHook: null,
+    addColumns: null, //Method to allow adding of additional columns programatically
     
     initGrid: function() {
         var _this = this;
+        
+        if (typeof _this.addColumns === 'function')
+        	_this.addColumns(); //Add any columns before init-ing grid
+        
         if (this.buttons.length > 0)
             this.columns.buttons = {
                 label: ' ',
@@ -76,6 +81,8 @@ return declare("deltamation.StoreView", null, {
                     return _this.renderButtons(object, value, node, options);
                 }
             };
+        
+        
         
         this.grid = dojo.declare([OnDemandGrid, ColumnResizer])({
         	adjustLastColumn: false, /* Don't expand last row to fill */
