@@ -7,7 +7,12 @@
 
     
   
-<div id="mainHeader" data-dojo-type="dijit/layout/BorderContainer" style="width:100%; height: 85px" >
+<div id="mainHeader" data-dojo-type="dijit/layout/BorderContainer" 
+<c:choose>
+<c:when test="${showHeader == false}">style="display:none;"</c:when>
+<c:otherwise>style="width:100%; height: 85px"</c:otherwise>
+</c:choose> 
+>
      <div id="mainHeader_leadingRegion" style="width:20%; border:0px; padding:0px" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'leading'" >
         <img id="application_logo" src="<%= Common.applicationLogo %>" alt="Logo"/>
      </div>
