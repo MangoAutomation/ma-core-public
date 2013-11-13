@@ -9,11 +9,14 @@
 
 <c:if test="${!simple}">
   <table width="100%" cellspacing="0" cellpadding="0" border="0" id="subHeader" 
+  <c:if test="${!empty showToolbar}">
   <c:choose>
     <c:when test="${showToolbar == false}">style="display:none;"</c:when>
     <c:otherwise></c:otherwise>
   </c:choose>
+  </c:if>
   >
+  
     <tr>
       <td style="cursor:default">
         <c:if test="${!empty sessionUser}">
