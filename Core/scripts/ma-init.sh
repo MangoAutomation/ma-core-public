@@ -25,7 +25,9 @@ else
 fi
 
 # Run enabled init extensions.
+if [ -d "$MA_HOME/bin/ext-enabled" ]; then
 for f in $MA_HOME/bin/ext-enabled/*.sh
 do
     source $f init
 done
+fi

@@ -13,10 +13,12 @@ if [ -z $MA_HOME ]; then
 fi
 
 # Run enabled stop extensions.
+if [ -d "$MA_HOME/bin/ext-enabled" ]; then
 for f in $MA_HOME/bin/ext-enabled/*.sh
 do
     source $f stop
 done
+fi
 
 # If there is a pid file, use it to kill the Java process.
 if [ -f $MA_HOME/bin/ma.pid ]; then

@@ -76,10 +76,12 @@ while [ $LOOP_EXIT = false ]; do
     fi
     
     # Run enabled restart extensions
+    if [ -d "$MA_HOME/bin/ext-enabled" ]; then
     for f in $MA_HOME/bin/ext-enabled/*.sh
     do
         source $f restart
     done
+    fi
     
     # Check if MA was explicitly stopped by the stop script.
     if [ -r "$MA_HOME"/STOP ]; then

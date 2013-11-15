@@ -122,7 +122,7 @@ public class PublisherDao extends BaseDao {
                     "insert into publishers (xid, publisherType, data) values (?,?,?)",
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
                             SerializationHelper.writeObjectToArray(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                            Types.BINARY }));
+                    		Types.BLOB})); //TP Edit Nov 2013 had to change from BINARY to BLOB... Did we upgrade Derby version since this code was last touched?
         else
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
                     SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
