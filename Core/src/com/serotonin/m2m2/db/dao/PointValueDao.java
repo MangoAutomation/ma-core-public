@@ -657,6 +657,11 @@ public class PointValueDao extends BaseDao {
     //
     // Point value deletions
     //
+
+	public long deletePointValue(int pointValueId) {
+		return deletePointValues("delete from pointValues where id = ?", new Object[]{pointValueId},0, 0);
+	}
+	
     public long deletePointValuesBefore(int dataPointId, long time) {
         return deletePointValues("delete from pointValues where dataPointId=? and ts<?", new Object[] { dataPointId,
                 time }, 0, 0);

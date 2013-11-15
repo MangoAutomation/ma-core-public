@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.joda.time.DateTime;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -49,7 +50,8 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         Common.translate("common.time"),
         Common.translate("common.value"),
         Common.translate("common.rendered"),
-        Common.translate("common.annotation")
+        Common.translate("common.annotation"),
+        Common.translate("common.delete")
     };
 
 	/* (non-Javadoc)
@@ -67,6 +69,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         CellType.STRING,
         CellType.DATE,
         CellType.STRING, //May be able to change to NUMERIC
+        CellType.STRING,
         CellType.STRING,
         CellType.STRING
     };
@@ -88,19 +91,23 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         30*256,
         25*256,
         25*256,
+        10*256
     };
     
-    /* (non-Javadoc)
-     * @see com.deltamation.mango.downtime.emport.AbstractSheetEmporter#getColumnWidths()
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.emport.AbstractSheetEmporter#getColumnWidths()
      */
-    @Override
+     @Override
     protected int[] getColumnWidths() {
         return columnWidths;
     }
   
     
-    /* (non-Javadoc)
-     * @see com.deltamation.mango.downtime.emport.AbstractSheetEmporter#importRow(java.lang.Integer, java.util.List)
+
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.emport.AbstractSheetEmporter#importRow(org.apache.poi.ss.usermodel.Row)
      */
     @Override
     protected void importRow(Row rowData) throws SpreadsheetException {
@@ -115,8 +122,36 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	
     	//Data Point XID
     	DataPointVO dp = DataPointDao.instance.getByXid(rowData.getCell(cellNum++).getStringCellValue());
+    	if(dp == null){
+        	throw new SpreadsheetException("emport.error.xidRequired");
+        }
     	DataPointRT dpRt = Common.runtimeManager.getDataPoint(dp.getId());
     	PointValueIdTime pvt;
+    	
+    	// delete column
+    	Cell deleteCell = rowData.getCell(8);
+    	if(deleteCell != null){
+	        String delete = (String) deleteCell.getStringCellValue();
+	        if (delete != null && delete.equalsIgnoreCase("Yes")) {
+	            if (id == -1) {
+	                throw new SpreadsheetException("emport.error.deleteNew", id);
+	            } 
+	            else {
+	                try {
+	                	Common.runtimeManager.purgeDataPointValue(id,dp.getId());
+	                }
+	                catch (Exception e) {
+	                    if(e instanceof DataIntegrityViolationException)
+	                        throw new SpreadsheetException(id, "emport.error.unableToDeleteDueToConstraints");
+	                    else
+	                        throw new SpreadsheetException(id, "emport.error.unableToDelete", e.getMessage());
+	                }
+	            }
+	            return; //Done now
+	        }    	
+    	}//end if delete cell exists
+    	
+    	
     	
     	//Cell Device name (Not using Here)
     	cellNum++;
@@ -172,7 +207,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    		pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
 	    	}
     	}else{
-    		//Update the point value
+    		//Update OR Delete the point value
 	    	if(dpRt != null)
 	    		dpRt.updatePointValueInCache(pvt, null, true, true);
 	    	else{

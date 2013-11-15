@@ -494,6 +494,14 @@ public class RuntimeManager {
         updateDataPointValuesRT(dataPointId);
         return count;
     }
+    
+    public long purgeDataPointValue(int pointValueId,int dataPointId){
+    	long count = new PointValueDao().deletePointValue(pointValueId);
+    	if(count > 0)
+    		updateDataPointValuesRT(dataPointId);
+    	return count;
+    	
+    }
 
     public long purgeDataPointValues(int dataPointId, long before) {
         long count = new PointValueDao().deletePointValuesBefore(dataPointId, before);
@@ -576,4 +584,6 @@ public class RuntimeManager {
             runningPublishers.remove(publisher);
         }
     }
+
+
 }
