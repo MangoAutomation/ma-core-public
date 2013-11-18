@@ -14,7 +14,6 @@ import javax.measure.unit.Unit;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.UnitUtil;
@@ -24,10 +23,10 @@ import com.serotonin.m2m2.util.UnitUtil;
  * @author Jared Wiltshire
  */
 public abstract class ConvertingRenderer extends BaseTextRenderer {
-    @JsonProperty
+    
     protected boolean useUnitAsSuffix;
-    Unit<?> unit;
-    Unit<?> renderedUnit;
+    protected Unit<?> unit;
+    protected Unit<?> renderedUnit;
     
     public ConvertingRenderer() {
         setDefaults();
@@ -82,15 +81,19 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         
+        writer.writeEntry("useUnitAsSuffix", useUnitAsSuffix);
+        
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
-        if (!renderedUnit.equals(unit))
-            writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
+        //if (!renderedUnit.equals(unit))
+        writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
         
     }
     
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
+        
+        useUnitAsSuffix = jsonObject.getBoolean("useUnitAsSuffix");
         
         String text = jsonObject.getString("unit");
         if (text != null) {

@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -148,8 +149,42 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
         List<DataSourceVO<?>> dss = new ArrayList<DataSourceVO<?>>();
         dss.add(new DataSourceDao().getDataSource(id));
         data.put(EmportDwr.DATA_SOURCES, dss);
-        data.put(EmportDwr.DATA_POINTS, new DataPointDao().getDataPoints(id, null));
+        data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(id, null));
         return EmportDwr.export(data, 3);
+    }
+	
+    @DwrPermission(user = true)
+    @Override
+    public ProcessResult getCopy(int id) {
+
+        //Get a Full Copy
+        DataSourceVO<?> vo = dao.getFull(id);
+        ProcessResult response = new ProcessResult();
+
+        String name = StringUtils.abbreviate(
+                TranslatableMessage.translate(getTranslations(), "common.copyPrefix", vo.getName()), 40);
+
+        //Setup the Copy
+        DataSourceVO<?> copy = vo.copy();
+        copy.setId(Common.NEW_ID);
+        copy.setName(name);
+        copy.setXid(dao.generateUniqueXid());
+        response.addData("vo", copy);
+
+        //Create a copy of all the points too.
+        List<DataPointVO> points = DataPointDao.instance.getDataPoints(id, null);
+        //Create a copy 
+        for(DataPointVO point : points){
+        	DataPointVO pointCopy = point.copy();
+        	//Change the Name
+        	pointCopy.setName(name);
+        	//Change the XID
+        	//Change the DS ID
+        }
+        
+        //Don't Validate it, that will be done on save
+        
+        return response;
     }
 	
 	

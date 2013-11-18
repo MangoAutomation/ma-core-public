@@ -143,6 +143,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
+            
             DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
             dp.setId(rs.getInt(++i));
             dp.setXid(rs.getString(++i));
