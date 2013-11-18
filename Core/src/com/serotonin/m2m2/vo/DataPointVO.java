@@ -1011,6 +1011,18 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			engineeringUnits = in.readInt();
 			chartColour = null;
 			plotType = PlotTypes.STEP;
+			
+			unit = defaultUnit();
+            unitString = UnitUtil.formatLocal(unit);
+            
+            integralUnit = defaultUnit();
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
+            renderedUnit = defaultIntegralUnit();
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
+            useIntegralUnit = false;
+            useRenderedUnit = false;
 		} else if (ver == 2) {
 			name = SerializationHelper.readSafeUTF(in);
 			deviceName = null;
@@ -1033,6 +1045,18 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			engineeringUnits = in.readInt();
 			chartColour = SerializationHelper.readSafeUTF(in);
 			plotType = PlotTypes.STEP;
+			
+			unit = defaultUnit();
+            unitString = UnitUtil.formatLocal(unit);
+            
+            integralUnit = defaultUnit();
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
+            renderedUnit = defaultIntegralUnit();
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
+            useIntegralUnit = false;
+            useRenderedUnit = false;
 		} else if (ver == 3) {
 			name = SerializationHelper.readSafeUTF(in);
 			deviceName = SerializationHelper.readSafeUTF(in);
@@ -1055,6 +1079,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			engineeringUnits = in.readInt();
 			chartColour = SerializationHelper.readSafeUTF(in);
 			plotType = PlotTypes.STEP;
+			
+			unit = defaultUnit();
+            unitString = UnitUtil.formatLocal(unit);
+            
+            integralUnit = defaultUnit();
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
+            renderedUnit = defaultIntegralUnit();
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
+            useIntegralUnit = false;
+            useRenderedUnit = false;
+            
 		} else if (ver == 4) {
 			name = SerializationHelper.readSafeUTF(in);
 			deviceName = SerializationHelper.readSafeUTF(in);
@@ -1085,6 +1122,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			discardHighLimit = in.readDouble();
 			chartColour = SerializationHelper.readSafeUTF(in);
 			plotType = in.readInt();
+			
+			unit = defaultUnit();
+            unitString = UnitUtil.formatLocal(unit);
+            
+            integralUnit = defaultUnit();
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
+            renderedUnit = defaultIntegralUnit();
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
+            useIntegralUnit = false;
+            useRenderedUnit = false;
+            
 		}else if (ver == 6) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
