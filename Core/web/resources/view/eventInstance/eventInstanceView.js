@@ -526,7 +526,7 @@ eventInstances = new StoreView({
     	        		});
     	        	}
     	    	}else if(eventInstance.eventType.eventType === constants_PUBLISHER){
-    	    		html += "<a href='publisher_edit.shtm?pid='>"+ eventInstance.eventType.publisherId +"<img src='/images/transmit_edit.png' title='";
+    	    		html += "<a href='publisher_edit.shtm?pid="+ eventInstance.eventType.publisherId +"'><img src='/images/transmit_edit.png' title='";
     	    		html += mangoMsg['events.editPublisher'] + "'/></a>";
     	    	}else if(eventInstance.eventType.eventType === constants_AUDIT){
     		   		if(eventInstance.eventType.auditEventType === constants_AUDIT_TYPE_DATA_SOURCE){
