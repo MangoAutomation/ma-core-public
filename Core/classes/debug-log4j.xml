@@ -42,7 +42,8 @@
   <category name="org.directwebremoting"><level value="error"/></category>
   <category name="org.springframework"><level value="error"/></category>
   <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
-  <category name="com.serotonin.m2m2"><level value="info"/></category>
+  <category name="com.serotonin.m2m2"><level value="debug"/></category>
+  <category name="com.serotonin.m2m2.persistent"><level value="debug"/></category>
   
   <root>
     <level value="error"/>

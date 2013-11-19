@@ -656,6 +656,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
     public void setUnit(Unit<?> unit) {
         this.unit = unit;
+        //this.unitString = UnitUtil.formatLocal(unit); //TODO this is dirty, ensures we have the String in the UI
     }
     
     public Unit<?> getRenderedUnit() {
@@ -664,6 +665,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
     public void setRenderedUnit(Unit<?> renderedUnit) {
         this.renderedUnit = renderedUnit;
+        //this.renderedUnitString = UnitUtil.formatLocal(renderedUnit);
     }
     
     public boolean isUseIntegralUnit() {
@@ -928,7 +930,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         // integral unit should have same dimensions as the default integrated unit
         if (integralUnit == null)
             return false;
-        setIntegralUnit(UnitUtil.parseLocal(this.integralUnitString));
+        //Why? setIntegralUnit(UnitUtil.parseLocal(this.integralUnitString));
         
         return integralUnit.isCompatible(defaultIntegralUnit());
     }
@@ -943,7 +945,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         // integral unit should have same dimensions as the default integrated unit
         if (renderedUnit == null)
             return false;
-		setRenderedUnit(UnitUtil.parseLocal(this.renderedUnitString));
+		//Why? setRenderedUnit(UnitUtil.parseLocal(this.renderedUnitString));
 
         return renderedUnit.isCompatible(unit);
     }
@@ -998,6 +1000,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	private static final int version = 9; //Skipped 7,8 to catch up with Deltamation
 
 	private void writeObject(ObjectOutputStream out) throws IOException {
+		ensureUnitsCorrect();
 		out.writeInt(version);
 		out.writeObject(textRenderer);
 		out.writeObject(chartRenderer);
@@ -1235,6 +1238,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
         
         if (integralUnit == null || !validateIntegralUnit()) {
             integralUnit = defaultIntegralUnit();
+        }
+        
+        if(renderedUnit == null || !validateRenderedUnit()){
+        	renderedUnit = defaultUnit();
         }
         
         setUnitsOnTextRenderer();

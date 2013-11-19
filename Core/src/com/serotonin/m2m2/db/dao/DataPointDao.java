@@ -208,7 +208,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     void insertDataPoint(final DataPointVO dp) {
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.beforeInsert(dp);
-
+        
         // Create a default text renderer
         if (dp.getTextRenderer() == null)
             dp.defaultTextRenderer();
@@ -241,6 +241,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     void updateDataPoint(final DataPointVO dp) {
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.beforeUpdate(dp);
+
 
         DataPointVO old = getDataPoint(dp.getId());
 
