@@ -168,6 +168,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     }
     
     /**
+     * Not currently being used, see DataSourceEditDwr
+     * 
      * Save the VO AND FDAO Data
      * 
      * Conversion for the VO must be added by extending DwrConversionDefinition
@@ -222,7 +224,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     }
     
     /**
-     * Override the copy method as to manage the User.editingPoint so it is avaiable on copy
+     * Override the copy method as to manage the User.editingPoint so it is available on copy
      */
     @Override
     @DwrPermission(user = true)
@@ -231,6 +233,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	
     	//Store the edit point
     	DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
+    	editPoint.setCopyPermissionsFrom(id);
     	Common.getUser().setEditPoint(editPoint);
     	
     	return result;
@@ -339,6 +342,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		//dp.setPointLocator(newDp.getPointLocator());
     		dp.setDeviceName(newDp.getDeviceName());
     		dp.setEnabled(newDp.isEnabled());
+    		
+    		dp.setDataSourceId(newDp.getDataSourceId());
     		
     		//General Properties
     		dp.setEngineeringUnits(newDp.getEngineeringUnits());

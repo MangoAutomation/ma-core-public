@@ -28,6 +28,12 @@
         </table>
         <div id="dataSourceMessage" class="ctxmsg formError"></div>
         <table>
+          <c:if test="${copy}">
+          <tr id="copyDeviceName">
+            <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>
+            <td class="formField"><input type="text" id="dataSource.deviceName" value="${dataSource.name}"/></td>
+          </tr>
+          </c:if>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.head.name"/></td>
             <td class="formField"><input type="text" id="dataSource.name" value="${dataSource.name}"/></td>

@@ -205,6 +205,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	//
 	private String dataSourceTypeName;
 	private String dataSourceName;
+	private int copyPermissionsFrom = -1;
 
 	//
 	//
@@ -749,11 +750,40 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public DataPointVO copy() {
 		try {
 			DataPointVO copy = (DataPointVO) super.clone();
-
-			copy.setPointLocator(pointLocator);
-			copy.setEventDetectors(eventDetectors);
+			
+			copy.setChartColour(chartColour);
 			copy.setChartRenderer(chartRenderer);
+			copy.setDataSourceId(dataSourceId);
+			copy.setDataSourceName(dataSourceName);
+			copy.setDataSourceTypeName(dataSourceTypeName);
+			copy.setDataSourceXid(dataSourceXid);
+			copy.setDefaultCacheSize(defaultCacheSize);
+			copy.setDeviceName(deviceName);
+			copy.setDiscardExtremeValues(discardExtremeValues);
+			copy.setDiscardHighLimit(discardHighLimit);
+			copy.setDiscardLowLimit(discardLowLimit);
+			copy.setEnabled(enabled);
+			copy.setEventDetectors(eventDetectors);
+			copy.setIntegralUnit(integralUnit);
+			copy.setIntervalLoggingPeriod(intervalLoggingPeriod);
+			copy.setIntervalLoggingPeriodType(intervalLoggingPeriodType);
+			copy.setIntervalLoggingType(intervalLoggingType);
+			copy.setLoggingType(loggingType);
+			copy.setName(name);
+			copy.setPlotType(plotType);
+			copy.setPointFolderId(pointFolderId);
+			copy.setPointLocator(pointLocator);
+			copy.setPurgeOverride(purgeOverride);
+			copy.setPurgePeriod(purgePeriod);
+			copy.setPurgeType(purgeType);
+			copy.setRenderedUnit(renderedUnit);
+			copy.setSettable(settable);
 			copy.setTextRenderer(textRenderer);
+			copy.setTolerance(tolerance);
+			copy.setUnit(integralUnit);
+			copy.setUseIntegralUnit(useIntegralUnit);
+			copy.setUseRenderedUnit(useRenderedUnit);
+			copy.setXid(xid);
 
 			return copy;
 		} catch (CloneNotSupportedException e) {
@@ -1353,4 +1383,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	            throw new TranslatableJsonException("emport.error.parseError", item);
 	        }
 	    }
+
+	/**
+	 * @return
+	 */
+	public int getCopyPermissionsFrom() {
+		return copyPermissionsFrom;
+	}
+	public void setCopyPermissionsFrom(int fromId){
+		this.copyPermissionsFrom = fromId;
+	}
 }

@@ -177,7 +177,17 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         locator.validate(response, dp);
 
         if (!response.getHasMessages()) {
+        	
+
+        	
             Common.runtimeManager.saveDataPoint(dp);
+        	
+            //If we have the need to copy permissions then do it now
+            // Dirty kludge but whatever for now this all needs reworking.
+            if(dp.getCopyPermissionsFrom() > 0){
+        		DataPointDao.instance.copyPermissions(dp.getCopyPermissionsFrom(), dp.getId());
+        	}
+        	
             if (defaulter != null)
                 defaulter.postSave(dp);
             response.addData("id", dp.getId());

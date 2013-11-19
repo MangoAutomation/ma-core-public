@@ -95,6 +95,9 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
 	        }
         }
         
+        //Are we going to be making a copy?
+        String copyStr = request.getParameter("copy");
+        
         //Are we editing a point?
         if(pidStr != null){
         	int pid = Integer.parseInt(pidStr);
@@ -105,19 +108,58 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
             	model.put("params", pid);
                 return new ModelAndView(new RedirectView(errorViewName),model);
             }else{
-            	model.put("dataPoint", dp);
+            	
+                id = dp.getDataSourceId();
+                
+                //Now check to see if we are making a copy of this
+                
+                if(copyStr != null){
+                	Boolean copy = Boolean.parseBoolean(copyStr);
+                	model.put("copy", copy);
+                	if(copy){
+                        String name = StringUtils.abbreviate(
+                                TranslatableMessage.translate(Common.getTranslations(), "common.copyPrefix", dp.getName()), 40);
+
+                        //Setup the Copy
+                        DataPointVO copyDp = dp.copy();
+                        copyDp.setId(Common.NEW_ID);
+                        copyDp.setName(name);
+                        copyDp.setXid(DataPointDao.instance.generateUniqueXid());
+                        model.put("dataPoint", copyDp);
+                	}
+                	
+                }else
+                	model.put("dataPoint", dp);
             }
-            id = dp.getDataSourceId();
         }
         
         if(idStr != null){
         	 // An existing configuration or copy
             id = Integer.parseInt(idStr);
+           
+            
         }
         
         
         if (id != Common.NEW_ID) {
             dataSourceVO = Common.runtimeManager.getDataSource(id);
+            
+            if(copyStr != null){
+            	Boolean copy = Boolean.parseBoolean(copyStr);
+            	model.put("copy", copy);
+            	if(copy){
+                    String name = StringUtils.abbreviate(
+                            TranslatableMessage.translate(Common.getTranslations(), "common.copyPrefix", dataSourceVO.getName()), 40);
+
+                    //Setup the Copy
+                    dataSourceVO = dataSourceVO.copy();
+                    dataSourceVO.setId(Common.NEW_ID);
+                    dataSourceVO.setName(name);
+                    dataSourceVO.setXid(DataSourceDao.instance.generateUniqueXid());
+            	}
+            }
+
+            
             if (dataSourceVO == null){
                 // The requested data source doesn't exist. Return to the list page.
             	model.put("key", "dsEdit.error.dataSourceDNE");
@@ -128,21 +170,7 @@ public class DataSourcePropertiesController extends ParameterizableViewControlle
             Permissions.ensureDataSourcePermission(user, id);
         }
         
-        //Are we making a copy?
-        String copyStr = request.getParameter("copy");
-        if(copyStr != null){
-        	Boolean copy = Boolean.parseBoolean(copyStr);
-        	if(copy){
-                String name = StringUtils.abbreviate(
-                        TranslatableMessage.translate(Common.getTranslations(), "common.copyPrefix", dataSourceVO.getName()), 40);
 
-                //Setup the Copy
-                dataSourceVO = dataSourceVO.copy();
-                dataSourceVO.setId(Common.NEW_ID);
-                dataSourceVO.setName(name);
-                dataSourceVO.setXid(DataSourceDao.instance.generateUniqueXid());
-        	}
-        }
         
         
         // Set the id of the data source in the user object for the DWR.

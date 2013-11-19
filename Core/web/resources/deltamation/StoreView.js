@@ -22,6 +22,7 @@ return declare("deltamation.StoreView", null, {
     postGridInit: null,
     postEditInit: null,
     closeEditOnSave: true,
+   
     
     constructor: function(options) {
         this.defaultQuery = {};
@@ -148,6 +149,9 @@ return declare("deltamation.StoreView", null, {
         return span;
     },
     
+    preRemove: null, //Performed Prior to Dwr Remove Method
+    removeCallback: null, //Performed after Dwr Remove Method
+    
     remove: function(id, confirmed) {
         var _this = this;
         id = id || _this.currentId;
@@ -156,7 +160,10 @@ return declare("deltamation.StoreView", null, {
         
         confirmed = confirmed || false;
         if (confirmed || confirm(mangoMsg['table.confirmDelete.' + this.prefix])) {
-            when(this.editStore.cache.remove(id), function(response) {
+        	 if(_this.preRemove)
+             	_this.preRemove();
+        	
+        	when(this.editStore.cache.remove(id), function(response) {
                 // ok
                 //Close the edit pane if any is open
                 if (_this.closeEditOnSave) {
@@ -169,6 +176,9 @@ return declare("deltamation.StoreView", null, {
                 // TODO make this a push from the server side
                 if (_this.editUpdatesView)
                     _this.viewStore.cache.remove(id);
+                
+                if(_this.removeCallback)
+                	_this.removeCallback();
             }, function(response) {
                 //Close the edit pane if any is open
                 //hide(_this.edit);
@@ -340,7 +350,7 @@ return declare("deltamation.StoreView", null, {
     
     copy: function(id) {
         var _this = this;
-        
+        _this.copyFromId = id;
         this.editStore.dwr.dwr.getCopy(id, function(response) {
             _this.open(-1, {voToLoad: response.data.vo});
         });

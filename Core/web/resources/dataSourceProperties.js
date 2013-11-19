@@ -154,13 +154,32 @@
  function saveDataSource() {
      startImageFader("dsSaveImg", true);
      hideContextualMessages($("dataSourceProperties"));
-     saveDataSourceImpl({
-         name: $get("dataSource.name"),
-         xid: $get("dataSource.xid"),
-         purgeOverride: $get("dataSource.purgeOverride"),
-         purgePeriod: $get("dataSource.purgePeriod"),
-         purgeType: $get("dataSource.purgeType")
-     });
+     
+     //Are we making a copy?
+     if(dataSources.copyId != null){
+         //Copy Permissions and Points across
+         DataSourceDwr.finishCopy(
+         		dataSources.copyId,
+         		$get("dataSource.name"),
+         		$get("dataSource.xid"),
+         		$get("dataSource.deviceName"),function(response){
+         	if(!response.hasMessages){
+         		dataSources.copyId = null; //Done with copy
+         		hide("copyDeviceName");
+         	}
+             saveDataSourceCB(response);
+             //Need to validate no messages for this to happen... dataSources.open(response.data.id);
+             
+         });
+     }else{
+	     saveDataSourceImpl({
+	         name: $get("dataSource.name"),
+	         xid: $get("dataSource.xid"),
+	         purgeOverride: $get("dataSource.purgeOverride"),
+	         purgePeriod: $get("dataSource.purgePeriod"),
+	         purgeType: $get("dataSource.purgeType")
+	     });
+     }
  }
  
  /**
@@ -187,6 +206,13 @@
          if(typeof dataSources != 'undefined'){
         	 dataSources.setInputs(response.data.vo);
         	 dataSources.refresh();
+         }
+         if(typeof allDataPoints != 'undefined'){
+        	 allDataPoints.refresh();
+         }
+         if(typeof dataPoints != 'undefined'){
+        	 dataPointsDataSourceId = response.data.vo.id;
+        	 dataPoints.refresh();
          }
      }
      getAlarms();

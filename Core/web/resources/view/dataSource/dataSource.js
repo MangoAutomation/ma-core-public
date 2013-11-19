@@ -44,7 +44,7 @@ dataSources = new StoreView({
     editId: 'editDataSourceDiv',
     defaultSort: [{attribute: "name"}],
     closeEditOnSave: false,  /* We are managing this ourselves */
-
+    copyId: null, /* ID for creating a copy */
     filters: new Array(),
 	sortMap: [
 	          {attribute: "name", descending:true},
@@ -299,6 +299,11 @@ dataSources = new StoreView({
     addXOffset: 18,
     addYOffset: -240,
     
+    
+    removeCallback: function(){
+    	if(allDataPoints != 'undefined')
+    		allDataPoints.refresh();
+    },
 
     /**
      * Refresh the Grid
@@ -372,7 +377,8 @@ dataSources.open = function(id,options,callback){
  */
 dataSources.copy = function(id) {
     var _this = this;
-    when(DataSourceDwr.getNew($get("dataSourceTypes"), function(vo) {
+    when(DataSourceDwr.get(id, function(vo) {
+    	_this.copyId = id;
         _this.loadView(null,vo.data.editPagePath,dataSourcePropertiesDiv,id,true)
     }, function(message) {
         // wrong id, dwr error
@@ -425,3 +431,17 @@ dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
 	});
 
 }); // require
+
+/**
+ * Init the Edit Pane by getting all data source types
+ */
+function initDataSourceEdit(){
+
+	DataSourceDwr.initDataSourceTypes(function(response){
+		if (response.data.types) {
+		    dwr.util.addOptions("dataSourceTypes", response.data.types, "key", "value");
+		}
+	});
+}
+
+

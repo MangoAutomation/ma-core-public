@@ -118,10 +118,12 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 				//This is an issue for opening AllDataPoints Point because it opens the Datasource too.
 				//TODO to fix this we need to fix DataSourceEditDwr to not save the editing DataPoint state in the User, this will propogate into existing modules...
 				DataSourceVO<?> vo = (DataSourceVO<?>)response.getData().get("vo");
-				DataPointVO pointVo = new DataPointVO();
-				pointVo.setXid(DataPointDao.instance.generateUniqueXid());
-				pointVo.setPointLocator(vo.createPointLocator());
-				Common.getUser().setEditPoint(pointVo);
+				if(Common.getUser().getEditPoint() == null){
+					DataPointVO pointVo = new DataPointVO();
+					pointVo.setXid(DataPointDao.instance.generateUniqueXid());
+					pointVo.setPointLocator(vo.createPointLocator());
+					Common.getUser().setEditPoint(pointVo);
+				}
 			
 			}else{
 				throw new ShouldNeverHappenException("Unable to get a new DataSource.");
@@ -171,23 +173,34 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
         copy.setXid(dao.generateUniqueXid());
         response.addData("vo", copy);
 
-        //Create a copy of all the points too.
-        List<DataPointVO> points = DataPointDao.instance.getDataPoints(id, null);
-        //Create a copy 
-        for(DataPointVO point : points){
-        	DataPointVO pointCopy = point.copy();
-        	//Change the Name
-        	pointCopy.setName(name);
-        	//Change the XID
-        	//Change the DS ID
-        }
-        
         //Don't Validate it, that will be done on save
         
         return response;
     }
 	
+	@DwrPermission(user = true)
+	public ProcessResult finishCopy(int copyFromId, String newName, String newXid, String deviceId){
+		ProcessResult result = new ProcessResult();
+		
+		//Need to validate the inputs first
+		DataSourceVO<?> original = dao.get(copyFromId);
 	
+		DataSourceVO<?> copy = original.copy();
+		copy.setName(newName);
+		if(newXid != null)
+			copy.setXid(newXid);
+		else
+			copy.setXid(dao.generateUniqueXid());
+		
+		copy.validate(result);
+		
+		if(!result.getHasMessages()){
+			int newId = this.dao.copyDataSource(copyFromId, newName, newXid, deviceId);
+			
+			result.addData("vo", dao.get(newId));
+		}
+		return result;
+	}
 	/**
 	 * Get the general status messages for a given data source
 	 * @param id
