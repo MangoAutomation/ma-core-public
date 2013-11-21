@@ -93,11 +93,13 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         
-        String text = jsonObject.getString("useUnitAsSuffix");
+        //To ensure we have this property as it is a new one
+        if(jsonObject.containsKey("useUnitAsSuffix")){
+        	useUnitAsSuffix = jsonObject.getBoolean("useUnitAsSuffix");
+        }
         
-        useUnitAsSuffix = Boolean.getBoolean(text);
         
-        text = jsonObject.getString("unit");
+        String text = jsonObject.getString("unit");
         if (text != null) {
             try {
                 unit = UnitUtil.parseUcum(text);
