@@ -12,7 +12,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -103,7 +102,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
         
         //Another Kludge to allow modules to get new-ish data points via this method...
-        //TODO This is going to cause some issues with the DataSource Tools
+        //TODO This affects the data source tools so be careful with changes.
         if((dp==null)&&(pointId == Common.NEW_ID)){
         	dp = new DataPointVO();
         	dp.setId(pointId);       	
@@ -114,6 +113,19 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             dp.setPointLocator(ds.createPointLocator());
             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
             dp.defaultTextRenderer();
+        }else if((dp!=null)&&(pointId != dp.getId())){
+        	if(pointId == -1){
+        		dp = new DataPointVO();
+            	dp.setId(pointId);       	
+            	dp.setXid(DataPointDao.instance.generateUniqueXid());
+                dp.setDataSourceId(ds.getId());
+                dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
+                dp.setDeviceName(ds.getName());
+                dp.setPointLocator(ds.createPointLocator());
+                dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+                dp.defaultTextRenderer();	
+        	}else
+        		dp = DataPointDao.instance.get(pointId);
         }
         
         //Use the defaulter

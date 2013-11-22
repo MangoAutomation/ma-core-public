@@ -29,6 +29,7 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -118,11 +119,19 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 				//This is an issue for opening AllDataPoints Point because it opens the Datasource too.
 				//TODO to fix this we need to fix DataSourceEditDwr to not save the editing DataPoint state in the User, this will propogate into existing modules...
 				DataSourceVO<?> vo = (DataSourceVO<?>)response.getData().get("vo");
-				if(Common.getUser().getEditPoint() == null){
-					DataPointVO pointVo = new DataPointVO();
-					pointVo.setXid(DataPointDao.instance.generateUniqueXid());
-					pointVo.setPointLocator(vo.createPointLocator());
-					Common.getUser().setEditPoint(pointVo);
+				if((Common.getUser().getEditPoint() == null)||(Common.getUser().getEditPoint().getDataSourceTypeName() != vo.getTypeDescriptionString())){
+					DataPointVO dp = new DataPointVO();
+     	
+		        	dp.setXid(DataPointDao.instance.generateUniqueXid());
+		            dp.setDataSourceId(vo.getId());
+		            dp.setDataSourceTypeName(vo.getDefinition().getDataSourceTypeName());
+		            dp.setDeviceName(vo.getName());
+		            dp.setPointLocator(vo.createPointLocator());
+		            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+		            dp.defaultTextRenderer();
+		            dp.setXid(DataPointDao.instance.generateUniqueXid());
+		            dp.setPointLocator(vo.createPointLocator());
+					Common.getUser().setEditPoint(dp);
 				}
 			
 			}else{
