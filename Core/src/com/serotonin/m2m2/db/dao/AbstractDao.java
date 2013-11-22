@@ -154,48 +154,6 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     //TODO Make this call the other constructor
     protected AbstractDao(String typeName) {
         this(typeName, null, new String[0], null);
-//        this.typeName = typeName;
-//        tableName = getTableName();
-//        xidPrefix = getXidPrefix();
-//       
-//        // generate SQL statements
-//        
-//        String selectAll = "SELECT ";
-//        String insert = "INSERT INTO " + tableName + " (";
-//        String insertValues = "";
-//        String update = "UPDATE " + tableName + " SET ";
-//        
-//        // don't the first property - "id", in the insert statements
-//        for (int i = 0; i < properties.size(); i++) {
-//            String prop = properties.get(i);
-//            
-//            String selectPrefix = (i == 0) ? "" : ",";
-//            selectAll += selectPrefix + prop;
-//            
-//            String insertPrefix = (i == 1) ? "" : ",";
-//            if (i >= 1) {
-//                insert += insertPrefix + prop;
-//                insertValues += insertPrefix + "?";
-//                update += insertPrefix + prop + "=?";
-//            }
-//        }
-//        
-//        SELECT_ALL = selectAll + " FROM " + tableName;
-//        SELECT_ALL_SORT = SELECT_ALL + " ORDER BY ";
-//        if (properties.contains("name")) {
-//            SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY name ASC";
-//        }
-//        else {
-//            SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY id ASC";
-//        }
-//        
-//        SELECT_BY_ID = SELECT_ALL + " WHERE id=?";
-//        SELECT_BY_XID = SELECT_ALL + " WHERE xid=?";
-//        SELECT_BY_NAME = SELECT_ALL + " WHERE name=?";
-//        INSERT = insert + ") VALUES (" + insertValues + ")";
-//        UPDATE = update + " WHERE id=?";
-//        DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-//        COUNT = "SELECT COUNT(*) FROM " + tableName;
     }
     
     /**

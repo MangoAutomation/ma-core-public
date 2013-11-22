@@ -58,6 +58,7 @@ String[] mangoMessageKeys = {
 	    "dsList.status",
 	    
 	    "dsEdit.deviceName",
+	    "dsEdit.dataSourceType",
 	    "dsEdit.pointDataType",
 	    "dsEdit.pointSaved",
 	    "dsEdit.dataSourceSaved",

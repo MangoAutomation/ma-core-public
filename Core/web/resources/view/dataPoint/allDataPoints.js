@@ -33,6 +33,7 @@ allDataPoints = new StoreView({
     filter: new Array(),
 
     sortMap: [
+              {attribute: "dataSourceTypeName", descending:true},
               {attribute: "deviceName", descending:true},
               {attribute: "name", descending:true},
               {attribute: "xid", descending:true},              
@@ -44,7 +45,47 @@ allDataPoints = new StoreView({
               ],
     
     columns: {
-    	
+    	dataSourceTypeName:{
+    		label: "Type",
+    		sortable: false,
+    		renderHeaderCell: function(th){
+    				var div = domConstruct.create("div");
+    				var input = new TextBox({
+    					name: 'inputText',
+    					placeHolder: 'filter text',
+    					style: "width: 8em",
+    					intermediateChanges: true,
+    				});
+    				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['dsEdit.dataSourceType'],});
+    				domConstruct.place(label,div);
+    				input.placeAt(div);
+    				input.watch("value",function(name,oldValue,value){
+    					
+    					if(value == '')
+    						delete allDataPoints.filter['dataSourceTypeName'];
+    					else
+    						allDataPoints.filter['dataSourceTypeName'] = new RegExp("^.*"+value+".*$");
+    					
+    					allDataPoints.grid.set('query',allDataPoints.filter);
+    				});
+    				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+    				on(sortLink,'click',function(event){
+    					
+    					//Flip through the list to see if we already have an order?
+    					for(var i =0; i<allDataPoints.sortMap.length; i++){
+    						if(allDataPoints.sortMap[i].attribute === "dataSourceTypeName"){
+    							allDataPoints.sortMap[i].descending = !allDataPoints.sortMap[i].descending;
+    							break;
+    						}
+    					}
+    					var options = {};
+    					options.sort = [{attribute: allDataPoints.sortMap[i].attribute, descending: allDataPoints.sortMap[i].descending}];
+    					allDataPoints.grid.set("query",allDataPoints.filter,options);
+    				});
+    				domConstruct.place(sortLink,div);
+    				return div;
+    		},
+    	},
         deviceName: {
     		label: mangoMsg['dsEdit.deviceName'],
     		sortable: false,

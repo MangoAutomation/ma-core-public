@@ -67,7 +67,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	 * @param typeName
 	 */
 	public DataPointDao() {
-		super(AuditEventType.TYPE_DATA_POINT);
+		super(AuditEventType.TYPE_DATA_POINT,"dp",new String[]{"ds.name", "ds.xid", "ds.dataSourceType"},"join dataSources ds on ds.id = dp.dataSourceId");
+				
 	}
 
 	//
@@ -824,7 +825,10 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 					Types.INTEGER, //Purge Period
 					Types.INTEGER, //Default Cache Size
 					Types.CHAR,    //Discard Extremem Values
-					Types.INTEGER //get Engineering Units
+					Types.INTEGER, //get Engineering Units
+					Types.VARCHAR, //DS Name
+					Types.VARCHAR, //DS XID
+					Types.VARCHAR //DS TYPE NAME
 				
 				);		
 	}
@@ -910,7 +914,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	 */
 	@Override
 	protected Map<String, String> getPropertiesMap() {
-		return new HashMap<String,String>();
+		HashMap<String,String> map = new HashMap<String,String>();
+		map.put("dataSourceName", "ds.name");
+		map.put("dataSourceTypeName", "ds.dataSourceType");
+		map.put("dataSourceXid", "ds.xid");
+		return map;
 	}
 
 	/* (non-Javadoc)
@@ -948,6 +956,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
+            
+            // Data source information from Join
+            dp.setDataSourceName(rs.getString(++i));
+            dp.setDataSourceXid(rs.getString(++i));
+            dp.setDataSourceTypeName(rs.getString(++i));
             
             dp.ensureUnitsCorrect();
             return dp;
