@@ -135,13 +135,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	//
 	//
 	// Properties
-	//
-	//private int id = Common.NEW_ID;
-	// @JsonProperty(read = false)
-	// private String xid; //TODO Deal with this because it is part of the
-	// AbstractDao class
-	// @JsonProperty
-	// private String name;
+	// id,xid,name and enabled are now in superclasses
+	
 	private int dataSourceId;
 	@JsonProperty
 	private String deviceName;
@@ -1277,10 +1272,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public void jsonRead(JsonReader reader, JsonObject jsonObject)
 			throws JsonException {
 		
-		// Don't read it ever xid = jsonObject.getString("xid");
-		enabled = jsonObject.getBoolean("enabled");
+		//Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
 		name = jsonObject.getString("name");
-
+		enabled = jsonObject.getBoolean("enabled");
+		
 		String text = jsonObject.getString("loggingType");
 		if (text != null) {
 			loggingType = LOGGING_TYPE_CODES.getId(text);

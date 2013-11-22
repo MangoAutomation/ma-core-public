@@ -4,10 +4,15 @@
  */
 package com.serotonin.m2m2.vo;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonReader;
+import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonSerializable;
+import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 
@@ -19,10 +24,9 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
  * @author Terry Packer
  *
  */
-public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends AbstractVO<VO> {
+public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends AbstractVO<VO> implements JsonSerializable {
     private static final long serialVersionUID = -1;
     
-    @JsonProperty
     protected boolean enabled = false;
 
     public boolean isEnabled() {
@@ -46,6 +50,19 @@ public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends 
     public void addPropertyChanges(List<TranslatableMessage> list, VO from) {
         super.addPropertyChanges(list, from);
         AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled", from.enabled, enabled);
+    }
+    
+    @Override
+    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+    	super.jsonRead(reader, jsonObject);
+    	enabled = jsonObject.getBoolean("enabled");
+    }
+    
+    @Override
+	public void jsonWrite(ObjectWriter writer) throws IOException,
+			JsonException {
+		super.jsonWrite(writer);
+		writer.writeEntry("enabled", enabled);
     }
     
     /**

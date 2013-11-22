@@ -273,10 +273,13 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	super.jsonRead(reader, jsonObject);
-        // Can't change the type.
-    	//TODO Figure out why we have to read/write the enabled annotation'd property
-    	enabled = jsonObject.getBoolean("enabled");
+    	
+    	//Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
+    	
+		name = jsonObject.getString("name");
+		enabled = jsonObject.getBoolean("enabled");
+    	
+        // Don't change the type.
     	
         JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
         if (alarmCodeLevels != null) {
