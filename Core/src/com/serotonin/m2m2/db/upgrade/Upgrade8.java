@@ -29,7 +29,7 @@ public class Upgrade8 extends DBUpgrade {
     private final String[] mssqlScript = { };
 
     private final String[] mysqlScript = {
-    		"ALTER TABLE `mango`.`userEvents` ADD INDEX `performance1` (`userId` ASC, `silenced` ASC);",
-    		"ALTER TABLE `mango`.`events` ADD INDEX `performance1` (`activeTs` ASC);"
+    		"ALTER TABLE `userEvents` ADD INDEX `performance1` (`userId` ASC, `silenced` ASC);",
+    		"ALTER TABLE `events` ADD INDEX `performance1` (`activeTs` ASC);"
     };
 }
