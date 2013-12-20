@@ -1,3 +1,6 @@
+*Version 2.1.1*
+*Fixed bug when upgrading from an older version using a MySQL database
+
 *Version 2.1.0*
 * Fixed connection time out issue with MySQL
 * Improved MySQL data base performance for large number of events
@@ -7,7 +10,7 @@
 * Auto export of the json configuration to a file which can then be remotely backed up.
 * Upgraded User page – users to be copied and set bulk permissions for each data source
 * Fixed a bug that prevented non-admin users from changing their password
-* Enabled a URL tag that disables the Mango header and menu
+* Enabled a URL tag that disables the Mango header and menu | ?showHeader=false&showToolbar=false
 * Updated Event Detector emails to have more descriptive subjects
 * Replaced Engineering Units with JScience Units and include unit conversation
 * Updated all data point drop down list throughout Mango to use searchable lists 
