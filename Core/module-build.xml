@@ -149,19 +149,24 @@
         <!-- Get the list of files to compile -->
         <fileset id="jsps.fs" dir="${coreHome}/target/web" includes="modules/${name}/**/*"/>
         <property name="canonical" location="${coreHome}/target/web"/>
-        <pathconvert property="jsps" pathsep="," refid="jsps.fs">
+        <pathconvert property="jsps" pathsep="," refid="jsps.fs" setonempty="false">
             <map from="${canonical}" to="."/>
         </pathconvert>
         
-        <!-- Compile the JSPs -->
-        <jetty-jspc uriroot="${coreHome}/target/web" outputDir="${coreHome}/target/work/jsp"
-                compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
-            <classpath>
-                <path refid="master-classpath"/>
-                <pathelement path="target/lib/${fullName}.jar"/>
-            </classpath>
-        </jetty-jspc>
-        
+        <!-- Compile the JSPs IF THERE ARE ANY-->
+        <if>
+        	<isset property="jsps.fs.notempty"/>
+        		<then>
+                	<jetty-jspc uriroot="${coreHome}/target/web" outputDir="${coreHome}/target/work/jsp"
+                            compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
+                        <classpath>
+                            <path refid="master-classpath"/>
+                            <pathelement path="target/lib/${fullName}.jar"/>
+                        </classpath>
+                    </jetty-jspc>
+        		</then>
+            </if>
+    	
         <!-- Copy the compiled stuff back to the module -->
         <property name="pkg" value="target/work/jsp/org/apache/jsp/modules/${name}"/>
         <available property="pkg.exists" file="${pkg}" type="dir" />
