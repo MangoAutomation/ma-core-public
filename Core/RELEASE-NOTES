@@ -1,3 +1,6 @@
+*Version 2.1.2*
+Fixed bug that would cause copying data points with ConvertingTextRenderers to fail
+
 *Version 2.1.1*
 *Fixed bug when upgrading from an older version using a MySQL database
 
