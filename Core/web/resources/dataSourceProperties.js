@@ -425,7 +425,7 @@ function deletePoint() {
      }else{
     	 //For now because values aren't set before DWR Call
     	 delete currentPoint.discardLowLimit;
-    	 delete currentPoint.discardHighLimit;    	 
+    	 delete currentPoint.discardHighLimit;    	
     	 finishSavePoint();
      }
 

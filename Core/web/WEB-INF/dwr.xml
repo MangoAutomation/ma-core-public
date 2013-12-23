@@ -8,6 +8,7 @@
   <init>
     <converter id="translatableMessage" class="com.serotonin.m2m2.i18n.TranslatableMessageConverter"/>
     <converter id="blabberBean" class="com.serotonin.m2m2.web.dwr.util.BlabberBeanConverter"/>
+    <converter id="unitBean" class="com.serotonin.m2m2.web.dwr.util.UnitBeanConverter"/>
   </init>
   
   <allow>
@@ -149,6 +150,8 @@
     
     <convert converter="bean" match="javax.measure.converter.UnitConverter"/>
     <convert converter="bean" match="javax.measure.unit.*"/>
+    <convert converter="unitBean" match="javax.measure.unit.Unit">
+    </convert>
     
     
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.handlers.*"/>
