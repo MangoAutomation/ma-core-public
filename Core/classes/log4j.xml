@@ -43,6 +43,7 @@
   <category name="org.springframework"><level value="error"/></category>
   <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
   <category name="com.serotonin.m2m2"><level value="error"/></category>
+  <category name="com.infiniteautomation"><level value="error"/></category>
   
   <root>
     <level value="error"/>
