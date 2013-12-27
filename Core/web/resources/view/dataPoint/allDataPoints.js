@@ -508,21 +508,25 @@ allDataPoints = new StoreView({
      * Used to update the image
      */
     updateStatus: function(id,enabled){
-        if(enabled){
-            updateImg(
-                    $("toggleAllDataPoints"+ id),
-                    mangoImg("database_go.png"),
-                    mango.i18n["common.enabledToggle"],
-                    true
-            );
-        }else{
-            updateImg(
-                    $("toggleAllDataPoints"+ id),
-                    mangoImg("database_stop.png"),
-                    mango.i18n["common.enabledToggle"],
-                    true
-            );
-        }
+    	//Check to see if the point is loaded into the table yet? (Lazy loading may keep some points out of view)
+    	var node = $("toggleAllDataPoints" + id);
+    	if(node){
+	        if(enabled){
+	            updateImg(
+	                    node,
+	                    mangoImg("database_go.png"),
+	                    mango.i18n["common.enabledToggle"],
+	                    true
+	            );
+	        }else{
+	            updateImg(
+	                    node,
+	                    mangoImg("database_stop.png"),
+	                    mango.i18n["common.enabledToggle"],
+	                    true
+	            );
+	        }
+    	}
 
     },
     
