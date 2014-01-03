@@ -11,13 +11,14 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.CellType;
-
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
  * @author Jared Wiltshire
  */
 public abstract class AbstractSheetEmporter {
+	public static enum CellType {
+        STRING, NUMERIC, DATE, PERCENT
+    }
     protected boolean useNames;
 	protected int rowNum = 0;
     protected Sheet sheet;
@@ -35,6 +36,10 @@ public abstract class AbstractSheetEmporter {
      * @return
      */
     protected abstract String[] getHeaders();
+    
+    protected boolean hasHeaders() {
+    	return true;
+    }
     
     /**
      * Gets the type of each column for checking when importing

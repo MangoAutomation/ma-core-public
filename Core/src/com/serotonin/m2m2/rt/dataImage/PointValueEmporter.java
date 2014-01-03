@@ -21,7 +21,6 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter;
-import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.CellType;
 import com.serotonin.m2m2.vo.emport.SpreadsheetException;
 import com.serotonin.m2m2.vo.export.ExportDataValue;
 import com.serotonin.m2m2.vo.export.ExportPointInfo;

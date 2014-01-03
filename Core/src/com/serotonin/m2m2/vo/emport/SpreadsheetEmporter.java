@@ -28,6 +28,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter.CellType;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
@@ -53,10 +54,6 @@ public class SpreadsheetEmporter {
     
     public enum FileType {
         AUTO, UNKNOWN, XLS, XLSX
-    }
-    
-    public enum CellType {
-        STRING, NUMERIC, DATE, PERCENT
     }
 
     /**
@@ -160,26 +157,28 @@ public class SpreadsheetEmporter {
         rowNum = 0;
         row = sheet.getRow(rowNum);
         
-        String[] headers = sheetEmporter.getHeaders();
-        if (row.getLastCellNum()+1 < headers.length) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.headersIncorrect", sheetEmporter.getSheetName()));
-            return;
-        }
-        
-        for (cellNum = 0; cellNum < headers.length; cellNum++) {
-            cell = row.getCell(cellNum);
-            
-            String cellValue;
-            try {
-                cellValue = readStringCell(rowNum, cell);
-            } catch (SpreadsheetException e) {
-                cellValue = "";
-            }
-            
-            if (cellValue == null || !cellValue.equalsIgnoreCase(headers[cellNum])) {
-                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.headersIncorrect"));
-                return;
-            }
+        if(sheetEmporter.hasHeaders()) {
+	        String[] headers = sheetEmporter.getHeaders();
+	        if (row.getLastCellNum()+1 < headers.length) {
+	            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.headersIncorrect", sheetEmporter.getSheetName()));
+	            return;
+	        }
+	        
+	        for (cellNum = 0; cellNum < headers.length; cellNum++) {
+	            cell = row.getCell(cellNum);
+	            
+	            String cellValue;
+	            try {
+	                cellValue = readStringCell(rowNum, cell);
+	            } catch (SpreadsheetException e) {
+	                cellValue = "";
+	            }
+	            
+	            if (cellValue == null || !cellValue.equalsIgnoreCase(headers[cellNum])) {
+	                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.headersIncorrect"));
+	                return;
+	            }
+	        }
         }
         
         // import the actual data rows
