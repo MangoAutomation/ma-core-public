@@ -179,10 +179,11 @@ public class SpreadsheetEmporter {
 	                return;
 	            }
 	        }
+	        rowNum += 1;
         }
         
         // import the actual data rows
-        for (rowNum = 1; rowNum < numRows; rowNum++) {
+        for (; rowNum < numRows; rowNum++) {
             try {
             	//Import this row
                 sheetEmporter.importRow(sheet.getRow(rowNum));
