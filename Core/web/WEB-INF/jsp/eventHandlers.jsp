@@ -200,7 +200,8 @@
                 
                 for (i=0; i<data.systemEvents.length; i++) {
                     et = data.systemEvents[i];
-                    createEventTypeNode("sys"+ et.typeRef1, et, systemRoot);
+                    //createEventTypeNode("sys"+ et.typeRef1, et, systemRoot);
+                    createEventTypeNode("sys"+ et.subtype, et, systemRoot);
                 }
             }
             
@@ -215,7 +216,8 @@
                 
                 for (i=0; i<data.auditEvents.length; i++) {
                     et = data.auditEvents[i];
-                    createEventTypeNode("aud"+ et.typeRef1, et, auditRoot);
+                    //createEventTypeNode("aud"+ et.typeRef1, et, auditRoot);
+                    createEventTypeNode("aud"+ et.subtype, et, auditRoot);
                 }
             }
             

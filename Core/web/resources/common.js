@@ -576,6 +576,8 @@ function setAlarmLevelImg(alarmLevel, imgNode) {
         updateImg(imgNode, "/images/flag_orange.png", mango.i18n["common.alarmLevel.critical"], true);
     else if (alarmLevel == 4)
         updateImg(imgNode, "/images/flag_red.png", mango.i18n["common.alarmLevel.lifeSafety"], true);
+    else if(alarmLevel == -2)
+    	updateImg(imgNode, "/images/cancel.png", mango.i18n["common.alarmLevel.doNotLog"], true);
     else
         updateImg(imgNode, "(unknown)", "(unknown)", true);
 }

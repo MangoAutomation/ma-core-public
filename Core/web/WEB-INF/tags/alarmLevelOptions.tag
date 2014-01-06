@@ -15,4 +15,6 @@
   <sst:option value="<%= Integer.toString(AlarmLevels.URGENT) %>"><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></sst:option>
   <sst:option value="<%= Integer.toString(AlarmLevels.CRITICAL) %>"><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></sst:option>
   <sst:option value="<%= Integer.toString(AlarmLevels.LIFE_SAFETY) %>"><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></sst:option>
+  <sst:option value="<%= Integer.toString(AlarmLevels.DO_NOT_LOG) %>"><fmt:message key="<%= AlarmLevels.DO_NOT_LOG_DESCRIPTION %>"/></sst:option>
+  
 </sst:select>

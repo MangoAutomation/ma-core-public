@@ -53,6 +53,7 @@ public class EventManager implements ILifecycle {
 	public void raiseEvent(EventType type, long time, boolean rtnApplicable,
 			int alarmLevel, TranslatableMessage message,
 			Map<String, Object> context) {
+		
 		// Check if there is an event for this type already active.
 		EventInstance dup = get(type);
 		if (dup != null) {
@@ -84,7 +85,9 @@ public class EventManager implements ILifecycle {
 			setHandlers(evt);
 
 		// Get id from database by inserting event immediately.
-		eventDao.saveEvent(evt);
+		//Check to see if we are Not Logging these
+		if(alarmLevel != AlarmLevels.DO_NOT_LOG)
+			eventDao.saveEvent(evt);
 
 		// Create user alarm records for all applicable users
 		List<Integer> eventUserIds = new ArrayList<Integer>();
@@ -104,7 +107,7 @@ public class EventManager implements ILifecycle {
 			}
 		}
 
-		if (eventUserIds.size() > 0) {
+		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)) {
 			eventDao.insertUserEvents(evt.getId(), eventUserIds, evt.isAlarm());
 			if (autoAckMessage == null && evt.isAlarm())
 				lastAlarmTimestamp = System.currentTimeMillis();
@@ -118,7 +121,7 @@ public class EventManager implements ILifecycle {
 			}
 		}
 
-		if (autoAckMessage != null)
+		if ((autoAckMessage != null)&&(alarmLevel != AlarmLevels.DO_NOT_LOG))
 			eventDao.ackEvent(evt.getId(), time, 0, autoAckMessage);
 		else {
 			if (evt.isRtnApplicable()) {

@@ -42,6 +42,8 @@
                     content += "<option value='<c:out value="<%= AlarmLevels.URGENT %>"/>'><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></option>";
                     content += "<option value='<c:out value="<%= AlarmLevels.CRITICAL %>"/>'><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></option>";
                     content += "<option value='<c:out value="<%= AlarmLevels.LIFE_SAFETY %>"/>'><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.DO_NOT_LOG %>"/>'><fmt:message key="<%= AlarmLevels.DO_NOT_LOG_DESCRIPTION %>"/></option>";
+                    
                     content += "</select> ";
                     content += "<img id='alarmLevelImg"+ etid +"' src='images/flag_green.png' style='display:none'>";
                     return content;
