@@ -25,9 +25,10 @@
     </layout>
   </appender>
   
-  <appender name="logfile" class="org.apache.log4j.DailyRollingFileAppender">
-    <param name="File" value="logs/ma.log"/>
-    <param name="DatePattern" value="yyyy-MM-dd"/>
+  <appender name="logfile" class="org.apache.log4j.RollingFileAppender">
+    <param name="file" value="logs/ma.log"/>
+    <param name="maxFileSize" value="1MB"/>
+    <param name="maxBackupIndex" value="10"/>
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
     </layout>
