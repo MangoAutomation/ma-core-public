@@ -1,3 +1,7 @@
+*NEXT VERSION*
+* Fixed bug so alarms report page shows same alarms as legacy alarm page.
+* Fixed bug so sorting on Data Source and Data Point tables works properly
+
 *Version 2.1.2*
 Fixed bug that would cause copying data points with ConvertingTextRenderers to fail
 
