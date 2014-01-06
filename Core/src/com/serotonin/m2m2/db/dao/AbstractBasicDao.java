@@ -449,8 +449,11 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         if(LOG !=null)
         	LOG.info("After filter: " + count);
         //Sort the remaining list
-        //TODO This doesn't work because we need the whole data set to order properly
-        //sortComplexMembers(results,sort);
+        //TODO This doesn't work exactly right
+        // because we need the whole data set to order properly and we are 
+        // only able to sort the data that was returned by the query here
+        // this is the best we can do for now
+        sortComplexMembers(onKeepCallback.getResults(),sort);
         
         
         return new ResultsWithTotal(onKeepCallback.getResults(), count);
