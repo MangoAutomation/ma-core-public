@@ -26,15 +26,15 @@ eventInstances = new StoreView({
     defaultQuery: {
     				alarmLevel: "Int:>=1",
     				acknowledged: "NullCheck:true",
-					rtnApplicable: 'Y',
-					rtnTs: "NullCheck:true",
+					//rtnApplicable: 'Y',
+					//rtnTs: "NullCheck:true",
     			  },
     
     filters: {
     			alarmLevel: "Int:>=1",
     			acknowledged: "NullCheck:true",
-				rtnApplicable: 'Y',
-				rtnTs: "NullCheck:true",
+				//rtnApplicable: 'Y',
+				//rtnTs: "NullCheck:true",
     		 },
              
     
@@ -318,7 +318,7 @@ eventInstances = new StoreView({
 						{label : mangoMsg['common.nortn'], value: '3'},
 					],
 				});
-				input.set('value', '1'); //DEFAULT FOR PAGE				
+				input.set('value', '0'); //DEFAULT FOR PAGE				
 				input.placeAt(div);
 				
 				input.watch("value",function(name,oldValue,value){
