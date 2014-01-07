@@ -103,6 +103,8 @@
           <input type="checkbox" name="exportElement" id="mailingLists" value="mailingLists"/> <label for="mailingLists"><fmt:message key="header.mailingLists"/></label><br/>
           <input type="checkbox" name="exportElement" id="publishers" value="publishers"/> <label for="publishers"><fmt:message key="header.publishers"/></label><br/>
           <input type="checkbox" name="exportElement" id="pointHierarchy" value="pointHierarchy"/> <label for="pointHierarchy"><fmt:message key="header.pointHierarchy"/></label><br/>
+          <input type="checkbox" name="exportElement" id="systemSettings" value="systemSettings"/> <label for="systemSettings"><fmt:message key="header.systemSettings"/></label><br/>
+          
         </td>
         <td>
           <c:forEach items="${definitions}" var="def">

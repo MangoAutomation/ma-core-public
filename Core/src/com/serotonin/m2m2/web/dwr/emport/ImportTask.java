@@ -25,6 +25,7 @@ import com.serotonin.m2m2.web.dwr.emport.importers.EventHandlerImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.MailingListImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.PointHierarchyImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.PublisherImporter;
+import com.serotonin.m2m2.web.dwr.emport.importers.SystemSettingsImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.UserImporter;
 import com.serotonin.util.ProgressiveTask;
 
@@ -56,7 +57,11 @@ public class ImportTask extends ProgressiveTask {
             addImporter(new PublisherImporter(jv.toJsonObject()));
         for (JsonValue jv : nonNullList(root, EmportDwr.EVENT_HANDLERS))
             addImporter(new EventHandlerImporter(jv.toJsonObject()));
+        JsonObject obj = root.getJsonObject(EmportDwr.SYSTEM_SETTINGS);
+        if(obj != null)
+            addImporter(new SystemSettingsImporter(obj));
 
+        
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
             importItems.add(importItem);

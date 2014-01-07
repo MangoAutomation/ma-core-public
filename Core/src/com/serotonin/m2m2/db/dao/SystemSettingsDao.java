@@ -15,6 +15,7 @@ import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.systemSettings.SystemSettingsVO;
 import com.serotonin.util.ColorUtils;
 
 public class SystemSettingsDao extends BaseDao {
@@ -240,4 +241,124 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
     }
+
+	/**
+	 * Get a VO that represents the cached values
+	 * @return
+	 */
+	public SystemSettingsVO getSystemSettings() {
+		SystemSettingsVO vo = new SystemSettingsVO();
+		
+		vo.setDatabaseSchemaVersion(getValue(DATABASE_SCHEMA_VERSION));
+		vo.setNewInstance(getBooleanValue(NEW_INSTANCE));
+		
+		vo.setEmailSmtpHost(getValue(EMAIL_SMTP_HOST));
+		vo.setEmailSmtpPort(getIntValue(EMAIL_SMTP_PORT));
+		vo.setEmailFromAddress(getValue(EMAIL_FROM_ADDRESS));
+		vo.setEmailSmtpUsername(getValue(EMAIL_SMTP_USERNAME));
+		vo.setEmailSmtpPassword(getValue(EMAIL_SMTP_PASSWORD));
+		vo.setEmailFromName(getValue(EMAIL_FROM_NAME));
+		vo.setEmailAuthorization(getBooleanValue(EMAIL_AUTHORIZATION));
+		vo.setEmailTls(getBooleanValue(EMAIL_TLS));
+		vo.setEmailContentType(getIntValue(EMAIL_CONTENT_TYPE));
+		
+		vo.setPointDataPurgePeriodType(getIntValue(POINT_DATA_PURGE_PERIOD_TYPE));
+		vo.setPointDataPurgePeriods(getIntValue(POINT_DATA_PURGE_PERIODS));
+		
+		vo.setEventPurgePeriodType(getIntValue(EVENT_PURGE_PERIOD_TYPE));
+		vo.setEventPurgePeriods(getIntValue(EVENT_PURGE_PERIODS));
+		
+		vo.setHttpClientUseProxy(getBooleanValue(HTTP_CLIENT_USE_PROXY));
+		vo.setHttpClientProxyServer(getValue(HTTP_CLIENT_PROXY_SERVER));
+		vo.setHttpClientProxyPort(getIntValue(HTTP_CLIENT_PROXY_PORT));
+		vo.setHttpClientProxyUsername(getValue(HTTP_CLIENT_PROXY_USERNAME));
+		vo.setHttpClientProxyPassword(getValue(HTTP_CLIENT_PROXY_USERNAME));
+		
+		vo.setLanguage(getValue(LANGUAGE));
+		
+		vo.setFiledataPath(getValue(FILEDATA_PATH));
+		vo.setDatasourceDisplaySuffix(getValue(DATASOURCE_DISPLAY_SUFFIX));
+		vo.setHttpdsPrologue(getValue(HTTPDS_PROLOGUE));
+		vo.setHttpdsEpilogue(getValue(HTTPDS_EPILOGUE));
+		vo.setUiPerformance(getIntValue(UI_PERFORMANCE));
+		vo.setFutureDateLimitPeriods(getIntValue(FUTURE_DATE_LIMIT_PERIODS));
+		vo.setFutureDateLimitPeriodType(getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE));
+		vo.setInstanceDescription(getValue(INSTANCE_DESCRIPTION));
+		
+		vo.setChartBackgroundColor(getValue(CHART_BACKGROUND_COLOUR));
+		vo.setPlotBackgroundColor(getValue(PLOT_BACKGROUND_COLOUR));
+		vo.setPlotGridlineColor(getValue(PLOT_GRIDLINE_COLOUR));
+		
+		vo.setBackupFileLocation(getValue(BACKUP_FILE_LOCATION));
+		vo.setBackupPeriodType(getIntValue(BACKUP_PERIOD_TYPE));
+		vo.setBackupPeriods(getIntValue(BACKUP_PERIODS));
+		vo.setBackupLastRunSuccess(getBooleanValue(BACKUP_LAST_RUN_SUCCESS));
+		vo.setBackupFileCount(getIntValue(BACKUP_FILE_COUNT));
+		vo.setBackupHour(getIntValue(BACKUP_HOUR));
+		vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
+		vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
+		
+		return vo;
+	}
+
+	/**
+	 * Take a VO and save its values to the system
+	 * 
+	 * @param vo
+	 */
+	public void updateSettings(SystemSettingsVO vo) {
+		
+		this.setValue(DATABASE_SCHEMA_VERSION, vo.getDatabaseSchemaVersion());
+		this.setBooleanValue(NEW_INSTANCE, vo.getNewInstance());
+		
+		this.setValue(EMAIL_SMTP_HOST, vo.getEmailSmtpHost());
+		this.setIntValue(EMAIL_SMTP_PORT,vo.getEmailSmtpPort());
+		this.setValue(EMAIL_FROM_ADDRESS, vo.getEmailFromAddress());
+		this.setValue(EMAIL_SMTP_USERNAME, vo.getEmailSmtpUsername());
+		this.setValue(EMAIL_SMTP_PASSWORD, vo.getEmailSmtpPassword());
+		this.setValue(EMAIL_FROM_NAME, vo.getEmailFromName());
+		this.setBooleanValue(EMAIL_AUTHORIZATION, vo.getEmailAuthorization());
+		this.setBooleanValue(EMAIL_TLS, vo.getEmailTls());
+		this.setIntValue(EMAIL_CONTENT_TYPE,vo.getEmailContentType());
+		
+		this.setIntValue(POINT_DATA_PURGE_PERIOD_TYPE, vo.getPointDataPurgePeriodType());
+		this.setIntValue(POINT_DATA_PURGE_PERIODS,vo.getPointDataPurgePeriods());
+		
+		this.setIntValue(EVENT_PURGE_PERIOD_TYPE, vo.getEventPurgePeriodType());
+		this.setIntValue(EVENT_PURGE_PERIODS, vo.getEventPurgePeriods());
+		
+		this.setBooleanValue(HTTP_CLIENT_USE_PROXY,vo.getHttpClientUseProxy());
+		this.setValue(HTTP_CLIENT_PROXY_SERVER, vo.getHttpClientProxyServer());
+		this.setIntValue(HTTP_CLIENT_PROXY_PORT, vo.getHttpClientProxyPort());
+		this.setValue(HTTP_CLIENT_PROXY_USERNAME, vo.getHttpClientProxyUsername());
+		this.setValue(HTTP_CLIENT_PROXY_PASSWORD, vo.getHttpClientProxyPassword());
+		
+		this.setValue(LANGUAGE, vo.getLanguage());
+		
+		this.setValue(FILEDATA_PATH, vo.getFiledataPath());
+		this.setValue(DATASOURCE_DISPLAY_SUFFIX, vo.getDatasourceDisplaySuffix());
+		this.setValue(HTTPDS_PROLOGUE, vo.getHttpdsPrologue());
+		this.setValue(HTTPDS_EPILOGUE, vo.getHttpdsEpilogue());
+		this.setIntValue(UI_PERFORMANCE, vo.getUiPerformance());
+		this.setIntValue(FUTURE_DATE_LIMIT_PERIODS, vo.getFutureDateLimitPeriods());
+		this.setIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE, vo.getFutureDateLimitPeriodType());
+		this.setValue(INSTANCE_DESCRIPTION, vo.getInstanceDescription());
+		
+		this.setValue(CHART_BACKGROUND_COLOUR, vo.getChartBackgroundColor());
+		this.setValue(PLOT_BACKGROUND_COLOUR,vo.getChartBackgroundColor());
+		this.setValue(PLOT_GRIDLINE_COLOUR, vo.getPlotGridlineColor());
+		
+		this.setValue(BACKUP_FILE_LOCATION, vo.getBackupFileLocation());
+		this.setIntValue(BACKUP_PERIOD_TYPE, vo.getBackupPeriodType());
+		this.setIntValue(BACKUP_PERIODS, vo.getBackupPeriods());
+		this.setBooleanValue(BACKUP_LAST_RUN_SUCCESS, vo.getBackupLastRunSuccess());
+		this.setIntValue(BACKUP_FILE_COUNT, vo.getBackupFileCount());
+		this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
+		this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
+		this.setBooleanValue(BACKUP_ENABLED, vo.getBackupEnabled());
+	}
+    
+    
+    
+    
 }

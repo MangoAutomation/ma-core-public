@@ -1,7 +1,8 @@
-*NEXT VERSION*
+*Version 2.1.3*
 * Fixed bug so alarms report page shows same alarms as legacy alarm page.
 * Fixed bug so sorting on Data Source and Data Point tables works properly
 * Added Do Not Log level for Alarms, this will not write anything to the database but will still fire events to be handled
+* Added ability to import/export System Settings
 
 *Version 2.1.2*
 Fixed bug that would cause copying data points with ConvertingTextRenderers to fail

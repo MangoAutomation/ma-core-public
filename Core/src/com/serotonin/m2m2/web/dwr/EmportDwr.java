@@ -23,6 +23,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -44,6 +45,7 @@ public class EmportDwr extends BaseDwr {
     public static final String POINT_HIERARCHY = "pointHierarchy";
     public static final String MAILING_LISTS = "mailingLists";
     public static final String PUBLISHERS = "publishers";
+    public static final String SYSTEM_SETTINGS = "systemSettings";
 
     @DwrPermission(admin = true)
     public String createExportData(int prettyIndent, String[] exportElements) {
@@ -63,7 +65,9 @@ public class EmportDwr extends BaseDwr {
             data.put(EVENT_HANDLERS, new EventDao().getEventHandlers());
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
             data.put(POINT_HIERARCHY, new DataPointDao().getPointHierarchy(true).getRoot().getSubfolders());
-
+        if(ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
+        	data.put(SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettings());
+        
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if (ArrayUtils.contains(exportElements, def.getElementId()))
                 data.put(def.getElementId(), def.getExportData());

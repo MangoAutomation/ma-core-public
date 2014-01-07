@@ -560,7 +560,7 @@
     </table>
   </tag:labelledSection>
   
-  <tag:labelledSection labelKey="systemSettings.otherSettings" closed="true">
+  <tag:labelledSection labelKey="systemSettings.purgeSettings" closed="true">
     <table>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.uiPerformance"/></td>
