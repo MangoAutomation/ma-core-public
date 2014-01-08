@@ -82,10 +82,55 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.POINT_DATA_PURGE_PERIODS,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS));
+        
+        
+        settings.put(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
+
+        settings.put(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
+        
         settings.put(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.EVENT_PURGE_PERIODS,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
+        
         settings.put(SystemSettingsDao.UI_PERFORMANCE, SystemSettingsDao.getIntValue(SystemSettingsDao.UI_PERFORMANCE));
         settings.put(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE));
@@ -232,11 +277,45 @@ public class SystemSettingsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public void saveMiscSettings(int pointDataPurgePeriodType, int pointDataPurgePeriods, int eventPurgePeriodType,
-            int eventPurgePeriods, int uiPerformance, int futureDateLimitPeriodType, int futureDateLimitPeriods) {
+    public void saveMiscSettings(int pointDataPurgePeriodType, int pointDataPurgePeriods, 
+    		int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods,
+    		int dataSourceEventPurgePeriodType, int dataSourceEventPurgePeriods,
+    		int systemEventPurgePeriodType, int systemEventPurgePeriods,
+    		int publisherEventPurgePeriodType, int publisherEventPurgePeriods,
+    		int auditEventPurgePeriodType, int auditEventPurgePeriods,
+    		int noneAlarmPurgePeriodType, int noneAlarmPurgePeriods,
+    		int informationAlarmPurgePeriodType, int informationAlarmPurgePeriods,
+    		int urgentAlarmPurgePeriodType, int urgentAlarmPurgePeriods,
+    		int criticalAlarmPurgePeriodType, int criticalAlarmPurgePeriods,
+    		int lifeSafetyAlarmPurgePeriodType, int lifeSafetyAlarmPurgePeriods,
+    		int eventPurgePeriodType, int eventPurgePeriods, 
+    		int uiPerformance, int futureDateLimitPeriodType, int futureDateLimitPeriods) {
         SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
         systemSettingsDao.setIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE, pointDataPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS, pointDataPurgePeriods);
+
+        systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE, dataPointEventPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS, dataPointEventPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, dataSourceEventPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS, dataSourceEventPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE, systemEventPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS, systemEventPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE, publisherEventPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS, publisherEventPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE, auditEventPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS, auditEventPurgePeriods);
+        
+        systemSettingsDao.setIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE, noneAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS, noneAlarmPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE, informationAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS, informationAlarmPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE, urgentAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS, urgentAlarmPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE, criticalAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS, criticalAlarmPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, lifeSafetyAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS, lifeSafetyAlarmPurgePeriods);
+        
         systemSettingsDao.setIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE, eventPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS, eventPurgePeriods);
         systemSettingsDao.setIntValue(SystemSettingsDao.UI_PERFORMANCE, uiPerformance);

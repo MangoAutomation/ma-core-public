@@ -26,6 +26,8 @@ import com.serotonin.m2m2.module.FiledataDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PurgeDefinition;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -159,14 +161,70 @@ public class DataPurge {
         }
     }
 
+    /**
+     * Purge Events corresponding to the system settings
+     */
     private void eventPurge() {
-        DateTime cutoff = DateUtils.truncateDateTime(new DateTime(runtime), Common.TimePeriods.DAYS);
-        cutoff = DateUtils.minus(cutoff, SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE),
+        DateTime cutoffTruncated = DateUtils.truncateDateTime(new DateTime(runtime), Common.TimePeriods.DAYS);
+        
+        //Purge All Events at this rate
+        DateTime cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
-
         int deleteCount = new EventDao().purgeEventsBefore(cutoff.getMillis());
+        
+        //Purge Data Point Events
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(), EventType.EventTypeNames.DATA_POINT);
+
+        //Purge the Data Source Events
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.DATA_SOURCE);
+        
+        //Purge the Data Source Events
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.SYSTEM);
+        
+        //Purge the Data Source Events
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.PUBLISHER);
+        
+        //Purge the Data Source Events
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.AUDIT);
+
+        //Purge Alarm Level NONE
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),AlarmLevels.NONE);
+        
+        //Purge Alarm Level INFORMATION
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),AlarmLevels.INFORMATION);
+        
+        //Purge Alarm Level URGENT
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),AlarmLevels.URGENT);
+        
+        //Purge Alarm Level CRITICAL
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),AlarmLevels.CRITICAL);
+        
+        //Purge Alarm Level LIFE_SAFETY
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
+        deleteCount += new EventDao().purgeEventsBefore(cutoff.getMillis(),AlarmLevels.LIFE_SAFETY);
+        
         if (deleteCount > 0)
             log.info("Event purge ended, " + deleteCount + " events deleted");
+        
     }
 
     static class DataPurgeTask extends TimerTask {

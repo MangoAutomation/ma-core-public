@@ -56,6 +56,48 @@ public class SystemSettingsVO implements JsonSerializable{
 	private Integer pointDataPurgePeriods;
 	
 	@JsonProperty
+	private Integer dataPointEventPurgePeriodType;
+	@JsonProperty
+	private Integer dataPointEventPurgePeriods;
+	@JsonProperty
+	private Integer dataSourceEventPurgePeriodType;
+	@JsonProperty
+	private Integer dataSourceEventPurgePeriods;
+	@JsonProperty
+	private Integer systemEventPurgePeriodType;
+	@JsonProperty
+	private Integer systemEventPurgePeriods;
+	@JsonProperty
+	private Integer publisherEventPurgePeriodType;
+	@JsonProperty
+	private Integer publisherEventPurgePeriods;
+	@JsonProperty
+	private Integer auditEventPurgePeriodType;
+	@JsonProperty
+	private Integer auditEventPurgePeriods;
+
+	@JsonProperty
+	private Integer noneAlarmPurgePeriodType;
+	@JsonProperty
+	private Integer noneAlarmPurgePeriods;
+	@JsonProperty
+	private Integer informationAlarmPurgePeriodType;
+	@JsonProperty
+	private Integer informationAlarmPurgePeriods;
+	@JsonProperty
+	private Integer urgentAlarmPurgePeriodType;
+	@JsonProperty
+	private Integer urgentAlarmPurgePeriods;
+	@JsonProperty
+	private Integer criticalAlarmPurgePeriodType;
+	@JsonProperty
+	private Integer criticalAlarmPurgePeriods;
+	@JsonProperty
+	private Integer lifeSafetyAlarmPurgePeriodType;
+	@JsonProperty
+	private Integer lifeSafetyAlarmPurgePeriods;
+	
+	@JsonProperty
 	private Integer eventPurgePeriodType;
 	@JsonProperty
 	private Integer eventPurgePeriods;
@@ -132,6 +174,19 @@ public class SystemSettingsVO implements JsonSerializable{
 		}
 		
 		validatePeriodType(pointDataPurgePeriodType,SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE,response);
+		
+		validatePeriodType(dataPointEventPurgePeriodType,SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(dataSourceEventPurgePeriodType,SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(systemEventPurgePeriodType,SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(publisherEventPurgePeriodType,SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(auditEventPurgePeriodType,SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE,response);
+		
+		validatePeriodType(noneAlarmPurgePeriodType,SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(informationAlarmPurgePeriodType,SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(urgentAlarmPurgePeriodType,SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(criticalAlarmPurgePeriodType,SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE,response);
+		validatePeriodType(lifeSafetyAlarmPurgePeriodType,SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE,response);
+
 		validatePeriodType(eventPurgePeriodType, SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE,response);
 		
 		//Should validate language not sure how yet
@@ -551,6 +606,211 @@ public class SystemSettingsVO implements JsonSerializable{
 
 	public void setBackupLastRunSuccess(Boolean backupLastRunSuccess) {
 		this.backupLastRunSuccess = backupLastRunSuccess;
+	}
+
+
+	public Integer getDataPointEventPurgePeriodType() {
+		return dataPointEventPurgePeriodType;
+	}
+
+
+	public void setDataPointEventPurgePeriodType(
+			Integer dataPointEventPurgePeriodType) {
+		this.dataPointEventPurgePeriodType = dataPointEventPurgePeriodType;
+	}
+
+
+	public Integer getDataPointEventPurgePeriods() {
+		return dataPointEventPurgePeriods;
+	}
+
+
+	public void setDataPointEventPurgePeriods(Integer dataPointEventPurgePeriods) {
+		this.dataPointEventPurgePeriods = dataPointEventPurgePeriods;
+	}
+
+
+	public Integer getDataSourceEventPurgePeriodType() {
+		return dataSourceEventPurgePeriodType;
+	}
+
+
+	public void setDataSourceEventPurgePeriodType(
+			Integer dataSourceEventPurgePeriodType) {
+		this.dataSourceEventPurgePeriodType = dataSourceEventPurgePeriodType;
+	}
+
+
+	public Integer getDataSourceEventPurgePeriods() {
+		return dataSourceEventPurgePeriods;
+	}
+
+
+	public void setDataSourceEventPurgePeriods(Integer dataSourceEventPurgePeriods) {
+		this.dataSourceEventPurgePeriods = dataSourceEventPurgePeriods;
+	}
+
+
+	public Integer getSystemEventPurgePeriodType() {
+		return systemEventPurgePeriodType;
+	}
+
+
+	public void setSystemEventPurgePeriodType(Integer systemEventPurgePeriodType) {
+		this.systemEventPurgePeriodType = systemEventPurgePeriodType;
+	}
+
+
+	public Integer getSystemEventPurgePeriods() {
+		return systemEventPurgePeriods;
+	}
+
+
+	public void setSystemEventPurgePeriods(Integer systemEventPurgePeriods) {
+		this.systemEventPurgePeriods = systemEventPurgePeriods;
+	}
+
+
+	public Integer getPublisherEventPurgePeriodType() {
+		return publisherEventPurgePeriodType;
+	}
+
+
+	public void setPublisherEventPurgePeriodType(
+			Integer publisherEventPurgePeriodType) {
+		this.publisherEventPurgePeriodType = publisherEventPurgePeriodType;
+	}
+
+
+	public Integer getPublisherEventPurgePeriods() {
+		return publisherEventPurgePeriods;
+	}
+
+
+	public void setPublisherEventPurgePeriods(Integer publisherEventPurgePeriods) {
+		this.publisherEventPurgePeriods = publisherEventPurgePeriods;
+	}
+
+
+	public Integer getAuditEventPurgePeriodType() {
+		return auditEventPurgePeriodType;
+	}
+
+
+	public void setAuditEventPurgePeriodType(Integer auditEventPurgePeriodType) {
+		this.auditEventPurgePeriodType = auditEventPurgePeriodType;
+	}
+
+
+	public Integer getAuditEventPurgePeriods() {
+		return auditEventPurgePeriods;
+	}
+
+
+	public void setAuditEventPurgePeriods(Integer auditEventPurgePeriods) {
+		this.auditEventPurgePeriods = auditEventPurgePeriods;
+	}
+
+
+	public Integer getNoneAlarmPurgePeriodType() {
+		return noneAlarmPurgePeriodType;
+	}
+
+
+	public void setNoneAlarmPurgePeriodType(Integer noneAlarmPurgePeriodType) {
+		this.noneAlarmPurgePeriodType = noneAlarmPurgePeriodType;
+	}
+
+
+	public Integer getNoneAlarmPurgePeriods() {
+		return noneAlarmPurgePeriods;
+	}
+
+
+	public void setNoneAlarmPurgePeriods(Integer noneAlarmPurgePeriods) {
+		this.noneAlarmPurgePeriods = noneAlarmPurgePeriods;
+	}
+
+
+	public Integer getInformationAlarmPurgePeriodType() {
+		return informationAlarmPurgePeriodType;
+	}
+
+
+	public void setInformationAlarmPurgePeriodType(
+			Integer informationAlarmPurgePeriodType) {
+		this.informationAlarmPurgePeriodType = informationAlarmPurgePeriodType;
+	}
+
+
+	public Integer getInformationAlarmPurgePeriods() {
+		return informationAlarmPurgePeriods;
+	}
+
+
+	public void setInformationAlarmPurgePeriods(Integer informationAlarmPurgePeriods) {
+		this.informationAlarmPurgePeriods = informationAlarmPurgePeriods;
+	}
+
+
+	public Integer getUrgentAlarmPurgePeriodType() {
+		return urgentAlarmPurgePeriodType;
+	}
+
+
+	public void setUrgentAlarmPurgePeriodType(Integer urgentAlarmPurgePeriodType) {
+		this.urgentAlarmPurgePeriodType = urgentAlarmPurgePeriodType;
+	}
+
+
+	public Integer getUrgentAlarmPurgePeriods() {
+		return urgentAlarmPurgePeriods;
+	}
+
+
+	public void setUrgentAlarmPurgePeriods(Integer urgentAlarmPurgePeriods) {
+		this.urgentAlarmPurgePeriods = urgentAlarmPurgePeriods;
+	}
+
+
+	public Integer getCriticalAlarmPurgePeriodType() {
+		return criticalAlarmPurgePeriodType;
+	}
+
+
+	public void setCriticalAlarmPurgePeriodType(Integer criticalAlarmPurgePeriodType) {
+		this.criticalAlarmPurgePeriodType = criticalAlarmPurgePeriodType;
+	}
+
+
+	public Integer getCriticalAlarmPurgePeriods() {
+		return criticalAlarmPurgePeriods;
+	}
+
+
+	public void setCriticalAlarmPurgePeriods(Integer criticalAlarmPurgePeriods) {
+		this.criticalAlarmPurgePeriods = criticalAlarmPurgePeriods;
+	}
+
+
+	public Integer getLifeSafetyAlarmPurgePeriodType() {
+		return lifeSafetyAlarmPurgePeriodType;
+	}
+
+
+	public void setLifeSafetyAlarmPurgePeriodType(
+			Integer lifeSafetyAlarmPurgePeriodType) {
+		this.lifeSafetyAlarmPurgePeriodType = lifeSafetyAlarmPurgePeriodType;
+	}
+
+
+	public Integer getLifeSafetyAlarmPurgePeriods() {
+		return lifeSafetyAlarmPurgePeriods;
+	}
+
+
+	public void setLifeSafetyAlarmPurgePeriods(Integer lifeSafetyAlarmPurgePeriods) {
+		this.lifeSafetyAlarmPurgePeriods = lifeSafetyAlarmPurgePeriods;
 	}
 
 	

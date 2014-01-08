@@ -38,7 +38,31 @@ public class SystemSettingsDao extends BaseDao {
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";
     public static final String POINT_DATA_PURGE_PERIODS = "pointDataPurgePeriods";
 
-    // Event purging
+    // Event Type purging
+    public static final String DATA_POINT_EVENT_PURGE_PERIOD_TYPE = "dataPointEventPurgePeriodType";
+    public static final String DATA_POINT_EVENT_PURGE_PERIODS = "dataPointEventPurgePeriods";
+    public static final String DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE = "dataSourceEventPurgePeriodType";
+    public static final String DATA_SOURCE_EVENT_PURGE_PERIODS = "dataSourceEventPurgePeriods";
+    public static final String SYSTEM_EVENT_PURGE_PERIOD_TYPE = "systemEventPurgePeriodType";
+    public static final String SYSTEM_EVENT_PURGE_PERIODS = "systemEventPurgePeriods";
+    public static final String PUBLISHER_EVENT_PURGE_PERIOD_TYPE = "publisherEventPurgePeriodType";
+    public static final String PUBLISHER_EVENT_PURGE_PERIODS = "publisherEventPurgePeriods";
+    public static final String AUDIT_EVENT_PURGE_PERIOD_TYPE = "auditEventPurgePeriodType";
+    public static final String AUDIT_EVENT_PURGE_PERIODS = "auditEventPurgePeriods";
+    
+    //Alarm Level Purging
+    public static final String NONE_ALARM_PURGE_PERIOD_TYPE = "noneAlarmPurgePeriodType";
+    public static final String NONE_ALARM_PURGE_PERIODS = "noneAlarmPurgePeriods";
+    public static final String INFORMATION_ALARM_PURGE_PERIOD_TYPE = "informationAlarmPurgePeriodType";
+    public static final String INFORMATION_ALARM_PURGE_PERIODS = "informationAlarmPurgePeriods";
+    public static final String URGENT_ALARM_PURGE_PERIOD_TYPE = "urgentAlarmPurgePeriodType";
+    public static final String URGENT_ALARM_PURGE_PERIODS = "urgentAlarmPurgePeriods";
+    public static final String CRITICAL_ALARM_PURGE_PERIOD_TYPE = "criticalAlarmPurgePeriodType";
+    public static final String CRITICAL_ALARM_PURGE_PERIODS = "criticalAlarmPurgePeriods";
+    public static final String LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE = "lifeSafetyAlarmPurgePeriodType";
+    public static final String LIFE_SAFETY_ALARM_PURGE_PERIODS = "lifeSafetyAlarmPurgePeriods";
+    
+    //General Purging of Events from Modules that are not defined in the core
     public static final String EVENT_PURGE_PERIOD_TYPE = "eventPurgePeriodType";
     public static final String EVENT_PURGE_PERIODS = "eventPurgePeriods";
 
@@ -215,6 +239,28 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIODS, 1);
 
+        DEFAULT_VALUES.put(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(DATA_POINT_EVENT_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(DATA_SOURCE_EVENT_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(SYSTEM_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(SYSTEM_EVENT_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(PUBLISHER_EVENT_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(AUDIT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(AUDIT_EVENT_PURGE_PERIODS, 1);
+        
+        DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(URGENT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(URGENT_ALARM_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(CRITICAL_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(CRITICAL_ALARM_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(LIFE_SAFETY_ALARM_PURGE_PERIODS, 1);
+        
         DEFAULT_VALUES.put(EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(EVENT_PURGE_PERIODS, 1);
 
@@ -264,6 +310,28 @@ public class SystemSettingsDao extends BaseDao {
 		
 		vo.setPointDataPurgePeriodType(getIntValue(POINT_DATA_PURGE_PERIOD_TYPE));
 		vo.setPointDataPurgePeriods(getIntValue(POINT_DATA_PURGE_PERIODS));
+		
+		vo.setDataPointEventPurgePeriodType(getIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
+		vo.setDataPointEventPurgePeriods(getIntValue(DATA_POINT_EVENT_PURGE_PERIODS));
+		vo.setDataSourceEventPurgePeriodType(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
+		vo.setDataSourceEventPurgePeriods(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS));
+		vo.setSystemEventPurgePeriodType(getIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE));
+		vo.setSystemEventPurgePeriods(getIntValue(SYSTEM_EVENT_PURGE_PERIODS));
+		vo.setPublisherEventPurgePeriodType(getIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
+		vo.setPublisherEventPurgePeriods(getIntValue(PUBLISHER_EVENT_PURGE_PERIODS));
+		vo.setAuditEventPurgePeriodType(getIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE));
+		vo.setAuditEventPurgePeriods(getIntValue(AUDIT_EVENT_PURGE_PERIODS));
+		
+		vo.setNoneAlarmPurgePeriodType(getIntValue(NONE_ALARM_PURGE_PERIOD_TYPE));
+		vo.setNoneAlarmPurgePeriods(getIntValue(NONE_ALARM_PURGE_PERIODS));
+		vo.setInformationAlarmPurgePeriodType(getIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE));
+		vo.setInformationAlarmPurgePeriods(getIntValue(INFORMATION_ALARM_PURGE_PERIODS));
+		vo.setUrgentAlarmPurgePeriodType(getIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE));
+		vo.setUrgentAlarmPurgePeriods(getIntValue(URGENT_ALARM_PURGE_PERIODS));
+		vo.setCriticalAlarmPurgePeriodType(getIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE));
+		vo.setCriticalAlarmPurgePeriods(getIntValue(CRITICAL_ALARM_PURGE_PERIODS));
+		vo.setLifeSafetyAlarmPurgePeriodType(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
+		vo.setLifeSafetyAlarmPurgePeriods(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS));
 		
 		vo.setEventPurgePeriodType(getIntValue(EVENT_PURGE_PERIOD_TYPE));
 		vo.setEventPurgePeriods(getIntValue(EVENT_PURGE_PERIODS));
@@ -321,8 +389,33 @@ public class SystemSettingsDao extends BaseDao {
 		this.setBooleanValue(EMAIL_TLS, vo.getEmailTls());
 		this.setIntValue(EMAIL_CONTENT_TYPE,vo.getEmailContentType());
 		
+		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
+		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS,vo.getDataPointEventPurgePeriods());
+		
 		this.setIntValue(POINT_DATA_PURGE_PERIOD_TYPE, vo.getPointDataPurgePeriodType());
 		this.setIntValue(POINT_DATA_PURGE_PERIODS,vo.getPointDataPurgePeriods());
+		
+		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
+		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS, vo.getDataPointEventPurgePeriods());
+		this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, vo.getDataSourceEventPurgePeriodType());
+		this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS, vo.getDataSourceEventPurgePeriods());
+		this.setIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE, vo.getSystemEventPurgePeriodType());
+		this.setIntValue(SYSTEM_EVENT_PURGE_PERIODS, vo.getSystemEventPurgePeriods());
+		this.setIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, vo.getPublisherEventPurgePeriodType());
+		this.setIntValue(PUBLISHER_EVENT_PURGE_PERIODS, vo.getPublisherEventPurgePeriods());
+		this.setIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE, vo.getAuditEventPurgePeriodType());
+		this.setIntValue(AUDIT_EVENT_PURGE_PERIODS, vo.getAuditEventPurgePeriods());
+
+		this.setIntValue(NONE_ALARM_PURGE_PERIOD_TYPE, vo.getNoneAlarmPurgePeriodType());
+		this.setIntValue(NONE_ALARM_PURGE_PERIODS, vo.getNoneAlarmPurgePeriods());
+		this.setIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE, vo.getInformationAlarmPurgePeriodType());
+		this.setIntValue(INFORMATION_ALARM_PURGE_PERIODS, vo.getInformationAlarmPurgePeriods());
+		this.setIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE, vo.getUrgentAlarmPurgePeriodType());
+		this.setIntValue(URGENT_ALARM_PURGE_PERIODS, vo.getUrgentAlarmPurgePeriods());
+		this.setIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE, vo.getCriticalAlarmPurgePeriodType());
+		this.setIntValue(CRITICAL_ALARM_PURGE_PERIODS, vo.getCriticalAlarmPurgePeriods());
+		this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, vo.getLifeSafetyAlarmPurgePeriodType());
+		this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS, vo.getLifeSafetyAlarmPurgePeriods());
 		
 		this.setIntValue(EVENT_PURGE_PERIOD_TYPE, vo.getEventPurgePeriodType());
 		this.setIntValue(EVENT_PURGE_PERIODS, vo.getEventPurgePeriods());

@@ -20,6 +20,24 @@
 </p>
 
 <p>
+  Use the various Purge settings to set the maximum age of an event of that given type before it is purged from the database. Purging 
+  permanently deletes the event as well as any user comments associated with it.  
+  
+  Alarm levels are configurable for all event types.  For example some Data Source events may have the 'urgent' level and by setting the 'urgent' purge setting to 1 day 
+  and the data source events purge setting to 1 week these events will be purged after 1 day.  This will not purge Data Source events that are not 'urgent'.
+  
+  <ul>
+    <li>Data Point Events are from setting or enable/disable of a point</li>
+    <li>Data Source Events are from enable/disable or errors for a data source.</li>
+    <li>System Events include system startup/shutdown </li>
+    <li>Publisher Events are from enable/disable or errors for a publisher.</li>
+    <li>Audit Events are from changing the settings of a point/publisher/data source.</li>
+  </ul>
+  
+</p>
+
+
+<p>
   Use the "purge events" settings to set the maximum age of an event before it is purged from the database. Purging 
   permanently deletes the event as well as any user comments associated with it.
 </p>
@@ -29,6 +47,13 @@
   useful for giving a Mango instance a "fresh start", especially if spurious data exists from configuration and set up
   activities. 
 </p>
+
+<p>
+  Click the <b>Purge now using point settings</b> button to permanently delete events and point values in the database according to these settings. This can be
+  useful for giving a Mango instance a "fresh start", especially if spurious data exists from configuration and set up
+  activities. 
+</p>
+
 
 <p>
   User the "Discard point values future dated" settings to set the maximum amount of time into the future for which 

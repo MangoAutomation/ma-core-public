@@ -329,6 +329,63 @@ public class EventDao extends BaseDao {
         return getEventInstance(eventId);
     }
 
+    /**
+     * Purge Events Before a given time with a given alarmLevel
+     * @param time
+     * @param typeName
+     * @return
+     */
+    public int purgeEventsBefore(final long time, final int alarmLevel) {
+        // Find a list of event ids with no remaining acknowledgments pending.
+        final ExtendedJdbcTemplate ejt2 = ejt;
+        int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+            @Override
+            public Integer doInTransaction(TransactionStatus status) {
+            	
+                int count = ejt2.update("delete from events where activeTs<? and alarmLevel=?", new Object[] { time, alarmLevel});
+
+                // Delete orphaned user comments.
+                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
+                        + "  and typeKey not in (select id from events)");
+
+                return count;
+            }
+        });
+
+        clearCache();
+
+        return count;
+    }
+    
+    /**
+     * Purge Events Before a given time with a given typeName
+     * @param time
+     * @param typeName
+     * @return
+     */
+    public int purgeEventsBefore(final long time, final String typeName) {
+        // Find a list of event ids with no remaining acknowledgments pending.
+        final ExtendedJdbcTemplate ejt2 = ejt;
+        int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+            @Override
+            public Integer doInTransaction(TransactionStatus status) {
+            	
+                int count = ejt2.update("delete from events where activeTs<? and typeName=?", new Object[] { time, typeName});
+
+                // Delete orphaned user comments.
+                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
+                        + "  and typeKey not in (select id from events)");
+
+                return count;
+            }
+        });
+
+        clearCache();
+
+        return count;
+    }
+    
+    
     public int purgeEventsBefore(final long time) {
         // Find a list of event ids with no remaining acknowledgments pending.
         final ExtendedJdbcTemplate ejt2 = ejt;

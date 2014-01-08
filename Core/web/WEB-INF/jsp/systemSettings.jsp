@@ -70,8 +70,34 @@
             
             $set("<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_PERIODS %>"/>);
+            
+            $set("<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS %>"/>);
+
+            $set("<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>);
+
+            
+            
             $set("<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIODS %>"/>);
+
             $set("<c:out value="<%= SystemSettingsDao.UI_PERFORMANCE %>"/>", settings.<c:out value="<%= SystemSettingsDao.UI_PERFORMANCE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.FUTURE_DATE_LIMIT_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.FUTURE_DATE_LIMIT_PERIODS %>"/>);
@@ -258,6 +284,29 @@
         SystemSettingsDwr.saveMiscSettings(
                 $get("<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_PERIODS %>"/>"),
+                
+                $get("<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS %>"/>"),
+                
+                $get("<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>"),
+
                 $get("<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIODS %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.UI_PERFORMANCE %>"/>"),
@@ -581,6 +630,86 @@
         </td>
       </tr>
       <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeDataPointEvents"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeDataSourceEvents"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeSystemEvents"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgePublisherEvents"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeAuditEvents"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeNoneAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeInformationAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeUrgentAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeCriticalAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeLifeSafetyAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.purgeEvents"/></td>
         <td class="formField">
           <input id="<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
@@ -601,6 +730,7 @@
         <td colspan="2" align="center">
           <input id="saveMiscSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveMiscSettings()"/>
           <input type="button" value="<fmt:message key="systemSettings.purgeData"/>" onclick="checkPurgeAllData()"/>
+          <input type="button" value='<fmt:message key="systemSettings.purgeNow"/>' onclick="purgeNow();"/>
           <tag:help id="otherSettings"/>
         </td>
       </tr>
