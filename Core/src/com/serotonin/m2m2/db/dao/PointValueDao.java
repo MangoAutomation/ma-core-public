@@ -439,12 +439,21 @@ public class PointValueDao extends BaseDao {
     // Single point
     //
     public PointValueTime getLatestPointValue(int dataPointId) {
-        long maxTs = ejt.queryForLong("select max(ts) from pointValues where dataPointId=?",
-                new Object[] { dataPointId }, 0);
-        if (maxTs == 0)
-            return null;
-        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { dataPointId,
-                maxTs });
+    	
+    	List<PointValueTime> values = pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? order by pv.ts desc",
+                new Object[] { dataPointId }, 1);
+    	if(values.size() > 0)
+    		return values.get(0);
+    	else
+    		return null;
+    	
+//    	///This code is slow, replaced with the below call
+//        long maxTs = ejt.queryForLong("select max(ts) from pointValues where dataPointId=?",
+//                new Object[] { dataPointId }, 0);
+//        if (maxTs == 0)
+//            return null;
+//        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { dataPointId,
+//                maxTs });
     }
 
     private PointValueTime getPointValue(long id) {
