@@ -4,6 +4,7 @@
 * Added Do Not Log level for Alarms, this will not write anything to the database but will still fire events to be handled
 * Added ability to import/export System Settings
 * Added fine grain control for purging events on alarm level and type
+* Changed showHeader and showToolbar url parameters to work without having to add them explicitly to the page tag.
 
 
 *Version 2.1.2*

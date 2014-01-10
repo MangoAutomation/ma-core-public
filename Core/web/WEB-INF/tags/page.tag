@@ -18,6 +18,13 @@
 <%-- <c:set var="theme">nihilo</c:set> --%>
 <%-- <c:set var="theme">soria</c:set> --%>
 <%-- <c:set var="theme">tundra</c:set> --%>
+<!-- To allow pages to show/hide toolbar via url param even if page doesn't pass in the parameter -->
+<c:choose>
+    <c:when test="${empty showHeader}"><c:set var="showHeader">${param.showHeader}</c:set></c:when>
+</c:choose>
+<c:choose>
+    <c:when test="${empty showToolbar}"><c:set var="showToolbar">${param.showToolbar}</c:set></c:when>
+</c:choose>
 
 <html>
 <head>
