@@ -30,6 +30,8 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
@@ -40,6 +42,7 @@ import com.serotonin.m2m2.vo.permission.DataPointAccess;
 
 abstract public class DatabaseProxy {
     public enum DatabaseType {
+
         DERBY {
             @Override
             DatabaseProxy getImpl() {
@@ -68,6 +71,7 @@ abstract public class DatabaseProxy {
         abstract DatabaseProxy getImpl();
     }
 
+    
     public static DatabaseProxy createDatabaseProxy() {
         String type = Common.envProps.getString("db.type", "derby");
         DatabaseType dt = DatabaseType.valueOf(type.toUpperCase());
@@ -79,7 +83,8 @@ abstract public class DatabaseProxy {
     }
 
     private final Log log = LogFactory.getLog(DatabaseProxy.class);
-
+    private NoSQLProxy noSQLProxy;
+    
     public void initialize(ClassLoader classLoader) {
         initializeImpl("");
 
@@ -148,6 +153,13 @@ abstract public class DatabaseProxy {
             else
                 // The database exists, so let's make its schema version matches the application version.
                 DBUpgrade.checkUpgrade();
+            
+            // Check if we are using NoSQL
+            if(NoSQLProxyFactory.instance.getProxy() != null){
+            	noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+            	noSQLProxy.initialize();
+            }
+            
         }
         catch (CannotGetJdbcConnectionException e) {
             log.fatal("Unable to connect to database of type " + getType().name(), e);
@@ -287,4 +299,17 @@ abstract public class DatabaseProxy {
         String input = Common.envProps.getString(propertyPrefix + "db.password");
         return new DatabaseAccessUtils().decrypt(input);
     }
+    
+    public void setNoSQLProxy(NoSQLProxy proxy){
+    	this.noSQLProxy = proxy;
+    }
+    
+    public PointValueDao newPointValueDao() {
+        if (noSQLProxy == null)
+            return new PointValueDaoSQL();
+        return noSQLProxy.createPointValueDao();
+    }
+    
+    
+    
 }

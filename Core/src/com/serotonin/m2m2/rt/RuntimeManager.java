@@ -477,7 +477,7 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues() {
-        PointValueDao pointValueDao = new PointValueDao();
+        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
         long count = pointValueDao.deleteAllPointData();
         for (Integer id : dataPoints.keySet())
             updateDataPointValuesRT(id);
@@ -490,13 +490,13 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues(int dataPointId) {
-        long count = new PointValueDao().deletePointValues(dataPointId);
+        long count = Common.databaseProxy.newPointValueDao().deletePointValues(dataPointId);
         updateDataPointValuesRT(dataPointId);
         return count;
     }
     
     public long purgeDataPointValue(int pointValueId,int dataPointId){
-    	long count = new PointValueDao().deletePointValue(pointValueId);
+    	long count = Common.databaseProxy.newPointValueDao().deletePointValue(pointValueId);
     	if(count > 0)
     		updateDataPointValuesRT(dataPointId);
     	return count;
@@ -504,7 +504,7 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues(int dataPointId, long before) {
-        long count = new PointValueDao().deletePointValuesBefore(dataPointId, before);
+        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
         if (count > 0)
             updateDataPointValuesRT(dataPointId);
         return count;

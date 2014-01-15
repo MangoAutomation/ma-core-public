@@ -67,7 +67,7 @@ public class ChartExportServlet extends HttpServlet {
     private void exportCsv(HttpServletResponse response,long from, long to, DataExportDefinition def, User user) throws IOException{
         
         DataPointDao dataPointDao = new DataPointDao();
-        PointValueDao pointValueDao = new PointValueDao();
+        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     	// Stream the content.
         response.setContentType("text/csv");
@@ -117,7 +117,7 @@ public class ChartExportServlet extends HttpServlet {
     private void exportExcel(HttpServletResponse response,long from, long to, DataExportDefinition def, User user) throws IOException{
         
         DataPointDao dataPointDao = new DataPointDao();
-        PointValueDao pointValueDao = new PointValueDao();
+        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     	// Stream the content.
         //response.setContentType("text/csv");

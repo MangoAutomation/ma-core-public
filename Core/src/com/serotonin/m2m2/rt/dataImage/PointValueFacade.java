@@ -20,7 +20,7 @@ public class PointValueFacade {
     public PointValueFacade(int dataPointId) {
         this.dataPointId = dataPointId;
         point = Common.runtimeManager.getDataPoint(dataPointId);
-        pointValueDao = new PointValueDao();
+        pointValueDao = Common.databaseProxy.newPointValueDao();
     }
 
     //

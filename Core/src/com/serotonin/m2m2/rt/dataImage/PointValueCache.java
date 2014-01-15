@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
 /**
@@ -33,7 +34,7 @@ public class PointValueCache {
     public PointValueCache(int dataPointId, int defaultSize) {
         this.dataPointId = dataPointId;
         this.defaultSize = defaultSize;
-        dao = new PointValueDao();
+        dao = Common.databaseProxy.newPointValueDao();
 
         if (defaultSize > 0)
             refreshCache(defaultSize);

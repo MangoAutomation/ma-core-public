@@ -25,7 +25,8 @@
   This alarm returns to normal when the cache is less that 90% of this warning size, or when the publisher is disabled.
   To prevent memory problems, publishers also define a <b>Cache discard size</b>. If the queue size is found to exceed
   this value entries will be discarded until the queue is again at an acceptable level. Entries in the queue are also
-  discarded when the publisher is disabled.
+  discarded when the publisher is disabled.  Once the cache is full it will retain the most recent entries and discard 
+  the oldest as new entries are added.
 </p>
 <p>
   The <b>Update event</b> value determines whether all point updates are delivered, or only point changes.

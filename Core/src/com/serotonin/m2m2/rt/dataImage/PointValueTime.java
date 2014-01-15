@@ -67,7 +67,7 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
     public long getTime() {
         return time;
     }
-
+    
     @Override
     public DataValue getValue() {
         return value;
@@ -114,4 +114,5 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
             return 1;
         return 0;
     }
+
 }

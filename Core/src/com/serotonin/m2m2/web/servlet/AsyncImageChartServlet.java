@@ -43,7 +43,7 @@ public class AsyncImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
 
     final DataPointDao dataPointDao = new DataPointDao();
-    final PointValueDao pointValueDao = new PointValueDao();
+    final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     /**
      * @TODO(security): Validate the point access against the user. If anonymous, make sure the view allows public

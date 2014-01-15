@@ -252,8 +252,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             // Only do this if the data type has actually changed because it is
             // just really slow if the database is
             // big or busy.
-            new PointValueDao().deletePointValuesWithMismatchedType(dp.getId(), dp.getPointLocator().getDataTypeId());
-
+            //new PointValueDao().deletePointValuesWithMismatchedType(dp.getId(), dp.getPointLocator().getDataTypeId());
+        	Common.databaseProxy.newPointValueDao().deletePointValuesWithMismatchedType(dp.getId(), dp.getPointLocator().getDataTypeId());
         // Save the VO information.
         updateDataPointShallow(dp);
 

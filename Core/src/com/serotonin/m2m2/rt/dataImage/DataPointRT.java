@@ -77,7 +77,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 return pvt;
         }
 
-        return new PointValueDao().getPointValueBefore(vo.getId(), time);
+        return Common.databaseProxy.newPointValueDao().getPointValueBefore(vo.getId(), time);
     }
 
     public PointValueTime getPointValueAt(long time) {
@@ -86,7 +86,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 return pvt;
         }
 
-        return new PointValueDao().getPointValueAt(vo.getId(), time);
+        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo.getId(), time);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 return pvt;
         }
 
-        return new PointValueDao().getPointValueAfter(vo.getId(), time);
+        return Common.databaseProxy.newPointValueDao().getPointValueAfter(vo.getId(), time);
     }
 
     //
@@ -112,7 +112,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
     @Override
     public List<PointValueTime> getPointValues(long since) {
-        List<PointValueTime> result = new PointValueDao().getPointValues(vo.getId(), since);
+        List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValues(vo.getId(), since);
 
         for (PointValueTime pvt : valueCache.getCacheContents()) {
             if (pvt.getTime() >= since) {
@@ -127,7 +127,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
     @Override
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
-        List<PointValueTime> result = new PointValueDao().getPointValuesBetween(vo.getId(), from, to);
+        List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValuesBetween(vo.getId(), from, to);
 
         for (PointValueTime pvt : valueCache.getCacheContents()) {
             if (pvt.getTime() >= from && pvt.getTime() < to) {

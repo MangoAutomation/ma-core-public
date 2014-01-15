@@ -39,7 +39,7 @@ public class DataPurge {
     private long runtime;
     private final DataPointDao dataPointDao = new DataPointDao();
     private final DataSourceDao dataSourceDao = new DataSourceDao();
-    private final PointValueDao pointValueDao = new PointValueDao();
+    private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
     private long deletedSamples;
     private long deletedFiles;
     private final List<Long> fileIds = new ArrayList<Long>();

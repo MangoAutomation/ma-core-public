@@ -202,7 +202,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	if(dpRt != null)
 	    		dpRt.savePointValueDirectToCache(pvt, null, true, true);
 	    	else{
-	            PointValueDao pointValueDao = new PointValueDao();
+	            PointValueDao pointValueDao =Common.databaseProxy.newPointValueDao();
 	    		pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
 	    	}
     	}else{
@@ -210,7 +210,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	if(dpRt != null)
 	    		dpRt.updatePointValueInCache(pvt, null, true, true);
 	    	else{
-	            PointValueDao pointValueDao = new PointValueDao();
+	            PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 	    		pointValueDao.updatePointValueAsync(dp.getId(),pvt,null);
 	    	}
 
