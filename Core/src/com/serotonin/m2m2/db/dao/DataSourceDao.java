@@ -216,6 +216,63 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 	}
 
 
+    /**
+     * Copy a data source points
+     * 
+     * @param dataSourceId
+     * @param newDataSourceId
+     * @return
+     */
+	public int copyDataSourcePoints(final int dataSourceId, final int newDataSourceId) {
+        return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+            @Override
+            public Integer doInTransaction(TransactionStatus status) {
+                DataPointDao dataPointDao = new DataPointDao();
+
+                DataSourceVO<?> dataSource = getDataSource(dataSourceId);
+                // Copy the data source.
+                DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
+               
+
+                // Copy permissions.
+                copyPermissions(dataSource.getId(), dataSourceCopy.getId());
+
+                // Copy the points.
+                for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
+                    DataPointVO dataPointCopy = dataPoint.copy();
+                    dataPointCopy.setId(Common.NEW_ID);
+                    dataPointCopy.setXid(dataPointDao.generateUniqueXid());
+                    dataPointCopy.setName(dataPoint.getName());
+                    dataPointCopy.setDeviceName(dataSourceCopy.getName());
+                    dataPointCopy.setDataSourceId(dataSourceCopy.getId());
+                    dataPointCopy.setEnabled(dataPoint.isEnabled());
+                    dataPointCopy.getComments().clear();
+
+                    // Copy the event detectors
+                    for (PointEventDetectorVO ped : dataPointCopy.getEventDetectors()) {
+                        ped.setId(Common.NEW_ID);
+                        ped.njbSetDataPoint(dataPointCopy);
+                    }
+
+                    dataPointDao.saveDataPoint(dataPointCopy);
+
+                    // Copy permissions
+                    dataPointDao.copyPermissions(dataPoint.getId(), dataPointCopy.getId());
+                }
+
+                return dataSourceCopy.getId();
+            }
+        });
+    }
+    
+    /**
+     * Copy Data Source Points and Source itself
+     * @param dataSourceId
+     * @param name
+     * @param xid
+     * @param deviceName
+     * @return
+     */
 	public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override

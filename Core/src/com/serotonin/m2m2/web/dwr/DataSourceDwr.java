@@ -188,24 +188,11 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
     }
 	
 	@DwrPermission(user = true)
-	public ProcessResult finishCopy(int copyFromId, String newName, String newXid, String deviceId){
+	public ProcessResult finishCopy(int copyFromId, int newId){
 		ProcessResult result = new ProcessResult();
 		
-		//Need to validate the inputs first
-		DataSourceVO<?> original = dao.get(copyFromId);
-	
-		DataSourceVO<?> copy = original.copy();
-		copy.setName(newName);
-		if(newXid != null)
-			copy.setXid(newXid);
-		else
-			copy.setXid(dao.generateUniqueXid());
-		
-		copy.validate(result);
-		
 		if(!result.getHasMessages()){
-			int newId = this.dao.copyDataSource(copyFromId, newName, newXid, deviceId);
-			
+			this.dao.copyDataSourcePoints(copyFromId, newId);
 			result.addData("vo", dao.get(newId));
 		}
 		return result;

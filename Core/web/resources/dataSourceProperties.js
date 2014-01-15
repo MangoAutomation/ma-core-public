@@ -155,31 +155,14 @@
      startImageFader("dsSaveImg", true);
      hideContextualMessages($("dataSourceProperties"));
      
-     //Are we making a copy?
-     if(dataSources.copyId != null){
-         //Copy Permissions and Points across
-         DataSourceDwr.finishCopy(
-         		dataSources.copyId,
-         		$get("dataSource.name"),
-         		$get("dataSource.xid"),
-         		$get("dataSource.deviceName"),function(response){
-         	if(!response.hasMessages){
-         		dataSources.copyId = null; //Done with copy
-         		hide("copyDeviceName");
-         	}
-             saveDataSourceCB(response);
-             //Need to validate no messages for this to happen... dataSources.open(response.data.id);
-             
-         });
-     }else{
-	     saveDataSourceImpl({
+ 	     saveDataSourceImpl({
 	         name: $get("dataSource.name"),
 	         xid: $get("dataSource.xid"),
 	         purgeOverride: $get("dataSource.purgeOverride"),
 	         purgePeriod: $get("dataSource.purgePeriod"),
 	         purgeType: $get("dataSource.purgeType")
 	     });
-     }
+     
  }
  
  /**
@@ -200,20 +183,49 @@
     	 }
     	 showDwrMessages(response.messages);
      }else {
-         showMessage("dataSourceMessage", mangoTranslate('dsEdit.saved'));
-    	 createDataPointsTab(); //For The saving of new sources
-         //Need to Update the DS Table for sure
-         if(typeof dataSources != 'undefined'){
-        	 dataSources.setInputs(response.data.vo);
-        	 dataSources.refresh();
-         }
-         if(typeof allDataPoints != 'undefined'){
-        	 allDataPoints.refresh();
-         }
-         if(typeof dataPoints != 'undefined'){
-        	 dataPointsDataSourceId = response.data.vo.id;
-        	 dataPoints.refresh();
-         }
+    	 
+    	 //Finish the copy if necessary
+    	//Are we making a copy?
+         if(dataSources.copyId != null){
+             //Copy Permissions and Points across
+             DataSourceDwr.finishCopy(
+             		dataSources.copyId,
+             		response.data.id,
+             	function(response){
+             		dataSources.copyId = null; //Done with copy
+             		hide("copyDeviceName");
+ 
+             		 showMessage("dataSourceMessage", mangoTranslate('dsEdit.saved'));
+	       	    	 createDataPointsTab(); //For The saving of new sources
+	       	         //Need to Update the DS Table for sure
+	       	         if(typeof dataSources != 'undefined'){
+	       	        	 dataSources.setInputs(response.data.vo);
+	       	        	 dataSources.refresh();
+	       	         }
+	       	         if(typeof allDataPoints != 'undefined'){
+	       	        	 allDataPoints.refresh();
+	       	         }
+	       	         if(typeof dataPoints != 'undefined'){
+	       	        	 dataPointsDataSourceId = response.data.vo.id;
+	       	        	 dataPoints.refresh();
+	       	         }
+             });
+         }else{
+	         showMessage("dataSourceMessage", mangoTranslate('dsEdit.saved'));
+	    	 createDataPointsTab(); //For The saving of new sources
+	         //Need to Update the DS Table for sure
+	         if(typeof dataSources != 'undefined'){
+	        	 dataSources.setInputs(response.data.vo);
+	        	 dataSources.refresh();
+	         }
+	         if(typeof allDataPoints != 'undefined'){
+	        	 allDataPoints.refresh();
+	         }
+	         if(typeof dataPoints != 'undefined'){
+	        	 dataPointsDataSourceId = response.data.vo.id;
+	        	 dataPoints.refresh();
+	         }
+	     }
      }
      getAlarms();
      
