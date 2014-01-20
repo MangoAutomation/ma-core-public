@@ -152,11 +152,12 @@
         <pathconvert property="jsps" pathsep="," refid="jsps.fs" setonempty="false">
             <map from="${canonical}" to="."/>
         </pathconvert>
-        
+    	
         <!-- Compile the JSPs IF THERE ARE ANY-->
         <if>
-        	<isset property="jsps.fs.notempty"/>
+        	<isset property="jsps"/>
         		<then>
+        			<echo message="Compiling JSPs"/>
                 	<jetty-jspc uriroot="${coreHome}/target/web" outputDir="${coreHome}/target/work/jsp"
                             compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
                         <classpath>
