@@ -263,6 +263,8 @@ public class RuntimeManager {
     }
 
     private boolean initializeDataSource(DataSourceVO<?> vo) {
+    	long startTime = System.nanoTime();
+
         synchronized (runningDataSources) {
             // If the data source is already running, just quit.
             if (isDataSourceRunning(vo.getId()))
@@ -287,6 +289,10 @@ public class RuntimeManager {
 
             LOG.info("Data source '" + vo.getName() + "' initialized");
 
+        	long endTime = System.nanoTime();
+
+        	long duration = endTime - startTime;
+        	LOG.info("Data source '" + vo.getName() + "' took " + (double)duration/(double)1000000 + "ms to start");
             return true;
         }
     }

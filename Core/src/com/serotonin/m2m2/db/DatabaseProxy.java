@@ -194,10 +194,22 @@ abstract public class DatabaseProxy {
 
         return coreIsNew;
     }
+    
+
+    
 
     abstract public DatabaseType getType();
 
-    abstract public void terminate();
+    public void terminate(){
+    	terminateImpl();
+    	// Check if we are using NoSQL
+        if(NoSQLProxyFactory.instance.getProxy() != null){
+        	noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+        	noSQLProxy.shutdown();
+        }
+    }
+    
+    abstract public void terminateImpl();
 
     abstract public DataSource getDataSource();
 

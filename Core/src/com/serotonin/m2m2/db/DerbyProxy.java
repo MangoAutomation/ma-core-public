@@ -72,7 +72,7 @@ public class DerbyProxy extends DatabaseProxy {
     }
 
     @Override
-    public void terminate() {
+    public void terminateImpl() {
         log.info("Stopping database");
         dataSource.setDatabaseName("");
         dataSource.setShutdownDatabase("shutdown");
