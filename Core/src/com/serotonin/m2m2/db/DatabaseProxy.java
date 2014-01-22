@@ -31,6 +31,8 @@ import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
+import com.serotonin.m2m2.db.dao.PointValueDaoMetrics.TimeScale;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -84,10 +86,13 @@ abstract public class DatabaseProxy {
 
     private final Log log = LogFactory.getLog(DatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
+    private Boolean useMetrics;
     
     public void initialize(ClassLoader classLoader) {
         initializeImpl("");
 
+        useMetrics = Common.envProps.getBoolean("db.useMetrics",false);
+        
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
 
@@ -317,9 +322,19 @@ abstract public class DatabaseProxy {
     }
     
     public PointValueDao newPointValueDao() {
-        if (noSQLProxy == null)
-            return new PointValueDaoSQL();
-        return noSQLProxy.createPointValueDao();
+ 
+        if (noSQLProxy == null){
+        	if(useMetrics)
+        		return new PointValueDaoMetrics(new PointValueDaoSQL(),TimeScale.MILLISECONDS);
+        	else
+        		return new PointValueDaoSQL();
+        }else{
+        	if(useMetrics)
+        		return noSQLProxy.createPointValueDaoMetrics(TimeScale.MILLISECONDS);
+        	else
+        		return noSQLProxy.createPointValueDao();
+        }
+        
     }
     
     
