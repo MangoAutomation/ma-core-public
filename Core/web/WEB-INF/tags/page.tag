@@ -9,6 +9,7 @@
 <%@attribute name="styles" fragment="true" %>
 <%@attribute name="dwr" rtexprvalue="true" %>
 <%@attribute name="js" %>
+<%@attribute name="css" %>
 <%@attribute name="onload" %>
 <%@attribute name="showHeader" %>
 <%@attribute name="showToolbar" %>
@@ -57,6 +58,8 @@
   <link href="/resources/common.css" type="text/css" rel="stylesheet"/>
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
     <link href="/${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
+  <c:forEach items="${css}" var="modStyle">
+    <link href="${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
