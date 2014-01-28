@@ -301,7 +301,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * @param purgePeriod
      * @param defaultCacheSize
      */
-    @Deprecated //I Think this isn't being used anymore
+
     @DwrPermission(user = true)
     public void storeEditLoggingProperties(int type, int period, int periodType,
     		int intervalType, double tolerance, boolean discardExtremeValues, 

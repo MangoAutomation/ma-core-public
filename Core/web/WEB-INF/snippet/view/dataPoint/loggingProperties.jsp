@@ -19,10 +19,10 @@
         dojo.byId("intervalLoggingPeriodType").value = vo.intervalLoggingPeriodType;
         dojo.byId("intervalLoggingType").value = vo.intervalLoggingType;
         dojo.byId("tolerance").value = vo.tolerance;
-        dojo.byId("discardExtremeValues").value = vo.discardExtremeValues;
+        dijit.byId("discardExtremeValues").set('checked',vo.discardExtremeValues);
         dojo.byId("discardHighLimit").value = vo.discardHighLimit;
         dojo.byId("discardLowLimit").value = vo.discardLowLimit;
-        dojo.byId("purgeOverride").value = vo.purgeOverride;
+        dijit.byId("purgeOverride").set('checked',vo.purgeOverride);
         dojo.byId("purgeType").value = vo.purgeType;
         dojo.byId("purgePeriod").value = vo.purgePeriod;
         dojo.byId("defaultCacheSize").value = vo.defaultCacheSize;
@@ -49,10 +49,10 @@
         vo.intervalLoggingPeriodType = dojo.byId("intervalLoggingPeriodType").value;
         vo.intervalLoggingType = dojo.byId("intervalLoggingType").value;
         vo.tolerance = dojo.byId("tolerance").value;
-        vo.discardExtremeValues = dojo.byId("discardExtremeValues").value;
+        vo.discardExtremeValues = dojo.byId("discardExtremeValues").checked;
         vo.discardHighLimit = dojo.byId("discardHighLimit").value;
         vo.discardLowLimit = dojo.byId("discardLowLimit").value;
-        vo.purgeOverride = dojo.byId("purgeOverride").value;
+        vo.purgeOverride = dojo.byId("purgeOverride").checked;
         vo.purgeType = dojo.byId("purgeType").value;
         vo.purgePeriod = dojo.byId("purgePeriod").value;
         vo.defaultCacheSize = dojo.byId("defaultCacheSize").value;
@@ -194,7 +194,7 @@
         <tr>
           <td class="formLabelRequired"><fmt:message key="pointEdit.logging.discard"/></td>
           <td class="formField">
-            <sst:checkbox id="discardExtremeValues" name="discardExtremeValues" onclick="changeDiscard()"/>
+            <input data-dojo-type="dijit/form/CheckBox" id="discardExtremeValues" name="discardExtremeValues" onclick="changeDiscard()"/>
           </td>
         </tr>
         <tr>
