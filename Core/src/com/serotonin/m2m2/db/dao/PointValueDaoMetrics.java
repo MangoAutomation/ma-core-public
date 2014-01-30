@@ -6,8 +6,8 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -26,39 +26,13 @@ import com.serotonin.m2m2.vo.pair.LongPair;
  */
 public class PointValueDaoMetrics implements PointValueDao{
 
-	private static final Log LOG = LogFactory.getLog(PointValueDaoMetrics.class);
-
 	private PointValueDao dao;
-	private long startTime;
-	private long endTime;
-	private long duration;
-	private long factor;
-	private String suffix;
 	
 	
-	public PointValueDaoMetrics(PointValueDao dao, TimeScale scale){
+	public PointValueDaoMetrics(PointValueDao dao){
 		this.dao = dao;
-		
-		switch(scale){
-		case NANOSECONDS:
-			factor = 1;
-			suffix = "ns";
-		break;
-		case MILLISECONDS:
-			factor = 1000000;
-			suffix = "ms";
-		break;
-		case SECONDS:
-			factor = 1000000000;
-			suffix = "s";
-		break;
-		}
-		
 	}
 	
-	public long getLastDuration(){
-		return duration;
-	}
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#savePointValueSync(int, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
@@ -84,11 +58,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public List<PointValueTime> getPointValues(int pointId, long since) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		List<PointValueTime> values = dao.getPointValues(pointId, since);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+    	stopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + ")");
     	return values;
 	}
 
@@ -98,11 +71,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public List<PointValueTime> getPointValuesBetween(int pointId, long from,
 			long to) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		List<PointValueTime> values = dao.getPointValuesBetween(pointId, from,to);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+    	stopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + ")");
     	return values;
 
 	}
@@ -112,11 +84,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public List<PointValueTime> getLatestPointValues(int pointId, int limit) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getLatestPointValues(pointId,limit) (" + pointId + ", " + limit + ")");
     	return values;
 	}
 
@@ -126,11 +97,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public List<PointValueTime> getLatestPointValues(int pointId, int limit,
 			long before) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit,before);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getLatestPointValues(pointId,limit,before) (" + pointId +", " + limit + ", " + before + ")");
     	return values;
 	}
 
@@ -139,11 +109,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getLatestPointValue(int pointId) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		PointValueTime value = dao.getLatestPointValue(pointId);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getLatestPointValue(pointId) (" + pointId + ")");
     	return value;
 	}
 
@@ -152,11 +121,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getPointValueBefore(int pointId, long time) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		PointValueTime value = dao.getPointValueBefore(pointId,time);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+    	stopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 	}
 
@@ -165,11 +133,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getPointValueAfter(int pointId, long time) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		PointValueTime value = dao.getPointValueAfter(pointId,time);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getPointValueAfter(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 	}
 
@@ -178,11 +145,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getPointValueAt(int pointId, long time) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		PointValueTime value = dao.getPointValueAt(pointId,time);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getPointValueAt(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 	}
 
@@ -192,11 +158,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public void getPointValuesBetween(int pointId, long from, long to,
 			MappedRowCallback<PointValueTime> callback) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		dao.getPointValuesBetween(pointId,from,to,callback);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);	
+		stopWatch.stop("getPointValuesBetween(pointId,from,to,callback) + (" + pointId + ", " + from + ", " + to + ", " + callback.toString() + ")");
 	}
 
 	/* (non-Javadoc)
@@ -205,10 +170,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public void getPointValuesBetween(List<Integer> pointIds, long from,
 			long to, MappedRowCallback<IdPointValueTime> callback) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		dao.getPointValuesBetween(pointIds,from,to,callback);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
     	String sqlIn = "[";
 		for(int i=0; i<pointIds.size(); i++){
 			sqlIn += pointIds.get(i);
@@ -216,7 +180,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for points: " + sqlIn);	
+		stopWatch.stop("getPointValuesBetween(pointIds,from,to,callback) ("+ sqlIn + ", " + from + ", " + to + ", " + callback.toString() + ")" );
 		
 	}
 
@@ -225,11 +189,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValuesBefore(int pointId, long time) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.deletePointValuesBefore(pointId,time);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("deletePointValuesBefore(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 
 	}
@@ -239,11 +202,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValues(int pointId) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.deletePointValues(pointId);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("deletePointValues(pointId) (" + pointId + ")");
     	return value;
 	}
 
@@ -252,11 +214,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deleteAllPointData() {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.deleteAllPointData();
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for all points.");
+		stopWatch.stop("deleteAllPointData()");
     	return value;
 	}
 
@@ -265,11 +226,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deleteOrphanedPointValues() {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.deleteOrphanedPointValues();
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for all points.");
+		stopWatch.stop("deleteOrphanedPointValues()");
     	return value;
 	}
 
@@ -278,11 +238,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public void deleteOrphanedPointValueAnnotations() {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		dao.deleteOrphanedPointValueAnnotations();
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for all points.");
+		stopWatch.stop("deleteOrphanedPointValueAnnotations()");
     	return;
 		
 	}
@@ -292,11 +251,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long dateRangeCount(int pointId, long from, long to) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.dateRangeCount(pointId, from, to);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("dateRangeCount(pointId,from,to) (" + pointId + ", " + from + ", " + to + ")");
     	return value;
 	}
 
@@ -305,11 +263,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long getInceptionDate(int pointId) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.getInceptionDate(pointId);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getInceptionDate(pointId) (" + pointId + ")"); 
     	return value;
 	}
 
@@ -318,10 +275,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long getStartTime(List<Integer> pointIds) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long result = dao.getStartTime(pointIds);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
+
     	String sqlIn = "[";
 		for(int i=0; i<pointIds.size(); i++){
 			sqlIn += pointIds.get(i);
@@ -329,7 +286,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for points: " + sqlIn);	
+		stopWatch.stop("getStartTime(pointIds) (" + sqlIn + ")");
     	return result;
 	}
 
@@ -338,10 +295,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long getEndTime(List<Integer> pointIds) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long result = dao.getEndTime(pointIds);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
+		
     	String sqlIn = "[";
 		for(int i=0; i<pointIds.size(); i++){
 			sqlIn += pointIds.get(i);
@@ -349,7 +306,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for points: " + sqlIn);	
+    	stopWatch.stop("getEndTime(pointIds) (" + sqlIn + ")");
     	return result;
 	}
 
@@ -358,10 +315,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public LongPair getStartAndEndTime(List<Integer> pointIds) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		LongPair result = dao.getStartAndEndTime(pointIds);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
+		
     	String sqlIn = "[";
 		for(int i=0; i<pointIds.size(); i++){
 			sqlIn += pointIds.get(i);
@@ -369,7 +326,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for points: " + sqlIn);	
+		stopWatch.stop("getStartAndEndTime(pointIds) + (" + sqlIn + ")");
     	return result;
 	}
 
@@ -378,11 +335,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public List<Long> getFiledataIds(int pointId) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		List<Long> value = dao.getFiledataIds(pointId);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getFiledataIds(pointId) (" + pointId + ")");
     	return value;
 	}
 
@@ -391,11 +347,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValuesWithMismatchedType(int id, int dataTypeId) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.deletePointValuesWithMismatchedType(id,dataTypeId);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + id);
+		stopWatch.stop("deletePointValuesWithMismatchedType(id,dataTypeId) (" + id + ", " + dataTypeId + ")");
     	return value;
 	}
 
@@ -405,11 +360,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public void updatePointValueAsync(int id, PointValueIdTime pvt,
 			SetPointSource source) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		dao.updatePointValueAsync(id,pvt,source);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + id);
+		stopWatch.stop("updatePointValueAsync(id,pvt) (" + id + ", pvt)");
 		
 	}
 
@@ -419,11 +373,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public PointValueIdTime updatePointValueSync(int dataPointId,
 			PointValueIdTime pvt, SetPointSource source) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		PointValueIdTime value = dao.updatePointValueSync(dataPointId, pvt, source);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + dataPointId);
+		stopWatch.stop("updatePointValuesSync(dataPointId,pvt,source) (" + dataPointId + ", pvt, source)" );
     	return value;
 	}
 
@@ -433,11 +386,10 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public void getPointValuesWithIdsBetween(int pointId, long from, long to,
 			MappedRowCallback<PointValueIdTime> callback) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		dao.getPointValuesWithIdsBetween(pointId, from, to,callback);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point with id: " + pointId);
+		stopWatch.stop("getPointValuesWithIdsBetween(pointId,from,to,callback) (" + pointId + ", " + from + ", " + to + ", " + callback.toString() +")");
 		
 	}
 
@@ -446,18 +398,12 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValue(int pointValueId) {
-		startTime = System.nanoTime();
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
 		long value = dao.deletePointValue(pointValueId);
-		endTime = System.nanoTime();
-    	duration = endTime - startTime;
-    	LOG.info("Query time: " + (double)duration/(double)factor + suffix + " for point value with id: " + pointValueId);
+		stopWatch.stop("deletePointValue(pointValueId) + (" + pointValueId + ")");
     	return value;
 	}
 
-	public enum TimeScale{
-		NANOSECONDS, MILLISECONDS,SECONDS
-	}
-	
-	
 	
 }

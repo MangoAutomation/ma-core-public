@@ -188,6 +188,22 @@
         <move file="${build.dir}/module-backup" tofile="${build.dir}/web/modules"/>
     </target>
     	    
-
+    <target name="dev-release" description="Zip Contents of Target for Development Release">
+        <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
+        
+        <zip destfile="${fullName}.zip">
+            <fileset dir="">
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+            </fileset>
+            <fileset dir="${build.dir}">
+            	<!-- TODO Figure out how to exclude the *.js.uncompressed.js files -->
+            	<include name="**/*"/>
+            </fileset>
+        	<zipfileset dir="overrides" includes="**/*" prefix="overrides" />
+            <zipfileset dir="scripts" includes="**/*.bat" prefix="bin" />
+            <zipfileset dir="scripts" includes="**/*.sh" prefix="bin" filemode="755" />
+        </zip>
+    </target>
 	
 </project>

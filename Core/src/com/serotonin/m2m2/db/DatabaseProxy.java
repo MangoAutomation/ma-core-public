@@ -32,7 +32,6 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
-import com.serotonin.m2m2.db.dao.PointValueDaoMetrics.TimeScale;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -325,12 +324,12 @@ abstract public class DatabaseProxy {
  
         if (noSQLProxy == null){
         	if(useMetrics)
-        		return new PointValueDaoMetrics(new PointValueDaoSQL(),TimeScale.MILLISECONDS);
+        		return new PointValueDaoMetrics(new PointValueDaoSQL());
         	else
         		return new PointValueDaoSQL();
         }else{
         	if(useMetrics)
-        		return noSQLProxy.createPointValueDaoMetrics(TimeScale.MILLISECONDS);
+        		return noSQLProxy.createPointValueDaoMetrics();
         	else
         		return noSQLProxy.createPointValueDao();
         }
