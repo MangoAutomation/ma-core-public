@@ -270,7 +270,12 @@ function hide(node) {
         getNodeIfString(node).style.display = 'none';
     }
     catch (err) {
-        throw "hide failed for node "+ node +", "+ err.message;
+    	//Edit by TP Jan 29 2014 - Removed due to crashing of modules when they reference something that
+    	// was changed.  Another option would be to check for console and if it DNE create a dummy one
+    	// via this: console = { log: function() { }, error: function() };
+    	if(console != 'undefined')
+    		console.error("hide failed for node: " + node + ", " + err.message);
+    	//throw "hide failed for node "+ node +", "+ err.message;
     }
 }
 
