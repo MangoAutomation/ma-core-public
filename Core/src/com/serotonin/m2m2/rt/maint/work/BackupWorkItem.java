@@ -185,7 +185,8 @@ public class BackupWorkItem implements WorkItem {
         data.put(EmportDwr.PUBLISHERS, new PublisherDao().getPublishers());
         data.put(EmportDwr.EVENT_HANDLERS, new EventDao().getEventHandlers());
         data.put(EmportDwr.POINT_HIERARCHY, new DataPointDao().getPointHierarchy(true).getRoot().getSubfolders());
-
+        data.put(EmportDwr.SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettings());
+        
         //Export all module data too
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
                 data.put(def.getElementId(), def.getExportData());
