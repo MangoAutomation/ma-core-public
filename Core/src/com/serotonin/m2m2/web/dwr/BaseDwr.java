@@ -462,7 +462,7 @@ abstract public class BaseDwr {
 		                response.put("lifeSafetyEvent",event);
 	            	}
 	            }else{//end if new alarm toaster info
-	            	response.put("alarmsUpdated",false);
+	            	//response.put("alarmsUpdated",false);
 	            }
             	// The events have changed. See if the user's particular max alarm level has changed.
                 int maxAlarmLevel = eventDao.getHighestUnsilencedAlarmLevel(user.getId());
@@ -480,7 +480,7 @@ abstract public class BaseDwr {
                 if (state.getLastAlarmLevelChange() < lastEMUpdate) {
                     state.setLastAlarmLevelChange(lastEMUpdate);
                 }else{//end no new alarms
-                	response.put("alarmsUpdated",false);
+                	//Don't add data for nothing, this will cause tons of polls. response.put("alarmsUpdated",false);
                 }
             }//end for max alarms
 

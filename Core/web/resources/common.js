@@ -83,6 +83,7 @@ mango.longPoll.pollCB = function(response) {
     
 	//Do we have updated information for the toaster
     if(typeof(response.alarmsUpdated != 'undefined')){
+
 		if(response.alarmsUpdated == true){
 	    	//Clear out toaster message
 			dojo.publish("alarmTopic",[{
@@ -90,9 +91,11 @@ mango.longPoll.pollCB = function(response) {
 					type: "clear",
 					duration: -1,}]
 			);
+			mango.soundPlayer.stop(); //Stop the sound and only play again if necessary
 			
 			//Check to see if we need to add new
 	        if(response.alarmsInformation > 0){
+	        	mango.soundPlayer.play("level1"); //Play Sound
 	        	if(response.alarmsInformation > 1){
 		            dojo.publish("alarmTopic",[{
 		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_blue.png'/> " + response.alarmsInformation  + " Information Events</a>",
@@ -112,6 +115,7 @@ mango.longPoll.pollCB = function(response) {
 	
 	        }
 	        if(response.alarmsUrgent > 0){
+	        	mango.soundPlayer.play("level2"); //Play Sound
 	        	if(response.alarmsUrgent > 1){
 		            dojo.publish("alarmTopic",[{
 		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_yellow.png'/> " + response.alarmsUrgent + " Urgent Events</a>",
@@ -130,6 +134,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}
 	        }
 	        if(response.alarmsCritical > 0){
+	        	mango.soundPlayer.play("level3"); //Play Sound
 	        	if(response.alarmsCritical > 1){
 		            dojo.publish("alarmTopic",[{
 		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_orange.png'/> " + response.alarmsCritical + " Critical Events</a>",
@@ -148,6 +153,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}
 	        }
 	        if(response.alarmsLifeSafety > 0){
+	        	mango.soundPlayer.play("level4"); //Play Sound
 	        	if(response.alarmsLifeSafety > 1){
 	            dojo.publish("alarmTopic",[{
 	            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_red.png'/> " + response.alarmsLifeSafety + " Life Safety Events</a>",
@@ -168,6 +174,7 @@ mango.longPoll.pollCB = function(response) {
 		}
     }else{//end if the alarm indicator was not defined
     	//Clear out toaster message
+    	mango.soundPlayer.stop(); //Stop Playing sounds
 		dojo.publish("alarmTopic",[{
 				message:"",
 				type: "clear",
