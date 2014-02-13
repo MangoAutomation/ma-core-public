@@ -3,9 +3,9 @@
     <library name="M2M2 Core" systemlibrary="false">
         <archive path="/Core/lib/servlet-api-2.5-20081211.jar"/>
         <archive path="/Core/lib/commons-lang3-3.0.jar"/>
-        <archive path="/Core/lib/seroUtils.jar"/>
+        <archive path="/Core/lib/seroUtils.jar" source="/serotonin-utils"/>
         <archive path="/Core/lib/commons-logging-1.1.1.jar"/>
-        <archive path="/Core/lib/serotonin-timer.jar"/>
+        <archive path="/Core/lib/serotonin-timer.jar" source="/Timer"/>
         <archive path="/Core/lib/org.springframework.jdbc-3.0.5.RELEASE.jar"/>
         <archive path="/Core/lib/org.springframework.transaction-3.0.5.RELEASE.jar"/>
         <archive path="/Core/lib/org.springframework.core-3.0.5.RELEASE.jar"/>
@@ -45,6 +45,7 @@
         <archive path="/Core/lib/serotonin-JSON.jar" source="/serotonin-json"/>
         <archive path="/Core/lib/dwr-2.0.10-cust.jar" source="/dwr-2.0.10-custom"/>
         <archive path="/Core/lib/javolution-5.2.3.jar"/>
-        <archive path="/Core/lib/jscience-4.3.1.jar"/>
+        <archive path="/Core/lib/jscience-4.3.1-custom.jar" source="/Users/tpacker/Documents/Work/Infinite/projects/library-source/jscience-4.3/src"/>
+        <archive path="/Core/lib/perf4j-0.9.16-log4jonly.jar"/>
     </library>
 </eclipse-userlibraries>
