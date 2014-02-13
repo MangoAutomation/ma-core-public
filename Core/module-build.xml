@@ -69,8 +69,9 @@
 		</tstamp>
 
 		<manifest file="target/MANIFEST.MF">
-			<attribute name="Built-By" value="Serotonin Software Inc., Markham, Ontario" />
+			<attribute name="Built-By" value="Infinite Automation" />
 			<attribute name="Build-Date" value="${TODAY}" />
+			<attribute name="Build-Version" value="${version}"/>
 		</manifest>
 
         <mkdir dir="target/lib" />
