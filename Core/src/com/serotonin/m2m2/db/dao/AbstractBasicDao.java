@@ -535,14 +535,16 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	}
 
 	protected ComparatorChain createComparatorChain(List<SortOption> sort){
-		ComparatorChain chain = new ComparatorChain();
 		
-		for (SortOption option : sort) {
-            String prop = option.getAttribute();
-            if(comparatorMap.containsKey(prop)){
-            	chain.addComparator(comparatorMap.get(prop),option.isDesc());
-            }
-		}
+		ComparatorChain chain = new ComparatorChain();
+		if(sort != null)
+			for (SortOption option : sort) {
+	            String prop = option.getAttribute();
+	            if(comparatorMap.containsKey(prop)){
+	            	chain.addComparator(comparatorMap.get(prop),option.isDesc());
+	            }
+			}
+		
 		return chain;
 	}
 	
