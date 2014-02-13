@@ -19,11 +19,22 @@
 	
 	<target name="compile" description="Compile main source tree java files">
 		<mkdir dir="${build.dir}/classes"/>
+		<mkdir dir="${build.dir}/classes/META-INF"/>
+		
+        <tstamp>
+            <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+        </tstamp>
+
+        <manifest file="${build.dir}/classes/META-INF/MANIFEST.MF">
+            <attribute name="Built-By" value="${vendor}" />
+            <attribute name="Build-Date" value="${TODAY}" />
+            <attribute name="Build-Version" value="${version}" />
+        </manifest>
+		
 		<copy todir="${build.dir}/classes" preservelastmodified="true">
 		    <fileset file="classes/*.*"/>
 	    </copy>
-		
-		
+
 		<javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
 				deprecation="false" optimize="false" failonerror="true" includeantruntime="false"
 			    source="1.6" target="1.6" >
@@ -42,17 +53,9 @@
    	</target>
     
     <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
-        <tstamp>
-            <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
-        </tstamp>
-
-        <manifest file="${build.dir}/MANIFEST.MF">
-            <attribute name="Built-By" value="${vendor}" />
-            <attribute name="Build-Date" value="${TODAY}" />
-        </manifest>
-
-        <mkdir dir="${build.dir}/lib" />
-        <jar destfile="${build.dir}/lib/ma-core.jar" manifest="${build.dir}/MANIFEST.MF">
+        
+    	<mkdir dir="${build.dir}/lib" />
+        <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
         </jar>
     	
@@ -93,10 +96,12 @@
         <!-- Empty the modules dir -->
         <delete dir="${build.dir}/web/modules" />
         <mkdir dir="${build.dir}/web/modules" />
-        <!-- Empty the filedata dir -->
+        
+		<!-- Empty the filedata dir -->
         <delete dir="${build.dir}/web/WEB-INF/filedata" />
         <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
         
+		<!-- Create the empty folders for the build -->
         <mkdir dir="${build.dir}/overrides" />
         <mkdir dir="${build.dir}/logs" />
 	</target>
@@ -108,7 +113,7 @@
                 compilerSourceVM="1.5" compilerTargetVM="1.5">
             <classpath>
                 <path refid="master-classpath"/>
-                <pathelement path="${build.dir}/lib/ma-core.jar"/>
+                <pathelement path="${build.dir}/lib/ma-core-${version}.jar"/>
             </classpath>
         </jetty-jspc>
     </target>
@@ -175,19 +180,95 @@
                 compilerSourceVM="1.5" compilerTargetVM="1.5">
             <classpath>
                 <path refid="master-classpath"/>
-                <pathelement path="${build.dir}/lib/ma-core.jar"/>
+                <pathelement path="${build.dir}/lib/ma-core-${version}.jar"/>
             </classpath>
         </jetty-jspc>
     </target>
 	
-	<target name="backup-modules" description="Backup modules">
-	        <move file="${build.dir}/web/modules" tofile="${build.dir}/module-backup"/>
-	    </target>
-	    
-    <target name="restore-modules" description="Restore modules">
-        <move file="${build.dir}/module-backup" tofile="${build.dir}/web/modules"/>
+	<!-- This is here to allow the copying in of override values -->
+    <target name="refresh-classes" description="Refresh classes in target, also copy overrides in">
+        <mkdir dir="${build.dir}/classes"/>
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset file="classes/*.*"/>
+        </copy>
+        
+        <!-- Copy the overrides Folder -->
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset file="overrides/classes/**">
+               <exclude name="ReadMe.txt"/>
+            </fileset>
+            <fileset file="overrides/properties/**"/>
+        </copy>
+        
+        <javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
+                deprecation="false" optimize="false" failonerror="true" includeantruntime="false"
+                source="1.6" target="1.6" >
+            <src path="src"/>
+            <classpath refid="master-classpath"/>
+        </javac>
+        
+        <mkdir dir="${build.dir}/patches"/>
+        <javac destdir="${build.dir}/patches" debug="true" debuglevel="lines,vars,source"
+                deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
+            <src path="src-patch"/>
+            <classpath refid="master-classpath"/>
+        </javac>
+        <!-- Create a backup folder -->
+        <mkdir dir="${build.dir}/backup"/>
     </target>
-    	    
+   
+    <target name="dev-jar" depends="compile" description="Create a jar file of the compiled classes for dev build">
+
+        <mkdir dir="${build.dir}/lib" />
+        <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
+            <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
+        </jar>
+
+    </target>
+	
+	   <target name="dev-build" depends="dev-jar" description="Merge Changes from Core Project into target during development">
+	        
+	   	    <copy todir="${build.dir}/classes" preservelastmodified="true">
+	            <fileset dir="classes"><include name="**/*.*"/></fileset>
+	            <fileset dir="${build.dir}/patches"><include name="**/*.*"/></fileset>
+	        </copy>
+
+	        <copy todir="${build.dir}/db" preservelastmodified="true">
+	            <fileset file="db/createTables-DERBY.sql"/>
+	            <fileset file="db/createTables-MSSQL.sql"/>
+	            <fileset file="db/createTables-MYSQL.sql"/>
+	            <fileset file="db/createTables-POSTGRES.sql"/>
+	        </copy>
+	        
+	        <copy todir="${build.dir}/ftl" preservelastmodified="true">
+	            <fileset dir="ftl"><include name="**/*.*"/></fileset>
+	        </copy>
+	        <copy todir="${build.dir}/lib" preservelastmodified="true">
+	            <fileset dir="lib"><include name="**/*.*"/></fileset>
+	        </copy>
+	        <copy todir="${build.dir}/web" preservelastmodified="true">
+	            <fileset dir="web">
+	                <include name="**/*.*"/>
+	            </fileset>
+	        </copy>
+	        <!-- Copy the Dojo Debug JS Libraries -->
+	        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
+	               <fileset dir="dojo-build/dist/">
+	                 <include name="**/*.*"/>
+	               </fileset>
+	        </copy>
+	        
+	        <!-- Create the modules dir if not exists -->
+	        <mkdir dir="${build.dir}/web/modules" />
+	        
+	        <!-- Make the filedata dir  if not exists -->
+	        <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
+	        
+	        <!-- Create these if not exists -->
+	        <mkdir dir="${build.dir}/overrides" />
+	        <mkdir dir="${build.dir}/logs" />
+	    </target>
+	
     <target name="dev-release" description="Zip Contents of Target for Development Release">
         <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
         
