@@ -20,6 +20,10 @@ import com.serotonin.m2m2.vo.pair.LongPair;
  * 
  * Class to output query execution times
  * 
+ * INFO Level log Output is:
+ * start[ts] time[exec ms] tag[functionName(param1vaoue,..,paramNvalue){num results}]
+ * 
+ * 
  * For Point Value Daos
  * @author Terry Packer
  *
@@ -61,7 +65,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		List<PointValueTime> values = dao.getPointValues(pointId, since);
-    	stopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + ")");
+    	stopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + "){" + values.size() +"}");
     	return values;
 	}
 
@@ -74,7 +78,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		List<PointValueTime> values = dao.getPointValuesBetween(pointId, from,to);
-    	stopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + ")");
+    	stopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + "){" + values.size() +"}");
     	return values;
 
 	}
@@ -87,7 +91,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit);
-		stopWatch.stop("getLatestPointValues(pointId,limit) (" + pointId + ", " + limit + ")");
+		stopWatch.stop("getLatestPointValues(pointId,limit) (" + pointId + ", " + limit + "){" + values.size() +"}");
     	return values;
 	}
 
@@ -100,7 +104,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit,before);
-		stopWatch.stop("getLatestPointValues(pointId,limit,before) (" + pointId +", " + limit + ", " + before + ")");
+		stopWatch.stop("getLatestPointValues(pointId,limit,before) (" + pointId +", " + limit + ", " + before + "){" + values.size() +"}");
     	return values;
 	}
 
@@ -112,7 +116,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		PointValueTime value = dao.getLatestPointValue(pointId);
-		stopWatch.stop("getLatestPointValue(pointId) (" + pointId + ")");
+		stopWatch.stop("getLatestPointValue(pointId) (" + pointId + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -124,7 +128,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		PointValueTime value = dao.getPointValueBefore(pointId,time);
-    	stopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + ")");
+    	stopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -136,7 +140,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		PointValueTime value = dao.getPointValueAfter(pointId,time);
-		stopWatch.stop("getPointValueAfter(pointId,time) (" + pointId + ", " + time + ")");
+		stopWatch.stop("getPointValueAfter(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -148,7 +152,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
 		PointValueTime value = dao.getPointValueAt(pointId,time);
-		stopWatch.stop("getPointValueAt(pointId,time) (" + pointId + ", " + time + ")");
+		stopWatch.stop("getPointValueAt(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 

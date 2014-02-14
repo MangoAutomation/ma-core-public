@@ -20,6 +20,7 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.perf4j.StopWatch;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
@@ -841,9 +842,10 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao{
         }
     }
 
-    public static final String ENTRIES_MONITOR_ID = BatchWriteBehind.class.getName() + ".ENTRIES_MONITOR";
-    public static final String INSTANCES_MONITOR_ID = BatchWriteBehind.class.getName() + ".INSTANCES_MONITOR";
-
+    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
+    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
+    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
+    
     static class BatchWriteBehind implements WorkItem {
         private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<PointValueDaoSQL.BatchWriteBehindEntry>();
         private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<BatchWriteBehind>();
@@ -855,6 +857,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao{
                 "internal.monitor.BATCH_ENTRIES");
         private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_MONITOR_ID,
                 "internal.monitor.BATCH_INSTANCES");
+        //TODO Create DoubleMonitor but will need to upgrade the Internal data source to do this
+        private static final IntegerMonitor BATCH_WRITE_SPEED_MONITOR = new IntegerMonitor(BATCH_WRITE_SPEED_MONITOR_ID,
+        		"internal.monitor.BATCH_WRITE_SPEED_MONITOR");
 
         private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
 
@@ -876,7 +881,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao{
 
             Common.MONITORED_VALUES.addIfMissingStatMonitor(ENTRIES_MONITOR);
             Common.MONITORED_VALUES.addIfMissingStatMonitor(INSTANCES_MONITOR);
-
+            Common.MONITORED_VALUES.addIfMissingStatMonitor(BATCH_WRITE_SPEED_MONITOR);
+            
             retriedExceptions.add(RecoverableDataAccessException.class);
             retriedExceptions.add(TransientDataAccessException.class);
             retriedExceptions.add(TransientDataAccessResourceException.class);
@@ -940,7 +946,26 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao{
                     int retries = 10;
                     while (true) {
                         try {
+                        	
+                        	StopWatch stopWatch = null;
+                            
+                        	if(inserts.length > 10){
+                        		stopWatch = new StopWatch("Batch Write Speed");
+                        		stopWatch.start();
+                        	}
+
+                        	
                             ejt.update(sb.toString(), params);
+
+                            if(stopWatch != null){
+                        		stopWatch.stop();
+                        		long elapsed = stopWatch.getElapsedTime();
+                        		if(elapsed > 0){
+                        			double writesPerSecond = ((double)inserts.length/(double)elapsed)*1000d;
+                        			BATCH_WRITE_SPEED_MONITOR.setValue((int) writesPerSecond);
+                        		}
+                        	}
+
                             break;
                         }
                         catch (RuntimeException e) {
