@@ -133,6 +133,7 @@
                 <include name="**/*.jspf"/>
                 <include name="**/*.tag"/>
                 <include name="**/*.tagf"/>
+                <include name="**/*.tld"/>
             </fileset>
         </copy>
         
