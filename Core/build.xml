@@ -92,8 +92,16 @@
                  <include name="**/*.*"/>
                </fileset>
         </copy>
-		
-        <!-- Empty the modules dir -->
+
+		<!-- Copy the Scripts into the target -->
+        <copy todir="${build.dir}/bin" preservelastmodified="true">
+            <fileset dir="scripts" includes="**/*.bat" />
+            <fileset dir="scripts" includes="**/*.sh" />
+        </copy>
+		<!-- CHMOD the Linux scripts -->
+		<chmod dir="${build.dir}/bin" includes="**/*.sh" perm="755" />
+        
+		<!-- Empty the modules dir -->
         <delete dir="${build.dir}/web/modules" />
         <mkdir dir="${build.dir}/web/modules" />
         
