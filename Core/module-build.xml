@@ -14,8 +14,8 @@
     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
 
 	<path id="master-classpath">
-		<pathelement path="${coreHome}/bin" />
-		<fileset dir="${coreHome}/lib">
+	     <!-- <pathelement path="${coreHome}/bin" /> Removed for use outside of eclipse -->
+	    <fileset dir="${coreHome}/target/lib">
 			<include name="*.jar" />
 		</fileset>
 		<fileset dir="lib">
