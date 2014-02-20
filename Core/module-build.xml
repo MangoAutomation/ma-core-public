@@ -172,14 +172,18 @@
     	
         <!-- Copy the compiled stuff back to the module -->
         <property name="pkg" value="target/work/jsp/org/apache/jsp/modules/${name}"/>
-        <available property="pkg.exists" file="${pkg}" type="dir" />
+        <available property="pkg.exists" file="${coreHome}/${pkg}" type="dir" />
         <if>
             <isset property="pkg.exists"/>
             <then>
+            	<echo message="Copying Compiled JSPs Back Into Module" />
                 <copy todir="${pkg}" preservelastmodified="true">
                     <fileset dir="${coreHome}/${pkg}"><include name="**/*"/></fileset>
                 </copy>
             </then>
+        	<else>
+        		<echo message="No JSP Files Compiled For this Module!"/>
+        	</else>
         </if>
         
         <if>
