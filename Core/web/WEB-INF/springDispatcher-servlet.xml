@@ -35,6 +35,7 @@
         
         
         <prop key="/help.shtm">helpController</prop>
+        <prop key="/startup.htm">startupController</prop>
         <prop key="/login.htm">loginController</prop>
         <prop key="/logout.htm">logoutController</prop>
         <prop key="/publisher_edit.shtm">publisherEditController</prop>
@@ -92,6 +93,10 @@
   
   <bean id="helpController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
     <property name="viewName"><value>/WEB-INF/jsp/help.jsp</value></property>
+  </bean>
+  
+  <bean id="startupController" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
+    <property name="viewName"><value>/WEB-INF/jsp/starting.jsp</value></property>
   </bean>
   
   <bean id="loginController" class="com.serotonin.m2m2.web.mvc.controller.LoginController">

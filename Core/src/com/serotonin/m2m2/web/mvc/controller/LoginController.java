@@ -18,12 +18,15 @@ import org.springframework.web.servlet.mvc.SimpleFormController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.Lifecycle;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.form.LoginForm;
+import com.serotonin.provider.Providers;
 import com.serotonin.util.ValidationUtils;
 
 @SuppressWarnings("deprecation")
@@ -33,7 +36,15 @@ public class LoginController extends SimpleFormController {
     @Override
     protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response, BindException errors,
             @SuppressWarnings("rawtypes") Map controlModel) throws Exception {
-        LoginForm loginForm = (LoginForm) errors.getTarget();
+
+    	//Edit TP Feb 2014 to show loading page until Mango is started.
+    	ILifecycle lifecycle = Providers.get(ILifecycle.class);
+    	if(lifecycle.getStartupProgress() < 100f){
+    		return new ModelAndView(new RedirectView("/startup.htm"));
+    	}
+    	
+    	
+    	LoginForm loginForm = (LoginForm) errors.getTarget();
 
         if (!errors.hasErrors()) {
             User user = null;
