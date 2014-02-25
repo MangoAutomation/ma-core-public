@@ -15,6 +15,7 @@ import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsVO;
 import com.serotonin.util.ColorUtils;
 
@@ -155,7 +156,9 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     public void setValue(final String key, final String value) {
-        // Update the cache
+        String oldValue = cache.get(key);
+    	
+    	// Update the cache
         cache.put(key, value);
 
         // Update the database
@@ -171,6 +174,9 @@ public class SystemSettingsDao extends BaseDao {
                     ejt2.update("insert into systemSettings values (?,?)", new Object[] { key, value });
             }
         });
+        
+        //Fire an event for this
+        SystemSettingsEventDispatcher.fireSystemSettingSaved(key, oldValue, value);
     }
 
     public void setIntValue(String key, int value) {
@@ -182,6 +188,8 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     public void removeValue(String key) {
+    	String lastValue = cache.get(key);
+    	
         // Remove the value from the cache
         cache.remove(key);
 
@@ -189,6 +197,9 @@ public class SystemSettingsDao extends BaseDao {
         FUTURE_DATE_LIMIT = -1;
 
         ejt.update("delete from systemSettings where settingName=?", new Object[] { key });
+    
+        //Fire the event
+        SystemSettingsEventDispatcher.fireSystemSettingRemoved(key, lastValue);
     }
 
     public static long getFutureDateLimit() {

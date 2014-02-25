@@ -609,8 +609,8 @@
     </table>
   </tag:labelledSection>
   
-  <tag:labelledSection labelKey="systemSettings.purgeSettings" closed="true">
-    <table>
+  <tag:labelledSection labelKey="systemSettings.uiPerformance" closed="true">
+      <table>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.uiPerformance"/></td>
         <td class="formField">
@@ -621,6 +621,11 @@
           </select>
         </td>
       </tr>
+      </table>
+  </tag:labelledSection>
+  
+  <tag:labelledSection labelKey="systemSettings.purgeSettings" closed="true">
+    <table>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.purgePointData"/></td>
         <td class="formField">
