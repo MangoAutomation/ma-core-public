@@ -7,6 +7,7 @@ package com.serotonin.m2m2.util.timeout;
 import java.util.Date;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
@@ -28,6 +29,19 @@ public class TimeoutTask extends TimerTask {
         Common.timer.schedule(this);
     }
 
+    /**
+     * Timeout Task for simulations using custom timers
+     * @param trigger
+     * @param client
+     * @param timer
+     */
+    public TimeoutTask(TimerTrigger trigger, TimeoutClient client, AbstractTimer timer) {
+        super(trigger);
+        this.client = client;
+        timer.schedule(this);
+    }
+    
+    
     @Override
     public void run(long runtime) {
         client.scheduleTimeout(runtime);

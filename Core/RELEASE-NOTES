@@ -8,6 +8,8 @@
 * Adjusted Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.
 * Fixed bug in All Data Points List where after editing a data source the filter text remained but the filter was reset
 * Fixed bug with Global Script inclusion for JavaScript engine where Global scripts needed to be defined first.
+* Added feature to DataPointRT to allow the use of a custom timer in Interval Logging.  This can be useful when running simulations where time does not depend on Real Time. (Meta Data Point History Generate is one Example)
+
 
 *Version 2.1.3*
 * Fixed bug so alarms report page shows same alarms as legacy alarm page.

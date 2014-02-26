@@ -17,7 +17,6 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -30,6 +29,7 @@ import com.serotonin.m2m2.view.stats.AnalogStatistics;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
@@ -55,6 +55,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     private final Object intervalLoggingLock = new Object();
     private TimerTask intervalLoggingTask;
 
+    //Simulation Timer, or any timer implementation
+    //TODO Remove references to Common.timer and pass into constructor?
+    private AbstractTimer timer;
+    
     /**
      * This is the value around which tolerance decisions will be made when determining whether to log numeric values.
      */
@@ -66,6 +70,19 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize());
     }
 
+    /**
+     * To allow simulation of points using a timer implementation
+     * @param vo
+     * @param pointLocator
+     * @param timer
+     */
+    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, AbstractTimer timer) {
+        this.vo = vo;
+        this.pointLocator = pointLocator;
+        valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize());
+        this.timer = timer;
+    }
+    
     //
     //
     // Single value
@@ -283,10 +300,15 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         synchronized (intervalLoggingLock) {
             if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
                 return;
-
-            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(0, Common.getMillis(
-                    vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), this);
-
+            
+            //Are we using a custom timer?
+            if(this.timer == null)
+	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(0, Common.getMillis(
+	                    vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), this);
+            else
+	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(0, Common.getMillis(
+	                    vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), this, this.timer);
+            	
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                 intervalStartTime = System.currentTimeMillis();
