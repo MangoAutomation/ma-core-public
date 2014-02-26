@@ -55,7 +55,7 @@ public class CompiledScriptExecutor {
     }
 
     public static CompiledScript compile(String script) throws ScriptException {
-        script = SCRIPT_PREFIX + script + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions();
+        script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
         ensureInit();
         return ((Compilable) ENGINE).compile(script);
     }
