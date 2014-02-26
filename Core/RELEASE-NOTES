@@ -6,7 +6,7 @@
 * Added SystemSettings Events to notify on Settings Change or Remove, this is a implementable interface for modules/core classes to use if desired SystemSettingsListener and SystemSettingsEventDispatcher
 * Moved UI performance settings into its own System Settings Area
 * Adjusted Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.
-
+* Fixed bug in All Data Points List where after editing a data source the filter text remained but the filter was reset
 
 
 *Version 2.1.3*

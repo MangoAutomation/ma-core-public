@@ -535,7 +535,9 @@ allDataPoints = new StoreView({
      * Refresh the Grid
      */
     refresh: function(){
-    	this.grid.set('query',{});
+        
+        //Not bothering with the sort options:
+    	this.grid.set("query",allDataPoints.filter,null);
     },
     
     open: function(id, options) {
