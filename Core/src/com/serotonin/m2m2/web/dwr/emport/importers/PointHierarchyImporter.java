@@ -7,6 +7,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
+import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class PointHierarchyImporter extends Importer {
@@ -20,13 +21,22 @@ public class PointHierarchyImporter extends Importer {
     @Override
     protected void importImpl() {
         PointFolder root = new PointFolder(0, "Root");
+        
+        
+        
         try {
+        	
+        	PointHierarchy hierarchy = ctx.getDataPointDao().getPointHierarchy(false);
+        	
             @SuppressWarnings("unchecked")
             List<PointFolder> subfolders = (List<PointFolder>) ctx.getReader().read(
                     new TypeDefinition(List.class, PointFolder.class), json);
+            //hierarchy.getRoot().mergeSubfolders(subfolders);
+            //hierarchy.getRoot().validate(); //Clean up points
             root.setSubfolders(subfolders);
 
             // Save the new values.
+            //ctx.getDataPointDao().savePointHierarchy(hierarchy.getRoot());
             ctx.getDataPointDao().savePointHierarchy(root);
             addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
         }

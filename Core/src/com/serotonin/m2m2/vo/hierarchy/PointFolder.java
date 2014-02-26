@@ -103,7 +103,120 @@ public class PointFolder implements JsonSerializable {
         this.subfolders = subfolders;
     }
 
-    boolean findPoint(List<PointFolder> path, int pointId) {
+    /**
+     * Merge the Existing points with the new ones using the following rules:
+     * 
+     * Points with same ID will be replaced
+     * All new points are added
+     * Any existing points not in the new list are kept
+     * 
+     * @param points
+     */
+    public void mergePoints(List<DataPointSummary> points){
+    	
+
+    	int existingPointIndex;
+    	List<DataPointSummary> newPoints = new ArrayList<DataPointSummary>();
+    	for(DataPointSummary newPoint : points){
+    		existingPointIndex = -1;
+    		//Does this point already exist?
+    		for(int i=0; i<this.points.size(); i++){
+    			if(this.points.get(i).getId() == newPoint.getId()){
+    				existingPointIndex = i;
+    				break;
+    			}
+    		}
+    		
+    		if(existingPointIndex >= 0){
+    			//Remove from existing points
+    			this.points.remove(existingPointIndex);
+    		}
+    		
+    		//Always add the new points
+    		newPoints.add(newPoint);
+    	}
+    	
+    	//Add any remaining existing points
+    	for(DataPointSummary existingPoint : this.points){
+    		newPoints.add(existingPoint);
+    	}
+    	
+    	this.points = newPoints; //Replace with the new list
+    	
+    }
+    
+    /**
+     * Merge the subfolders of this point folder with new folders 
+     * use the following rules:
+     * 
+     * If a local folder exists with the same id as the new subfolder then merge it
+     * If no local folder exists for the new subfolder, then add it
+     * If a local folders exists that is not in the new subfolders then keep it
+     * 
+     * 
+     * 
+     * @param subfolders
+     */
+    public void mergeSubfolders(List<PointFolder> subfolders){
+ 
+    	List<PointFolder> newSubfolders = new ArrayList<PointFolder>();
+    	int pointFolderIndex;
+    	
+    	//Recursively walk through each subfolder and merge the points in each.
+    	for(PointFolder newFolder : subfolders){
+    		pointFolderIndex = -1;
+    		for(int i=0; i< this.subfolders.size(); i++){
+    			if(this.subfolders.get(i).getName().equals(newFolder.getName())){
+    				pointFolderIndex = i;
+    				break;
+    			}
+    		}
+    		
+    		if(pointFolderIndex >= 0){
+    			//If a local folder exists for the new subfolder then merge it
+    			PointFolder existing = this.subfolders.get(pointFolderIndex);
+    			newFolder.mergePoints(existing.getPoints());
+    			newFolder.mergeSubfolders(existing.getSubfolders());
+    			newSubfolders.add(newFolder);
+    			//Remove the existing subfolder so that when we are done we have the remaining folders to add
+    			this.subfolders.remove(pointFolderIndex);
+    		}else{
+    			//If no local folder exists for the new subfolder, then add it
+    			newSubfolders.add(newFolder);
+    		}
+    	}
+
+    	//If a local folders exists that is not in the new subfolders then we will add it here
+		for(PointFolder remainingFolder : this.subfolders){
+			newSubfolders.add(remainingFolder);
+		}
+    	
+    	this.subfolders = newSubfolders;
+    }
+    
+
+    
+    /**
+     * Recursivly check my subfolders and remove all instances of a point
+     * @param dataPointId
+     */
+    public void removePoint(int dataPointId){
+    	
+    	//First check my points
+    	for(int i=0; i<this.points.size(); i++){
+    		if(this.points.get(i).getId() == dataPointId){
+    			this.points.remove(i);
+    			i--;
+    		}
+    	}
+    	//Check my Subfolders next
+    	for(PointFolder folder: this.subfolders){
+			folder.removePoint(dataPointId); //Remove the point recursively from this folder path
+    	}
+    	
+    }
+
+	boolean findPoint(List<PointFolder> path, int pointId) {
         boolean found = false;
         for (DataPointSummary point : points) {
             if (point.getId() == pointId) {

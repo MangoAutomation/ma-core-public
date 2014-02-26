@@ -5,7 +5,7 @@
 * Added workaround for bug on pages that try to hide() a node that isn't there.  This used to crash the page, now it logs the error to the js console if it exists, otherwise it is silent.
 * Added SystemSettings Events to notify on Settings Change or Remove, this is a implementable interface for modules/core classes to use if desired SystemSettingsListener and SystemSettingsEventDispatcher
 * Moved UI performance settings into its own System Settings Area
-
+* Adjusted Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.
 
 
 
