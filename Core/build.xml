@@ -235,11 +235,6 @@
     </target>
 	
 	   <target name="dev-build" depends="dev-jar" description="Merge Changes from Core Project into target during development">
-	        
-	   	    <copy todir="${build.dir}/classes" preservelastmodified="true">
-	            <fileset dir="classes"><include name="**/*.*"/></fileset>
-	            <fileset dir="${build.dir}/patches"><include name="**/*.*"/></fileset>
-	        </copy>
 
 	        <copy todir="${build.dir}/db" preservelastmodified="true">
 	            <fileset file="db/createTables-DERBY.sql"/>

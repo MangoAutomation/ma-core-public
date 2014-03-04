@@ -11,8 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -31,6 +29,9 @@ import org.joda.time.Period;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
+import com.serotonin.io.serial.CommPortConfigException;
+import com.serotonin.io.serial.CommPortProxy;
+import com.serotonin.io.serial.SerialUtils;
 import com.serotonin.json.JsonContext;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -42,14 +43,12 @@ import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.shared.VersionData;
 import com.serotonin.m2m2.util.BackgroundContext;
-import com.serotonin.m2m2.util.CommPortConfigException;
 import com.serotonin.m2m2.util.DocumentationManifest;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
-import com.serotonin.m2m2.vo.CommPortProxy;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.monitor.MonitoredValues;
@@ -59,7 +58,6 @@ import com.serotonin.util.StringUtils;
 import com.serotonin.util.properties.ReloadingProperties;
 
 import freemarker.template.Configuration;
-import gnu.io.CommPortIdentifier;
 
 public class Common {
     private static final String SESSION_USER = "sessionUser";
@@ -391,24 +389,8 @@ public class Common {
     //
     // Misc
     public static List<CommPortProxy> getCommPorts() throws CommPortConfigException {
-        try {
-            List<CommPortProxy> ports = new LinkedList<CommPortProxy>();
-            Enumeration<?> portEnum = CommPortIdentifier.getPortIdentifiers();
-            CommPortIdentifier cpid;
-            while (portEnum.hasMoreElements()) {
-                cpid = (CommPortIdentifier) portEnum.nextElement();
-                if (cpid.getPortType() == CommPortIdentifier.PORT_SERIAL)
-                    ports.add(new CommPortProxy(cpid));
-            }
-            return ports;
-        }
-        catch (UnsatisfiedLinkError e) {
-            throw new CommPortConfigException(e.getMessage());
-        }
-        catch (NoClassDefFoundError e) {
-            throw new CommPortConfigException(
-                    "Comm configuration error. Check that rxtx DLL or libraries have been correctly installed.");
-        }
+        List<CommPortProxy> ports = SerialUtils.getCommPorts();
+        return ports;
     }
 
     public synchronized static String encrypt(String plaintext) {

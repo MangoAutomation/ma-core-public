@@ -117,7 +117,9 @@ public class ModulesDwr extends BaseDwr {
 
             HttpPost post = new HttpPost(baseUrl);
             post.setEntity(new StringEntity(requestData));
-            String responseData = HttpUtils4.getTextContent(Common.getHttpClient(), post);
+            
+            //Modified Mar 3rd T.P. with upgrade of SERO UTILS
+            String responseData = HttpUtils4.getTextContent(Common.getHttpClient(), post.getURI().toString());
 
             // Parse the response
             JsonTypeReader jsonReader = new JsonTypeReader(responseData);

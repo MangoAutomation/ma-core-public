@@ -186,7 +186,7 @@ public class SystemSettingsDwr extends BaseDwr {
         File dataDirectory = Common.databaseProxy.getDataDirectory();
         long dbSize = 0;
         if (dataDirectory != null) {
-            DirectoryInfo dbInfo = DirectoryUtils.getDirectorySize(dataDirectory);
+            DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
             dbSize = dbInfo.getSize();
             data.put("databaseSize", DirectoryUtils.bytesDescription(dbSize));
         }
@@ -194,7 +194,7 @@ public class SystemSettingsDwr extends BaseDwr {
             data.put("databaseSize", "(" + translate("common.unknown") + ")");
 
         // Filedata data
-        DirectoryInfo fileDatainfo = DirectoryUtils.getDirectorySize(new File(Common.getFiledataPath()));
+        DirectoryInfo fileDatainfo = DirectoryUtils.getSize(new File(Common.getFiledataPath()));
         long filedataSize = fileDatainfo.getSize();
         data.put("filedataCount", fileDatainfo.getCount());
         data.put("filedataSize", DirectoryUtils.bytesDescription(filedataSize));
