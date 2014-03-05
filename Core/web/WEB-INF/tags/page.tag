@@ -127,10 +127,10 @@
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>
         <tr>
-          <td colspan="2" class="footer" align="center">&copy;2006-2012 Serotonin Software Technologies Inc., <fmt:message key="footer.rightsReserved"/></td>
+          <td colspan="2" class="footer" align="center">&copy;2014 Infinite Automation Systems Inc. <fmt:message key="footer.rightsReserved"/></td>
         </tr>
         <tr>
-          <td colspan="2" align="center"><a href="http://infiniteautomation.com/" ><b></b>Distributed by Infinite Automation Systems Inc.</a></td>
+          <td colspan="2" align="center"><a href="http://www.infiniteautomation.com/" ><b></b>www.InfiniteAutomation.com</a></td>
         </tr>
       </table>    
     </div>
