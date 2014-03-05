@@ -9,8 +9,27 @@
 
 <tag:page dwr="StartupDwr">
 <script type="text/javascript">
+var lastMessage; //Holds the last recieved log message
 
-require(["dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], function(ProgressBar, win){
+require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], 
+        function(topic, ProgressBar, win){
+
+    //Setup the console messages target
+    topic.subscribe("startupTopic", function(message) {
+        //Message has members:
+        // duration - int
+        // message - string
+        // type - string
+        var startupConsole = dijit.byId("startupConsole");
+        if (message.type == 'clear')
+            startupConsole.set('content', "");
+        else {
+            startupConsole.set('content', 
+                    startupConsole.get('content') + message.message + "</br>");
+        }
+    });
+    
+    
     var i = 0;
     var myProgressBar = new ProgressBar({
         style: "width: 300px"
@@ -25,11 +44,24 @@ require(["dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], function(P
     
     
     setInterval(function(){
-        StartupDwr.getStartupProgress( function(response){
+        StartupDwr.getStartupProgress(function(response){
+            
+            //Do we have a new message
+            if(typeof response.data.message != 'undefined'){
+	            if((typeof lastMessage == 'undefined')||(lastMessage != response.data.message)){
+	                lastMessage = response.data.message;
+		            dojo.publish("startupTopic",[{
+		                    message:response.data.message,
+		                    type: "message",
+		                    duration: -1, //Don't go away
+		                    }]
+		            );
+	            }
+            }
             
             //If the interval is > 100 then we should redirect
             if(response.data.progress >= 100)
-                window.location.href = "login.htm";
+                window.location.href = response.data.startupUri;
             
             myProgressBar.set("value", response.data.progress);
             var startupMessageDiv = dojo.byId("startupMessage");
@@ -39,8 +71,14 @@ require(["dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], function(P
 });
 
 </script>
+    <div style="width: 100%; padding: 1em 2em 1em 1em;"
+            data-dojo-type="dijit/layout/ContentPane"
+            data-dojo-props="region:'center'">
     <div id="startingMessage" class='bigTitle'></div>
     <div id="startupProgress"></div>
     <div id="startupMessage">Mango is starting up, please wait...</div>
-
+    <div id="startupConsole"
+            style=" height: 200px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
+            data-dojo-type="dijit/layout/ContentPane"></div>
+    </div>
 </tag:page>

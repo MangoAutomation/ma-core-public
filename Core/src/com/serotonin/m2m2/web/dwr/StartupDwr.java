@@ -4,9 +4,17 @@
  */
 package com.serotonin.m2m2.web.dwr;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.spi.LoggerRepository;
+import org.directwebremoting.WebContext;
+import org.directwebremoting.WebContextFactory;
+
 import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.rt.console.LoggingConsoleRT;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.provider.Providers;
 
@@ -17,7 +25,6 @@ import com.serotonin.provider.Providers;
 public class StartupDwr {
 
 	private Translations translations = Translations.getTranslations();
-
 	
 	@DwrPermission(anonymous = true)
 	public ProcessResult getStartingMessage(){
@@ -35,9 +42,20 @@ public class StartupDwr {
 		ProcessResult result = new ProcessResult();
 		
 		ILifecycle lifecycle = Providers.get(ILifecycle.class);
+    	float progress =  lifecycle.getStartupProgress();
     	
-		result.addData("progress", lifecycle.getStartupProgress());
+
+    	String message =  LoggingConsoleRT.instance.getCurrentMessage();
+    	result.addData("message", message);
+    	
+		result.addData("progress", progress);
 		result.addData("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
+		
+		if(progress >= 100){
+			WebContext ctx = WebContextFactory.get();
+			result.addData("startupUri", DefaultPagesDefinition.getLoginUri(ctx.getHttpServletRequest(), ctx.getHttpServletResponse()));
+		}
+		
 		return result;
 	}
 	

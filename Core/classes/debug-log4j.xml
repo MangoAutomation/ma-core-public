@@ -39,6 +39,13 @@
     <appender-ref ref="logfile"/>
   </appender>
   
+  <appender name="applicationConsole" class="com.serotonin.m2m2.rt.console.LoggingConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+    </layout>
+  </appender>
+  
+  
   <category name="org"><level value="error"/></category>
   <category name="org.directwebremoting"><level value="warn"/></category>
   <category name="org.springframework"><level value="error"/></category>
@@ -53,6 +60,7 @@
     <level value="error"/>
     <appender-ref ref="async"/>
     <appender-ref ref="stdout"/>
+    <appender-ref ref="applicationConsole"/>
   </root>
 
 </log4j:configuration>

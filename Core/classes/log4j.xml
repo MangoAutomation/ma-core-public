@@ -44,6 +44,13 @@
     <appender-ref ref="logfile"/>
   </appender>
   
+  <!-- The application logger that will capture messages for display within the application -->
+   <appender name="applicationConsole" class="com.serotonin.m2m2.rt.console.LoggingConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+    </layout>
+  </appender>
+  
   <!-- 
     If you need additional information you can change any of these levels, the possible levels:
     ALL - turn on all logging
@@ -67,6 +74,7 @@
     <level value="error"/>
     <appender-ref ref="async"/>
     <appender-ref ref="stdout"/>
+    <appender-ref ref="applicationConsole"/>
   </root>
 
 </log4j:configuration>
