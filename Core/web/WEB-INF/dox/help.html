@@ -1,14 +1,22 @@
-<pre>
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
-    @author Matthew Lohbihler
-</pre>
-<br/>
-<br/>
 
-<p>Below is a general overview of how this application works, and design concepts that users should know. Helpful 
-details can be found throughout the application using contextual help, indicated by the help icon 
-(<img src="images/help.png">). Click on this icon wherever it appears to get more information on the feature you are 
-using.</p>
+<h1>Welcome to Mango Automation</h1>
+<p>Mango Automation is a powerful tool for a wide variety of application.  With a little learning you'll be amazed at what you can accomplish with it.  At Infinite Automation Systems Inc. it's our mission to make sure you get the help you need as fast as possible.  There are several options for you to learn about Mango and a few things you can do if you run into trouble.</p>
+
+<h2>Online Support Forum - Tutorial and User Help</h2>
+<p>As your first place to start our forums are very active and is our preferred place to provide answer to your question.  This way others can benefit so we'll probably answer you here the fastest. <a href="http://forum.infiniteautomation.com/forum/forums/list.page" target="new">http://forum.infiniteautomation.com/forum/forums/list.page</a>You will also find many tutorials and user help sections and you can use the search tool to find what you are looking for. If you can't find it just start a new thread and we will be happy to respond as fast as possible</p>
+
+<h3>One-On-One Support</h3>
+Sometimes you need one-on-one help and that's OK.  You can also contact us if you have application questions, licensing questions or want to talk to us about opportunities you may have to distribute Mango products.  <a href="http://infiniteautomation.com/index.php/contact-us" target="new">Contact Us</a> through our website or call (303) 558-7112
+<h3>Getting Started</h3>
+<p>Download our getting started document <a href="http://infiniteautomation.com/downloads/Getting Started Creating Data Sources and Data Points.pdf" target="new"><strong>Getting Started Creating Data Sources and Data Points.pdf</strong></a> it will walk you through step by step creating your first Data Sources and Data Points</p>
+<h1>Mango Automation Overview</h1>
+<p>Below is a general overview of how this application works, and design concepts that users should know.</p>
+
+<h2>Mango Contextual Help</h2>
+<p> 
+
+Helpful details can be found throughout the application using contextual help, indicated by the help icon 
+(<img src="images/help.png">). Click on this icon wherever it appears to get more information on the feature you are using.</p>
 
 <h1>Application overview</h1>
 <p>Functionality in this application is primarily accessed using the controls in the header. Depending on the 
@@ -18,7 +26,7 @@ for.</p>
 <p>Beside the header controls at the right-hand side of the header is the username of the user who is currently 
 logged in.</p>
 <p>When your application has an active alarm, you will see a flashing flag icon (<img src="images/flag_white.png"/>)
-and an associated description near the center of the header area. The colour of the icon will indicate the severity
+and an associated description near the center of the header area. The color of the icon will indicate the severity
 of the alarm:</p>
 <ul style="list-style-type:none;">
   <li><img src="images/flag_blue.png"> Information</li>
@@ -27,6 +35,38 @@ of the alarm:</p>
   <li><img src="images/flag_red.png"> Life safety</li>
 </ul>
 <p>You can click on the icon or the description to go to the list of active alarms.</p>
+
+<h1>Data sources</h1>
+<p>Data sources are fundamental to the operation of this application. A <b>data source</b> is a "place" from which 
+data is received. Virtually anything can be a data source, insofar as the communications protocol is supported by the
+application. Here are some examples:</p>
+<ul>
+  <li>If you have a Modbus network accessible via RS232, RS485, TCP/IP, or UDP/IP, you can create a Modbus data 
+  source that will poll the network for data on an interval you can define.</li>
+  <li>If you have equipment or an application that can send data over HTTP you can start an HTTP receiver data source
+  that will listen for incoming connections and route the data to the appropriate points.</li>
+  <li>For hardware that supports SNMP, start an SNMP data source. Values can be polled on an interval schedule, or 
+  traps can be received for report-on-exception.</li>
+  <li>Data can be read and updated in a SQL data base external to the system.</li>
+  <li>Data can be generated either randomly or predictively using a Virtual data source.</li>
+</ul>
+<p>Data values that are received or collected by a data source are stored within data points.</p>
+
+<h1>Data points</h1>
+<p>A <b>data point</b> is a collection of associated historical values. For example, a particular point might be a 
+temperature reading from a room, while another point could be the humidity reading from the same room. Points can 
+also be control values, such as a switch to turn a piece of equipment on or off.</p>
+<p>There are many attributes that are used to control the behavior of points. Primarily, there is the concept of a 
+<b>point locator</b>. Locators are used by data source to determine how to "find" the data for the particular point.
+For instance, a SQL data source has attributes including where to find the database instance; point locators for the 
+data source indicate the table and field names with which to find specific values. The logical separation of data 
+source and data point attributes depends on the communication protocol in question.</p>
+<p>Data points attributes also determine many other aspects of the point, such as its name, how it should be logged 
+(all data, changes in value only, or not at all), how long to keep logged data, how to format values for display,
+and how to chart values.</p>
+<p>You can also configure data points with <b>event detectors</b>, which are used to detect conditions of interest 
+in the point's values (eg. value has been too high for too long, is too low, changes too often, doesn't change at 
+all, etc).</p>
 
 <h1>Data types</h1>
 <p>There are five supported data types:</p>
@@ -50,37 +90,7 @@ of the alarm:</p>
 </ul>
 
 
-<h1>Data sources</h1>
-<p>Data sources are fundamental to the operation of this application. A <b>data source</b> is a "place" from which 
-data is received. Virtually anything can be a data source, insofar as the communications protocol is supported by the
-application. Here are some examples:</p>
-<ul>
-  <li>If you have a Modbus network accessible via RS232, RS485, TCP/IP, or UDP/IP, you can create a Modbus data 
-  source that will poll the network for data on an interval you can define.</li>
-  <li>If you have equipment or an application that can send data over HTTP you can start an HTTP receiver data source
-  that will listen for incoming connections and route the data to the appropriate points.</li>
-  <li>For hardware that supports SNMP, start an SNMP data source. Values can be polled on an interval schedule, or 
-  traps can be received for report-on-exception.</li>
-  <li>Data can be read and updated in a SQL data base external to the system.</li>
-  <li>Data can be generated either randomly or predictively using a Virtual data source.</li>
-</ul>
-<p>Data values that are received or collected by a data source are stored within data points.</p>
 
-<h1>Data points</h1>
-<p>A <b>data point</b> is a collection of associated historical values. For example, a particular point might be a 
-temperature reading from a room, while another point could be the humidity reading from the same room. Points can 
-also be control values, such as a switch to turn a piece of equipment on or off.</p>
-<p>There are many attributes that are used to control the behaviour of points. Primarily, there is the concept of a 
-<b>point locator</b>. Locators are used by data source to determine how to "find" the data for the particular point.
-For instance, a SQL data source has attributes including where to find the database instance; point locators for the 
-data source indicate the table and field names with which to find specific values. The logical separation of data 
-source and data point attributes depends on the communication protocol in question.</p>
-<p>Data points attributes also determine many other aspects of the point, such as its name, how it should be logged 
-(all data, changes in value only, or not at all), how long to keep logged data, how to format values for display,
-and how to chart values.</p>
-<p>You can also configure data points with <b>event detectors</b>, which are used to detect conditions of interest 
-in the point's values (eg. value has been too high for too long, is too low, changes too often, doesn't change at 
-all, etc).</p>
 
 <h1>Monitoring</h1>
 <p>Monitoring of points within the system can be done in two ways. You can use the <b>watch list</b> to dynamically
@@ -97,6 +107,7 @@ refresh. These views can subsequently be marked as "public", so that they can be
 <b>settable</b> point can be set to a user-defined value, such as a thermostat setting or equipment control switch.
 Both watch lists and graphical views provide simple means by which to input a value to set. The point locator for the
 settable point determines how the data source sets the value within the external equipment.</p>
+<p>You can also use the <b>Scripting Data Source</b> to write control logic to automatically write values to any settable data point.</p>
 
 <h1>Events</h1>
 <p>
@@ -108,61 +119,17 @@ settable point determines how the data source sets the value within the external
   and many events defined by modules.
 </p>
 <p>
-  Once an event has been detected, it is acted upon by handlers. An <b>event handler</b> is a user-defined behaviour
+  Once an event has been detected, it is acted upon by handlers. An <b>event handler</b> is a user-defined behavior
   that is to be performed upon the raising of a particular event, such as sending an email or setting the value of a 
   settable point.
 </p>
 
-<h1>Alarm sounds</h1>
-<p>Mango can play sounds when alarms are active. By default, alarm sounds are played for urgent, critical, and life
-safety alarms (i.e. not for information alarms), but sounds for each alarm type can be controlled individually. To 
-enable particular alarm sounds, valid mp3 files must exist at the following locations:</p>
-<ul>
-  <li>&lt;Mango_home&gt;/web/audio/information.mp3</li>
-  <li>&lt;Mango_home&gt;/web/audio/urgent.mp3</li>
-  <li>&lt;Mango_home&gt;/web/audio/critical.mp3</li>
-  <li>&lt;Mango_home&gt;/web/audio/lifesafety.mp3</li>
-</ul>
-<p>
-  To disable a sound, remove the associated sound file. You may also need to clear your browser cache. A library of 
-  sounds can be found in the &lt;Mango_home&gt;/web/audio/lib folder.
-</p>
+<h1>Graphic Dashboards</h1>
 
-<h1>Graphics</h1>
-<p>Mango ships with a small graphics library which can be found in the &lt;Mango Automation_home&gt;/web/graphics folder. Each
-sub-folder represents an image set. The contents of the sub-folder include all of the images in the image set, as 
-well as an optional properties file called <b>info.txt</b>. (Examples can be found in the graphics directories that
-ship with Mango.) This property file contains name/value pairs with the following names (all of which are 
-optional):</p>
-<ul>
-  <li><b>name</b>: The name that will be used to describe the image set in the user interface. If not provided this
-  will default to the folder name.</li>
-  <li><b>width</b>: The width of the images. (All images are expected to be the same size.) If not provided the width 
-  of the first image will be used.</li>
-  <li><b>height</b>: The height of the images. (All images are expected to be the same size.) If not provided the 
-  height of the first image will be used.</li>
-  <li><b>text.x</b>: The position of text relative to the left edge of the image, in pixels. If not provided this 
-  defaults to 5.</li>
-  <li><b>text.y</b>: The position of text relative to the top edge of the image, in pixels. If not provided this 
-  defaults to 5.</li>
-</ul>
-<p><b>Once you are using an image set in your views do not rename its folder!</b> The folder name is used internally
-as the identifier of the image set.</p>
-<p>Image files are sorted alphabetically by name. Names are case sensitive. Name/value pairs are separated with '='. 
-Lines beginning with '#' are considered comments. 'Thumbs.db' files are ignored. Archive files (zip, gz, tar, etc)
-cannot be used since the images files have to be accessible to the web server. Image sets are loaded upon system 
-startup, so any changes require a restart.</p>
+<p>Mango has three modules for creating graphic representations of your data: <strong>Graphic Views</strong>, <strong>JSP Pages</strong> and <strong>DGLux</strong>.</p>
 
-<h1>Remote views</h1>
-<p>Public dashboard views can be accessed from other web sites by simply putting an iframe into your pages using a url like: http://www.yourdomain.com/public_view.htm?viewId=1 where viewID= the view you want to see.
+<p><strong>Graphic Views</strong> offers a simple and easy way to use images, graphics and animations to create dashboards and HMIs. With drag and drop simplicity, you quickly get your page online.</p>
 
-<p>Absolute positioning and transparency is used to allow the display of charts and component controls without 
-scrolling or HTML adjustment, but is optional. The 'viewId' parameter is the internally generated id of the view to 
-be displayed, but can be substituted with the 'viewName' parameter and the view's name as the value. (However, do not
-subsequently alter the name of the view without updating this reference.)</p>
+<p><strong>JSP Pages</strong> allow you to write custom JSP pages using html and javascript that use your real time and historical Mango data. This allows for complete customization of dashboards, mobile apps, HMIs and GUIs.</p>
 
-<h1>Custom views</h1>
-<p>
-  Custom views are publically accessible views that are written by the user, using a JSP tag library to easily add
-  components. For more information see the example in customViewExample.jsp.
-</p>
+<p><strong>DGLux</strong> is a powerful drag and drop dashboard building tool like no other. With DGLux you can provide dynamic, high-end graphic web pages and GUI's to your customers that impress and excite user involvement. This powerful tool is included in every installation of Mango Automaton.</p>
