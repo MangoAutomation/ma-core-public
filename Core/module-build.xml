@@ -159,6 +159,7 @@
         <if>
         	<isset property="jsps"/>
         		<then>
+        			<delete dir="${coreHome}/target/work/jsp/org/apache/jsp/modules/${name}"/>
         			<echo message="Compiling JSPs"/>
                 	<jetty-jspc uriroot="${coreHome}/target/web" outputDir="${coreHome}/target/work/jsp"
                             compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
