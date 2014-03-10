@@ -10,6 +10,8 @@
 	<property name="fullName" value="m2m2-${name}-${version}" />
     <property file="${coreHome}/module-common.properties" />
 	<property name="deploy.jar.paths" value="${coreHome}/target/web/modules" />
+    <property name="zip.paths" value="${coreHome}/target/ma-modules.zip" />
+	
 	
     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
 
@@ -224,14 +226,24 @@
         <foreach list="${deploy.jar.paths}" target="|deploy" param="todir" delimiter="|">
             <param name="deploy.file" value="target/${fullName}.zip" />
         </foreach>
-<!--         <copy todir="${coreHome}/web/modules" preservelastmodified="true"> -->
-<!--             <fileset file="target/${fullName}.zip"/> -->
-<!--         </copy> -->
+    	
+        <foreach list="${zip.paths}" target="|zip" param="tozip" delimiter="|">
+            <param name="zip.file" value="target/${fullName}.zip" />
+        </foreach>
+
     </target>
-    <target name="|deploy">
+
+	<target name="|deploy">
         <copy todir="${todir}" preservelastmodified="true" file="${deploy.file}" />
     </target>
     
+    <target name="|zip">
+        <zip destfile="${tozip}" update="true">
+            <zipfileset file="${zip.file}" />
+        </zip>
+    </target>
+	
+	
     <target name="copy-web" description="Copy the web dir to the core - useful when developing">
         <copy todir="${coreHome}/target/web/modules/${name}/web" preservelastmodified="true">
             <fileset dir="web"><include name="**/*"/></fileset>
