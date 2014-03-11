@@ -4,9 +4,6 @@
  */
 package com.serotonin.m2m2.web.dwr;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.spi.LoggerRepository;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 

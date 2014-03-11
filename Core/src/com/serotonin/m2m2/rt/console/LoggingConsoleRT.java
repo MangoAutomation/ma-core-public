@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
+
 /**
  * 
  * A Queue of log messages.
@@ -26,6 +29,10 @@ public class LoggingConsoleRT {
 	
 	private LoggingConsoleRT(){
 		this.console = new LinkedList<String>();
+		
+		//Init with at least 1 message
+		TranslatableMessage m = new TranslatableMessage("startup.startingUp");
+		this.console.add(m.translate(Translations.getTranslations()));
 	}
 	
 	/**

@@ -4,15 +4,13 @@
  */
 package com.serotonin.m2m2.rt.dataSource;
 
-import gnu.io.NoSuchPortException;
-import gnu.io.PortInUseException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.io.serial.SerialPortException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -159,10 +157,13 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
     }
 
     protected TranslatableMessage getSerialExceptionMessage(Exception e, String portId) {
-        if (e instanceof NoSuchPortException)
-            return new TranslatableMessage("event.serial.portOpenError", portId);
-        if (e instanceof PortInUseException)
-            return new TranslatableMessage("event.serial.portInUse", portId);
+        if(e instanceof SerialPortException)
+        	return new TranslatableMessage("event.serial.portError", portId, e.getLocalizedMessage());
+// TODO Fix this up to identify these types of errors    	
+//    	if (e instanceof NoSuchPortException)
+//            return new TranslatableMessage("event.serial.portOpenError", portId);
+//        if (e instanceof PortInUseException)
+//            return new TranslatableMessage("event.serial.portInUse", portId);
         return getExceptionMessage(e);
     }
 
