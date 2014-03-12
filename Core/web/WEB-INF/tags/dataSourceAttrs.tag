@@ -8,6 +8,7 @@
 --%>
 <!-- <div id="dataSourcePropertiesTab" data-dojo-type="dijit/layout/ContentPane" title="Data Source" data-dojo-props="selected:true" style="overflow-y:auto" > -->
 <div id="dataSourcePropertiesTab">
+<input type="hidden" id="dataSource.enabled" value="${dataSource.enabled}"/>
 <table cellpadding="0" cellspacing="0">
   <tr>
     <td valign="top">

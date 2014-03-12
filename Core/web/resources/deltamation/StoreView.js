@@ -178,7 +178,7 @@ return declare("deltamation.StoreView", null, {
                     _this.viewStore.cache.remove(id);
                 
                 if(_this.removeCallback)
-                	_this.removeCallback();
+                	_this.removeCallback(id);
             }, function(response) {
                 //Close the edit pane if any is open
                 //hide(_this.edit);

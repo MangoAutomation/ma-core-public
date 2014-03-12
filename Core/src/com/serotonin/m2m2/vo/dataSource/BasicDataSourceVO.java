@@ -9,6 +9,7 @@ package com.serotonin.m2m2.vo.dataSource;
 public class BasicDataSourceVO {
     private String xid;
     private String name;
+    private boolean enabled;
     private boolean purgeOverride;
     private int purgeType;
     private int purgePeriod;
@@ -87,4 +88,13 @@ public class BasicDataSourceVO {
     public void setPurgePeriod(int purgePeriod) {
         this.purgePeriod = purgePeriod;
     }
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+    
 }

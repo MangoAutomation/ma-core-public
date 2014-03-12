@@ -1,5 +1,8 @@
 * NEXT VERSION *
-* Fixed bugs on Point Details tab where both the Purge Override settings and Discarding Extreme Values were not saving.
+* Cleaned up css styling on data source page
+* Fixed bug on Data Source page where data source points table was leaving extra columns from previously viewed data sources
+* Fixed bug on Data Source page where the enable/disable light could get out of sync with the actual state of the data source 
+* Fixed bugs on Data Point Settings tab where both the Purge Override settings and Discarding Extreme Values were not saving.
 * Added db.useMetrics env boolean property to allow all queries to report times via the INFO log level.
 * Fixed bug in JScience Library where any units with a 4 in the numerical multiplier would fail to load.
 * Added workaround for bug on pages that try to hide() a node that isn't there.  This used to crash the page, now it logs the error to the js console if it exists, otherwise it is silent.

@@ -158,6 +158,7 @@
  	     saveDataSourceImpl({
 	         name: $get("dataSource.name"),
 	         xid: $get("dataSource.xid"),
+	         enabled: $get("dataSource.enabled"),
 	         purgeOverride: $get("dataSource.purgeOverride"),
 	         purgePeriod: $get("dataSource.purgePeriod"),
 	         purgeType: $get("dataSource.purgeType")

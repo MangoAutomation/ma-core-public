@@ -260,22 +260,31 @@ dataSources = new StoreView({
     	}
 
     	DataSourceDwr.toggle(id, function(result) {
+    	    $set("dataSource.enabled", result.data.enabled); //Save state on page
             if(result.data.enabled){
-                updateImg(
-                        $("toggleDataSource"+ result.data.id),
-                        mangoImg("database_go.png"),
-                        mango.i18n["common.enabledToggle"],
-                        true
-                );
+                
+                var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
+                if(dsInView != null){
+                    updateImg(
+                            $("toggleDataSource"+ result.data.id),
+                            mangoImg("database_go.png"),
+                            mango.i18n["common.enabledToggle"],
+                            true
+                    );
+                }
                 if(typeof callback == 'function') callback(true);
             }else{
-                updateImg(
-                        $("toggleDataSource"+ result.data.id),
-                        mangoImg("database_stop.png"),
-                        mango.i18n["common.enabledToggle"],
-                        true
-                );
+                var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
+                if(dsInView != null){
+                    updateImg(
+                            $("toggleDataSource"+ result.data.id),
+                            mangoImg("database_stop.png"),
+                            mango.i18n["common.enabledToggle"],
+                            true
+                    );
+                }
                 if(typeof callback == 'function') callback(false);
+                
             }
             
             /* Only Update the datasource image if we are editing this one */
@@ -300,9 +309,15 @@ dataSources = new StoreView({
     addYOffset: -240,
     
     
-    removeCallback: function(){
+    removeCallback: function(id){
+        var _this = this;
+        
     	if(allDataPoints != 'undefined')
     		allDataPoints.refresh();
+    	
+    	//If we are editing this ds then we need to close it
+    	if(id === _this.currentId)
+    	    dataSourcePropertiesDiv.set('content','');
     },
 
     /**
@@ -391,7 +406,16 @@ dataSources.copy = function(id) {
  * Method to get Data Source Edit Page from Module
  */
 dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetContentPane,id,copy){
-	//Create the base URL
+
+    //Hack to ensure that a page with extra columns that has been previously loaded doesn't clobber 
+    // a new one with no extra columns
+    appendPointListColumnFunctions = null;
+    initImpl = null; //Same here to ensure a blank initImpl is properly ignored
+    toggleDataSourceImpl = null; //Again same
+    editPointCBImpl = null; //
+    getStatusMessagesImpl = null; 
+    
+    //Create the base URL
 	var xhrUrl = "/data_source_properties.shtm?";
 		
 	//Do we have an ID To pass in
@@ -409,7 +433,7 @@ dataSources.loadView = function loadDataSourceView(callback,editPagePath,targetC
 
 	
 	var deferred = targetContentPane.set('href',xhrUrl); //Content Pane get
-	targetContentPane.set('class','borderDiv marB marR');
+	targetContentPane.set('class','borderDiv marB');
 	deferred.then(function(value){
 //		if(callback != null)
 //			callback();
@@ -428,6 +452,7 @@ dojo.connect(dataSourcePropertiesDiv, "onDownloadEnd", function(){
 	   dataSourcePropertiesDiv.resize();
 	   if(typeof(dataSources.loadViewCallback) != 'undefined')
 		   dataSources.loadViewCallback();
+	   
 	});
 
 }); // require

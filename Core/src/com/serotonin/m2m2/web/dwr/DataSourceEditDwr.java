@@ -55,6 +55,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         ds.setPurgeOverride(basic.isPurgeOverride());
         ds.setPurgeType(basic.getPurgeType());
         ds.setPurgePeriod(basic.getPurgePeriod());
+        ds.setEnabled(basic.isEnabled());
     }
 
     protected ProcessResult tryDataSourceSave(DataSourceVO<?> ds) {
