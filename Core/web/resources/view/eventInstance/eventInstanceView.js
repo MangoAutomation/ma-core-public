@@ -557,7 +557,7 @@ eventInstances = new StoreView({
     		    		});
     		    	}
     			}else{
-    				EventInstanceDwr.geteventTypeLink(eventInstance.eventType.eventType, eventInstance.eventType.eventSubtype, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
+    				EventInstanceDwr.getEventTypeLink(eventInstance.eventType.eventType, eventInstance.eventType.eventSubtype, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
     					html += response;
     				});
     			}
