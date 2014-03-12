@@ -1,33 +1,128 @@
+<h1>Getting Started</h1>
+<p>Mango Automation is a powerful tool for a wide variety of applications. If you're interested in integrating, 
+evaluating, and visualizing multiple data streams over time, you'll be amazed at what you can accomplish after only a little learning. 
+At Infinite Automation Systems Inc. it's our mission to make sure you get the help you need as fast as possible. 
+There are several options for you to learn about Mango and a few things you can do if you run into trouble.</p>
 
-<h1>Welcome to Mango Automation</h1>
-<p>Mango Automation is a powerful tool for a wide variety of application.  With a little learning you'll be amazed at what you can accomplish with it.  At Infinite Automation Systems Inc. it's our mission to make sure you get the help you need as fast as possible.  There are several options for you to learn about Mango and a few things you can do if you run into trouble.</p>
-
-<h2>Online Support Forum - Tutorial and User Help</h2>
-<p>As your first place to start our forums are very active and is our preferred place to provide answer to your question.  This way others can benefit so we'll probably answer you here the fastest. <a href="http://forum.infiniteautomation.com/forum/forums/list.page" target="new">http://forum.infiniteautomation.com/forum/forums/list.page</a>You will also find many tutorials and user help sections and you can use the search tool to find what you are looking for. If you can't find it just start a new thread and we will be happy to respond as fast as possible</p>
-
-<h3>One-On-One Support</h3>
-Sometimes you need one-on-one help and that's OK.  You can also contact us if you have application questions, licensing questions or want to talk to us about opportunities you may have to distribute Mango products.  <a href="http://infiniteautomation.com/index.php/contact-us" target="new">Contact Us</a> through our website or call (303) 558-7112
 <h3>Getting Started</h3>
-<p>Download our getting started document <a href="http://infiniteautomation.com/downloads/Getting Started Creating Data Sources and Data Points.pdf" target="new"><strong>Getting Started Creating Data Sources and Data Points.pdf</strong></a> it will walk you through step by step creating your first Data Sources and Data Points</p>
-<h1>Mango Automation Overview</h1>
-<p>Below is a general overview of how this application works, and design concepts that users should know.</p>
+<p>Download our getting started document, <a href="http://infiniteautomation.com/downloads/Getting Started Creating Data Sources and Data Points.pdf" target="new">
+<strong>Getting Started Creating Data Sources and Data Points.pdf</strong></a>, for a step by step walk through on creating your first Data Sources and Data Points</p>
 
-<h2>Mango Contextual Help</h2>
-<p> 
-
-Helpful details can be found throughout the application using contextual help, indicated by the help icon 
+<h3>Mango Contextual Help</h3>
+<p> Helpful details can be found throughout the application using contextual help, indicated by the help icon 
 (<img src="images/help.png">). Click on this icon wherever it appears to get more information on the feature you are using.</p>
 
-<h1>Application overview</h1>
+<h3>Online Support Forum - Tutorial and User Help</h3>
+<p>For the first place to start, our forum, <a href="http://forum.infiniteautomation.com/forum/forums/list.page" 
+target="new">http://forum.infiniteautomation.com/forum/forums/list.page</a>, is very active and is our preferred place to provide answers to your questions. 
+This way others can benefit and Mango can grow as a community. You will also find many tutorials and user help sections, and you can 
+use the search tool to find what you are looking for. If it doesn't seem like your question has been asked, start a new thread and we will happily respond as fast as possible</p>
+
+<h3>One-On-One Support</h3>
+<p>If you need one-on-one or immediate support, you can contact us directly. For larger inquiries, professional service and support 
+are available to be purchased. You can also contact us with application questions, 
+licensing questions or to talk with us about opportunities you may have to distribute Mango products.  <a href="http://infiniteautomation.com/index.php/contact-us" target="new">Contact Us
+</a> through our website or call (303) 558-7112</p>
+<hr>
+<h1>Overview and Design Concepts</h1>
+
+<h3>Navigation Overview</h3>
 <p>Functionality in this application is primarily accessed using the controls in the header. Depending on the 
 permissions granted to your user account, you will see various icons underneath the application logo. When you hover
 over these icons with your mouse, you will see an overlay message with a short description of what the icon is 
 for.</p>
-<p>Beside the header controls at the right-hand side of the header is the username of the user who is currently 
-logged in.</p>
-<p>When your application has an active alarm, you will see a flashing flag icon (<img src="images/flag_white.png"/>)
-and an associated description near the center of the header area. The color of the icon will indicate the severity
-of the alarm:</p>
+<p>Beside the header controls, at the right-hand side of the header, is the username of the user who is currently 
+logged in, with buttons to define that user's home page and to log out.</p>
+
+<h3>Data Sources</h3>
+<p>Data Sources are fundamental to the operation of this application. A <b>Data Source</b> is a "place" from which 
+data is received. Virtually anything can be a Data Source, insofar as the communications protocol is supported by the
+application. Here are some examples:</p>
+<ul>
+  <li>If you have a Modbus network accessible via RS232, RS485, TCP/IP, or UDP/IP, you can create a Modbus Data 
+  Source that will poll the network for data on an interval you can define.</li>
+  <li>If you have equipment or an application that can send data over HTTP you can start an HTTP Receiver Data Source
+  that will listen for incoming connections and route the data to the appropriate points.</li>
+  <li>For hardware that supports SNMP, start an SNMP Data Source. Values can be polled on an interval schedule, or 
+  traps can be received for report-on-exception.</li>
+  <li>Data can be read and updated in a SQL data base external to the system.</li>
+  <li>Data can be generated either randomly or predictively using a Virtual Data Source.</li>
+</ul>
+<p>Data values that are received or collected by a Data Source are stored within Data Points. Every Data Source has a 
+contextual help button that explains the properties necessary to configure the Data Source, as well as general descriptions 
+and any caveats.</p>
+
+<h3>Data Points</h3>
+<p>A <b>Data Point</b> is a collection of associated historical values. For example, a particular point might be a 
+temperature reading from a room, while another point could be the humidity reading from the same room. Points can 
+also be control values, such as a switch to turn a piece of equipment on or off.</p>
+<p>There are many attributes that are used to control the behavior of points, but can be separated into two groups. First, there is the concept of a 
+<b>Point Locator</b>. Locators are used by Data Source to determine how to "find" the data for the particular point.
+For instance, the Point Locator of an SQL Data Point indicates the table and field names with which to find its specific value from the query.</p>
+<p>Second, Data Point attributes also determine many other aspects of the point, such as its name, how/when it should be logged into the database, 
+how long to keep logged data, how to render values for display, and how to chart values. These attributes are common to all Data Points, although 
+a particular data type may or may not have them all.</p>
+<p>You can also configure Data Points with <b>Event Detectors</b>, which are used to detect conditions of interest 
+in points' values, such as the value being too high/low for too long, changing too often, not changing at often enough, etc.</p>
+
+<h3>Data Types</h3>
+<p>There are five supported data types:</p>
+<ul>
+  <li><b>Binary</b> values have only two states, referred to in the system as the <b>zero</b> value
+  and the <b>one</b> value. You can use a Text Renderer to convert the display of binary values to whatever alternate
+  labels you need, such as "on/off", "high/low", "started/stopped", etc.</li>
+  <li><b>Multistate</b> values have multiple distinct states. Values are primitively represented as integers (e.g. 0, 1, 2, 7, ...), 
+  but also have Text Renderer options to convert these values to appropriate textual representations such as "on/off/disabled",
+  "cool/heat/off", or anything else.</li>
+  <li><b>Numeric</b> values are decimal values represented in the system with a floating point variable. 
+  Temperature, humidity, price, and altitude are examples of numeric values. Text Renderers can be used to determine
+  display features like how many decimals places to display, whether to separate thousands (with commas or dots), and 
+  whether a suffix should be displayed (e.g. &deg;F, kW/h, moles, etc). The "Range" type of Text Renderer can be used to convert ranges
+  of numeric values into text labels.</li>
+  <li><b>Alphanumeric</b> values are simply strings of characters, such as the O/S description of an SNMP source.</li>
+  <li><b>Image</b> values are binary representations of image data. They are stored in files on the host file system
+  (i.e. not in the database) and are cached in memory as necessary for performance purposes. Renderers can be used to
+  create scaled images - such as thumbnails - for presentation.</li>
+</ul>
+
+<h3>Monitoring</h3>
+<p>Monitoring of points within the system can be done in a few ways. You can use the <b>watch list</b> to dynamically
+create tabular lists of points including their values, last update times, and charts of historical information (if 
+the point is configured to support this). Values and charts are updated in real time without having to refresh your
+browser window. Charts of multiple points can also be displayed on demand.</p>
+<p>You can also create <b>graphical views</b> of points using drag and drop functionality to position graphical 
+representations of points on an arbitrary background image. Animated images can be used to create highly dynamic 
+visualization of system behaviour, and, like the watch lists, values are updated in real time without a browser 
+refresh. These views can subsequently be marked as "public", so that they can be reused on public web sites.</p>
+<p>Automatic monitoring is possible through the script engines in both the <b>Meta Data Source</b> and <b>Scripting 
+Data Source</b> setting values to a point with Event Detectors for the conditions being watch for, as with creating 
+a Multistate Meta Data Point with configured Event Detectors and Event Handlers. As Mango Automation is fundamentally 
+modular and largely opensource, automatic monitoring of every aspect of Mango Automation is available to be encoded.</p>
+
+<h3>Control</h3>
+<p>Control of external systems can is achieved through points which are "settable" (aka writable or output). A 
+<b>settable</b> point can be set to a user-defined value, such as a thermostat setting or equipment control switch.
+Both watch lists and graphical views provide simple means by which to input a value to set. The Point Locator for a
+settable point determines how the Data Source sets the value within the external equipment.</p>
+<p>You can also use the <b>Scripting Data Source</b> to write control logic to automatically write values to any settable point.</p>
+
+<h3>Events</h3>
+<p>
+  An <b>Event</b> is the occurrence of a defined condition within the system. Both system-defined and user-defined 
+  events are available. System-defined events include Data Source operation errors, user logins, and system 
+  startup/shutdown. User-defined events include Point Event Detectors (see "Event Detectors" above), and events defined
+  in modules. There are also "audit events", which are raised when users make changes (additions, modifications, 
+  deletions) to runtime-affecting objects including Data Sources, Data Points, Point Event Detectors, Event Handlers,
+  and many events defined by modules.
+</p>
+<p>
+  Once an Event has been detected, it is acted upon by handlers. An <b>Event Handler</b> is a user-defined behavior
+  that is to be performed upon the raising of a particular event, such as sending an email or setting the value of a 
+  settable point.
+</p>
+<p>An <b>Alarm</b> is an Event with an alarm level. When your application has (an) unacknowledged alarm(s), you will see
+ a flag icon (<img src="images/flag_white.png"/>) and an associated description (or count) near the center of the header area. 
+ The color of the icon(s) will indicate the severity of the alarm(s). The levels of alarm are:</p>
 <ul style="list-style-type:none;">
   <li><img src="images/flag_blue.png"> Information</li>
   <li><img src="images/flag_yellow.png"> Urgent</li>
@@ -36,100 +131,17 @@ of the alarm:</p>
 </ul>
 <p>You can click on the icon or the description to go to the list of active alarms.</p>
 
-<h1>Data sources</h1>
-<p>Data sources are fundamental to the operation of this application. A <b>data source</b> is a "place" from which 
-data is received. Virtually anything can be a data source, insofar as the communications protocol is supported by the
-application. Here are some examples:</p>
-<ul>
-  <li>If you have a Modbus network accessible via RS232, RS485, TCP/IP, or UDP/IP, you can create a Modbus data 
-  source that will poll the network for data on an interval you can define.</li>
-  <li>If you have equipment or an application that can send data over HTTP you can start an HTTP receiver data source
-  that will listen for incoming connections and route the data to the appropriate points.</li>
-  <li>For hardware that supports SNMP, start an SNMP data source. Values can be polled on an interval schedule, or 
-  traps can be received for report-on-exception.</li>
-  <li>Data can be read and updated in a SQL data base external to the system.</li>
-  <li>Data can be generated either randomly or predictively using a Virtual data source.</li>
-</ul>
-<p>Data values that are received or collected by a data source are stored within data points.</p>
+<h3>Graphic Dashboards</h3>
 
-<h1>Data points</h1>
-<p>A <b>data point</b> is a collection of associated historical values. For example, a particular point might be a 
-temperature reading from a room, while another point could be the humidity reading from the same room. Points can 
-also be control values, such as a switch to turn a piece of equipment on or off.</p>
-<p>There are many attributes that are used to control the behavior of points. Primarily, there is the concept of a 
-<b>point locator</b>. Locators are used by data source to determine how to "find" the data for the particular point.
-For instance, a SQL data source has attributes including where to find the database instance; point locators for the 
-data source indicate the table and field names with which to find specific values. The logical separation of data 
-source and data point attributes depends on the communication protocol in question.</p>
-<p>Data points attributes also determine many other aspects of the point, such as its name, how it should be logged 
-(all data, changes in value only, or not at all), how long to keep logged data, how to format values for display,
-and how to chart values.</p>
-<p>You can also configure data points with <b>event detectors</b>, which are used to detect conditions of interest 
-in the point's values (eg. value has been too high for too long, is too low, changes too often, doesn't change at 
-all, etc).</p>
+<p>Mango Automation has three modules for creating graphic representations of your data:</p>
 
-<h1>Data types</h1>
-<p>There are five supported data types:</p>
-<ul>
-  <li><b>Binary</b> (aka boolean) values have only two states, referred to in the system as the <b>zero</b> value
-  and the <b>one</b> value. You can use a text renderer to convert the display of binary values to whatever alternate
-  labels you need, such as "on/off", "high/low", "started/stopped", etc.</li>
-  <li><b>Multistate</b> values have multiple distinct states. (Strictly speaking, the binary type is a special case
-  of a multistate.) Values are primitively represented as integers (e.g. 0, 1, 2, 7, ...), but, like binary values, 
-  you can use a text renderer to convert these values to appropriate text representations such as "on/off/disabled",
-  "cool/heat/off", or anything else.</li>
-  <li><b>Numeric</b> (aka analog) values are decimal values represented in the system with a floating point variable. 
-  Temperature, humidity, price, and altitude are examples of numeric values. Text renderers can be used to determine
-  display features like how many decimals places to display, whether to separate thousands (with commas or dots), and 
-  whether a suffix should be displayed (e.g. &deg;F, kW/h, moles, etc). Range renderers can be used to convert ranges
-  of numeric values into text labels.</li>
-  <li><b>Alphanumeric</b> values are simply strings of characters, such as the O/S description of an SNMP source.</li>
-  <li><b>Image</b> values are binary representations of image data. They are stored in files on the host file system
-  (i.e. not in the database) and are cached in memory as necessary for performance purposes. Renderers can be used to
-  create scaled images - such as thumbnails - for presentation.</li>
-</ul>
+<ul><li><strong>Graphic Views</strong> offers a simple way to use images, graphics and animations to create dashboards and HMIs. 
+With drag and drop simplicity, you quickly get your page online.</li>
 
+<li><strong>JSP Pages</strong> allow you to write custom JSP pages using HTML and JavaScript that use your real time and 
+historical data. This allows for complete customization of dashboards, mobile apps, HMIs and GUIs.</li>
 
-
-
-<h1>Monitoring</h1>
-<p>Monitoring of points within the system can be done in two ways. You can use the <b>watch list</b> to dynamically
-create tabular lists of points including their values, last update times, and charts of historical information (if 
-the point is configured to support this). Values and charts are updated in real time without having to refresh your
-browser window. Charts of multiple points can also be displayed on demand.</p>
-<p>You can also create <b>graphical views</b> of points using drag and drop functionality to position graphical 
-representations of points on an arbitrary background image. Animated images can be used to create highly dynamic 
-visualization of system behaviour, and, like the watch lists, values are updated in real time without a browser 
-refresh. These views can subsequently be marked as "public", so that they can be reused on public web sites.</p>
-
-<h1>Control</h1>
-<p>Control of external systems can also be acheived for points that can be set (aka writable or output). A 
-<b>settable</b> point can be set to a user-defined value, such as a thermostat setting or equipment control switch.
-Both watch lists and graphical views provide simple means by which to input a value to set. The point locator for the
-settable point determines how the data source sets the value within the external equipment.</p>
-<p>You can also use the <b>Scripting Data Source</b> to write control logic to automatically write values to any settable data point.</p>
-
-<h1>Events</h1>
-<p>
-  An <b>event</b> is the occurance of a defined condition within the system. Both system-defined and user-defined 
-  events are available. System-defined events include data source operation errors, user logins, and system 
-  startup/shutdown. User-defined events include point event detectors (see "event detectors" above), and events defined
-  in modules. There are also "audit events", which are raised when users make changes (additions, modifications, 
-  deletions) to runtime-affecting objects including data sources, data points, point event detectors, event handlers,
-  and many events defined by modules.
-</p>
-<p>
-  Once an event has been detected, it is acted upon by handlers. An <b>event handler</b> is a user-defined behavior
-  that is to be performed upon the raising of a particular event, such as sending an email or setting the value of a 
-  settable point.
-</p>
-
-<h1>Graphic Dashboards</h1>
-
-<p>Mango has three modules for creating graphic representations of your data: <strong>Graphic Views</strong>, <strong>JSP Pages</strong> and <strong>DGLux</strong>.</p>
-
-<p><strong>Graphic Views</strong> offers a simple and easy way to use images, graphics and animations to create dashboards and HMIs. With drag and drop simplicity, you quickly get your page online.</p>
-
-<p><strong>JSP Pages</strong> allow you to write custom JSP pages using html and javascript that use your real time and historical Mango data. This allows for complete customization of dashboards, mobile apps, HMIs and GUIs.</p>
-
-<p><strong>DGLux</strong> is a powerful drag and drop dashboard building tool like no other. With DGLux you can provide dynamic, high-end graphic web pages and GUI's to your customers that impress and excite user involvement. This powerful tool is included in every installation of Mango Automaton.</p>
+<li><strong>DGLux</strong> is a powerful drag and drop dashboard building tool like no other. With DGLux you can provide dynamic, 
+high-end graphic web pages and GUI's to your customers that impress and excite user involvement. This powerful tool is included 
+in every installation of Mango Automaton, and you can find further information at 
+<a href="http://infiniteautomation.com/index.php/software/dglux">http://infiniteautomation.com/index.php/software/dglux</a>.</li></ul>
