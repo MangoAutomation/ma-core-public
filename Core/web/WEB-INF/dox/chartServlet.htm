@@ -1,0 +1,43 @@
+<!--
+    Copyright (C) 2014 Infinite Automation Software Inc. All rights reserved.
+    @author Terry Packer
+-->
+<p>
+  The chart servlet allows requesting a customizable chart image for any data point in Mango via a browser URL request.  This section describes how to use this servlet.
+</p>
+<p>
+The url for the chart servlet is: http://mangoHostName/chart/{parameters} where {parameters} are defined in this help file.
+</p>
+
+<h2>General Format</h2>
+
+<ul>
+<li>The URL must end in <b>.png</b></li>
+<li>All times are in milliseconds since Jan 1 1970 (Java Epoch)</li>
+<li>All durations are in milliseconds</li>
+<li>Items in brackets [ ] are optional (do not include brackets in url)</li>
+<li>Multiple data points can be used by separating them with an underscore _</li>
+<li>The pipe | symbol is used to separate a data point id and its chart color</li>
+<li>Width and Height can be added to the image by appending a _w{pixels} and _h{pixels} such as _w500_h250.png</lil>
+<li>Colors can be any HTML color such as 'red' or 'light-blue' or a hex code prefixed with 0x</li>
+</ul>
+
+
+ <h3>Duration Chart</h3> 
+ Uses a from time and the duration from this time to define the chart period.
+ 
+<b>Example:</b>
+<br>
+http://mangoHostName/chart/{from timestamp}_{duration}_{data point id[|colour]}[_{data point id[|colour]} ...][_wWidth][_hHeight].png
+ 
+
+ 
+ 
+<h3>From To Chart</h3> 
+ Uses a from time and a to time to define the chart period. This chart uses a prepended ft_ to the front of the chart parameters.
+<br>
+<b>Example:</b>
+<br>
+http://mangoHostName/chart/ft_{from timestamp}_{to timestamp}_{data point id[|colour]}[_{data point id[|colour]} ...][_wWidth][_hHeight].png
+ 
+

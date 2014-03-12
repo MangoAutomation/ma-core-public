@@ -1,4 +1,5 @@
 * NEXT VERSION *
+* Added help to Chart view on data point details page to explain the Chart Servlet feature
 * Cleaned up css styling on data source page
 * Fixed bug on Data Source page where data source points table was leaving extra columns from previously viewed data sources
 * Fixed bug on Data Source page where the enable/disable light could get out of sync with the actual state of the data source 

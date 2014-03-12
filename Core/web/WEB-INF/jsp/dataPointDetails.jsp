@@ -338,7 +338,7 @@
               <div class="borderDiv marB">
                 <table width="100%">
                   <tr>
-                    <td class="smallTitle"><fmt:message key="pointDetails.chart"/></td>
+                    <td class="smallTitle"><fmt:message key="pointDetails.chart"/> &nbsp <tag:help id="chartServlet"/></td>
                     <td id="imageChartAsof"></td>
                     <td align="right"><tag:dateRange/></td>
                     <td>

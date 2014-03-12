@@ -6,6 +6,7 @@
 
 <doxManifest>
   <item id="chartRenderers" key="dox.chartRenderers" filename="chartRenderers.htm"/>
+  <item id="chartServlet" key="dox.chartServlet" filename="chartServlet.htm"/>
   
   <item id="cronPatterns" key="dox.cronPatterns" filename="cronPatterns.htm"/>
 
