@@ -17,7 +17,6 @@
         <archive path="/Core/lib/freemarker.jar"/>
         <archive path="/Core/lib/mail.jar"/>
         <archive path="/Core/lib/commons-fileupload-1.2.2.jar"/>
-        <archive path="/Core/lib/RXTXcomm.jar"/>
         <archive path="/Core/lib/log4j-1.2.14.jar"/>
         <archive path="/Core/lib/jsp-api-2.1-glassfish-9.1.1.B60.25.p2.jar"/>
         <archive path="/Core/lib/org.springframework.context-3.0.5.RELEASE.jar"/>
