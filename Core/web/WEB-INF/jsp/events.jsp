@@ -1,7 +1,7 @@
 <%--
     LEGACY PAGE LEFT HERE UNTIL WE ARE SURE WE WANT TO REMOVE
     
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 --%>
 <%@page import="com.serotonin.m2m2.Common"%>

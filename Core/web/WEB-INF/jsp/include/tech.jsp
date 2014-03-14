@@ -1,5 +1,5 @@
 <%--
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 --%><%@ page contentType="text/html;charset=UTF-8" language="java" %><%--
 --%><%@ taglib prefix="c" uri="http://java.sun.com/jstl/core_rt" %><%--

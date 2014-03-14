@@ -1,5 +1,5 @@
 <%--
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 --%><%@include file="/WEB-INF/tags/decl.tagf"%><%--
 --%><%@ taglib prefix="views" tagdir="/WEB-INF/tags/graphicalViews" %><%--

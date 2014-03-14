@@ -1,5 +1,5 @@
 <%--
-    Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 --%><!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" "http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">
 <%@include file="/WEB-INF/tags/decl.tagf"%>
@@ -17,7 +17,7 @@
 
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
   <tr>
-    <td class="footer" align="center">&copy;2006-2010 Serotonin Software Technologies Inc., <fmt:message key="footer.rightsReserved"/></td>
+    <td class="footer" align="center">&copy;2014 Infinite Automation Systems Inc., <fmt:message key="footer.rightsReserved"/></td>
   </tr>
 </table>
 

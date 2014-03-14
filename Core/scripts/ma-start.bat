@@ -1,6 +1,6 @@
 @echo off
 rem
-rem | Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
+rem | Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
 rem | @author Matthew Lohbihler
 rem
 rem | Runs Mango Automation.
