@@ -174,7 +174,7 @@ application.setAttribute("mangoMessageKeys",mangoMessageKeys);
 	function mangoTranslate(key, vars) {
 	    var msg = mangoMsg[key];
        if(typeof msg == 'undefined'){
-           console.log("Missing Key in mangoMsg:" + key);
+           console.log("Missing Key in mangoMsg: " + key);
            return "Missing Msg Key: " + key;
        }
 
@@ -189,5 +189,18 @@ application.setAttribute("mangoMessageKeys",mangoMessageKeys);
 		        msg = msg.replace("{" + i + "}", vars[i]);
 		}
 	    return msg;
+	}
+	
+	function mangoAppendTranslations(map) {
+		if(typeof(map) != "object")
+			return;
+		for(key in map) {
+			if(key in mangoMsg)
+				console.log("Recieved duplicate key: " + key);
+			else if(typeof(map[key]) != "string")
+				console.log("Recieved nonstring value as translation for: " + key);
+			else
+				mangoMsg[key] = map[key];
+		}
 	}
 </script>
