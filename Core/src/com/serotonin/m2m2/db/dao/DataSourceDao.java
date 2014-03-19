@@ -96,9 +96,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                     // thrown. Check the inner exception to confirm.
                     if (e.getCause() instanceof ObjectStreamException) {
                         // Yep. Log the occurrence and continue.
-                        LOG.error(
-                                "Data source with type '" + rs.getString("dataSourceType") + "' and name '"
-                                        + rs.getString("name") + "' could not be loaded. Is its module missing?", e);
+                        LOG.error("Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
+                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
                     }
                 }
             }
@@ -413,6 +412,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 					Types.BLOB
 				);		
 	}
+	
 	@Override
 	protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
 		HashMap<String,Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<String,Comparator<DataSourceVO<?>>>();
@@ -493,6 +493,42 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 		return new DataSourceRowMapper();
 	}
 
+    /**
+     * 
+     * Overridable method to extract the data
+     * 
+	 * @return
+	 */
+	@Override
+	public ResultSetExtractor<List<DataSourceVO<?>>> getResultSetExtractor(final RowMapper<DataSourceVO<?>> rowMapper, final FilterListCallback<DataSourceVO<?>> filters) {
 
+		return new ResultSetExtractor<List<DataSourceVO<?>>>(){
+			List<DataSourceVO<?>> results = new ArrayList<DataSourceVO<?>>();
+			int rowNum = 0;
+			@Override
+			public List<DataSourceVO<?>> extractData(ResultSet rs)
+					throws SQLException, DataAccessException {
+				while (rs.next()){
+						try{
+						DataSourceVO<?> row = rowMapper.mapRow(rs, rowNum);
+						//Should we filter the row?
+						if(!filters.filterRow(row, rowNum++))
+							results.add(row);
+						}catch (ShouldNeverHappenException e) {
+			                // If the module was removed but there are still records in the database, this exception will be
+			                // thrown. Check the inner exception to confirm.
+			                if (e.getCause() instanceof ObjectStreamException) {
+			                    // Yep. Log the occurrence and continue.
+		                        LOG.error("Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
+		                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
+			           }
+			        }
+				}
+				return results;
+			
+			}
+		};
+		
+	}
 
 }

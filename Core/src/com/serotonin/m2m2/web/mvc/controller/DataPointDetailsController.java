@@ -70,8 +70,14 @@ public class DataPointDetailsController implements UrlHandler {
         if (point == null && id != -1)
             point = dataPointDao.getDataPoint(id);
 
-        if (point == null && id != -2 /* -2 means an explicit XID was provided but not found */&& !userPoints.isEmpty())
-            point = dataPointDao.getDataPoint(userPoints.get(0).getId());
+        if (point == null && id != -2 /* -2 means an explicit XID was provided but not found */&& !userPoints.isEmpty()){
+        	//Load at least 1 point, there may be many points but some might not actually load if thier data source DNE anymore
+        	for(DataPointSummary userPoint : userPoints){
+        		point = dataPointDao.getDataPoint(userPoint.getId());
+        		if(point != null)
+        			break;
+        	}
+        }
 
         if (point != null) {
             // Check permissions

@@ -14,7 +14,7 @@ import com.serotonin.db.MappedRowCallback;
  * @author Terry Packer
  *
  */
-public class FilterListCallback<T> implements MappedRowCallback<T>{
+public class FilterListCallback<T> {
 
 	protected List<IFilter<T>> filters;
 
@@ -40,22 +40,21 @@ public class FilterListCallback<T> implements MappedRowCallback<T>{
 		this.onFilterCallback = onFilterCallback;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.db.MappedRowCallback#row(java.lang.Object, int)
-	 */
-	@Override
-	public void row(T row, int rowIndex) {
+
+	public boolean filterRow(T row, int rowIndex) {
 		//Filter the VO
         for(IFilter<T> filter : filters){
 			if(filter.filter(row)){
-				this.onFilterCallback.row(row,rowIndex);
-				return;
+				if(this.onFilterCallback != null)
+					this.onFilterCallback.row(row,rowIndex);
+				return true;
 			}
 		}
 
         //Otherwise keep it
         if(onKeepCallback != null)
         	this.onKeepCallback.row(row,rowIndex);
+        return false;
 	}
 
 }

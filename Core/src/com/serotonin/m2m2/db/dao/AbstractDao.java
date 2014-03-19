@@ -407,7 +407,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
 	 * @return
 	 */
 	protected DojoQueryCallback<T> getOnFilterCallback() {
-		return new DojoQueryCallback<T>(false);
+		return new DojoQueryCallback<T>(false); //Don't keep results
 	}
 
 	/**
@@ -418,7 +418,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
 	 * @return
 	 */
 	protected DojoQueryCallback<T> getOnResultCallback() {
-		return new DojoQueryCallback<T>(true);
+		return new DojoQueryCallback<T>(false); //Don't keep results
 	}
     
     

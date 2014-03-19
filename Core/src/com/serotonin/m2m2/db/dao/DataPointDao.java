@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.io.ObjectStreamException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,14 +22,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataSourceDao.DataSourceRowMapper;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -58,7 +65,7 @@ import com.serotonin.util.Tuple;
  *
  */
 public class DataPointDao extends AbstractDao<DataPointVO> {
-	
+	static final Log LOG = LogFactory.getLog(DataPointDao.class);
 	public static final DataPointDao instance = new DataPointDao();
 	
     /**
@@ -126,11 +133,21 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     }
 
     public DataPointVO getDataPoint(int id, boolean includeRelationalData) {
-        DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.id=?", new Object[] { id },
-                new DataPointRowMapper(), null);
-        if (includeRelationalData)
-            setRelationalData(dp);
-        return dp;
+        try{
+	    	DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.id=?", new Object[] { id },
+	                new DataPointRowMapper(), null);
+	        if (includeRelationalData)
+	            setRelationalData(dp);
+	        return dp;
+        }catch (ShouldNeverHappenException e) {
+                // If the module was removed but there are still records in the database, this exception will be
+                // thrown. Check the inner exception to confirm.
+                if (e.getCause() instanceof ObjectStreamException) {
+                    // Yep. Log the occurrence and continue.
+                    LOG.error("Data point with id '" + id + "' could not be loaded. Is its module missing?", e);
+                }
+        }
+        return null;
     }
 
     public DataPointVO getDataPoint(String xid) {
@@ -570,8 +587,40 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     "select id, xid, dataSourceId, name, deviceName, pointFolderId from dataPoints ";
 
     public List<DataPointSummary> getDataPointSummaries(Comparator<IDataPoint> comparator) {
-        List<DataPointSummary> dps = query(DATA_POINT_SUMMARY_SELECT, new DataPointSummaryRowMapper());
-        if (comparator != null)
+        
+    	
+    	List<DataPointSummary> dps = query(DATA_POINT_SUMMARY_SELECT, new ResultSetExtractor<List<DataPointSummary>>(){
+
+			@Override
+			public List<DataPointSummary> extractData(ResultSet rs)
+					throws SQLException, DataAccessException {
+				DataPointSummaryRowMapper rowMapper = new DataPointSummaryRowMapper();
+	            List<DataPointSummary> results = new ArrayList<DataPointSummary>();
+	            int rowNum = 0;
+	            while (rs.next()) {
+	                try {
+	                    results.add(rowMapper.mapRow(rs, rowNum++));
+	                }
+	                catch (ShouldNeverHappenException e) {
+	                    // If the module was removed but there are still records in the database, this exception will be
+	                    // thrown. Check the inner exception to confirm.
+	                    if (e.getCause() instanceof ObjectStreamException) {
+	                        // Yep. Log the occurrence and continue.
+	                        LOG.error(
+	                                "Data point with id '" + rs.getInt("id") + "' and name '"
+	                                        + rs.getString("name") + "' could not be loaded. Is its module missing?", e);
+	                    }
+	                }
+	            }
+	            return results;
+
+				
+			}
+    		
+    	});
+        
+    	
+    	if (comparator != null)
             Collections.sort(dps, comparator);
         return dps;
     }
@@ -1012,5 +1061,41 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		this.saveDataPoint(vo);
 	}
 	
+    /**
+     * 
+     * Overridable method to extract the data
+     * 
+	 * @return
+	 */
+	@Override
+	public ResultSetExtractor<List<DataPointVO>> getResultSetExtractor(final RowMapper<DataPointVO> rowMapper, final FilterListCallback<DataPointVO> filters) {
+
+		return new ResultSetExtractor<List<DataPointVO>>(){
+			List<DataPointVO> results = new ArrayList<DataPointVO>();
+			int rowNum = 0;
+			@Override
+			public List<DataPointVO> extractData(ResultSet rs)
+					throws SQLException, DataAccessException {
+				while (rs.next()){
+						try{
+						DataPointVO row = rowMapper.mapRow(rs, rowNum);
+						//Should we filter the row?
+						if(!filters.filterRow(row, rowNum++))
+							results.add(row);
+						}catch (ShouldNeverHappenException e) {
+			                // If the module was removed but there are still records in the database, this exception will be
+			                // thrown. Check the inner exception to confirm.
+			                if (e.getCause() instanceof ObjectStreamException) {
+			                    // Yep. Log the occurrence and continue.
+			                    LOG.error("Data point with xid '" + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
+			           }
+			        }
+				}
+				return results;
+			
+			}
+		};
+		
+	}
 	
 }

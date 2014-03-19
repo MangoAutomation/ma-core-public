@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +17,8 @@ import java.util.Map;
 
 import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.logging.Log;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.db.MappedRowCallback;
@@ -421,7 +425,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         FilterListCallback<T> filter = new FilterListCallback<T>(createFilters(query), onKeepCallback, onFilterCallback);
         //FilterListCallback<T> filter = new FilterListCallback<T>(createFilters(query),createComparatorChain(sort));
       
-        query(selectSql, selectArgs.toArray(), getRowMapper(),filter);
+        //query(selectSql, selectArgs.toArray(), getRowMapper(),filter);
+        List<T> results = query(selectSql, selectArgs.toArray(), getResultSetExtractor(getRowMapper(), filter));
         //List<T> results = query(selectSql, selectArgs.toArray(), getRowMapper());
         //TODO modify this ...
         //filter.orderResults();
@@ -453,14 +458,41 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         // because we need the whole data set to order properly and we are 
         // only able to sort the data that was returned by the query here
         // this is the best we can do for now
-        sortComplexMembers(onKeepCallback.getResults(),sort);
+        sortComplexMembers(results,sort);
         
         
-        return new ResultsWithTotal(onKeepCallback.getResults(), count);
+        return new ResultsWithTotal(results, count);
     }
 
     
     /**
+     * 
+     * Overridable method to extract the data
+     * 
+	 * @return
+	 */
+	public ResultSetExtractor<List<T>> getResultSetExtractor(final RowMapper<T> rowMapper, final FilterListCallback<T> filters) {
+
+		return new ResultSetExtractor<List<T>>(){
+			List<T> results = new ArrayList<T>();
+			int rowNum = 0;
+			@Override
+			public List<T> extractData(ResultSet rs)
+					throws SQLException, DataAccessException {
+				while (rs.next()){
+						T row = rowMapper.mapRow(rs, rowNum);
+						//Should we filter the row?
+						if(!filters.filterRow(row, rowNum++))
+							results.add(row);
+				}
+				return results;
+			
+			}
+		};
+		
+	}
+
+	/**
      * Create a list of filters for the complex members
      * @param query
      * @return
@@ -468,6 +500,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     protected List<IFilter<T>> createFilters(Map<String, String> query){
     	
     	List<IFilter<T>> filters = new ArrayList<IFilter<T>>();
+    	
     	
 		for (String prop : query.keySet()) {
 			 if(filterMap.containsKey(prop)){
@@ -489,6 +522,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	return filters;
     }
     
+
 	/**
 	 * @param results
 	 * @param query
