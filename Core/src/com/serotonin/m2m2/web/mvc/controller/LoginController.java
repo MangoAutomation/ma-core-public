@@ -39,7 +39,7 @@ public class LoginController extends SimpleFormController {
 
     	//Edit TP Feb 2014 to show loading page until Mango is started.
     	ILifecycle lifecycle = Providers.get(ILifecycle.class);
-    	if(lifecycle.getStartupProgress() < 100f){
+    	if(lifecycle.getStartupProgress() < 100f && Common.envProps.getBoolean("showStartup", true)){
     		return new ModelAndView(new RedirectView("/startup.htm"));
     	}
     	
