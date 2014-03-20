@@ -12,9 +12,8 @@
 	<property name="deploy.jar.paths" value="${coreHome}/target/web/modules" />
     <property name="zip.paths" value="${coreHome}/target/ma-modules.zip" />
 	
+   	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
 	
-    <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
-
 	<path id="master-classpath">
 	     <!-- <pathelement path="${coreHome}/bin" /> Removed for use outside of eclipse -->
 	    <fileset dir="${coreHome}/target/lib">
@@ -227,9 +226,15 @@
             <param name="deploy.file" value="target/${fullName}.zip" />
         </foreach>
     	
-        <foreach list="${zip.paths}" target="|zip" param="tozip" delimiter="|">
-            <param name="zip.file" value="target/${fullName}.zip" />
-        </foreach>
+    	<if>
+            <isset property="zip-modules"/>
+            <then>
+                <foreach list="${zip.paths}" target="|zip" param="tozip" delimiter="|">
+                    <param name="zip.file" value="target/${fullName}.zip" />
+                </foreach>
+            </then>
+            <else></else>
+    	</if>
 
     </target>
 

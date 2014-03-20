@@ -46,7 +46,7 @@ public class StartupDwr {
     	result.addData("message", message);
     	
 		result.addData("startupProgress", progress);
-		result.addData("shutdownProgres", shutdownProgress);
+		result.addData("shutdownProgress", shutdownProgress);
 		result.addData("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
 		
 		if(progress >= 100){
