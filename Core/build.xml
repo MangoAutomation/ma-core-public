@@ -138,7 +138,10 @@
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
-	    	<fileset dir="${build.dir}"><include name="**/*"/></fileset>
+	    	<fileset dir="${build.dir}">
+	    		<exlclude name="scripts/*"/>
+	    		<include name="**/*"/>
+	    	</fileset>
             <zipfileset dir="scripts" includes="**/*.bat" prefix="bin" />
 	    	<zipfileset dir="scripts" includes="**/*.sh" prefix="bin" filemode="755" />
         </zip>
@@ -282,6 +285,8 @@
             </fileset>
             <fileset dir="${build.dir}">
             	<!-- TODO Figure out how to exclude the *.js.uncompressed.js files -->
+            	<exclude name="scripts/*"/>
+            	<exclude name="overrides/*" />
             	<include name="**/*"/>
             </fileset>
         	<zipfileset dir="overrides" includes="**/*" prefix="overrides" />
