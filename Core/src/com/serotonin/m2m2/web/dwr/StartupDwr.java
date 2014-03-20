@@ -40,17 +40,22 @@ public class StartupDwr {
 		
 		ILifecycle lifecycle = Providers.get(ILifecycle.class);
     	float progress =  lifecycle.getStartupProgress();
-    	
+    	float shutdownProgress = lifecycle.getShutdownProgress();
 
     	String message =  LoggingConsoleRT.instance.getCurrentMessage();
     	result.addData("message", message);
     	
-		result.addData("progress", progress);
+		result.addData("startupProgress", progress);
+		result.addData("shutdownProgres", shutdownProgress);
 		result.addData("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
 		
 		if(progress >= 100){
 			WebContext ctx = WebContextFactory.get();
 			result.addData("startupUri", DefaultPagesDefinition.getLoginUri(ctx.getHttpServletRequest(), ctx.getHttpServletResponse()));
+		}
+		if(shutdownProgress > 0){
+			//TODO flesh this out when we add a shutdown page.
+			result.addData("shutdownUri", "/startup.htm");
 		}
 		
 		return result;

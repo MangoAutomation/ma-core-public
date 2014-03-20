@@ -59,11 +59,13 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
 	            }
             }
             
-            //If the interval is > 100 then we should redirect
-            if(response.data.progress >= 100)
+            //If the interval is > 100 then we should redirect, just remember at this point we could be shutting down
+
+            if((response.data.startupProgress >= 100) && (response.data.shutdownProgress == 0))
                 window.location.href = response.data.startupUri;
             
-            myProgressBar.set("value", response.data.progress);
+            
+            myProgressBar.set("value", response.data.startupProgress);
             var startupMessageDiv = dojo.byId("startupMessage");
             startupMessageDiv.innerHTML = response.data.state;
        });
