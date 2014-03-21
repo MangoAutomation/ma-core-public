@@ -139,7 +139,7 @@
                 <include name="licenseTypes.xml" />
             </fileset>
 	    	<fileset dir="${build.dir}">
-	    		<exlclude name="scripts/*"/>
+	    		<exclude name="scripts/*"/>
 	    		<include name="**/*"/>
 	    	</fileset>
             <zipfileset dir="scripts" includes="**/*.bat" prefix="bin" />
