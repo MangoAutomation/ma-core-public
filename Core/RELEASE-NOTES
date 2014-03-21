@@ -1,4 +1,5 @@
 *Version 2.2.0*
+* Changed browser to open immediately to show startup screen
 * Fixed bug at startup where some conditions could cause Mango to hang if an error was detected.  Now Mango should shutdown after fatal errors during startup.
 * Added jSSC Serial Port library for easier use of serial port, RXTX has now been removed from the core and placed into any modules that still require it.
 * Fixed bug in Event Report View where custom event types were failing to show up
