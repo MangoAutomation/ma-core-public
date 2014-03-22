@@ -51,6 +51,7 @@ public class LoggedInFilter implements Filter {
             else
                 maxUniqueIps = Integer.parseInt(uniqueIpAddresses.getValue());
         }
+
     }
 
     @Override
@@ -59,7 +60,18 @@ public class LoggedInFilter implements Filter {
         // Assume an http request.
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-
+        
+        //Ugly hack for now to get the  license info due to Webserver startup early.
+        LicenseFeature uniqueIpAddresses = Common.licenseFeature("uniqueIpAddresses");
+        if (uniqueIpAddresses == null)
+            maxUniqueIps = 3;
+        else {
+            if ("unlimited".equals(uniqueIpAddresses.getValue()))
+                maxUniqueIps = -1;
+            else
+                maxUniqueIps = Integer.parseInt(uniqueIpAddresses.getValue());
+        }
+        	
         if (maxUniqueIps != -1) {
             // Check the list of IP addresses. If this is a new IP, and there
             // are no more available slots, deny the

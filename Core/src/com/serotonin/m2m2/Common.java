@@ -51,6 +51,7 @@ import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
+import com.serotonin.m2m2.web.filter.LoggedInFilter;
 import com.serotonin.monitor.MonitoredValues;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.RealTimeTimer;
@@ -97,6 +98,8 @@ public class Common {
     public static final RealTimeTimer timer = new RealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
+    
+    public LoggedInFilter loggedInFilter; //Hack to allow setting the license early on in startup TBRedesigned
     
     //
     // License
