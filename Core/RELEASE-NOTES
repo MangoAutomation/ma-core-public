@@ -1,3 +1,7 @@
+*Version 2.2.1*
+* License bug where web server was loaded before license and was always limiting ip addresses to 3
+
+
 *Version 2.2.0*
 * Changed browser to open immediately to show startup screen
 * Fixed bug at startup where some conditions could cause Mango to hang if an error was detected.  Now Mango should shutdown after fatal errors during startup.
