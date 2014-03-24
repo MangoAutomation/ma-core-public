@@ -140,7 +140,7 @@ public class PointFolder implements JsonSerializable {
     	for(DataPointSummary existingPoint : this.points){
     		newPoints.add(existingPoint);
     	}
-    	
+    	    	
     	this.points = newPoints; //Replace with the new list
     	
     }
@@ -157,13 +157,18 @@ public class PointFolder implements JsonSerializable {
      * 
      * @param subfolders
      */
-    public void mergeSubfolders(List<PointFolder> subfolders){
+    public void mergeSubfolders(PointFolder root, List<PointFolder> subfolders){
  
     	List<PointFolder> newSubfolders = new ArrayList<PointFolder>();
     	int pointFolderIndex;
     	
-    	//Recursively walk through each subfolder and merge the points in each.
+    	//Recursively walk through each sub-folder and merge the points in each.
     	for(PointFolder newFolder : subfolders){
+   			//Remove all of the new points from the hierarchy if they exist in it
+			//Remove the new points from anywhere in the hierarchy
+			for(DataPointSummary dps : newFolder.getPoints()){
+				root.removePoint(dps.getId());
+			}
     		pointFolderIndex = -1;
     		for(int i=0; i< this.subfolders.size(); i++){
     			if(this.subfolders.get(i).getName().equals(newFolder.getName())){
@@ -173,20 +178,22 @@ public class PointFolder implements JsonSerializable {
     		}
     		
     		if(pointFolderIndex >= 0){
-    			//If a local folder exists for the new subfolder then merge it
+    			//If a local folder exists for the new sub-folder then merge it
     			PointFolder existing = this.subfolders.get(pointFolderIndex);
-    			newFolder.mergePoints(existing.getPoints());
-    			newFolder.mergeSubfolders(existing.getSubfolders());
-    			newSubfolders.add(newFolder);
-    			//Remove the existing subfolder so that when we are done we have the remaining folders to add
+ 
+    			//Merge points by moving the existing points into this folder.
+    			existing.mergePoints(newFolder.getPoints());
+    			existing.mergeSubfolders(root, newFolder.getSubfolders());
+    			newSubfolders.add(existing);
+    			//Remove the existing sub-folder so that when we are done we have the remaining folders to add
     			this.subfolders.remove(pointFolderIndex);
     		}else{
-    			//If no local folder exists for the new subfolder, then add it
+    			//If no local folder exists for the new sub-folder, then add it
     			newSubfolders.add(newFolder);
     		}
     	}
 
-    	//If a local folders exists that is not in the new subfolders then we will add it here
+    	//If a local folders exists that is not in the new sub-folders then we will add it here
 		for(PointFolder remainingFolder : this.subfolders){
 			newSubfolders.add(remainingFolder);
 		}

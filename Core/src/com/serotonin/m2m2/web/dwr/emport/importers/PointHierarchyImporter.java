@@ -20,10 +20,6 @@ public class PointHierarchyImporter extends Importer {
 
     @Override
     protected void importImpl() {
-        PointFolder root = new PointFolder(0, "Root");
-        
-        
-        
         try {
         	
         	PointHierarchy hierarchy = ctx.getDataPointDao().getPointHierarchy(false);
@@ -31,13 +27,13 @@ public class PointHierarchyImporter extends Importer {
             @SuppressWarnings("unchecked")
             List<PointFolder> subfolders = (List<PointFolder>) ctx.getReader().read(
                     new TypeDefinition(List.class, PointFolder.class), json);
-            //hierarchy.getRoot().mergeSubfolders(subfolders);
-            //hierarchy.getRoot().validate(); //Clean up points
-            root.setSubfolders(subfolders);
+            
+            //Merge the new subfolders into the existing point heirarchy.
+            hierarchy.mergeFolders(subfolders);
 
             // Save the new values.
-            //ctx.getDataPointDao().savePointHierarchy(hierarchy.getRoot());
-            ctx.getDataPointDao().savePointHierarchy(root);
+            ctx.getDataPointDao().savePointHierarchy(hierarchy.getRoot());
+            //ctx.getDataPointDao().savePointHierarchy(root);
             addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
         }
         catch (TranslatableJsonException e) {

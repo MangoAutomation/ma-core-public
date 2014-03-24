@@ -79,4 +79,8 @@ public class DataPointSummary implements IDataPoint {
     public String getExtendedName() {
         return DataPointVO.getExtendedName(this);
     }
+    
+    public String toString(){
+    	return "XID: " + this.xid;
+    }
 }

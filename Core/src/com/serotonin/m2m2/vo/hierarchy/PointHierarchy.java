@@ -114,4 +114,13 @@ public class PointHierarchy {
                 folder.getSubfolders().remove(i);
         }
     }
+
+	/**
+	 * @param subfolders
+	 */
+	public void mergeFolders(List<PointFolder> subfolders) {
+		//Merge the folders, using the root as a reference to be able to move the points
+		this.root.mergeSubfolders(root,subfolders);
+		
+	}
 }
