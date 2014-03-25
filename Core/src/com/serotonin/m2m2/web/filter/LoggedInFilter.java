@@ -81,7 +81,7 @@ public class LoggedInFilter implements Filter {
                 // This is a new IP address. Check if the limit is exceeded.
                 if (usedIpAddresses.size() >= maxUniqueIps) {
                     // Deny the request.
-                    LOGGER.info("Denying access to request from IP " + ip + ". Used IP addresses: " + usedIpAddresses);
+                    LOGGER.warn("Denying access to request from IP " + ip + ". Used IP addresses: " + usedIpAddresses);
                     response.sendRedirect(exceededIpLimitUrl);
                     return;
                 }
@@ -104,7 +104,7 @@ public class LoggedInFilter implements Filter {
         }
 
         if (!loggedIn) {
-            LOGGER.info("Denying access to secure page for session id " + request.getSession().getId() + ", uri="
+            LOGGER.warn("Denying access to secure page for session id " + request.getSession().getId() + ", uri="
                     + request.getRequestURI());
 
             String forwardUri = DefaultPagesDefinition.getLoginUri(request, response);

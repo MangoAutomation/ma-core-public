@@ -418,8 +418,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         
         selectSql = applySort(selectSql, sort, selectArgs);
         selectSql = applyRange(selectSql, selectArgs, offset, limit);
-        if(LOG !=null){
-        	LOG.info("Dojo Query: " + selectSql + " \nArgs: " + selectArgs.toString());
+        if((LOG !=null)&&(LOG.isDebugEnabled())){
+        	LOG.debug("Dojo Query: " + selectSql + " \nArgs: " + selectArgs.toString());
         }
         
         FilterListCallback<T> filter = new FilterListCallback<T>(createFilters(query), onKeepCallback, onFilterCallback);
@@ -434,8 +434,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 
         // TODO work out how to do this in one transaction
         int count = ejt.queryForInt(countSql, countArgs.toArray());
-        if(LOG !=null)
-        	LOG.info("DB Has: " + count);
+        if((LOG !=null)&&(LOG.isDebugEnabled()))
+        	LOG.debug("DB Has: " + count);
         
         //No results, this will mess up the dojo store we need to keep searching
         // until we are sure there are none in the DB or we have found some
@@ -451,8 +451,9 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         //count = count - removed;
         if(onFilterCallback != null)
         	count = count - onFilterCallback.getResultCount();
-        if(LOG !=null)
-        	LOG.info("After filter: " + count);
+        if((LOG !=null)&&(LOG.isDebugEnabled()))
+        	LOG.debug("After filter: " + count);
+        
         //Sort the remaining list
         //TODO This doesn't work exactly right
         // because we need the whole data set to order properly and we are 
