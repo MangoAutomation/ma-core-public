@@ -300,10 +300,10 @@ public class EventDao extends BaseDao {
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null)
-                throw new ShouldNeverHappenException("Unknown event type: " + typeName);
+                throw new ShouldNeverHappenException("Unknown event type: " + typeName + ", are you missing a module?");
             type = def.createEventType(subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
             if (type == null)
-                throw new ShouldNeverHappenException("Unknown event type: " + typeName);
+                throw new ShouldNeverHappenException("Unknown event type: " + typeName + ", are you missing a module?");
         }
         return type;
     }
