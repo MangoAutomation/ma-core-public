@@ -1,8 +1,8 @@
 *NEXT RELEASE*
 * Fixed bugs in Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.
 * Renamed Import/Export icon to Configuration Import/Export
-* Upgrading ma-priv to 1.1.4 due to ssl, startup and shutdown enhancements
-
+* Upgraded ma-priv to 1.1.4 due to ssl, startup and shutdown enhancements
+* Upgraded serotonin-utils to 2.0.1 to capture new Serial Port stream enhancements that improve reliability
 
 *Version 2.2.1*
 * License bug where web server was loaded before license and was always limiting ip addresses to 3

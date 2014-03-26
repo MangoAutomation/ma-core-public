@@ -44,8 +44,8 @@
         <archive path="/Core/lib/javolution-5.2.3.jar"/>
         <archive path="/Core/lib/jscience-4.3.1-custom.jar" source="/Users/tpacker/Documents/Work/Infinite/projects/library-source/jscience-4.3/src"/>
         <archive path="/Core/lib/perf4j-0.9.16-log4jonly.jar"/>
-        <archive path="/Core/lib/serotonin-utils-2.0.0.jar"/>
         <archive path="/Core/lib/jssc-2.8.0.jar"/>
         <archive path="/Core/lib/log4j-1.2.17.jar" source="/Users/tpacker/Downloads/apache-log4j-1.2.17/src/main/java"/>
+        <archive path="/Core/lib/serotonin-utils-2.0.1.jar"/>
     </library>
 </eclipse-userlibraries>
