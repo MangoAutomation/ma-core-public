@@ -3,7 +3,7 @@
 <!--
   NOTE: This module build script expects the property "coreHome" to be set and pointing - either absolutely or 
   relatively - to the directory of your core project. In Eclipse this can be done by going to 
-  Window -> Preferences -> Any -> Runtime -> Properties and adding a the coreHome property.
+  Window -> Preferences -> Any -> Runtime -> Properties and adding a coreHome property.
  -->
 <project name="MA - Module build" basedir="." xmlns:mvn="antlib:org.apache.maven.artifact.ant">
     <property file="module.properties" />

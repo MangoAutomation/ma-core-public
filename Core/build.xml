@@ -128,23 +128,22 @@
     
 	<target name="zip" depends="jsp-compile">
         <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
+		
 		<!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
 		<delete>
 			<fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
+			<fileset dir="release" includes="${fullName}.zip"/>
 		</delete>
 		
-        <zip destfile="${fullName}.zip">
+        <zip destfile="release/${fullName}.zip">
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
 	    	<fileset dir="${build.dir}">
-	    		<exclude name="scripts/*"/>
 	    		<include name="**/*"/>
 	    	</fileset>
-            <zipfileset dir="scripts" includes="**/*.bat" prefix="bin" />
-	    	<zipfileset dir="scripts" includes="**/*.sh" prefix="bin" filemode="755" />
-        </zip>
+         </zip>
 	</target>
 	
 	<target name="docs">
@@ -195,39 +194,7 @@
             </classpath>
         </jetty-jspc>
     </target>
-	
-	<!-- This is here to allow the copying in of override values -->
-    <target name="refresh-classes" description="Refresh classes in target, also copy overrides in">
-        <mkdir dir="${build.dir}/classes"/>
-        <copy todir="${build.dir}/classes" preservelastmodified="true">
-            <fileset file="classes/*.*"/>
-        </copy>
-        
-        <!-- Copy the overrides Folder -->
-        <copy todir="${build.dir}/classes" preservelastmodified="true">
-            <fileset file="overrides/classes/**">
-               <exclude name="ReadMe.txt"/>
-            </fileset>
-            <fileset file="overrides/properties/**"/>
-        </copy>
-        
-        <javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
-                deprecation="false" optimize="false" failonerror="true" includeantruntime="false"
-                source="1.6" target="1.6" >
-            <src path="src"/>
-            <classpath refid="master-classpath"/>
-        </javac>
-        
-        <mkdir dir="${build.dir}/patches"/>
-        <javac destdir="${build.dir}/patches" debug="true" debuglevel="lines,vars,source"
-                deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
-            <src path="src-patch"/>
-            <classpath refid="master-classpath"/>
-        </javac>
-        <!-- Create a backup folder -->
-        <mkdir dir="${build.dir}/backup"/>
-    </target>
-   
+	   
     <target name="dev-jar" depends="compile" description="Create a jar file of the compiled classes for dev build">
 
         <mkdir dir="${build.dir}/lib" />
