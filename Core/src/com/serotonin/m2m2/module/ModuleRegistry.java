@@ -383,7 +383,10 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
 
-        
+        /* Startup/Shutdown Mappings */
+        //Defined in springDispatcher servlet for now
+        //preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/startup.htm", null, "/WEB-INF/jsp/starting.jsp"));
+        //preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", null, "/WEB-INF/jsp/shutdown.jsp"));
         
         preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
     }

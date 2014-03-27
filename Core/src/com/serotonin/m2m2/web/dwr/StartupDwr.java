@@ -24,16 +24,6 @@ public class StartupDwr {
 	private Translations translations = Translations.getTranslations();
 	
 	@DwrPermission(anonymous = true)
-	public ProcessResult getStartingMessage(){
-		
-		ProcessResult result = new ProcessResult();
-    	
-		result.addData("message", this.translations.translate("startup.startingUp"));
-		return result;
-	}
-	
-	
-	@DwrPermission(anonymous = true)
 	public ProcessResult getStartupProgress(){
 		
 		ProcessResult result = new ProcessResult();
@@ -49,13 +39,19 @@ public class StartupDwr {
 		result.addData("shutdownProgress", shutdownProgress);
 		result.addData("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
 		
-		if(progress >= 100){
+		if((progress >= 100)&&(shutdownProgress == 0)){
 			WebContext ctx = WebContextFactory.get();
 			result.addData("startupUri", DefaultPagesDefinition.getLoginUri(ctx.getHttpServletRequest(), ctx.getHttpServletResponse()));
 		}
-		if(shutdownProgress > 0){
-			//TODO flesh this out when we add a shutdown page.
-			result.addData("shutdownUri", "/startup.htm");
+		
+		
+		//Add the message to describe what process we are in
+		if((progress < 100)&&(shutdownProgress == 0)){
+			result.addData("processMessage", this.translations.translate("startup.startingUp"));
+		} else if(shutdownProgress > 0){
+			result.addData("processMessage", this.translations.translate("shutdown.shuttingDown"));
+		}if((progress == 100)&&(shutdownProgress == 0)){
+			result.addData("processMessage", this.translations.translate("startup.state.running"));
 		}
 		
 		return result;
@@ -104,10 +100,14 @@ public class StartupDwr {
 			return this.translations.translate("startup.state.startupTasksRunning");
 		case 200:
 			return this.translations.translate("startup.state.running");
-		
+		case 210:
+			return this.translations.translate("shutdown.state.preTerminate");
+		case 220:
+			return this.translations.translate("shutdown.state.shutdownTasksRunning");
+		case 230:
+			return this.translations.translate("shutdown.state.webServerTerminate");
 		default:
-			return this.translations.translate(
-					"startup.state.unknown");
+			return this.translations.translate("startup.state.unknown");
 		}
 	}
 	

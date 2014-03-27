@@ -20,6 +20,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.directwebremoting.WebContext;
+import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
@@ -31,10 +33,12 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.Lifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -47,7 +51,7 @@ import com.serotonin.web.http.HttpUtils4;
 
 public class ModulesDwr extends BaseDwr {
     static final Log LOG = LogFactory.getLog(ModulesDwr.class);
-    private static TimeoutTask RESTART_TASK;
+    private static TimeoutTask SHUTDOWN_TASK;
     private static UpgradeDownloader UPGRADE_DOWNLOADER;
 
     @DwrPermission(admin = true)
@@ -58,32 +62,46 @@ public class ModulesDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    synchronized public static void scheduleRestart() {
-        if (RESTART_TASK == null) {
-            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_SYSTEM_SHUTDOWN), System
-                    .currentTimeMillis(), false, new TranslatableMessage("modules.restartScheduledBy", Common.getUser()
-                    .getUsername()));
-
+    synchronized public static ProcessResult scheduleRestart() {
+    	ProcessResult result = new ProcessResult();
+        if (SHUTDOWN_TASK == null) {
             long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
-            RESTART_TASK = new TimeoutTask(timeout, new TimeoutClient() {
-                @Override
-                public void scheduleTimeout(long fireTime) {
-                    File restartFlag = new File(Common.MA_HOME, "RESTART");
-                    if (!restartFlag.exists()) {
-                        try {
-                            FileWriter fw = new FileWriter(restartFlag);
-                            fw.write("restart");
-                            fw.close();
-                        }
-                        catch (IOException e) {
-                            LOG.error("Unabled to create restart flag file", e);
-                        }
-                    }
-                    Providers.get(ILifecycle.class).terminate();
-                }
-            });
+            Lifecycle lifecycle = (Lifecycle)Providers.get(ILifecycle.class);
+            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout,true);
+
+            
+            //Get the redirect page
+			result.addData("shutdownUri", "/shutdown.htm");
+			
+			//Logout the User
+			
+        }else{
+        	result.addData("message", Common.translate("modules.restartAlreadyScheduled"));
         }
+        
+        
+        return result;
     }
+    
+    
+    @DwrPermission(admin = true)
+    synchronized public static ProcessResult scheduleShutdown() {
+    	ProcessResult result = new ProcessResult();
+        if (SHUTDOWN_TASK == null) {
+             long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
+            
+            //Ensure our lifecycle state is set to PRE_SHUTDOWN
+            Lifecycle lifecycle = (Lifecycle)Providers.get(ILifecycle.class);
+            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout,false);
+            //Get the redirect page
+			result.addData("shutdownUri", "/shutdown.htm");
+        }else{
+        	result.addData("message", Common.translate("modules.shutdownAlreadyScheduled"));
+        }
+        
+        return result;
+    }
+    
 
     @DwrPermission(admin = true)
     public List<StringStringPair> versionCheck() {

@@ -41,15 +41,15 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
             
             //Do we have a new message
             if(typeof response.data.message != 'undefined'){
-                if((typeof lastMessage == 'undefined')||(lastMessage != response.data.message)){
-                    lastMessage = response.data.message;
-                    dojo.publish("startupTopic",[{
-                            message:response.data.message,
-                            type: "message",
-                            duration: -1, //Don't go away
-                            }]
-                    );
-                }
+	            if((typeof lastMessage == 'undefined')||(lastMessage != response.data.message)){
+	                lastMessage = response.data.message;
+		            dojo.publish("startupTopic",[{
+		                    message:response.data.message,
+		                    type: "message",
+		                    duration: -1, //Don't go away
+		                    }]
+		            );
+	            }
             }
 
             //Print the message for what Mango is doing

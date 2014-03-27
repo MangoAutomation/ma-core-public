@@ -23,9 +23,19 @@
     }
     
     function restartInstance() {
-        if (confirm("<m2m2:translate key="modules.restartConfirm" escapeDQuotes="true"/>"))
-            ModulesDwr.scheduleRestart(function() {
-                alert("<m2m2:translate key="modules.restartScheduled" escapeDQuotes="true"/>");
+        if (confirm("<m2m2:translate key='modules.restartConfirm' escapeDQuotes='true'/>"))
+            ModulesDwr.scheduleRestart(function(response) {
+                alert("<m2m2:translate key='modules.restartScheduled' escapeDQuotes='true'/>");
+                window.location.href = response.data.shutdownUri;
+            });
+    }
+    
+    function shutdownInstance(){
+        if (confirm("<m2m2:translate key='modules.shutdownConfirm' escapeDQuotes='true'/>"))
+            ModulesDwr.scheduleShutdown(function(response) {
+                alert("<m2m2:translate key='modules.shutdownScheduled' escapeDQuotes='true'/>");
+                //Redirect to shutdown page
+                window.location.href = response.data.shutdownUri;
             });
     }
     
@@ -88,7 +98,8 @@
       <fmt:message key="modules.guid"/> <b>${guid}</b>
       <textarea rows="2" cols="80" style="display:none;" name="orderJson">${json}</textarea>
       <input id="goToStore" type="submit" value="<fmt:message key="modules.update"/>" style="margin-left:20px;"/>
-      <input type="button" value="<m2m2:translate key="modules.restart"/>" onclick="restartInstance();"/>
+      <input type="button" value="<m2m2:translate key='modules.restart'/>" onclick="restartInstance();"/>
+      <input type="button" value="<m2m2:translate key='modules.shutdown'/>" onclick="shutdownInstance();"/>
 <%--       <input type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/> --%>
     </form>
   </div>
