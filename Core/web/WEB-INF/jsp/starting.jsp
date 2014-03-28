@@ -51,7 +51,10 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
                     );
                 }
             }
-
+            
+            //Should we redirect?
+            var redirect = false;
+            
             //Print the message for what Mango is doing
             var startingMessageDiv = dojo.byId("startingMessage");
             startingMessageDiv.innerHTML = response.data.processMessage; 
@@ -66,13 +69,20 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
 
             
             //If the interval is > 100 then we should redirect, just remember at this point we could be shutting down
-             if((response.data.startupProgress >= 100) && (response.data.shutdownProgress == 0))
-                 window.location.href = response.data.startupUri;
+             if((response.data.startupProgress >= 100) && (response.data.shutdownProgress == 0)){
+                 progress = 100; //Ready for start, redirect now
+                 redirect = true;
+             }
             
             
-            myProgressBar.set("value", response.data.shutdownProgress);
+            myProgressBar.set("value", progress + "%");
             var startupMessageDiv = dojo.byId("startupMessage");
             startupMessageDiv.innerHTML = response.data.state;
+            
+            //Do redirect?
+            if(redirect)
+                window.location.href = response.data.startupUri;
+            
        });
     }, 700);
 });

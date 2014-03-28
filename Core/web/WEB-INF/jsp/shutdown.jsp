@@ -52,27 +52,38 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
 	            }
             }
 
+            var redirect = false;
+            
             //Print the message for what Mango is doing
             var startingMessageDiv = dojo.byId("startingMessage");
             startingMessageDiv.innerHTML = response.data.processMessage; 
             
             var progress = 0;
             //We don't care if we are starting up or shutting down, just need to know which one
-            if((response.data.startupProgress >= 100) && (response.data.shutdownProgress > 0))
-                progress = response.data.shutdownProgress;
+            if((response.data.startupProgress >= 100) && (response.data.shutdownProgress > 0)){
+                //Dirty hack for now to show that the restart has happened, once the web server is off no more messages.
+                progress = 98; //This looks like its almost restarted, then if it does it will flip over to 'Starting' messages
+            }
 
             if(response.data.startupProgress < 100)
                 progress = response.data.startupProgress;
 
             
             //If the interval is > 100 then we should redirect, just remember at this point we could be shutting down
-             if((response.data.startupProgress >= 100) && (response.data.shutdownProgress == 0))
-                 window.location.href = response.data.startupUri;
+             if((response.data.startupProgress >= 100) && (response.data.shutdownProgress == 0)){
+                 progress = 100; //Ready for start, redirect now
+                 redirect = true;
+             }
             
             
-            myProgressBar.set("value", response.data.shutdownProgress);
+            myProgressBar.set("value", progress + "%");
             var startupMessageDiv = dojo.byId("startupMessage");
             startupMessageDiv.innerHTML = response.data.state;
+            
+            //Do redirect?
+            if(redirect)
+                window.location.href = response.data.startupUri;
+            
        });
     }, 700);
 });
