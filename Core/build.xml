@@ -129,6 +129,9 @@
 	<target name="zip" depends="jsp-compile">
         <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
 		
+		<!-- create the release directory if DNE -->
+		<mkdir dir="release"/>
+		
 		<!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
 		<delete>
 			<fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
