@@ -52,6 +52,10 @@ public class PointFolder implements JsonSerializable {
         points.add(point);
     }
 
+    /**
+     * Remove a Data Point from this Folder
+     * @param dataPointId
+     */
     public void removeDataPoint(int dataPointId) {
         for (int i = 0; i < points.size(); i++) {
             if (points.get(i).getId() == dataPointId) {
@@ -167,7 +171,7 @@ public class PointFolder implements JsonSerializable {
    			//Remove all of the new points from the hierarchy if they exist in it
 			//Remove the new points from anywhere in the hierarchy
 			for(DataPointSummary dps : newFolder.getPoints()){
-				root.removePoint(dps.getId());
+				root.removePointRecursively(dps.getId());
 			}
     		pointFolderIndex = -1;
     		for(int i=0; i< this.subfolders.size(); i++){
@@ -189,11 +193,15 @@ public class PointFolder implements JsonSerializable {
     			this.subfolders.remove(pointFolderIndex);
     		}else{
     			//If no local folder exists for the new sub-folder, then add it
+    			//Be sure to remove any subfolder points from the heirarchy
+    			root.removePointsRecursively(newFolder.getSubfolders());
     			newSubfolders.add(newFolder);
+    			
     		}
     	}
 
-    	//If a local folders exists that is not in the new sub-folders then we will add it here
+    	//If a local folder exists that is not in the new sub-folders then we will add it here
+    	//These points should all be unique because they were not removed by any new incoming folder
 		for(PointFolder remainingFolder : this.subfolders){
 			newSubfolders.add(remainingFolder);
 		}
@@ -204,10 +212,26 @@ public class PointFolder implements JsonSerializable {
 
     
     /**
+     * Remove the points contained in the list of folders from the heirarchy
+     * 
+	 * @param subfolders2
+	 */
+	private void removePointsRecursively(List<PointFolder> subfolders) {
+		
+		for(PointFolder folder : subfolders){
+			for(DataPointSummary pointSummary : folder.getPoints()){
+				this.removePointRecursively(pointSummary.getId());
+			}
+		}
+		
+		
+	}
+
+	/**
      * Recursivly check my subfolders and remove all instances of a point
      * @param dataPointId
      */
-    public void removePoint(int dataPointId){
+    public void removePointRecursively(int dataPointId){
     	
     	//First check my points
     	for(int i=0; i<this.points.size(); i++){
@@ -218,7 +242,7 @@ public class PointFolder implements JsonSerializable {
     	}
     	//Check my Subfolders next
     	for(PointFolder folder: this.subfolders){
-			folder.removePoint(dataPointId); //Remove the point recursively from this folder path
+			folder.removePointRecursively(dataPointId); //Remove the point recursively from this folder path
     	}
     	
     }
@@ -312,4 +336,10 @@ public class PointFolder implements JsonSerializable {
             }
         }
     }
+    
+    public String toString(){
+    	return this.name + "{" + this.points.size() + "}";
+    	
+    }
+    
 }
