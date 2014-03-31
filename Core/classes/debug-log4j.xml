@@ -53,6 +53,7 @@
   <category name="com.serotonin.m2m2"><level value="debug"/></category>
   <category name="com.serotonin.ma"><level value="debug"/></category>
   <category name="com.serotonin.m2m2.persistent"><level value="debug"/></category>
+  <category name="com.serotonin"><level value="debug"/></category> 
   <category name="com.infiniteautomation"><level value="debug"/></category>
   <category name="org.perf4j.TimingLogger"><level value="info"/></category>
   <category name="com.serotonin.modbus4j"><level value="info"/></category>
