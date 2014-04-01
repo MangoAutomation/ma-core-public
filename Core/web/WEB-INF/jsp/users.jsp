@@ -7,10 +7,14 @@
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="UsersDwr" onload="init">
   <script type="text/javascript">
+    dojo.require("dojo.store.Memory");
+    dojo.require("dijit.form.FilteringSelect");
+  
     var userId = ${sessionUser.id};
     var editingUserId;
     var dataSources;
     var adminUser;
+    var userMemoryStore; //For realtime user manip
     
     function init() {
         UsersDwr.getInitData(function(data) {
@@ -25,11 +29,27 @@
                 show("deleteImg");
                 show("sendTestEmailImg");
                 
+                //Create the global store
+                userMemoryStore = new dojo.store.Memory({data: data.users});
+                
                 var i, j;
                 for (i=0; i<data.users.length; i++) {
                     appendUser(data.users[i].id);
                     updateUser(data.users[i]);
                 }
+                
+
+                
+                //Create the Filtering Select
+                new dijit.form.FilteringSelect({
+                store: userMemoryStore,
+                searchAttr: "username",                  
+                autoComplete: false,
+                style: "width: 100%",
+                highlightMatch: "all",
+                queryExpr: "*\${0}*",
+                required: false
+                }, "su_username");
                 
 //                 //alert(data.allowed);
 //                 var ss;
@@ -187,6 +207,7 @@
                 appendUser(editingUserId);
                 startImageFader($("u"+ editingUserId +"Img"));
                 setUserMessage("<fmt:message key="users.added"/>");
+                userMemoryStore.put({id: repsonse.data.userId, username: $get("username")});
             }
             else
                 setUserMessage("<fmt:message key="users.saved"/>");
@@ -286,6 +307,7 @@
                 if (response.hasMessages)
                     setUserMessage(response.messages[0].genericMessage);
                 else {
+                    userMemoryStore.remove(userId);
                     stopImageFader("u"+ userId +"Img");
                     $("usersTable").removeChild($("u"+ userId));
                     hide("userDetails");
@@ -407,6 +429,21 @@
     	
     }
     
+    /*
+     * Switch to another user
+     */
+     function switchUser(){
+        var newUser = $get("su_username");
+        UsersDwr.su(newUser,function(response){
+            if(response.hasMessages){
+                showDwrMessages(response.messages);           
+            }else{
+	           //Will need to reload the page
+	           window.location.reload();
+            }
+        });
+        
+    }
   </script>
   
   <table>
@@ -423,6 +460,17 @@
                       title="users.add" id="u${applicationScope['constants.Common.NEW_ID']}Img"/></td>
             </tr>
           </table>
+         <c:if test="${sessionUser.admin}">
+         <table>
+            <tr>
+                <td colspan="2" id="suMessage" class="formError"></td>
+            </tr>
+            <tr>
+            <td>Switch to User</td><td><input type="text" id="su_username"/></td>
+            <td colspan="2"><button id="su_button" onclick="switchUser()">Switch</button>
+            </tr>
+         </table>
+         </c:if>
           <table id="usersTable">
             <tbody id="u_TEMPLATE_" class="ptr" style="display:none;"><tr>
               <td><tag:img id="u_TEMPLATE_Img" png="user_green" title="users.user"/></td>

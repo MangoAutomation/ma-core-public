@@ -65,6 +65,7 @@ while [ $LOOP_EXIT = false ]; do
         com.serotonin.m2m2.Main &
     
     PID=$!
+    echo "Started Mango with ProcessID: " $PID
     echo $PID > $MA_HOME/bin/ma.pid
     until !(ps $PID > /dev/null) do
         sleep 10

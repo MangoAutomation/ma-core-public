@@ -4,6 +4,7 @@
 * Upgraded ma-priv to 1.1.5 due to ssl, startup and shutdown enhancements
 * Upgraded serotonin-utils to 2.0.1 to capture new Serial Port stream enhancements that improve reliability
 * Adding shutdown button to modules page and creating startup/shutdown pages to show users the system progress during these times.
+* Added ability for administrators to switch user from the Users page
 
 *Version 2.2.1*
 * License bug where web server was loaded before license and was always limiting ip addresses to 3

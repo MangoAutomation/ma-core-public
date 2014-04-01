@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.m2m2.Common;
@@ -23,6 +24,9 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.AuthenticationDefinition;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -278,4 +282,47 @@ public class UsersDwr extends BaseDwr {
     	return result;
     	
     }
+    
+    /**
+     * Switch to new user if admin
+     * @param username
+     * @return
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult su(String username){
+    	ProcessResult result = new ProcessResult();
+    	UserDao userDao = new UserDao();
+    	User user = userDao.getUser(username);
+    	
+    	if(user == null){
+    		//No User Found
+    		result.addMessage("suMessage",new TranslatableMessage("login.validation.noSuchUser"));
+    		
+    		return result;
+    	}
+    	
+    	
+        if (user.isDisabled()){
+        	result.addMessage("suMessage", new TranslatableMessage("common.userDisabled", user.getUsername()));
+        	return result;
+        }
+        
+        // Update the last login time.
+        userDao.recordLogin(user.getId());
+
+        WebContext ctx = WebContextFactory.get();
+        
+        // Add the user object to the session. This indicates to the rest of the application whether the user is logged 
+        // in or not. Will replace any existing user object.
+        Common.setUser(ctx.getHttpServletRequest(), user);
+
+        for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class))
+            def.postLogin(user);
+
+        //Add Message now
+        //Don't add messages or the page won't refresh: result.addMessage("suMessage", new TranslatableMessage("common.user.suUserComplete",user.getUsername()));
+        //If we want to redirect... String uri = DefaultPagesDefinition.getDefaultUri(request, response, user);        
+        return result;
+    }
+    
 }
