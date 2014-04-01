@@ -207,7 +207,7 @@
                 appendUser(editingUserId);
                 startImageFader($("u"+ editingUserId +"Img"));
                 setUserMessage("<fmt:message key="users.added"/>");
-                userMemoryStore.put({id: repsonse.data.userId, username: $get("username")});
+                userMemoryStore.put({id: response.data.userId, username: $get("username")});
             }
             else
                 setUserMessage("<fmt:message key="users.saved"/>");
