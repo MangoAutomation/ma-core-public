@@ -335,6 +335,15 @@ abstract public class DatabaseProxy {
         }
         
     }
+
+	/**
+	 * Allow access to the NoSQL Proxy
+	 * 
+	 * @return
+	 */
+	public NoSQLProxy getNoSQLProxy() {
+		return noSQLProxy;
+	}
     
     
     
