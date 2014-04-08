@@ -301,4 +301,29 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         return result;
     }
+    
+    //
+    // Data purge
+    //
+    @DwrPermission(user = true)
+    public long purgeNow(int purgeType, int purgePeriod, boolean allData) {
+       
+    	DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        if (ds.getId() == Common.NEW_ID)
+            return 0;
+
+        List<DataPointVO> points = new DataPointDao()
+                .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
+
+        Long count = 0L;
+        for(DataPointVO point : points){
+        if (allData)
+            count += Common.runtimeManager.purgeDataPointValues(point.getId());
+        else
+            count += Common.runtimeManager.purgeDataPointValues(point.getId(), purgeType, purgePeriod);
+        }
+        return count;
+    }
+    
+    
 }

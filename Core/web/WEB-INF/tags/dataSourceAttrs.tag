@@ -61,6 +61,7 @@
           
         </table>
         <tag:dsEvents/>
+        <tag:purge dwr="DataSourceEditDwr"/>
       </div>
     </td>
     
