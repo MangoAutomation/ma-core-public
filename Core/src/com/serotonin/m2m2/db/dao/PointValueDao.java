@@ -69,6 +69,10 @@ public interface PointValueDao {
 
     public long deleteAllPointData();
 
+    /**
+     * Delete any point values that are no longer tied to a point in the Data Points table
+     * @return
+     */
     public long deleteOrphanedPointValues();
 
     public void deleteOrphanedPointValueAnnotations();
@@ -89,6 +93,11 @@ public interface PointValueDao {
     public List<Long> getFiledataIds(int pointId);
 
 	/**
+	 * Delete any point values where data type doesn't match the vo,
+	 * just in case the data type was changed.
+	 * Only do this if the data type has actually changed because it is
+	 * just really slow if the database is big or busy.
+	 * 
 	 * @param id
 	 * @param dataTypeId
 	 */
