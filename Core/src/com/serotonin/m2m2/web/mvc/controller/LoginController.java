@@ -99,8 +99,8 @@ public class LoginController extends SimpleFormController {
 
                 // Validating the password against the database.
                 if (!passwordHash.equals(user.getPassword())) {
-                    LOG.warn("Failed login attempt on user '" + user.getUsername() + "' using password '"
-                            + login.getPassword() + "' from IP +" + request.getRemoteAddr());
+                	//Removed logging of failed password
+                    LOG.warn("Failed login attempt on user '" + user.getUsername() + "' from IP +" + request.getRemoteAddr());
                     ValidationUtils.reject(errors, "login.validation.invalidLogin");
                 }
             }
@@ -119,6 +119,9 @@ public class LoginController extends SimpleFormController {
         // Update the last login time.
         new UserDao().recordLogin(user.getId());
 
+        // Set the IP Address for the session
+        user.setRemoteAddr(request.getRemoteAddr());
+        
         // Add the user object to the session. This indicates to the rest of the application whether the user is logged 
         // in or not. Will replace any existing user object.
         Common.setUser(request, user);

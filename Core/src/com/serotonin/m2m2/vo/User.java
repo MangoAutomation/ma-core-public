@@ -86,6 +86,7 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     private transient EventExportDefinition eventExportDefinition;
     private transient TimeZone _tz;
     private transient DateTimeZone _dtz;
+    private transient String remoteAddr; //remote address we are logged in from
 
     /**
      * Used for various display purposes.
@@ -150,7 +151,7 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     public void valueBound(HttpSessionBindingEvent evt) {
         // User is bound to a session when logged in. Notify the event manager.
         SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, id),
-                System.currentTimeMillis(), true, new TranslatableMessage("event.login", username));
+                System.currentTimeMillis(), true, new TranslatableMessage("event.login", username, remoteAddr));
     }
 
     @Override
@@ -388,7 +389,21 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
         return _dtz;
     }
 
-    public void validate(ProcessResult response) {
+    /**
+	 * @return the ipAddress
+	 */
+	public String getRemoteAddr() {
+		return remoteAddr;
+	}
+
+	/**
+	 * @param ipAddress the ipAddress to set
+	 */
+	public void setRemoteAddr(String ipAddress) {
+		this.remoteAddr = ipAddress;
+	}
+
+	public void validate(ProcessResult response) {
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         if (StringUtils.isBlank(email))
