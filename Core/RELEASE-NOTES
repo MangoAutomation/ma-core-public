@@ -1,6 +1,9 @@
 *Version 2.2.3*
 * Added purge now options to all data sources
 * Added some helpful features for developers to use the NoSQL Proxy for Database Type Modules
+* Added ability to disable Data Type drop down menu JSP Tag using the 'disabled' attribute
+* Fixed bug in editing Multistate Points where the value of 0 might be confused with an empty value 
+* Fixed bug in editing Data Sources where the Data Source points list filters would be reset upon save.
 
 *Version 2.2.2*
 * Fixed bugs in Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.

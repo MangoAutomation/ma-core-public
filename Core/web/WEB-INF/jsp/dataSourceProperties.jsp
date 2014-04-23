@@ -23,8 +23,6 @@
       function init(){
             initProperties(${dataSource.id},${dataSource.enabled});
       }
-      
-      
   </script>
 <!--   <div data-dojo-type="dijit/layout/TabContainer" style="height: auto;"> -->
   <!-- Name for current editing data source -->

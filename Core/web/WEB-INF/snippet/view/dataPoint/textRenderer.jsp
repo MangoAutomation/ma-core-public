@@ -410,11 +410,11 @@
       //
       // Multistate list manipulation
       this.addMultistateValue = function(theKey, text, colour) {
-          if (!theKey)
+          if (theKey === null)
               theKey = $get("textRendererMultistateKey");
           var theNumericKey = parseInt(theKey);
           if (isNaN(theNumericKey)) {
-              alert("<fmt:message key='pointEdit.text.errorParsingKey'/>");
+              alert("<fmt:message key='pointEdit.text.errorParsingKey'/>" + theKey);
               return false;
           }
           for (var i=this.multistateValues.length-1; i>=0; i--) {
