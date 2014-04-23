@@ -5,7 +5,7 @@
 * Fixed bug in editing Multistate Points where the value of 0 might be confused with an empty value 
 * Fixed bug in editing Data Sources where the Data Source points list filters would be reset upon save.
 * Added ip address of user to Login Event that is then viewable on Alarms Page.
-
+* Added feature to session cookie that allows users to login to multiple mangos on the same host at the same time (Upgraded ma-priv to 1.1.6)
 
 *Version 2.2.2*
 * Fixed bugs in Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.
