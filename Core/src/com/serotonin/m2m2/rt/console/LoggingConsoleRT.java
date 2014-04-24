@@ -25,14 +25,13 @@ public class LoggingConsoleRT {
 
 	public static final LoggingConsoleRT instance = new LoggingConsoleRT();
 	private int historySize = 400; //Max size of history
-	private LinkedList<String> console;
+	private LinkedList<LogConsoleMessage> console; 
 	
 	private LoggingConsoleRT(){
-		this.console = new LinkedList<String>();
-		
+		this.console = new LinkedList<LogConsoleMessage>();
 		//Init with at least 1 message
 		TranslatableMessage m = new TranslatableMessage("startup.startingUp");
-		this.console.add(m.translate(Translations.getTranslations()));
+		this.console.add(new LogConsoleMessage(m.translate(Translations.getTranslations()) , System.currentTimeMillis()));
 	}
 	
 	/**
@@ -40,7 +39,10 @@ public class LoggingConsoleRT {
 	 * @return
 	 */
 	public String getCurrentMessage(){
-		return this.console.peek();
+		if(this.console.size() == 0)
+			return "";
+		else
+			return this.console.peek().getMessage();
 	}
 	
 	/**
@@ -49,9 +51,9 @@ public class LoggingConsoleRT {
 	 */
 	public List<String> getAllMessages(){
 		List<String> messages = new ArrayList<String>();
-		Iterator<String> it = this.console.iterator();
+		Iterator<LogConsoleMessage> it = this.console.iterator();
 		while(it.hasNext())
-			messages.add(it.next());
+			messages.add(it.next().getMessage());
 		return messages;
 	}
 	
@@ -62,9 +64,38 @@ public class LoggingConsoleRT {
 	 * @param message
 	 */
 	public void addMessage(String message){
-		if(this.console.size() >= historySize){
+		while(this.console.size() >= historySize){
 			this.console.removeLast(); //Drop it
 		}
-		console.push(message);
+		console.push(new LogConsoleMessage(message, System.currentTimeMillis()));
 	}
+	
+	/**
+	 * Get messages since a given time, very simple 
+	 * will redo when we move to better storage
+	 * @param time
+	 * @return
+	 */
+	public List<String> getMessagesSince(long time){
+		
+		List<String> messages = new ArrayList<String>();
+		Iterator<LogConsoleMessage> it = this.console.iterator();
+		while(it.hasNext()){
+			LogConsoleMessage message = it.next();
+			if(message.getTimestamp() >= time)
+				messages.add(message.getMessage());
+		}
+		return messages;
+		
+	}
+	
+	public int getHistorySize(){
+		return this.historySize;
+	}
+	
+	public void setHistorySize(int size){
+		this.historySize = size;
+	}
+	
+	
 }
