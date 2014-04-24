@@ -36,7 +36,7 @@
   <table>
     <tr><td colspan="3">
       <span class="smallTitle"><fmt:message key="dsEdit.purge.purgeNow"/></span>
-      <tag:help id="datasourceValueLogPurging"/>
+      <tag:help id="pointValueLogPurging"/>
     </td></tr>
     
     <tr>
