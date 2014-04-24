@@ -5,7 +5,7 @@
 
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<script type="text/javascript" src="/resources/view/pointValue/pointValueEmport.js"></script>
+<tag:versionedJavascript  src="/resources/view/pointValue/pointValueEmport.js" />
 
 <div id="pointValueEmport" >
   <div id="pointValueEmportContent" class="dijitDialogPaneContentArea">

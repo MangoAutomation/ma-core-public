@@ -59,6 +59,14 @@
           <param-value>text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml,application/json,text/javascript,application/x-javascript</param-value>
         </init-param>
   </filter>
+  
+<filter>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <filter-class>com.serotonin.m2m2.web.filter.UrlRewriteFilter</filter-class>
+</filter>
+
+  
+  
   <!-- 
     Filter mappings.
    -->
@@ -66,6 +74,12 @@
     <filter-name>GzipFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
+  
+  <filter-mapping>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <url-pattern>*.js</url-pattern>
+  </filter-mapping>
+  
   <filter-mapping>
     <filter-name>CharacterSet</filter-name>
     <url-pattern>*.htm</url-pattern>
