@@ -38,22 +38,28 @@ public abstract class NoSQLDao {
 	 */
 	public abstract void storeData(String storeName, ITime data);
 	
+
 	/**
-	 * Query one data store
+	 * Query One Data Store
 	 * @param storeName
 	 * @param from
 	 * @param to
+	 * @param limit (-1 for no limit)
+	 * @param reverse (read results back in reverse order)
 	 * @param callback
 	 */
-	public abstract void getData(String storeName, long from, long to, NoSQLQueryCallback callback);
+	public abstract void getData(String storeName, long from, long to, int limit, boolean reverse, NoSQLQueryCallback callback);
 	
+
 	/**
-	 * Query multiple data stores
+	 * Query Multiple data stores
 	 * @param storeNames
 	 * @param from
 	 * @param to
+	 * @param limit (-1 for no limit)
+	 * @param reverse (read results back in reverse order)
 	 * @param callback
 	 */
-	public abstract void getData(List<String> storeNames, long from, long to, NoSQLQueryCallback callback);
+	public abstract void getData(List<String> storeNames, long from, long to, int limit, boolean reverse, NoSQLQueryCallback callback);
 	
 }
