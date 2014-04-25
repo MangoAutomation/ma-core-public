@@ -48,7 +48,7 @@ public abstract class NoSQLDao {
 	 * @param reverse (read results back in reverse order)
 	 * @param callback
 	 */
-	public abstract void getData(String storeName, long from, long to, int limit, boolean reverse, NoSQLQueryCallback callback);
+	public abstract void getData(String storeName, long from, long to, int limit, boolean reverse, final NoSQLQueryCallback callback);
 	
 
 	/**
@@ -60,6 +60,6 @@ public abstract class NoSQLDao {
 	 * @param reverse (read results back in reverse order)
 	 * @param callback
 	 */
-	public abstract void getData(List<String> storeNames, long from, long to, int limit, boolean reverse, NoSQLQueryCallback callback);
+	public abstract void getData(List<String> storeNames, long from, long to, final NoSQLQueryCallback callback);
 	
 }
