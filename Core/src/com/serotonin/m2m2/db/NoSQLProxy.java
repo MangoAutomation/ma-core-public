@@ -3,6 +3,8 @@ package com.serotonin.m2m2.db;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
+import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
+import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 
 abstract public class NoSQLProxy {
     public abstract void initialize();
@@ -22,5 +24,9 @@ abstract public class NoSQLProxy {
 	public static String getDatabasePath() {
 		return Common.MA_HOME+ "/databases/";
 	}
+	/**
+	 * @return
+	 */
+	public abstract NoSQLDao createNoSQLDao(NoSQLDataSerializer serializer, String storeName);
 
 }
