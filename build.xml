@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<project name="MA - Core" basedir="." default="deploy-all">
+ 
+ <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+ <!-- To load the version number for placing in build files -->
+ <property file="${coreHome}/build.properties" />
+ <!-- default to have all git repos in same location -->
+ <property name="modules.public.path" value="../.." />
+
+
+
+ <!-- 
+    This target requires:
+    - the ${modules.public.path} set to where the public modules are located
+    - the ${depoloy.core.path} set to where the core release hierarchy should begin
+  -->
+ <target name="release-full" description="Deploy Release with specified public modules into ${deploy.core.paths}/${core-version}" >
+    
+    <tstamp>
+        <format property="TODAY" pattern="yyyy-MM-dd-HH-mm-ss" />
+    </tstamp>
+    
+    <!-- First compile the core target -->
+    <subant target="jsp-compile">
+        <fileset dir="${coreHome}" includes="build.xml"/>
+    </subant>
+
+
+    <!-- Compile the modules into the core -->
+   	<property name="modules" value="ASCII File Data Source,Crowd,EnvCan Data Source,Graphical views,Internal Data Source,JSP Views,Log4J reset,Maintenance Events,Point Data Import,PointLinks,Reports,Scheduled Events,Serial Data Source,SQL console,SST Graphics,SST Theme,Virtual Data Source,VMStat data source,Watchlist"/>
+    <for list="${modules}" param="moduleName" delimiter=",">
+        <sequential>
+            <subant target="deploy">
+                <fileset dir="${modules.public.path}/@{moduleName}" includes="build.xml"/>
+            </subant>
+        </sequential>
+    </for>
+
+
+    <subant target="public-release">
+        <property name="deploy.core.paths" value="${deploy.core.path}/${version}/{TODAY}" />
+        <fileset dir="${coreHome}" includes="build.xml"/>
+    </subant>
+
+
+
+</target>
+
+
+</project>

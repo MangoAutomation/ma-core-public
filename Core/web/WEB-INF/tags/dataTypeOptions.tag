@@ -13,11 +13,14 @@
 --%><%@attribute name="excludeNumeric" type="java.lang.Boolean" %><%--
 --%><%@attribute name="excludeAlphanumeric" type="java.lang.Boolean" %><%--
 --%><%@attribute name="excludeImage" type="java.lang.Boolean" %><%--
+--%><%@attribute name="disabled" type="java.lang.Boolean" %><%--
+
 --%><select<%--
 --%><c:if test="${!empty id}"> id="${id}"</c:if><%--
 --%><c:if test="${!empty name}"> name="${name}"</c:if><%--
 --%><c:if test="${!empty value}"> value="${value}"</c:if><%--
---%><c:if test="${!empty onchange}"> onchange="${onchange}"</c:if>>
+--%><c:if test="${!empty onchange}"> onchange="${onchange}"</c:if>
+--%><c:if test="${!empty disabled}"> disabled="${disabed}"</c:if>>
   <c:if test="${!excludeBinary}"><option value="<%= DataTypes.BINARY %>"><fmt:message key="common.dataTypes.binary"/></option></c:if>
   <c:if test="${!excludeMultistate}"><option value="<%= DataTypes.MULTISTATE %>"><fmt:message key="common.dataTypes.multistate"/></option></c:if>
   <c:if test="${!excludeNumeric}"><option value="<%= DataTypes.NUMERIC %>"><fmt:message key="common.dataTypes.numeric"/></option></c:if>

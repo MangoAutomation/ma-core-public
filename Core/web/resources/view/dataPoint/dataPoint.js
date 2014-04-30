@@ -3,12 +3,12 @@
  * @author Terry Packer
  */
 
-//@ sourceURL=dataPoint_ajaxLoaded.js
+//@ sourceURL=/resources/dataPoint_ajaxLoaded.js
 var dataSources;
 var dataPointsDataSourceId;
 
 //TO Eventually be merged into Store View
-var pointTableFilter = new Array();
+//var pointTableFilter = new Array();
 
 require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox","dojox/layout/ContentPane",
          "dojo/dom-style","dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
@@ -33,6 +33,7 @@ dataPoints = new StoreView({
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
     defaultQuery: {dataSourceId: [dataPointsDataSourceId]},
     closeEditOnSave: false,  /* We are managing this ourselves */
+    filter: new Array(),
     
     sortMap: [
               {attribute: "deviceName", descending:true},
@@ -59,12 +60,12 @@ dataPoints = new StoreView({
     				input.watch("value",function(name,oldValue,value){
     					
     					if(value == '')
-    						delete pointTableFilter['deviceName'];
+    						delete dataPoints.filter['deviceName'];
     					else
-    						pointTableFilter['deviceName'] = new RegExp("^.*"+value+".*$");
+    						dataPoints.filter['deviceName'] = new RegExp("^.*"+value+".*$");
     					
-    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
-    					dataPoints.grid.set('query',pointTableFilter);
+    					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.grid.set('query',dataPoints.filter);
     				});
     				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
     				on(sortLink,'click',function(event){
@@ -78,8 +79,8 @@ dataPoints = new StoreView({
     					}
     					var options = {};
     					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
-    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
-    					dataPoints.grid.set("query",pointTableFilter,options);
+    					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.grid.set("query",dataPoints.filter,options);
     				});
     				domConstruct.place(sortLink,div);
     				return div;
@@ -104,12 +105,12 @@ dataPoints = new StoreView({
     				input.watch("value",function(name,oldValue,value){
     					
     					if(value == '')
-    						delete pointTableFilter['name'];
+    						delete dataPoints.filter['name'];
     					else
-    						pointTableFilter['name'] = new RegExp("^.*"+value+".*$");
+    						dataPoints.filter['name'] = new RegExp("^.*"+value+".*$");
     					
-    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
-    					dataPoints.grid.set('query',pointTableFilter);
+    					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.grid.set('query',dataPoints.filter);
     				});
     				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
     				on(sortLink,'click',function(event){
@@ -121,11 +122,11 @@ dataPoints = new StoreView({
     							break;
     						}
     					}
-    					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
     					var options = {};
     					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
     					
-    					dataPoints.grid.set("query",pointTableFilter,options);
+    					dataPoints.grid.set("query",dataPoints.filter,options);
     					//dataPoints.grid.updateSortArrow(dataPoints.sortMap);
     				});
        				domConstruct.place(sortLink,div);
@@ -151,12 +152,12 @@ dataPoints = new StoreView({
 				input.watch("value",function(name,oldValue,value){
 					
 					if(value == '')
-						delete pointTableFilter['dataTypeString'];
+						delete dataPoints.filter['dataTypeString'];
 					else
-						pointTableFilter['dataTypeString'] = new RegExp("^.*"+value+".*$");
+						dataPoints.filter['dataTypeString'] = new RegExp("^.*"+value+".*$");
 					
-					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
-					dataPoints.grid.set('query',pointTableFilter);
+					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+					dataPoints.grid.set('query',dataPoints.filter);
 				});
 				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
 				on(sortLink,'click',function(event){
@@ -168,11 +169,11 @@ dataPoints = new StoreView({
 							break;
 						}
 					}
-					pointTableFilter['dataSourceId'] = dataPointsDataSourceId;
+					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
 					var options = {};
 					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
 					
-					dataPoints.grid.set("query",pointTableFilter,options);
+					dataPoints.grid.set("query",dataPoints.filter,options);
 					//dataPoints.grid.updateSortArrow(dataPoints.sortMap);
 				});
    				domConstruct.place(sortLink,div);
@@ -426,7 +427,9 @@ dataPoints = new StoreView({
      * Refresh the Grid
      */
     refresh: function(){
-    	this.grid.set('query',{dataSourceId: [dataPointsDataSourceId]});
+        dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+        this.grid.set("query",dataPoints.filter,null);
+    	//this.grid.set('query',{dataSourceId: [dataPointsDataSourceId]});
     },
     
     open: function(id, options) {

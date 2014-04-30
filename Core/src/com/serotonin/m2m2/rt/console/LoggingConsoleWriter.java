@@ -25,6 +25,16 @@ public class LoggingConsoleWriter extends Writer{
     }
 
     /**
+     * Flush the stream to our sink.
+     */
+    public void flush() {
+    	
+    	LoggingConsoleRT.instance.addMessage(this.buf.toString());
+    	this.buf.setLength(0);
+    	
+    }
+    
+    /**
      * Create a new string writer using the specified initial string-buffer
      * size.
      *
@@ -190,16 +200,6 @@ public class LoggingConsoleWriter extends Writer{
      */
     public StringBuffer getBuffer() {
         return buf;
-    }
-
-    /**
-     * Flush the stream.
-     */
-    public void flush() {
-    	
-    	LoggingConsoleRT.instance.addMessage(this.buf.toString());
-    	this.buf.setLength(0);
-    	
     }
 
     /**

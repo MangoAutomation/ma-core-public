@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
 
 <project name="MA - Core" basedir="." default="jsp-compile">
+	 <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+	
 	<property file="build.properties"/>
     <property name="fullName" value="m2m2-${name}-${version}" />
 	<property name="build.dir" value="target"/>
+	<property name="depoloy.core.paths" value="release" />
 	
 	<path id="master-classpath">
 		<fileset dir="lib">
@@ -126,7 +129,7 @@
         </jetty-jspc>
     </target>
     
-	<target name="zip" depends="jsp-compile">
+	<target name="zip" depends="jsp-compile" description="create zip release of core with no modules">
         <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
 		
 		<!-- create the release directory if DNE -->
@@ -148,6 +151,28 @@
 	    	</fileset>
          </zip>
 	</target>
+	
+   <target name="public-release" description="create public release using contents of ${build.dir}, requires">
+   	<!-- Fix the scripts -->
+       	<fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
+                    
+        <!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
+        <delete>
+            <fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
+        </delete>
+        
+       	<for list="${deploy.core.paths}" param="corePath" delimiter=",">
+            <zip destfile="@{corePath}/${fullName}.zip">
+                <fileset dir="">
+                    <include name="RELEASE-NOTES" />
+                    <include name="licenseTypes.xml" />
+                </fileset>
+                <fileset dir="${build.dir}">
+                    <include name="**/*"/>
+                </fileset>
+             </zip>
+        </for>
+    </target>
 	
 	<target name="docs">
 		<javadoc sourcepath="src" packagenames="com.serotonin.m2m2.module" destdir="${build.dir}/docs">

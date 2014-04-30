@@ -50,10 +50,6 @@
 	    	createDataPointsTab();
 	    }
 	    tc.startup();
-
-	 
-	 
-	 
 	 
 	 //For now set the current ID to use for toggle
 	 currentDsId = dataSourceId;
@@ -613,10 +609,4 @@ function deletePoint() {
  		}else{
  			show("pointTableDiv"); //Show the hidden table
  		}
- }
- 
-
- 
- 
- 
- 
+ 	}
