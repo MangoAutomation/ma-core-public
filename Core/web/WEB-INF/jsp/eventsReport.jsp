@@ -5,7 +5,6 @@
 <%@page import="com.serotonin.m2m2.Common"%>
 <%@page import="com.serotonin.m2m2.vo.UserComment"%>
 <%@page import="com.serotonin.m2m2.rt.event.type.EventType"%>
-<%@page import="com.serotonin.m2m2.web.dwr.EventsDwr"%>
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.module.EventTypeDefinition"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
@@ -26,9 +25,9 @@
     
     
   </style>
-  <script type="text/javascript" src="/resources/stores.js"></script>
-  <script type="text/javascript" src="/resources/view/eventInstance/eventInstanceView.js"></script>
-  
+  <tag:versionedJavascript src="/resources/stores.js" />
+  <tag:versionedJavascript src="/resources/view/eventInstance/eventInstanceView.js" />
+
   <script type="text/javascript">
   var databaseType = '<c:out value="<%= Common.databaseProxy.getType() %>"></c:out>';
   var eventReportUserId = ${sessionUser.id}; //Get the UserId

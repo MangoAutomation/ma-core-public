@@ -24,32 +24,47 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
         if (message.type == 'clear')
             startupConsole.set('content', "");
         else {
-            startupConsole.set('content', 
-                    startupConsole.get('content') + message.message + "</br>");
+            startupConsole.set('content', message.message + startupConsole.get('content'));
         }
     });
     
+    //Initialize Existing info
+    getStatus(0);
     
+    var pollPeriodMs = 1000;
     var i = 0;
     var myProgressBar = new ProgressBar({
         style: "width: 300px"
     },"startupProgress");
     
-    
+    /**
+     * Set the method to poll for updates
+     */
     setInterval(function(){
-        StartupDwr.getStartupProgress(function(response){
+        
+        var timestamp = new Date().getTime() - pollPeriodMs;
+        getStatus(timestamp);
+            
+       });
+    }, pollPeriodMs);
+    
+    /**
+     * Get the status from the server
+     **/
+    function getStatus(timestamp){
+       StartupDwr.getStartupProgress(timestamp, function(response){
             
             //Do we have a new message
             if(typeof response.data.message != 'undefined'){
-	            if((typeof lastMessage == 'undefined')||(lastMessage != response.data.message)){
-	                lastMessage = response.data.message;
-		            dojo.publish("startupTopic",[{
-		                    message:response.data.message,
-		                    type: "message",
-		                    duration: -1, //Don't go away
-		                    }]
-		            );
-	            }
+                if((typeof lastMessage == 'undefined')||(lastMessage != response.data.message)){
+                    lastMessage = response.data.message;
+                    dojo.publish("startupTopic",[{
+                            message:response.data.message,
+                            type: "message",
+                            duration: -1, //Don't go away
+                            }]
+                    );
+                }
             }
 
             var redirect = false;
@@ -81,11 +96,15 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
             startupMessageDiv.innerHTML = response.data.state;
             
             //Do redirect?
-            if(redirect)
-                window.location.href = response.data.startupUri;
-            
-       });
-    }, 700);
+            if(redirect){
+                setTimeout(function(){
+                    window.location.href = response.data.startupUri;
+                }, 500);
+               
+            }
+    }
+    
+    
 });
 
 </script>
@@ -94,7 +113,7 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
             data-dojo-props="region:'center'">
     <div id="startingMessage" class='bigTitle'></div>
     <div id="startupProgress"></div>
-    <div id="startupMessage">Mango is starting up, please wait...</div>
+    <div id="startupMessage"></div>
     <div id="startupConsole"
             style=" height: 200px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
             data-dojo-type="dijit/layout/ContentPane"></div>

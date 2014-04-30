@@ -24,12 +24,14 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
         if (message.type == 'clear')
             startupConsole.set('content', "");
         else {
-            startupConsole.set('content', 
-                    startupConsole.get('content') + message.message + "</br>");
+            startupConsole.set('content', message.message + startupConsole.get('content'));
         }
     });
     
+    //Initialized from existing info
+    getStatus(0);
     
+    var pollPeriodMs = 1000;
     var i = 0;
     var myProgressBar = new ProgressBar({
         style: "width: 300px"
@@ -37,7 +39,17 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
     
     
     setInterval(function(){
-        StartupDwr.getStartupProgress(function(response){
+        var timestamp = new Date().getTime() - pollPeriodMs;
+        getStatus(timestamp);
+    }, pollPeriodMs);
+    
+    /**
+     * Get the Startup Status
+     **/
+    function getStatus(timestamp){
+        
+        
+        StartupDwr.getStartupProgress(timestamp, function(response){
             
             //Do we have a new message
             if(typeof response.data.message != 'undefined'){
@@ -54,10 +66,6 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
             
             //Should we redirect?
             var redirect = false;
-            
-            //Print the message for what Mango is doing
-            var startingMessageDiv = dojo.byId("startingMessage");
-            startingMessageDiv.innerHTML = response.data.processMessage; 
             
             var progress = 0;
             //We don't care if we are starting up or shutting down, just need to know which one
@@ -79,12 +87,25 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
             var startupMessageDiv = dojo.byId("startupMessage");
             startupMessageDiv.innerHTML = response.data.state;
             
+            //Print the message for what Mango is doing
+            var startingMessageDiv = dojo.byId("startingMessage");
+            startingMessageDiv.innerHTML = response.data.processMessage; 
+
+            
             //Do redirect?
-            if(redirect)
-                window.location.href = response.data.startupUri;
+            if(redirect){
+                setTimeout(function(){
+                    window.location.href = response.data.startupUri;
+                }, 500);
+               
+            }
             
        });
-    }, 700);
+    };
+    
+    
+    
+    
 });
 
 </script>
@@ -93,9 +114,9 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
             data-dojo-props="region:'center'">
     <div id="startingMessage" class='bigTitle'></div>
     <div id="startupProgress"></div>
-    <div id="startupMessage">Mango is starting up, please wait...</div>
+    <div id="startupMessage"></div>
     <div id="startupConsole"
-            style=" height: 200px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
+            style=" height: 500px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
             data-dojo-type="dijit/layout/ContentPane"></div>
     </div>
 </tag:page>

@@ -12,19 +12,17 @@
 </c:if>
 
 <c:forEach items="${dwrClasses}" var="dwrname">
-  <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>
+  <tag:versionedJavascript  src="/dwr/interface/${dwrname}.js" /></c:forEach>
 
 <c:forEach items="<%= Common.moduleScripts %>" var="modScript">
-  <script type="text/javascript" src="/${modScript}"></script></c:forEach>
+  <tag:versionedJavascript  src="/${modScript}" /></c:forEach>
 
-  <script type="text/javascript" src="/resources/dataSourceProperties.js"></script>
+  <tag:versionedJavascript src="/resources/dataSourceProperties.js" />
   
     <script type="text/javascript">      
       function init(){
             initProperties(${dataSource.id},${dataSource.enabled});
       }
-      
-      
   </script>
 <!--   <div data-dojo-type="dijit/layout/TabContainer" style="height: auto;"> -->
   <!-- Name for current editing data source -->

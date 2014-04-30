@@ -191,6 +191,9 @@ application.setAttribute("mangoMessageKeys",mangoMessageKeys);
 	    return msg;
 	}
 	
+	/**
+	 * Some description on how to use this would be good.
+	 */
 	function mangoAppendTranslations(map) {
 		if(typeof(map) != "object")
 			return;

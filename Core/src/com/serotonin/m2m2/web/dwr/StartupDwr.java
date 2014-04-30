@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.dwr;
 
+import java.util.List;
+
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
@@ -25,7 +27,7 @@ public class StartupDwr {
 	private Translations translations = Translations.getTranslations();
 	
 	@DwrPermission(anonymous = true)
-	public ProcessResult getStartupProgress(){
+	public ProcessResult getStartupProgress(long since){
 		
 		ProcessResult result = new ProcessResult();
 		
@@ -33,8 +35,14 @@ public class StartupDwr {
     	float progress =  lifecycle.getStartupProgress();
     	float shutdownProgress = lifecycle.getShutdownProgress();
 
-    	String message =  LoggingConsoleRT.instance.getCurrentMessage();
-    	result.addData("message", message);
+    	List<String> messages =  LoggingConsoleRT.instance.getMessagesSince(since);
+    	StringBuilder builder = new StringBuilder();
+    	for(String message : messages){
+    		builder.append(message);
+    		builder.append("</br>");
+    	}
+    		
+    	result.addData("message", builder.toString());
     	
 		result.addData("startupProgress", progress);
 		result.addData("shutdownProgress", shutdownProgress);

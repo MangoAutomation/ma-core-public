@@ -38,7 +38,7 @@
     </layout>
   </appender>
   
-  
+  <!-- Use an Asynchronous appender to log in a separate thread and save mango time -->
   <appender name="async" class="org.apache.log4j.AsyncAppender">
     <param name="LocationInfo" value="true"/>
     <appender-ref ref="logfile"/>
@@ -49,6 +49,12 @@
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
     </layout>
+  </appender>
+
+  <!-- Use an Asynchronous appender to log in a separate thread and save mango time -->
+  <appender name="consoleAsync" class="org.apache.log4j.AsyncAppender">
+    <param name="LocationInfo" value="true"/>
+    <appender-ref ref="applicationConsole"/>
   </appender>
   
   <!-- 
@@ -74,7 +80,7 @@
     <level value="error"/>
     <appender-ref ref="async"/>
     <appender-ref ref="stdout"/>
-    <appender-ref ref="applicationConsole"/>
+    <appender-ref ref="consoleAsync"/>
   </root>
 
 </log4j:configuration>

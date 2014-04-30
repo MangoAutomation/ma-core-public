@@ -9,8 +9,6 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 /**
  * @author Matthew Lohbihler
  */
-public interface IValueTime {
+public interface IValueTime extends ITime{
     DataValue getValue();
-
-    long getTime();
 }

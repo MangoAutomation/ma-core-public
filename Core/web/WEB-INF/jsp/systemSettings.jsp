@@ -166,6 +166,11 @@
         hide("refreshImg");
         SystemSettingsDwr.getDatabaseSize(function(data) {
             $set("databaseSize", data.databaseSize);
+            if(data.noSqlDatabaseSize != null){
+                $set("noSqlDatabaseSize", data.noSqlDatabaseSize);
+                show("noSqlDatabaseSizeRow");
+            }
+            
             $set("filedataSize", data.filedataSize +" ("+ data.filedataCount +" <fmt:message key="systemSettings.files"/>)");
             $set("totalSize", data.totalSize);
             $set("historyCount", data.historyCount);
@@ -436,6 +441,10 @@
           <tag:img id="refreshImg" png="control_repeat_blue" onclick="dbSizeUpdate();" title="common.refresh"/>
           <tag:img id="purgeNowImg" png="bin" onclick="purgeNow()" title="systemSettings.purgeNow"/>
         </td>
+      </tr>
+      <tr id="noSqlDatabaseSizeRow"  style="display:none">
+        <td class="formLabel"><fmt:message key="systemSettings.noSqlDatabaseSize"/></td>
+        <td class="formField" id="noSqlDatabaseSize"></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="systemSettings.filedataSize"/></td>

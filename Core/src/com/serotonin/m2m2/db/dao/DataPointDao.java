@@ -545,7 +545,48 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, new UserCommentRowMapper()));
     }
 
+    
+    /**
+     * Get the 
+     * @return
+     */
     public List<PointHistoryCount> getTopPointHistoryCounts() {
+    	if(Common.databaseProxy.getNoSQLProxy() == null){
+    		return this.getTopPointHistoryCountsSql();
+    	}else{
+    		return this.getTopPointHistoryCountsNoSql();
+    	}
+    }
+    
+    
+    private List<PointHistoryCount> getTopPointHistoryCountsNoSql(){
+    
+    	PointValueDao dao = Common.databaseProxy.newPointValueDao();
+    	//For now we will do this the slow way
+    	List<DataPointVO> points = getDataPoints(DataPointExtendedNameComparator.instance, false);
+    	List<PointHistoryCount> counts = new ArrayList<PointHistoryCount>();
+    	for(DataPointVO point : points){
+    		PointHistoryCount phc = new PointHistoryCount();
+    		long count = dao.dateRangeCount(point.getId(), 0L, Long.MAX_VALUE);
+    		phc.setCount((int)count);
+    		phc.setPointId(point.getId());
+    		phc.setPointName(point.getName());
+    		counts.add(phc);
+    	}
+    	Collections.sort(counts, new Comparator<PointHistoryCount>(){
+
+			@Override
+			public int compare(PointHistoryCount count1, PointHistoryCount count2) {
+				return count2.getCount() - count1.getCount();
+			}
+    		
+    	});
+    	
+    	return counts;
+    }
+    
+    
+    private List<PointHistoryCount> getTopPointHistoryCountsSql(){
         List<PointHistoryCount> counts = query(
                 "select dataPointId, count(*) from pointValues group by dataPointId order by 2 desc",
                 new RowMapper<PointHistoryCount>() {
