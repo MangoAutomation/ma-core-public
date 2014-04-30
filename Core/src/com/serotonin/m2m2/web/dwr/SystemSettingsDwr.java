@@ -193,13 +193,21 @@ public class SystemSettingsDwr extends BaseDwr {
         else
             data.put("databaseSize", "(" + translate("common.unknown") + ")");
 
+        
+        //Do we have any NoSQL Data
+        long noSqlSize = 0L;
+        if(Common.databaseProxy.getNoSQLProxy() != null){
+        	noSqlSize = Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes();
+        	data.put("noSqlDatabaseSize", DirectoryUtils.bytesDescription(noSqlSize));
+        }
+        
         // Filedata data
         DirectoryInfo fileDatainfo = DirectoryUtils.getSize(new File(Common.getFiledataPath()));
         long filedataSize = fileDatainfo.getSize();
         data.put("filedataCount", fileDatainfo.getCount());
         data.put("filedataSize", DirectoryUtils.bytesDescription(filedataSize));
 
-        data.put("totalSize", DirectoryUtils.bytesDescription(dbSize + filedataSize));
+        data.put("totalSize", DirectoryUtils.bytesDescription(dbSize + filedataSize + noSqlSize));
 
         // Point history counts.
         List<PointHistoryCount> counts = new DataPointDao().getTopPointHistoryCounts();
@@ -429,6 +437,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     	//Validate the Hour and Minute
     	if((backupHour < 24)&&(backupHour>=0)){
+    		updateTask = true;
     		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_HOUR, backupHour);
     	}else{
     		updateTask = false;
@@ -436,6 +445,7 @@ public class SystemSettingsDwr extends BaseDwr {
     				"systemSettings.validation.backupHourInvalid");
     	}
     	if((backupMinute < 60)&&(backupMinute>=0)){
+    		updateTask = true;
     		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_MINUTE, backupMinute);
     	}else{
     		updateTask = false;

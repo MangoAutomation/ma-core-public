@@ -197,6 +197,9 @@ input[type="checkbox"], input[type="radio"] {
 .formLong {
 	width: 250px;
 }
+.formVeryLong {
+	width: 500px;
+}
 .formDisabled {
 	border: 1px solid #D0D0D0;
 }
