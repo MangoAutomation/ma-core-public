@@ -1,4 +1,4 @@
-*Version 2.2.4*
+*Version 2.3.0*
 * Added purge now options to all data sources
 * Added some helpful features for developers to use the NoSQL Proxy for Database Type Modules
 * Added ability to disable Data Type drop down menu JSP Tag using the 'disabled' attribute
@@ -8,7 +8,7 @@
 * Added feature to session cookie that allows users to login to multiple mangos on the same host at the same time (Upgraded ma-priv to 1.1.6)
 * Enhanced in-memory logging
 * Improved Startup/Shutdown pages to show more logging information
-* Added new jsp tag:versionedJavascript to force Browsers to update their cache on new Mango Releases
+* Added new jsp tag:versionedJavascript to force Browsers to update their cache on new Mango Releases (this requires the minor release number upgrade)
 
 *Version 2.2.3*
 * Skipping version to start new versioning plan.  Even numbers are full releases and odd numbers are development releases.
