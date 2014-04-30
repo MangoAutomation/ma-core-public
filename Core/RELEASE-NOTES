@@ -1,4 +1,4 @@
-*Version 2.2.3*
+*Version 2.2.4*
 * Added purge now options to all data sources
 * Added some helpful features for developers to use the NoSQL Proxy for Database Type Modules
 * Added ability to disable Data Type drop down menu JSP Tag using the 'disabled' attribute
@@ -6,7 +6,13 @@
 * Fixed bug in editing Data Sources where the Data Source points list filters would be reset upon save.
 * Added ip address of user to Login Event that is then viewable on Alarms Page.
 * Added feature to session cookie that allows users to login to multiple mangos on the same host at the same time (Upgraded ma-priv to 1.1.6)
-* Enhanced in-memory logging (TBD EVENTUALLY WILL UPDATE Starting and Shutdown pages)
+* Enhanced in-memory logging
+* Improved Startup/Shutdown pages to show more logging information
+* Added new jsp tag:versionedJavascript to force Browsers to update their cache on new Mango Releases
+
+*Version 2.2.3*
+* Skipping version to start new versioning plan.  Even numbers are full releases and odd numbers are development releases.
+
 
 *Version 2.2.2*
 * Fixed bugs in Point Hierarchy importer to allow merging of folders.  Folders with the same name are merged into system.  Points duplicated across folders will only be saved as the last folder they are stored in.
