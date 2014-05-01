@@ -160,18 +160,22 @@
         <delete>
             <fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
         </delete>
-        
-       	<for list="${deploy.core.paths}" param="corePath" delimiter=",">
-            <zip destfile="@{corePath}/${fullName}.zip">
-                <fileset dir="">
-                    <include name="RELEASE-NOTES" />
-                    <include name="licenseTypes.xml" />
-                </fileset>
-                <fileset dir="${build.dir}">
-                    <include name="**/*"/>
-                </fileset>
-             </zip>
-        </for>
+   	
+        <foreach list="${deploy.core.paths}" target="|deploy" param="deploy.path" delimiter=",">
+   	        <param name="deploy.file" value="${fullName}.zip" />
+   	    </foreach>
+   </target>
+	
+    <target name="|deploy" >
+    	<zip destfile="${deploy.path}/${deploy.file}">
+            <fileset dir="">
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+            </fileset>
+            <fileset dir="${build.dir}">
+                <include name="**/*"/>
+            </fileset>
+    	</zip>
     </target>
 	
 	<target name="docs">
