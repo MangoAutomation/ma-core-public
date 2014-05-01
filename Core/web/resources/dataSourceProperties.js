@@ -1,9 +1,9 @@
+//# sourceURL=/resources/dataSourceProperties_ajaxLoaded.js
 /*
  * Copyright (C) 2013 Infinite Automation. All rights reserved.
  * @author Terry Packer
  */
 //Ensure Debugger loads the js file on browser
-//@ sourceURL=/resources/dataSourceProperties_ajaxLoaded.js
 
  //TODO Make new AMD format
  dojo.require("dijit.Dialog");
