@@ -31,7 +31,7 @@
         </then>
         <else>
             <!-- Use built core's lib folder instead -->
-            <fileset id="maven-deps" dir="${coreHome}/target/lib">
+            <fileset id="maven-deps" dir="${core.target}/lib">
                 <include name="*.jar" />
             </fileset>
             <!-- Use the lib folder instead -->
@@ -41,7 +41,7 @@
         </else>
     </if>
 
-	<path id="master-classpath">
+	<path id="module-master-classpath">
         <fileset refid="maven-deps" />
         <fileset refid="maven-deps-runtime" />
         <fileset dir="${core.target}/lib">
@@ -75,18 +75,18 @@
         </if>
 		
 		<available property="external-lib.exists" file="external-lib" type="dir" />
-		        <if>
-		            <isset property="external-lib.exists"/>
-		            <then></then>
-		            <else>
-		                <mkdir dir="external-lib"/>
-		            </else>
-		        </if>
+        <if>
+            <isset property="external-lib.exists"/>
+            <then></then>
+            <else>
+                <mkdir dir="external-lib"/>
+            </else>
+        </if>
 		
 		<javac destdir="target" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" 
                 deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
 			<src path="src" />
-			<classpath refid="master-classpath" />
+			<classpath refid="module-master-classpath" />
 		</javac>
 	</target>
 
@@ -132,7 +132,7 @@
     </target>
     
     <target name="jsp-compile" depends="jar" description="Conditionally compile the JSPs">
-        <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="master-classpath" /></taskdef>
+        <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="module-master-classpath" /></taskdef>
         <available property="web.exists" file="web" type="dir" />
         <if>
             <isset property="web.exists"/>
@@ -193,7 +193,7 @@
                 	<jetty-jspc uriroot="${core.target}/web" outputDir="${core.target}/work/jsp"
                             compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
                         <classpath>
-                            <path refid="master-classpath"/>
+                            <path refid="module-master-classpath"/>
                             <pathelement path="target/lib/${fullName}.jar"/>
                         </classpath>
                     </jetty-jspc>
