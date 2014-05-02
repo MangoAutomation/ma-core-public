@@ -57,6 +57,7 @@
     <appender-ref ref="applicationConsole"/>
   </appender>
   
+  
   <!-- 
     If you need additional information you can change any of these levels, the possible levels:
     ALL - turn on all logging

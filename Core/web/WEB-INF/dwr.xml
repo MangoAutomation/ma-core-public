@@ -206,5 +206,8 @@
     <convert converter="exception" match="java.lang.Exception">
       <param name="include" value="message"/>
     </convert>
+    
+    <convert converter="bean" match="com.serotonin.m2m2.rt.console.LogEvent" />
+    
   </allow>
 </dwr>

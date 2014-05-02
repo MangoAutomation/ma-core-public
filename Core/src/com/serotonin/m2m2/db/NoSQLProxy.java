@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
+import com.serotonin.m2m2.db.dao.logging.LoggingDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 import com.serotonin.util.DirectoryUtils;
@@ -43,6 +44,12 @@ abstract public class NoSQLProxy {
 	public long getDatabaseSizeInBytes(){
 		return DirectoryUtils.getSize(new File(getDatabasePath())).getSize();
 	}
+	/**
+	 * Create an instance of a LoggingDao
+	 * 
+	 * @return
+	 */
+	public abstract LoggingDao createLoggingDao();
 	
 
 }
