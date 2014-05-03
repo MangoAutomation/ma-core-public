@@ -2,6 +2,7 @@
 * Slight improvements to the UI table auto formatting
 * Added Database storage for Logs
 * Added NoSQL access for log storage
+* Added new InfiniteTable javascript table for general use
 
 *Version 2.3.0*
 * Added purge now options to all data sources

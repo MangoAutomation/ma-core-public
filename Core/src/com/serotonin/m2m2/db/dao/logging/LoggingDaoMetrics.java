@@ -82,6 +82,19 @@ public class LoggingDaoMetrics implements LoggingDao{
     	stopWatch.stop("getLogs(from, to, levels) (" + from + ", " +to + ", " + sqlIn + "){" + values.size() +"}");
     	return values;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.logging.LoggingDao#dateRangeCount(int, long, long)
+	 */
+	@Override
+	public long dateRangeCount(long from, long to, int level) {
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
+		long count = dao.dateRangeCount(from, to, level);
+    	stopWatch.stop("dateRangeCount(from, to, level) (" + from + ", " +to + ", " + level + "){" + count +"}");
+    	return count;
+
+	}
 	
 	
 	

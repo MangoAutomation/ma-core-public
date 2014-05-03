@@ -170,10 +170,6 @@ abstract public class DatabaseProxy {
             	noSQLProxy.initialize();
             }
             
-            //Can start the Database Log Appender Now
-            Logger rootLogger = Logger.getRootLogger();
-            rootLogger.addAppender(new DatabaseLogAppender(this.noSQLProxy.createLoggingDao()));
-            
         }
         catch (CannotGetJdbcConnectionException e) {
             log.fatal("Unable to connect to database of type " + getType().name(), e);

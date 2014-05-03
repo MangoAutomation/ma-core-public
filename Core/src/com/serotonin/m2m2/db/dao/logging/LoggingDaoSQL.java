@@ -50,4 +50,13 @@ public class LoggingDaoSQL implements LoggingDao{
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.logging.LoggingDao#dateRangeCount(int, long, long)
+	 */
+	@Override
+	public long dateRangeCount(long from, long to, int level) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

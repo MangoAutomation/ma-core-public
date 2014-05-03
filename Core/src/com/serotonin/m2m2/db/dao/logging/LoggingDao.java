@@ -25,4 +25,14 @@ public interface LoggingDao {
 	
 	public List<LogEvent> getLogs(long from, long to, List<Integer> levels, int limit);
 
+	/**
+	 * Count the entries in a given log level for a date range
+	 * 
+	 * @param level
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	long dateRangeCount(long from, long to, int level);
+
 }
