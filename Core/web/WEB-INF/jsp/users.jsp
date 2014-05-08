@@ -79,7 +79,7 @@
                         for (j=0; j<dataSources[i].points.length; j++) {
                             dp = dataSources[i].points[j];
                             dshtml += '<tr>';
-                            dshtml +=   '<td class="formLabelRequired">'+ dp.name +'</td>';
+                            dshtml +=   '<td class="formLabelRequired">'+ dp.deviceName + ' - ' + dp.name +'</td>';
                             dshtml +=   '<td>';
                             dshtml +=     '<input type="radio" name="dp'+ dp.id +'" id="dp'+ dp.id +'/0" value="0">';
                             dshtml +=             '<label for="dp'+ dp.id +'/0"><fmt:message key="common.access.none"/></label> ';
