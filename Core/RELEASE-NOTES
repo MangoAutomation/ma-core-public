@@ -1,3 +1,10 @@
+*Version 2.3.1*
+* Slight improvements to the UI table auto formatting
+* Added Database storage for Logs
+* Added NoSQL access for log storage
+* Added new InfiniteTable javascript table for general use
+* Added a primitive mass edit dialog to the point hierarchy
+
 *Version 2.3.0*
 * Added purge now options to all data sources
 * Added some helpful features for developers to use the NoSQL Proxy for Database Type Modules

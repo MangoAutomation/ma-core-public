@@ -55,6 +55,45 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		ChangeComparable<DataPointVO>, IDataPoint {
 	private static final long serialVersionUID = -1;
 	public static final String XID_PREFIX = "DP_";
+	
+	public interface Properties {
+		int NAME = 0;
+		int XID = 1;
+		int DATA_SOURCE_XID = 2;
+		int DEVICE_NAME = 3;
+		int LOGGING_TYPE = 4;
+		int INTERVAL_LOGGING_PERIOD_TYPE = 5;
+		int INTERVAL_LOGGING_PERIOD = 6;
+		int INTERVAL_LOGGING_TYPE = 7;
+		int TOLERANCE = 8;
+		int PURGE_OVERRIDE = 9;
+		int PURGE_TYPE = 10;
+		int PURGE_PERIOD = 11;
+		int TEXT_RENDERER = 12;
+		int CHART_RENDERER = 13;
+		int EVENT_DETECTORS = 14;
+		int COMMENTS = 15;
+		int DEFAULT_CACHE_SIZE = 16;
+		int DISCARD_EXTREME_VALUES = 17;
+		int DISCARD_LOW_LIMIT = 18;
+		int DISCARD_HIGH_LIMIT = 19;
+	}
+	
+	public static final ExportCodes PROPERTY_CODES = new ExportCodes();
+	static {
+		PROPERTY_CODES.addElement(Properties.NAME, "Name", "common.name");
+		PROPERTY_CODES.addElement(Properties.XID, "XID", "common.xid");
+		PROPERTY_CODES.addElement(Properties.DATA_SOURCE_XID, "Data Source XID", "pointEdit.props.dsXid");
+		PROPERTY_CODES.addElement(Properties.DEVICE_NAME, "Device Name", "dsEdit.deviceName");
+		PROPERTY_CODES.addElement(Properties.LOGGING_TYPE, "Logging Type", "pointEdit.logging.type");
+		PROPERTY_CODES.addElement(Properties.INTERVAL_LOGGING_PERIOD_TYPE, "Logging Period Type", "pointEdit.logging.period.type");
+		PROPERTY_CODES.addElement(Properties.INTERVAL_LOGGING_PERIOD, "Logging Period", "pointEdit.logging.period");
+		PROPERTY_CODES.addElement(Properties.TOLERANCE, "Tolerance", "pointEdit.logging.tolerance");
+		PROPERTY_CODES.addElement(Properties.PURGE_OVERRIDE, "Purge Override", "pointEdit.logging.purgeOverride");
+		PROPERTY_CODES.addElement(Properties.PURGE_TYPE, "Purge Type", "pointEdit.purge.purgePeriodType");
+		PROPERTY_CODES.addElement(Properties.PURGE_PERIOD, "Purge Period", "pointEdit.purge.purgePeriod");
+		PROPERTY_CODES.addElement(Properties.PURGE_TYPE, "Purge Type", "pointEdit.purge.purgePeriodType");
+	}
 
 	public interface LoggingTypes {
 		int ON_CHANGE = 1;
