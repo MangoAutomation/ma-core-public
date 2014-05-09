@@ -61,6 +61,12 @@ public class LoggedInFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         
+        Boolean urlSecurity = (Boolean)request.getAttribute("urlSecurity");
+        if((urlSecurity != null) && (urlSecurity)){
+        	filterChain.doFilter(servletRequest, servletResponse);
+        	return;
+        }
+        
         //Ugly hack for now to get the  license info due to Webserver startup early.
         LicenseFeature uniqueIpAddresses = Common.licenseFeature("uniqueIpAddresses");
         if (uniqueIpAddresses == null)

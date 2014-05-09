@@ -26,8 +26,9 @@
     </td></tr>
    
   </table>
-  <table id="eventDetectorTable"></table>
-  
+
+  <table id="eventDetectorTable" style="width:95%;"></table>
+
   <table style="display:none;">
     <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
@@ -40,11 +41,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -79,11 +80,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -118,11 +119,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -162,11 +163,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -201,11 +202,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -229,11 +230,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -268,11 +269,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -303,11 +304,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -338,11 +339,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -354,7 +355,7 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_State" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_State" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
@@ -377,11 +378,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -393,7 +394,7 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.regexState"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_State" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_State" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
@@ -416,11 +417,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
@@ -459,11 +460,11 @@
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
-        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formLong"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>

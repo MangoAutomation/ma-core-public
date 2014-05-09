@@ -3,6 +3,7 @@
 * Added Database storage for Logs
 * Added NoSQL access for log storage
 * Added new InfiniteTable javascript table for general use
+* Fixing UrlSecurity filter code and filter order to allow Anonymous access to pages
 
 *Version 2.3.0*
 * Added purge now options to all data sources

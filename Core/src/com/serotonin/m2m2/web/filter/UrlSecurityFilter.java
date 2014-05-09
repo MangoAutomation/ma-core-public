@@ -47,22 +47,38 @@ public class UrlSecurityFilter implements Filter {
                 boolean allowed = true;
 
                 User user = Common.getUser(request);
+                
                 switch (uriDef.getPermission()) {
                 case ADMINISTRATOR:
-                    if (!user.isAdmin())
+                    if ((user==null)||(!user.isAdmin()))
                         allowed = false;
                     break;
                 case DATA_SOURCE:
-                    if (!user.isDataSourcePermission())
+                    if ((user==null)||(!user.isDataSourcePermission()))
                         allowed = false;
                     break;
+                case USER:
+                	if(user == null){
+                		allowed = false;
+                	}
+                break;
+                case ANONYMOUS:
+                break;
                 }
 
                 if (!allowed) {
-                    LOG.info("Denying access to page where user hasn't sufficient permission, user="
-                            + user.getUsername() + ", uri=" + uri);
-                    response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
-                    return;
+                	String msg;
+                	if(user == null){
+                		msg = "Denying access to page where user isn't logged in, uri=" + uri;
+                	}else{
+                		msg = "Denying access to page where user hasn't sufficient permission, user="
+                                + user.getUsername() + ", uri=" + uri;
+                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
+                		return;
+                	}
+                    LOG.info(msg);
+                }else{
+                	request.setAttribute("urlSecurity", true);
                 }
 
                 break;
