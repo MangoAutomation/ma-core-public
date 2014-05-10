@@ -4,7 +4,6 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
-<%@page import="com.serotonin.m2m2.vo.DataPointVO"%>
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="PointHierarchyDwr">
 <jsp:attribute name="styles">
   <style>
@@ -23,9 +22,6 @@
     var rootItem;
     var store;
     var tree;
-    var editDialog;
-    var editMap = {};
-    
     function $$(item, attr, value) {
         if (typeof(value) == "undefined")
             // Get
@@ -226,80 +222,6 @@
             setTimeout(function() { $("folderName").focus(); }, 100);
         });
     }
-    
-    function openEditor() {
-    	if(editDialog){
-    		editDialog.show();
-    		return;
-    	}
-    	require(["dijit/form/Select", "dijit/form/Button", "dijit/form/ValidationTextBox", "dijit/Dialog", "dojo/dom-construct", "dojo/dom-attr"], 
-    			function(Select, Button, ValidationTextBox, Dialog, domConstruct) {
-   			editDialog = new Dialog({
-   				title:"Hello Point Hierarchy!",
-   				content:"<div id=\"dialogContent\"></div><div id=\"dialogFooter\"></div>", //
-   				style:"width: 600px"
-   			});
-   			dojo.place(dojo.byId("newEditSelect"), dojo.byId("dialogContent"), "first");
-   			domConstruct.create("div", {id:"addEditField"}, "dialogContent", "last");
-   			domConstruct.create("hr", {}, "dialogFooter", "first");
-   			domConstruct.create("div", {id:"dialogButtonBar"}, "dialogFooter", "last");
-   			domConstruct.create("div", {id:"dialogCancel"}, "dialogButtonBar", "first");
-   			domConstruct.create("div", {id:"dialogSubmit"}, "dialogButtonBar", "last");
-   			var add = new Button({
-   				label:"<fmt:message key="common.add"/>"
-   			}, "addEditField");
-   			add.on("click", function(){
-   				var select = dojo.byId("newEditSelect");
-   				var pointType = $get("newEditSelect");
-   				domConstruct.create("div", {id:"edit_"+pointType}, "dialogContent", "last");
-   				$("edit_"+pointType).innerHTML = '<span style="min-width: 200px;">'+select[pointType].innerHTML+
-   					'</span><input id="edit_'+pointType+'_value" type="text" style="min-width:200px; margin-left:50px;"/><div id="edit_'+pointType+'_delete"/>';
-   				var btn = new Button({label:"-", style:"background-color:#8b3c3c;",
-   					onClick:function(){
-   						dojo.destroy("edit_"+pointType);
-   						btn.destroyRecursive();
-   					}}, "edit_"+pointType+"_delete");
-   				
-   				editMap[pointType] = function(){return $get("edit_"+pointType+"_value")};
-   			});
-   			
-   			var cancel = new Button({
-   				label:"<fmt:message key="common.cancel"/>"
-   			}, "dialogCancel");
-   			cancel.on("click", function(){
-   				editDialog.hide()
-   			});
-   			
-   			var submit = new Button({
-   				label:"<fmt:message key="common.save"/>"
-   			}, "dialogSubmit")
-   			submit.on("click", function(){
-   				submitEdits();
-   				editDialog.hide()
-   			});
-   			editDialog.show();
-    	});
-    }
-    
-    function submitEdits() {
-    	massEdit = {};
-    	for(key in editMap)
-    		massEdit[key] = editMap[key]();
-    	pointList = [];
-    	for(k in tree.selectedItems) {
-    		item = tree.selectedItems[k];
-    		if("point" in item)
-    			pointList.push(item.point[0].id);
-    	}
-    	PointHierarchyDwr.saveEdits(pointList, massEdit, function() {
-    		PointHierarchyDwr.getPointHierarchy(function(rootFolder) {
-                tree.destroy();
-                initCB(rootFolder);
-            });
-    	});
-    }
-    
-    
   </script>
   
   <table>
@@ -315,7 +237,6 @@
               <td align="right">
                 <tag:img png="folder_add" title="common.add" onclick="newFolder()"/>
                 <tag:img id="saveBtn" png="save" title="common.save" onclick="save()"/>
-                <tag:img id="editBtn" png="pencil" title="common.edit" onclick="openEditor()"/>
               </td>
             </tr>
             <tr><td class="formError" id="errorMessage"></td></tr>
@@ -349,6 +270,5 @@
       </td>
     </tr>
   </table>
-  <div style="display:none;"><tag:exportCodesOptions id="newEditSelect" optionList="<%= DataPointVO.PROPERTY_CODES.getIdKeys() %>"/></div>
 </jsp:body>
 </tag:page>
