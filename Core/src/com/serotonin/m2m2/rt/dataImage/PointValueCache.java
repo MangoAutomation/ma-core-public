@@ -51,7 +51,7 @@ public class PointValueCache {
      * @return true if point value existed and was updated, false if value DNE in cache
      * 
      */
-    public void updatePointValue(PointValueIdTime pvt, SetPointSource source, boolean logValue, boolean async){
+    public void updatePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async){
     	
         if (logValue) {
             if (async)

@@ -573,8 +573,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 	 * @param b
 	 * @param c
 	 */
-	public void updatePointValueInCache(PointValueIdTime newValue, SetPointSource source, boolean logValue,
-            boolean async) {
+	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
 
 		

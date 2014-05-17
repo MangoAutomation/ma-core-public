@@ -1,9 +1,10 @@
-*Version 2.3.1*
+*Version 2.3.2*
 * Slight improvements to the UI table auto formatting
 * Added Database storage for Logs
 * Added NoSQL access for log storage
 * Added new InfiniteTable javascript table for general use
 * Fixing UrlSecurity filter code and filter order to allow Anonymous access to pages
+* Removing database row ID from excel export and data import to comply with NoSQL standards
 
 *Version 2.3.0*
 * Added purge now options to all data sources

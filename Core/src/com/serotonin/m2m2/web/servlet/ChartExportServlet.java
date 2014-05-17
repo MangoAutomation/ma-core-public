@@ -12,10 +12,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueIdTime;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueEmporter;
-import com.serotonin.m2m2.rt.dataImage.PointValueIdTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -136,14 +134,13 @@ public class ChartExportServlet extends HttpServlet {
         
         
         final ExportDataValue edv = new ExportDataValue();
-        MappedRowCallback<PointValueIdTime> callback = new MappedRowCallback<PointValueIdTime>() {
+        MappedRowCallback<PointValueTime> callback = new MappedRowCallback<PointValueTime>() {
             @Override
-            public void row(PointValueIdTime pvt, int rowIndex) {
-            	edv.setPointValueId(pvt.getPointValueId());
+            public void row(PointValueTime pvt, int rowIndex) {
                 edv.setValue(pvt.getValue());
                 edv.setTime(pvt.getTime());
-                if (pvt instanceof AnnotatedPointValueIdTime)
-                    edv.setAnnotation(((AnnotatedPointValueIdTime) pvt).getSourceMessage());
+                if (pvt instanceof AnnotatedPointValueTime)
+                    edv.setAnnotation(((AnnotatedPointValueTime) pvt).getSourceMessage());
                 else
                     edv.setAnnotation(null);
                 sheetEmporter.exportRow(edv);
@@ -160,7 +157,7 @@ public class ChartExportServlet extends HttpServlet {
                 pointInfo.setTextRenderer(dp.getTextRenderer());
                 sheetEmporter.setPointInfo(pointInfo);
 
-                pointValueDao.getPointValuesWithIdsBetween(pointId, from, to, callback);
+                pointValueDao.getPointValuesBetween(pointId, from, to, callback);
             }
         }
        emporter.finishExport();

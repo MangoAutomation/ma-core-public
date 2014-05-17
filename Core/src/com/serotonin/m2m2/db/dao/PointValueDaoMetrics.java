@@ -11,7 +11,6 @@ import org.perf4j.log4j.Log4JStopWatch;
 
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
-import com.serotonin.m2m2.rt.dataImage.PointValueIdTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.pair.LongPair;
@@ -362,12 +361,11 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#updatePointValueAsync(int, com.serotonin.m2m2.rt.dataImage.PointValueIdTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
 	 */
 	@Override
-	public void updatePointValueAsync(int id, PointValueIdTime pvt,
-			SetPointSource source) {
+	public void updatePointValueAsync(int id, PointValueTime pvt, SetPointSource source) {
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
-		dao.updatePointValueAsync(id,pvt,source);
-		stopWatch.stop("updatePointValueAsync(id,pvt) (" + id + ", pvt)");
+		dao.updatePointValueAsync(id, pvt, source);
+		stopWatch.stop("updatePointValueAsync(id, ts, source) (" + id + ", pvt)");
 		
 	}
 
@@ -375,37 +373,24 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#updatePointValueSync(int, com.serotonin.m2m2.rt.dataImage.PointValueIdTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
 	 */
 	@Override
-	public PointValueIdTime updatePointValueSync(int dataPointId,
-			PointValueIdTime pvt, SetPointSource source) {
+	public PointValueTime updatePointValueSync(int dataPointId, PointValueTime pvt, SetPointSource source) {
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
-		PointValueIdTime value = dao.updatePointValueSync(dataPointId, pvt, source);
-		stopWatch.stop("updatePointValuesSync(dataPointId,pvt,source) (" + dataPointId + ", pvt, source)" );
+		PointValueTime value = dao.updatePointValueSync(dataPointId, pvt, source);
+		stopWatch.stop("updatePointValuesSync(dataPointId, ts, source) (" + dataPointId + ", pvt, source)" );
     	return value;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.PointValueDao#getPointValuesWithIdsBetween(int, long, long, com.serotonin.db.MappedRowCallback)
-	 */
-	@Override
-	public void getPointValuesWithIdsBetween(int pointId, long from, long to,
-			MappedRowCallback<PointValueIdTime> callback) {
-		StopWatch stopWatch = new Log4JStopWatch();
-		stopWatch.start();
-		dao.getPointValuesWithIdsBetween(pointId, from, to,callback);
-		stopWatch.stop("getPointValuesWithIdsBetween(pointId,from,to,callback) (" + pointId + ", " + from + ", " + to + ", " + callback.toString() +")");
-		
-	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValue(int)
 	 */
 	@Override
-	public long deletePointValue(int pointValueId) {
+	public long deletePointValue(int dataPointId, long ts) {
 		StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
-		long value = dao.deletePointValue(pointValueId);
-		stopWatch.stop("deletePointValue(pointValueId) + (" + pointValueId + ")");
+		long value = dao.deletePointValue(dataPointId, ts);
+		stopWatch.stop("deletePointValue(dataPointId, ts) + (" + dataPointId + ", " + ts + ")");
     	return value;
 	}
 

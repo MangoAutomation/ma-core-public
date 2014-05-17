@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
-import com.serotonin.m2m2.rt.dataImage.PointValueIdTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.pair.LongPair;
@@ -104,34 +103,28 @@ public interface PointValueDao {
 	public long deletePointValuesWithMismatchedType(int id, int dataTypeId);
 
 	/**
+	 * Update a given point value at some time by queueing up a work item
+	 * 
 	 * @param id
 	 * @param pvt
 	 * @param object
 	 */
-	public void updatePointValueAsync(int id, PointValueIdTime pvt,
-			SetPointSource source);
+	public void updatePointValueAsync(int dataPointId, PointValueTime pvt, SetPointSource source);
 
 	/**
+	 * Update a given point value at some time directly
 	 * @param dataPointId
 	 * @param pvt
 	 * @param source
 	 * @return
 	 */
-	public PointValueIdTime updatePointValueSync(int dataPointId,
-			PointValueIdTime pvt, SetPointSource source);
+	public PointValueTime updatePointValueSync(int dataPointId, PointValueTime pvt, SetPointSource source);
 
 	/**
-	 * @param pointId
-	 * @param from
-	 * @param to
-	 * @param callback
-	 */
-	public void getPointValuesWithIdsBetween(int pointId, long from, long to,
-			MappedRowCallback<PointValueIdTime> callback);
-
-	/**
-	 * @param pointValueId
+	 * Delete all data point values at a time
+	 * @param dataPointId
+	 * @param ts
 	 * @return
 	 */
-	public long deletePointValue(int pointValueId);
+	public long deletePointValue(int dataPointId, long ts);
 }
