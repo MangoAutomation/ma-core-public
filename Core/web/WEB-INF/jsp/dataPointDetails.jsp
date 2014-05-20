@@ -66,7 +66,7 @@
               alert("<fmt:message key="pointDetails.recordCountError"/>");
           else {
               startImageFader($("historyLimitImg"));
-              DataPointDetailsDwr.getHistoryTableData(limit, function(response) {
+              DataPointDetailsDwr.getHistoryTableData(limit, $get("usePointCache"), function(response) {
                   var data = response.data.history;
                   dwr.util.removeAllRows("historyTableData");
                   if (!data || data.length == 0)
@@ -295,6 +295,7 @@
                 <tr>
                   <td class="smallTitle"><fmt:message key="pointDetails.history"/></td>
                   <td id="historyTableAsof"></td>
+                  <td><sst:checkbox id="usePointCache" selectedValue="true"/>&nbsp<fmt:message key="pointDetails.useCache"/></td>
                   <td align="right">
                     <fmt:message key="pointDetails.show"/>
                     <input id="historyLimit" type="text" style="text-align:right;" value="${historyLimit}"

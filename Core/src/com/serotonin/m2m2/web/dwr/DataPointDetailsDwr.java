@@ -63,9 +63,9 @@ public class DataPointDetailsDwr extends DataPointDwr {
     }
 
     @DwrPermission(user = true)
-    public ProcessResult getHistoryTableData(int limit) {
+    public ProcessResult getHistoryTableData(int limit, boolean useCache) {
         DataPointVO pointVO = Common.getUser().getEditPoint();
-        PointValueFacade facade = new PointValueFacade(pointVO.getId());
+        PointValueFacade facade = new PointValueFacade(pointVO.getId(), useCache);
 
         List<PointValueTime> rawData = facade.getLatestPointValues(limit);
         List<RenderedPointValueTime> renderedData = new ArrayList<RenderedPointValueTime>(rawData.size());

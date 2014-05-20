@@ -6,6 +6,7 @@
 * Fixing UrlSecurity filter code and filter order to allow Anonymous access to pages
 * Removing database row ID from excel export and data import to comply with NoSQL standards
 * Fixed bug where No Change and No Update Event Detectors were showing invalid durations
+* Added checkbox on point details to allow disabling the history view of cached data.
 
 *Version 2.3.0*
 * Added purge now options to all data sources
