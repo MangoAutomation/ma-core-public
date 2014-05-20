@@ -25,11 +25,12 @@ abstract public class DifferenceDetectorRT extends TimeDelayedEventDetectorRT {
     }
 
     synchronized protected void pointData() {
-        if (!eventActive)
+    	lastChange = System.currentTimeMillis();
+    	if (!eventActive)
             unscheduleJob(System.currentTimeMillis());
         else
             setEventActive(false);
-        lastChange = System.currentTimeMillis();
+        
         scheduleJob();
     }
 

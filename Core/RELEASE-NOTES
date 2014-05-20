@@ -5,6 +5,7 @@
 * Added new InfiniteTable javascript table for general use
 * Fixing UrlSecurity filter code and filter order to allow Anonymous access to pages
 * Removing database row ID from excel export and data import to comply with NoSQL standards
+* Fixed bug where No Change and No Update Event Detectors were showing invalid durations
 
 *Version 2.3.0*
 * Added purge now options to all data sources
