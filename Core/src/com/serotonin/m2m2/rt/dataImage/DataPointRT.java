@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
+import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -321,8 +322,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         synchronized (intervalLoggingLock) {
             if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
                 return;
-
-            intervalLoggingTask.cancel();
+            if(intervalLoggingTask != null) //Bug from UI where we are switching types of a running point
+            	intervalLoggingTask.cancel();
         }
     }
 
@@ -344,8 +345,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                         intervalValue = pvt;
                 }
             }
-            else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
-                averagingValues.add(pvt);
+            else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE){
+                //Using the averaging values, ensure we keep the most recent values and pop off the old ones
+//                while(averagingValues.size() >= vo.getIntervalLoggingAveragingValuesWindowSize()){ //Size -1 for the next item we are going to add
+//                	averagingValues.remove(0);
+//                }
+            	
+            	averagingValues.add(pvt);
+            }
         }
     }
 
@@ -361,6 +368,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 intervalValue = pointValue;
             }
             else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
+            	//If we don't have enough averaging values then we will bail and wait for more
+//            	if(averagingValues.size() != averagingValuesWindowSize){
+//            		return;
+//            	}
+            	
                 IValueTime endValue = intervalValue;
                 if (!averagingValues.isEmpty())
                     endValue = averagingValues.get(averagingValues.size() - 1);
@@ -370,10 +382,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                     value = null;
                 else
                     value = new NumericValue(stats.getAverage());
-
+                //Compute the center point of our average data
+                long sampleWindowStartTime = intervalStartTime; //averagingValues.get(0).getTime();
+                intervalStartTime = fireTime;
+                fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
                 intervalValue = pointValue;
                 averagingValues.clear();
-                intervalStartTime = fireTime;
             }
             else
                 throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());

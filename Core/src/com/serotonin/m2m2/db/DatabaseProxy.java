@@ -21,7 +21,6 @@ import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -36,13 +35,9 @@ import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.db.dao.logging.LoggingDao;
-import com.serotonin.m2m2.db.dao.logging.LoggingDaoMetrics;
-import com.serotonin.m2m2.db.dao.logging.LoggingDaoSQL;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.console.DatabaseLogAppender;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.DataPointAccess;
 
@@ -351,24 +346,26 @@ abstract public class DatabaseProxy {
 		return noSQLProxy;
 	}
 
-	/**
-	 * Get an instance of the Logging Dao
-	 * 
-	 * @return
-	 */
-	public LoggingDao newLoggingDao() {
-        if (noSQLProxy == null){
-        	if(useMetrics)
-        		return new LoggingDaoMetrics(new LoggingDaoSQL());
-        	else
-        		return new LoggingDaoSQL();
-        }else{
-        	if(useMetrics)
-        		return new LoggingDaoMetrics(noSQLProxy.createLoggingDao());
-        	else
-        		return noSQLProxy.createLoggingDao();
-        }
-	}
+//  TODO: could potentially expose Logging DAO for use in application	
+//  	currently not implemented except for TinyTSDB
+//	/**
+//	 * Get an instance of the Logging Dao
+//	 * 
+//	 * @return
+//	 */
+//	public LoggingDao newLoggingDao() {
+//        if (noSQLProxy == null){
+//        	if(useMetrics)
+//        		return new LoggingDaoMetrics(new LoggingDaoSQL());
+//        	else
+//        		return new LoggingDaoSQL();
+//        }else{
+//        	if(useMetrics)
+//        		return new LoggingDaoMetrics(noSQLProxy.createLoggingDao());
+//        	else
+//        		return noSQLProxy.createLoggingDao();
+//        }
+//	}
     
     
     

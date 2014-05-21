@@ -10,6 +10,9 @@ import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.view.stats.ITime;
 
 /**
+ * 
+ * Nice Clean Way to display Log Events in the UI
+ * 
  * @author Terry Packer
  *
  */

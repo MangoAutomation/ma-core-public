@@ -10,6 +10,8 @@ import org.apache.log4j.spi.LoggingEvent;
 import com.serotonin.m2m2.db.dao.logging.LoggingDao;
 
 /**
+ * Database Appender for Log4j, used in the Log4jDataSource
+ * 
  * TODO This is NOT running Asynchronously!!!!!
  * 
  * @author Terry Packer

@@ -27,15 +27,18 @@
         dojo.byId("purgePeriod").value = vo.purgePeriod;
         dojo.byId("defaultCacheSize").value = vo.defaultCacheSize;
 		
-		 if (vo.pointLocator.dataTypeId == <%= DataTypes.NUMERIC %>){
-			 show("toleranceSection");
-		     show("discardSection");
-		 }else {
-	        $("intervalLoggingType").disabled = true;
-	        $set("intervalLoggingType", <%= DataPointVO.IntervalLoggingTypes.INSTANT %>);
-		 }
-		    changeLoggingType();
-		    changeDiscard();
+		if (vo.pointLocator.dataTypeId == <%= DataTypes.NUMERIC %>){
+		 show("toleranceSection");
+		    show("discardSection");
+		    $("intervalLoggingType").disabled = false;
+		}else {
+		      $("intervalLoggingType").disabled = true;
+		      $set("intervalLoggingType", <%= DataPointVO.IntervalLoggingTypes.INSTANT %>);
+		}
+		changeIntervalLoggingType();
+	    changeLoggingType();
+	    changeDiscard();
+	    
 	 }
 
 	
@@ -102,6 +105,14 @@
           show("intervalLoggingSection");
       else
           hide("intervalLoggingSection");
+  }
+  
+  function changeIntervalLoggingType(){
+      var intervalLoggingType = $get("intervalLoggingType");
+      if(intervalLoggingType == <%= DataPointVO.IntervalLoggingTypes.AVERAGE %>)
+          show("intervalAveragePeriodRow");
+      else
+          hide("intervalAveragePeriodRow");
   }
   
   function changePurgeOverride() {
@@ -171,13 +182,17 @@
         <tr>
           <td class="formLabelRequired"><fmt:message key="pointEdit.logging.valueType"/></td>
           <td class="formField">
-            <sst:select id="intervalLoggingType" name="intervalLoggingType" >
+            <sst:select id="intervalLoggingType" name="intervalLoggingType" onchange="changeIntervalLoggingType()">
               <sst:option value="<%= Integer.toString(DataPointVO.IntervalLoggingTypes.INSTANT) %>"><fmt:message key="pointEdit.logging.valueType.instant"/></sst:option>
               <sst:option value="<%= Integer.toString(DataPointVO.IntervalLoggingTypes.MAXIMUM) %>"><fmt:message key="pointEdit.logging.valueType.maximum"/></sst:option>
               <sst:option value="<%= Integer.toString(DataPointVO.IntervalLoggingTypes.MINIMUM) %>"><fmt:message key="pointEdit.logging.valueType.minimum"/></sst:option>
               <sst:option value="<%= Integer.toString(DataPointVO.IntervalLoggingTypes.AVERAGE) %>"><fmt:message key="pointEdit.logging.valueType.average"/></sst:option>
             </sst:select>
           </td>
+        </tr>
+        <tr id="intervalAveragePeriodRow">
+          <td class="formLabelRequired"><fmt:message key="pointEdit.logging.intervalAveragePeriod"/></td>
+          <td class="formField"><input type="number" id="intervalAveragePeriod" /></td>
         </tr>
     </tbody>
     
