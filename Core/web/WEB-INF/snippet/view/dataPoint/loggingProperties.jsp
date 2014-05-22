@@ -9,13 +9,13 @@
 <script type="text/javascript">
 
 
-	/**
-	 * Set the input values on the page using this vo
-	 */
-	 function setLoggingProperties(vo){
-		
-		dojo.byId("loggingType").value = vo.loggingType;
-		dojo.byId("intervalLoggingPeriod").value = vo.intervalLoggingPeriod;
+    /**
+     * Set the input values on the page using this vo
+     */
+     function setLoggingProperties(vo){
+        
+        dojo.byId("loggingType").value = vo.loggingType;
+        dojo.byId("intervalLoggingPeriod").value = vo.intervalLoggingPeriod;
         dojo.byId("intervalLoggingPeriodType").value = vo.intervalLoggingPeriodType;
         dojo.byId("intervalLoggingType").value = vo.intervalLoggingType;
         dojo.byId("tolerance").value = vo.tolerance;
@@ -26,28 +26,31 @@
         dojo.byId("purgeType").value = vo.purgeType;
         dojo.byId("purgePeriod").value = vo.purgePeriod;
         dojo.byId("defaultCacheSize").value = vo.defaultCacheSize;
-		
-		if (vo.pointLocator.dataTypeId == <%= DataTypes.NUMERIC %>){
-		 show("toleranceSection");
-		    show("discardSection");
-		    $("intervalLoggingType").disabled = false;
-		}else {
-		      $("intervalLoggingType").disabled = true;
-		      $set("intervalLoggingType", <%= DataPointVO.IntervalLoggingTypes.INSTANT %>);
-		}
-		changeIntervalLoggingType();
-	    changeLoggingType();
-	    changeDiscard();
-	    
-	 }
+        $set("overrideIntervalLoggingSamples", vo.overrideIntervalLoggingSamples);
+        dojo.byId("intervalLoggingSampleWindowSize").value = vo.intervalLoggingSampleWindowSize;
+        
+        if (vo.pointLocator.dataTypeId == <%= DataTypes.NUMERIC %>){
+         show("toleranceSection");
+            show("discardSection");
+            $("intervalLoggingType").disabled = false;
+        }else {
+              $("intervalLoggingType").disabled = true;
+              $set("intervalLoggingType", <%= DataPointVO.IntervalLoggingTypes.INSTANT %>);
+        }
+        changeOverrideIntervalLoggingSamples();
+        changeIntervalLoggingType();
+        changeLoggingType();
+        changeDiscard();
+        
+     }
 
-	
-	/*
-	 * Get the values and put into the vo
-	 */
-	function getLoggingProperties(vo){
-		
-		vo.loggingType = dojo.byId("loggingType").value; 
+    
+    /*
+     * Get the values and put into the vo
+     */
+    function getLoggingProperties(vo){
+        
+        vo.loggingType = dojo.byId("loggingType").value; 
         vo.intervalLoggingPeriod = dojo.byId("intervalLoggingPeriod").value;         
         vo.intervalLoggingPeriodType = dojo.byId("intervalLoggingPeriodType").value;
         vo.intervalLoggingType = dojo.byId("intervalLoggingType").value;
@@ -59,10 +62,12 @@
         vo.purgeType = dojo.byId("purgeType").value;
         vo.purgePeriod = dojo.byId("purgePeriod").value;
         vo.defaultCacheSize = dojo.byId("defaultCacheSize").value;
+        vo.overrideIntervalLoggingSamples = $get("overrideIntervalLoggingSamples");
+        vo.intervalLoggingSampleWindowSize = dojo.byId("intervalLoggingSampleWindowSize").value;
         
         //Store the logging properties for later save by module
         DataPointDwr.storeEditLoggingProperties(
-        		vo.loggingType,
+                vo.loggingType,
                 vo.intervalLoggingPeriod,        
                 vo.intervalLoggingPeriodType,
                 vo.intervalLoggingType,
@@ -73,10 +78,13 @@
                 vo.purgeOverride,
                 vo.purgeType,
                 vo.purgePeriod,
-                vo.defaultCacheSize);
+                vo.defaultCacheSize,
+                vo.overrideIntervalLoggingSamples,
+                vo.intervalLoggingSampleWindowSize
+                );
         
         
-	}
+    }
 
   function changeLoggingType() {
       var loggingType = $get("loggingType");
@@ -110,9 +118,17 @@
   function changeIntervalLoggingType(){
       var intervalLoggingType = $get("intervalLoggingType");
       if(intervalLoggingType == <%= DataPointVO.IntervalLoggingTypes.AVERAGE %>)
-          show("intervalAveragePeriodRow");
+          show("overrideIntervalLoggingSamplesRow");
       else
-          hide("intervalAveragePeriodRow");
+          hide("overrideIntervalLoggingSamplesRow");
+  }
+  
+  function changeOverrideIntervalLoggingSamples(change){
+      if(change == true){
+          show("intervalLoggingSamplesRow");
+      }else{
+          hide("intervalLoggingSamplesRow");
+      }
   }
   
   function changePurgeOverride() {
@@ -190,9 +206,13 @@
             </sst:select>
           </td>
         </tr>
-        <tr id="intervalAveragePeriodRow">
-          <td class="formLabelRequired"><fmt:message key="pointEdit.logging.intervalAveragePeriod"/></td>
-          <td class="formField"><input type="number" id="intervalAveragePeriod" /></td>
+        <tr id="overrideIntervalLoggingSamplesRow">
+          <td class="formLabelRequired"><fmt:message key="pointEdit.props.overrideIntervalLoggingSamples"/></td>
+          <td class="formField"><sst:checkbox selectedValue="true" id="overrideIntervalLoggingSamples" onclick="changeOverrideIntervalLoggingSamples();"/></td>
+        </tr>
+        <tr id="intervalLoggingSamplesRow" style="display:hidden">
+          <td class="formLabelRequired"><fmt:message key="pointEdit.props.intervalLoggingSampleWindowSize"/></td>
+          <td class="formField"><input type="number" id="intervalLoggingSampleWindowSize" /></td>
         </tr>
     </tbody>
     
