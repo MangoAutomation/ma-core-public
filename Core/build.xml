@@ -37,10 +37,10 @@
 		<copy todir="${build.dir}/classes" preservelastmodified="true">
 		    <fileset file="classes/*.*"/>
 	    </copy>
-
+		<echo message="Building with Java ${ant.java.version}."/>
 		<javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
 				deprecation="false" optimize="false" failonerror="true" includeantruntime="false"
-			    source="1.6" target="1.6" >
+			    source="1.7" target="1.7" >
             <src path="src"/>
             <classpath refid="master-classpath"/>
 		</javac>
