@@ -347,9 +347,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
             }
             else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE){
                 //Using the averaging values, ensure we keep the most recent values and pop off the old ones
-//                while(averagingValues.size() >= vo.getIntervalLoggingAveragingValuesWindowSize()){ //Size -1 for the next item we are going to add
-//                	averagingValues.remove(0);
-//                }
+            	if(vo.isOverrideIntervalLoggingSamples()){
+	                while(averagingValues.size() >= vo.getIntervalLoggingSampleWindowSize()){ 
+	                	averagingValues.remove(0); //Size -1 for the next item we are going to add
+	                }
+            	}
             	
             	averagingValues.add(pvt);
             }
@@ -368,10 +370,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 intervalValue = pointValue;
             }
             else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
+            	
+            	//We won't allow logging values until we have a full average window
             	//If we don't have enough averaging values then we will bail and wait for more
-//            	if(averagingValues.size() != averagingValuesWindowSize){
-//            		return;
-//            	}
+            	if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
+            		return;
             	
                 IValueTime endValue = intervalValue;
                 if (!averagingValues.isEmpty())
@@ -382,12 +385,19 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                     value = null;
                 else
                     value = new NumericValue(stats.getAverage());
-                //Compute the center point of our average data
-                long sampleWindowStartTime = intervalStartTime; //averagingValues.get(0).getTime();
+                //Compute the center point of our average data, starting by finding where our period started
+                long sampleWindowStartTime;
+                if(vo.isOverrideIntervalLoggingSamples())
+                	sampleWindowStartTime = averagingValues.get(0).getTime();
+                else
+                	sampleWindowStartTime = intervalStartTime; 
+                
                 intervalStartTime = fireTime;
                 fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
                 intervalValue = pointValue;
-                averagingValues.clear();
+                
+                if(!vo.isOverrideIntervalLoggingSamples())
+                	averagingValues.clear();
             }
             else
                 throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());

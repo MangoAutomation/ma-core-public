@@ -7,8 +7,6 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.measure.unit.Unit;
-
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
@@ -306,7 +304,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     public void storeEditLoggingProperties(int type, int period, int periodType,
     		int intervalType, double tolerance, boolean discardExtremeValues, 
     		double discardHighLimit, double discardLowLimit, 
-    		boolean purgeOverride, int purgeType, int purgePeriod, int defaultCacheSize) {
+    		boolean purgeOverride, int purgeType, int purgePeriod, int defaultCacheSize,
+    		boolean overrideIntervalLoggingSamples, int intervalLoggingSampleWindowSize) {
     	
     	DataPointVO dp = Common.getUser().getEditPoint();  
     	if(dp!=null){
@@ -322,6 +321,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		dp.setPurgeType(purgeType);
     		dp.setPurgePeriod(purgePeriod);
     		dp.setDefaultCacheSize(defaultCacheSize);
+    		dp.setOverrideIntervalLoggingSamples(overrideIntervalLoggingSamples);
+    		dp.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
     	}
     	
     }
@@ -370,9 +371,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     		dp.setPurgeOverride(newDp.isPurgeOverride());
     		dp.setPurgeType(newDp.getPurgeType());
     		dp.setPurgePeriod(newDp.getPurgePeriod());
-    		dp.setDefaultCacheSize(dp.getDefaultCacheSize());
+    		dp.setDefaultCacheSize(newDp.getDefaultCacheSize());
+    		dp.setOverrideIntervalLoggingSamples(newDp.isOverrideIntervalLoggingSamples());
+    		dp.setIntervalLoggingSampleWindowSize(newDp.getIntervalLoggingSampleWindowSize());
     		
-    	
     		//Chart Renderer
     		dp.setChartRenderer(newDp.getChartRenderer());
     		
