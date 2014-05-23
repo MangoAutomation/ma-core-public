@@ -56,7 +56,6 @@
    	</target>
     
     <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
-        
     	<mkdir dir="${build.dir}/lib" />
         <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>

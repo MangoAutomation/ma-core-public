@@ -83,7 +83,7 @@
             </else>
         </if>
 		<echo message="Building with Java ${ant.java.version}."/>
-		<javac destdir="target" target="1.7" source="1.7" debug="true" debuglevel="lines,vars,source" 
+		<javac destdir="target" target="7" source="7" debug="true" debuglevel="lines,vars,source" 
                 deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
 			<src path="src" />
 			<classpath refid="module-master-classpath" />
