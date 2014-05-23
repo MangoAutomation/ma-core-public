@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.measure.converter.UnitConverter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -159,9 +160,28 @@ public class ImageChartServlet extends BaseInfoServlet {
                             data = pointValueFacade.getPointValuesBetween(from, to);
 
                         if (dp.getPointLocator().getDataTypeId() == DataTypes.NUMERIC) {
-                            TimeSeries ts = new TimeSeries(dp.getName(), null, dp.getTextRenderer().getMetaText());
-                            for (PointValueTime pv : data)
-                                ImageChartUtils.addMillisecond(ts, pv.getTime(), pv.getValue().numberValue());
+                        	TimeSeries ts;
+                        	if(dp.isUseRenderedUnit()){
+                        		//This works because we enforce that all Units default to the ONE Unit if not used
+                        		UnitConverter converter = null;
+                        		if(dp.getRenderedUnit() != dp.getUnit())
+                        			converter = dp.getUnit().getConverterTo(dp.getRenderedUnit());
+	                            ts = new TimeSeries(dp.getName(), null, dp.getTextRenderer().getMetaText());
+	                            double value;
+	                            for (PointValueTime pv : data){
+	                            	if(converter != null)
+	                            		value = converter.convert(pv.getDoubleValue());
+	                            	else
+	                            		value = pv.getDoubleValue();
+	                                ImageChartUtils.addMillisecond(ts, pv.getTime(), value); //pv.getValue().numberValue());
+	                            }
+                        	}else{
+                        		//No renderer, don't need it
+	                            ts = new TimeSeries(dp.getName(), null, dp.getTextRenderer().getMetaText());
+	                            for (PointValueTime pv : data){
+	                                ImageChartUtils.addMillisecond(ts, pv.getTime(), pv.getValue().numberValue()); //pv.getValue().numberValue());
+	                            }                        		
+                        	}
                             ptsc.addNumericTimeSeries(new NumericTimeSeries(dp.getPlotType(), ts, colour, null));
                         }
                         else {

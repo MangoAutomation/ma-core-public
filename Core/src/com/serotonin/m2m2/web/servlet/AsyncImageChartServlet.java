@@ -39,6 +39,11 @@ import com.serotonin.m2m2.vo.pair.LongPair;
 import com.serotonin.timer.sync.Synchronizer;
 import com.serotonin.util.ColorUtils;
 
+/**
+ * This class is probably buggy
+ * @author Matthew Lohbihler
+ *
+ */
 public class AsyncImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
 
