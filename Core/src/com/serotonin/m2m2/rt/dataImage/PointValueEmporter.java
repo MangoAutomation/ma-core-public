@@ -111,9 +111,15 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	int cellNum = 0;
     	
     	//Data Point XID
-    	DataPointVO dp = DataPointDao.instance.getByXid(rowData.getCell(cellNum++).getStringCellValue());
+    	Cell xidCell = rowData.getCell(cellNum++);
+    	if(xidCell == null)
+    		throw new SpreadsheetException(rowData.getRowNum(), "emport.error.xidRequired");
+    	if((xidCell.getStringCellValue() == null)||(xidCell.getStringCellValue().isEmpty()))
+    		throw new SpreadsheetException("emport.error.xidRequired");
+    	
+    	DataPointVO dp = DataPointDao.instance.getByXid(xidCell.getStringCellValue());
     	if(dp == null){
-        	throw new SpreadsheetException("emport.error.xidRequired");
+        	throw new SpreadsheetException(rowData.getRowNum(), "emport.error.xidRequired");
         }
     	DataPointRT dpRt = Common.runtimeManager.getDataPoint(dp.getId());
     	PointValueTime pvt;
@@ -129,7 +135,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	Date time = rowData.getCell(cellNum++).getDateCellValue();
 
     	// delete/add column
-    	Cell modifyCell = rowData.getCell(8);
+    	Cell modifyCell = rowData.getCell(7);
     	boolean add = false;
     	boolean delete = false;
     	
@@ -139,13 +145,15 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     			delete = true;
     		}else if(modification.equalsIgnoreCase("add")){
     			add = true;
+    		}else{
+    			throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.modifyCellUnknown");
     		}
     	}//end if delete cell exists
 
     	//What do we do with the row
     	if(delete){
             if (time == null) {
-                throw new SpreadsheetException(rowData.getRowNum(), "emport.error.deleteNew", "not timestamp, unable to delete");
+                throw new SpreadsheetException(rowData.getRowNum(), "emport.error.deleteNew", "no timestamp, unable to delete");
             } 
             else {
                 try {

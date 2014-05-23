@@ -661,7 +661,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao{
 	}
 
 	public long deletePointValue(int dataPointId, long ts) {
-		return deletePointValues("delete from pointValues where dataPointId = ? AND ts = ", new Object[]{dataPointId, ts},0, 0);
+		return deletePointValues("delete from pointValues where dataPointId = ? AND ts = ?", new Object[]{dataPointId, ts},0, 0);
 	}
 	
 	
@@ -1168,7 +1168,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao{
                             	PointValueDaoSQL dao = new PointValueDaoSQL();
                             	for(int i=0; i<updatedIds.length; i++){
                             		
-                            		if((params[i][4] != null)||(params[i][6] != null)){
+                            		if((params[i][4] != null)||(params[i][5] != null)){
                             			//Do the update
                             			dao.updatePointValueAnnotation(updatedIds[i], (Integer)params[i][0], (String)params[i][4], (SetPointSource)params[i][5]);
                             		}

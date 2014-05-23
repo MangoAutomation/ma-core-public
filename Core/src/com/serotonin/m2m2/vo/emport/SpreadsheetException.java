@@ -64,7 +64,7 @@ public class SpreadsheetException extends Exception {
         List<TranslatableMessage> rowMessages = new ArrayList<TranslatableMessage>();
         if (rowNum != null) {
             for (TranslatableMessage msg : messages) {
-                rowMessages.add(new TranslatableMessage("delta.util.spreadsheet.rowError", rowNum+1, msg));
+                rowMessages.add(new TranslatableMessage("emport.spreadsheet.rowError", rowNum+1, msg));
             }
         }
         return rowMessages;
