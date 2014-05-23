@@ -43,11 +43,16 @@ import com.serotonin.m2m2.vo.permission.DataPointAccess;
 
 abstract public class DatabaseProxy {
     public enum DatabaseType {
-
         DERBY {
             @Override
             DatabaseProxy getImpl() {
                 return new DerbyProxy();
+            }
+        },
+        H2 {
+            @Override
+            DatabaseProxy getImpl() {
+                return new H2Proxy();
             }
         },
         MSSQL {
@@ -72,9 +77,8 @@ abstract public class DatabaseProxy {
         abstract DatabaseProxy getImpl();
     }
 
-    
     public static DatabaseProxy createDatabaseProxy() {
-        String type = Common.envProps.getString("db.type", "derby");
+        String type = Common.envProps.getString("db.type", "h2");
         DatabaseType dt = DatabaseType.valueOf(type.toUpperCase());
 
         if (dt == null)
@@ -86,13 +90,12 @@ abstract public class DatabaseProxy {
     private final Log log = LogFactory.getLog(DatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
     private Boolean useMetrics;
-    
+
     public void initialize(ClassLoader classLoader) {
         initializeImpl("");
 
+        useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
 
-        useMetrics = Common.envProps.getBoolean("db.useMetrics",false);
-        
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
 
@@ -104,7 +107,7 @@ abstract public class DatabaseProxy {
                     convertTypeStr = Common.envProps.getString("convert.db.type");
                 }
                 catch (MissingResourceException e) {
-                    // no op
+                    convertTypeStr = "";
                 }
 
                 if (!StringUtils.isBlank(convertTypeStr)) {
@@ -158,13 +161,13 @@ abstract public class DatabaseProxy {
             else
                 // The database exists, so let's make its schema version matches the application version.
                 DBUpgrade.checkUpgrade();
-            
+
             // Check if we are using NoSQL
-            if(NoSQLProxyFactory.instance.getProxy() != null){
-            	noSQLProxy = NoSQLProxyFactory.instance.getProxy();
-            	noSQLProxy.initialize();
+            if (NoSQLProxyFactory.instance.getProxy() != null) {
+                noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+                noSQLProxy.initialize();
             }
-            
+
         }
         catch (CannotGetJdbcConnectionException e) {
             log.fatal("Unable to connect to database of type " + getType().name(), e);
@@ -199,21 +202,18 @@ abstract public class DatabaseProxy {
 
         return coreIsNew;
     }
-    
-
-    
 
     abstract public DatabaseType getType();
 
-    public void terminate(){
-    	terminateImpl();
-    	// Check if we are using NoSQL
-        if(NoSQLProxyFactory.instance.getProxy() != null){
-        	noSQLProxy = NoSQLProxyFactory.instance.getProxy();
-        	noSQLProxy.shutdown();
+    public void terminate() {
+        terminateImpl();
+        // Check if we are using NoSQL
+        if (NoSQLProxyFactory.instance.getProxy() != null) {
+            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+            noSQLProxy.shutdown();
         }
     }
-    
+
     abstract public void terminateImpl();
 
     abstract public DataSource getDataSource();
@@ -316,57 +316,50 @@ abstract public class DatabaseProxy {
         String input = Common.envProps.getString(propertyPrefix + "db.password");
         return new DatabaseAccessUtils().decrypt(input);
     }
-    
-    public void setNoSQLProxy(NoSQLProxy proxy){
-    	this.noSQLProxy = proxy;
+
+    public void setNoSQLProxy(NoSQLProxy proxy) {
+        this.noSQLProxy = proxy;
     }
-    
+
     public PointValueDao newPointValueDao() {
- 
-        if (noSQLProxy == null){
-        	if(useMetrics)
-        		return new PointValueDaoMetrics(new PointValueDaoSQL());
-        	else
-        		return new PointValueDaoSQL();
-        }else{
-        	if(useMetrics)
-        		return noSQLProxy.createPointValueDaoMetrics();
-        	else
-        		return noSQLProxy.createPointValueDao();
+        if (noSQLProxy == null) {
+            if (useMetrics)
+                return new PointValueDaoMetrics(new PointValueDaoSQL());
+            return new PointValueDaoSQL();
         }
-        
+
+        if (useMetrics)
+            return noSQLProxy.createPointValueDaoMetrics();
+        return noSQLProxy.createPointValueDao();
     }
 
-	/**
-	 * Allow access to the NoSQL Proxy
-	 * 
-	 * @return
-	 */
-	public NoSQLProxy getNoSQLProxy() {
-		return noSQLProxy;
-	}
+    /**
+     * Allow access to the NoSQL Proxy
+     * 
+     * @return
+     */
+    public NoSQLProxy getNoSQLProxy() {
+        return noSQLProxy;
+    }
 
-//  TODO: could potentially expose Logging DAO for use in application	
-//  	currently not implemented except for TinyTSDB
-//	/**
-//	 * Get an instance of the Logging Dao
-//	 * 
-//	 * @return
-//	 */
-//	public LoggingDao newLoggingDao() {
-//        if (noSQLProxy == null){
-//        	if(useMetrics)
-//        		return new LoggingDaoMetrics(new LoggingDaoSQL());
-//        	else
-//        		return new LoggingDaoSQL();
-//        }else{
-//        	if(useMetrics)
-//        		return new LoggingDaoMetrics(noSQLProxy.createLoggingDao());
-//        	else
-//        		return noSQLProxy.createLoggingDao();
-//        }
-//	}
-    
-    
-    
+    //  TODO: could potentially expose Logging DAO for use in application	
+    //  	currently not implemented except for TinyTSDB
+    //	/**
+    //	 * Get an instance of the Logging Dao
+    //	 * 
+    //	 * @return
+    //	 */
+    //	public LoggingDao newLoggingDao() {
+    //        if (noSQLProxy == null){
+    //        	if(useMetrics)
+    //        		return new LoggingDaoMetrics(new LoggingDaoSQL());
+    //        	else
+    //        		return new LoggingDaoSQL();
+    //        }else{
+    //        	if(useMetrics)
+    //        		return new LoggingDaoMetrics(noSQLProxy.createLoggingDao());
+    //        	else
+    //        		return noSQLProxy.createLoggingDao();
+    //        }
+    //	}
 }
