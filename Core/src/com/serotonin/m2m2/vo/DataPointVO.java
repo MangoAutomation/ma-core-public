@@ -823,16 +823,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
 	public void validate(ProcessResult response) {
 		super.validate(response);
-//		if (StringUtils.isBlank(xid))
-//			response.addContextualMessage("xid", "validate.required");
-//		else if (StringValidation.isLengthGreaterThan(xid, 50))
-//			response.addMessage("xid", new TranslatableMessage(
-//					"validate.notLongerThan", 50));
-//		else if (!new DataPointDao().isXidUnique(xid, id))
-//			response.addContextualMessage("xid", "validate.xidUsed");
-//
-//		if (StringUtils.isBlank(name))
-//			response.addContextualMessage("name", "validate.required");
+		//xid,name in superclass
+		if (StringValidation.isLengthGreaterThan(deviceName, 255))
+            response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 
 		if (!LOGGING_TYPE_CODES.isValidId(loggingType))
 			response.addContextualMessage("loggingType",

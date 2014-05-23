@@ -132,8 +132,8 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
         
         if (StringUtils.isBlank(name))
             response.addContextualMessage("name", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(name, 40))
-            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 40));
+        else if (StringValidation.isLengthGreaterThan(name, 255))
+            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
     }
     
     /**

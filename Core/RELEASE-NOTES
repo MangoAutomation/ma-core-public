@@ -8,6 +8,7 @@
 * Fixed bug where No Change and No Update Event Detectors were showing invalid durations
 * Added checkbox on point details to allow disabling the history view of cached data.
 * Now pre-loading Chart images for Graphical Views to reduce flashing on update.
+* Changed restrictions on Data point name and device name length to 255 characters.
 
 *Version 2.3.0*
 * Added purge now options to all data sources
