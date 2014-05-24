@@ -85,10 +85,12 @@ public class DataPurge {
     }
 
     private void purgePoint(DataPointVO dataPoint) {
-        if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE)
+        if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
+        	log.info("Purging all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
             deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
+        }
         else {
             // Determine the purging properties to use.
             int purgeType;
