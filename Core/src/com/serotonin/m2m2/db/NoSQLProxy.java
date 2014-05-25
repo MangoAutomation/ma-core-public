@@ -20,14 +20,6 @@ abstract public class NoSQLProxy {
     	return new PointValueDaoMetrics(this.createPointValueDao());
     }
     
-	/**
-	 * Create an instance of a LoggingDao
-	 * 
-	 * @return
-	 */
-	public abstract LoggingDao createLoggingDao();
-
-    
     
 	/**
 	 * Helper to get the database directory

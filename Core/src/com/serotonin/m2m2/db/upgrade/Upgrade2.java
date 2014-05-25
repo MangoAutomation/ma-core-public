@@ -13,7 +13,7 @@ public class Upgrade2 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
-
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[0]);
         runScript(scripts);
     }
 

@@ -246,10 +246,9 @@
             </copy>	
 	   	
 	        <copy todir="${build.dir}/db" preservelastmodified="true">
-	            <fileset file="db/createTables-DERBY.sql"/>
-	            <fileset file="db/createTables-MSSQL.sql"/>
-	            <fileset file="db/createTables-MYSQL.sql"/>
-	            <fileset file="db/createTables-POSTGRES.sql"/>
+	            <fileset dir="db" >
+	        	  <include name="**/*.sql"/>
+	            </fileset>
 	        </copy>
 	       
 	   	    <!-- Copy the Scripts into the target -->

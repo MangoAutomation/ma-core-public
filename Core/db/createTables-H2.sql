@@ -208,6 +208,7 @@ CREATE TABLE events (
   PRIMARY KEY (id)
 );
 ALTER TABLE events ADD CONSTRAINT eventsFk1 FOREIGN KEY (ackUserId) REFERENCES users(id);
+CREATE INDEX events_performance1 ON events (`activeTs` ASC);
 
 CREATE TABLE userEvents (
   eventId int NOT NULL,
@@ -217,7 +218,7 @@ CREATE TABLE userEvents (
 );
 ALTER TABLE userEvents ADD CONSTRAINT userEventsFk1 FOREIGN KEY (eventId) REFERENCES events(id) ON DELETE CASCADE;
 ALTER TABLE userEvents ADD CONSTRAINT userEventsFk2 FOREIGN KEY (userId) REFERENCES users(id);
-
+CREATE INDEX userEvents_performance1 ON userEvents (`userId` ASC, `silenced` ASC);
 
 --
 --
