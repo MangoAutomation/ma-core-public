@@ -51,11 +51,20 @@ public class H2Proxy extends DatabaseProxy {
     		
 			this.db = Server.createTcpServer(args);
 	    	this.db.start();
+
 	    	
 	        LOG.info("Initializing H2 connection manager");
 	        JdbcDataSource jds = new JdbcDataSource();
 	        jds.setURL(getUrl(propertyPrefix));
 	        jds.setDescription("maDataSource");
+
+	        String user = Common.envProps.getString(propertyPrefix + "db.username");
+	        if((user != null)&&(!user.isEmpty())){
+		        jds.setUser(user);
+		        String password = Common.envProps.getString(propertyPrefix + "db.password");
+		        jds.setPassword(password);
+	      
+	        }
 	        dataSource = JdbcConnectionPool.create(jds);
 	        dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
 
