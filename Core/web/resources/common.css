@@ -180,7 +180,7 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 .formWarning, .formWarning, .formWarning { padding-left: 10px; }
 
 
-select, input, textarea {
+select, input, textarea, button {
 	color: #333333;
 	border: 1px solid #F07800;
 	padding: 2px;
