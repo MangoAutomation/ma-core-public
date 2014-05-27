@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -25,10 +26,10 @@ public class LoggingConsoleRT {
 
 	public static final LoggingConsoleRT instance = new LoggingConsoleRT();
 	private int historySize = 400; //Max size of history
-	private LinkedList<LogConsoleMessage> console; 
+	private ConcurrentLinkedQueue<LogConsoleMessage> console; 
 	
 	private LoggingConsoleRT(){
-		this.console = new LinkedList<LogConsoleMessage>();
+		this.console = new ConcurrentLinkedQueue<LogConsoleMessage>();
 		//Init with at least 1 message
 		TranslatableMessage m = new TranslatableMessage("startup.startingUp");
 		this.console.add(new LogConsoleMessage(m.translate(Translations.getTranslations()) , System.currentTimeMillis()));
@@ -65,9 +66,9 @@ public class LoggingConsoleRT {
 	 */
 	public void addMessage(String message){
 		while(this.console.size() >= historySize){
-			this.console.removeLast(); //Drop it
+			this.console.poll(); //Drop it
 		}
-		console.push(new LogConsoleMessage(message, System.currentTimeMillis()));
+		console.add(new LogConsoleMessage(message, System.currentTimeMillis()));
 	}
 	
 	/**

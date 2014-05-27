@@ -628,6 +628,32 @@ eventInstances = new StoreView({
         window.location = "eventExport/eventData.xlsx";	
     },
     
+    /**
+     * Acknowledge all events in the view that are unacknowleged
+     */
+    acknowledgeEventsInView: function(){
+        EventInstanceDwr.acknowledgeEvents(function(response){
+            if(response.hasMessages){
+                showDwrMessages(response.messages);
+            }
+            eventInstances.grid.refresh();
+        });
+        
+    },
+
+    /**
+     * Acknowledge all events in the view that are unacknowleged
+     */
+    silenceEventsInView: function(){
+        EventInstanceDwr.silenceEvents(function(response){
+            if(response.hasMessages){
+                showDwrMessages(response.messages);
+            }
+            eventInstances.grid.refresh();
+        });
+        
+    },
+    
     acknowledgeAll: function(){
     	MiscDwr.acknowledgeAllPendingEvents(function(response){
     		eventInstances.grid.refresh();

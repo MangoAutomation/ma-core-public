@@ -17,10 +17,10 @@
 	   </div>
 	    
 	    <div id="ackAllDiv" class="titlePadding" style="padding-left: 10px; float:right;">
-	      <fmt:message key="events.acknowledgeTop100"/>
-	      <tag:img png="tick" onclick="eventInstances.acknowledgeAll();" title="events.acknowledgeAll"/>&nbsp;
-	      <fmt:message key="events.silenceAll"/>
-	      <tag:img png="sound_mute" onclick="silenceAll()" title="events.silenceAll"/><br/>
+	      <fmt:message key="events.acknowledgeAllEventsInView"/>
+	      <tag:img png="tick" onclick="eventInstances.acknowledgeEventsInView();" title="events.acknowledgeAllEventsInView"/>&nbsp;
+	      <fmt:message key="events.silenceAllEventsInView"/>
+	      <tag:img png="sound_mute" onclick="eventInstances.silenceEventsInView()" title="events.silenceAllEventsInView"/><br/>
 	    </div>
 	
 	    <div id="eventDateSelectionDiv" class="titlePadding" style="float:right" ></div>

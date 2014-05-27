@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DojoQueryCallback;
+import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
+import com.serotonin.m2m2.db.dao.ResultSetCounter;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -16,8 +19,8 @@ import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import com.serotonin.m2m2.web.dwr.beans.EventExportDefinition;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
 /**
@@ -93,6 +96,81 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         return null;
     }
 
+    /**
+     * Acknowledge all events from the current User Event Query
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult acknowledgeEvents() {
+        ProcessResult response = new ProcessResult();
+        
+        final User user = Common.getUser();
+        if (user != null) {        
+        	final EventDao eventDao = new EventDao();
+        	final long now = System.currentTimeMillis();
+        	final ResultSetCounter counter = new ResultSetCounter();
+        	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
+            DojoQueryCallback<EventInstanceVO> callback = new DojoQueryCallback<EventInstanceVO>(false) {
+            	
+            	@Override
+                public void row(EventInstanceVO vo, int rowIndex) {
+            		if(!vo.isAcknowledged()){
+            			//If not acknowledged, then do it
+	            		eventDao.ackEvent(vo.getId(), now, user.getId(), null);
+	            		counter.increment();
+            		}
+            		
+                }
+            };
+            
+            EventInstanceDao.instance.exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
 	
+            resetLastAlarmLevelChange();
+            response.addGenericMessage("events.acknowledgedEvents", counter.getCount());
+
+	    }else{
+	    	response.addGenericMessage("events.acknowledgedEvents", 0);
+	    }
+
+        
+        return response;
+    }
+    /**
+     * Silence all events from the current User Event Query
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult silenceEvents() {
+        ProcessResult response = new ProcessResult();
+        
+        final User user = Common.getUser();
+        if (user != null) {        
+        	final EventDao eventDao = new EventDao();
+        	final ResultSetCounter counter = new ResultSetCounter();
+        	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
+            DojoQueryCallback<EventInstanceVO> callback = new DojoQueryCallback<EventInstanceVO>(false) {
+            	
+            	@Override
+                public void row(EventInstanceVO vo, int rowIndex) {
+            		if(!vo.isSilenced()){
+            			//If not silenced then do it.
+	            		eventDao.toggleSilence(vo.getId(), user.getId());
+	            		counter.increment();
+            		}
+            		
+                }
+            };
+            
+            EventInstanceDao.instance.exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
 	
+            resetLastAlarmLevelChange();
+            response.addGenericMessage("events.silencedEvents", counter.getCount());
+
+	    }else{
+	    	response.addGenericMessage("events.silencedEvents", 0);
+	    }
+
+        
+        return response;
+    }
 }
