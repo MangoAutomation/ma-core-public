@@ -9,6 +9,8 @@
 * Added checkbox on point details to allow disabling the history view of cached data.
 * Now pre-loading Chart images for Graphical Views to reduce flashing on update.
 * Changed restrictions on Data point name and device name length to 255 characters.
+* Added H2 as default embedded data base
+* Changed Event Report's Acknowledge All and Silence All to perform the operation on the data contained in the report table
 
 *Version 2.3.0*
 * Added purge now options to all data sources
