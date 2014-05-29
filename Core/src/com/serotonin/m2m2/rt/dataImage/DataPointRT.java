@@ -320,8 +320,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
     private void terminateIntervalLogging() {
         synchronized (intervalLoggingLock) {
-            if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
-                return;
+        	//Always check because we may have been an interval logging point and we need to stop this.
             if(intervalLoggingTask != null) //Bug from UI where we are switching types of a running point
             	intervalLoggingTask.cancel();
         }
