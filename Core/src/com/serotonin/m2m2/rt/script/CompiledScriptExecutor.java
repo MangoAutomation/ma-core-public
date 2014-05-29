@@ -40,6 +40,7 @@ public class CompiledScriptExecutor {
     private static final String SCRIPT_SUFFIX = "\r\n}\r\n__scriptExecutor__();";
     private static ScriptEngine ENGINE;
 
+    @Deprecated //Use convertScriptContext Instead
     public static Map<String, IDataPointValueSource> convertContext(List<IntStringPair> context)
             throws DataPointStateException {
         Map<String, IDataPointValueSource> converted = new HashMap<String, IDataPointValueSource>();
@@ -54,6 +55,25 @@ public class CompiledScriptExecutor {
         return converted;
     }
 
+    /**
+     * @param context
+     * @return
+     * @throws DataPointStateException
+     */
+    public static Map<String, IDataPointValueSource> convertScriptContext(List<ScriptContextVariable> context)
+            throws DataPointStateException {
+        Map<String, IDataPointValueSource> converted = new HashMap<String, IDataPointValueSource>();
+        for (ScriptContextVariable contextEntry : context) {
+            DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getDataPointId());
+            if (point == null)
+                throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
+                        "event.meta.pointMissing"));
+            converted.put(contextEntry.getVariableName(), point);
+        }
+
+        return converted;
+    }
+    
     public static CompiledScript compile(String script) throws ScriptException {
         script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
         ensureInit();

@@ -208,6 +208,7 @@
     </convert>
     
     <convert converter="bean" match="com.serotonin.m2m2.rt.console.LogEvent" />
+    <convert converter="bean" match="com.serotonin.m2m2.rt.script.ScriptContextVariable" />
     
   </allow>
 </dwr>
