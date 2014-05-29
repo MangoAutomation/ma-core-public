@@ -149,10 +149,17 @@ public class ScriptContextVariable implements Serializable{
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
 
                 String var = jo.getString("variableName");
-                if (var == null)
-                    throw new TranslatableJsonException("emport.error.meta.missing", "variableName");
+                if (var == null){
+                	var = jo.getString("varName");
+                	if(var == null)
+                		 throw new TranslatableJsonException("emport.error.meta.missing", "variableName");
+                }
+                   
                 
-                boolean isContextUpdate = jo.getBoolean("updateContext");
+                String isContextUpdateString = jo.getString("updateContext");
+                boolean isContextUpdate = true;
+                if(isContextUpdateString != null)
+                	isContextUpdate = Boolean.parseBoolean(isContextUpdateString);
 
                 context.add(new ScriptContextVariable(dp.getId(), var, isContextUpdate));
             }

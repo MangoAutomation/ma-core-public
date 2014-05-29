@@ -123,8 +123,8 @@
           hide("overrideIntervalLoggingSamplesRow");
   }
   
-  function changeOverrideIntervalLoggingSamples(change){
-      if(change == true){
+  function changeOverrideIntervalLoggingSamples(){
+      if($get('overrideIntervalLoggingSamples') == true){
           show("intervalLoggingSamplesRow");
       }else{
           hide("intervalLoggingSamplesRow");

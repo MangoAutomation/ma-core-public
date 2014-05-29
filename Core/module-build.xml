@@ -250,6 +250,15 @@
             <fileset dir="target"><include name="work/**/*" /></fileset>
             <fileset dir="target" ><include name="src/**/*" /></fileset>
             <fileset dir="target" ><include name="bin/**/*" /></fileset>
+        	
+            <mappedresources>
+             <fileset refid="maven-deps-runtime" />
+             <chainedmapper>
+               <flattenmapper/>
+               <globmapper from="*.jar" to="lib/*.jar" />
+             </chainedmapper>
+            </mappedresources>
+        	
         </zip>
     </target>
     
