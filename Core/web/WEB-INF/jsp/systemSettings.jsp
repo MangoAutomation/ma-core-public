@@ -361,15 +361,7 @@
         setDisabled("infoBtn", true);
     }
     
-    function checkPurgeNow() {
-        if (confirm("<fmt:message key="systemSettings.purgeDataWithPointSettingsConfirm"/>")) {
-            SystemSettingsDwr.purgeNow(function(msg) {
-                stopImageFader("purgeNowImg");
-                dbSizeUpdate();
-            });
-            startImageFader("purgeNowImg");
-        }
-    }
+
    
     
     function saveLangSettings() {
@@ -381,10 +373,30 @@
         setDisabled("saveLangSettingsBtn", true);
     }
     
-    function checkPurgeAllData() {
+    function checkPurgeNow() {
+        if (confirm("<fmt:message key='systemSettings.purgeDataWithPurgeSettingsConfirm'/>")) {
+            SystemSettingsDwr.purgeNow(function(msg) {
+                stopImageFader("purgeNowImg");
+                dbSizeUpdate();
+            });
+            startImageFader("purgeNowImg");
+        }
+    }
+    
+    function checkPurgeAllPointValuesNow() {
         if (confirm("<fmt:message key="systemSettings.purgeDataConfirm"/>")) {
             setUserMessage("miscMessage", "<fmt:message key="systemSettings.purgeDataInProgress"/>");
             SystemSettingsDwr.purgeAllData(function(msg) {
+                setUserMessage("miscMessage", msg);
+                dbSizeUpdate();
+            });
+        }
+    }
+    
+    function checkPurgeAllEventsNow(){
+        if (confirm("<fmt:message key='systemSettings.purgeAllEventsConfirm'/>")) {
+            setUserMessage("miscMessage", "<fmt:message key='systemSettings.purgeAllEventsInProgress'/>");
+            SystemSettingsDwr.purgeAllEvents(function(msg) {
                 setUserMessage("miscMessage", msg);
                 dbSizeUpdate();
             });
@@ -746,7 +758,8 @@
       <tr>
         <td colspan="2" align="center">
           <input id="saveMiscSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveMiscSettings()"/>
-          <input type="button" value="<fmt:message key="systemSettings.purgeData"/>" onclick="checkPurgeAllData()"/>
+          <input type="button" value="<fmt:message key="systemSettings.purgeData"/>" onclick="checkPurgeAllPointValuesNow()"/>
+          <input type="button" value='<fmt:message key="systemSettings.purgeAllEvents"/>' onclick="checkPurgeAllEventsNow();"/>
           <input type="button" value='<fmt:message key="systemSettings.purgeNow"/>' onclick="checkPurgeNow();"/>
           <tag:help id="otherSettings"/>
         </td>

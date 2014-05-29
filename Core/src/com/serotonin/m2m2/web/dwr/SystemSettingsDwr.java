@@ -396,6 +396,12 @@ public class SystemSettingsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
+    public TranslatableMessage purgeAllEvents() {
+        long cnt = new EventDao().purgeEventsBefore(System.currentTimeMillis());
+        return new TranslatableMessage("systemSettings.purgeAllEventsComplete", cnt);
+    }
+    
+    @DwrPermission(admin = true)
     public void saveSettings(Map<String, String> settings) {
         SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
 
