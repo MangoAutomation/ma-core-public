@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +19,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -33,57 +31,15 @@ public class H2Proxy extends DatabaseProxy {
     private static final Log LOG = LogFactory.getLog(H2Proxy.class);
 
     private JdbcConnectionPool dataSource;
-    private Server db;
-    private Server web; //web UI
 
     @Override
     protected void initializeImpl(String propertyPrefix) {
-    	LOG.info("Starting H2 Database");
-    	try {
-    		String port = Common.envProps.getString(propertyPrefix + "db.port");
-    		String location = StringUtils.replaceMacros(Common.envProps.getString(propertyPrefix + "db.location"), System.getProperties());
-    		
-    		String args[] = new String[4];
-    		args[0] = "-tcpPort";
-    		args[1] = port;
-    		args[2] = "-baseDir";
-    		args[3] = location;
-    		
-			this.db = Server.createTcpServer(args);
-	    	this.db.start();
-
-	    	
-	        LOG.info("Initializing H2 connection manager");
-	        JdbcDataSource jds = new JdbcDataSource();
-	        jds.setURL(getUrl(propertyPrefix));
-	        jds.setDescription("maDataSource");
-
-	        String user = Common.envProps.getString(propertyPrefix + "db.username");
-	        if((user != null)&&(!user.isEmpty())){
-		        jds.setUser(user);
-		        String password = Common.envProps.getString(propertyPrefix + "db.password");
-		        jds.setPassword(password);
-	      
-	        }
-	        dataSource = JdbcConnectionPool.create(jds);
-	        dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
-
-	    	if(Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)){
-	    		LOG.info("Initializing H2 web server");
-	    		String webArgs[] = new String[4];
-	    		webArgs[0] = "-webPort";
-	    		webArgs[1] = Common.envProps.getString(propertyPrefix + "db.web.port");
-	    		webArgs[2] = "-ifExists";
-	    		webArgs[3] = "-webAllowOthers";
-	    		this.web = Server.createWebServer(webArgs);
-	    		this.web.start();
-	    	}
-	    	
-		} catch (SQLException e) {
-			LOG.error(e);
-		}
-
-    	
+        LOG.info("Initializing H2 connection manager");
+        JdbcDataSource jds = new JdbcDataSource();
+        jds.setURL(getUrl(propertyPrefix));
+        jds.setDescription("maDataSource");
+        dataSource = JdbcConnectionPool.create(jds);
+        dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
     }
 
     private String getUrl(String propertyPrefix) {
@@ -216,19 +172,6 @@ public class H2Proxy extends DatabaseProxy {
     public void terminateImpl() {
         if (dataSource != null)
             dataSource.dispose();
-        if(db != null){
-        	if(db.isRunning(true)){
-        		db.stop();
-        		db.shutdown();
-        	}
-        }
-
-        if(web != null){
-        	if(web.isRunning(true)){
-        		web.stop();
-        		web.shutdown();
-        	}
-        }
     }
 
     @Override
