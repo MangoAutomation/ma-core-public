@@ -122,4 +122,40 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
                 throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");
         }
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + recipientType;
+		result = prime
+				* result
+				+ ((referenceAddress == null) ? 0 : referenceAddress.hashCode());
+		result = prime * result + referenceId;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RecipientListEntryBean other = (RecipientListEntryBean) obj;
+		if (recipientType != other.recipientType)
+			return false;
+		if (referenceAddress == null) {
+			if (other.referenceAddress != null)
+				return false;
+		} else if (!referenceAddress.equals(other.referenceAddress))
+			return false;
+		if (referenceId != other.referenceId)
+			return false;
+		return true;
+	}
+    
+    
+    
 }
