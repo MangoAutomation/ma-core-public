@@ -90,14 +90,18 @@ public class DataSourceEditController extends ParameterizableViewController {
         user.setEditDataSource(dataSourceVO);
 
         // Create the model.
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
 
         // The data source
-        model.put("dataSource", dataSourceVO);
-        model.put("modulePath", dataSourceVO.getDefinition().getModule().getWebPath());
+        if (dataSourceVO != null) {
+            model.put("dataSource", dataSourceVO);
+            model.put("modulePath", dataSourceVO.getDefinition().getModule().getWebPath());
+            dataSourceVO.addEditContext(model);
+        }
 
         // Reference data
         try {
+            // TODO can be moved to the addEditData method in data sources that need comm ports.
             model.put("commPorts", Common.getCommPorts());
         }
         catch (CommPortConfigException e) {
@@ -105,8 +109,8 @@ public class DataSourceEditController extends ParameterizableViewController {
         }
 
         List<DataPointVO> allPoints = new DataPointDao().getDataPoints(DataPointExtendedNameComparator.instance, false);
-        List<DataPointVO> userPoints = new LinkedList<DataPointVO>();
-        List<DataPointVO> analogPoints = new LinkedList<DataPointVO>();
+        List<DataPointVO> userPoints = new LinkedList<>();
+        List<DataPointVO> analogPoints = new LinkedList<>();
         for (DataPointVO dp : allPoints) {
             if (Permissions.hasDataPointReadPermission(user, dp)) {
                 userPoints.add(dp);
@@ -114,7 +118,9 @@ public class DataSourceEditController extends ParameterizableViewController {
                     analogPoints.add(dp);
             }
         }
+        // TODO probably be moved to the addEditData method in data sources that need comm ports.
         model.put("userPoints", userPoints);
+        // TODO probably be moved to the addEditData method in data sources that need comm ports.
         model.put("analogPoints", analogPoints);
 
         return new ModelAndView(getViewName(), model);
