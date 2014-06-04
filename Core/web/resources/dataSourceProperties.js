@@ -1,10 +1,7 @@
-//# sourceURL=/resources/dataSourceProperties_ajaxLoaded.js
 /*
  * Copyright (C) 2013 Infinite Automation. All rights reserved.
  * @author Terry Packer
  */
-//Ensure Debugger loads the js file on browser
-
  //TODO Make new AMD format
  dojo.require("dijit.Dialog");
  dojo.require("dijit.form.Form");
@@ -609,4 +606,4 @@ function deletePoint() {
  		}else{
  			show("pointTableDiv"); //Show the hidden table
  		}
- 	}
+ 	}//# sourceURL=/resources/dataSourceProperties_ajaxLoaded.js
