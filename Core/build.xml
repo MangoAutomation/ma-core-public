@@ -42,7 +42,7 @@
 		<!-- Place the build number into the build -->
 		<buildnumber file="${mango.build.number}"/>
         <copy todir="${build.dir}/classes" preservelastmodified="true">
-            <fileset file="mango.build.number"/>
+            <fileset file="${mango.build.number}"/>
         </copy>
 		
 		
