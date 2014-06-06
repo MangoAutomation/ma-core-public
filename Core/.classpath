@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry kind="lib" path="target/classes"/>
 	<classpathentry kind="lib" path="target/overrides/properties"/>
+	<classpathentry kind="lib" path="lib/ma-priv-1.1.7.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-test"/>
 	<classpathentry kind="src" path="src-patch"/>
@@ -36,7 +37,6 @@
 	<classpathentry kind="lib" path="lib-opt/ant-contrib-1.0b3.jar"/>
 	<classpathentry kind="lib" path="lib/ant-1.6.5.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-9.2-1002.jdbc4.jar"/>
-	<classpathentry kind="lib" path="lib/ma-priv-1.1.6.jar"/>
 	<classpathentry kind="lib" path="lib/h2-1.3.171.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/M2M2 Core"/>
 	<classpathentry kind="con" path="DERBY_CONTAINER"/>
