@@ -1,3 +1,20 @@
+*Version 2.4.0*
+* Slight improvements to the UI table auto formatting
+* Added Database storage for Logs
+* Added NoSQL access for log storage
+* Added new InfiniteTable javascript table for general use
+* Fixing UrlSecurity filter code and filter order to allow Anonymous access to pages
+* Removing database row ID from excel export and data import to comply with NoSQL standards
+* Fixed bug where No Change and No Update Event Detectors were showing invalid durations
+* Added checkbox on point details to allow disabling the history view of cached data.
+* Now pre-loading Chart images for Graphical Views to reduce flashing on update.
+* Changed restrictions on Data point name and device name length to 255 characters.
+* Added H2 as default embedded data base
+* Changed Event Report's Acknowledge All and Silence All to perform the operation on the data contained in the report table
+* Removed Http Proxy and SMTP passwords from system settings export, if required to import use: emailSmtpPassword and httpClientProxyPassword for the json keys
+* Added ability to purge all events from system settings page
+* Cleaned up purge buttons to be more informative on system settings page
+
 *Version 2.3.0*
 * Added purge now options to all data sources
 * Added some helpful features for developers to use the NoSQL Proxy for Database Type Modules

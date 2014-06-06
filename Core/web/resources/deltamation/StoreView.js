@@ -3,11 +3,11 @@
  * @author Jared Wiltshire
  */
 
-define(["dojo/_base/declare", "dgrid/OnDemandGrid", "dgrid/extensions/ColumnResizer",
+define(["dojo/_base/declare", "dgrid/OnDemandGrid", "dgrid/extensions/ColumnResizer", "dgrid/extensions/DijitRegistry",
          "dijit/form/FilteringSelect", "dijit/form/Button", "dijit/form/ValidationTextBox",
          "dojo/dom-style", "dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
          "dijit/Dialog", "dojo/_base/lang", "dojo/_base/fx", "dojo/fx"],
-function(declare, OnDemandGrid, ColumnResizer,
+function(declare, OnDemandGrid, ColumnResizer, DijitRegistry,
         FilteringSelect, Button, ValidationTextBox,
         domStyle, html, put, when, on, Dialog, lang, baseFx, coreFx) {
 
@@ -85,7 +85,7 @@ return declare("deltamation.StoreView", null, {
         
         
         
-        this.grid = dojo.declare([OnDemandGrid, ColumnResizer])({
+        this.grid = dojo.declare([OnDemandGrid, ColumnResizer, DijitRegistry])({
         	adjustLastColumn: false, /* Don't expand last row to fill */
         	minWidth: 40, /* min width of adjustable columns */
             store: _this.viewStore.cache,

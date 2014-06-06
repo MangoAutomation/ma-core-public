@@ -51,11 +51,26 @@ mango.view.setMessages = function(state) {
             hide(warningNode);
     }
 };
-
+dojo.require("dojox.image");
 mango.view.setContent = function(state) {
     if (state.content != null) {
     	var comp = $("c"+ state.id +"Content");
-    	comp.innerHTML = state.content;
+    	
+    	//setTimeout(function(){comp.innerHTML = state.content;}, 500); //This will depend on network latency
+    	var img = dojo.toDom(state.content);
+    	if(img.nodeName.toLowerCase() == 'img'){
+        	//pre-load image
+            dojox.image.preload([img.src]);
+            //Set to refresh the component after the image has been cached
+            img.onload = function(){
+                comp.innerHTML = state.content;
+            };
+            
+        }else{
+            comp.innerHTML = state.content; //If not an image, Do it now
+        }
+
+    	
         var dyn = $("dyn"+ state.id);
         if (dyn) {
             eval("var data = "+ dyn.value);

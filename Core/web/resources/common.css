@@ -178,7 +178,9 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 .formField { padding: 2px; color: #333333; }
 .formError, .formWarning { color: #FF0000; }
 .formWarning, .formWarning, .formWarning { padding-left: 10px; }
-select, input, textarea {
+
+
+select, input, textarea, button {
 	color: #333333;
 	border: 1px solid #F07800;
 	padding: 2px;
@@ -199,6 +201,9 @@ input[type="checkbox"], input[type="radio"] {
 }
 .formVeryLong {
 	width: 500px;
+}
+.formFullLength {
+	width: 100%;
 }
 .formDisabled {
 	border: 1px solid #D0D0D0;

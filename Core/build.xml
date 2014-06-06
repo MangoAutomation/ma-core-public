@@ -7,6 +7,8 @@
     <property name="fullName" value="m2m2-${name}-${version}" />
 	<property name="build.dir" value="target"/>
 	<property name="depoloy.core.paths" value="release" />
+	<!-- Build number file to allow overidding for Release Builds -->
+	<property name="mango.build.number" value="mango.build.number"/>
 	
 	<path id="master-classpath">
 		<fileset dir="lib">
@@ -37,10 +39,17 @@
 		<copy todir="${build.dir}/classes" preservelastmodified="true">
 		    <fileset file="classes/*.*"/>
 	    </copy>
-
+		<!-- Place the build number into the build -->
+		<buildnumber file="${mango.build.number}"/>
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset file="mango.build.number"/>
+        </copy>
+		
+		
+		<echo message="Building with Java ${ant.java.version}."/>
 		<javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
 				deprecation="false" optimize="false" failonerror="true" includeantruntime="false"
-			    source="1.6" target="1.6" >
+			    source="1.7" target="1.7" >
             <src path="src"/>
             <classpath refid="master-classpath"/>
 		</javac>
@@ -56,10 +65,10 @@
    	</target>
     
     <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
-        
     	<mkdir dir="${build.dir}/lib" />
         <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
+        	<fileset file="${build.dir}/classes/mango.build.number"></fileset>
         </jar>
     	
         <delete dir="${build.dir}/classes"/>
@@ -73,11 +82,10 @@
         </copy>
         <delete dir="${build.dir}/patches"/>
         <copy todir="${build.dir}/db" preservelastmodified="true">
-            <fileset file="db/createTables-DERBY.sql"/>
-            <fileset file="db/createTables-MSSQL.sql"/>
-            <fileset file="db/createTables-MYSQL.sql"/>
-            <fileset file="db/createTables-POSTGRES.sql"/>
-            </copy>
+	        <fileset dir="db" >
+	    	    <include name="**/*.sql"/>
+	        </fileset>
+	    </copy>
         <copy todir="${build.dir}/ftl" preservelastmodified="true">
             <fileset dir="ftl"><include name="**/*.*"/></fileset>
         </copy>
@@ -160,18 +168,22 @@
         <delete>
             <fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
         </delete>
-        
-       	<for list="${deploy.core.paths}" param="corePath" delimiter=",">
-            <zip destfile="@{corePath}/${fullName}.zip">
-                <fileset dir="">
-                    <include name="RELEASE-NOTES" />
-                    <include name="licenseTypes.xml" />
-                </fileset>
-                <fileset dir="${build.dir}">
-                    <include name="**/*"/>
-                </fileset>
-             </zip>
-        </for>
+   	
+        <foreach list="${deploy.core.paths}" target="|deploy" param="deploy.path" delimiter=",">
+   	        <param name="deploy.file" value="${fullName}.zip" />
+   	    </foreach>
+   </target>
+	
+    <target name="|deploy" >
+    	<zip destfile="${deploy.path}/${deploy.file}">
+            <fileset dir="">
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+            </fileset>
+            <fileset dir="${build.dir}">
+                <include name="**/*"/>
+            </fileset>
+    	</zip>
     </target>
 	
 	<target name="docs">
@@ -194,11 +206,10 @@
             <fileset dir="classes"><include name="**/*.*"/></fileset>
         </copy>
         <copy todir="${build.dir}/db" preservelastmodified="true">
-            <fileset file="db/createTables-DERBY.sql"/>
-            <fileset file="db/createTables-MSSQL.sql"/>
-            <fileset file="db/createTables-MYSQL.sql"/>
-            <fileset file="db/createTables-POSTGRES.sql"/>
-            </copy>
+	        <fileset dir="db" >
+	    	    <include name="**/*.sql"/>
+	        </fileset>
+	    </copy>
         <copy todir="${build.dir}/ftl" preservelastmodified="true">
             <fileset dir="ftl"><include name="**/*.*"/></fileset>
         </copy>
@@ -228,20 +239,25 @@
         <mkdir dir="${build.dir}/lib" />
         <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
+            <fileset file="${build.dir}/classes/mango.build.number"></fileset>
         </jar>
 
     </target>
 	
 	   <target name="dev-build" depends="dev-jar" description="Merge Changes from Core Project into target during development">
-
+	   	
 	   	    <copy todir="${build.dir}/classes" preservelastmodified="true">
 	   	            <fileset dir="classes"><include name="**/*.*"/></fileset>
 	   	    </copy>
+	   	
+            <copy todir="${build.dir}/overrides" preservelastmodified="true">
+                    <fileset dir="overrides"><include name="**/*.*"/></fileset>
+            </copy>	
+	   	
 	        <copy todir="${build.dir}/db" preservelastmodified="true">
-	            <fileset file="db/createTables-DERBY.sql"/>
-	            <fileset file="db/createTables-MSSQL.sql"/>
-	            <fileset file="db/createTables-MYSQL.sql"/>
-	            <fileset file="db/createTables-POSTGRES.sql"/>
+	            <fileset dir="db" >
+	        	  <include name="**/*.sql"/>
+	            </fileset>
 	        </copy>
 	       
 	   	    <!-- Copy the Scripts into the target -->

@@ -74,6 +74,7 @@ public class UsersDwr extends BaseDwr {
                     dp = new HashMap<String, Object>();
                     dp.put("id", dpvo.getId());
                     dp.put("name", dpvo.getName());
+                    dp.put("deviceName", dpvo.getDeviceName());
                     dp.put("settable", dpvo.getPointLocator().isSettable());
                     points.add(dp);
                 }

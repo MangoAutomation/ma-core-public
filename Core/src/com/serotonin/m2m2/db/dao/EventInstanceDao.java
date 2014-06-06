@@ -20,11 +20,9 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
-import com.serotonin.m2m2.db.dao.EventDao.UserEventInstanceRowMapper;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -136,7 +134,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
          * 			-1)
          *  )
          */
-		if((Common.databaseProxy.getType() == DatabaseType.MYSQL)||(Common.databaseProxy.getType() == DatabaseType.MYSQL))
+		if((Common.databaseProxy.getType() == DatabaseType.MYSQL)||(Common.databaseProxy.getType() == DatabaseType.MSSQL)||(Common.databaseProxy.getType() == DatabaseType.H2))
 			map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
 		else if(Common.databaseProxy.getType() == DatabaseType.DERBY)
 			map.put("totalTimeString",   "CASE WHEN evt.rtnTs IS NULL THEN "

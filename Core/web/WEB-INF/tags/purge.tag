@@ -15,7 +15,8 @@
   
   function dsPurgeNow() {
       var all = $get("dsPurgeNowAll");
-      if (all && !confirm("<fmt:message key='dsEdit.purge.confirm'/>"))
+      
+      if (!confirm("<fmt:message key='dsEdit.purge.confirm'/>"))
           return;
   
       setDisabled("dsPurgeNowBtn", true);

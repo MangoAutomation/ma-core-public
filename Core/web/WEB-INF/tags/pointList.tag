@@ -29,15 +29,15 @@
         <table>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>
-            <td class="formField"><input id="deviceName"/></td>
+            <td class="formField"><input id="deviceName" /></td>
           </tr>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.points.name"/></td>
-            <td class="formField"><input type="text" id="name"/></td>
+            <td class="formField"><input type="text" id="name" /></td>
           </tr>
           <tr>
             <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-            <td class="formField"><input type="text" id="xid"/></td>
+            <td class="formField"><input type="text" id="xid" /></td>
           </tr>
           
           <jsp:doBody/>

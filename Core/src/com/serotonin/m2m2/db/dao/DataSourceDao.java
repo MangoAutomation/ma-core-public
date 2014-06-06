@@ -519,8 +519,10 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 			                // thrown. Check the inner exception to confirm.
 			                if (e.getCause() instanceof ObjectStreamException) {
 			                    // Yep. Log the occurrence and continue.
-		                        LOG.error("Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
-		                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
+			                	String desc = "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
+                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?";
+		                        LOG.error(desc, e);
+		                        throw new ShouldNeverHappenException(desc);
 			           }
 			        }
 				}

@@ -6,12 +6,16 @@
  <property file="${coreHome}/build.properties" />
  <!-- default to have all git repos in same location -->
  <property name="modules.public.path" value="../.." />
+ <property name="modules.private.path" value="../.." />
+ 
 
 
 
  <!-- 
     This target requires:
+    - the ${build.dir} that will force a core build into as the target and the modules will use for building against
     - the ${modules.public.path} set to where the public modules are located
+    - the ${modules.private.path} set to where the private modules are located
     - the ${depoloy.core.path} set to where the core release hierarchy should begin
   -->
  <target name="release-full" description="Deploy Release with specified public modules into ${deploy.core.paths}/${core-version}" >
@@ -26,20 +30,45 @@
     </subant>
 
 
-    <!-- Compile the modules into the core -->
-   	<property name="modules" value="ASCII File Data Source,Crowd,EnvCan Data Source,Graphical views,Internal Data Source,JSP Views,Log4J reset,Maintenance Events,Point Data Import,PointLinks,Reports,Scheduled Events,Serial Data Source,SQL console,SST Graphics,SST Theme,Virtual Data Source,VMStat data source,Watchlist"/>
-    <for list="${modules}" param="moduleName" delimiter=",">
+    <!-- Compile the public modules into the core -->
+   	<property name="public-modules" value="ASCII File Data Source,Graphical views,Internal Data Source,JSP Views,Log4J reset,Maintenance Events,Point Data Import,PointLinks,Reports,Scheduled Events,Serial Data Source,SQL console,SST Graphics,SST Theme,Virtual Data Source,VMStat data source,Watchlist"/>
+    <for list="${public-modules}" param="moduleName" delimiter=",">
         <sequential>
             <subant target="deploy">
+                <property name="core.target" value="${build.dir}"/>
                 <fileset dir="${modules.public.path}/@{moduleName}" includes="build.xml"/>
+            </subant>
+        </sequential>
+    </for>
+    
+    
+    <property name="private-modules" value="BACnet,Data File Data Source,DGLux,DNP3,Galil Data Source,HTTP,JMX Data Source,LoggingConsole,MBus,Meta Data Source,Modbus,ModbusPublisher,OneWire,OPC DA,OpenV,Pachube,Persistent TCP,POP3,Scripting,SNMP,SQL Data Source,SST Global Scripts,TemplateConfiguration,Twilio"/>
+    <for list="${private-modules}" param="moduleName" delimiter=",">
+        <sequential>
+            <subant target="deploy">
+                <property name="core.target" value="${build.dir}"/>
+                <fileset dir="${modules.private.path}/@{moduleName}" includes="build.xml"/>
             </subant>
         </sequential>
     </for>
 
 
     <subant target="public-release">
-        <property name="deploy.core.paths" value="${deploy.core.path}/${version}/{TODAY}" />
+        <property name="deploy.core.paths" value="${deploy.core.path}/${version}/${TODAY}" />
         <fileset dir="${coreHome}" includes="build.xml"/>
+    </subant>
+
+
+    <!-- now using the build target we will build all of the modules -->
+    <subant target="deploy-all-somewhere">
+        <property name="core.target" value="${build.dir}" />
+        <property name="deploy.modules.path" value="${deploy.core.path}/${version}/${TODAY}"/>
+        <fileset dir="${modules.private.path}" includes="build.xml"/>
+    </subant>
+    <subant target="deploy-all-somewhere">
+        <property name="core.target" value="${build.dir}" />
+        <property name="deploy.modules.path" value="${deploy.core.path}/${version}/${TODAY}"/>
+        <fileset dir="${modules.public.path}" includes="build.xml"/>
     </subant>
 
 

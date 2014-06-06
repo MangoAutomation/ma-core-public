@@ -39,7 +39,7 @@ public class SystemSettingsVO implements JsonSerializable{
 	private String emailFromAddress;
 	@JsonProperty
 	private String emailSmtpUsername;
-	@JsonProperty
+	//Not exporting, only importing
 	private String emailSmtpPassword;
 	@JsonProperty
 	private String emailFromName;
@@ -110,7 +110,7 @@ public class SystemSettingsVO implements JsonSerializable{
 	private Integer httpClientProxyPort;
 	@JsonProperty
 	private String httpClientProxyUsername;
-	@JsonProperty
+	//Not exporting, only importing
 	private String httpClientProxyPassword;
 
 	@JsonProperty
@@ -273,7 +273,8 @@ public class SystemSettingsVO implements JsonSerializable{
 	 */
 	@Override
 	public void jsonRead(JsonReader reader, JsonObject json) throws JsonException {
-		
+		this.emailSmtpPassword = json.getString("emailSmtpPassword");
+		this.httpClientProxyPassword = json.getString("httpClientProxyPassword");
 	}
 
 	/* (non-Javadoc)
@@ -281,7 +282,8 @@ public class SystemSettingsVO implements JsonSerializable{
 	 */
 	@Override
 	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-				
+//		writer.writeEntry("emailSmtpPassword", ""); //Intentionally left blank
+//		writer.writeEntry("httpClientProxyPassword", ""); //Intentionally left blank
 	}
 	
 

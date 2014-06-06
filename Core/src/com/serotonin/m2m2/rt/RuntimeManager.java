@@ -501,8 +501,14 @@ public class RuntimeManager {
         return count;
     }
     
-    public long purgeDataPointValue(int pointValueId,int dataPointId){
-    	long count = Common.databaseProxy.newPointValueDao().deletePointValue(pointValueId);
+    /**
+     * Purge a value at a given time
+     * @param dataPointId
+     * @param ts
+     * @return
+     */
+    public long purgeDataPointValue(int dataPointId, long ts){
+    	long count = Common.databaseProxy.newPointValueDao().deletePointValue(dataPointId, ts);
     	if(count > 0)
     		updateDataPointValuesRT(dataPointId);
     	return count;

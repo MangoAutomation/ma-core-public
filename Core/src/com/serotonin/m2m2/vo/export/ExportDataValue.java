@@ -13,7 +13,6 @@ import com.serotonin.m2m2.view.stats.IValueTime;
  */
 public class ExportDataValue implements IValueTime {
     private int reportPointId;
-    private long pointValueId;
     private DataValue value;
     private long time;
     private TranslatableMessage annotation;
@@ -59,14 +58,6 @@ public class ExportDataValue implements IValueTime {
         this.annotation = annotation;
     }
 
-
-	public long getPointValueId() {
-		return pointValueId;
-	}
-
-	public void setPointValueId(long pointValueId) {
-		this.pointValueId = pointValueId;
-	}
 
 	@Override
     public String toString() {

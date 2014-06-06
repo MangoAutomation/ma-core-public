@@ -129,7 +129,7 @@ public class Common {
     }
 
     public static final int getMinorVersion() {
-        return 3;
+        return 4;
     }
 
     public static final int getMicroVersion() {
@@ -141,11 +141,11 @@ public class Common {
     }
 
     public static String getWebPath(String path) {
-        return M2M2_HOME + "/web" + (path.startsWith("/") ? path : "/" + path);
+        return MA_HOME + "/web" + (path.startsWith("/") ? path : "/" + path);
     }
 
     public static File getLogsDir() {
-        File file = new File(M2M2_HOME, "logs");
+        File file = new File(MA_HOME, "logs");
         file.mkdirs();
         return file;
     }

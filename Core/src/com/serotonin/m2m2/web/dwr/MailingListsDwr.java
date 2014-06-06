@@ -98,7 +98,7 @@ public class MailingListsDwr extends BaseDwr {
             Translations translations = Common.getTranslations();
             Map<String, Object> model = new HashMap<String, Object>();
             model.put("message", new TranslatableMessage("ftl.userTestEmail", ml.getName()));
-            MangoEmailContent cnt = new MangoEmailContent("ftl.testEmail", model, translations,
+            MangoEmailContent cnt = new MangoEmailContent("testEmail", model, translations,
                     translations.translate("ftl.testEmail"), Common.UTF8);
             EmailWorkItem.queueEmail(toAddrs, cnt);
         }

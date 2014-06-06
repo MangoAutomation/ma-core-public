@@ -4,10 +4,14 @@
  */
 package com.serotonin.m2m2.web.mvc.controller;
 
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +37,16 @@ public class ModulesController implements UrlHandler {
         List<Module> modules = ModuleRegistry.getModules();
         Module.sortByName(modules);
 
-        Module core = new Module("core", Common.getVersion().getFullString(), new TranslatableMessage(
+        String version = Common.getVersion().getFullString();
+        
+        //Get the build number if one exists
+        Properties props = new Properties();
+        InputStream inStream = this.getClass().getResourceAsStream("/mango.build.number");
+        if(inStream != null){
+        	props.load(inStream);
+        	version += " build " + props.getProperty("build.number");
+        }
+        Module core = new Module("core", version, new TranslatableMessage(
                 "modules.core.description"), "Serotonin Software Technologies, Inc and InfiniteAUTOMATION SYSTEMS.",
                 "http://infiniteautomation.com", null, -1);
 

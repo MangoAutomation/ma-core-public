@@ -61,5 +61,13 @@ public abstract class NoSQLDao {
 	 * @param callback
 	 */
 	public abstract void getData(List<String> storeNames, long from, long to, final NoSQLQueryCallback callback);
+
+
+	/**
+	 * Delete an entire data store
+	 * 
+	 * @param store name
+	 */
+	public abstract void deleteStore(String storeName);
 	
 }

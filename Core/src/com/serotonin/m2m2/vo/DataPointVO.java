@@ -28,7 +28,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -193,6 +192,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	private int plotType = PlotTypes.STEP;
 
 	private PointLocatorVO pointLocator;
+	
+	@JsonProperty
+	private boolean overrideIntervalLoggingSamples = false;
+	@JsonProperty
+	private int intervalLoggingSampleWindowSize;
 
 	//
 	//
@@ -286,9 +290,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	@Override
 	public void addProperties(List<TranslatableMessage> list) {
 		super.addProperties(list);
-//		AuditEventType.addPropertyMessage(list, "common.xid", xid);
-//		AuditEventType.addPropertyMessage(list, "dsEdit.points.name", name);
-//		AuditEventType.addPropertyMessage(list, "common.enabled", enabled);
+		//xid, name and enabled handled in superclasses
 		AuditEventType.addExportCodeMessage(list, "pointEdit.logging.type",
 				LOGGING_TYPE_CODES, loggingType);
 		AuditEventType.addPeriodMessage(list, "pointEdit.logging.period",
@@ -315,6 +317,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		AuditEventType.addExportCodeMessage(list, "pointEdit.plotType",
 				PLOT_TYPE_CODES, plotType);
 
+		AuditEventType.addPropertyMessage(list,
+				"pointEdit.props.overrideIntervalLoggingSamples", overrideIntervalLoggingSamples);
+		AuditEventType.addPropertyMessage(list,
+				"pointEdit.props.intervalLoggingSampleWindowSize", intervalLoggingSampleWindowSize);
+		
 		pointLocator.addProperties(list);
 	}
 
@@ -322,12 +329,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public void addPropertyChanges(List<TranslatableMessage> list,
 			DataPointVO from) {
 		super.addPropertyChanges(list, from);
-//		AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid",
-//				from.xid, xid);
-//		AuditEventType.maybeAddPropertyChangeMessage(list,
-//				"dsEdit.points.name", from.name, name);
-//		AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled",
-//				from.enabled, enabled);
+		//xid, name and enabled handled in superclasses
+
 		AuditEventType.maybeAddExportCodeChangeMessage(list,
 				"pointEdit.logging.type", LOGGING_TYPE_CODES, from.loggingType,
 				loggingType);
@@ -366,6 +369,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		AuditEventType.maybeAddExportCodeChangeMessage(list,
 				"pointEdit.plotType", PLOT_TYPE_CODES, from.plotType, plotType);
 
+		AuditEventType.maybeAddPropertyChangeMessage(list,
+				"pointEdit.props.overrideIntervalLoggingSamples", from.overrideIntervalLoggingSamples,
+				overrideIntervalLoggingSamples);
+		
+		AuditEventType.maybeAddPropertyChangeMessage(list,
+				"pointEdit.props.intervalLoggingSampleWindowSize", from.intervalLoggingSampleWindowSize,
+				intervalLoggingSampleWindowSize);
+		
 		pointLocator.addPropertyChanges(list, from.pointLocator);
 	}
 
@@ -694,6 +705,25 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public void setPlotType(int plotType) {
 		this.plotType = plotType;
 	}
+	
+	public boolean isOverrideIntervalLoggingSamples() {
+		return overrideIntervalLoggingSamples;
+	}
+
+	public void setOverrideIntervalLoggingSamples(
+			boolean overrideIntervalLoggingSamples) {
+		this.overrideIntervalLoggingSamples = overrideIntervalLoggingSamples;
+	}
+
+	public int getIntervalLoggingSampleWindowSize() {
+		return intervalLoggingSampleWindowSize;
+	}
+
+	public void setIntervalLoggingSampleWindowSize(
+			int intervalLoggingSampleWindowSize) {
+		this.intervalLoggingSampleWindowSize = intervalLoggingSampleWindowSize;
+	}
+
 	/* Helpers for Use on JSP Page */
 	public String getUnitString(){
 		return this.unitString;
@@ -781,6 +811,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			copy.setUseIntegralUnit(useIntegralUnit);
 			copy.setUseRenderedUnit(useRenderedUnit);
 			copy.setXid(xid);
+			copy.setOverrideIntervalLoggingSamples(overrideIntervalLoggingSamples);
+			copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
 
 			return copy;
 		} catch (CloneNotSupportedException e) {
@@ -790,16 +822,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
 	public void validate(ProcessResult response) {
 		super.validate(response);
-//		if (StringUtils.isBlank(xid))
-//			response.addContextualMessage("xid", "validate.required");
-//		else if (StringValidation.isLengthGreaterThan(xid, 50))
-//			response.addMessage("xid", new TranslatableMessage(
-//					"validate.notLongerThan", 50));
-//		else if (!new DataPointDao().isXidUnique(xid, id))
-//			response.addContextualMessage("xid", "validate.xidUsed");
-//
-//		if (StringUtils.isBlank(name))
-//			response.addContextualMessage("name", "validate.required");
+		//xid,name in superclass
+		if (StringValidation.isLengthGreaterThan(deviceName, 255))
+            response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 
 		if (!LOGGING_TYPE_CODES.isValidId(loggingType))
 			response.addContextualMessage("loggingType",
@@ -907,6 +932,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
     		}
 		}
        
+		if(overrideIntervalLoggingSamples){
+			if(intervalLoggingSampleWindowSize <= 0){
+				response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
+			}
+		}
 
 	}
 
@@ -985,14 +1015,15 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 				+ pointLocator + ", dataSourceTypeName=" + dataSourceTypeName
 				+ ", dataSourceName=" + dataSourceName + ", dataSourceXid="
 				+ dataSourceXid + ", lastValue=" + lastValue + ", settable="
-				+ settable + "]";
+				+ settable + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples 
+				+ ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize +" ]";
 	}
 
 	//
 	//
 	// Serialization
 	//
-	private static final int version = 9; //Skipped 7,8 to catch up with Deltamation
+	private static final int version = 10; //Skipped 7,8 to catch up with Deltamation
 
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		ensureUnitsCorrect();
@@ -1009,6 +1040,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 		SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
         out.writeBoolean(useIntegralUnit);
         out.writeBoolean(useRenderedUnit);
+        out.writeBoolean(overrideIntervalLoggingSamples);
+        out.writeInt(intervalLoggingSampleWindowSize);
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException,
@@ -1051,6 +1084,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             useIntegralUnit = false;
             useRenderedUnit = false;
+            
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
 		} else if (ver == 2) {
 			name = SerializationHelper.readSafeUTF(in);
 			deviceName = null;
@@ -1085,6 +1121,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             useIntegralUnit = false;
             useRenderedUnit = false;
+            
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
 		} else if (ver == 3) {
 			name = SerializationHelper.readSafeUTF(in);
 			deviceName = SerializationHelper.readSafeUTF(in);
@@ -1119,7 +1158,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             useIntegralUnit = false;
             useRenderedUnit = false;
-            
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
 		} else if (ver == 4) {
 			name = SerializationHelper.readSafeUTF(in);
 			deviceName = SerializationHelper.readSafeUTF(in);
@@ -1142,6 +1182,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			engineeringUnits = in.readInt();
 			chartColour = SerializationHelper.readSafeUTF(in);
 			plotType = in.readInt();
+            useIntegralUnit = false;
+            useRenderedUnit = false;
+			
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
 		} else if (ver == 5) {
 			textRenderer = (TextRenderer) in.readObject();
 			chartRenderer = (ChartRenderer) in.readObject();
@@ -1163,6 +1208,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             useIntegralUnit = false;
             useRenderedUnit = false;
             
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
 		}else if (ver == 6) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
@@ -1183,6 +1230,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
+            
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
         }else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
@@ -1203,6 +1253,32 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
+            
+            overrideIntervalLoggingSamples = false;
+            intervalLoggingSampleWindowSize = 10;
+        }else if(ver == 10){
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            pointLocator = (PointLocatorVO) in.readObject();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            plotType = in.readInt();
+            
+            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            unitString = UnitUtil.formatLocal(unit);
+            
+            integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            integralUnitString = UnitUtil.formatLocal(integralUnit);
+            
+            renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            
+            useIntegralUnit = in.readBoolean();
+            useRenderedUnit = in.readBoolean();
+            
+            overrideIntervalLoggingSamples = in.readBoolean();
+            intervalLoggingSampleWindowSize = in.readInt();
         }
 
 		// Check the purge type. Weird how this could have been set to 0.

@@ -42,7 +42,6 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	}
 	
     private static final String[] headers = {
-    	Common.translate("emport.pointValue.id"),
     	Common.translate("emport.dataPoint.xid"),
     	Common.translate("pointEdit.props.deviceName"),
         Common.translate("common.pointName"),
@@ -50,7 +49,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         Common.translate("common.value"),
         Common.translate("common.rendered"),
         Common.translate("common.annotation"),
-        Common.translate("common.delete")
+        Common.translate("common.modify")
     };
 
 	/* (non-Javadoc)
@@ -62,7 +61,6 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	}
 	
     private static final CellType[] columnTypes = {
-    	CellType.NUMERIC,
     	CellType.STRING,
     	CellType.STRING,
         CellType.STRING,
@@ -81,8 +79,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     
     // nb. 256 = one character
     private static final int[] columnWidths = {
-    	
-    	25*256,
+
         25*256,
         25*256,
         30*256,
@@ -90,7 +87,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         30*256,
         25*256,
         25*256,
-        10*256
+        20*256
     };
     
     /*
@@ -112,45 +109,20 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     protected void importRow(Row rowData) throws SpreadsheetException {
     
     	int cellNum = 0;
-    	//Point Value Id
-    	int id=-1;
-    	Cell idCell = rowData.getCell(cellNum++);
-    	if(idCell != null){
-    		id = (int) idCell.getNumericCellValue();
-    	}
     	
     	//Data Point XID
-    	DataPointVO dp = DataPointDao.instance.getByXid(rowData.getCell(cellNum++).getStringCellValue());
+    	Cell xidCell = rowData.getCell(cellNum++);
+    	if(xidCell == null)
+    		throw new SpreadsheetException(rowData.getRowNum(), "emport.error.xidRequired");
+    	if((xidCell.getStringCellValue() == null)||(xidCell.getStringCellValue().isEmpty()))
+    		throw new SpreadsheetException("emport.error.xidRequired");
+    	
+    	DataPointVO dp = DataPointDao.instance.getByXid(xidCell.getStringCellValue());
     	if(dp == null){
-        	throw new SpreadsheetException("emport.error.xidRequired");
+        	throw new SpreadsheetException(rowData.getRowNum(), "emport.error.xidRequired");
         }
     	DataPointRT dpRt = Common.runtimeManager.getDataPoint(dp.getId());
-    	PointValueIdTime pvt;
-    	
-    	// delete column
-    	Cell deleteCell = rowData.getCell(8);
-    	if(deleteCell != null){
-	        String delete = (String) deleteCell.getStringCellValue();
-	        if (delete != null && delete.equalsIgnoreCase("Yes")) {
-	            if (id == -1) {
-	                throw new SpreadsheetException("emport.error.deleteNew", id);
-	            } 
-	            else {
-	                try {
-	                	Common.runtimeManager.purgeDataPointValue(id,dp.getId());
-	                }
-	                catch (Exception e) {
-	                    if(e instanceof DataIntegrityViolationException)
-	                        throw new SpreadsheetException(id, "emport.error.unableToDeleteDueToConstraints");
-	                    else
-	                        throw new SpreadsheetException(id, "emport.error.unableToDelete", e.getMessage());
-	                }
-	            }
-	            return; //Done now
-	        }    	
-    	}//end if delete cell exists
-    	
-    	
+    	PointValueTime pvt;
     	
     	//Cell Device name (Not using Here)
     	cellNum++;
@@ -161,6 +133,41 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	
     	//Cell Time
     	Date time = rowData.getCell(cellNum++).getDateCellValue();
+
+    	// delete/add column
+    	Cell modifyCell = rowData.getCell(7);
+    	boolean add = false;
+    	boolean delete = false;
+    	
+    	if(modifyCell != null){
+    		String modification = (String) modifyCell.getStringCellValue();
+    		if(modification.equalsIgnoreCase("delete")){
+    			delete = true;
+    		}else if(modification.equalsIgnoreCase("add")){
+    			add = true;
+    		}else{
+    			throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.modifyCellUnknown");
+    		}
+    	}//end if delete cell exists
+
+    	//What do we do with the row
+    	if(delete){
+            if (time == null) {
+                throw new SpreadsheetException(rowData.getRowNum(), "emport.error.deleteNew", "no timestamp, unable to delete");
+            } 
+            else {
+                try {
+                	Common.runtimeManager.purgeDataPointValue(dp.getId(), time.getTime());
+                }catch (Exception e) {
+                    if(e instanceof DataIntegrityViolationException)
+                        throw new SpreadsheetException(rowData.getRowNum(), "emport.error.unableToDeleteDueToConstraints");
+                    else
+                        throw new SpreadsheetException(rowData.getRowNum(), "emport.error.unableToDelete", e.getMessage());
+                }
+            }
+            return; //Done now
+    	}
+    	
     	
     	//Cell Value
     	DataValue value;
@@ -180,7 +187,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     		cellNum++;
         default:
         	//TODO Fix this up with Translatable messages
-        	throw new SpreadsheetException("Unsupported Cell type in column ", cellNum);
+        	throw new SpreadsheetException(rowData.getRowNum(), "Unsupported Cell type in column ", cellNum);
     	}
     	 
      	//Cell Rendered Value (Not using yet)
@@ -192,12 +199,12 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	   	String annotation = annotationRow.getStringCellValue();
     	    
     		TranslatableMessage sourceMessage = new TranslatableMessage("common.default",annotation);
-    		pvt = new AnnotatedPointValueIdTime(id,value, time.getTime(), sourceMessage);
+    		pvt = new AnnotatedPointValueTime(value, time.getTime(), sourceMessage);
     	}else{
-    		pvt = new PointValueIdTime(id,value,time.getTime());
+    		pvt = new PointValueTime(value,time.getTime());
     	}
     	
-    	if(id == -1){
+    	if(add){
  	    	//Save to cache if running
 	    	if(dpRt != null)
 	    		dpRt.savePointValueDirectToCache(pvt, null, true, true);
@@ -236,10 +243,6 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         Cell cell;
         Row row;
         row = sheet.createRow(this.rowNum++);
-        
-        //Set Point Value Id
-        cell = row.createCell(cellNum++);
-        cell.setCellValue(edv.getPointValueId());
         
         //Set Point XID
         cell = row.createCell(cellNum++);

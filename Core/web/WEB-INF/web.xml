@@ -17,6 +17,13 @@
     </init-param>
   </filter>
   
+
+  
+  <filter>
+    <filter-name>UrlSecurity</filter-name>
+    <filter-class>com.serotonin.m2m2.web.filter.UrlSecurityFilter</filter-class>
+  </filter>
+
   <filter>
     <filter-name>IsLoggedIn</filter-name>
     <filter-class>com.serotonin.m2m2.web.filter.LoggedInFilter</filter-class>
@@ -24,11 +31,6 @@
       <param-name>exceededIpLimitUrl</param-name>
       <param-value>/exception/exceededIpLimitUrl.jsp</param-value>
     </init-param>
-  </filter>
-  
-  <filter>
-    <filter-name>UrlSecurity</filter-name>
-    <filter-class>com.serotonin.m2m2.web.filter.UrlSecurityFilter</filter-class>
   </filter>
   
   <filter>
@@ -91,14 +93,16 @@
   </filter-mapping>
 
   <filter-mapping>
-    <filter-name>IsLoggedIn</filter-name>
+    <filter-name>UrlSecurity</filter-name>
     <url-pattern>*.shtm</url-pattern>
   </filter-mapping>
 
   <filter-mapping>
-    <filter-name>UrlSecurity</filter-name>
+    <filter-name>IsLoggedIn</filter-name>
     <url-pattern>*.shtm</url-pattern>
   </filter-mapping>
+
+
   
   <filter-mapping>
     <filter-name>WebContext</filter-name>

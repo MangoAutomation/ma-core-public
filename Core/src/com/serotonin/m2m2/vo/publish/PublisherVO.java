@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +53,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
     abstract public PublisherRT<T> createPublisherRT();
 
     public List<EventTypeVO> getEventTypes() {
-        List<EventTypeVO> eventTypes = new ArrayList<EventTypeVO>();
+        List<EventTypeVO> eventTypes = new ArrayList<>();
         eventTypes
                 .add(new EventTypeVO(EventType.EventTypeNames.PUBLISHER, null, getId(),
                         PublisherRT.POINT_DISABLED_EVENT, new TranslatableMessage("event.pb.pointMissing"),
@@ -92,7 +93,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
     private String name;
     @JsonProperty
     private boolean enabled;
-    protected List<T> points = new ArrayList<T>();
+    protected List<T> points = new ArrayList<>();
     @JsonProperty
     private boolean changesOnly;
     @JsonProperty
@@ -225,7 +226,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
         if (cacheDiscardSize <= cacheWarningSize)
             response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
 
-        Set<Integer> set = new HashSet<Integer>();
+        Set<Integer> set = new HashSet<>();
         for (T point : points) {
             int pointId = point.getDataPointId();
             if (set.contains(pointId)) {
@@ -235,6 +236,18 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
             else
                 set.add(pointId);
         }
+    }
+
+    //
+    //
+    // Editing customization
+    //
+    /*
+     * Allows the data source to provide custom context data to its own editing page. Can be used for things like lists
+     * of comm ports and such. See DataSourceEditController.
+     */
+    public void addEditContext(@SuppressWarnings("unused") Map<String, Object> model) {
+        // No op. Override as required.
     }
 
     //

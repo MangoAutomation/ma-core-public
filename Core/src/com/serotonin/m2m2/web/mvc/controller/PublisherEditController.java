@@ -77,11 +77,11 @@ public class PublisherEditController extends ParameterizableViewController {
         user.setEditPublisher(publisherVO);
 
         // Create the model.
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("publisher", publisherVO);
         if (publisherVO.getId() != Common.NEW_ID) {
             List<EventInstance> events = new EventDao().getPendingEventsForPublisher(publisherVO.getId(), user.getId());
-            List<EventInstanceBean> beans = new ArrayList<EventInstanceBean>();
+            List<EventInstanceBean> beans = new ArrayList<>();
             if (events != null) {
                 Translations translations = ControllerUtils.getTranslations(request);
                 for (EventInstance event : events)
@@ -90,6 +90,8 @@ public class PublisherEditController extends ParameterizableViewController {
             }
             model.put("publisherEvents", beans);
         }
+
+        publisherVO.addEditContext(model);
 
         return new ModelAndView(getViewName(), model);
     }

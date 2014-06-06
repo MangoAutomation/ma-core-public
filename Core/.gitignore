@@ -12,3 +12,5 @@
 /module-common.properties
 /derby.log
 /release
+/save
+/mango.build.number

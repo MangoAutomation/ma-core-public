@@ -28,7 +28,7 @@
           </tr>
         </table>
         <div id="dataSourceMessage" class="ctxmsg formError"></div>
-        <table>
+        <table >
           <c:if test="${copy}">
           <tr id="copyDeviceName">
             <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>

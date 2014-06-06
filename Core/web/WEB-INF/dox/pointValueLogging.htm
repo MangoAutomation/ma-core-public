@@ -31,6 +31,16 @@
   value of the point is logged, while the other options will cause a statistic of the points values over the period to
   be logged.
 </p>
+<p>
+  For <b>Average</b> value type interval logging the option to specify a sample window size is provided.  By checking 
+  <b>Override interval logging sample window</b> the option 
+  to input a custom sample window size is provided.  The <b>Sample window size</b> represents the number of previous point 
+  samples that will be used to compute the average.  Each sample is obtained at the Data source poll period, so for example 
+  a poll period of 5 seconds and 10 samples would require 50 seconds of samples to be used in the Average.  It should also be 
+  noted that the mid-point time for the window is used as the sample time of the average that is stored in Mango.  Also, when 
+  overriding the sample window no average is computed until the window is full.  So in the above example you will see a 25 second 
+  delay at the start of your data (50 seconds of samples and the first sample time is the center of the window).
+</p>
 
 <p>
   The <b>When point timestamp changes</b> setting. This is similar in behaviour to the on value change setting, but

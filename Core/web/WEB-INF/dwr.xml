@@ -87,6 +87,8 @@
     <convert converter="bean" match="com.serotonin.db.pair.IntStringPair"/>
     <convert converter="bean" match="com.serotonin.db.pair.StringStringPair"/>
     
+    <convert converter="bean" match="com.serotonin.io.serial.CommPortProxy"/>
+    
     <convert converter="bean" match="com.serotonin.m2m2.util.IntMessagePair"/>
     
 <!-- <convert converter="bean" match="com.serotonin.m2m2.view.chart.*" /> -->
@@ -133,7 +135,7 @@
     <convert converter="blabberBean" match="com.serotonin.m2m2.vo.dataSource.DataSourceVO" javascript="DataSourceVO">
       <param name="exclude" value="definition,eventCodes"/>
     </convert>
-
+    
     <convert converter="bean" match="com.serotonin.m2m2.web.dojo.*"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.dataSource.BasicDataSourceVO"/>
     
@@ -206,5 +208,9 @@
     <convert converter="exception" match="java.lang.Exception">
       <param name="include" value="message"/>
     </convert>
+    
+    <convert converter="bean" match="com.serotonin.m2m2.rt.console.LogEvent" />
+    <convert converter="bean" match="com.serotonin.m2m2.rt.script.ScriptContextVariable" />
+    
   </allow>
 </dwr>

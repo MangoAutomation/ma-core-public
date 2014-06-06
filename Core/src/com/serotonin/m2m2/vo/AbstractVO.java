@@ -6,6 +6,8 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.List;
 
@@ -23,23 +25,36 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ChangeComparable;
+import com.serotonin.m2m2.util.MapWrap;
+import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
+ * 
  * @author Jared Wiltshire
  */
-public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializable, ChangeComparable<T>, JsonSerializable, Cloneable {
+public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializable, ChangeComparable<T>,
+        JsonSerializable, Cloneable {
+    /**
+     * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
+     * been expunged by the version handling in the readObject method.
+     */
+    private transient MapWrap deletedProperties;
+
     /*
      * Mango properties
      */
-    
+
     protected int id = Common.NEW_ID;
     protected String xid;
     protected String name;
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader,
+     * com.serotonin.json.type.JsonObject)
      */
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
@@ -48,7 +63,9 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
         name = jsonObject.getString("name");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
      */
     @Override
@@ -57,18 +74,47 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
     }
-    
+
     /*
      * Serialization
      */
-    
+
     private static final long serialVersionUID = -1;
-    
+
+    /*
+     * Deleted properties
+     */
+    public void saveDeleteProperty(String key, Object value) {
+        if (deletedProperties == null)
+            deletedProperties = new MapWrap();
+        deletedProperties.put(key, value);
+    }
+
+    public MapWrap deletedProperties() {
+        return deletedProperties;
+    }
+
+    protected void writeDeletedProperties(ObjectOutputStream out) throws IOException {
+        SerializationHelper.writeObject(out, deletedProperties());
+    }
+
+    protected void readDeletedProperties(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        MapWrap del = (MapWrap) in.readObject();
+        if (del != null) {
+            if (deletedProperties != null)
+                // Merge
+                del.putAll(deletedProperties);
+            deletedProperties = del;
+        }
+    }
+
     /*
      * ChangeComparable
      */
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.serotonin.m2m2.util.ChangeComparable#addProperties(java.util.List)
      */
     @Override
@@ -77,7 +123,9 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
         AuditEventType.addPropertyMessage(list, "common.name", name);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.serotonin.m2m2.util.ChangeComparable#addPropertyChanges(java.util.List, java.lang.Object)
      */
     @Override
@@ -85,11 +133,12 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
         AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
         AuditEventType.maybeAddPropertyChangeMessage(list, "common.name", from.name, name);
     }
-    
+
     /*
      * Getters and setters
      */
-    
+
+    @Override
     public int getId() {
         return id;
     }
@@ -105,7 +154,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
     public void setXid(String xid) {
         this.xid = xid;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -113,13 +162,14 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
     public void setName(String name) {
         this.name = name;
     }
-    
+
     /*
      * Utility methods
      */
-    
+
     /**
      * Validates a vo
+     * 
      * @param response
      */
     public void validate(ProcessResult response) {
@@ -129,15 +179,16 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
             response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
         else if (!new DataPointDao().isXidUnique(xid, id))
             response.addContextualMessage("xid", "validate.xidUsed");
-        
+
         if (StringUtils.isBlank(name))
             response.addContextualMessage("name", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(name, 40))
-            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 40));
+        else if (StringValidation.isLengthGreaterThan(name, 255))
+            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
     }
-    
+
     /**
      * Check if a vo is newly created
+     * 
      * @return true if newly created, false otherwise
      */
     public boolean isNew() {
@@ -146,6 +197,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
 
     /**
      * Copies a vo
+     * 
      * @return Copy of this vo
      */
     @SuppressWarnings("unchecked")
@@ -158,11 +210,12 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
             throw new ShouldNeverHappenException(e);
         }
     }
-    
+
     /**
      * Useful For Debugging
      */
-    public String toString(){
+    @Override
+    public String toString() {
         return "id: " + this.id + " name: " + this.name;
     }
 }

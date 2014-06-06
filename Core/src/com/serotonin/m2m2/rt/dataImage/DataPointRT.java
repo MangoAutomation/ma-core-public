@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
+import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -319,10 +320,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
     private void terminateIntervalLogging() {
         synchronized (intervalLoggingLock) {
-            if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
-                return;
-
-            intervalLoggingTask.cancel();
+        	//Always check because we may have been an interval logging point and we need to stop this.
+            if(intervalLoggingTask != null) //Bug from UI where we are switching types of a running point
+            	intervalLoggingTask.cancel();
         }
     }
 
@@ -344,8 +344,16 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                         intervalValue = pvt;
                 }
             }
-            else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
-                averagingValues.add(pvt);
+            else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE){
+                //Using the averaging values, ensure we keep the most recent values and pop off the old ones
+            	if(vo.isOverrideIntervalLoggingSamples()){
+	                while(averagingValues.size() >= vo.getIntervalLoggingSampleWindowSize()){ 
+	                	averagingValues.remove(0); //Size -1 for the next item we are going to add
+	                }
+            	}
+            	
+            	averagingValues.add(pvt);
+            }
         }
     }
 
@@ -361,6 +369,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 intervalValue = pointValue;
             }
             else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
+            	
+            	//We won't allow logging values until we have a full average window
+            	//If we don't have enough averaging values then we will bail and wait for more
+            	if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
+            		return;
+            	
                 IValueTime endValue = intervalValue;
                 if (!averagingValues.isEmpty())
                     endValue = averagingValues.get(averagingValues.size() - 1);
@@ -370,10 +384,19 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                     value = null;
                 else
                     value = new NumericValue(stats.getAverage());
-
-                intervalValue = pointValue;
-                averagingValues.clear();
+                //Compute the center point of our average data, starting by finding where our period started
+                long sampleWindowStartTime;
+                if(vo.isOverrideIntervalLoggingSamples())
+                	sampleWindowStartTime = averagingValues.get(0).getTime();
+                else
+                	sampleWindowStartTime = intervalStartTime; 
+                
                 intervalStartTime = fireTime;
+                fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
+                intervalValue = pointValue;
+                
+                if(!vo.isOverrideIntervalLoggingSamples())
+                	averagingValues.clear();
             }
             else
                 throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
@@ -573,8 +596,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 	 * @param b
 	 * @param c
 	 */
-	public void updatePointValueInCache(PointValueIdTime newValue, SetPointSource source, boolean logValue,
-            boolean async) {
+	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
 
 		

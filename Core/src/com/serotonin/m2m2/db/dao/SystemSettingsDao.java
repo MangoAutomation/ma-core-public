@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.awt.Color;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,9 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonReader;
+import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsVO;
@@ -50,8 +54,8 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PUBLISHER_EVENT_PURGE_PERIODS = "publisherEventPurgePeriods";
     public static final String AUDIT_EVENT_PURGE_PERIOD_TYPE = "auditEventPurgePeriodType";
     public static final String AUDIT_EVENT_PURGE_PERIODS = "auditEventPurgePeriods";
-    
-    //Alarm Level Purging
+
+    // Alarm Level Purging
     public static final String NONE_ALARM_PURGE_PERIOD_TYPE = "noneAlarmPurgePeriodType";
     public static final String NONE_ALARM_PURGE_PERIODS = "noneAlarmPurgePeriods";
     public static final String INFORMATION_ALARM_PURGE_PERIOD_TYPE = "informationAlarmPurgePeriodType";
@@ -62,8 +66,8 @@ public class SystemSettingsDao extends BaseDao {
     public static final String CRITICAL_ALARM_PURGE_PERIODS = "criticalAlarmPurgePeriods";
     public static final String LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE = "lifeSafetyAlarmPurgePeriodType";
     public static final String LIFE_SAFETY_ALARM_PURGE_PERIODS = "lifeSafetyAlarmPurgePeriods";
-    
-    //General Purging of Events from Modules that are not defined in the core
+
+    // General Purging of Events from Modules that are not defined in the core
     public static final String EVENT_PURGE_PERIOD_TYPE = "eventPurgePeriodType";
     public static final String EVENT_PURGE_PERIODS = "eventPurgePeriods";
 
@@ -92,18 +96,18 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PLOT_BACKGROUND_COLOUR = "plotBackgroundColour";
     public static final String PLOT_GRIDLINE_COLOUR = "plotGridlineColour";
 
-    //Backup Settings
-	public static final String BACKUP_FILE_LOCATION = "backupFileLocation";
-	public static final String BACKUP_PERIOD_TYPE = "backupPeriodType";
-	public static final String BACKUP_PERIODS = "backupPeriods";
-	public static final String BACKUP_LAST_RUN_SUCCESS = "backupLastSuccessfulRun";
-	public static final String BACKUP_HOUR = "backupHour";
-	public static final String BACKUP_MINUTE = "backupMinute";
-	public static final String BACKUP_FILE_COUNT = "backupFileCount";
-	public static final String BACKUP_ENABLED = "backupEnabled";
+    // Backup Settings
+    public static final String BACKUP_FILE_LOCATION = "backupFileLocation";
+    public static final String BACKUP_PERIOD_TYPE = "backupPeriodType";
+    public static final String BACKUP_PERIODS = "backupPeriods";
+    public static final String BACKUP_LAST_RUN_SUCCESS = "backupLastSuccessfulRun";
+    public static final String BACKUP_HOUR = "backupHour";
+    public static final String BACKUP_MINUTE = "backupMinute";
+    public static final String BACKUP_FILE_COUNT = "backupFileCount";
+    public static final String BACKUP_ENABLED = "backupEnabled";
 
     // Value cache
-    private static final Map<String, String> cache = new HashMap<String, String>();
+    private static final Map<String, String> cache = new HashMap<>();
 
     public static String getValue(String key) {
         return getValue(key, (String) DEFAULT_VALUES.get(key));
@@ -155,10 +159,28 @@ public class SystemSettingsDao extends BaseDao {
         return charToBool(value);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T getJsonObject(String key, Class<T> clazz) {
+        return (T) getJsonObject(key, (Type) clazz);
+    }
+
+    public static Object getJsonObject(String key, Type type) {
+        String value = getValue(key, null);
+        if (value == null)
+            return null;
+        try {
+            return new JsonReader(Common.JSON_CONTEXT, value).read(type);
+        }
+        catch (Exception e) {
+            // Things should only get here programmatically. Exceptions thrown here are for programmers to deal with.
+            throw new RuntimeException(e);
+        }
+    }
+
     public void setValue(final String key, final String value) {
         String oldValue = cache.get(key);
-    	
-    	// Update the cache
+
+        // Update the cache
         cache.put(key, value);
 
         // Update the database
@@ -174,7 +196,7 @@ public class SystemSettingsDao extends BaseDao {
                     ejt2.update("insert into systemSettings values (?,?)", new Object[] { key, value });
             }
         });
-        
+
         //Fire an event for this
         SystemSettingsEventDispatcher.fireSystemSettingSaved(key, oldValue, value);
     }
@@ -187,9 +209,18 @@ public class SystemSettingsDao extends BaseDao {
         setValue(key, boolToChar(value));
     }
 
+    public void setJsonObjectValue(String key, Object value) {
+        try {
+            setValue(key, JsonWriter.writeToString(Common.JSON_CONTEXT, value));
+        }
+        catch (JsonException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void removeValue(String key) {
-    	String lastValue = cache.get(key);
-    	
+        String lastValue = cache.get(key);
+
         // Remove the value from the cache
         cache.remove(key);
 
@@ -197,7 +228,7 @@ public class SystemSettingsDao extends BaseDao {
         FUTURE_DATE_LIMIT = -1;
 
         ejt.update("delete from systemSettings where settingName=?", new Object[] { key });
-    
+
         //Fire the event
         SystemSettingsEventDispatcher.fireSystemSettingRemoved(key, lastValue);
     }
@@ -230,8 +261,8 @@ public class SystemSettingsDao extends BaseDao {
      */
     private static long FUTURE_DATE_LIMIT = -1;
 
-    private static final Map<String, Object> DEFAULT_VALUES = new HashMap<String, Object>();
-	
+    private static final Map<String, Object> DEFAULT_VALUES = new HashMap<>();
+
     static {
         DEFAULT_VALUES.put(DATABASE_SCHEMA_VERSION, "0.7.0");
 
@@ -260,7 +291,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(PUBLISHER_EVENT_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(AUDIT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(AUDIT_EVENT_PURGE_PERIODS, 1);
-        
+
         DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
@@ -271,7 +302,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(CRITICAL_ALARM_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(LIFE_SAFETY_ALARM_PURGE_PERIODS, 1);
-        
+
         DEFAULT_VALUES.put(EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(EVENT_PURGE_PERIODS, 1);
 
@@ -288,181 +319,178 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(CHART_BACKGROUND_COLOUR, "white");
         DEFAULT_VALUES.put(PLOT_BACKGROUND_COLOUR, "white");
         DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "silver");
-        
+
         //Default Backup Settings
         DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
         DEFAULT_VALUES.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
-        DEFAULT_VALUES.put(BACKUP_PERIODS,1);
-        DEFAULT_VALUES.put(BACKUP_FILE_COUNT,10);
+        DEFAULT_VALUES.put(BACKUP_PERIODS, 1);
+        DEFAULT_VALUES.put(BACKUP_FILE_COUNT, 10);
         DEFAULT_VALUES.put(BACKUP_HOUR, 0);
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
     }
 
-	/**
-	 * Get a VO that represents the cached values
-	 * @return
-	 */
-	public SystemSettingsVO getSystemSettings() {
-		SystemSettingsVO vo = new SystemSettingsVO();
-		
-		vo.setDatabaseSchemaVersion(getValue(DATABASE_SCHEMA_VERSION));
-		vo.setNewInstance(getBooleanValue(NEW_INSTANCE));
-		
-		vo.setEmailSmtpHost(getValue(EMAIL_SMTP_HOST));
-		vo.setEmailSmtpPort(getIntValue(EMAIL_SMTP_PORT));
-		vo.setEmailFromAddress(getValue(EMAIL_FROM_ADDRESS));
-		vo.setEmailSmtpUsername(getValue(EMAIL_SMTP_USERNAME));
-		vo.setEmailSmtpPassword(getValue(EMAIL_SMTP_PASSWORD));
-		vo.setEmailFromName(getValue(EMAIL_FROM_NAME));
-		vo.setEmailAuthorization(getBooleanValue(EMAIL_AUTHORIZATION));
-		vo.setEmailTls(getBooleanValue(EMAIL_TLS));
-		vo.setEmailContentType(getIntValue(EMAIL_CONTENT_TYPE));
-		
-		vo.setPointDataPurgePeriodType(getIntValue(POINT_DATA_PURGE_PERIOD_TYPE));
-		vo.setPointDataPurgePeriods(getIntValue(POINT_DATA_PURGE_PERIODS));
-		
-		vo.setDataPointEventPurgePeriodType(getIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
-		vo.setDataPointEventPurgePeriods(getIntValue(DATA_POINT_EVENT_PURGE_PERIODS));
-		vo.setDataSourceEventPurgePeriodType(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
-		vo.setDataSourceEventPurgePeriods(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS));
-		vo.setSystemEventPurgePeriodType(getIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE));
-		vo.setSystemEventPurgePeriods(getIntValue(SYSTEM_EVENT_PURGE_PERIODS));
-		vo.setPublisherEventPurgePeriodType(getIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
-		vo.setPublisherEventPurgePeriods(getIntValue(PUBLISHER_EVENT_PURGE_PERIODS));
-		vo.setAuditEventPurgePeriodType(getIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE));
-		vo.setAuditEventPurgePeriods(getIntValue(AUDIT_EVENT_PURGE_PERIODS));
-		
-		vo.setNoneAlarmPurgePeriodType(getIntValue(NONE_ALARM_PURGE_PERIOD_TYPE));
-		vo.setNoneAlarmPurgePeriods(getIntValue(NONE_ALARM_PURGE_PERIODS));
-		vo.setInformationAlarmPurgePeriodType(getIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE));
-		vo.setInformationAlarmPurgePeriods(getIntValue(INFORMATION_ALARM_PURGE_PERIODS));
-		vo.setUrgentAlarmPurgePeriodType(getIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE));
-		vo.setUrgentAlarmPurgePeriods(getIntValue(URGENT_ALARM_PURGE_PERIODS));
-		vo.setCriticalAlarmPurgePeriodType(getIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE));
-		vo.setCriticalAlarmPurgePeriods(getIntValue(CRITICAL_ALARM_PURGE_PERIODS));
-		vo.setLifeSafetyAlarmPurgePeriodType(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
-		vo.setLifeSafetyAlarmPurgePeriods(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS));
-		
-		vo.setEventPurgePeriodType(getIntValue(EVENT_PURGE_PERIOD_TYPE));
-		vo.setEventPurgePeriods(getIntValue(EVENT_PURGE_PERIODS));
-		
-		vo.setHttpClientUseProxy(getBooleanValue(HTTP_CLIENT_USE_PROXY));
-		vo.setHttpClientProxyServer(getValue(HTTP_CLIENT_PROXY_SERVER));
-		vo.setHttpClientProxyPort(getIntValue(HTTP_CLIENT_PROXY_PORT));
-		vo.setHttpClientProxyUsername(getValue(HTTP_CLIENT_PROXY_USERNAME));
-		vo.setHttpClientProxyPassword(getValue(HTTP_CLIENT_PROXY_USERNAME));
-		
-		vo.setLanguage(getValue(LANGUAGE));
-		
-		vo.setFiledataPath(getValue(FILEDATA_PATH));
-		vo.setDatasourceDisplaySuffix(getValue(DATASOURCE_DISPLAY_SUFFIX));
-		vo.setHttpdsPrologue(getValue(HTTPDS_PROLOGUE));
-		vo.setHttpdsEpilogue(getValue(HTTPDS_EPILOGUE));
-		vo.setUiPerformance(getIntValue(UI_PERFORMANCE));
-		vo.setFutureDateLimitPeriods(getIntValue(FUTURE_DATE_LIMIT_PERIODS));
-		vo.setFutureDateLimitPeriodType(getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE));
-		vo.setInstanceDescription(getValue(INSTANCE_DESCRIPTION));
-		
-		vo.setChartBackgroundColor(getValue(CHART_BACKGROUND_COLOUR));
-		vo.setPlotBackgroundColor(getValue(PLOT_BACKGROUND_COLOUR));
-		vo.setPlotGridlineColor(getValue(PLOT_GRIDLINE_COLOUR));
-		
-		vo.setBackupFileLocation(getValue(BACKUP_FILE_LOCATION));
-		vo.setBackupPeriodType(getIntValue(BACKUP_PERIOD_TYPE));
-		vo.setBackupPeriods(getIntValue(BACKUP_PERIODS));
-		vo.setBackupLastRunSuccess(getBooleanValue(BACKUP_LAST_RUN_SUCCESS));
-		vo.setBackupFileCount(getIntValue(BACKUP_FILE_COUNT));
-		vo.setBackupHour(getIntValue(BACKUP_HOUR));
-		vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
-		vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
-		
-		return vo;
-	}
+    /**
+     * Get a VO that represents the cached values
+     * 
+     * @return
+     */
+    public SystemSettingsVO getSystemSettings() {
+        SystemSettingsVO vo = new SystemSettingsVO();
 
-	/**
-	 * Take a VO and save its values to the system
-	 * 
-	 * @param vo
-	 */
-	public void updateSettings(SystemSettingsVO vo) {
-		
-		this.setValue(DATABASE_SCHEMA_VERSION, vo.getDatabaseSchemaVersion());
-		this.setBooleanValue(NEW_INSTANCE, vo.getNewInstance());
-		
-		this.setValue(EMAIL_SMTP_HOST, vo.getEmailSmtpHost());
-		this.setIntValue(EMAIL_SMTP_PORT,vo.getEmailSmtpPort());
-		this.setValue(EMAIL_FROM_ADDRESS, vo.getEmailFromAddress());
-		this.setValue(EMAIL_SMTP_USERNAME, vo.getEmailSmtpUsername());
-		this.setValue(EMAIL_SMTP_PASSWORD, vo.getEmailSmtpPassword());
-		this.setValue(EMAIL_FROM_NAME, vo.getEmailFromName());
-		this.setBooleanValue(EMAIL_AUTHORIZATION, vo.getEmailAuthorization());
-		this.setBooleanValue(EMAIL_TLS, vo.getEmailTls());
-		this.setIntValue(EMAIL_CONTENT_TYPE,vo.getEmailContentType());
-		
-		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
-		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS,vo.getDataPointEventPurgePeriods());
-		
-		this.setIntValue(POINT_DATA_PURGE_PERIOD_TYPE, vo.getPointDataPurgePeriodType());
-		this.setIntValue(POINT_DATA_PURGE_PERIODS,vo.getPointDataPurgePeriods());
-		
-		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
-		this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS, vo.getDataPointEventPurgePeriods());
-		this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, vo.getDataSourceEventPurgePeriodType());
-		this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS, vo.getDataSourceEventPurgePeriods());
-		this.setIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE, vo.getSystemEventPurgePeriodType());
-		this.setIntValue(SYSTEM_EVENT_PURGE_PERIODS, vo.getSystemEventPurgePeriods());
-		this.setIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, vo.getPublisherEventPurgePeriodType());
-		this.setIntValue(PUBLISHER_EVENT_PURGE_PERIODS, vo.getPublisherEventPurgePeriods());
-		this.setIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE, vo.getAuditEventPurgePeriodType());
-		this.setIntValue(AUDIT_EVENT_PURGE_PERIODS, vo.getAuditEventPurgePeriods());
+        vo.setDatabaseSchemaVersion(getValue(DATABASE_SCHEMA_VERSION));
+        vo.setNewInstance(getBooleanValue(NEW_INSTANCE));
 
-		this.setIntValue(NONE_ALARM_PURGE_PERIOD_TYPE, vo.getNoneAlarmPurgePeriodType());
-		this.setIntValue(NONE_ALARM_PURGE_PERIODS, vo.getNoneAlarmPurgePeriods());
-		this.setIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE, vo.getInformationAlarmPurgePeriodType());
-		this.setIntValue(INFORMATION_ALARM_PURGE_PERIODS, vo.getInformationAlarmPurgePeriods());
-		this.setIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE, vo.getUrgentAlarmPurgePeriodType());
-		this.setIntValue(URGENT_ALARM_PURGE_PERIODS, vo.getUrgentAlarmPurgePeriods());
-		this.setIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE, vo.getCriticalAlarmPurgePeriodType());
-		this.setIntValue(CRITICAL_ALARM_PURGE_PERIODS, vo.getCriticalAlarmPurgePeriods());
-		this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, vo.getLifeSafetyAlarmPurgePeriodType());
-		this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS, vo.getLifeSafetyAlarmPurgePeriods());
-		
-		this.setIntValue(EVENT_PURGE_PERIOD_TYPE, vo.getEventPurgePeriodType());
-		this.setIntValue(EVENT_PURGE_PERIODS, vo.getEventPurgePeriods());
-		
-		this.setBooleanValue(HTTP_CLIENT_USE_PROXY,vo.getHttpClientUseProxy());
-		this.setValue(HTTP_CLIENT_PROXY_SERVER, vo.getHttpClientProxyServer());
-		this.setIntValue(HTTP_CLIENT_PROXY_PORT, vo.getHttpClientProxyPort());
-		this.setValue(HTTP_CLIENT_PROXY_USERNAME, vo.getHttpClientProxyUsername());
-		this.setValue(HTTP_CLIENT_PROXY_PASSWORD, vo.getHttpClientProxyPassword());
-		
-		this.setValue(LANGUAGE, vo.getLanguage());
-		
-		this.setValue(FILEDATA_PATH, vo.getFiledataPath());
-		this.setValue(DATASOURCE_DISPLAY_SUFFIX, vo.getDatasourceDisplaySuffix());
-		this.setValue(HTTPDS_PROLOGUE, vo.getHttpdsPrologue());
-		this.setValue(HTTPDS_EPILOGUE, vo.getHttpdsEpilogue());
-		this.setIntValue(UI_PERFORMANCE, vo.getUiPerformance());
-		this.setIntValue(FUTURE_DATE_LIMIT_PERIODS, vo.getFutureDateLimitPeriods());
-		this.setIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE, vo.getFutureDateLimitPeriodType());
-		this.setValue(INSTANCE_DESCRIPTION, vo.getInstanceDescription());
-		
-		this.setValue(CHART_BACKGROUND_COLOUR, vo.getChartBackgroundColor());
-		this.setValue(PLOT_BACKGROUND_COLOUR,vo.getChartBackgroundColor());
-		this.setValue(PLOT_GRIDLINE_COLOUR, vo.getPlotGridlineColor());
-		
-		this.setValue(BACKUP_FILE_LOCATION, vo.getBackupFileLocation());
-		this.setIntValue(BACKUP_PERIOD_TYPE, vo.getBackupPeriodType());
-		this.setIntValue(BACKUP_PERIODS, vo.getBackupPeriods());
-		this.setBooleanValue(BACKUP_LAST_RUN_SUCCESS, vo.getBackupLastRunSuccess());
-		this.setIntValue(BACKUP_FILE_COUNT, vo.getBackupFileCount());
-		this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
-		this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
-		this.setBooleanValue(BACKUP_ENABLED, vo.getBackupEnabled());
-	}
-    
-    
-    
-    
+        vo.setEmailSmtpHost(getValue(EMAIL_SMTP_HOST));
+        vo.setEmailSmtpPort(getIntValue(EMAIL_SMTP_PORT));
+        vo.setEmailFromAddress(getValue(EMAIL_FROM_ADDRESS));
+        vo.setEmailSmtpUsername(getValue(EMAIL_SMTP_USERNAME));
+        vo.setEmailSmtpPassword(getValue(EMAIL_SMTP_PASSWORD));
+        vo.setEmailFromName(getValue(EMAIL_FROM_NAME));
+        vo.setEmailAuthorization(getBooleanValue(EMAIL_AUTHORIZATION));
+        vo.setEmailTls(getBooleanValue(EMAIL_TLS));
+        vo.setEmailContentType(getIntValue(EMAIL_CONTENT_TYPE));
+
+        vo.setPointDataPurgePeriodType(getIntValue(POINT_DATA_PURGE_PERIOD_TYPE));
+        vo.setPointDataPurgePeriods(getIntValue(POINT_DATA_PURGE_PERIODS));
+
+        vo.setDataPointEventPurgePeriodType(getIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
+        vo.setDataPointEventPurgePeriods(getIntValue(DATA_POINT_EVENT_PURGE_PERIODS));
+        vo.setDataSourceEventPurgePeriodType(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
+        vo.setDataSourceEventPurgePeriods(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS));
+        vo.setSystemEventPurgePeriodType(getIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE));
+        vo.setSystemEventPurgePeriods(getIntValue(SYSTEM_EVENT_PURGE_PERIODS));
+        vo.setPublisherEventPurgePeriodType(getIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
+        vo.setPublisherEventPurgePeriods(getIntValue(PUBLISHER_EVENT_PURGE_PERIODS));
+        vo.setAuditEventPurgePeriodType(getIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE));
+        vo.setAuditEventPurgePeriods(getIntValue(AUDIT_EVENT_PURGE_PERIODS));
+
+        vo.setNoneAlarmPurgePeriodType(getIntValue(NONE_ALARM_PURGE_PERIOD_TYPE));
+        vo.setNoneAlarmPurgePeriods(getIntValue(NONE_ALARM_PURGE_PERIODS));
+        vo.setInformationAlarmPurgePeriodType(getIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE));
+        vo.setInformationAlarmPurgePeriods(getIntValue(INFORMATION_ALARM_PURGE_PERIODS));
+        vo.setUrgentAlarmPurgePeriodType(getIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE));
+        vo.setUrgentAlarmPurgePeriods(getIntValue(URGENT_ALARM_PURGE_PERIODS));
+        vo.setCriticalAlarmPurgePeriodType(getIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE));
+        vo.setCriticalAlarmPurgePeriods(getIntValue(CRITICAL_ALARM_PURGE_PERIODS));
+        vo.setLifeSafetyAlarmPurgePeriodType(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
+        vo.setLifeSafetyAlarmPurgePeriods(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS));
+
+        vo.setEventPurgePeriodType(getIntValue(EVENT_PURGE_PERIOD_TYPE));
+        vo.setEventPurgePeriods(getIntValue(EVENT_PURGE_PERIODS));
+
+        vo.setHttpClientUseProxy(getBooleanValue(HTTP_CLIENT_USE_PROXY));
+        vo.setHttpClientProxyServer(getValue(HTTP_CLIENT_PROXY_SERVER));
+        vo.setHttpClientProxyPort(getIntValue(HTTP_CLIENT_PROXY_PORT));
+        vo.setHttpClientProxyUsername(getValue(HTTP_CLIENT_PROXY_USERNAME));
+        vo.setHttpClientProxyPassword(getValue(HTTP_CLIENT_PROXY_USERNAME));
+
+        vo.setLanguage(getValue(LANGUAGE));
+
+        vo.setFiledataPath(getValue(FILEDATA_PATH));
+        vo.setDatasourceDisplaySuffix(getValue(DATASOURCE_DISPLAY_SUFFIX));
+        vo.setHttpdsPrologue(getValue(HTTPDS_PROLOGUE));
+        vo.setHttpdsEpilogue(getValue(HTTPDS_EPILOGUE));
+        vo.setUiPerformance(getIntValue(UI_PERFORMANCE));
+        vo.setFutureDateLimitPeriods(getIntValue(FUTURE_DATE_LIMIT_PERIODS));
+        vo.setFutureDateLimitPeriodType(getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE));
+        vo.setInstanceDescription(getValue(INSTANCE_DESCRIPTION));
+
+        vo.setChartBackgroundColor(getValue(CHART_BACKGROUND_COLOUR));
+        vo.setPlotBackgroundColor(getValue(PLOT_BACKGROUND_COLOUR));
+        vo.setPlotGridlineColor(getValue(PLOT_GRIDLINE_COLOUR));
+
+        vo.setBackupFileLocation(getValue(BACKUP_FILE_LOCATION));
+        vo.setBackupPeriodType(getIntValue(BACKUP_PERIOD_TYPE));
+        vo.setBackupPeriods(getIntValue(BACKUP_PERIODS));
+        vo.setBackupLastRunSuccess(getBooleanValue(BACKUP_LAST_RUN_SUCCESS));
+        vo.setBackupFileCount(getIntValue(BACKUP_FILE_COUNT));
+        vo.setBackupHour(getIntValue(BACKUP_HOUR));
+        vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
+        vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
+
+        return vo;
+    }
+
+    /**
+     * Take a VO and save its values to the system
+     * 
+     * @param vo
+     */
+    public void updateSettings(SystemSettingsVO vo) {
+
+        this.setValue(DATABASE_SCHEMA_VERSION, vo.getDatabaseSchemaVersion());
+        this.setBooleanValue(NEW_INSTANCE, vo.getNewInstance());
+
+        this.setValue(EMAIL_SMTP_HOST, vo.getEmailSmtpHost());
+        this.setIntValue(EMAIL_SMTP_PORT, vo.getEmailSmtpPort());
+        this.setValue(EMAIL_FROM_ADDRESS, vo.getEmailFromAddress());
+        this.setValue(EMAIL_SMTP_USERNAME, vo.getEmailSmtpUsername());
+        this.setValue(EMAIL_SMTP_PASSWORD, vo.getEmailSmtpPassword());
+        this.setValue(EMAIL_FROM_NAME, vo.getEmailFromName());
+        this.setBooleanValue(EMAIL_AUTHORIZATION, vo.getEmailAuthorization());
+        this.setBooleanValue(EMAIL_TLS, vo.getEmailTls());
+        this.setIntValue(EMAIL_CONTENT_TYPE, vo.getEmailContentType());
+
+        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
+        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS, vo.getDataPointEventPurgePeriods());
+
+        this.setIntValue(POINT_DATA_PURGE_PERIOD_TYPE, vo.getPointDataPurgePeriodType());
+        this.setIntValue(POINT_DATA_PURGE_PERIODS, vo.getPointDataPurgePeriods());
+
+        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
+        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS, vo.getDataPointEventPurgePeriods());
+        this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, vo.getDataSourceEventPurgePeriodType());
+        this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS, vo.getDataSourceEventPurgePeriods());
+        this.setIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE, vo.getSystemEventPurgePeriodType());
+        this.setIntValue(SYSTEM_EVENT_PURGE_PERIODS, vo.getSystemEventPurgePeriods());
+        this.setIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, vo.getPublisherEventPurgePeriodType());
+        this.setIntValue(PUBLISHER_EVENT_PURGE_PERIODS, vo.getPublisherEventPurgePeriods());
+        this.setIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE, vo.getAuditEventPurgePeriodType());
+        this.setIntValue(AUDIT_EVENT_PURGE_PERIODS, vo.getAuditEventPurgePeriods());
+
+        this.setIntValue(NONE_ALARM_PURGE_PERIOD_TYPE, vo.getNoneAlarmPurgePeriodType());
+        this.setIntValue(NONE_ALARM_PURGE_PERIODS, vo.getNoneAlarmPurgePeriods());
+        this.setIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE, vo.getInformationAlarmPurgePeriodType());
+        this.setIntValue(INFORMATION_ALARM_PURGE_PERIODS, vo.getInformationAlarmPurgePeriods());
+        this.setIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE, vo.getUrgentAlarmPurgePeriodType());
+        this.setIntValue(URGENT_ALARM_PURGE_PERIODS, vo.getUrgentAlarmPurgePeriods());
+        this.setIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE, vo.getCriticalAlarmPurgePeriodType());
+        this.setIntValue(CRITICAL_ALARM_PURGE_PERIODS, vo.getCriticalAlarmPurgePeriods());
+        this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, vo.getLifeSafetyAlarmPurgePeriodType());
+        this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS, vo.getLifeSafetyAlarmPurgePeriods());
+
+        this.setIntValue(EVENT_PURGE_PERIOD_TYPE, vo.getEventPurgePeriodType());
+        this.setIntValue(EVENT_PURGE_PERIODS, vo.getEventPurgePeriods());
+
+        this.setBooleanValue(HTTP_CLIENT_USE_PROXY, vo.getHttpClientUseProxy());
+        this.setValue(HTTP_CLIENT_PROXY_SERVER, vo.getHttpClientProxyServer());
+        this.setIntValue(HTTP_CLIENT_PROXY_PORT, vo.getHttpClientProxyPort());
+        this.setValue(HTTP_CLIENT_PROXY_USERNAME, vo.getHttpClientProxyUsername());
+        this.setValue(HTTP_CLIENT_PROXY_PASSWORD, vo.getHttpClientProxyPassword());
+
+        this.setValue(LANGUAGE, vo.getLanguage());
+
+        this.setValue(FILEDATA_PATH, vo.getFiledataPath());
+        this.setValue(DATASOURCE_DISPLAY_SUFFIX, vo.getDatasourceDisplaySuffix());
+        this.setValue(HTTPDS_PROLOGUE, vo.getHttpdsPrologue());
+        this.setValue(HTTPDS_EPILOGUE, vo.getHttpdsEpilogue());
+        this.setIntValue(UI_PERFORMANCE, vo.getUiPerformance());
+        this.setIntValue(FUTURE_DATE_LIMIT_PERIODS, vo.getFutureDateLimitPeriods());
+        this.setIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE, vo.getFutureDateLimitPeriodType());
+        this.setValue(INSTANCE_DESCRIPTION, vo.getInstanceDescription());
+
+        this.setValue(CHART_BACKGROUND_COLOUR, vo.getChartBackgroundColor());
+        this.setValue(PLOT_BACKGROUND_COLOUR, vo.getChartBackgroundColor());
+        this.setValue(PLOT_GRIDLINE_COLOUR, vo.getPlotGridlineColor());
+
+        this.setValue(BACKUP_FILE_LOCATION, vo.getBackupFileLocation());
+        this.setIntValue(BACKUP_PERIOD_TYPE, vo.getBackupPeriodType());
+        this.setIntValue(BACKUP_PERIODS, vo.getBackupPeriods());
+        this.setBooleanValue(BACKUP_LAST_RUN_SUCCESS, vo.getBackupLastRunSuccess());
+        this.setIntValue(BACKUP_FILE_COUNT, vo.getBackupFileCount());
+        this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
+        this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
+        this.setBooleanValue(BACKUP_ENABLED, vo.getBackupEnabled());
+    }
 }

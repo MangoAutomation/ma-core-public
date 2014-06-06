@@ -3,7 +3,7 @@ package com.serotonin.m2m2.module.license;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.license.ModuleLicense;
 
-public class TimedExpiryChecker {
+public class TimedExpiryChecker implements LicenseEnforcement{
     private final ModuleLicense license;
     private final ExpiryAction onExpire;
     private final long expiryTime;

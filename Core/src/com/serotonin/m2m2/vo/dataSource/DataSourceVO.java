@@ -33,7 +33,7 @@ import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
-abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractActionVO<DataSourceVO<?>>{
+abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractActionVO<DataSourceVO<?>> {
     public static final String XID_PREFIX = "DS_";
 
     abstract public TranslatableMessage getConnectionDescription();
@@ -43,22 +43,23 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     abstract public DataSourceRT createDataSourceRT();
 
     abstract public ExportCodes getEventCodes();
-    
+
     final public List<EventTypeVO> getEventTypes() {
-        List<EventTypeVO> eventTypes = new ArrayList<EventTypeVO>();
+        List<EventTypeVO> eventTypes = new ArrayList<>();
         addEventTypes(eventTypes);
         return eventTypes;
     }
 
     abstract protected void addEventTypes(List<EventTypeVO> eventTypes);
 
+    @Override
     public boolean isNew() {
         return id == Common.NEW_ID;
     }
 
     private DataSourceDefinition definition;
 
-    private Map<Integer, Integer> alarmLevels = new HashMap<Integer, Integer>();
+    private Map<Integer, Integer> alarmLevels = new HashMap<>();
 
     @JsonProperty
     private boolean purgeOverride = true;
@@ -74,14 +75,15 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         this.definition = definition;
     }
 
+    @Override
     public boolean isEnabled() {
         return enabled;
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-
 
     public void setAlarmLevel(int eventId, int level) {
         alarmLevels.put(eventId, level);
@@ -125,16 +127,20 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         }
         return null;
     }
+
     /**
      * Helper to get description on Page
+     * 
      * @return
      */
-    public String getConnectionDescriptionString(){
-    	return getConnectionDescription().translate(Common.getTranslations());
+    public String getConnectionDescriptionString() {
+        return getConnectionDescription().translate(Common.getTranslations());
     }
-    public void setConnectionDescriptionString(String str){
-    	//No-op
+
+    public void setConnectionDescriptionString(@SuppressWarnings("unused") String str) {
+        //No-op
     }
+
     protected EventTypeVO createEventType(int eventId, TranslatableMessage message) {
         return createEventType(eventId, message, EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
     }
@@ -145,10 +151,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
                 eventId, defaultAlarmLevel), duplicateHandling);
     }
 
-    public TranslatableMessage getTypeDescription(){
-    	return new TranslatableMessage(getDefinition().getDescriptionKey());
+    public TranslatableMessage getTypeDescription() {
+        return new TranslatableMessage(getDefinition().getDescriptionKey());
     }
-    
+
     /**
      * 
      * @return
@@ -157,12 +163,13 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return Common.translate(getDefinition().getDescriptionKey());
     }
 
-    public void setTypeDescriptionString(String m){
-    	//no op
+    public void setTypeDescriptionString(@SuppressWarnings("unused") String m) {
+        //no op
     }
-    
+
+    @Override
     public void validate(ProcessResult response) {
-    	super.validate(response);
+        super.validate(response);
         if (purgeOverride) {
             if (purgeType != PurgeTypes.DAYS && purgeType != PurgeTypes.MONTHS && purgeType != PurgeTypes.WEEKS
                     && purgeType != PurgeTypes.YEARS)
@@ -176,8 +183,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return new TranslatableMessage(key, args).translate(translations);
     }
 
-
-
     @Override
     public String getTypeKey() {
         return "event.audit.dataSource";
@@ -185,20 +190,19 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
 
     @Override
     public final void addProperties(List<TranslatableMessage> list) {
-    	super.addProperties(list);
+        super.addProperties(list);
         AuditEventType.addPropertyMessage(list, "dsEdit.logging.purgeOverride", purgeOverride);
         AuditEventType.addPeriodMessage(list, "dsEdit.logging.purge", purgeType, purgePeriod);
 
         addPropertiesImpl(list);
     }
 
-
     public void addPropertyChanges(List<TranslatableMessage> list, T from) {
-    	super.addPropertyChanges(list,from);
+        super.addPropertyChanges(list, from);
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.logging.purgeOverride", from.isPurgeOverride(),
                 purgeOverride);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.getPurgeType(), from.getPurgePeriod(),
-                purgeType, purgePeriod);
+        AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.getPurgeType(),
+                from.getPurgePeriod(), purgeType, purgePeriod);
 
         addPropertyChangesImpl(list, from);
     }
@@ -206,6 +210,18 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     abstract protected void addPropertiesImpl(List<TranslatableMessage> list);
 
     abstract protected void addPropertyChangesImpl(List<TranslatableMessage> list, T from);
+
+    //
+    //
+    // Editing customization
+    //
+    /*
+     * Allows the data source to provide custom context data to its own editing page. Can be used for things like lists
+     * of comm ports and such. See DataSourceEditController.
+     */
+    public void addEditContext(@SuppressWarnings("unused") Map<String, Object> model) {
+        // No op. Override as required.
+    }
 
     //
     //
@@ -242,22 +258,22 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
             purgeType = in.readInt();
             purgePeriod = in.readInt();
         }
-        else{
-        	throw new ShouldNeverHappenException("Unknown serialization version.");
+        else {
+            throw new ShouldNeverHappenException("Unknown serialization version.");
         }
-        	
+
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	super.jsonWrite(writer);
-    	
-    	//Write the type
-    	writer.writeEntry("type",this.definition.getDataSourceTypeName());
-    	
+        super.jsonWrite(writer);
+
+        //Write the type
+        writer.writeEntry("type", this.definition.getDataSourceTypeName());
+
         ExportCodes eventCodes = getEventCodes();
         if (eventCodes != null && eventCodes.size() > 0) {
-            Map<String, String> alarmCodeLevels = new HashMap<String, String>();
+            Map<String, String> alarmCodeLevels = new HashMap<>();
 
             for (int i = 0; i < eventCodes.size(); i++) {
                 int eventId = eventCodes.getId(i);
@@ -273,14 +289,14 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	
-    	//Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
-    	
-		name = jsonObject.getString("name");
-		enabled = jsonObject.getBoolean("enabled");
-    	
+
+        //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
+
+        name = jsonObject.getString("name");
+        enabled = jsonObject.getBoolean("enabled");
+
         // Don't change the type.
-    	
+
         JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
         if (alarmCodeLevels != null) {
             ExportCodes eventCodes = getEventCodes();
