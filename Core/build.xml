@@ -68,7 +68,7 @@
     	<mkdir dir="${build.dir}/lib" />
         <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
-        	<fileset file="${build.dir}/classes/mango.build.number"></fileset>
+        	<fileset file="${build.dir}/classes/${mango.build.number}"></fileset>
         </jar>
     	
         <delete dir="${build.dir}/classes"/>
@@ -239,7 +239,7 @@
         <mkdir dir="${build.dir}/lib" />
         <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
-            <fileset file="${build.dir}/classes/mango.build.number"></fileset>
+            <fileset file="${build.dir}/classes/${mango.build.number}"></fileset>
         </jar>
 
     </target>

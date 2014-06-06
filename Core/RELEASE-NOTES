@@ -1,3 +1,7 @@
+*Version 2.4.1*
+* Upgraded Serotonin Utils to 2.1.0
+
+
 *Version 2.4.0*
 * Slight improvements to the UI table auto formatting
 * Added Database storage for Logs
