@@ -98,9 +98,21 @@
         <copy todir="${build.dir}/ftl" preservelastmodified="true">
             <fileset dir="ftl"><include name="**/*.*"/></fileset>
         </copy>
-        <copy todir="${build.dir}/lib" preservelastmodified="true">
-            <fileset dir="lib"><include name="**/*.*"/></fileset>
-        </copy>
+		
+		<!-- switch to determine if we have any local libs to use -->
+		<available property="mango-lib.exists" file="lib" type="dir" />
+		    <if>
+		        <isset property="mango-lib.exists"/>
+		        <then>
+		            <copy todir="${build.dir}/lib" preservelastmodified="true">
+		                <fileset dir="lib"><include name="**/*.*"/></fileset>
+		            </copy>
+		        </then>
+		        <else>
+		        </else>
+		    </if>
+		
+
         <copy todir="${build.dir}/web" preservelastmodified="true">
             <fileset dir="web">
             	<include name="**/*.*"/>
