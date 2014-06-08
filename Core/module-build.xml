@@ -132,7 +132,6 @@
     </target>
     
     <target name="jsp-compile" depends="jar" description="Conditionally compile the JSPs">
-        <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="module-master-classpath" /></taskdef>
         <available property="web.exists" file="web" type="dir" />
         <if>
             <isset property="web.exists"/>
@@ -152,6 +151,7 @@
     </target>
     
     <target name="|jsp-compile" description="Compile the JSPs">
+        <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="module-master-classpath" /></taskdef>
         <property name="module.core" value="${core.target}/web/modules/${name}" />
         
         <!-- Copy the web files to core dirs -->
