@@ -43,7 +43,7 @@
     </for>
     
     <!-- Compile the private modules into the core -->
-    <property name="private-modules" value="BACnet,Data File Data Source,DGLux,DNP3,Galil Data Source,HTTP,JMX Data Source,Log4jDataSource,LoggingConsole,MBus,Meta Data Source,Modbus,ModbusPublisher,OneWire,OPC DA,OpenV,Pachube,Persistent TCP,POP3,Scripting,SNMP,SQL Data Source,SST Global Scripts,TemplateConfiguration,Twilio"/>
+    <property name="private-modules" value="BACnet,Data File Data Source,DGLux,DNP3,Galil Data Source,HTTP,JMX Data Source,Log4jDataSource,LoggingConsole,MBus,Meta Data Source,Modbus,OneWire,OPC DA,OpenV,Pachube,Persistent TCP,POP3,Scripting,SNMP,SQL Data Source,SST Global Scripts,TemplateConfiguration,Twilio"/>
 
     <for list="${private-modules}" param="moduleName" delimiter=",">
         <sequential>
