@@ -47,7 +47,7 @@ public class ModulesController implements UrlHandler {
         	version += " build " + props.getProperty("build.number");
         }
         Module core = new Module("core", version, new TranslatableMessage(
-                "modules.core.description"), "Serotonin Software Technologies, Inc and InfiniteAUTOMATION SYSTEMS.",
+                "modules.core.description"), "Serotonin Software Technologies, Inc and Infinite Automation Systems.",
                 "http://infiniteautomation.com", null, -1);
 
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));

@@ -1,0 +1,4 @@
+#NOTE: This is an internal implementation file, its format can be changed without prior notice.
+#Thu Sep 26 13:41:58 EST 2013
+proguard-annotations-4.10.jar>=
+proguard-annotations-4.10.pom>=

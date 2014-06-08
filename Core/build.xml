@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 
-<project name="MA - Core" basedir="." default="jsp-compile">
-	 <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
-	
+<project name="MA - Core" basedir="." default="jsp-compile" xmlns:mvn="antlib:org.apache.maven.artifact.ant">
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+
+	<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+	            uri="antlib:org.apache.maven.artifact.ant"
+	            classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
+
 	<property file="build.properties"/>
     <property name="fullName" value="m2m2-${name}-${version}" />
 	<property name="build.dir" value="target"/>
@@ -10,12 +14,14 @@
 	<!-- Build number file to allow overidding for Release Builds -->
 	<property name="mango.build.number" value="mango.build.number"/>
 	
+
+	<mvn:pom file="pom.xml" id="maven-pom" />
+	<mvn:dependencies filesetId="maven-deps" type="jar" pomRefId="maven-pom" />
+	<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="maven-pom" useScope="runtime" />
+
 	<path id="master-classpath">
-		<fileset dir="lib">
-			<include name="*.jar"/>
-		</fileset>
-<!-- 		<pathelement path="${build.dir}"/> -->
-    </path>
+	    <fileset refid="maven-deps" />
+	</path>
     
 	<target name="clean" description="Clean output directories">
 		<delete dir="${build.dir}"/>
@@ -63,16 +69,19 @@
 		<!-- Create a backup folder -->
 		<mkdir dir="${build.dir}/backup"/>
    	</target>
-    
+
     <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
     	<mkdir dir="${build.dir}/lib" />
         <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
-        	<fileset file="${build.dir}/classes/${mango.build.number}"></fileset>
+        	<fileset file="${mango.build.number}"></fileset>
         </jar>
     	
+    	<mvn:install file="${build.dir}/lib/ma-core-${version}.jar">
+    		<pom refid="maven-pom"/>
+    	</mvn:install>
+    	
         <delete dir="${build.dir}/classes"/>
-        <delete file="${build.dir}/MANIFEST.MF"/>
     </target>
 	
 	<target name="build" depends="jar" description="Copy changed static assets to build directory">
@@ -109,7 +118,9 @@
             <fileset dir="scripts" includes="**/*.bat" />
             <fileset dir="scripts" includes="**/*.sh" />
         </copy>
+		
 		<!-- CHMOD the Linux scripts -->
+		<fixcrlf srcdir="${build.dir}/bin" includes="**/*.sh" eol="lf" eof="remove" />
 		<chmod dir="${build.dir}/bin" includes="**/*.sh" perm="755" />
         
 		<!-- Empty the modules dir -->
@@ -138,7 +149,6 @@
     </target>
     
 	<target name="zip" depends="jsp-compile" description="create zip release of core with no modules">
-        <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
 		
 		<!-- create the release directory if DNE -->
 		<mkdir dir="release"/>
@@ -161,8 +171,8 @@
 	</target>
 	
    <target name="public-release" description="create public release using contents of ${build.dir}, requires">
-   	<!-- Fix the scripts -->
-       	<fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
+        <!-- Fix the scripts -->
+       	<fixcrlf srcdir="${build.dir}/bin" includes="**/*.sh" eol="lf" eof="remove" />
                     
         <!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
         <delete>
@@ -241,7 +251,9 @@
             <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
             <fileset file="${build.dir}/classes/${mango.build.number}"></fileset>
         </jar>
-
+        <mvn:install file="${build.dir}/lib/ma-core-${version}.jar">
+            <pom refid="maven-pom"/>
+        </mvn:install>
     </target>
 	
 	   <target name="dev-build" depends="dev-jar" description="Merge Changes from Core Project into target during development">
@@ -271,9 +283,14 @@
 	        <copy todir="${build.dir}/ftl" preservelastmodified="true">
 	            <fileset dir="ftl"><include name="**/*.*"/></fileset>
 	        </copy>
-	        <copy todir="${build.dir}/lib" preservelastmodified="true">
-	            <fileset dir="lib"><include name="**/*.*"/></fileset>
-	        </copy>
+	   	
+            <copy todir="${build.dir}/lib" preservelastmodified="true">
+                <mappedresources>
+                    <fileset refid="maven-deps-runtime" />
+                    <flattenmapper/>
+                </mappedresources>
+            </copy>
+	   	
 	        <copy todir="${build.dir}/web" preservelastmodified="true">
 	            <fileset dir="web">
 	                <include name="**/*.*"/>
