@@ -112,7 +112,17 @@
 		        </else>
 		    </if>
 		
-
+	    <!-- Copy the Maven Deps into our folder -->
+		<copy todir="${build.dir}/lib" preservelastmodified="true">
+			<mappedresources>
+			 <fileset refid="maven-deps-runtime" />
+			    <chainedmapper>
+			      <flattenmapper/>
+			      <globmapper from="*.jar" to="lib/*.jar" />
+			   </chainedmapper>
+			</mappedresources>
+		</copy>
+		
         <copy todir="${build.dir}/web" preservelastmodified="true">
             <fileset dir="web">
             	<include name="**/*.*"/>
