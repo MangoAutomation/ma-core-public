@@ -69,11 +69,12 @@
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>jasper</artifactId>
 			<version>6.0.33</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.4</version>
+			<version>1.6</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -85,6 +86,7 @@
 			<groupId>org.directwebremoting</groupId>
 			<artifactId>dwr</artifactId>
 			<version>2.0.10</version>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
