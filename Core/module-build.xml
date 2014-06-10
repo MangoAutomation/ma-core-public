@@ -191,7 +191,7 @@
         			<delete dir="${core.target}/work/jsp/org/apache/jsp/modules/${name}"/>
         			<echo message="Compiling JSPs"/>
                 	<jetty-jspc uriroot="${core.target}/web" outputDir="${core.target}/work/jsp"
-                            compile="true" compilerSourceVM="1.5" compilerTargetVM="1.5" jspFiles="${jsps}">
+                            compile="true" compilerSourceVM="1.7" compilerTargetVM="1.7" jspFiles="${jsps}">
                         <classpath>
                             <path refid="module-master-classpath"/>
                             <pathelement path="target/lib/${fullName}.jar"/>

@@ -64,12 +64,15 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.3.2</version>
 		</dependency>
-
+<!--         <dependency> -->
+<!--             <groupId>org.mortbay.jetty</groupId> -->
+<!--             <artifactId>jsp-2.1-glassfish</artifactId> -->
+<!--             <version>9.1.1.B60.25.p2</version> -->
+<!--         </dependency> -->
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>jasper</artifactId>
-			<version>6.0.33</version>
-			<optional>true</optional>
+			<version>6.0.41</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>

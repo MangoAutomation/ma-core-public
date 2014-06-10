@@ -159,7 +159,7 @@
 	
     <target name="jsp-compile" depends="build" description="Compile the JSPs">
         <jetty-jspc uriroot="${build.dir}/web" outputDir="${build.dir}/work/jsp" compile="true"
-                compilerSourceVM="1.5" compilerTargetVM="1.5">
+                compilerSourceVM="1.7" compilerTargetVM="1.7">
             <classpath>
                 <path refid="master-classpath"/>
                 <pathelement path="${build.dir}/lib/ma-core-${version}.jar"/>
@@ -255,7 +255,7 @@
     <target name="jsp-compile-only" description="Compile the JSPs">
     	<delete dir="${build.dir}/work/jsp" />
         <jetty-jspc uriroot="${build.dir}/web" outputDir="${build.dir}/work/jsp" compile="true"
-                compilerSourceVM="1.5" compilerTargetVM="1.5">
+                compilerSourceVM="1.7" compilerTargetVM="1.7">
             <classpath>
                 <path refid="master-classpath"/>
                 <pathelement path="${build.dir}/lib/ma-core-${version}.jar"/>
