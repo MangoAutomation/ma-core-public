@@ -43,10 +43,6 @@
 
 	<path id="module-master-classpath">
         <fileset refid="maven-deps" />
-        <fileset refid="maven-deps-runtime" />
-        <fileset dir="${core.target}/lib">
-			<include name="*.jar" />
-		</fileset>
 		<fileset dir="lib">
 			<include name="*.jar" />
 		</fileset>
