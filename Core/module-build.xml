@@ -21,29 +21,35 @@
         classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
 	
     <!-- Define the maven included deps (if any) -->
-    <available property="pom.exists" file="pom.xml" type="file" />
+	<!-- Hack to support old and new core (un-mavenized) as we need the core deps somehow-->
+    <available property="pom.exists" file="${core.target}/pom.xml" type="file" />
     <if>
         <isset property="pom.exists"/>
         <then>
+        	<echo message="Using module pom." />
             <mvn:pom file="pom.xml" id="maven-pom" />
             <mvn:dependencies filesetId="maven-deps" type="jar" pomRefId="maven-pom" />
             <mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="maven-pom" useScope="runtime" />
         </then>
         <else>
+        	<echo message="Searching folders for dependencies." />
             <!-- Use built core's lib folder instead -->
             <fileset id="maven-deps" dir="${core.target}/lib">
                 <include name="*.jar" />
             </fileset>
+        	
             <!-- Use the lib folder instead -->
             <fileset id="maven-deps-runtime" dir="lib" erroronmissingdir="false">
                 <include name="*.jar" />
             </fileset>
         </else>
     </if>
-
+	
 	<path id="module-master-classpath">
         <fileset refid="maven-deps" />
         <fileset refid="maven-deps-runtime" />
+		
+		<!-- TODO clean this up by removing duplicate jars -->
         <fileset dir="${core.target}/lib">
 			<include name="*.jar" />
 		</fileset>
