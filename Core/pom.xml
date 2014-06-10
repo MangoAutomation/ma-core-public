@@ -221,6 +221,13 @@
 <!-- 			<artifactId>jsp-2.1-glassfish</artifactId> -->
 <!-- 			<version>9.1.1.B60.25.p2</version> -->
 <!-- 		</dependency> -->
+        <!--  For JSP Compilation -->
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>jasper</artifactId>
+            <version>6.0.41</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
@@ -306,7 +313,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>1.1.7</version>
+			<version>1.1.8</version>
 		</dependency>
 		<!-- <dependency> -->
 		<!-- <groupId>org.directwebremoting</groupId> -->
