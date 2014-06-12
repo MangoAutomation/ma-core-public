@@ -31,12 +31,24 @@
     </path>
 
     <!-- For compiling when modules are pre-installed -->
-    <path id="module-libs">
-        <fileset dir="${build.dir}/web/modules">
-            <include name="**/*.jar" />
-        </fileset>
-    </path>
-
+    <available property="modules-libs.exists" file="pom.xml" type="file" />
+    <if>
+        <isset property="modules-libs.exists" />
+        <then>
+            <path id="module-libs">
+                <fileset dir="${build.dir}/web/modules">
+                    <include name="**/*.jar" />
+                </fileset>
+            </path>
+        </then>
+        <else>
+            <path id="module-libs">
+                <fileset dir="${build.dir}/web/modules">
+                    <include name="**/*.jar" />
+                </fileset>
+            </path>
+        </else>
+    </if>
     <target name="clean" description="Clean output directories">
         <delete dir="${build.dir}" />
         <mkdir dir="${build.dir}" />
