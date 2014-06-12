@@ -12,9 +12,9 @@
     <property file="module.properties" />
     <property name="fullName" value="m2m2-${name}-${version}" />
     <property file="${coreHome}/module-common.properties" />
-    <property name="module.build.dir" value="target" />
+    <property name="module.target" value="target" />
     <property name="core.target" value="${coreHome}/target" />
-    <property name="deploy.jar.paths" value="${core.target}/web/modules" />
+    <property name="module.deploy.paths" value="${core.target}/web/modules" />
     <property name="zip.paths" value="${core.target}/ma-modules.zip" />
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"
@@ -65,17 +65,18 @@
 
     <target name="clean" description="Clean the target area">
         <echo message="Cleaning ${core.target}/web/modules/${name}" />
-        <delete dir="target" />
+        <delete dir="${module.target}" />
         <delete dir="${core.target}/web/modules/${name}" />
     </target>
 
     <target name="compile" description="Compile main source tree java files">
-        <mkdir dir="${module.build.dir}" />
+        <mkdir dir="${module.target}/module-classes" />
 
         <available property="lib.exists" file="lib" type="dir" />
         <if>
             <isset property="lib.exists" />
             <then>
+                <!-- could copy the libs to ${module.target}/lib and then zip from that location -->
             </then>
             <else>
                 <mkdir dir="lib" />
@@ -94,7 +95,7 @@
             </else>
         </if>
         <echo message="Building with Java ${ant.java.version}." />
-        <javac destdir="${module.build.dir}"
+        <javac destdir="${module.target}/module-classes"
                target="7"
                source="7"
                debug="true"
@@ -106,56 +107,6 @@
             <src path="src" />
             <classpath refid="module-master-classpath" />
         </javac>
-    </target>
-
-    <target name="jar"
-            depends="clean, jsp-compile"
-            description="Create a jar file of the compiled classes">
-        <delete file="${module.build.dir}/lib/${fullName}.jar" />
-        <delete file="${module.build.dir}/MANIFEST.MF" />
-        <tstamp>
-            <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
-        </tstamp>
-
-        <manifest file="${module.build.dir}/MANIFEST.MF">
-            <attribute name="Built-By" value="Infinite Automation" />
-            <attribute name="Build-Date" value="${TODAY}" />
-            <attribute name="Build-Version" value="${version}" />
-        </manifest>
-
-        <mkdir dir="${module.build.dir}/lib" />
-        <jar destfile="${module.build.dir}/lib/${fullName}.jar"
-             manifest="${module.build.dir}/MANIFEST.MF">
-            <fileset dir="${module.build.dir}">
-                <include name="**/*.class" />
-                <exclude name="MANIFEST.MF" />
-            </fileset>
-        </jar>
-
-        <if>
-            <istrue value="${includeSource}" />
-            <then>
-                <copy todir="${module.build.dir}/src"
-                      preservelastmodified="true">
-                    <fileset dir="src">
-                        <include name="**/*.*" />
-                    </fileset>
-                </copy>
-            </then>
-        </if>
-
-        <available property="scripts.exists" file="scripts" type="dir" />
-        <if>
-            <isset property="scripts.exists" />
-            <then>
-                <copy todir="${module.build.dir}/bin"
-                      preservelastmodified="true">
-                    <fileset dir="scripts">
-                        <include name="**/*" />
-                    </fileset>
-                </copy>
-            </then>
-        </if>
     </target>
 
     <target name="jsp-compile"
@@ -171,11 +122,12 @@
                 <if>
                     <isset property="work.exists" />
                     <then>
+
                         <taskdef name="jasper2"
                                  classname="org.apache.jasper.JspC">
                             <classpath>
                                 <path refid="module-master-classpath" />
-                                <pathelement path="${module.build.dir}/classes" />
+                                <pathelement path="${module.target}/module-classes" />
                             </classpath>
                         </taskdef>
                         <property name="module.core"
@@ -222,16 +174,18 @@
                         <!-- Compile the JSPs IF THERE ARE ANY-->
                         <if>
                             <isset property="jsps" />
+
                             <then>
+                                <mkdir dir="${module.target}/work-tmp/jsp" />
+                                <mkdir dir="${module.target}/work-tmp/jsp-src" />
                                 <echo message="${jsps}" />
                                 <jasper2 uriroot="${core.target}/web"
-                                         outputDir="${module.build.dir}/work/jsp-src"
-                                         webXmlFragment="${module.build.dir}/web/WEB-INF/web-fragment.xml"
+                                         outputDir="${module.target}/work-tmp/jsp-src"
+                                         webXmlFragment="${module.target}/web/WEB-INF/web-fragment.xml"
                                          verbose="1"
                                          jspFiles="${jsps}">
                                 </jasper2>
-                                <mkdir dir="${module.build.dir}/work/jsp/" />
-                                <javac destdir="${module.build.dir}/work/jsp/"
+                                <javac destdir="${module.target}/work-tmp/jsp/"
                                        debug="true"
                                        debuglevel="lines,vars,source"
                                        deprecation="false"
@@ -240,34 +194,39 @@
                                        includeantruntime="false"
                                        source="1.7"
                                        target="1.7">
-                                    <src path="${module.build.dir}/work/jsp-src" />
+                                    <src path="${module.target}/work-tmp/jsp-src" />
                                     <classpath>
                                         <path refid="module-master-classpath" />
-                                        <pathelement path="${module.build.dir}/classes" />
+                                        <pathelement path="${module.target}/module-classes" />
                                     </classpath>
                                 </javac>
                                 <!-- Copy the compiled stuff back to the module -->
                                 <property name="pkg"
-                                          value="${module.build.dir}/work/jsp/org/apache/jsp/modules/${name}" />
+                                          value="${module.target}/work-tmp/jsp/org/apache/jsp/modules/${name}" />
                                 <available property="pkg.exists"
                                            file="${pkg}"
                                            type="dir" />
                                 <if>
                                     <isset property="pkg.exists" />
                                     <then>
-                                        <echo message="Copying Compiled JSPs Back Into Module" />
-                                        <copy todir="${module.build.dir}/classes"
+                                        <copy todir="${module.target}/module-classes"
                                               preservelastmodified="true">
-                                            <fileset dir="${module.build.dir}/work/jsp/">
+                                            <fileset dir="${module.target}/work-tmp/jsp/">
                                                 <include name="org/apache/jsp/modules/${name}/**/*" />
+                                            </fileset>
+                                        </copy>
+                                        <copy todir="${module.target}/work"
+                                              preservelastmodified="true">
+                                            <fileset dir="${module.target}/work-tmp/">
+                                                <include name="jsp/org/apache/jsp/modules/${name}/**/*" />
                                             </fileset>
                                         </copy>
                                         <if>
                                             <istrue value="${includeSource}" />
                                             <then>
-                                                <copy todir="${module.build.dir}/src"
+                                                <copy todir="${module.target}/src"
                                                       preservelastmodified="true">
-                                                    <fileset dir="${module.build.dir}/work/jsp-src">
+                                                    <fileset dir="${module.target}/work-tmp/jsp-src">
                                                         <include name="**/*.*" />
                                                     </fileset>
                                                 </copy>
@@ -285,20 +244,39 @@
                             <isset property="tagdir" />
                             <then>
                                 <!-- Copy the compiled tag dir back to the module -->
-                                <property name="tagpkg"
-                                          value="work/jsp/org/apache/jsp/tag/web/${name}" />
-                                <echo message="Copying Tags to ${module.build.dir}/${tagpkg}" />
-                                <copy todir="${module.build.dir}/${tagpkg}"
+                                <echo message="Copying Tags to ${module.target}/${tagpkg}" />
+                                <copy todir="${module.target}/module-classes/org/apache/jsp/tag/web/${name}"
                                       preservelastmodified="true">
-                                    <fileset dir="${core.target}/web/WEB-INF/tags/${name}">
+                                    <fileset dir="${module.target}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
+                                <property name="tagpkg"
+                                          value="work/jsp/org/apache/jsp/tag/web/${name}" />
+                                <copy todir="${module.target}/${tagpkg}"
+                                      preservelastmodified="true">
+                                    <fileset dir="${module.target}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
+                                        <include name="**/*" />
+                                    </fileset>
+                                </copy>
+                                <if>
+                                    <istrue value="${includeSource}" />
+                                    <then>
+                                        <copy todir="${module.target}/src"
+                                              preservelastmodified="true">
+                                            <fileset dir="${module.target}/work-tmp/jsp-src/org/apache/jsp/tag/web/${name}">
+                                                <include name="**/*.*" />
+                                            </fileset>
+                                        </copy>
+                                    </then>
+                                </if>
+
                             </then>
                         </if>
 
                         <!-- Clean out the directories to leave the core unchanged -->
                         <delete dir="${module.core}" />
+                        <!-- <delete dir="${module.target}/work-tmp" /> -->
                         <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
                     </then>
                     <else>
@@ -310,17 +288,66 @@
 
     </target>
 
+    <target name="jar"
+            depends="clean, jsp-compile"
+            description="Create a jar file of the compiled classes">
+        <delete file="${module.target}/lib/${fullName}.jar" />
+        <delete file="${module.target}/MANIFEST.MF" />
+        <tstamp>
+            <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+        </tstamp>
+
+        <manifest file="${module.target}/MANIFEST.MF">
+            <attribute name="Built-By" value="Infinite Automation" />
+            <attribute name="Build-Date" value="${TODAY}" />
+            <attribute name="Build-Version" value="${version}" />
+        </manifest>
+
+        <mkdir dir="${module.target}/lib" />
+
+        <if>
+            <istrue value="${includeSource}" />
+            <then>
+                <copy todir="${module.target}/src" preservelastmodified="true">
+                    <fileset dir="src">
+                        <include name="**/*.*" />
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+
+        <jar destfile="${module.target}/lib/${fullName}.jar"
+             manifest="${module.target}/MANIFEST.MF">
+            <fileset dir="${module.target}/module-classes">
+                <include name="**/*.class" />
+            </fileset>
+        </jar>
+    </target>
+
     <target name="zip"
             depends="jar"
-            description="Create a jar file of the compiled classes">
-        <delete file="${module.build.dir}/release/${fullName}.zip" />
-        <zip destfile="${module.build.dir}/release/${fullName}.zip">
+            description="Create a Zip file of the Module">
+
+        <available property="scripts.exists" file="scripts" type="dir" />
+        <if>
+            <isset property="scripts.exists" />
+            <then>
+                <copy todir="${module.target}/bin" preservelastmodified="true">
+                    <fileset dir="scripts">
+                        <include name="**/*" />
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+
+        <delete file="${module.target}/release/${fullName}.zip" />
+        <zip destfile="${module.target}/release/${fullName}.zip">
             <fileset dir="">
                 <include name="module.properties" />
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
-            <fileset dir="${module.build.dir}">
+            <fileset dir="${module.target}">
                 <include name="lib/${fullName}.jar" />
             </fileset>
             <fileset dir="">
@@ -338,13 +365,13 @@
             <fileset dir="">
                 <include name="classes/**/*" />
             </fileset>
-            <fileset dir="${module.build.dir}">
+            <fileset dir="${module.target}">
                 <include name="work/jsp/**/*" />
             </fileset>
-            <fileset dir="${module.build.dir}">
+            <fileset dir="${module.target}">
                 <include name="src/**/*" />
             </fileset>
-            <fileset dir="${module.build.dir}">
+            <fileset dir="${module.target}">
                 <include name="bin/**/*" />
             </fileset>
 
@@ -362,12 +389,12 @@
     <target name="deploy"
             depends="zip"
             description="Copy the zip to configured places">
-        <foreach list="${deploy.jar.paths}"
+        <foreach list="${module.deploy.paths}"
                  target="|deploy"
                  param="todir"
-                 delimiter="|">
+                 delimiter=",">
             <param name="deploy.file"
-                   value="${module.build.dir}/release/${fullName}.zip" />
+                   value="${module.target}/release/${fullName}.zip" />
         </foreach>
 
         <if>
@@ -376,9 +403,9 @@
                 <foreach list="${zip.paths}"
                          target="|zip"
                          param="tozip"
-                         delimiter="|">
+                         delimiter=",">
                     <param name="zip.file"
-                           value="${module.build.dir}/release/${fullName}.zip" />
+                           value="${module.target}/release/${fullName}.zip" />
                 </foreach>
             </then>
             <else>
@@ -419,17 +446,18 @@
                 <echo message="Copying Tags to ${core.target}/${cw-tagpkg}" />
                 <copy todir="${core.target}/web/WEB-INF/tags/${name}"
                       preservelastmodified="true">
-                    <fileset dir="${module.build.dir}/${cw-tagpkg}">
+                    <fileset dir="${module.target}/${cw-tagpkg}">
                         <include name="**/*" />
                     </fileset>
                 </copy>
             </then>
         </if>
         <!-- Copy the compiled jsps into the core -->
-        <property name="cw-pkg" value="work/jsp/org/apache/jsp/modules/${name}" />
+        <property name="cw-pkg"
+                  value="work/jsp/org/apache/jsp/modules/${name}" />
         <echo message="Copying JSPs to ${core.target}/${cw-pkg}" />
-        <copy todir="${core.target}/{cw-pkg}" preservelastmodified="true">
-            <fileset dir="${module.build.dir}/${cw-pkg}">
+        <copy todir="${core.target}/${cw-pkg}" preservelastmodified="true">
+            <fileset dir="${module.target}/${cw-pkg}">
                 <include name="**/*" />
             </fileset>
         </copy>

@@ -15,18 +15,24 @@
 
  <!-- 
     This target requires:
-    - the ${build.dir} that will force a core build into as the target and the modules will use for building against
+    - the ${coreHome} set to the root of the Core directory
+    - the ${core.target} that will force a core build into as the target and the modules will use for building against
     - the ${modules.public.path} set to where the public modules are located
     - the ${modules.private.path} set to where the private modules are located
-    - the ${depoloy.core.path} set to where the core release hierarchy should begin
+    - the ${core.deploy.path} set to where the core release hierarchy should begin
   -->
  <target name="release-full" description="Deploy Release with specified public modules into ${deploy.core.paths}/${core-version}" >
     
     <tstamp>
         <format property="TODAY" pattern="yyyy-MM-dd-HH-mm-ss" />
     </tstamp>
+
+    <!-- Clean the core target -->
+    <subant target="clean">
+        <fileset dir="${coreHome}" includes="build.xml"/>
+    </subant>
     
-    <!-- First compile the core target -->
+    <!-- Compile the core target -->
     <subant target="jar">
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
@@ -38,7 +44,7 @@
     <for list="${public-modules}" param="moduleName" delimiter=",">
         <sequential>
             <subant target="deploy">
-                <property name="core.target" value="${build.dir}"/>
+                <property name="core.target" value="${core.build.dir}"/>
                 <fileset dir="${modules.public.path}/@{moduleName}" includes="build.xml"/>
             </subant>
         </sequential>
@@ -50,7 +56,7 @@
     <for list="${private-modules}" param="moduleName" delimiter=",">
         <sequential>
             <subant target="deploy">
-                <property name="core.target" value="${build.dir}"/>
+                <property name="core.target" value="${core.target}"/>
                 <fileset dir="${modules.private.path}/@{moduleName}" includes="build.xml"/>
             </subant>
         </sequential>
@@ -58,20 +64,20 @@
 
 
     <subant target="public-release">
-        <property name="deploy.core.paths" value="${deploy.core.path}/${maven-pom.version}/${TODAY}" />
+        <property name="core.deploy.paths" value="${core.deploy.path}/${maven-pom.version}/${TODAY}" />
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
 
 
     <!-- now using the build target we will build ALL of the modules so we have them-->
     <subant target="deploy-all-somewhere">
-        <property name="core.target" value="${build.dir}" />
-        <property name="deploy.modules.path" value="${deploy.core.path}/${maven-pom.version}/${TODAY}"/>
+        <property name="core.target" value="${core.target}" />
+        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/${TODAY}"/>
         <fileset dir="${modules.private.path}" includes="build.xml"/>
     </subant>
     <subant target="deploy-all-somewhere">
-        <property name="core.target" value="${build.dir}" />
-        <property name="deploy.modules.path" value="${deploy.core.path}/${maven-pom.version}/${TODAY}"/>
+        <property name="core.target" value="${core.target}" />
+        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/${TODAY}"/>
         <fileset dir="${modules.public.path}" includes="build.xml"/>
     </subant>
 
