@@ -20,7 +20,7 @@
 
     <property file="build.properties" />
     <property name="fullName"
-              value="m2m2-${maven-pom.name}-${maven-pom.version}" />
+              value="m2m2-${maven-pom.artifactId}-${maven-pom.version}" />
     <property name="core.target" value="${coreHome}/target" />
     <property name="core.release" value="${coreHome}/release" />
     <property name="core.deploy.paths" value="${core.release}" />
@@ -286,17 +286,18 @@
             depends="zip"
             description="copy the release contents to ${core.deploy.paths}, requires a fully-built core">
 
-        <foreach list="${deploy.core.paths}"
+        <foreach list="${core.deploy.paths}"
                  target="|deploy"
                  param="deploy.path"
                  delimiter=",">
-            <param name="deploy.file" value="${fullName}.zip" />
+            <param name="deploy.file" value="${core.release}/${fullName}.zip" />
         </foreach>
     </target>
 
     <target name="|deploy">
+        <echo message="Copying ${core.release}/${fullName}.jar to ${deploy.path}" />
         <copy todir="${deploy.path}" preservelastmodified="true">
-            <fileset file="${core.release}/${fullName}.jar" />
+            <fileset file="${core.release}/${fullName}.zip" />
         </copy>
     </target>
 
