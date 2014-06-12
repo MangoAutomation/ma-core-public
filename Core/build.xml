@@ -113,7 +113,7 @@
             <fileset dir="scripts" includes="**/*.sh" />
         </copy>
 
-        <!-- CHMOD the Linux scripts -->
+        <!-- Cleanup the Linux scripts -->
         <fixcrlf srcdir="${core.target}/bin"
                  includes="**/*.sh"
                  eol="lf"
@@ -268,16 +268,28 @@
             <fileset dir="${core.release}" includes="${fullName}.zip" />
         </delete>
 
-        <!-- Delete the Jasper Generated JSP Source Files -->
-        <delete dir="${core.target}/work/jsp-src" />
 
         <zip destfile="${core.release}/${fullName}.zip">
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
+            <zipfileset dir="${core.target}" filemode="755">
+                <include name="bin/**/*" />
+            </zipfileset>
             <fileset dir="${core.target}">
-                <include name="**/*" />
+                <include name="backup" />
+                <include name="db/**/*" />
+                <include name="ftl/**/*" />
+                <include name="lib/**/*" />
+                <include name="logs/**/*" />
+                <include name="overrides/**/*" />
+                <include name="web/**/*" />
+                <include name="work/jsp/**/*" />
+                <include name="classes/debug-log4j.xml" />
+                <include name="classes/env.properties" />
+                <include name="classes/i18n.properties" />
+                <include name="classes/log4j.xml" />
             </fileset>
         </zip>
     </target>
