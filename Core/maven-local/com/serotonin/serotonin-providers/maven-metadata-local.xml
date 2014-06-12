@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-  <groupId>com.infiniteautomation</groupId>
+  <groupId>com.serotonin</groupId>
   <artifactId>serotonin-providers</artifactId>
   <versioning>
     <release>2.0.6</release>

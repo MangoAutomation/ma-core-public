@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
-<project name="MA - Core" basedir="." default="deploy-all">
+<project name="MA - Core" basedir="." default="deploy-all" xmlns:mvn="antlib:org.apache.maven.artifact.ant" >
  
  <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+ <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
+
  <!-- To load the version number for placing in build files -->
- <property file="${coreHome}/build.properties" />
+ <mvn:pom file="Core/pom.xml" id="maven-pom" />
  <!-- default to have all git repos in same location -->
  <property name="modules.public.path" value="../.." />
  <property name="modules.private.path" value="../.." />
@@ -25,7 +27,7 @@
     </tstamp>
     
     <!-- First compile the core target -->
-    <subant target="jsp-compile">
+    <subant target="jar">
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
 
@@ -56,7 +58,7 @@
 
 
     <subant target="public-release">
-        <property name="deploy.core.paths" value="${deploy.core.path}/${version}/${TODAY}" />
+        <property name="deploy.core.paths" value="${deploy.core.path}/${maven-pom.version}/${TODAY}" />
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
 
@@ -64,12 +66,12 @@
     <!-- now using the build target we will build ALL of the modules so we have them-->
     <subant target="deploy-all-somewhere">
         <property name="core.target" value="${build.dir}" />
-        <property name="deploy.modules.path" value="${deploy.core.path}/${version}/${TODAY}"/>
+        <property name="deploy.modules.path" value="${deploy.core.path}/${maven-pom.version}/${TODAY}"/>
         <fileset dir="${modules.private.path}" includes="build.xml"/>
     </subant>
     <subant target="deploy-all-somewhere">
         <property name="core.target" value="${build.dir}" />
-        <property name="deploy.modules.path" value="${deploy.core.path}/${version}/${TODAY}"/>
+        <property name="deploy.modules.path" value="${deploy.core.path}/${maven-pom.version}/${TODAY}"/>
         <fileset dir="${modules.public.path}" includes="build.xml"/>
     </subant>
 

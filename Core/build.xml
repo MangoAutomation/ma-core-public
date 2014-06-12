@@ -1,37 +1,132 @@
 <?xml version="1.0"?>
 
-<project name="MA - Core" basedir="." default="jsp-compile" xmlns:mvn="antlib:org.apache.maven.artifact.ant">
-	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+<project name="MA - Core"
+         basedir="."
+         default="jsp-compile"
+         xmlns:mvn="antlib:org.apache.maven.artifact.ant">
+    <taskdef resource="net/sf/antcontrib/antlib.xml"
+             classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
 
-	<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-	            uri="antlib:org.apache.maven.artifact.ant"
-	            classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
+    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+             uri="antlib:org.apache.maven.artifact.ant"
+             classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
 
-	<property file="build.properties"/>
-    <property name="fullName" value="m2m2-${name}-${version}" />
-	<property name="build.dir" value="target"/>
-	<property name="depoloy.core.paths" value="release" />
-	<!-- Build number file to allow overidding for Release Builds -->
-	<property name="mango.build.number" value="mango.build.number"/>
-	
+    <mvn:pom file="pom.xml" id="maven-pom" />
+    <mvn:dependencies filesetId="maven-deps" type="jar" pomRefId="maven-pom" />
+    <mvn:dependencies filesetId="maven-deps-runtime"
+                      type="jar"
+                      pomRefId="maven-pom"
+                      useScope="runtime" />
 
-	<mvn:pom file="pom.xml" id="maven-pom" />
-	<mvn:dependencies filesetId="maven-deps" type="jar" pomRefId="maven-pom" />
-	<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="maven-pom" useScope="runtime" />
+    <property file="build.properties" />
+    <property name="fullName"
+              value="m2m2-${maven-pom.name}-${maven-pom.version}" />
+    <property name="build.dir" value="target" />
+    <property name="depoloy.core.paths" value="release" />
+    <!-- Build number file to allow overidding for Release Builds -->
+    <property name="mango.build.number" value="mango.build.number" />
 
-	<path id="master-classpath">
-	    <fileset refid="maven-deps" />
-	</path>
-    
-	<target name="clean" description="Clean output directories">
-		<delete dir="${build.dir}"/>
-		<mkdir dir="${build.dir}"/>
-	</target>
-	
-	<target name="compile" description="Compile main source tree java files">
-		<mkdir dir="${build.dir}/classes"/>
-		<mkdir dir="${build.dir}/classes/META-INF"/>
-		
+    <path id="master-classpath">
+        <fileset refid="maven-deps" />
+    </path>
+
+    <!-- For compiling when modules are pre-installed -->
+    <path id="module-libs">
+        <fileset dir="${build.dir}/web/modules">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <target name="clean" description="Clean output directories">
+        <delete dir="${build.dir}" />
+        <mkdir dir="${build.dir}" />
+    </target>
+
+    <target name="configure"
+            description="Copy changed static assets to build directory">
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset dir="classes">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+        <copy todir="${build.dir}/db" preservelastmodified="true">
+            <fileset dir="db">
+                <include name="**/*.sql" />
+            </fileset>
+        </copy>
+        <copy todir="${build.dir}/ftl" preservelastmodified="true">
+            <fileset dir="ftl">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+
+        <!-- switch to determine if we have any local libs to use -->
+        <available property="mango-lib.exists" file="lib" type="dir" />
+        <if>
+            <isset property="mango-lib.exists" />
+            <then>
+                <copy todir="${build.dir}/lib" preservelastmodified="true">
+                    <fileset dir="lib">
+                        <include name="**/*.*" />
+                    </fileset>
+                </copy>
+            </then>
+            <else>
+            </else>
+        </if>
+
+        <!-- Copy the Maven Deps into our folder -->
+        <copy todir="${build.dir}/lib" preservelastmodified="true">
+            <mappedresources>
+                <fileset refid="maven-deps-runtime" />
+                <flattenmapper />
+            </mappedresources>
+        </copy>
+
+        <copy todir="${build.dir}/web" preservelastmodified="true">
+            <fileset dir="web">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+        <!-- Copy the Dojo Debug JS Libraries -->
+        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
+            <fileset dir="dojo-build/dist/">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+
+        <!-- Copy the Scripts into the target -->
+        <copy todir="${build.dir}/bin" preservelastmodified="true">
+            <fileset dir="scripts" includes="**/*.bat" />
+            <fileset dir="scripts" includes="**/*.sh" />
+        </copy>
+
+        <!-- CHMOD the Linux scripts -->
+        <fixcrlf srcdir="${build.dir}/bin"
+                 includes="**/*.sh"
+                 eol="lf"
+                 eof="remove" />
+        <chmod dir="${build.dir}/bin" includes="**/*.sh" perm="755" />
+
+        <!-- Create the modules dir -->
+        <mkdir dir="${build.dir}/web/modules" />
+
+        <!-- Create the filedata dir -->
+        <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
+
+        <!-- Create the empty folders for the build -->
+        <mkdir dir="${build.dir}/overrides/classes" />
+        <mkdir dir="${build.dir}/overrides/properties" />
+
+        <mkdir dir="${build.dir}/logs" />
+    </target>
+
+    <target name="compile"
+            depends="configure"
+            description="Compile main source tree java files">
+        <mkdir dir="${build.dir}/classes" />
+        <mkdir dir="${build.dir}/classes/META-INF" />
+
         <tstamp>
             <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
         </tstamp>
@@ -39,320 +134,398 @@
         <manifest file="${build.dir}/classes/META-INF/MANIFEST.MF">
             <attribute name="Built-By" value="${vendor}" />
             <attribute name="Build-Date" value="${TODAY}" />
-            <attribute name="Build-Version" value="${version}" />
+            <attribute name="Build-Version" value="${maven-pom.version}" />
         </manifest>
-		
-		<copy todir="${build.dir}/classes" preservelastmodified="true">
-		    <fileset file="classes/*.*"/>
-	    </copy>
-		<!-- Place the build number into the build -->
-		<buildnumber file="${mango.build.number}"/>
-        <copy todir="${build.dir}/classes" preservelastmodified="true">
-            <fileset file="${mango.build.number}"/>
-        </copy>
-		
-		
-		<echo message="Building with Java ${ant.java.version}."/>
-		<javac destdir="${build.dir}/classes" debug="true" debuglevel="lines,vars,source"
-				deprecation="false" optimize="false" failonerror="true" includeantruntime="false"
-			    source="1.7" target="1.7" >
-            <src path="src"/>
-            <classpath refid="master-classpath"/>
-		</javac>
-        
-        <mkdir dir="${build.dir}/patches"/>
-        <javac destdir="${build.dir}/patches" debug="true" debuglevel="lines,vars,source"
-                deprecation="false" optimize="false" failonerror="true" includeantruntime="false">
-            <src path="src-patch"/>
-            <classpath refid="master-classpath"/>
-        </javac>
-		<!-- Create a backup folder -->
-		<mkdir dir="${build.dir}/backup"/>
-   	</target>
 
-    <target name="jar" depends="clean,compile" description="Create a jar file of the compiled classes">
-    	<mkdir dir="${build.dir}/lib" />
-        <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
-            <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
-        	<fileset file="${mango.build.number}"></fileset>
-        </jar>
-    	
-    	<mvn:install file="${build.dir}/lib/ma-core-${version}.jar">
-    		<pom refid="maven-pom"/>
-    	</mvn:install>
-    	
-        <delete dir="${build.dir}/classes"/>
-    </target>
-	
-	<target name="build" depends="jar" description="Copy changed static assets to build directory">
+        <!-- Place the build number into the build -->
+        <buildnumber file="${mango.build.number}" />
         <copy todir="${build.dir}/classes" preservelastmodified="true">
-            <fileset dir="classes"><include name="**/*.*"/></fileset>
-            <fileset dir="${build.dir}/patches"><include name="**/*.*"/></fileset>
+            <fileset file="${mango.build.number}" />
         </copy>
-        <delete dir="${build.dir}/patches"/>
-        <copy todir="${build.dir}/db" preservelastmodified="true">
-	        <fileset dir="db" >
-	    	    <include name="**/*.sql"/>
-	        </fileset>
-	    </copy>
-        <copy todir="${build.dir}/ftl" preservelastmodified="true">
-            <fileset dir="ftl"><include name="**/*.*"/></fileset>
-        </copy>
-		
-		<!-- switch to determine if we have any local libs to use -->
-		<available property="mango-lib.exists" file="lib" type="dir" />
-		    <if>
-		        <isset property="mango-lib.exists"/>
-		        <then>
-		            <copy todir="${build.dir}/lib" preservelastmodified="true">
-		                <fileset dir="lib"><include name="**/*.*"/></fileset>
-		            </copy>
-		        </then>
-		        <else>
-		        </else>
-		    </if>
-		
-	    <!-- Copy the Maven Deps into our folder -->
-		<copy todir="${build.dir}/lib" preservelastmodified="true">
-            <mappedresources>
-                <fileset refid="maven-deps-runtime" />
-                <flattenmapper/>
-            </mappedresources>
-		</copy>
-		
-        <copy todir="${build.dir}/web" preservelastmodified="true">
-            <fileset dir="web">
-            	<include name="**/*.*"/>
+
+
+        <echo message="Building with Java ${ant.java.version}." />
+        <javac destdir="${build.dir}/classes"
+               debug="true"
+               debuglevel="lines,vars,source"
+               deprecation="false"
+               optimize="false"
+               failonerror="true"
+               includeantruntime="false"
+               source="1.7"
+               target="1.7">
+            <src path="src" />
+            <classpath refid="master-classpath" />
+        </javac>
+
+        <!-- Compile any patches -->
+        <javac destdir="${build.dir}/classes"
+               debug="true"
+               debuglevel="lines,vars,source"
+               deprecation="false"
+               optimize="false"
+               failonerror="true"
+               includeantruntime="false">
+            <src path="src-patch" />
+            <classpath refid="master-classpath" />
+        </javac>
+        <!-- Create a backup folder -->
+        <mkdir dir="${build.dir}/backup" />
+    </target>
+
+    <taskdef name="jasper2" classname="org.apache.jasper.JspC">
+        <classpath>
+            <path refid="master-classpath" />
+            <pathelement path="${build.dir}/classes" />
+            <path refid="module-libs" />
+        </classpath>
+    </taskdef>
+
+    <target name="jsp-compile"
+            depends="compile"
+            description="Compile the JSPs, add to core jar">
+
+        <!-- If we have modules installed we need to collect their jars too -->
+
+        <jasper2 validateXml="false"
+                 uriroot="${build.dir}/web"
+                 webXmlFragment="${build.dir}/web/WEB-INF/generated_web.xml"
+                 addWebXmlMappings="true"
+                 outputDir="${build.dir}/work/jsp-src"
+                 verbose="1">
+        </jasper2>
+        <mkdir dir="${build.dir}/work/jsp" />
+        <javac destdir="${build.dir}/work/jsp"
+               debug="true"
+               debuglevel="lines,vars,source"
+               deprecation="false"
+               optimize="true"
+               failonerror="true"
+               includeantruntime="false"
+               source="1.7"
+               target="1.7">
+            <src path="${build.dir}/work/jsp-src" />
+            <classpath>
+                <path refid="master-classpath" />
+                <pathelement path="${build.dir}/classes" />
+                <path refid="module-libs" />
+                <!-- need to add all module libs to the classpath -->
+            </classpath>
+        </javac>
+        <!-- Copy the compiled files back into our classes folder -->
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset dir="${build.dir}/work/jsp">
+                <include name="**/*.class" />
             </fileset>
         </copy>
-		<!-- Copy the Dojo Debug JS Libraries -->
-        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
-               <fileset dir="dojo-build/dist/">
-                 <include name="**/*.*"/>
-               </fileset>
-        </copy>
-
-		<!-- Copy the Scripts into the target -->
-        <copy todir="${build.dir}/bin" preservelastmodified="true">
-            <fileset dir="scripts" includes="**/*.bat" />
-            <fileset dir="scripts" includes="**/*.sh" />
-        </copy>
-		
-		<!-- CHMOD the Linux scripts -->
-		<fixcrlf srcdir="${build.dir}/bin" includes="**/*.sh" eol="lf" eof="remove" />
-		<chmod dir="${build.dir}/bin" includes="**/*.sh" perm="755" />
-        
-		<!-- Empty the modules dir -->
-        <delete dir="${build.dir}/web/modules" />
-        <mkdir dir="${build.dir}/web/modules" />
-        
-		<!-- Empty the filedata dir -->
-        <delete dir="${build.dir}/web/WEB-INF/filedata" />
-        <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
-        
-		<!-- Create the empty folders for the build -->
-        <mkdir dir="${build.dir}/overrides" />
-        <mkdir dir="${build.dir}/logs" />
-	</target>
-    
-    <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="master-classpath" /></taskdef>
-	
-    <target name="jsp-compile" depends="build" description="Compile the JSPs">
-        <jetty-jspc uriroot="${build.dir}/web" outputDir="${build.dir}/work/jsp" compile="true"
-                compilerSourceVM="1.7" compilerTargetVM="1.7">
-            <classpath>
-                <path refid="master-classpath"/>
-                <pathelement path="${build.dir}/lib/ma-core-${version}.jar"/>
-            </classpath>
-        </jetty-jspc>
     </target>
-    
-	<target name="zip" depends="jsp-compile" description="create zip release of core with no modules">
-		
-		<!-- create the release directory if DNE -->
-		<mkdir dir="release"/>
-		
-		<!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
-		<delete>
-			<fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
-			<fileset dir="release" includes="${fullName}.zip"/>
-		</delete>
-		
+
+    <target name="jar"
+            depends="jsp-compile"
+            description="Create a jar file of the compiled classes">
+        <mkdir dir="${build.dir}/lib" />
+        <jar destfile="${build.dir}/lib/ma-core-${maven-pom.version}.jar"
+             manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
+            <fileset dir="${build.dir}/classes">
+                <include name="**/*.class" />
+            </fileset>
+            <fileset file="${mango.build.number}">
+            </fileset>
+        </jar>
+
+        <mvn:install file="${build.dir}/lib/ma-core-${maven-pom.version}.jar">
+            <pom refid="maven-pom" />
+        </mvn:install>
+
+    </target>
+
+    <target name="zip"
+            description="Create zip release of the ${build.dir}, removing source files.">
+
+        <!-- create the release directory if DNE -->
+        <mkdir dir="release" />
+
+        <!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
+        <delete>
+            <fileset dir="${build.dir}/web/resources"
+                     includes="**/*.uncompressed.js" />
+            <fileset dir="release" includes="${fullName}.zip" />
+        </delete>
+
+        <!-- Delete the Jasper Generated JSP Source Files -->
+        <delete dir="${build.dir}/work/jsp-src" />
+
         <zip destfile="release/${fullName}.zip">
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
-	    	<fileset dir="${build.dir}">
-	    		<include name="**/*"/>
-	    	</fileset>
-         </zip>
-	</target>
-	
-   <target name="public-release" description="create public release using contents of ${build.dir}, requires">
+            <fileset dir="${build.dir}">
+                <include name="**/*" />
+            </fileset>
+        </zip>
+    </target>
+
+    <target name="public-release"
+            description="create public release using contents of ${build.dir}, requires a fully-built core">
         <!-- Fix the scripts -->
-       	<fixcrlf srcdir="${build.dir}/bin" includes="**/*.sh" eol="lf" eof="remove" />
-                    
+        <fixcrlf srcdir="${build.dir}/bin"
+                 includes="**/*.sh"
+                 eol="lf"
+                 eof="remove" />
+
         <!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
         <delete>
-            <fileset dir="${build.dir}/web/resources" includes="**/*.uncompressed.js"/>
+            <fileset dir="${build.dir}/web/resources"
+                     includes="**/*.uncompressed.js" />
         </delete>
-   	
-        <foreach list="${deploy.core.paths}" target="|deploy" param="deploy.path" delimiter=",">
-   	        <param name="deploy.file" value="${fullName}.zip" />
-   	    </foreach>
-   </target>
-	
-    <target name="|deploy" >
-    	<zip destfile="${deploy.path}/${deploy.file}">
+
+        <foreach list="${deploy.core.paths}"
+                 target="|deploy"
+                 param="deploy.path"
+                 delimiter=",">
+            <param name="deploy.file" value="${fullName}.zip" />
+        </foreach>
+    </target>
+
+    <target name="|deploy">
+        <zip destfile="${deploy.path}/${deploy.file}">
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
             <fileset dir="${build.dir}">
-                <include name="**/*"/>
+                <include name="**/*" />
             </fileset>
-    	</zip>
+        </zip>
     </target>
-	
-	<target name="docs">
-		<javadoc sourcepath="src" packagenames="com.serotonin.m2m2.module" destdir="${build.dir}/docs">
-            <classpath refid="master-classpath"/>
-		</javadoc>
-	</target>
-	
-	<target name="update-dojo" description="copy dojo debug files to target/web/resources">
-       <!-- Copy the Dojo Debug JS Libraries -->
+
+    <target name="docs">
+        <javadoc sourcepath="src"
+                 packagenames="com.serotonin.m2m2.module"
+                 destdir="${build.dir}/docs">
+            <classpath refid="master-classpath" />
+        </javadoc>
+    </target>
+
+    <target name="update-dojo"
+            description="copy dojo debug files to target/web/resources">
+        <!-- Copy the Dojo Debug JS Libraries -->
         <copy todir="${build.dir}/web/resources" preservelastmodified="true">
-               <fileset dir="dojo-build/dist/">
-                 <include name="**/*.*"/>
-               </fileset>
+            <fileset dir="dojo-build/dist/">
+                <include name="**/*.*" />
+            </fileset>
         </copy>
-	</target>
-	
-	<target name="update-web" description="Update target web dir - Useful While Debugging">
+    </target>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Potentially Remove Targets Below Here -->
+
+
+
+
+    <target name="update-web"
+            description="Update target web dir - Useful While Debugging">
         <copy todir="${build.dir}/classes" preservelastmodified="true">
-            <fileset dir="classes"><include name="**/*.*"/></fileset>
+            <fileset dir="classes">
+                <include name="**/*.*" />
+            </fileset>
         </copy>
         <copy todir="${build.dir}/db" preservelastmodified="true">
-	        <fileset dir="db" >
-	    	    <include name="**/*.sql"/>
-	        </fileset>
-	    </copy>
+            <fileset dir="db">
+                <include name="**/*.sql" />
+            </fileset>
+        </copy>
         <copy todir="${build.dir}/ftl" preservelastmodified="true">
-            <fileset dir="ftl"><include name="**/*.*"/></fileset>
+            <fileset dir="ftl">
+                <include name="**/*.*" />
+            </fileset>
         </copy>
         <copy todir="${build.dir}/lib" preservelastmodified="true">
-            <fileset dir="lib"><include name="**/*.*"/></fileset>
+            <fileset dir="lib">
+                <include name="**/*.*" />
+            </fileset>
         </copy>
         <copy todir="${build.dir}/web" preservelastmodified="true">
             <fileset dir="web">
-            	<include name="**/*.*"/>
+                <include name="**/*.*" />
             </fileset>
         </copy>
-	</target>
-
-    <target name="jsp-compile-only" description="Compile the JSPs">
-    	<delete dir="${build.dir}/work/jsp" />
-        <jetty-jspc uriroot="${build.dir}/web" outputDir="${build.dir}/work/jsp" compile="true"
-                compilerSourceVM="1.7" compilerTargetVM="1.7">
-            <classpath>
-                <path refid="master-classpath"/>
-                <pathelement path="${build.dir}/lib/ma-core-${version}.jar"/>
-            </classpath>
-        </jetty-jspc>
     </target>
-	   
-    <target name="dev-jar" depends="compile" description="Create a jar file of the compiled classes for dev build">
+
+    <target name="dev-jar"
+            depends="compile"
+            description="Create a jar file of the compiled classes for dev build">
 
         <mkdir dir="${build.dir}/lib" />
-        <jar destfile="${build.dir}/lib/ma-core-${version}.jar" manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
-            <fileset dir="${build.dir}/classes"><include name="**/*.class" /></fileset>
-            <fileset file="${build.dir}/classes/${mango.build.number}"></fileset>
+        <jar destfile="${build.dir}/lib/ma-core-${maven-pom.version}.jar"
+             manifest="${build.dir}/classes/META-INF/MANIFEST.MF">
+            <fileset dir="${build.dir}/classes">
+                <include name="**/*.class" />
+            </fileset>
+            <fileset file="${build.dir}/classes/${mango.build.number}">
+            </fileset>
         </jar>
-        <mvn:install file="${build.dir}/lib/ma-core-${version}.jar">
-            <pom refid="maven-pom"/>
+        <mvn:install file="${build.dir}/lib/ma-core-${maven-pom.version}.jar">
+            <pom refid="maven-pom" />
         </mvn:install>
     </target>
-	
-	   <target name="dev-build" depends="dev-jar" description="Merge Changes from Core Project into target during development">
-	   	
-	   	    <copy todir="${build.dir}/classes" preservelastmodified="true">
-	   	            <fileset dir="classes"><include name="**/*.*"/></fileset>
-	   	    </copy>
-	   	
-            <copy todir="${build.dir}/overrides" preservelastmodified="true">
-                    <fileset dir="overrides"><include name="**/*.*"/></fileset>
-            </copy>	
-	   	
-	        <copy todir="${build.dir}/db" preservelastmodified="true">
-	            <fileset dir="db" >
-	        	  <include name="**/*.sql"/>
-	            </fileset>
-	        </copy>
-	       
-	   	    <!-- Copy the Scripts into the target -->
-	        <copy todir="${build.dir}/bin" preservelastmodified="true">
-	            <fileset dir="scripts" includes="**/*.bat" />
-	            <fileset dir="scripts" includes="**/*.sh" />
-	        </copy>
-	        <!-- CHMOD the Linux scripts -->
-	        <chmod dir="${build.dir}/bin" includes="**/*.sh" perm="755" />
-	   	
-	        <copy todir="${build.dir}/ftl" preservelastmodified="true">
-	            <fileset dir="ftl"><include name="**/*.*"/></fileset>
-	        </copy>
-	   	
-            <copy todir="${build.dir}/lib" preservelastmodified="true">
-                <mappedresources>
-                    <fileset refid="maven-deps-runtime" />
-                    <flattenmapper/>
-                </mappedresources>
-            </copy>
-	   	
-	        <copy todir="${build.dir}/web" preservelastmodified="true">
-	            <fileset dir="web">
-	                <include name="**/*.*"/>
-	            </fileset>
-	        </copy>
-	        <!-- Copy the Dojo Debug JS Libraries -->
-	        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
-	               <fileset dir="dojo-build/dist/">
-	                 <include name="**/*.*"/>
-	               </fileset>
-	        </copy>
-	        
-	        <!-- Create the modules dir if not exists -->
-	        <mkdir dir="${build.dir}/web/modules" />
-	        
-	        <!-- Make the filedata dir  if not exists -->
-	        <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
-	        
-	        <!-- Create these if not exists -->
-	        <mkdir dir="${build.dir}/overrides" />
-	        <mkdir dir="${build.dir}/logs" />
-	    </target>
-	
-    <target name="dev-release" description="Zip Contents of Target for Development Release">
+
+
+    <target name="dev-build"
+            depends="dev-jar"
+            description="Merge Changes from Core Project into target during development">
+
+        <copy todir="${build.dir}/classes" preservelastmodified="true">
+            <fileset dir="classes">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+
+        <copy todir="${build.dir}/overrides" preservelastmodified="true">
+            <fileset dir="overrides">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+
+        <copy todir="${build.dir}/db" preservelastmodified="true">
+            <fileset dir="db">
+                <include name="**/*.sql" />
+            </fileset>
+        </copy>
+
+        <!-- Copy the Scripts into the target -->
+        <copy todir="${build.dir}/bin" preservelastmodified="true">
+            <fileset dir="scripts" includes="**/*.bat" />
+            <fileset dir="scripts" includes="**/*.sh" />
+        </copy>
+        <!-- CHMOD the Linux scripts -->
+        <chmod dir="${build.dir}/bin" includes="**/*.sh" perm="755" />
+
+        <copy todir="${build.dir}/ftl" preservelastmodified="true">
+            <fileset dir="ftl">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+
+        <copy todir="${build.dir}/lib" preservelastmodified="true">
+            <mappedresources>
+                <fileset refid="maven-deps-runtime" />
+                <flattenmapper />
+            </mappedresources>
+        </copy>
+
+        <copy todir="${build.dir}/web" preservelastmodified="true">
+            <fileset dir="web">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+        <!-- Copy the Dojo Debug JS Libraries -->
+        <copy todir="${build.dir}/web/resources" preservelastmodified="true">
+            <fileset dir="dojo-build/dist/">
+                <include name="**/*.*" />
+            </fileset>
+        </copy>
+
+        <!-- Create the modules dir if not exists -->
+        <mkdir dir="${build.dir}/web/modules" />
+
+        <!-- Make the filedata dir  if not exists -->
+        <mkdir dir="${build.dir}/web/WEB-INF/filedata" />
+
+        <!-- Create these if not exists -->
+        <mkdir dir="${build.dir}/overrides" />
+        <mkdir dir="${build.dir}/logs" />
+    </target>
+
+    <target name="dev-jsp-compile"
+            depends="dev-build"
+            description="Pickup changes to JSPs, add to core jar">
+        <jasper2 validateXml="false"
+                 uriroot="${build.dir}/web"
+                 webXmlFragment="${build.dir}/web/WEB-INF/generated_web.xml"
+                 addWebXmlMappings="true"
+                 outputDir="${build.dir}/work/jsp"
+                 verbose="1">
+
+        </jasper2>
+        <javac destdir="${build.dir}/classes"
+               debug="true"
+               debuglevel="lines,vars,source"
+               deprecation="false"
+               optimize="true"
+               failonerror="true"
+               includeantruntime="false"
+               source="1.7"
+               target="1.7">
+            <src path="${build.dir}/work/jsp" />
+            <classpath>
+                <path refid="master-classpath" />
+                <pathelement path="${build.dir}/classes" />
+            </classpath>
+        </javac>
+
+        <!-- Add compiled jsps to core jar -->
+        <manifest file="${build.dir}/work/MANIFEST.MF">
+            <attribute name="Built-By" value="${vendor}" />
+            <attribute name="Build-Date" value="${TODAY}" />
+            <attribute name="Build-Version" value="${maven-pom.version}" />
+        </manifest>
+        <jar destfile="${build.dir}/lib/ma-core-${maven-pom.version}.jar"
+             manifest="${build.dir}/work/MANIFEST.MF">
+            <fileset dir="${build.dir}/classes">
+                <include name="**/*.class" />
+            </fileset>
+            <fileset file="${mango.build.number}">
+            </fileset>
+        </jar>
+        <!-- Install the lib in maven -->
+        <mvn:install file="${build.dir}/lib/ma-core-${maven-pom.version}.jar">
+            <pom refid="maven-pom" />
+        </mvn:install>
+    </target>
+
+    <target name="dev-release"
+            description="Zip Contents of Target for Development Release">
         <fixcrlf srcdir="scripts" includes="**/*.sh" eol="lf" eof="remove" />
-    	
-    	<!-- create the release directory if DNE -->
-    	<mkdir dir="release"/>
+
+        <!-- create the release directory if DNE -->
+        <mkdir dir="release" />
         <zip destfile="release/${fullName}-dev.zip">
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
             <fileset dir="${build.dir}">
-            	<!-- TODO Figure out how to exclude the *.js.uncompressed.js files -->
-            	<exclude name="scripts/*"/>
-            	<exclude name="overrides/*" />
-            	<include name="**/*"/>
+                <!-- TODO Figure out how to exclude the *.js.uncompressed.js files -->
+                <exclude name="scripts/*" />
+                <exclude name="overrides/*" />
+                <include name="**/*" />
             </fileset>
-        	<zipfileset dir="overrides" includes="**/*" prefix="overrides" />
+            <zipfileset dir="overrides" includes="**/*" prefix="overrides" />
             <zipfileset dir="scripts" includes="**/*.bat" prefix="bin" />
-            <zipfileset dir="scripts" includes="**/*.sh" prefix="bin" filemode="755" />
+            <zipfileset dir="scripts"
+                        includes="**/*.sh"
+                        prefix="bin"
+                        filemode="755" />
         </zip>
     </target>
-	
+
 </project>

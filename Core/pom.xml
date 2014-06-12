@@ -3,6 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.infiniteautomation</groupId>
 	<artifactId>mango</artifactId>
+    <!-- When changing version ensure you change Common.java as well. -->
 	<version>2.4.1</version>
 	<properties>
 		<!-- previous jetty version: 7.4.5.v20110725 -->
@@ -285,17 +286,17 @@
 		</dependency>
 		<!-- IA Managed Dependencies -->
 		<dependency>
-			<groupId>com.infiniteautomation</groupId>
+			<groupId>com.serotonin</groupId>
 			<artifactId>serotonin-json</artifactId>
 			<version>2.0.6</version>
 		</dependency>
 		<dependency>
-			<groupId>com.infiniteautomation</groupId>
+			<groupId>com.serotonin</groupId>
 			<artifactId>serotonin-providers</artifactId>
 			<version>2.0.6</version>
 		</dependency>
 		<dependency>
-			<groupId>com.infiniteautomation</groupId>
+			<groupId>com.serotonin</groupId>
 			<artifactId>serotonin-timer</artifactId>
 			<version>2.0.6</version>
 		</dependency>
@@ -312,7 +313,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>1.1.8</version>
+			<version>1.1.9</version>
 		</dependency>
 		<!-- <dependency> -->
 		<!-- <groupId>org.directwebremoting</groupId> -->

@@ -28,6 +28,7 @@ public class OverridingWebAppContext extends WebAppContext {
         setClassLoader(classLoader);
         // Disallow directory listing
         setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+        setPersistTempDirectory(true);
     }
 
     @Override
