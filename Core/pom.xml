@@ -248,6 +248,7 @@
 			<groupId>proguard-annotations</groupId>
 			<artifactId>proguard-annotations</artifactId>
 			<version>4.10</version>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.mail</groupId>

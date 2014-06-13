@@ -30,6 +30,11 @@
 
     <target name="compile" description="Compile main source tree java files">
         <mkdir dir="target/classes" />
+        <copy todir="target/classes">
+            <fileset dir="src">
+                <exclude name="**/*.java" />
+            </fileset>
+        </copy>
         <javac destdir="target/classes" source="1.7" target="1.7" debug="true" debuglevel="lines,vars,source" deprecation="true" optimize="false" failonerror="true" includeantruntime="false">
             <src path="src" />
             <classpath refid="master-classpath" />
@@ -43,16 +48,16 @@
         <tstamp>
             <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
         </tstamp>
-        <manifest file="target/MANIFEST.MF">
+        <mkdir dir="target/WEB-INF" />
+        <manifest file="target/WEB-INF/MANIFEST.MF">
             <attribute name="Built-By" value="Infinite Automation" />
             <attribute name="Build-Date" value="${TODAY}" />
             <attribute name="Version" value="${version}" />
         </manifest>
 
-        <jar destfile="release/${lib-name}-${version}.jar" manifest="target/MANIFEST.MF">
+        <jar destfile="release/${lib-name}-${version}.jar" manifest="target/WEB-INF/MANIFEST.MF">
             <fileset dir="target/classes">
-                <include name="**/*.class" />
-                <exclude name="MANIFEST.MF" />
+                <include name="**/*" />
             </fileset>
         </jar>
     </target>
