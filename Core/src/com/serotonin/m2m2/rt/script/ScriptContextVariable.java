@@ -139,9 +139,8 @@ public class ScriptContextVariable implements Serializable{
      * @return if my XID is in the context, return the name it has to map into the VO otherwise return null
      * @throws JsonException
      */
-    public static String jsonReadVarContext(JsonObject json, List<ScriptContextVariable> context) throws JsonException {
+    public static String jsonReadVarContext(JsonObject json, List<ScriptContextVariable> context, boolean isContextUpdate) throws JsonException {
     	String myName = null;
-        String myXid = json.getString("xid"); //Get my XID
     	JsonArray jsonContext = json.getJsonArray("context");
         if (jsonContext != null) {
             context.clear();
@@ -153,34 +152,21 @@ public class ScriptContextVariable implements Serializable{
                 if (xid == null)
                     throw new TranslatableJsonException("emport.error.meta.missing", "dataPointXid");
 
-                if(!myXid.equals(xid)){
-	                DataPointVO dp = dataPointDao.getDataPoint(xid);
-	                if (dp == null)
-	                    throw new TranslatableJsonException("emport.error.missingPoint", xid);
-	
-	                String var = jo.getString("variableName");
-	                if (var == null){
-	                	var = jo.getString("varName");
-	                	if(var == null)
-	                		 throw new TranslatableJsonException("emport.error.meta.missing", "variableName");
-	                }
-	                   
-	                
-	                String isContextUpdateString = jo.getString("updateContext");
-	                boolean isContextUpdate = true;
-	                if(isContextUpdateString != null)
-	                	isContextUpdate = Boolean.parseBoolean(isContextUpdateString);
-	
-	                context.add(new ScriptContextVariable(dp.getId(), var, isContextUpdate));
-                }else{
-                	String var = jo.getString("variableName");
-	                if (var == null){
-	                	var = jo.getString("varName");
-	                	if(var == null)
-	                		 throw new TranslatableJsonException("emport.error.meta.missing", "variableName");
-	                	myName = var;
-	                }
+                DataPointVO dp = dataPointDao.getDataPoint(xid);
+                if (dp == null)
+                    throw new TranslatableJsonException("emport.error.missingPoint", xid);
+
+                String var = jo.getString("variableName");
+                if (var == null){
+                	var = jo.getString("varName");
+                	if(var == null)
+                		 throw new TranslatableJsonException("emport.error.meta.missing", "variableName");
                 }
+                
+                //Default for legacy systems
+                if(jo.containsKey("updateContext"))
+                	isContextUpdate = jo.getBoolean("updateContext");
+                context.add(new ScriptContextVariable(dp.getId(), var, isContextUpdate));
             }
         }
         return myName;

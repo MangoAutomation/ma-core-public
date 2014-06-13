@@ -126,9 +126,13 @@
         <!-- Create the filedata dir -->
         <mkdir dir="${core.target}/web/WEB-INF/filedata" />
 
-        <!-- Create the empty folders for the build -->
-        <mkdir dir="${core.target}/overrides/classes" />
-        <mkdir dir="${core.target}/overrides/properties" />
+        <!-- Copy the overrides folders for the build -->
+        <copy todir="${core.target}/overrides/classes" >
+            <fileset dir="${coreHome}/overrides/classes" />
+        </copy>
+        <copy todir="${core.target}/overrides/properties" >
+            <fileset dir="${coreHome}/overrides/properties" />
+        </copy>
 
         <mkdir dir="${core.target}/logs" />
     </target>
@@ -270,7 +274,7 @@
 
 
         <zip destfile="${core.release}/${fullName}.zip">
-            <fileset dir="">
+            <fileset dir="${core.target}">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
             </fileset>
@@ -278,12 +282,15 @@
                 <include name="bin/**/*" />
             </zipfileset>
             <fileset dir="${core.target}">
+                <include name="overrides/classes/ReadMe.txt" />
+                <include name="overrides/properties/ReadMe.txt" />
+            </fileset>
+            <fileset dir="${core.target}">
                 <include name="backup" />
                 <include name="db/**/*" />
                 <include name="ftl/**/*" />
                 <include name="lib/**/*" />
                 <include name="logs/**/*" />
-                <include name="overrides/**/*" />
                 <include name="web/**/*" />
                 <include name="work/jsp/**/*" />
                 <include name="classes/debug-log4j.xml" />
