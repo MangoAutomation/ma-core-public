@@ -1,6 +1,7 @@
 *Version 2.5.0*
 * Upgraded to Jetty 9
 * Improved JSP Performance
+* Added status servlet to serve Mango application Status in JSON format at /status/mango.json
 
 *Version 2.4.0*
 * Slight improvements to the UI table auto formatting

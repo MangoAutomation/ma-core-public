@@ -214,7 +214,11 @@
     <servlet-class>com.serotonin.m2m2.web.servlet.EventExportServlet</servlet-class>
   </servlet>
   
-
+  <servlet>
+    <servlet-name>mangoStatus</servlet-name>
+    <servlet-class>com.serotonin.m2m2.web.servlet.StatusServlet</servlet-class>
+  </servlet>
+  
   <!-- 
     Servlet mappings.
    -->
@@ -257,7 +261,11 @@
     <servlet-name>eventExport</servlet-name>
     <url-pattern>/eventExport/*</url-pattern>
   </servlet-mapping>
- 
+
+  <servlet-mapping>
+    <servlet-name>mangoStatus</servlet-name>
+    <url-pattern>/status/*</url-pattern>
+  </servlet-mapping> 
   
   <!-- 
     Context listeners.
