@@ -231,6 +231,13 @@
     <servlet-name>springDispatcher</servlet-name>
     <url-pattern>*.shtm</url-pattern>
   </servlet-mapping>
+  
+  <!-- For REST JSON API -->
+  <servlet-mapping>
+    <servlet-name>springDispatcher</servlet-name>
+    <url-pattern>/rest/*</url-pattern>
+  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>dwr-invoker</servlet-name>

@@ -4,13 +4,34 @@
     @author Matthew Lohbihler
 -->
 
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-
 <!--
   - Application context definition for DispatcherServlet.
   -->
-<beans>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.1.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+        
+  <!-- Define The Rest Annotation Driven Controllers -->      
+  <mvc:annotation-driven>
+    <mvc:message-converters>
+      <bean class="com.serotonin.m2m2.web.mvc.converter.JsonMessageConverter"/>             
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+  <bean id="realTimeDataRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.RealTimeDataController"></bean>
+  <bean id="dataPointRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.DataPointController"></bean>
+  <bean id="dataSourceRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.DataSourceController"></bean>
+  <bean id="pointValueRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.PointValueController"></bean>
   
+    
   <!-- View resolver -->
   <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
     <property name="viewClass"><value>org.springframework.web.servlet.view.JstlView</value></property>
@@ -25,6 +46,7 @@
   <bean id="mappings" class="com.serotonin.m2m2.web.mvc.BlabberUrlHandlerMapping">
     <property name="mappings">
       <props>
+      
         <!-- All user URLs -->
         <prop key="/data_point_edit.shtm">dataPointEditController</prop>
         

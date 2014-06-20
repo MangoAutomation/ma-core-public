@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.measure.converter.UnitConverter;
@@ -157,7 +158,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	private TextRenderer textRenderer;
 	@JsonProperty
 	private ChartRenderer chartRenderer;
-	private List<PointEventDetectorVO> eventDetectors;
+	private List<PointEventDetectorVO> eventDetectors = new ArrayList<PointEventDetectorVO>();
 	private List<UserComment> comments;
 	@JsonProperty
 	private int defaultCacheSize = 1;
@@ -662,7 +663,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
     public void setUnit(Unit<?> unit) {
         this.unit = unit;
-        //this.unitString = UnitUtil.formatLocal(unit); //TODO this is dirty, ensures we have the String in the UI
     }
     
     public Unit<?> getRenderedUnit() {
@@ -671,7 +671,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
     public void setRenderedUnit(Unit<?> renderedUnit) {
         this.renderedUnit = renderedUnit;
-        //this.renderedUnitString = UnitUtil.formatLocal(renderedUnit);
     }
     
     public boolean isUseIntegralUnit() {
@@ -1322,8 +1321,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public void jsonWrite(ObjectWriter writer) throws IOException,
 			JsonException {
 		super.jsonWrite(writer);
-//		writer.writeEntry("xid", xid);
-//		writer.writeEntry("name", name);
 		writer.writeEntry("loggingType",
 				LOGGING_TYPE_CODES.getCode(loggingType));
 		writer.writeEntry("intervalLoggingPeriodType",

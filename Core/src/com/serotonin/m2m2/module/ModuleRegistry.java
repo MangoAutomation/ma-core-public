@@ -370,8 +370,11 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/modules.shtm", new ModulesController(),
                 "/WEB-INF/jsp/modules.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
-                "/WEB-INF/jsp/emport.jsp"));
-
+                "/WEB-INF/jsp/emport.jsp"));        
+        
+        //Demo for Rest API
+        preDefaults.add(createUriMappingDefinition(Permission.USER, "/rest.shtm", null, "/WEB-INF/jsp/rest.jsp"));
+        
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
                 "none.jsp"));

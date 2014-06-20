@@ -186,8 +186,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	case Cell.CELL_TYPE_ERROR:
     		cellNum++;
         default:
-        	//TODO Fix this up with Translatable messages
-        	throw new SpreadsheetException(rowData.getRowNum(), "Unsupported Cell type in column ", cellNum);
+        	throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.unsupportedCellType", cellNum);
     	}
     	 
      	//Cell Rendered Value (Not using yet)
