@@ -1,3 +1,8 @@
+*Version 2.4.2*
+* Fixed bug when using H2 and filtering Data Points, Data Sources or Alarms tables
+* Changed all filtering to be case insensitive
+*
+
 *Version 2.4.0*
 * Slight improvements to the UI table auto formatting
 * Added Database storage for Logs

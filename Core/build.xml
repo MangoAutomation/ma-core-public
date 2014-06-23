@@ -123,6 +123,13 @@
 		<!-- Create the empty folders for the build -->
         <mkdir dir="${build.dir}/overrides" />
         <mkdir dir="${build.dir}/logs" />
+        <!-- Copy the overrides folders for the build -->
+        <copy todir="${build.dir}/overrides/classes" >
+            <fileset dir="${coreHome}/overrides/classes" />
+        </copy>
+        <copy todir="${build.dir}/overrides/properties" >
+            <fileset dir="${coreHome}/overrides/properties" />
+        </copy>
 	</target>
     
     <taskdef name="jetty-jspc" classname="com.serotonin.ant.JettyJspCompile"><classpath refid="master-classpath" /></taskdef>
