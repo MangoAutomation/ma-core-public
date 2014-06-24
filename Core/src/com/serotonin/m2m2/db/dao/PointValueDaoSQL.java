@@ -729,17 +729,20 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     /**
-     * TODO There is a bug here where the end date should be exclusive! The TCP Persistent publisher expects it to be
+     * There WAS a bug here where the end date should be exclusive! The TCP Persistent publisher expects it to be
      * exclusive,
      * but as for what ramifications it will have to other modules who knows.
      * 
      * For example if one uses this method to count a range and then a select point values between, the results can be
      * different!
      * 
+     * This has been changed to be exclusive of End time as the NoSQL DB uses exclusive queries and this needs to 
+     * match for the Persistent TCP Module to work across various Data stores.
+     * 
      */
     @Override
     public long dateRangeCount(int dataPointId, long from, long to) {
-        return ejt.queryForLong("select count(*) from pointValues where dataPointId=? and ts>=? and ts<=?",
+        return ejt.queryForLong("select count(*) from pointValues where dataPointId=? and ts>=? and ts<?",
                 new Object[] { dataPointId, from, to });
     }
 
