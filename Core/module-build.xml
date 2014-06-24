@@ -13,6 +13,8 @@
 
     <property name="core.target" value="${coreHome}/target" />
     <property name="deploy.jar.paths" value="${core.target}/web/modules" />
+    <property name="module.deploy.paths" value="${core.target}/web/modules" />
+	
     <property name="zip.paths" value="${core.target}/ma-modules.zip" />
     	
    	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
@@ -248,7 +250,7 @@
                 <include name="licenseTypes.xml" />
             </fileset>
             <fileset dir="target/"><include name="lib/${fullName}.jar" /></fileset>
-            <fileset dir=""><include name="lib/**/*.jar" /></fileset>
+            <!-- removed for backward compat with non-maven core <fileset dir=""><include name="lib/**/*.jar" /></fileset> -->
             <fileset dir=""><include name="lib/**/*.so" /></fileset>
             <fileset dir=""><include name="dox/**/*" /></fileset>
             <fileset dir=""><include name="web/**/*" /></fileset>
