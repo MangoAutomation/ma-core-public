@@ -269,7 +269,7 @@
     </target>
     
     <target name="deploy" depends="zip" description="Copy the zip to configured places">
-        <foreach list="${deploy.jar.paths}" target="|deploy" param="todir" delimiter="|">
+        <foreach list="${module.deploy.paths}" target="|deploy" param="todir" delimiter="|">
             <param name="deploy.file" value="target/${fullName}.zip" />
         </foreach>
     	
