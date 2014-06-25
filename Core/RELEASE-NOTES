@@ -3,6 +3,12 @@
 * Improved JSP Performance
 * Added status servlet to serve Mango application Status in JSON format at /status/mango.json
 
+*Version 2.4.2*
+* Fixed bug when using H2 and filtering Data Points, Data Sources or Alarms tables
+* Changed all filtering to be case insensitive
+* Fixed bug where importing Binary values would fail
+* Fixed bug where point value getValuesBetween query was returning a slightly different value than the point value count values between
+
 *Version 2.4.0*
 * Slight improvements to the UI table auto formatting
 * Added Database storage for Logs

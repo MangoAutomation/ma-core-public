@@ -50,7 +50,7 @@ public class SpreadsheetEmporter {
     private int rowNum; // current row
     
     /* Date Format for date cells can be set before export (This is the Excel Format not the Java Simple Date Format) */
-    private String dateFormat = "dd/mm/yy hh:mm:ss.000"; //Show Milliseconds for default
+    private String dateFormat = "mm/dd/yy hh:mm:ss.000"; //Show Milliseconds for default
     
     public enum FileType {
         AUTO, UNKNOWN, XLS, XLSX

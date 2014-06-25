@@ -17,7 +17,11 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
+import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
+import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter;
@@ -148,7 +152,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     		}else{
     			throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.modifyCellUnknown");
     		}
-    	}//end if delete cell exists
+    	}//end if modify cell exists
 
     	//What do we do with the row
     	if(delete){
@@ -158,6 +162,8 @@ public class PointValueEmporter extends AbstractSheetEmporter{
             else {
                 try {
                 	Common.runtimeManager.purgeDataPointValue(dp.getId(), time.getTime());
+                	//long cnt =
+                	//TODO add functionality to count the deleted points
                 }catch (Exception e) {
                     if(e instanceof DataIntegrityViolationException)
                         throw new SpreadsheetException(rowData.getRowNum(), "emport.error.unableToDeleteDueToConstraints");
@@ -170,25 +176,26 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	
     	
     	//Cell Value
-    	DataValue value;
-    	switch(rowData.getCell(cellNum).getCellType()){
-    	case Cell.CELL_TYPE_BOOLEAN:
-       		value = DataValue.objectToValue(rowData.getCell(cellNum++).getBooleanCellValue());
-    		break;   		
-    	case Cell.CELL_TYPE_NUMERIC:
-    		value = DataValue.objectToValue(rowData.getCell(cellNum++).getNumericCellValue());
-    		break;
-    	case Cell.CELL_TYPE_STRING:
-    		value = DataValue.objectToValue(rowData.getCell(cellNum++).getStringCellValue());
-    		break;
-    	case Cell.CELL_TYPE_BLANK:
-    	case Cell.CELL_TYPE_FORMULA:
-    	case Cell.CELL_TYPE_ERROR:
-    		cellNum++;
-        default:
-        	throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.unsupportedCellType", cellNum);
+    	//Create a data value
+    	DataValue dataValue;
+    	switch(dp.getPointLocator().getDataTypeId()){
+		case DataTypes.ALPHANUMERIC:
+			dataValue = new AlphanumericValue((String)rowData.getCell(cellNum++).getStringCellValue());
+			break;
+		case DataTypes.BINARY:
+			dataValue = new BinaryValue(new Boolean(rowData.getCell(cellNum++).getBooleanCellValue()));
+			break;
+		case DataTypes.MULTISTATE:
+			dataValue = new MultistateValue((int)rowData.getCell(cellNum++).getNumericCellValue());
+			break;
+		case DataTypes.NUMERIC:
+			dataValue = new NumericValue(rowData.getCell(cellNum++).getNumericCellValue());
+		break;
+		default:
+			throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.unsupportedDataType", dp.getPointLocator().getDataTypeId());
     	}
-    	 
+    	
+    	
      	//Cell Rendered Value (Not using yet)
     	cellNum++;
     	
@@ -196,12 +203,13 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	Cell annotationRow = rowData.getCell(cellNum++);
     	if(annotationRow != null){
     	   	String annotation = annotationRow.getStringCellValue();
-    	    
+    	    //TODO These methods here do not allow updating the Annotation. We need to be a set point source for that to work
     		TranslatableMessage sourceMessage = new TranslatableMessage("common.default",annotation);
-    		pvt = new AnnotatedPointValueTime(value, time.getTime(), sourceMessage);
+    		pvt = new AnnotatedPointValueTime(dataValue, time.getTime(), sourceMessage);
     	}else{
-    		pvt = new PointValueTime(value,time.getTime());
+    		pvt = new PointValueTime(dataValue,time.getTime());
     	}
+    	
     	
     	if(add){
  	    	//Save to cache if running
@@ -212,7 +220,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    		pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
 	    	}
     	}else{
-    		//Update OR Delete the point value
+    		//Update the point value
 	    	if(dpRt != null)
 	    		dpRt.updatePointValueInCache(pvt, null, true, true);
 	    	else{

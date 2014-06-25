@@ -134,13 +134,21 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
          * 			-1)
          *  )
          */
-		if((Common.databaseProxy.getType() == DatabaseType.MYSQL)||(Common.databaseProxy.getType() == DatabaseType.MSSQL)||(Common.databaseProxy.getType() == DatabaseType.H2))
-			map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
-		else if(Common.databaseProxy.getType() == DatabaseType.DERBY)
-			map.put("totalTimeString",   "CASE WHEN evt.rtnTs IS NULL THEN "
-		                               + "CASE WHEN evt.rtnApplicable='Y' THEN (? - evt.activeTs) ELSE -1 END "
-		                               + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END");
-		
+		switch(Common.databaseProxy.getType()){
+			case MYSQL:
+			case MSSQL:
+				map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
+			break;
+			
+			case H2:
+			case DERBY:
+				map.put("totalTimeString",   "CASE WHEN evt.rtnTs IS NULL THEN "
+	                    + "CASE WHEN evt.rtnApplicable='Y' THEN (? - evt.activeTs) ELSE -1 END "
+	                    + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END");
+			break;
+			default:
+				throw new ShouldNeverHappenException("Unsupported database for Alarms.");
+		}	
 		map.put("messageString", "evt.message");
 		map.put("rtnTimestampString", "evt.rtnTs");
 		map.put("userNotified", "ue.silenced");
@@ -411,11 +419,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
                 throw new ShouldNeverHappenException("Unknown event type: " + typeName);
         }
         return type;
-    }
-
-    
-    
-    
-    
+    }    
     
 }

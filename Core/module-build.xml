@@ -64,7 +64,7 @@
     </path>
 
     <target name="clean" description="Clean the target area">
-        <echo message="Cleaning ${module.target} and ${core.target}/web/modules/${name}" />
+        <echo message="Cleaning ${core.target}/web/modules/${name}" />
         <delete dir="${module.target}" />
         <delete dir="${core.target}/web/modules/${name}" />
     </target>
@@ -128,7 +128,6 @@
                             <classpath>
                                 <path refid="module-master-classpath" />
                                 <pathelement path="${module.target}/module-classes" />
-                                <pathelement path="${core.target}/classes" />
                             </classpath>
                         </taskdef>
                         <property name="module.core"
