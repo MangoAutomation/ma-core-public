@@ -4,7 +4,7 @@
 	<groupId>com.infiniteautomation</groupId>
 	<artifactId>mango</artifactId>
     <!-- When changing version ensure you change Common.java as well. -->
-	<version>2.4.1</version>
+	<version>2.4.3</version>
 	<properties>
 		<!-- previous jetty version: 7.4.5.v20110725 -->
 		<jettyVersion>9.2.0.v20140526</jettyVersion>

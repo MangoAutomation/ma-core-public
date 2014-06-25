@@ -283,7 +283,6 @@
                 <include name="ftl/**/*" />
                 <include name="lib/**/*" />
                 <include name="logs/**/*" />
-                <include name="overrides/**/*" />
                 <include name="web/**/*" />
                 <include name="work/jsp/**/*" />
                 <include name="classes/debug-log4j.xml" />
@@ -291,6 +290,13 @@
                 <include name="classes/i18n.properties" />
                 <include name="classes/log4j.xml" />
             </fileset>
+            <!-- Ensure we don't end up with any overrides -->
+            <fileset dir="${core.target}/overrides/classes">
+                <exclude name="**/*" />
+            </fileset>
+            <fileset dir="${core.target}/overrides/properties">
+                <exclude name="**/*" />
+            </fileset>            
         </zip>
     </target>
 
