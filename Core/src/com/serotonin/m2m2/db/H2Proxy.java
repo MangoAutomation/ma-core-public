@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
+import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -31,15 +33,41 @@ public class H2Proxy extends DatabaseProxy {
     private static final Log LOG = LogFactory.getLog(H2Proxy.class);
 
     private JdbcConnectionPool dataSource;
-
+    private Server web; //web UI
+    
     @Override
     protected void initializeImpl(String propertyPrefix) {
         LOG.info("Initializing H2 connection manager");
         JdbcDataSource jds = new JdbcDataSource();
         jds.setURL(getUrl(propertyPrefix));
         jds.setDescription("maDataSource");
+        
+        String user = Common.envProps.getString(propertyPrefix + "db.username", null);
+        String password = Common.envProps.getString(propertyPrefix + "db.password", null);
+        jds.setUser(user);
+        jds.setPassword(password);
+        
         dataSource = JdbcConnectionPool.create(jds);
         dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
+        
+    	if(Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)){
+    		LOG.info("Initializing H2 web server");
+    		String webArgs[] = new String[4];
+    		webArgs[0] = "-webPort";
+    		webArgs[1] = Common.envProps.getString(propertyPrefix + "db.web.port");
+    		webArgs[2] = "-ifExists";
+    		webArgs[3] = "-webAllowOthers";
+    		try {
+				this.web = Server.createWebServer(webArgs);
+	    		this.web.start();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+    	}
+        
+        
     }
 
     private String getUrl(String propertyPrefix) {
@@ -172,6 +200,12 @@ public class H2Proxy extends DatabaseProxy {
     public void terminateImpl() {
         if (dataSource != null)
             dataSource.dispose();
+        if(web != null){
+        	if(web.isRunning(true)){
+        		web.stop();
+        		web.shutdown();
+        	}
+        }
     }
 
     @Override
