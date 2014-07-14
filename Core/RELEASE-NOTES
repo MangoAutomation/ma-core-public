@@ -2,6 +2,7 @@
 * Upgraded to Jetty 9
 * Improved JSP Performance
 * Added status servlet to serve Mango application Status in JSON format at /status/mango.json
+* Upgraded H2 to 1.4.180
 
 *Version 2.4.3*
 * Modified data type select tag

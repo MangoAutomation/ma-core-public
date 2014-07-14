@@ -109,7 +109,7 @@ public class ScriptContextVariable implements Serializable{
             if (dp == null)
                 sb.append("?");
             else
-                sb.append(dp.getName()).append(", variableName=");
+                sb.append(dp.getName()).append(", varName=");
             sb.append(ivp.getVariableName()).append(", updateContext=").append(ivp.isContextUpdate()).append("}");
         }
         return sb.toString();
@@ -124,7 +124,7 @@ public class ScriptContextVariable implements Serializable{
             if (dp != null) {
                 JsonObject point = new JsonObject();
                 pointList.add(point);
-                point.put("variableName", new JsonString(p.getVariableName()));
+                point.put("varName", new JsonString(p.getVariableName()));
                 point.put("dataPointXid", new JsonString(dp.getXid()));
                 point.put("updateContext", new JsonBoolean(p.isContextUpdate()));
             }
@@ -156,11 +156,12 @@ public class ScriptContextVariable implements Serializable{
                 if (dp == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
 
-                String var = jo.getString("variableName");
+                //For compatibility with varName and variableName json types
+                String var = jo.getString("varName");
                 if (var == null){
-                	var = jo.getString("varName");
+                	var = jo.getString("variableName");
                 	if(var == null)
-                		 throw new TranslatableJsonException("emport.error.meta.missing", "variableName");
+                		 throw new TranslatableJsonException("emport.error.meta.missing", "varName");
                 }
                 
                 //Default for legacy systems

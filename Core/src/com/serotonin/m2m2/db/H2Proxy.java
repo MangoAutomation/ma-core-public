@@ -43,10 +43,13 @@ public class H2Proxy extends DatabaseProxy {
         jds.setDescription("maDataSource");
         
         String user = Common.envProps.getString(propertyPrefix + "db.username", null);
-        String password = Common.envProps.getString(propertyPrefix + "db.password", null);
-        jds.setUser(user);
-        jds.setPassword(password);
-        
+	    if(user != null){
+	    	jds.setUser(user);
+	    
+	        String password = Common.envProps.getString(propertyPrefix + "db.password", null);
+	        if(password != null)
+	        	jds.setPassword(password);
+        }
         dataSource = JdbcConnectionPool.create(jds);
         dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
         
@@ -61,8 +64,7 @@ public class H2Proxy extends DatabaseProxy {
 				this.web = Server.createWebServer(webArgs);
 	    		this.web.start();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error(e);
 			}
 
     	}
