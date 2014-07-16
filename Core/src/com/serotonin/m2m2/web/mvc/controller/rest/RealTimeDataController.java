@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.controller.rest;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValue;
+import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValueCache;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * 
- * TODO Define a real time data point value to return...
+ * Real time data controller returns RealTimeDataPointValues
+ * 
  * 
  * 
  * @author Terry Packer
@@ -37,25 +42,27 @@ public class RealTimeDataController {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public List<DataPointVO> getAllDataPoints() {
+    public List<RealTimeDataPointValue> getAll(HttpServletRequest request) {
     	if(LOG.isDebugEnabled())
     		LOG.debug("Getting all real time data");
-        List<DataPointVO> dataPoints = DataPointDao.instance.getAll();
-        return dataPoints;
+    	
+    	User user = Common.getUser(request);
+    	return RealTimeDataPointValueCache.instance.getAll(user);
     }
 	
 	
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/{xid}")
-    public ResponseEntity<DataPointVO> viewOrder(@PathVariable String xid) {
+    public ResponseEntity<RealTimeDataPointValue> get(@PathVariable String xid, HttpServletRequest request) {
+		
+		User user = Common.getUser(request);
+		RealTimeDataPointValue rtpv = RealTimeDataPointValueCache.instance.get(xid, user);
 
-        DataPointVO vo = DataPointDao.instance.getByXid(xid);
-
-        if (vo == null) {
-            return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
+        if (rtpv == null) {
+            return new ResponseEntity<RealTimeDataPointValue>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<DataPointVO>(vo, HttpStatus.OK);
+        return new ResponseEntity<RealTimeDataPointValue>(rtpv, HttpStatus.OK);
     }
 	
 	

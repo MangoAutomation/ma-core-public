@@ -30,6 +30,7 @@
   <bean id="dataPointRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.DataPointController"></bean>
   <bean id="dataSourceRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.DataSourceController"></bean>
   <bean id="pointValueRestController" class="com.serotonin.m2m2.web.mvc.controller.rest.PointValueController"></bean>
+  <bean id="pointHierarchyController" class="com.serotonin.m2m2.web.mvc.controller.rest.PointHierarchyController"></bean>
   
     
   <!-- View resolver -->
