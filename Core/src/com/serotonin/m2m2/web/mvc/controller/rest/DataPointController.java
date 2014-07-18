@@ -4,8 +4,14 @@
  */
 package com.serotonin.m2m2.web.mvc.controller.rest;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -24,51 +31,111 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.Permissions;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 /**
  * @author Terry Packer
  * 
  */
-
+@Api(value="", description="Operations on Data points", position=1)
 @Controller
 @RequestMapping("/v1/dataPoints")
 public class DataPointController extends MangoRestController<DataPointVO>{
 
 	private static Logger LOG = Logger.getLogger(DataPointController.class);
 	
+	@ApiOperation(value = "", position = 5)
+    @RequestMapping(method = RequestMethod.GET, value="/help")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String help(HttpServletRequest request) {
+
+    	InputStream is = getClass().getResourceAsStream("/com/serotonin/m2m2/web/mvc/controller/rest/dataPointResource.htm");
+    	
+    	try {
+			return IOUtils.toString(is, Common.UTF8);
+		} catch (IOException e) {
+			LOG.error(e);
+		}
+       return "";
+    }
+	
+	
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public List<DataPointVO> getAllDataPoints() {
+    public List<DataPointVO> getAllDataPoints(HttpServletRequest request, 
+    		@RequestParam(value="limit", required=false, defaultValue="100")int limit) {
     	if(LOG.isDebugEnabled())
     		LOG.debug("Getting all data points");
         List<DataPointVO> dataPoints = DataPointDao.instance.getAll();
-        return dataPoints;
+        List<DataPointVO> userDataPoints = new ArrayList<DataPointVO>();
+        
+        //Filter on permissions
+        User user = Common.getUser(request);
+        for(DataPointVO vo : dataPoints){
+        	try{
+        		if(Permissions.hasDataPointReadPermission(user, vo)){
+        			userDataPoints.add(vo);
+        			limit--;
+        		}
+        		//Check the limit, TODO make this work like the DOJO Query
+        		if(limit <= 0)
+        			break;
+        	}catch(PermissionException e){
+        		//Munch it
+        		//TODO maybe don't throw this from check permissions?
+        	}
+        }
+        
+        return userDataPoints;
     }
 	
 	
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/{xid}")
-    public ResponseEntity<DataPointVO> getDataPoint(@PathVariable String xid) {
+    public ResponseEntity<DataPointVO> getDataPoint(@PathVariable String xid, HttpServletRequest request) {
 
         DataPointVO vo = DataPointDao.instance.getByXid(xid);
-
         if (vo == null) {
             return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
         }
-
-        return new ResponseEntity<DataPointVO>(vo, HttpStatus.OK);
+        //Check permissions
+        User user = Common.getUser(request);
+    	try{
+    		if(Permissions.hasDataPointReadPermission(user, vo))
+    			return new ResponseEntity<DataPointVO>(vo, HttpStatus.OK);
+    		else
+    			return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    	}catch(PermissionException e){
+    		return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    	}
     }
 	
 	
 	@RequestMapping(method = RequestMethod.PUT, value = "/{xid}")
-    public ResponseEntity<DataPointVO> updateDataPoint(@RequestBody DataPointVO vo, @PathVariable String xid, UriComponentsBuilder builder) {
+    public ResponseEntity<DataPointVO> updateDataPoint(@RequestBody DataPointVO vo, @PathVariable String xid, 
+    		UriComponentsBuilder builder, HttpServletRequest request) {
 
         DataPointVO existingDp = DataPointDao.instance.getByXid(xid);
         if (existingDp == null) {
             return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
         }
+        
+        //Check permissions
+        User user = Common.getUser(request);
+    	try{
+    		if(!Permissions.hasDataPointReadPermission(user, vo))
+    			return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    	}catch(PermissionException e){
+    		return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    	}
+
         
         //We do not read the XID or ID via JSON
         //TODO One reason to use a custom JSON converter
@@ -115,20 +182,31 @@ public class DataPointController extends MangoRestController<DataPointVO>{
                 builder.path("/rest/v1/dataPoints/{xid}")
                         .buildAndExpand(xid).toUri());
         
-        return new ResponseEntity<DataPointVO>(vo, headers, HttpStatus.OK);
+        return new ResponseEntity<DataPointVO>(vo, headers, HttpStatus.CREATED);
     }
 	
 
 
 
 	@RequestMapping(method = RequestMethod.DELETE, value = "/{xid}")
-    public ResponseEntity<DataPointVO> delete(@PathVariable String xid) {
+    public ResponseEntity<DataPointVO> delete(@PathVariable String xid, HttpServletRequest request) {
 		
 		//TODO Fix up to use delete by XID?
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
 		if (vo == null) {
             return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
         }
+		
+		//Check permissions
+        User user = Common.getUser(request);
+    	try{
+    		//TODO Is this the correct permission to check?
+    		if(!Permissions.hasDataPointReadPermission(user, vo))
+    			return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    	}catch(PermissionException e){
+    		return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    	}
+		
 		
 		DataPointDao.instance.delete(vo.getId());
         

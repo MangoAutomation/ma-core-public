@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<!--
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+    @author Terry Packer
+-->
+<html>
+<h1>Data Point Resource Help</h1>
+
+<h2>Quick Reference</h2>
+
+  <p>The relative path prefix <code>/v1/</code> indicates that we are currently using version 1 of the API.
+    The Mango REST api has 4 main parts Resources, Properties, Fields and Notifications. 
+ </p>
+<table border="1">
+    <tr>
+        <td>Resource</td>
+        <td>A set of URIs that return a common type of data</td>
+    </tr>
+    <tr>
+        <td>Property</td>
+        <td>A set of URIs appended to a Resource that return the various Resources that are contained within the base Resource data type</td>
+    </tr>
+    <tr>
+        <td>Field</td>
+        <td>Parts of the Resource data type that can be used to refine a request.  These are always added as URL parameters</td>
+    </tr>
+    <tr>
+        <td>Notification</td>
+        <td>WebSocket based push notifications for a Resources</td>
+    </tr>
+</table>
+
+<h2>JSON Example</h2>
+<code>
+{
+      "xid":"DP_606627",
+      "name":"10M1 Status",
+      "enabled":true,
+      "loggingType":"ALL",
+      "intervalLoggingPeriodType":"MINUTES",
+      "intervalLoggingType":"INSTANT",
+      "purgeType":"YEARS",
+      "pointLocator":{
+         "range":"HOLDING_REGISTER",
+         "modbusDataType":"BINARY",
+         "writeType":"NOT_SETTABLE",
+         "additive":0.0,
+         "bit":7,
+         "charset":"ASCII",
+         "multiplier":1.0,
+         "offset":269,
+         "registerCount":0,
+         "slaveId":1,
+         "slaveMonitor":false
+      }
+</code>
+
+<h4>Data Points Endpoint</h4>
+<table border="1">
+    <tr>
+      <th>URL</th><th>HTTP Verb</th><th>Functionality</th><th>Discussion</th>
+    </tr>
+    <tr>
+      <td><code>/v1/dataPoints</code></td>
+      <td>GET</td>
+      <td><a href="#get-all">Get All</a></td>
+      <td><a href="http://www.infiniteautomation.com/mango-api/dataPoints/get-all.html" target="help">Forum</a></td>
+    </tr>
+    <tr>
+      <td><code>/v1/dataPoints/&lt;xid&gt;</code></td>
+      <td>GET</td>
+      <td><a href="#get">Get One</a></td>
+      <td><a href="http://www.infiniteautomation.com/mango-api/dataPoints/get.html" target="help">Forum</a></td>
+    </tr>
+    
+    
+  </table>
+
+
+  <a href="#" name="get-all"></a><a href="#"></a>
+  <h3>Get All</h3>
+  <p>Returns a list of all data points available</p>
+  <table border="1">
+    <caption>Fields</caption>
+    <tr>
+      <th>Name</th><th>Type</th><th>Default</th><th>Description</th>
+    </tr>
+    <tr>
+        <td>limit</td>
+        <td>integer</td>
+        <td>100</td>
+        <td>Limit returned results</td>
+    </tr>
+  </table>
+
+  <a href="#" name="get"></a><a href="#"></a>
+  <h3>Get One</h3>
+  <p>Return one item with matching XID</p>
+  
+  <a href="#" name="get-all"></a><a href="#"></a>
+  <h3>Get All Data Points</h3>
+  <p>Returns a list of all data points available</p>
+  <table border="1">
+    <caption>Fields</caption>
+    <tr>
+      <th>Name</th><th>Type</th><th>Default</th><th>Description</th>
+    </tr>
+    <tr>
+        <td>limit</td>
+        <td>integer</td>
+        <td>100</td>
+        <td>Limit returned results</td>
+    </tr>
+  </table>
+
+
+</html>

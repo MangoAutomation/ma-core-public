@@ -18,10 +18,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
+import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -93,21 +95,35 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
 			HttpOutputMessage outputMessage) throws IOException,
 			HttpMessageNotWritableException {
 		
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputMessage.getBody()));
-		JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, bw);
-		//TODO Make optional somehow
-        int prettyIndent = 3;
-        writer.setPrettyIndent(prettyIndent);
-        writer.setPrettyOutput(true);
-        
-		try {
-			writer.writeObject(object);
-			writer.flush();
-			bw.close();
-		} catch (JsonException e) {
-			LOG.error(e);
-			throw new HttpMessageNotWritableException(e.getMessage());
-		}
+		//TODO See here for a fix for this:
+		//http://wiki.fasterxml.com/JacksonMixInAnnotations
+		
+		
+		
+		//First Test to see if JSON Serializable
+		//if(object instanceof JsonSerializable){
+			
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputMessage.getBody()));
+			JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, bw);
+			//TODO Make optional somehow
+	        int prettyIndent = 3;
+	        writer.setPrettyIndent(prettyIndent);
+	        writer.setPrettyOutput(true);
+	        
+			try {
+				writer.writeObject(object);
+				writer.flush();
+				bw.close();
+			} catch (JsonException e) {
+				LOG.error(e);
+				throw new HttpMessageNotWritableException(e.getMessage());
+			}
+//		}else{
+//			
+//			//General Catchall, TODO add to readInternal
+//			MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+//			converter.write(object,MediaType.APPLICATION_JSON, outputMessage);
+//		}
 	}
 
 	/**

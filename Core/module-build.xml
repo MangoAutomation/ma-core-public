@@ -453,14 +453,21 @@
             </then>
         </if>
         <!-- Copy the compiled jsps into the core -->
-        <property name="cw-pkg"
-                  value="work/jsp/org/apache/jsp/modules/${name}" />
-        <echo message="Copying JSPs to ${core.target}/${cw-pkg}" />
-        <copy todir="${core.target}/${cw-pkg}" preservelastmodified="true">
-            <fileset dir="${module.target}/${cw-pkg}">
-                <include name="**/*" />
-            </fileset>
-        </copy>
-
+        <if>
+           <available file="work/jsp/org/apache/jsp/modules/${name}" type="dir"/>
+           <then>
+            <property name="cw-pkg"
+                      value="work/jsp/org/apache/jsp/modules/${name}" />
+            <echo message="Copying JSPs to ${core.target}/${cw-pkg}" />
+            <copy todir="${core.target}/${cw-pkg}" preservelastmodified="true">
+                <fileset dir="${module.target}/${cw-pkg}">
+                    <include name="**/*" />
+                </fileset>
+            </copy>
+            </then>
+            <else>
+                <echo message="No JSPs copied into core work directory."/>
+            </else>
+        </if>
     </target>
 </project>
