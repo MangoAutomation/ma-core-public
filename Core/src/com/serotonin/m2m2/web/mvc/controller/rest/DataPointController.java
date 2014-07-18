@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.controller.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -71,9 +73,8 @@ public class DataPointController extends MangoRestController<DataPointVO>{
     @ResponseBody
     public List<DataPointVO> getAllDataPoints(HttpServletRequest request, 
     		@RequestParam(value="limit", required=false, defaultValue="100")int limit) {
-    	if(LOG.isDebugEnabled())
-    		LOG.debug("Getting all data points");
-        List<DataPointVO> dataPoints = DataPointDao.instance.getAll();
+
+    	List<DataPointVO> dataPoints = DataPointDao.instance.getAll();
         List<DataPointVO> userDataPoints = new ArrayList<DataPointVO>();
         
         //Filter on permissions
@@ -101,39 +102,67 @@ public class DataPointController extends MangoRestController<DataPointVO>{
 	@RequestMapping(method = RequestMethod.GET, value = "/{xid}")
     public ResponseEntity<DataPointVO> getDataPoint(@PathVariable String xid, HttpServletRequest request) {
 
+		ProcessResult response = new ProcessResult();
+		
         DataPointVO vo = DataPointDao.instance.getByXid(xid);
         if (vo == null) {
-            return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
+    		//TODO Add to messages or extract to superclass
+    		response.addMessage(new TranslatableMessage("common.default", "Point Does not exist"));
+    		return this.createResponseEntity(response, HttpStatus.NOT_FOUND);
         }
         //Check permissions
         User user = Common.getUser(request);
     	try{
     		if(Permissions.hasDataPointReadPermission(user, vo))
-    			return new ResponseEntity<DataPointVO>(vo, HttpStatus.OK);
-    		else
-    			return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    			return this.createResponseEntity(response, vo, HttpStatus.OK);
+    		else{
+    			//TODO add to translations
+    			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
+        		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
+    		}
     	}catch(PermissionException e){
-    		return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    		LOG.error(e.getMessage());
+        	response.addMessage(new TranslatableMessage("common.default", e.getMessage()));
+    		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
+    		
     	}
     }
 	
-	
+	/**
+	 * Put a data point into the system
+	 * @param vo
+	 * @param xid
+	 * @param builder
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(method = RequestMethod.PUT, value = "/{xid}")
     public ResponseEntity<DataPointVO> updateDataPoint(@RequestBody DataPointVO vo, @PathVariable String xid, 
     		UriComponentsBuilder builder, HttpServletRequest request) {
 
+		ProcessResult response = new ProcessResult();
+		
+		
         DataPointVO existingDp = DataPointDao.instance.getByXid(xid);
         if (existingDp == null) {
-            return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
+    		//TODO Add to messages or extract to superclass
+    		response.addMessage(new TranslatableMessage("common.default", "Point Does not exist"));
+    		return this.createResponseEntity(response, HttpStatus.NOT_FOUND);
         }
         
         //Check permissions
         User user = Common.getUser(request);
     	try{
-    		if(!Permissions.hasDataPointReadPermission(user, vo))
-    			return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    		if(!Permissions.hasDataPointReadPermission(user, vo)){
+    			//TODO Add to messages or extract to superclass
+    			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
+        		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
+
+    		}
     	}catch(PermissionException e){
-    		return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    		//TODO Add to messages or extract to superclass
+			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
+    		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
     	}
 
         
@@ -142,7 +171,6 @@ public class DataPointController extends MangoRestController<DataPointVO>{
         vo.setXid(xid);
         vo.setId(existingDp.getId());
         
-        ProcessResult response = new ProcessResult();
         vo.validate(response);
         
         if(response.getHasMessages()){
@@ -177,12 +205,9 @@ public class DataPointController extends MangoRestController<DataPointVO>{
         }
         
         //Put a link to the updated data in the header?
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(
-                builder.path("/rest/v1/dataPoints/{xid}")
-                        .buildAndExpand(xid).toUri());
-        
-        return new ResponseEntity<DataPointVO>(vo, headers, HttpStatus.CREATED);
+    	URI location = builder.path("/rest/v1/dataPoints/{xid}").buildAndExpand(xid).toUri();
+        ResponseEntity<DataPointVO> entity =  this.createResponseEntity(location, response, vo, HttpStatus.CREATED);
+        return entity;
     }
 	
 
@@ -191,26 +216,38 @@ public class DataPointController extends MangoRestController<DataPointVO>{
 	@RequestMapping(method = RequestMethod.DELETE, value = "/{xid}")
     public ResponseEntity<DataPointVO> delete(@PathVariable String xid, HttpServletRequest request) {
 		
+		ProcessResult response = new ProcessResult();
+		
 		//TODO Fix up to use delete by XID?
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
 		if (vo == null) {
-            return new ResponseEntity<DataPointVO>(HttpStatus.NOT_FOUND);
-        }
+    		//TODO Add to messages or extract to superclass
+    		response.addMessage(new TranslatableMessage("common.default", "Point Does not exist"));
+    		return this.createResponseEntity(response, HttpStatus.NOT_FOUND);
+    	}
 		
 		//Check permissions
         User user = Common.getUser(request);
     	try{
     		//TODO Is this the correct permission to check?
-    		if(!Permissions.hasDataPointReadPermission(user, vo))
-    			return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    		if(!Permissions.hasDataPointReadPermission(user, vo)){
+    			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
+        		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
+    		}
     	}catch(PermissionException e){
-    		return new ResponseEntity<DataPointVO>(HttpStatus.FORBIDDEN);
+    		response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
+    		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
     	}
 		
-		
-		DataPointDao.instance.delete(vo.getId());
-        
-		return new ResponseEntity<DataPointVO>(vo, HttpStatus.OK);
+		try{
+			DataPointDao.instance.delete(vo.getId());
+		}catch(Exception e){
+			LOG.error(e);
+			response.addMessage(new TranslatableMessage("common.default", e.getMessage()));
+        	
+        	return this.createResponseEntity(response);
+		}
+		return this.createResponseEntity(response, vo, HttpStatus.OK);
     }
 	
 	

@@ -134,7 +134,8 @@
                                   value="${core.target}/web/modules/${name}" />
 
                         <!-- Copy the web files to core dirs -->
-                        <delete dir="${module.core}" />
+                        <!-- MOVED TO DEPLOY TARGET <delete dir="${module.core}" /> -->
+                        
                         <copy todir="${module.core}/web"
                               preservelastmodified="true">
                             <fileset dir="web">
@@ -159,8 +160,11 @@
 
                         <!-- Get the list of files to compile -->
                         <fileset id="jsps.fs"
-                                 dir="${core.target}/web"
-                                 includes="modules/${name}/**/*" />
+                                 dir="${core.target}/web">
+                            <include name="modules/${name}/**/*.jsp"/>
+                            <include name="modules/${name}/**/*.jspf"/>
+                                                      
+                        </fileset>
                         <property name="canonical"
                                   location="${coreHome}/target/web" />
                         <!-- make it appear to Jasper that the files are in the web folder -->
@@ -174,7 +178,6 @@
                         <!-- Compile the JSPs IF THERE ARE ANY-->
                         <if>
                             <isset property="jsps" />
-
                             <then>
                                 <mkdir dir="${module.target}/work-tmp/jsp" />
                                 <mkdir dir="${module.target}/work-tmp/jsp-src" />
@@ -274,10 +277,23 @@
                             </then>
                         </if>
 
-                        <!-- Clean out the directories to leave the core unchanged -->
-                        <delete dir="${module.core}" />
-                        <!-- <delete dir="${module.target}/work-tmp" /> -->
-                        <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
+                        <!-- Clean out the directories to leave the core unchanged 
+                          MOVED TO DEPLOY TARGET
+                        <delete dir="${module.core}" /> -->
+                        <condition property="moduleHasWorkDir">
+                           <or>
+                               <isset property="jsps" />
+                               <isset property="tagdir" />
+                           </or>
+                        </condition>
+                        <if>
+                          <isset property="moduleHasWorkDir"/>
+                          <then>
+                            <echo message="Deleteing JSP work directory for module: ${core.target}/web/WEB-INF/tags/${name}"/>
+                            <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
+                          </then>
+                        </if>
+                          
                     </then>
                     <else>
                         <fail message="Run the core jsp-compile target first" />
@@ -412,6 +428,9 @@
             </else>
         </if>
 
+        <!-- When finished remove the module folder from the core to leave it unchanged-->
+        <echo message="Deleting module directory from core: ${module.core}"/>
+        <delete dir="${module.core}" />     
     </target>
 
     <target name="|deploy">
@@ -430,6 +449,7 @@
     <target name="copy-web"
             depends="jsp-compile"
             description="Copy the web dir to the core - useful when developing, the module must be installed in the core already">
+                
         <copy todir="${core.target}/web/modules/${name}/web"
               preservelastmodified="true">
             <fileset dir="web">
