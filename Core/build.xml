@@ -289,6 +289,8 @@
                 <include name="classes/env.properties" />
                 <include name="classes/i18n.properties" />
                 <include name="classes/log4j.xml" />
+                <!-- Swagger Experimental -->
+                <include name="classes/swagger.properties" />
             </fileset>
             <!-- Ensure we don't end up with any overrides -->
             <fileset dir="${core.target}/overrides/classes">
