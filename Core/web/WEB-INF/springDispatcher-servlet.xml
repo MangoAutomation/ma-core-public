@@ -24,9 +24,12 @@
   <mvc:annotation-driven>
     <mvc:message-converters>
       <bean class="com.serotonin.m2m2.web.mvc.converter.JsonMessageConverter"/>      
-      <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
-      <property name="prettyPrint" value="true"/>
-    </bean>       
+<!--        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"> -->
+<!--       <property name="prettyPrint" value="true"/> -->
+<!--       <property name="objectMapper"> -->
+<!--             <bean class="com.serotonin.m2m2.web.mvc.controller.rest.swagger.JUnitObjectMapper" /> -->
+<!--         </property> -->
+<!--     </bean>  -->
     </mvc:message-converters>
   </mvc:annotation-driven>
   

@@ -168,7 +168,7 @@ public class DwrNamespaceHandler extends NamespaceHandlerSupport
                 BeanDefinitionBuilder beanFilter;
                 try
                 {
-                    beanFilter = BeanDefinitionBuilder.rootBeanDefinition(ClassUtils.forName(filterClass));
+                    beanFilter = BeanDefinitionBuilder.rootBeanDefinition(ClassUtils.forName(filterClass, this.getClass().getClassLoader()));
                 }
                 catch (ClassNotFoundException e)
                 {
@@ -335,7 +335,7 @@ public class DwrNamespaceHandler extends NamespaceHandlerSupport
                                                  "'. " + "Check your bean has a correctly configured parent or provide a class for " + 
                                                  " the bean definition");
                 }
-                beanCreator.addPropertyValue("beanClass", ClassUtils.forName(beanClassName));
+                beanCreator.addPropertyValue("beanClass", ClassUtils.forName(beanClassName, this.getClass().getClassLoader()));
             }
             catch (ClassNotFoundException e)
             {

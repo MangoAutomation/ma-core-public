@@ -6,18 +6,23 @@ package com.serotonin.m2m2.web.mvc.controller.rest.swagger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
 import com.mangofactory.swagger.plugin.EnableSwagger;
 import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
+import com.wordnik.swagger.model.ApiInfo;
 
 /**
  * @author Terry Packer
  *
  */
-@Configuration
-@EnableSwagger //Loads the spring beans required by the framework
+//@Configuration
+//@EnableWebMvc
+//@EnableSwagger
+//@ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.controller.rest"}) 
 public class SwaggerConfig {
 
    private SpringSwaggerConfig springSwaggerConfig;
@@ -37,7 +42,22 @@ public class SwaggerConfig {
    @Bean
    public SwaggerSpringMvcPlugin customImplementation(){
       return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
-              .includePatterns(".*rest.*");
+      		.apiInfo(apiInfo())
+            .includePatterns(".*v1/.*");
    }
 
+   private ApiInfo apiInfo() {
+	      ApiInfo apiInfo = new ApiInfo(
+	              "Mango API Title",
+	              "Mango API Description",
+	              "Mango API terms of service",
+	              "Mango API Contact Email",
+	              "Mango API Licence Type",
+	              "Mango API License URL"
+	        );
+	      return apiInfo;
+	    }
+   
+   
+   
 }

@@ -22,6 +22,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValue;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValueCache;
 import com.serotonin.m2m2.vo.User;
+import com.wordnik.swagger.annotations.Api;
 
 /**
  * 
@@ -32,7 +33,7 @@ import com.serotonin.m2m2.vo.User;
  * @author Terry Packer
  * 
  */
-
+@Api(value="Realtime Data", description="Operations on Real time data", position=2)
 @Controller
 @RequestMapping("/v1/realtime")
 public class RealTimeDataController {

@@ -289,11 +289,14 @@
                         <if>
                           <isset property="moduleHasWorkDir"/>
                           <then>
-                            <echo message="Deleteing JSP work directory for module: ${core.target}/web/WEB-INF/tags/${name}"/>
-                            <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
+                              <echo message="Deleteing Tag work directory for module: ${core.target}/web/WEB-INF/tags/${name}"/>
+                              <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
+                              <echo message="Deleteing JSP work directory for module: ${core.target}/work/jsp/org/apache/jsp/modules/${name}"/>
+                              <delete dir="${core.target}/work/jsp/org/apache/jsp/modules/${name}" />
+                              
                           </then>
                         </if>
-                          
+                        
                     </then>
                     <else>
                         <fail message="Run the core jsp-compile target first" />
@@ -473,8 +476,8 @@
             </then>
         </if>
         <!-- Copy the compiled jsps into the core -->
-        <if>
-           <available file="work/jsp/org/apache/jsp/modules/${name}" type="dir"/>
+<!--        <if>
+           <available file="${module.target}/work/jsp/org/apache/jsp/modules/${name}" type="dir"/>
            <then>
             <property name="cw-pkg"
                       value="work/jsp/org/apache/jsp/modules/${name}" />
@@ -488,6 +491,6 @@
             <else>
                 <echo message="No JSPs copied into core work directory."/>
             </else>
-        </if>
+        </if> -->
     </target>
 </project>

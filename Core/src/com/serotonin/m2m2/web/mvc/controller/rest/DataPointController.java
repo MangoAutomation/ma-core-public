@@ -44,7 +44,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
  * @author Terry Packer
  * 
  */
-@Api(value="", description="Operations on Data points", position=1)
+@Api(value="Data Points", description="Operations on Data points", position=1)
 @Controller
 @RequestMapping("/v1/dataPoints")
 public class DataPointController extends MangoRestController<DataPointVO>{

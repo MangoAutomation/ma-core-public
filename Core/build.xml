@@ -289,7 +289,9 @@
                 <include name="classes/env.properties" />
                 <include name="classes/i18n.properties" />
                 <include name="classes/log4j.xml" />
-                <!-- Swagger Experimental -->
+                <!-- Swagger Experimental 
+                 See here for programmatic loading http://www.leveluplunch.com/blog/2014/04/16/spring-boot-swagger-springmvc-configuration/
+                -->
                 <include name="classes/swagger.properties" />
             </fileset>
             <!-- Ensure we don't end up with any overrides -->

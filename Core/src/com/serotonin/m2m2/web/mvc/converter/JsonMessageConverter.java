@@ -42,6 +42,10 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
 	
 	public JsonMessageConverter() {
 		super(new MediaType("application", "json", Common.UTF8_CS));
+		
+		//Quick hack to fix up 
+		
+		
 	}
 
 	/* (non-Javadoc)
@@ -97,33 +101,29 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
 		
 		//TODO See here for a fix for this:
 		//http://wiki.fasterxml.com/JacksonMixInAnnotations
-		
-		
-		
-		//First Test to see if JSON Serializable
-		//if(object instanceof JsonSerializable){
-			
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputMessage.getBody()));
-			JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, bw);
-			//TODO Make optional somehow
-	        int prettyIndent = 3;
-	        writer.setPrettyIndent(prettyIndent);
-	        writer.setPrettyOutput(true);
-	        
-			try {
-				writer.writeObject(object);
-				writer.flush();
-				bw.close();
-			} catch (JsonException e) {
-				LOG.error(e);
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputMessage.getBody()));
+		JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, bw);
+		//TODO Make optional somehow
+        int prettyIndent = 3;
+        writer.setPrettyIndent(prettyIndent);
+        writer.setPrettyOutput(true);
+        
+		try {
+			writer.writeObject(object);
+			writer.flush();
+			bw.close();
+		} catch (JsonException e) {
+			LOG.error(e);
+			//Give it a try Via Jackson
+			//General Catchall, TODO add to readInternal
+			try{
+				MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+				converter.write(object,MediaType.APPLICATION_JSON, outputMessage);
+			}catch(Exception e2){
+				LOG.error(e2);
 				throw new HttpMessageNotWritableException(e.getMessage());
 			}
-//		}else{
-//			
-//			//General Catchall, TODO add to readInternal
-//			MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-//			converter.write(object,MediaType.APPLICATION_JSON, outputMessage);
-//		}
+		}
 	}
 
 	/**

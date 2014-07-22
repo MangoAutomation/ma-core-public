@@ -65,6 +65,7 @@
   <category name="org.perf4j.TimingLogger"><level value="info"/></category>
   <category name="com.serotonin.modbus4j"><level value="info"/></category>
   <category name="org.tinytsdb"><level value="debug"/></category>
+  <category name="com.mangofactory"><level value="debug"/></category>
   
   <root>
     <level value="error"/>
