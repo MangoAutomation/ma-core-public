@@ -48,6 +48,10 @@ public class DataPointRestController extends MangoRestController<DataPointModel>
 
 	private static Logger LOG = Logger.getLogger(DataPointRestController.class);
 	
+	public DataPointRestController(){
+		LOG.info("Creating Data Point Rest Controller.");
+	}
+
 	
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

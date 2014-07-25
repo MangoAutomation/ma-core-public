@@ -39,7 +39,14 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	@Override
 	public void configureMessageConverters(
 			List<HttpMessageConverter<?>> converters) {
-
+		converters.add(createMappingJackson2HttpMessageConverter());
+	}
+	
+	/**
+	 * Exposed for use in testing
+	 * @return
+	 */
+	public static MappingJackson2HttpMessageConverter createMappingJackson2HttpMessageConverter(){
 		// For raw Jackson
 		MappingJackson2HttpMessageConverter jackson2Converter = new MappingJackson2HttpMessageConverter();
 
@@ -59,8 +66,8 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		// JsonMessageConverter seroJson = new
 		// JsonMessageConverter(jackson2Converter);
 		// converters.add(seroJson);
-
-		converters.add(jackson2Converter);
+		
+		return jackson2Converter;
 	}
 
 }

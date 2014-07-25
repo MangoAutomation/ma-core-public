@@ -35,8 +35,12 @@ import com.wordnik.swagger.annotations.ApiParam;
 @RestController
 @RequestMapping("/v1/users")
 public class UserRestController extends MangoRestController<UserModel>{
+	
 	private static Logger LOG = Logger.getLogger(UserRestController.class);
-	private final UserDao dao = new UserDao();
+	private UserDao dao;
+	public UserRestController(){
+		this.dao = new UserDao();
+	}
 
 	@RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
@@ -88,6 +92,14 @@ public class UserRestController extends MangoRestController<UserModel>{
 		LOG.info("Putting user with name " + model.getUsername());
 		return this.createResponseEntity(response, model, HttpStatus.OK);
 		
+		
+	}
+
+	/**
+	 * @param dao2
+	 */
+	public void setUserDao(UserDao dao) {
+		this.dao = dao;
 		
 	}
 	
