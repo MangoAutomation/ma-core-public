@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="lib" path="target/classes"/>
-	<classpathentry kind="lib" path="target/overrides/properties"/>
+	<classpathentry kind="src" path="overrides/properties"/>
+	<classpathentry kind="src" path="overrides/classes"/>
 	<classpathentry kind="src" output="maven-target/classes" path="src">
 		<attributes>
 			<attribute name="optional" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="classes"/>
 	<classpathentry including="**/*.java" kind="src" output="maven-target/test-classes" path="src-test">
 		<attributes>
 			<attribute name="optional" value="true"/>

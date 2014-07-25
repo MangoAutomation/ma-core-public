@@ -41,6 +41,13 @@ import com.serotonin.util.ValidationUtils;
 public class LoginController {
     private static final Log LOG = LogFactory.getLog(LoginController.class);
 
+    public LoginController(){
+    	super();
+    	this.setCommandName("login");
+    	this.setCommandClass("com.serotonin.m2m2.web.mvc.form.LoginForm");
+    	this.setFormView("/WEB-INF/jsp/login.jsp");
+    	this.setBindOnNewForm(true);
+    }
     
     private String commandName;
     private String commandClass;

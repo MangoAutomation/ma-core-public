@@ -445,7 +445,6 @@
         
     }
   </script>
-  
   <table>
     <tr>
       <td valign="top" id="userList" style="display:none;">
@@ -560,5 +559,4 @@
       </td>
     </tr>
   </table>
-
 </tag:page>

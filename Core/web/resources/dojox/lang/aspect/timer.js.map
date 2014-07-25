@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"timer.js",
+"lineCount":1,
+"mappings":"A,SACAA,MAAA,oDAA4D,QAAA,CAASC,CAAT,CAAeC,CAAf,CAAoBC,CAApB,EAC5DD,CAAAE,QAAA,2BAEC,UAAA,OACIC,EAAMF,CAAAG,KAAAC,OADV,CAECC,GAFD,CAIIC,EAAQA,QAAAA,CAASC,CAATD,EACXC,SADWD,CACCC,CADDD,sBAC+BD,CAC1CG,YAFWF,GAIZP,EAAAU,OAAA,CAAYH,CAAZ,SACSI,QAAAA,GACFF,WADEE,GADT,OAMQC,QAAAA,KACAH,WADAG,CANR,EAaAT,EAAAU,MArBA,CAqBYC,QAAAA,CAAqBN,CAArBM,QAOJ,KAAIP,CAAJ,CAAUC,CAAV,CAPIM,CArBZ,EAAA,EAH2D,CAA5D;",
+"sources":["timer.js.uncompressed.js"],
+"names":["define","dijit","dojo","dojox","provide","aop","lang","aspect","uniqueNumber","Timer","name","inCall","extend","before","after","timer","aop.timer"]
+}

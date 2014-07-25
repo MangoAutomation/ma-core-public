@@ -6,8 +6,6 @@ package com.serotonin.m2m2.web.mvc.controller;
 
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

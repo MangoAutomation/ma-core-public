@@ -50,8 +50,8 @@
         </else>
     </if>
     <target name="clean" description="Clean output directories">
-        <delete dir="${core.target}" />
-        <mkdir dir="${core.target}" />
+        <delete dir="${core.target}/work" />
+        <mkdir dir="${core.target}/work" />
     </target>
 
     <target name="configure"
@@ -231,7 +231,7 @@
     </target>
 
     <target name="jar"
-            depends="jsp-compile"
+            depends="jsp-compile,jar-src"
             description="Create a jar file of the compiled classes">
         <mkdir dir="${core.target}/lib" />
         <jar destfile="${core.target}/lib/ma-core-${maven-pom.version}.jar"
@@ -245,6 +245,12 @@
 
         <mvn:install file="${core.target}/lib/ma-core-${maven-pom.version}.jar">
             <pom refid="maven-pom" />
+            <attach file="release/${fullName}-src.jar"
+                    type="jar"
+                    classifier="sources" />
+<!--            <attach file="release/${fullName}-doc.jar"
+                    type="jar"
+                    classifier="javadoc" /> -->
         </mvn:install>
 
     </target>
@@ -323,14 +329,34 @@
         </copy>
     </target>
 
-    <target name="docs">
+
+    <target name="docs" description="Generate Java Doc">
+        <mkdir dir="${core.target}/java/doc" />
         <javadoc sourcepath="src"
-                 packagenames="com.serotonin.m2m2.module"
-                 destdir="${core.target}/docs">
-            <classpath refid="master-classpath" />
-        </javadoc>
+                 destdir="release/java/doc"
+                 classpathref="master-classpath" />
     </target>
 
+    <target name="jar-doc" depends="docs" description="Create a jar file of the javadocs">
+        <delete file="release/${fullName}-doc.jar" />
+        <jar destfile="release/${fullName}-doc.jar">
+            <fileset dir="${core.target}/java/doc">
+                <include name="**/*" />
+            </fileset>
+        </jar>
+    </target>
+
+
+    <target name="jar-src" description="Create a jar file of the sources">
+        <delete file="release/${fullName}-src.jar" />
+        <jar destfile="release/${fullName}-src.jar">
+            <fileset dir="src">
+                <include name="**/*.java" />
+            </fileset>
+        </jar>
+    </target>
+    
+    
     <target name="update-dojo"
             description="copy dojo debug files to target/web/resources">
         <!-- Copy the Dojo Debug JS Libraries -->
@@ -551,4 +577,57 @@
         </zip>
     </target>
 
+    
+    <!-- NEW Targets for Debugging at the Core Level, above target -->
+    <target name="jsp-compile-eclipse"
+            description="Compile the JSPs in place for debugging">
+        <taskdef name="jasper2" classname="org.apache.jasper.JspC">
+            <classpath>
+                <path refid="master-classpath" />
+                <pathelement path="${core.target}/classes" />
+                <pathelement path="${core.target}/maven-target/classes" />
+                <path refid="module-libs" />
+            </classpath>
+        </taskdef>
+        <!-- If we have modules installed we need to collect their jars too -->
+
+        <jasper2 validateXml="false"
+                 uriroot="${core.target}/web"
+                 webXmlFragment="${core.target}/web/WEB-INF/generated_web.xml"
+                 addWebXmlMappings="true"
+                 outputDir="${core.target}/work/jsp-src"
+                 verbose="1">
+        </jasper2>
+        <mkdir dir="${core.target}/work/jsp" />
+        <javac destdir="${core.target}/work/jsp"
+               debug="true"
+               debuglevel="lines,vars,source"
+               deprecation="false"
+               optimize="true"
+               failonerror="true"
+               includeantruntime="false"
+               source="1.7"
+               target="1.7">
+            <src path="${core.target}/work/jsp-src" />
+            <classpath>
+                <path refid="master-classpath" />
+                <pathelement path="${core.target}/classes" />
+                <pathelement path="${core.target}/maven-target/classes" />
+                <path refid="module-libs" />
+                <!-- need to add all module libs to the classpath -->
+            </classpath>
+        </javac>
+        <!-- Copy the compiled files back into our classes folder -->
+        <copy todir="${core.target}/maven-target/classes" preservelastmodified="true">
+            <fileset dir="${core.target}/work/jsp">
+                <include name="**/*.class" />
+            </fileset>
+        </copy>
+    </target>
+    
+    
+    
+    
+    
+    
 </project>

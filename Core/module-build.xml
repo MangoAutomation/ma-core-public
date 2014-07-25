@@ -13,7 +13,7 @@
     <property name="fullName" value="m2m2-${name}-${version}" />
     <property file="${coreHome}/module-common.properties" />
     <property name="module.target" value="target" />
-    <property name="core.target" value="${coreHome}/target" />
+    <property name="core.target" value="${coreHome}" />
     <property name="module.deploy.paths" value="${core.target}/web/modules" />
     <property name="zip.paths" value="${core.target}/ma-modules.zip" />
 

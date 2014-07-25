@@ -38,12 +38,15 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * 
  */
 public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
+	
 	private static Logger LOG = Logger.getLogger(JsonMessageConverter.class);
 	
-	public JsonMessageConverter() {
+	private MappingJackson2HttpMessageConverter converter;
+	
+	public JsonMessageConverter(MappingJackson2HttpMessageConverter converter) {
 		super(new MediaType("application", "json", Common.UTF8_CS));
 		
-		//Quick hack to fix up 
+		this.converter = converter;
 		
 		
 	}
@@ -117,8 +120,7 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
 			//Give it a try Via Jackson
 			//General Catchall, TODO add to readInternal
 			try{
-				MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-				converter.write(object,MediaType.APPLICATION_JSON, outputMessage);
+				this.converter.write(object,MediaType.APPLICATION_JSON, outputMessage);
 			}catch(Exception e2){
 				LOG.error(e2);
 				throw new HttpMessageNotWritableException(e.getMessage());

@@ -52,8 +52,6 @@
     <appender-ref ref="applicationConsole"/>
   </appender>
   
-  
-  <category name="org"><level value="error"/></category>
   <category name="org.directwebremoting"><level value="warn"/></category>
   <category name="org.springframework"><level value="error"/></category>
   <category name="com.serotonin.db.spring.ExtendedJdbcTemplate"><level value="error"/></category>
@@ -66,6 +64,9 @@
   <category name="com.serotonin.modbus4j"><level value="info"/></category>
   <category name="org.tinytsdb"><level value="debug"/></category>
   <category name="com.mangofactory"><level value="debug"/></category>
+  <!-- <category name="org.eclipse.jetty"><level value="debug"/></category> -->
+  <!-- For Jackson JSON Rendering -->
+  <category name="com.fasterxml"><level value="debug"/></category>
   
   <root>
     <level value="error"/>

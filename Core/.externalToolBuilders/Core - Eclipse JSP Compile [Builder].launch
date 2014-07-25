@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.ant.AntBuilderLaunchConfigurationType">
+<stringAttribute key="org.eclipse.ant.ui.ATTR_ANT_AFTER_CLEAN_TARGETS" value="jsp-compile-eclipse,"/>
+<stringAttribute key="org.eclipse.ant.ui.ATTR_ANT_MANUAL_TARGETS" value="jsp-compile-eclipse,"/>
+<booleanAttribute key="org.eclipse.ant.ui.ATTR_TARGETS_UPDATED" value="true"/>
+<booleanAttribute key="org.eclipse.ant.ui.DEFAULT_VM_INSTALL" value="true"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/Core/build.xml"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<booleanAttribute key="org.eclipse.debug.ui.ATTR_LAUNCH_IN_BACKGROUND" value="false"/>
+<booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.ant.ui.AntClasspathProvider"/>
+<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JDK 1.7u40"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.eclipse.ant.internal.launching.remote.InternalAntRunner"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Core"/>
+<stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.ant.ui.AntClasspathProvider"/>
+<mapAttribute key="org.eclipse.ui.externaltools.ATTR_ANT_PROPERTIES">
+<mapEntry key="core.target" value="/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core"/>
+<mapEntry key="coreHome" value="/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core"/>
+<mapEntry key="eclipse.pdebuild.home" value="/Users/tpacker/Documents/Work/Infinite/development/eclipse/plugins/org.eclipse.pde.build_3.8.100.v20130514-1028/./"/>
+<mapEntry key="eclipse.pdebuild.scripts" value="/Users/tpacker/Documents/Work/Infinite/development/eclipse/plugins/org.eclipse.pde.build_3.8.100.v20130514-1028/scripts/"/>
+<mapEntry key="eclipse.pdebuild.templates" value="/Users/tpacker/Documents/Work/Infinite/development/eclipse/plugins/org.eclipse.pde.build_3.8.100.v20130514-1028/templates/"/>
+<mapEntry key="tomcat.home" value="/Users/tpacker/Documents/Work/Infinite/development/apache-tomcat-6.0.39"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_ANT_TARGETS" value="jsp-compile-eclipse,"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/Core/build.xml}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="full,incremental,"/>
+<booleanAttribute key="org.eclipse.ui.externaltools.ATTR_TRIGGERS_CONFIGURED" value="true"/>
+<stringAttribute key="process_factory_id" value="org.eclipse.ant.ui.remoteAntProcessFactory"/>
+</launchConfiguration>

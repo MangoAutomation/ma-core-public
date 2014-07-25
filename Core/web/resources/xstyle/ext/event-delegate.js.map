@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"event-delegate.js",
+"lineCount":1,
+"mappings":"A,SAAAA,MAAA,gCAAwC,QAAA,OAC3BC,IAAwBC,QAAAC,iBADG,CAEtCC,EAAMF,QAAAG,cAAA,OACNC,gBAHsC,CAGpBF,CAAAE,gBAHoB,EAGGF,CAAAG,sBAHH,EAGgCH,CAAAI,kBAHhC,EAGyDJ,CAAAK,mBAHzD,mBAM1BC,QAAAA,CAASC,CAATD,CAAeE,CAAfF,CAAsBG,CAAtBH,EAIXI,OAAA,CAAQZ,QAAR,CAAkBS,CAAAI,MAAA,GAAlB,CAAiCF,CAAAG,aAAA,EAAjC,CAAsDJ,CAAtD,CAJWF,CAN0B,IAYlCI,QAAAA,CAASG,CAATH,CAAiBI,CAAjBJ,CAAwBK,CAAxBL,CAAkCM,CAAlCN,EAKHO,QAASA,EAATA,CAAgBH,CAAhBG,EACCF,CADDE,CACYF,CADZE,EACwBR,IAAAG,aAAA,EACpBV,gBAAAgB,KAAA,CAAqBJ,CAAAD,OAArB,CAAmCE,CAAnC,CAFJE,CAHApB,CAFGa,CAGFG,CAAAd,iBAAA,CAAwBe,CAAxB,CAA+BG,CAA/B,IAHEP,CAIFG,CAAAM,YAAA,CAAmBL,CAAnB,CAA0BG,CAA1B,CAJEP,CAZkC,EAAxC;",
+"sources":["event-delegate.js.uncompressed.js"],
+"names":["define","hasAddEventListener","document","addEventListener","div","createElement","matchesSelector","webkitMatchesSelector","msMatchesSelector","mozMatchesSelector","onProperty","name","value","rule","on","slice","fullSelector","target","event","selector","listener","select","call","attachEvent"]
+}

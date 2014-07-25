@@ -34,12 +34,10 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  */
 public class RealTimeDataPointValueCache {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
+	//List for real time data on a per user basis
 	private final Map<User, List<RealTimeDataPointValue>> userRealTimeData = new ConcurrentHashMap<User, List<RealTimeDataPointValue>>();
+	
+	//Singleton Instance
 	public static final RealTimeDataPointValueCache instance = new RealTimeDataPointValueCache();
 	
 	
