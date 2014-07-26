@@ -2,47 +2,41 @@
  * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.web.mvc.rest.v1;
+package com.serotonin.m2m2.web.mvc.rest;
 
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.BeforeClass;
-import org.mockito.MockitoAnnotations;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.serotonin.m2m2.Common;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.MangoTestInstance;
-import com.serotonin.m2m2.db.H2Proxy;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
-import com.serotonin.util.properties.ReloadingProperties;
 
 /**
+ * @See http://spring.io/guides/tutorials/rest/4/ 
+ * 
+ * 
  * @author Terry Packer
  *
  */
-public class BaseRestTest {
+public class BaseFullStackRestTest {
 
 	protected MockMvc mockMvc;
+	protected ObjectMapper objectMapper; //Access to Object mapper configured for Mango Json 
+
 
 
 
     @BeforeClass
     public static void setupMango(){
     	
-    	
-    	Common.envProps = new ReloadingProperties("test-env");
-        Common.MA_HOME = "/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core";
-    	
-
-    	H2Proxy proxy = new H2Proxy();
-        Common.databaseProxy = proxy;
-        proxy.initialize(null);
-        
-    	String envPropertiesName = "test-env";
+     	String envPropertiesName = "test-env";
         String maHome = "/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core";
         try {
-			MangoTestInstance.startModules();
+			MangoTestInstance.start(envPropertiesName, maHome);
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
@@ -54,7 +48,12 @@ public class BaseRestTest {
      * @param controllers
      */
     protected void setupMvc(Object... controllers){
-        this.mockMvc = standaloneSetup(controllers).setMessageConverters(MangoRestSpringConfiguration.createMappingJackson2HttpMessageConverter()).build();
+    	this.objectMapper = MangoRestSpringConfiguration.createObjectMapper();
+    	
+    	MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+    	converter.setObjectMapper(this.objectMapper);
+    	
+        this.mockMvc = standaloneSetup(controllers).setMessageConverters(converter).build();
     }
     
 }

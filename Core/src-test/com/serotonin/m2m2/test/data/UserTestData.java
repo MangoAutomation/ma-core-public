@@ -39,10 +39,16 @@ public class UserTestData {
 		
 		//Setup Permissions
 		List<Integer> dataSourcePermissions = new ArrayList<Integer>();
+		dataSourcePermissions.add(1);
 		user.setDataSourcePermissions(dataSourcePermissions);
 		
 		List<DataPointAccess> dataPointPermissions = new ArrayList<DataPointAccess>();
+		DataPointAccess access1 = new DataPointAccess();
+		access1.setDataPointId(1);
+		access1.setPermission(DataPointAccess.READ);
+		dataPointPermissions.add(access1);
 		user.setDataPointPermissions(dataPointPermissions);
+		
 		return user;
 	}
 

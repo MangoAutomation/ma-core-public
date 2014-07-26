@@ -11,6 +11,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 public class DataPointPermissionModel {
+
+	public DataPointPermissionModel(){
+		
+	}
 	
 	@JsonProperty(value="dataPointXid", index=0, required=true)
 	private String dataPointXid;

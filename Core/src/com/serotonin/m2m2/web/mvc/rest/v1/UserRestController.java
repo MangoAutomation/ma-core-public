@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -37,9 +38,8 @@ import com.wordnik.swagger.annotations.ApiParam;
 public class UserRestController extends MangoRestController<UserModel>{
 	
 	private static Logger LOG = Logger.getLogger(UserRestController.class);
-	private UserDao dao;
+	
 	public UserRestController(){
-		this.dao = new UserDao();
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
@@ -50,7 +50,7 @@ public class UserRestController extends MangoRestController<UserModel>{
     		LOG.debug("Getting all Users");
 
     	List<UserModel> userModelList = new ArrayList<UserModel>();
-    	List<User> users = dao.getUsers();
+    	List<User> users = DaoRegistry.userDao.getUsers();
     	for(User user : users){
     		userModelList.add(new UserModel(user));
     	}
@@ -66,11 +66,11 @@ public class UserRestController extends MangoRestController<UserModel>{
     		@PathVariable String username, HttpServletRequest request) {
 		
 		ProcessResult response = new ProcessResult();
-		User user = dao.getUser(username);
+		User user = DaoRegistry.userDao.getUser(username);
 		
 		if (user == null) {
     		//TODO Add to messages or extract to superclass
-    		response.addMessage(new TranslatableMessage("common.default", "Point Does not exist"));
+    		response.addMessage(new TranslatableMessage("common.default", "User Does not exist"));
     		return this.createResponseEntity(response, HttpStatus.NOT_FOUND);
         }
 		
@@ -89,17 +89,9 @@ public class UserRestController extends MangoRestController<UserModel>{
     		HttpServletRequest request) {
 		
 		ProcessResult response = new ProcessResult();
-		LOG.info("Putting user with name " + model.getUsername());
+		LOG.info("Updating user with name " + model.getUsername());
 		return this.createResponseEntity(response, model, HttpStatus.OK);
 		
-		
-	}
-
-	/**
-	 * @param dao2
-	 */
-	public void setUserDao(UserDao dao) {
-		this.dao = dao;
 		
 	}
 	

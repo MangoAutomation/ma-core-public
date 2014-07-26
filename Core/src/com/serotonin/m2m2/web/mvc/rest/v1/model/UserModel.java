@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -16,6 +18,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.DataPointAccess;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.AlarmLevel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.DataPointPermissionModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.PermissionEnum;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.PermissionsModel;
@@ -24,10 +27,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.PermissionsModel;
  * @author Terry Packer
  * 
  */
+@JsonPropertyOrder({"username", "email"})
 public class UserModel extends AbstractRestModel<User> {
 
 	public UserModel(){
 		super(new User());
+		this.data.setDataPointPermissions(new ArrayList<DataPointAccess>());
+		this.data.setDataSourcePermissions(new ArrayList<Integer>());
 	}
 	
 	public UserModel(User user) {
@@ -44,6 +50,10 @@ public class UserModel extends AbstractRestModel<User> {
 		data.setUsername(username);
 	}
 
+	@JsonGetter(value = "password")
+	public String getPassword() {
+		return ""; //Return empty string
+	}
 	@JsonSetter(value = "password")
 	public void setPassword(String password) {
 		data.setPassword(password);
@@ -59,8 +69,16 @@ public class UserModel extends AbstractRestModel<User> {
 		data.setEmail(email);
 	}
 
-	// Missing several properties
+	@JsonGetter(value = "disabled")
+	public Boolean getDisabled() {
+		return data.isDisabled();
+	}
 
+	@JsonSetter(value = "disabled")
+	public void setDisabled(Boolean disabled) {
+		data.setDisabled(disabled);
+	}
+	
 	@JsonGetter(value = "permissions")
 	public PermissionsModel getPermissions() {
 		
@@ -68,7 +86,7 @@ public class UserModel extends AbstractRestModel<User> {
 		List<String> dataSourceXids = new ArrayList<String>();
 		
 		for(Integer dsId : data.getDataSourcePermissions()){
-			DataSourceVO<?> vo = DataSourceDao.instance.get(dsId);
+			DataSourceVO<?> vo = DaoRegistry.dataSourceDao.get(dsId);
 			if(vo != null){
 				dataSourceXids.add(vo.getXid());
 			}
@@ -77,18 +95,11 @@ public class UserModel extends AbstractRestModel<User> {
 		//Do For Data Points
 		for(DataPointAccess access : data.getDataPointPermissions()){
 			
-			DataPointVO vo = DataPointDao.instance.get(access.getDataPointId());
+			DataPointVO vo = DaoRegistry.dataPointDao.get(access.getDataPointId());
 			if(vo != null){
 				DataPointPermissionModel model = new DataPointPermissionModel();
 				model.setDataPointXid(vo.getXid());
-				switch(access.getPermission()){
-					case DataPointAccess.READ:
-						model.setPermission(PermissionEnum.READ);
-					break;
-					case DataPointAccess.SET:
-						model.setPermission(PermissionEnum.SET);
-					break;
-				}
+				model.setPermission(PermissionEnum.convertTo(access.getPermission()));
 				dataPointPermissions.add(model);
 			}
 		}
@@ -99,11 +110,68 @@ public class UserModel extends AbstractRestModel<User> {
 	}
 
 	@JsonSetter(value = "permissions")
-	public void setPermissions(List<PermissionsModel> permissions) {
+	public void setPermissions(PermissionsModel permissions) {
 		
+		for(String dsXid : permissions.getDataSourceXids()){
+			DataSourceVO<?> vo = DaoRegistry.dataSourceDao.getByXid(dsXid);
+			if(vo != null)
+				this.data.getDataSourcePermissions().add(vo.getId());
+		}
 		
-
+		for(DataPointPermissionModel model : permissions.getDataPointPermissions()){
+			DataPointVO vo = DaoRegistry.dataPointDao.getByXid(model.getDataPointXid());
+			if(vo != null){
+				DataPointAccess access = new DataPointAccess();
+				access.setDataPointId(vo.getId());
+				access.setPermission(PermissionEnum.convertFrom(model.getPermission()));
+				this.data.getDataPointPermissions().add(access);
+			}
+		}
+		
 	}
+	
+	@JsonGetter(value = "homeUrl")
+	public String getHomeUrl() {
+		return data.getHomeUrl();
+	}
+
+	@JsonSetter(value = "homeUrl")
+	public void setHomeUrl(String homeUrl) {
+		data.setHomeUrl(homeUrl);
+	}
+	
+	@JsonGetter(value = "receiveAlarmEmails")
+	public AlarmLevel getReceiveAlarmEmails() {
+		return AlarmLevel.convertTo(data.getReceiveAlarmEmails());
+	}
+
+	@JsonSetter(value = "receiveAlarmEmails")
+	public void setReceiveAlarmEmails(AlarmLevel level) {
+		data.setReceiveAlarmEmails(AlarmLevel.convertFrom(level));
+	}
+	
+	@JsonGetter("timezone")
+	public String getTimezone() {
+		return data.getTimezone();
+	}
+
+	@JsonSetter("timezone")
+	public void setTimezone(String zone) {
+		data.setTimezone(zone);
+	}
+	
+	@JsonGetter("muted")
+	public Boolean getMuted() {
+		return data.isMuted();
+	}
+
+	@JsonSetter(value = "muted")
+	public void setMuted(Boolean muted) {
+		data.setMuted(muted);
+	}
+	
+
+
 
 	/*
 	 * (non-Javadoc)

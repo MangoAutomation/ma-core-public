@@ -39,17 +39,26 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	@Override
 	public void configureMessageConverters(
 			List<HttpMessageConverter<?>> converters) {
-		converters.add(createMappingJackson2HttpMessageConverter());
+		
+		
+		ObjectMapper objectMapper = createObjectMapper();
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setObjectMapper(objectMapper);
+		
+		// For Sero JSON (NOT USING)
+		// JsonMessageConverter seroJson = new
+		// JsonMessageConverter(jackson2Converter);
+		// converters.add(seroJson);
+		
+		converters.add(converter);
 	}
 	
 	/**
 	 * Exposed for use in testing
 	 * @return
 	 */
-	public static MappingJackson2HttpMessageConverter createMappingJackson2HttpMessageConverter(){
+	public static ObjectMapper createObjectMapper(){
 		// For raw Jackson
-		MappingJackson2HttpMessageConverter jackson2Converter = new MappingJackson2HttpMessageConverter();
-
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
@@ -60,14 +69,9 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		// Mango Core JSON Module
 		MangoCoreModule mangoCore = new MangoCoreModule();
 		objectMapper.registerModule(mangoCore);
-
-		jackson2Converter.setObjectMapper(objectMapper);
-		// For Sero JSON (NOT USING)
-		// JsonMessageConverter seroJson = new
-		// JsonMessageConverter(jackson2Converter);
-		// converters.add(seroJson);
 		
-		return jackson2Converter;
+		
+		return objectMapper;
 	}
 
 }

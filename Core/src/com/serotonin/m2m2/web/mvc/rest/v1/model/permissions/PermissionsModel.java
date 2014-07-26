@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.permissions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,6 +33,14 @@ public class PermissionsModel {
 		this.dataPointPermissions = dataPointPermissions;
 	}
 
+	/**
+	 * 
+	 */
+	public PermissionsModel(){
+		this.dataSourceXids = new ArrayList<String>();
+		this.dataPointPermissions = new ArrayList<DataPointPermissionModel>();
+	}
+	
 	public List<String> getDataSourceXids() {
 		return dataSourceXids;
 	}
