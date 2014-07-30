@@ -117,6 +117,33 @@ public abstract class MangoRestController<T> {
 
 	}
 	
+	/**
+	 * @param result
+	 * @param model
+	 * @param headers
+	 * @param ok
+	 * @return
+	 */
+	protected ResponseEntity<T> createResponseEntity(
+			ProcessResult response, T body, HttpHeaders headers,
+			HttpStatus status) {
+		
+		return new ResponseEntity<T>(
+				body,
+				this.addMessagesToHeaders(headers, response),
+				status);
+		
+	}
+
+
+	/**
+	 * @param response
+	 * @return
+	 */
+	protected HttpHeaders createHeadersFromProcessResult(ProcessResult response) {
+		HttpHeaders headers = new HttpHeaders();
+		return this.addMessagesToHeaders(headers, response);
+	}
 
 	/**
 	 * Create headers, adding errors if necessary
@@ -124,8 +151,7 @@ public abstract class MangoRestController<T> {
 	 * @param response
 	 * @return
 	 */
-	private HttpHeaders createHeadersFromProcessResult(ProcessResult response) {
-		HttpHeaders headers = new HttpHeaders();
+	protected HttpHeaders addMessagesToHeaders(HttpHeaders headers, ProcessResult response) {
 		if (response.getHasMessages()) {
 			StringBuilder headerErrors = new StringBuilder();
 			for (ProcessMessage message : response.getMessages()) {
