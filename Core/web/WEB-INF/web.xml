@@ -618,6 +618,381 @@
     </servlet>
 
     <servlet>
+        <servlet-name>org.apache.jsp.modules.wibox.web.edit_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.wibox.web.edit_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.watchList_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.watchList_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.snippet.watchListMessages_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.snippet.watchListMessages_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.login_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.mobile.login_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.logout_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.mobile.logout_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.watchList_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.mobile.watchList_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.old.watchList_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.mobile.old.watchList_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.ok.watchListCopie_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.watchlists.web.mobile.ok.watchListCopie_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.vmstat.web.editVMStat_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.vmstat.web.editVMStat_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.twilio.web.editTwilioSender_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.twilio.web.editTwilioSender_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.templateConfig.web.templateConfig_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.templateConfig.web.templateConfig_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.sstGlobalScripts.web.globalScripts_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.sstGlobalScripts.web.globalScripts_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.ssh.web.editSsh_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.ssh.web.editSsh_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.squwk.web.editpp_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.squwk.web.editpp_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.sqlds.web.editSql_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.sqlds.web.editSql_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.sqlConsole.web.sql_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.sqlConsole.web.sql_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.snmp.web.editSnmp_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.snmp.web.editSnmp_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.serial.web.editSerial_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.serial.web.editSerial_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.scripting.web.edit_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.scripting.web.edit_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.scheduledEvents.web.scheduledEvents_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.scheduledEvents.web.scheduledEvents_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.reports.web.reports_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.reports.web.reports_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pop3.web.editPop3_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pop3.web.editPop3_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pointLinks.web.pointLinks_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pointLinks.web.pointLinks_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pid.web.discovery_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pid.web.discovery_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pid.web.editPid_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pid.web.editPid_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pid.web.pidDs_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pid.web.pidDs_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pid.web.pidPp_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pid.web.pidPp_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pachube.web.editPachubeDS_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pachube.web.editPachubeDS_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.pachube.web.editPachubePub_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.pachube.web.editPachubePub_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.openv4j.web.editOpenV4J_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.openv4j.web.editOpenV4J_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.onewire.web.editOneWire_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.onewire.web.editOneWire_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.modbus.web.editModbusIpPublisher_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.modbus.web.editModbusIpPublisher_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.meta.web.editMeta_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.meta.web.editMeta_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.mbus.web.editMBus_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.mbus.web.editMBus_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.maintenanceEvents.web.maintenanceEvents_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.maintenanceEvents.web.maintenanceEvents_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.loggingConsole.web.loggingConsole_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.loggingConsole.web.loggingConsole_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.log4jDS.web.editLog4j_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.log4jDS.web.editLog4j_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.jspViews.web.jspViewExample_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.jspViews.web.jspViewExample_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.jsonFileImport.web.editJSONFileImporter_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.jsonFileImport.web.editJSONFileImporter_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.jmxds.web.editJmx_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.jmxds.web.editJmx_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.internal.web.editInternal_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.internal.web.editInternal_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpImage_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.http.web.editHttpImage_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpJsonReceiver_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.http.web.editHttpJsonReceiver_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpReceiver_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.http.web.editHttpReceiver_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpRetriever_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.http.web.editHttpRetriever_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpSender_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.http.web.editHttpSender_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.publicView_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.publicView_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.viewEdit_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.viewEdit_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.views_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.views_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.basicContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.basicContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.compoundInfoContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.compoundInfoContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.dynamicImageContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.dynamicImageContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.imageContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.imageContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.imageValueContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.imageValueContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.infoContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.infoContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.scriptContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.scriptContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.warningContent_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.snippet.warningContent_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.compoundEditor_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.include.compoundEditor_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.graphicRendererEditor_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.include.graphicRendererEditor_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.settingsEditor_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.include.settingsEditor_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.staticEditor_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.graphicalViews.web.include.staticEditor_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.galil.web.editGalil_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.galil.web.editGalil_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.envcands.web.editEnvCan_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.envcands.web.editEnvCan_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dnp3.web.editDnp3_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dnp3.web.editDnp3_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dnp3.web.editDnp3Ip_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dnp3.web.editDnp3Ip_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dnp3.web.editDnp3Serial_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dnp3.web.editDnp3Serial_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dglux.web.exportData_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dglux.web.exportData_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dglux.web.login_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dglux.web.login_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dglux.web.view_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dglux.web.view_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dataImport.web.dataImport_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dataImport.web.dataImport_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.dataFile.web.datafile_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.dataFile.web.datafile_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.controlcore.web.editControlCore_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.controlcore.web.editControlCore_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.bonjourBroadcaster.web.bonjour_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.bonjourBroadcaster.web.bonjour_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.BACnet.web.editPublisher_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.BACnet.web.editPublisher_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>org.apache.jsp.modules.asciiFile.web.editFile_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.modules.asciiFile.web.editFile_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>org.apache.jsp.exception._404_jsp</servlet-name>
         <servlet-class>org.apache.jsp.exception._404_jsp</servlet-class>
     </servlet>
@@ -1015,6 +1390,381 @@
     <servlet-mapping>
         <servlet-name>org.apache.jsp.WEB_002dINF.jsp.error.dataSourceError_jsp</servlet-name>
         <url-pattern>/WEB-INF/jsp/error/dataSourceError.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.wibox.web.edit_jsp</servlet-name>
+        <url-pattern>/modules/wibox/web/edit.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.watchList_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/watchList.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.snippet.watchListMessages_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/snippet/watchListMessages.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.login_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/mobile/login.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.logout_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/mobile/logout.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.watchList_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/mobile/watchList.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.old.watchList_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/mobile/old/watchList.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.watchlists.web.mobile.ok.watchListCopie_jsp</servlet-name>
+        <url-pattern>/modules/watchlists/web/mobile/ok/watchListCopie.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.vmstat.web.editVMStat_jsp</servlet-name>
+        <url-pattern>/modules/vmstat/web/editVMStat.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.twilio.web.editTwilioSender_jsp</servlet-name>
+        <url-pattern>/modules/twilio/web/editTwilioSender.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.templateConfig.web.templateConfig_jsp</servlet-name>
+        <url-pattern>/modules/templateConfig/web/templateConfig.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.sstGlobalScripts.web.globalScripts_jsp</servlet-name>
+        <url-pattern>/modules/sstGlobalScripts/web/globalScripts.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.ssh.web.editSsh_jsp</servlet-name>
+        <url-pattern>/modules/ssh/web/editSsh.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.squwk.web.editpp_jsp</servlet-name>
+        <url-pattern>/modules/squwk/web/editpp.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.sqlds.web.editSql_jsp</servlet-name>
+        <url-pattern>/modules/sqlds/web/editSql.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.sqlConsole.web.sql_jsp</servlet-name>
+        <url-pattern>/modules/sqlConsole/web/sql.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.snmp.web.editSnmp_jsp</servlet-name>
+        <url-pattern>/modules/snmp/web/editSnmp.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.serial.web.editSerial_jsp</servlet-name>
+        <url-pattern>/modules/serial/web/editSerial.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.scripting.web.edit_jsp</servlet-name>
+        <url-pattern>/modules/scripting/web/edit.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.scheduledEvents.web.scheduledEvents_jsp</servlet-name>
+        <url-pattern>/modules/scheduledEvents/web/scheduledEvents.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.reports.web.reports_jsp</servlet-name>
+        <url-pattern>/modules/reports/web/reports.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pop3.web.editPop3_jsp</servlet-name>
+        <url-pattern>/modules/pop3/web/editPop3.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pointLinks.web.pointLinks_jsp</servlet-name>
+        <url-pattern>/modules/pointLinks/web/pointLinks.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pid.web.discovery_jsp</servlet-name>
+        <url-pattern>/modules/pid/web/discovery.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pid.web.editPid_jsp</servlet-name>
+        <url-pattern>/modules/pid/web/editPid.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pid.web.pidDs_jsp</servlet-name>
+        <url-pattern>/modules/pid/web/pidDs.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pid.web.pidPp_jsp</servlet-name>
+        <url-pattern>/modules/pid/web/pidPp.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pachube.web.editPachubeDS_jsp</servlet-name>
+        <url-pattern>/modules/pachube/web/editPachubeDS.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.pachube.web.editPachubePub_jsp</servlet-name>
+        <url-pattern>/modules/pachube/web/editPachubePub.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.openv4j.web.editOpenV4J_jsp</servlet-name>
+        <url-pattern>/modules/openv4j/web/editOpenV4J.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.onewire.web.editOneWire_jsp</servlet-name>
+        <url-pattern>/modules/onewire/web/editOneWire.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.modbus.web.editModbusIpPublisher_jsp</servlet-name>
+        <url-pattern>/modules/modbus/web/editModbusIpPublisher.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.meta.web.editMeta_jsp</servlet-name>
+        <url-pattern>/modules/meta/web/editMeta.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.mbus.web.editMBus_jsp</servlet-name>
+        <url-pattern>/modules/mbus/web/editMBus.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.maintenanceEvents.web.maintenanceEvents_jsp</servlet-name>
+        <url-pattern>/modules/maintenanceEvents/web/maintenanceEvents.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.loggingConsole.web.loggingConsole_jsp</servlet-name>
+        <url-pattern>/modules/loggingConsole/web/loggingConsole.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.log4jDS.web.editLog4j_jsp</servlet-name>
+        <url-pattern>/modules/log4jDS/web/editLog4j.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.jspViews.web.jspViewExample_jsp</servlet-name>
+        <url-pattern>/modules/jspViews/web/jspViewExample.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.jsonFileImport.web.editJSONFileImporter_jsp</servlet-name>
+        <url-pattern>/modules/jsonFileImport/web/editJSONFileImporter.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.jmxds.web.editJmx_jsp</servlet-name>
+        <url-pattern>/modules/jmxds/web/editJmx.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.internal.web.editInternal_jsp</servlet-name>
+        <url-pattern>/modules/internal/web/editInternal.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpImage_jsp</servlet-name>
+        <url-pattern>/modules/http/web/editHttpImage.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpJsonReceiver_jsp</servlet-name>
+        <url-pattern>/modules/http/web/editHttpJsonReceiver.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpReceiver_jsp</servlet-name>
+        <url-pattern>/modules/http/web/editHttpReceiver.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpRetriever_jsp</servlet-name>
+        <url-pattern>/modules/http/web/editHttpRetriever.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.http.web.editHttpSender_jsp</servlet-name>
+        <url-pattern>/modules/http/web/editHttpSender.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.publicView_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/publicView.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.viewEdit_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/viewEdit.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.views_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/views.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.basicContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/basicContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.compoundInfoContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/compoundInfoContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.dynamicImageContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/dynamicImageContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.imageContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/imageContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.imageValueContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/imageValueContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.infoContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/infoContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.scriptContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/scriptContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.snippet.warningContent_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/snippet/warningContent.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.compoundEditor_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/include/compoundEditor.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.graphicRendererEditor_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/include/graphicRendererEditor.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.settingsEditor_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/include/settingsEditor.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.graphicalViews.web.include.staticEditor_jsp</servlet-name>
+        <url-pattern>/modules/graphicalViews/web/include/staticEditor.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.galil.web.editGalil_jsp</servlet-name>
+        <url-pattern>/modules/galil/web/editGalil.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.envcands.web.editEnvCan_jsp</servlet-name>
+        <url-pattern>/modules/envcands/web/editEnvCan.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dnp3.web.editDnp3_jsp</servlet-name>
+        <url-pattern>/modules/dnp3/web/editDnp3.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dnp3.web.editDnp3Ip_jsp</servlet-name>
+        <url-pattern>/modules/dnp3/web/editDnp3Ip.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dnp3.web.editDnp3Serial_jsp</servlet-name>
+        <url-pattern>/modules/dnp3/web/editDnp3Serial.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dglux.web.exportData_jsp</servlet-name>
+        <url-pattern>/modules/dglux/web/exportData.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dglux.web.login_jsp</servlet-name>
+        <url-pattern>/modules/dglux/web/login.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dglux.web.view_jsp</servlet-name>
+        <url-pattern>/modules/dglux/web/view.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dataImport.web.dataImport_jsp</servlet-name>
+        <url-pattern>/modules/dataImport/web/dataImport.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.dataFile.web.datafile_jsp</servlet-name>
+        <url-pattern>/modules/dataFile/web/datafile.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.controlcore.web.editControlCore_jsp</servlet-name>
+        <url-pattern>/modules/controlcore/web/editControlCore.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.bonjourBroadcaster.web.bonjour_jsp</servlet-name>
+        <url-pattern>/modules/bonjourBroadcaster/web/bonjour.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.BACnet.web.editPublisher_jsp</servlet-name>
+        <url-pattern>/modules/BACnet/web/editPublisher.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.modules.asciiFile.web.editFile_jsp</servlet-name>
+        <url-pattern>/modules/asciiFile/web/editFile.jsp</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

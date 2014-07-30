@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -50,7 +51,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
 					"ue.silenced"},
 				"left join users u on evt.ackUserId=u.id left join userEvents ue on evt.id=ue.eventId ");
-		LOG = LogFactory.getLog(EventInstanceDao.class);
+		LOG = Logger.getLogger(EventInstanceDao.class);
 	}
 
 	/* (non-Javadoc)
@@ -419,6 +420,14 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
                 throw new ShouldNeverHappenException("Unknown event type: " + typeName);
         }
         return type;
-    }    
+    }
+
+	/**
+	 * @param lifeSafety
+	 * @return
+	 */
+	public int countUnsilencedEvents(int userId, int level) {
+		return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
+	}    
     
 }

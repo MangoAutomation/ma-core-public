@@ -20,6 +20,7 @@ import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
@@ -81,9 +82,9 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public void scheduleTimeout(long fireTime) {
         if (jobThread != null) {
             //            // There is another poll still running, so abort this one.
-            //            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
-            //                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
-            //                    + " is still running");
+                        LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
+                                + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
+                                + " is still running");
             incrementUnsuccessfulPolls();
             return;
         }

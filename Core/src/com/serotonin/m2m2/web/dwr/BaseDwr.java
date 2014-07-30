@@ -404,30 +404,13 @@ abstract public class BaseDwr {
             	if(lastUnsilencedAlarmCount == null)
             		lastUnsilencedAlarmCount = 0;
             	
-            	List<EventInstanceVO> events = EventInstanceDao.instance.getUnsilencedEvents(user.getId());
             	//Sort into lists for the different types
-            	int lifeSafetyTotal=0, noneTotal=0, informationTotal=0, criticalTotal=0, urgentTotal=0;
-            	for(EventInstanceVO event : events){
-            		switch(event.getAlarmLevel()){
-            		case AlarmLevels.NONE:
-            			noneTotal++;
-            			break;
-            		case AlarmLevels.INFORMATION:
-            			informationTotal++;
-            			break;
-            		case AlarmLevels.URGENT:
-            			urgentTotal++;
-            			break;
-            		case AlarmLevels.CRITICAL:
-            			criticalTotal++;
-            			break;
-            		case AlarmLevels.LIFE_SAFETY:
-            			lifeSafetyTotal++;
-            			break;
-            		default:
-            			//Nothing for now...
-            		}
-            	}
+            	int lifeSafetyTotal=EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.LIFE_SAFETY);
+            	int noneTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.NONE);
+            	int informationTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.INFORMATION);
+            	int criticalTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.CRITICAL);
+            	int urgentTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.URGENT);
+            	
             	int currentUnsilencedAlarmCount = noneTotal + informationTotal + urgentTotal + criticalTotal + lifeSafetyTotal;
             	//If we have some new information we should show it
             	if(lastUnsilencedAlarmCount != currentUnsilencedAlarmCount ){
@@ -471,9 +454,7 @@ abstract public class BaseDwr {
                     response.put("highestUnsilencedAlarmLevel", maxAlarmLevel);
                     state.setMaxAlarmLevel(maxAlarmLevel);
                 }
-            	
-            	
-            	
+
             	// Check the max alarm. First check if the events have changed since the last time this request checked.
                 long lastEMUpdate = Common.eventManager.getLastAlarmTimestamp();
                 //If there is a new alarm then do stuff
