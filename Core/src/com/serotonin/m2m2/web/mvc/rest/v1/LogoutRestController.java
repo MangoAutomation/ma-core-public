@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.serotonin.m2m2.Common;
@@ -33,14 +32,49 @@ import com.wordnik.swagger.annotations.Api;
 @RequestMapping("/v1/logout")
 public class LogoutRestController extends MangoRestController<UserModel>{
 
-	
-	
-	@RequestMapping(method = RequestMethod.POST, value = "/{username}")
-    public ResponseEntity<UserModel> logout(
+
+	/**
+	 * PUT Logout action
+	 * @param username
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(method = RequestMethod.PUT, value = "/{username}")
+    public ResponseEntity<UserModel> logoutPut(
     		@PathVariable String username,
     		HttpServletRequest request,
     		HttpServletResponse response
     		) {
+		return performLogout(username, request, response);
+	}
+	
+	/**
+	 * POST Logout action
+	 * @param username
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(method = RequestMethod.POST, value = "/{username}")
+    public ResponseEntity<UserModel> logoutPost(
+    		@PathVariable String username,
+    		HttpServletRequest request,
+    		HttpServletResponse response
+    		) {
+		return performLogout(username, request, response);
+	}
+
+	/**
+	 * Shared logout work
+	 * 
+	 * @param username
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	private ResponseEntity<UserModel> performLogout(String username,
+			HttpServletRequest request, HttpServletResponse response) {
 		ProcessResult result = new ProcessResult();
 		
 		// Check if the user is logged in.
@@ -61,9 +95,6 @@ public class LogoutRestController extends MangoRestController<UserModel>{
         	result.addMessage(new TranslatableMessage("login.validation.noSuchUser"));
         	return this.createResponseEntity(result);
         }
-
-		
-		
 	}
 	
 	

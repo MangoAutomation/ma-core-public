@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.serotonin.m2m2.Common;
@@ -31,15 +33,18 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.PointValueTimeModel;
+import com.wordnik.swagger.annotations.Api;
 
 /**
  * @author Terry Packer
  * 
  */
 //
-//@Controller
-//@RequestMapping("/v1/pointValues")
-public class PointValueRestController extends MangoRestController<PointValueTime>{
+@Api(value="Point Values", description="Operations on Point Values")
+@RestController
+@RequestMapping("/v1/pointValues")
+public class PointValueRestController extends MangoRestController<PointValueTimeModel>{
 
 	private static Logger LOG = Logger.getLogger(PointValueRestController.class);
 	private PointValueDao dao = Common.databaseProxy.newPointValueDao();
@@ -52,7 +57,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 	 * @return
 	 */
     @RequestMapping(method = RequestMethod.GET, value="/{xid}/latest")
-    public ResponseEntity<List<PointValueTime>> getLatestPointValues(HttpServletRequest request, @PathVariable String xid,
+    public ResponseEntity<List<PointValueTimeModel>> getLatestPointValues(HttpServletRequest request, @PathVariable String xid,
     		@RequestParam(value="limit", required=false, defaultValue="100") int limit){
         
     	ProcessResult response = new ProcessResult();
@@ -68,7 +73,11 @@ public class PointValueRestController extends MangoRestController<PointValueTime
     	try{
     		if(Permissions.hasDataPointReadPermission(user, vo)){
     			List<PointValueTime> pvts = dao.getLatestPointValues(vo.getId(), limit);
-    	        return new ResponseEntity<List<PointValueTime>>(pvts, HttpStatus.OK);
+    			List<PointValueTimeModel> models = new ArrayList<PointValueTimeModel>(pvts.size());
+    			for(PointValueTime pvt : pvts){
+    				models.add(new PointValueTimeModel(pvt));
+    			}
+    	        return new ResponseEntity<List<PointValueTimeModel>>(models, HttpStatus.OK);
     		}else{
     			//TODO add to translations
     			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
@@ -92,7 +101,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
      * @return
      */
 	@RequestMapping(method = RequestMethod.PUT, value = "/{xid}")
-    public ResponseEntity<PointValueTime> putPointValue(HttpServletRequest request, @RequestBody final PointValueTime pvt, @PathVariable String xid, UriComponentsBuilder builder) {
+    public ResponseEntity<PointValueTimeModel> putPointValue(HttpServletRequest request, @RequestBody final PointValueTime pvt, @PathVariable String xid, UriComponentsBuilder builder) {
 		
 		ProcessResult response = new ProcessResult();
 		
@@ -141,7 +150,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
     	            
     	        	URI location = builder.path("/rest/v1/pointValues/{xid}")
                             .buildAndExpand(xid).toUri();
-    	            ResponseEntity<PointValueTime> entity =  this.createResponseEntity(location, response, pvt, HttpStatus.CREATED);
+    	            ResponseEntity<PointValueTimeModel> entity =  this.createResponseEntity(location, response, new PointValueTimeModel(pvt), HttpStatus.CREATED);
     	            return entity;
 
     	        }catch(Exception e){

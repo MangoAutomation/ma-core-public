@@ -15,11 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValue;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValueCache;
 import com.serotonin.m2m2.vo.User;
@@ -45,15 +48,21 @@ public class RealTimeDataRestController extends MangoRestController<RealTimeMode
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public List<RealTimeModel> getAll(HttpServletRequest request) {
+    public List<RealTimeModel> getAll(HttpServletRequest request, 
+    		@RequestParam(value="limit", required=false, defaultValue="100")int limit) {
     	if(LOG.isDebugEnabled())
     		LOG.debug("Getting all real time data");
     	
     	User user = Common.getUser(request);
     	List<RealTimeDataPointValue> values = RealTimeDataPointValueCache.instance.getAll(user);
     	List<RealTimeModel> models = new ArrayList<RealTimeModel>();
-    	for(RealTimeDataPointValue value : values)
+    	int counter = 0;
+    	for(RealTimeDataPointValue value : values){
     		models.add(new RealTimeModel(value));
+    		counter++;
+    		if(counter == limit)
+    			break;
+    	}
     		
     	return models;
     }
@@ -61,18 +70,27 @@ public class RealTimeDataRestController extends MangoRestController<RealTimeMode
 	
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/{xid}")
-    public ResponseEntity<RealTimeDataPointValue> get(@PathVariable String xid, HttpServletRequest request) {
+    public ResponseEntity<RealTimeModel> get(@PathVariable String xid, HttpServletRequest request) {
 		
-		User user = Common.getUser(request);
-		RealTimeDataPointValue rtpv = RealTimeDataPointValueCache.instance.get(xid, user);
-
-        if (rtpv == null) {
-            return new ResponseEntity<RealTimeDataPointValue>(HttpStatus.NOT_FOUND);
-        }
-
-        return new ResponseEntity<RealTimeDataPointValue>(rtpv, HttpStatus.OK);
-    }
+		ProcessResult result = new ProcessResult();
+		User user = checkUser(request, result); //Check the user
+		
+		//If no messages then go for it
+		if(!result.getHasMessages()){
+			
+			RealTimeDataPointValue rtpv = RealTimeDataPointValueCache.instance.get(xid, user);
 	
+	        if (rtpv == null) {
+	        	result.addMessage(new TranslatableMessage("common.default", "Point doesn't exist or is not enabled."));
+	            return this.createResponseEntity(result, HttpStatus.NOT_FOUND);
+	        }
+	        RealTimeModel model = new RealTimeModel(rtpv);
+	        return this.createResponseEntity(result, model, HttpStatus.OK);
+	        
+		}else{
+			return this.createResponseEntity(result);
+		}
+    }
 	
 	
 }

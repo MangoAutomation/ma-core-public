@@ -70,6 +70,17 @@ public class DataPointModel extends AbstractActionVoModel<DataPointVO>{
 		System.out.println(props.getType());
 	}
 	
+	@JsonGetter(value="deviceName")
+	public String getDeviceName(){
+		return this.vo.getDeviceName();
+	}
+	
+	@JsonSetter(value="deviceName")
+	public void setDeviceName(String deviceName){
+		this.vo.setDeviceName(deviceName);
+	}
+	
+	
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.web.mvc.rest.model.AbstractRestModel#validate(com.serotonin.m2m2.i18n.ProcessResult)

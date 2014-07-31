@@ -7,6 +7,8 @@ package com.serotonin.m2m2.web.mvc.rest.v1;
 import java.net.URI;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Terry Packer
@@ -164,4 +168,22 @@ public abstract class MangoRestController<T> {
 		}
 	}
 
+	/**
+	 * Check to see if a User is logged in
+	 * 
+	 * @param request
+	 * @param result
+	 * @return User that is logged in, null if none are
+	 */
+	protected User checkUser(HttpServletRequest request, ProcessResult result) {
+		User user = Common.getUser(request);
+		if(user == null){
+			result.addMessage(new TranslatableMessage("common.default", "User not logged in"));
+		}
+		
+		return user;
+	}
+	
+	
+	
 }

@@ -39,7 +39,7 @@ public class BaseRestTest {
     	Common.envProps = new ReloadingProperties("test-env");
         Common.MA_HOME = "/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core";
     	
-
+        //Start the Database so we can use Daos (Base Dao requires this)
     	H2Proxy proxy = new H2Proxy();
         Common.databaseProxy = proxy;
         proxy.initialize(null);

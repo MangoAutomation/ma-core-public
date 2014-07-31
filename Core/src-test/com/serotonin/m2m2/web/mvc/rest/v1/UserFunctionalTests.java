@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -75,7 +76,7 @@ public class UserFunctionalTests extends BaseRestTest{
      * @throws Exception
      */
 	@Test
-	public void testGetAll() throws Exception{
+	public void testGetAll(){
 		
 		List<User> users = new ArrayList<User>();
 		User standardUser = UserTestData.standardUser();
@@ -98,27 +99,30 @@ public class UserFunctionalTests extends BaseRestTest{
 //			}
 		}
 		
-		MvcResult result = this.mockMvc.perform(
-	            get("/v1/users")
-	                    .accept(MediaType.APPLICATION_JSON))
-	            .andDo(print())
-	            .andExpect(status().isOk())
-	            .andReturn();
-
-		//Check the result
-		System.out.println(result.getResponse().getContentAsString());
-		
-		//Could re-create the User object from the Json
-		
-		//May not be necessary but allows arrays of size 1
-	    //objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-
-		UserModel[] models = this.objectMapper.readValue(result.getResponse().getContentAsString(), UserModel[].class);
-		//ArrayList<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), ArrayList.class);
-		//List<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), objectMapper.getTypeFactory().constructCollectionType(List.class, UserModel.class));
-		//Check the size
-		assertEquals(users.size(), models.length);
-		
+		try{
+			MvcResult result = this.mockMvc.perform(
+		            get("/v1/users")
+		                    .accept(MediaType.APPLICATION_JSON))
+		            .andDo(print())
+		            .andExpect(status().isOk())
+		            .andReturn();
+	
+			//Check the result
+			System.out.println(result.getResponse().getContentAsString());
+			
+			//Could re-create the User object from the Json
+			
+			//May not be necessary but allows arrays of size 1
+		    //objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+	
+			UserModel[] models = this.objectMapper.readValue(result.getResponse().getContentAsString(), UserModel[].class);
+			//ArrayList<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), ArrayList.class);
+			//List<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), objectMapper.getTypeFactory().constructCollectionType(List.class, UserModel.class));
+			//Check the size
+			assertEquals(users.size(), models.length);
+		}catch(Exception e){
+			fail(e.getMessage());
+		}
 		//Check the data
 		
 	}
