@@ -167,6 +167,41 @@ public class UserTestData {
 		return user;
 	}
 	
+	/**
+	 * Create a standard user that has previously loggged In
+	 * @return
+	 */
+	public static User adminUser(){
+		User user = new User();
+		user.setId(4);
+		user.setUsername("admin");
+		//Store encrypted passwords
+		user.setPassword(Common.encrypt(adminPassword));
+		user.setEmail("email@address.com");
+		user.setPhone("808-000-0000");
+		user.setAdmin(true);
+		user.setDisabled(false);
+		user.setHomeUrl("/home.shtm");
+		user.setLastLogin(new Date().getTime() - 1000);
+		user.setReceiveAlarmEmails(1);
+		user.setReceiveOwnAuditEvents(true);
+		user.setTimezone("UTC");
+		user.setMuted(false);
+		
+		//Setup Permissions
+		List<Integer> dataSourcePermissions = new ArrayList<Integer>();
+		dataSourcePermissions.add(1);
+		user.setDataSourcePermissions(dataSourcePermissions);
+		
+		List<DataPointAccess> dataPointPermissions = new ArrayList<DataPointAccess>();
+		DataPointAccess access1 = new DataPointAccess();
+		access1.setDataPointId(1);
+		access1.setPermission(DataPointAccess.READ);
+		dataPointPermissions.add(access1);
+		user.setDataPointPermissions(dataPointPermissions);
+		
+		return user;
+	}
 	
 	public static List<User> getAllUsers(){
 		List<User> all = new ArrayList<User>();

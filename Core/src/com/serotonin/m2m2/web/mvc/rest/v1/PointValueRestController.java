@@ -33,6 +33,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.PointValueTimeModel;
 import com.wordnik.swagger.annotations.Api;
 
@@ -40,7 +41,7 @@ import com.wordnik.swagger.annotations.Api;
  * @author Terry Packer
  * 
  */
-//
+
 @Api(value="Point Values", description="Operations on Point Values")
 @RestController
 @RequestMapping("/v1/pointValues")
@@ -60,33 +61,35 @@ public class PointValueRestController extends MangoRestController<PointValueTime
     public ResponseEntity<List<PointValueTimeModel>> getLatestPointValues(HttpServletRequest request, @PathVariable String xid,
     		@RequestParam(value="limit", required=false, defaultValue="100") int limit){
         
-    	ProcessResult response = new ProcessResult();
-    	DataPointVO vo = DataPointDao.instance.getByXid(xid);
-    	if(vo == null){
-    		//TODO Add to messages or extract to superclass
-    		response.addMessage(new TranslatableMessage("common.default", "Point Does not exist"));
-    		return this.createResponseEntityList(response, HttpStatus.NOT_FOUND);
-    	}
-    		
-    	//Check permissions
-    	User user = Common.getUser(request);
-    	try{
-    		if(Permissions.hasDataPointReadPermission(user, vo)){
-    			List<PointValueTime> pvts = dao.getLatestPointValues(vo.getId(), limit);
-    			List<PointValueTimeModel> models = new ArrayList<PointValueTimeModel>(pvts.size());
-    			for(PointValueTime pvt : pvts){
-    				models.add(new PointValueTimeModel(pvt));
-    			}
-    	        return new ResponseEntity<List<PointValueTimeModel>>(models, HttpStatus.OK);
-    		}else{
-    			//TODO add to translations
-    			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
-        		return this.createResponseEntityList(response, HttpStatus.FORBIDDEN);
-    		}
-    	}catch(PermissionException e){
-    		LOG.error(e.getMessage());
-        	response.addMessage(new TranslatableMessage("common.default", e.getMessage()));
-    		return this.createResponseEntityList(response);
+    	RestProcessResult<List<PointValueTimeModel>> result = new RestProcessResult<List<PointValueTimeModel>>(HttpStatus.OK);
+    	User user = this.checkUser(request, result);
+    	if(result.isOk()){
+    	
+	    	DataPointVO vo = DataPointDao.instance.getByXid(xid);
+	    	if(vo == null){
+	    		result.addRestMessage(getDoesNotExistMessage());
+	    		return result.createResponseEntity();
+	    	}
+
+	    	try{
+	    		if(Permissions.hasDataPointReadPermission(user, vo)){
+	    			List<PointValueTime> pvts = dao.getLatestPointValues(vo.getId(), limit);
+	    			List<PointValueTimeModel> models = new ArrayList<PointValueTimeModel>(pvts.size());
+	    			for(PointValueTime pvt : pvts){
+	    				models.add(new PointValueTimeModel(pvt));
+	    			}
+	    			return result.createResponseEntity(models);
+	    		}else{
+	    	 		result.addRestMessage(getUnauthorizedMessage());
+		    		return result.createResponseEntity();
+		    		}
+	    	}catch(PermissionException e){
+	    		LOG.error(e.getMessage());
+	    		result.addRestMessage(getUnauthorizedMessage());
+	    		return result.createResponseEntity();
+	    	}
+    	}else{
+    		return result.createResponseEntity();
     	}
     	
     	
@@ -103,75 +106,76 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 	@RequestMapping(method = RequestMethod.PUT, value = "/{xid}")
     public ResponseEntity<PointValueTimeModel> putPointValue(HttpServletRequest request, @RequestBody final PointValueTime pvt, @PathVariable String xid, UriComponentsBuilder builder) {
 		
-		ProcessResult response = new ProcessResult();
+		RestProcessResult<PointValueTimeModel> result = new RestProcessResult<PointValueTimeModel>(HttpStatus.OK);
 		
-        DataPointVO existingDp = DataPointDao.instance.getByXid(xid);
-        if (existingDp == null) {
-    		//TODO Add to messages or extract to superclass
-    		response.addMessage(new TranslatableMessage("common.default", "Point Does not exist"));
-    		return this.createResponseEntity(response, HttpStatus.NOT_FOUND);
-    	}
-        
-        User user = Common.getUser(request);
-    	try{
-    		if(Permissions.hasDataPointReadPermission(user, existingDp)){
-    			
-    			//TODO Do we want to use a provided time or let the RTM Decide the time?
-    	        final int dataSourceId = existingDp.getDataSourceId();
-    	        SetPointSource source = null;
-    	        if(pvt instanceof AnnotatedPointValueTime){
-    	        	source = new SetPointSource(){
+		User user = this.checkUser(request, result);
+		if(result.isOk()){
+		
+	        DataPointVO existingDp = DataPointDao.instance.getByXid(xid);
+	        if (existingDp == null) {
+	        	result.addRestMessage(getDoesNotExistMessage());
+	        	return result.createResponseEntity();
+	    	}
+	        
+	    	try{
+	    		if(Permissions.hasDataPointReadPermission(user, existingDp)){
+	    			
+	    			//TODO Do we want to use a provided time or let the RTM Decide the time?
+	    	        final int dataSourceId = existingDp.getDataSourceId();
+	    	        SetPointSource source = null;
+	    	        if(pvt instanceof AnnotatedPointValueTime){
+	    	        	source = new SetPointSource(){
+	
+	    					@Override
+	    					public String getSetPointSourceType() {
+	    						return "REST";
+	    					}
+	
+	    					@Override
+	    					public int getSetPointSourceId() {
+	    						return dataSourceId;
+	    					}
+	
+	    					@Override
+	    					public TranslatableMessage getSetPointSourceMessage() {
+	    						return ((AnnotatedPointValueTime)pvt).getSourceMessage();
+	    					}
+	
+	    					@Override
+	    					public void raiseRecursionFailureEvent() {
+	    						//TODO Flesh this out
+	    						LOG.error("Recursive failure while setting point via REST");
+	    					}
+	    	        		
+	    	        	};
+	    	        }
+	    	        try{
+	    	        	Common.runtimeManager.setDataPointValue(existingDp.getId(), pvt, source);
 
-    					@Override
-    					public String getSetPointSourceType() {
-    						return "REST";
-    					}
-
-    					@Override
-    					public int getSetPointSourceId() {
-    						return dataSourceId;
-    					}
-
-    					@Override
-    					public TranslatableMessage getSetPointSourceMessage() {
-    						return ((AnnotatedPointValueTime)pvt).getSourceMessage();
-    					}
-
-    					@Override
-    					public void raiseRecursionFailureEvent() {
-    						//TODO Flesh this out
-    						LOG.error("Recursive failure while setting point via REST");
-    					}
-    	        		
-    	        	};
-    	        }
-    	        try{
-    	        	Common.runtimeManager.setDataPointValue(existingDp.getId(), pvt, source);
-    	            
-    	        	URI location = builder.path("/rest/v1/pointValues/{xid}")
-                            .buildAndExpand(xid).toUri();
-    	            ResponseEntity<PointValueTimeModel> entity =  this.createResponseEntity(location, response, new PointValueTimeModel(pvt), HttpStatus.CREATED);
-    	            return entity;
-
-    	        }catch(Exception e){
-    	        	LOG.error(e.getMessage());
-    	        	response.addMessage(new TranslatableMessage("common.default", e.getMessage()));
-    	        	
-    	        	return this.createResponseEntity(response);
-    	        	
-    	        }
-    			
-    			
-    		}else{
-    			//TODO add to translations
-    			response.addMessage(new TranslatableMessage("common.default", "Do not have permissions to access point"));
-        		return this.createResponseEntity(response, HttpStatus.FORBIDDEN);
-    		}
-    	}catch(PermissionException e){
-    		LOG.error(e.getMessage());
-        	response.addMessage(new TranslatableMessage("common.default", e.getMessage()));
-    		return this.createResponseEntity(response);
-    	}
+	    	        	URI location = builder.path("/rest/v1/pointValue/{xid}/{time}").buildAndExpand(xid, pvt.getTime()).toUri();
+	    		    	result.addRestMessage(getResourceCreatedMessage(location));
+	    		        return result.createResponseEntity(new PointValueTimeModel(pvt));
+	
+	    	        }catch(Exception e){
+	    	        	LOG.error(e.getMessage());
+	    	        	result.addRestMessage(getInternalServerErrorMessage(e.getMessage()));
+	    	        	return result.createResponseEntity();
+	    	        	
+	    	        }
+	    			
+	    			
+	    		}else{
+		    		result.addRestMessage(getUnauthorizedMessage());
+		    		return result.createResponseEntity();
+	    		}
+	    	}catch(PermissionException e){
+	    		LOG.error(e.getMessage());
+	    		result.addRestMessage(getUnauthorizedMessage());
+	    		return result.createResponseEntity();
+	    	}
+		}else{
+			return result.createResponseEntity();
+		}
     }
     
 }

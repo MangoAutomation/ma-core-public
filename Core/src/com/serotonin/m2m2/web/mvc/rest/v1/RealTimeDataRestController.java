@@ -16,16 +16,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValue;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValueCache;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RealTimeModel;
 import com.wordnik.swagger.annotations.Api;
 
@@ -45,26 +42,34 @@ public class RealTimeDataRestController extends MangoRestController<RealTimeMode
 
 	private static Logger LOG = Logger.getLogger(RealTimeDataRestController.class);
 	
+	/**
+	 * Get all of the Users Real Time Data
+	 * @param request
+	 * @param limit
+	 * @return
+	 */
     @RequestMapping(method = RequestMethod.GET)
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public List<RealTimeModel> getAll(HttpServletRequest request, 
+    public ResponseEntity<List<RealTimeModel>> getAll(HttpServletRequest request, 
     		@RequestParam(value="limit", required=false, defaultValue="100")int limit) {
-    	if(LOG.isDebugEnabled())
-    		LOG.debug("Getting all real time data");
     	
-    	User user = Common.getUser(request);
-    	List<RealTimeDataPointValue> values = RealTimeDataPointValueCache.instance.getAll(user);
-    	List<RealTimeModel> models = new ArrayList<RealTimeModel>();
-    	int counter = 0;
-    	for(RealTimeDataPointValue value : values){
-    		models.add(new RealTimeModel(value));
-    		counter++;
-    		if(counter == limit)
-    			break;
+    	RestProcessResult<List<RealTimeModel>> result = new RestProcessResult<List<RealTimeModel>>(HttpStatus.OK);
+    	User user = this.checkUser(request, result);
+    	
+    	if(result.isOk()){
+	    	List<RealTimeDataPointValue> values = RealTimeDataPointValueCache.instance.getAll(user);
+	    	List<RealTimeModel> models = new ArrayList<RealTimeModel>();
+	    	int counter = 0;
+	    	for(RealTimeDataPointValue value : values){
+	    		models.add(new RealTimeModel(value));
+	    		counter++;
+	    		if(counter == limit)
+	    			break;
+	    	}
+	    	return result.createResponseEntity(models);
     	}
-    		
-    	return models;
+    	
+    	return result.createResponseEntity();
+    	
     }
 	
 	
@@ -72,23 +77,23 @@ public class RealTimeDataRestController extends MangoRestController<RealTimeMode
 	@RequestMapping(method = RequestMethod.GET, value = "/{xid}")
     public ResponseEntity<RealTimeModel> get(@PathVariable String xid, HttpServletRequest request) {
 		
-		ProcessResult result = new ProcessResult();
+		RestProcessResult<RealTimeModel> result = new RestProcessResult<RealTimeModel>(HttpStatus.OK);
 		User user = checkUser(request, result); //Check the user
 		
 		//If no messages then go for it
-		if(!result.getHasMessages()){
+		if(result.isOk()){
 			
 			RealTimeDataPointValue rtpv = RealTimeDataPointValueCache.instance.get(xid, user);
 	
 	        if (rtpv == null) {
-	        	result.addMessage(new TranslatableMessage("common.default", "Point doesn't exist or is not enabled."));
-	            return this.createResponseEntity(result, HttpStatus.NOT_FOUND);
+	        	result.addRestMessage(HttpStatus.NOT_FOUND, new TranslatableMessage("common.default", "Point doesn't exist or is not enabled."));
+	            return result.createResponseEntity();
 	        }
 	        RealTimeModel model = new RealTimeModel(rtpv);
-	        return this.createResponseEntity(result, model, HttpStatus.OK);
+	        return result.createResponseEntity(model);
 	        
 		}else{
-			return this.createResponseEntity(result);
+			return result.createResponseEntity();
 		}
     }
 	

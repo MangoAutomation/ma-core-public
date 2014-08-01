@@ -72,11 +72,13 @@ public class UserFunctionalTests extends BaseRestTest{
     
     
     /**
-     * Test reading all users
+     * Test reading all users that should fail
+     * as user is non-admin
      * @throws Exception
      */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testGetAll(){
+	public void testGetAllNonAdmin(){
 		
 		List<User> users = new ArrayList<User>();
 		User standardUser = UserTestData.standardUser();
@@ -100,26 +102,13 @@ public class UserFunctionalTests extends BaseRestTest{
 		}
 		
 		try{
-			MvcResult result = this.mockMvc.perform(
+			this.mockMvc.perform(
 		            get("/v1/users")
-		                    .accept(MediaType.APPLICATION_JSON))
+		            .sessionAttr("sessionUser", standardUser)  
+		            .accept(MediaType.APPLICATION_JSON))
 		            .andDo(print())
-		            .andExpect(status().isOk())
+		            .andExpect(status().isUnauthorized())
 		            .andReturn();
-	
-			//Check the result
-			System.out.println(result.getResponse().getContentAsString());
-			
-			//Could re-create the User object from the Json
-			
-			//May not be necessary but allows arrays of size 1
-		    //objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-	
-			UserModel[] models = this.objectMapper.readValue(result.getResponse().getContentAsString(), UserModel[].class);
-			//ArrayList<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), ArrayList.class);
-			//List<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), objectMapper.getTypeFactory().constructCollectionType(List.class, UserModel.class));
-			//Check the size
-			assertEquals(users.size(), models.length);
 		}catch(Exception e){
 			fail(e.getMessage());
 		}
@@ -127,12 +116,56 @@ public class UserFunctionalTests extends BaseRestTest{
 		
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testGetAllAdmin(){
+		
+		List<User> users = new ArrayList<User>();
+		User adminUser = UserTestData.adminUser();
+		users.add(adminUser);
+		users.add(UserTestData.newAdminUser());
+		users.add(UserTestData.standardUser());
+		
+		//This will ensure that the getUsers() method returns 
+		// the mock list of users
+		when(userDao.getUsers()).thenReturn(users);
+		
+		//Mock up the permissions requests
+		for(User user : users){
+			for(Integer dsId : user.getDataSourcePermissions()){
+				DataSourceVO ds = DataSourceData.mockDataSource();
+				when(this.dataSourceDao.get(dsId)).thenReturn(ds);
+				when(this.dataSourceDao.getByXid(ds.getXid())).thenReturn(ds);
+				
+			}
+		}
+		
+		try{
+			MvcResult result = this.mockMvc.perform(
+		            get("/v1/users")
+		            .sessionAttr("sessionUser", adminUser)  
+		            .accept(MediaType.APPLICATION_JSON))
+		            .andDo(print())
+		            .andExpect(status().isOk())
+		            .andReturn();
+
+			List<UserModel> models = this.objectMapper.readValue(result.getResponse().getContentAsString(), objectMapper.getTypeFactory().constructCollectionType(List.class, UserModel.class));
+			//Check the size
+			assertEquals(users.size(), models.size());
+		}catch(Exception e){
+			fail(e.getMessage());
+		}
+		//Check the data
+		
+	}
+	
+	
     /**
      * Test reading all users
      * @throws Exception
      */
 	@Test
-	public void testGet() throws Exception{
+	public void testGetSelf() throws Exception{
 		
 		User standardUser = UserTestData.standardUser();
 		List<User> users = new ArrayList<User>();
@@ -145,7 +178,8 @@ public class UserFunctionalTests extends BaseRestTest{
 		
 		this.mockMvc.perform(
 	            get("/v1/users/" + standardUser.getUsername())
-	                    .accept(MediaType.APPLICATION_JSON))
+	             .sessionAttr("sessionUser", standardUser)  
+	             .accept(MediaType.APPLICATION_JSON))
 	            .andDo(print())
 	            .andExpect(status().isOk());
 	}

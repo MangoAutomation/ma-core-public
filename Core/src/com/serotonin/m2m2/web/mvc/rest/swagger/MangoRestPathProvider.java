@@ -58,5 +58,5 @@ public class MangoRestPathProvider extends SwaggerPathProvider {
 	public String getOperationPath(String operationPath) {
 		return getApiResourcePrefix() + operationPath;
 	}
-	
+
 }

@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.RealTimeDataPointValue;
@@ -71,13 +69,6 @@ public class RealTimeModel extends AbstractRestModel<RealTimeDataPointValue>{
 	public String getXid(){
 		return this.data.getXid();
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.web.mvc.rest.model.AbstractRestModel#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-	@Override
-	public void validate(ProcessResult response) {
-		//No-op as data can't be set from this model... yet.
-	}
+
 
 }

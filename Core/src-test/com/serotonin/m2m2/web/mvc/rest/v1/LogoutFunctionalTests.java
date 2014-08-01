@@ -105,7 +105,7 @@ public class LogoutFunctionalTests extends BaseRestTest{
 					post("/v1/logout/{username}",standardUser.getUsername())
 					.accept(MediaType.APPLICATION_JSON))
 					.andDo(print())
-					.andExpect(status().isNotAcceptable())
+					.andExpect(status().isUnauthorized())
 					.andReturn();
 		
 		}catch(Exception e){

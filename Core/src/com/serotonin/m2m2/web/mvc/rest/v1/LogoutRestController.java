@@ -14,12 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.UserModel;
 import com.wordnik.swagger.annotations.Api;
 
@@ -75,11 +73,11 @@ public class LogoutRestController extends MangoRestController<UserModel>{
 	 */
 	private ResponseEntity<UserModel> performLogout(String username,
 			HttpServletRequest request, HttpServletResponse response) {
-		ProcessResult result = new ProcessResult();
+		RestProcessResult<UserModel> result = new RestProcessResult<UserModel>(HttpStatus.OK);
 		
 		// Check if the user is logged in.
-        User user = Common.getUser(request);
-        if (user != null) {
+        User user = this.checkUser(request, result);
+        if (result.isOk()) {
             // The user is in fact logged in. Invalidate the session.
             request.getSession().invalidate();
 
@@ -89,12 +87,10 @@ public class LogoutRestController extends MangoRestController<UserModel>{
         
             //Return an OK
             UserModel model = new UserModel(user);
-            return this.createResponseEntity(result, model, HttpStatus.OK);
+            return result.createResponseEntity(model);
         
-        }else{
-        	result.addMessage(new TranslatableMessage("login.validation.noSuchUser"));
-        	return this.createResponseEntity(result);
         }
+      	return result.createResponseEntity();
 	}
 	
 	

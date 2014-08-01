@@ -23,5 +23,4 @@ public class DaoRegistry {
 	public static DataPointDao dataPointDao = new DataPointDao();
 	public static UserDao userDao = new UserDao();
 	
-	
 }

@@ -23,12 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.UserModel;
 import com.wordnik.swagger.annotations.Api;
 
@@ -92,16 +92,16 @@ public class LoginRestController extends MangoRestController<UserModel> {
 	 */
 	private ResponseEntity<UserModel> performLogin(String username, String password,
 			HttpServletRequest request, HttpServletResponse response) {
+		
 		DataBinder binder = new DataBinder(User.class);
-		ProcessResult result = new ProcessResult();
+		RestProcessResult<UserModel> result = new RestProcessResult<UserModel>(HttpStatus.OK);
 		boolean authenticated = false;
 		User user = DaoRegistry.userDao.getUser(username);
 
 		if (user == null)
-			result.addMessage(new TranslatableMessage(
-					"login.validation.noSuchUser"));
+			result.addRestMessage(this.getDoesNotExistMessage());
 		else if (user.isDisabled())
-			result.addMessage(new TranslatableMessage(
+			result.addRestMessage(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage(
 					"login.validation.accountDisabled"));
 		else {
 
@@ -126,7 +126,7 @@ public class LoginRestController extends MangoRestController<UserModel> {
 					LOG.warn("Failed login attempt on user '"
 							+ user.getUsername() + "' from IP +"
 							+ request.getRemoteAddr());
-					result.addMessage(new TranslatableMessage(
+					result.addRestMessage(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage(
 							"login.validation.invalidLogin"));
 				} else {
 					authenticated = true;
@@ -134,7 +134,7 @@ public class LoginRestController extends MangoRestController<UserModel> {
 
 				if (errors.hasErrors()) {
 					for (ObjectError error : errors.getAllErrors()) {
-						result.addMessage(new TranslatableMessage(
+						result.addRestMessage(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage(
 								"common.default", error.getDefaultMessage()));
 					}
 				}
@@ -162,15 +162,11 @@ public class LoginRestController extends MangoRestController<UserModel> {
 			String uri = DefaultPagesDefinition.getDefaultUri(request,
 					response, user);
 			UserModel model = new UserModel(user);
-			HttpHeaders headers = new HttpHeaders();
-			headers.add(LOGIN_DEFAULT_URI_HEADER, uri);
-			responseEntity = this.createResponseEntity(result, model, headers,
-					HttpStatus.OK);
+			result.addHeader(LOGIN_DEFAULT_URI_HEADER, uri);
+			return result.createResponseEntity(model);
 		} else {
-			responseEntity = createResponseEntity(result);
+			return result.createResponseEntity();
 		}
-
-		return responseEntity;
 	}
 
 }

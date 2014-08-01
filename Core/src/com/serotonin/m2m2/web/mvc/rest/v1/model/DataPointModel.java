@@ -39,7 +39,7 @@ public class DataPointModel extends AbstractActionVoModel<DataPointVO>{
 		this.vo = vo;
 	}
 
-	@JsonGetter(value="loggingProperties")
+	@JsonGetter("loggingProperties")
 	public LoggingProperties getLoggingProperties(){
 		
 		//Are we interval logging
@@ -65,17 +65,17 @@ public class DataPointModel extends AbstractActionVoModel<DataPointVO>{
 		}
 		
 	}
-	@JsonSetter(value="loggingProperties")
+	@JsonSetter("loggingProperties")
 	public void setLoggingProperties(LoggingProperties props){
 		System.out.println(props.getType());
 	}
 	
-	@JsonGetter(value="deviceName")
+	@JsonGetter("deviceName")
 	public String getDeviceName(){
 		return this.vo.getDeviceName();
 	}
 	
-	@JsonSetter(value="deviceName")
+	@JsonSetter("deviceName")
 	public void setDeviceName(String deviceName){
 		this.vo.setDeviceName(deviceName);
 	}

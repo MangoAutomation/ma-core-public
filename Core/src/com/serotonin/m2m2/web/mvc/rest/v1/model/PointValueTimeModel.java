@@ -62,12 +62,4 @@ public class PointValueTimeModel extends AbstractRestModel<PointValueTime>{
 		}
 	}
 
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-	@Override
-	public void validate(ProcessResult response) {
-	}
-
 }

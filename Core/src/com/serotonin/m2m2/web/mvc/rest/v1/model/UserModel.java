@@ -11,8 +11,6 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -22,11 +20,14 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.AlarmLevel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.DataPointPermissionModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.PermissionEnum;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.PermissionsModel;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 
 /**
  * @author Terry Packer
  * 
  */
+@ApiModel(value="User", description="User Data Model", parent=AbstractRestModel.class)
 @JsonPropertyOrder({"username", "email"})
 public class UserModel extends AbstractRestModel<User> {
 
@@ -40,46 +41,47 @@ public class UserModel extends AbstractRestModel<User> {
 		super(user);
 	}
 
-	@JsonGetter(value = "username")
+	@ApiModelProperty(value = "Username of User", required = true)
+	@JsonGetter("username")
 	public String getUsername() {
 		return data.getUsername();
 	}
 
-	@JsonSetter(value = "username")
+	@JsonSetter("username")
 	public void setUsername(String username) {
 		data.setUsername(username);
 	}
 
-	@JsonGetter(value = "password")
+	@JsonGetter("password")
 	public String getPassword() {
 		return ""; //Return empty string
 	}
-	@JsonSetter(value = "password")
+	@JsonSetter("password")
 	public void setPassword(String password) {
 		data.setPassword(password);
 	}
 
-	@JsonGetter(value = "email")
+	@JsonGetter("email")
 	public String getEmail() {
 		return data.getEmail();
 	}
 
-	@JsonSetter(value = "email")
+	@JsonSetter("email")
 	public void setEmail(String email) {
 		data.setEmail(email);
 	}
 
-	@JsonGetter(value = "disabled")
+	@JsonGetter("disabled")
 	public Boolean getDisabled() {
 		return data.isDisabled();
 	}
 
-	@JsonSetter(value = "disabled")
+	@JsonSetter("disabled")
 	public void setDisabled(Boolean disabled) {
 		data.setDisabled(disabled);
 	}
 	
-	@JsonGetter(value = "permissions")
+	@JsonGetter("permissions")
 	public PermissionsModel getPermissions() {
 		
 		List<DataPointPermissionModel> dataPointPermissions = new ArrayList<DataPointPermissionModel>();
@@ -109,7 +111,7 @@ public class UserModel extends AbstractRestModel<User> {
 		return model;
 	}
 
-	@JsonSetter(value = "permissions")
+	@JsonSetter("permissions")
 	public void setPermissions(PermissionsModel permissions) {
 		
 		for(String dsXid : permissions.getDataSourceXids()){
@@ -130,22 +132,22 @@ public class UserModel extends AbstractRestModel<User> {
 		
 	}
 	
-	@JsonGetter(value = "homeUrl")
+	@JsonGetter("homeUrl")
 	public String getHomeUrl() {
 		return data.getHomeUrl();
 	}
 
-	@JsonSetter(value = "homeUrl")
+	@JsonSetter("homeUrl")
 	public void setHomeUrl(String homeUrl) {
 		data.setHomeUrl(homeUrl);
 	}
 	
-	@JsonGetter(value = "receiveAlarmEmails")
+	@JsonGetter("receiveAlarmEmails")
 	public AlarmLevel getReceiveAlarmEmails() {
 		return AlarmLevel.convertTo(data.getReceiveAlarmEmails());
 	}
 
-	@JsonSetter(value = "receiveAlarmEmails")
+	@JsonSetter("receiveAlarmEmails")
 	public void setReceiveAlarmEmails(AlarmLevel level) {
 		data.setReceiveAlarmEmails(AlarmLevel.convertFrom(level));
 	}
@@ -165,7 +167,7 @@ public class UserModel extends AbstractRestModel<User> {
 		return data.isMuted();
 	}
 
-	@JsonSetter(value = "muted")
+	@JsonSetter("muted")
 	public void setMuted(Boolean muted) {
 		data.setMuted(muted);
 	}

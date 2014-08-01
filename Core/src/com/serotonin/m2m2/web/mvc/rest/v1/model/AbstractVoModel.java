@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -13,7 +14,8 @@ import com.serotonin.m2m2.vo.AbstractVO;
  *
  */
 public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<AbstractVO<T>>{
-
+	
+	
 	/**
 	 * @param data
 	 */
@@ -21,31 +23,33 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		super(data);
 	}
 
-	@JsonGetter(value="id")
-	public int getId(){
-		return this.data.getId();
-	}
-	@JsonSetter(value="id")
-	public void setId(int id){
-		this.data.setId(id);
-	}
-	
-	@JsonGetter(value="xid")
+	@JsonGetter("xid")
 	public String getXid(){
 		return this.data.getXid();
 	}
-	@JsonSetter(value="xid")
+	@JsonSetter("xid")
 	public void setXid(String xid){
 		this.data.setXid(xid);
 	}
 	
-	@JsonGetter(value="name")
+	@JsonGetter("name")
 	public String getName(){
 		return this.data.getName();
 	}
-	@JsonSetter(value="name")
+	@JsonSetter("name")
 	public void setName(String name){
 		this.data.setName(name);
 	}
 	
+
+	
+	/**
+	 * Validate the model, adding failure messages to the response
+	 * @param response
+	 */
+	@Override
+	public void validate(ProcessResult response){
+		this.data.validate(response);
+	}
+
 }
