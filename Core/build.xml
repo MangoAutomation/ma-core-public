@@ -377,15 +377,14 @@
                 <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
                 <pathelement path="${core.target}/maven-target/classes" />
-                <path refid="module-libs" />
+                <!-- <path refid="module-libs" /> -->
             </classpath>
         </taskdef>
         <!-- If we have modules installed we need to collect their jars too -->
 
         <jasper2 validateXml="false"
                  uriroot="${core.target}/web"
-                 webXmlFragment="${core.target}/web/WEB-INF/generated_web.xml"
-                 addWebXmlMappings="true"
+                 addWebXmlMappings="false"
                  outputDir="${core.target}/work/jsp-src"
                  verbose="1">
         </jasper2>
@@ -404,11 +403,10 @@
                 <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
                 <pathelement path="${core.target}/maven-target/classes" />
-                <path refid="module-libs" />
-                <!-- need to add all module libs to the classpath -->
+                <!-- <path refid="module-libs" /> --> 
             </classpath>
         </javac>
-        <!-- Copy the compiled files back into our classes folder -->
+        <!-- Copy the compiled files back into our classes folder REALLY? -->
         <copy todir="${core.target}/maven-target/classes" preservelastmodified="true">
             <fileset dir="${core.target}/work/jsp">
                 <include name="**/*.class" />
