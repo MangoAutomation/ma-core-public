@@ -50,8 +50,8 @@
         </else>
     </if>
     <target name="clean" description="Clean output directories">
-        <delete dir="${core.target}/work" />
-        <mkdir dir="${core.target}/work" />
+        <delete dir="${core.target}" />
+        <mkdir dir="${core.target}" />
     </target>
 
     <target name="configure"
@@ -98,6 +98,7 @@
         <copy todir="${core.target}/web" preservelastmodified="true">
             <fileset dir="web">
                 <include name="**/*.*" />
+                <exclude name="modules/**"/>
             </fileset>
         </copy>
         <!-- Copy the Dojo Debug JS Libraries -->
@@ -192,6 +193,7 @@
             <classpath>
                 <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
+                <pathelement path="${core.target}/work/jsp" />
                 <path refid="module-libs" />
             </classpath>
         </taskdef>
@@ -313,7 +315,7 @@
     <target name="public-release"
             depends="zip"
             description="copy the release contents to ${core.deploy.paths}, requires a fully-built core">
-
+        
         <foreach list="${core.deploy.paths}"
                  target="|deploy"
                  param="deploy.path"
@@ -367,7 +369,52 @@
         </copy>
     </target>
 
+    <!-- NEW Targets for Debugging at the Core Level, above target -->
+    <target name="jsp-compile-eclipse"
+            description="Compile the JSPs in place for debugging">
+        <taskdef name="jasper2" classname="org.apache.jasper.JspC">
+            <classpath>
+                <path refid="master-classpath" />
+                <pathelement path="${core.target}/classes" />
+                <pathelement path="${core.target}/maven-target/classes" />
+                <path refid="module-libs" />
+            </classpath>
+        </taskdef>
+        <!-- If we have modules installed we need to collect their jars too -->
 
+        <jasper2 validateXml="false"
+                 uriroot="${core.target}/web"
+                 webXmlFragment="${core.target}/web/WEB-INF/generated_web.xml"
+                 addWebXmlMappings="true"
+                 outputDir="${core.target}/work/jsp-src"
+                 verbose="1">
+        </jasper2>
+        <mkdir dir="${core.target}/work/jsp" />
+        <javac destdir="${core.target}/work/jsp"
+               debug="true"
+               debuglevel="lines,vars,source"
+               deprecation="false"
+               optimize="true"
+               failonerror="true"
+               includeantruntime="false"
+               source="1.7"
+               target="1.7">
+            <src path="${core.target}/work/jsp-src" />
+            <classpath>
+                <path refid="master-classpath" />
+                <pathelement path="${core.target}/classes" />
+                <pathelement path="${core.target}/maven-target/classes" />
+                <path refid="module-libs" />
+                <!-- need to add all module libs to the classpath -->
+            </classpath>
+        </javac>
+        <!-- Copy the compiled files back into our classes folder -->
+        <copy todir="${core.target}/maven-target/classes" preservelastmodified="true">
+            <fileset dir="${core.target}/work/jsp">
+                <include name="**/*.class" />
+            </fileset>
+        </copy>
+    </target>
 
 
 
@@ -578,52 +625,7 @@
     </target>
 
     
-    <!-- NEW Targets for Debugging at the Core Level, above target -->
-    <target name="jsp-compile-eclipse"
-            description="Compile the JSPs in place for debugging">
-        <taskdef name="jasper2" classname="org.apache.jasper.JspC">
-            <classpath>
-                <path refid="master-classpath" />
-                <pathelement path="${core.target}/classes" />
-                <pathelement path="${core.target}/maven-target/classes" />
-                <path refid="module-libs" />
-            </classpath>
-        </taskdef>
-        <!-- If we have modules installed we need to collect their jars too -->
 
-        <jasper2 validateXml="false"
-                 uriroot="${core.target}/web"
-                 webXmlFragment="${core.target}/web/WEB-INF/generated_web.xml"
-                 addWebXmlMappings="true"
-                 outputDir="${core.target}/work/jsp-src"
-                 verbose="1">
-        </jasper2>
-        <mkdir dir="${core.target}/work/jsp" />
-        <javac destdir="${core.target}/work/jsp"
-               debug="true"
-               debuglevel="lines,vars,source"
-               deprecation="false"
-               optimize="true"
-               failonerror="true"
-               includeantruntime="false"
-               source="1.7"
-               target="1.7">
-            <src path="${core.target}/work/jsp-src" />
-            <classpath>
-                <path refid="master-classpath" />
-                <pathelement path="${core.target}/classes" />
-                <pathelement path="${core.target}/maven-target/classes" />
-                <path refid="module-libs" />
-                <!-- need to add all module libs to the classpath -->
-            </classpath>
-        </javac>
-        <!-- Copy the compiled files back into our classes folder -->
-        <copy todir="${core.target}/maven-target/classes" preservelastmodified="true">
-            <fileset dir="${core.target}/work/jsp">
-                <include name="**/*.class" />
-            </fileset>
-        </copy>
-    </target>
     
     
     
