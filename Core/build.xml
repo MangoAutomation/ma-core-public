@@ -377,7 +377,7 @@
                 <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
                 <pathelement path="${core.target}/maven-target/classes" />
-                <!-- <path refid="module-libs" /> -->
+                <path refid="module-libs" />
             </classpath>
         </taskdef>
         <!-- If we have modules installed we need to collect their jars too -->
@@ -403,7 +403,7 @@
                 <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
                 <pathelement path="${core.target}/maven-target/classes" />
-                <!-- <path refid="module-libs" /> --> 
+                <path refid="module-libs" />
             </classpath>
         </javac>
         <!-- Copy the compiled files back into our classes folder REALLY? -->
