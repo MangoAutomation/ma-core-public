@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import com.serotonin.m2m2.Common;
+
 /**
  * Registry to access Daos from a central location
  * 
@@ -22,5 +24,6 @@ public class DaoRegistry {
 	public static DataSourceDao dataSourceDao = new DataSourceDao();
 	public static DataPointDao dataPointDao = new DataPointDao();
 	public static UserDao userDao = new UserDao();
+	public static PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 	
 }

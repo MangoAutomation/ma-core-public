@@ -4,11 +4,18 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Properties;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -16,6 +23,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JUnitModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 
@@ -31,6 +39,29 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 		excludeFilters = { @ComponentScan.Filter( pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
+	
+	/**
+	 * 
+	 * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS
+	 * Setup properties to be used in the Spring templates
+	 * @return
+	 */
+	@Bean
+	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+	    //note the static method! important!!
+	    PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+	    Resource[] resources = new ClassPathResource[] { new ClassPathResource("env.properties")};
+	    configurer.setLocations(resources);
+	    configurer.setIgnoreUnresolvablePlaceholders(true);
+	    
+	    //Create and add any properties for Spring Annotations
+	    Properties properties = new Properties();
+	    String inputDateFormat = Common.envProps.getString("rest.customDateInputFormat", "YYYY-MM-dd HH:mm:ss.SSS Z");
+	    properties.put("rest.customDateInputFormat", inputDateFormat);
+	    
+	    configurer.setProperties(properties);
+	    return configurer;
+	}
 	
 	/**
 	 * Configure the Message Converters for the API
@@ -70,6 +101,13 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		MangoCoreModule mangoCore = new MangoCoreModule();
 		objectMapper.registerModule(mangoCore);
 		
+		//TODO Make configurable
+		String customDateFormat = Common.envProps.getString("rest.customDateOutputFormat");
+		if(customDateFormat != null){
+			objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+			DateFormat dateFormat = new SimpleDateFormat(customDateFormat);
+			objectMapper.setDateFormat(dateFormat);
+		}
 		
 		return objectMapper;
 	}

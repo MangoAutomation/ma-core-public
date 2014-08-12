@@ -10,7 +10,7 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 /**
- * Module to extend Jackson JSON rendering for JUnit
+ * Module to extend Jackson JSON rendering
  * 
  * @author Terry Packer
  * 

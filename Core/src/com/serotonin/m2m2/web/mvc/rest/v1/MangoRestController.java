@@ -27,6 +27,8 @@ public abstract class MangoRestController<T> {
 	/**
 	 * Check to see if a User is logged in
 	 * 
+	 * TODO could potentially use the @SessionAttributes({"user"}) annotation for this
+	 * 
 	 * @param request
 	 * @param result
 	 * @return User that is logged in, null if none are

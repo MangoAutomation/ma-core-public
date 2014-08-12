@@ -2,15 +2,17 @@
  * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.web.mvc.rest.v1.model;
+package com.serotonin.m2m2.web.mvc.rest.v1.model.pointValue;
+
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
  * @author Terry Packer
@@ -49,8 +51,8 @@ public class PointValueTimeModel extends AbstractRestModel<PointValueTime>{
 	}
 
 	@JsonGetter("time")
-	public long getDate(){
-		return this.data.getTime();
+	public Date getDate(){
+		return new Date(this.data.getTime());
 	}
 
 	@JsonGetter("annotation")
