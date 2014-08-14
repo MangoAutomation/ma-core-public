@@ -86,6 +86,7 @@ public class RealTimeDataRestController extends MangoRestController<RealTimeMode
 			RealTimeDataPointValue rtpv = RealTimeDataPointValueCache.instance.get(xid, user);
 	
 	        if (rtpv == null) {
+	        	LOG.debug("Attempted access of Real time point that is not enabled or DNE.");
 	        	result.addRestMessage(HttpStatus.NOT_FOUND, new TranslatableMessage("common.default", "Point doesn't exist or is not enabled."));
 	            return result.createResponseEntity();
 	        }

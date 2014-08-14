@@ -40,6 +40,8 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
 	
+	public static final ObjectMapper objectMapper = createObjectMapper();
+	
 	/**
 	 * 
 	 * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS
@@ -71,8 +73,6 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	public void configureMessageConverters(
 			List<HttpMessageConverter<?>> converters) {
 		
-		
-		ObjectMapper objectMapper = createObjectMapper();
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setObjectMapper(objectMapper);
 		
@@ -88,7 +88,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	 * Exposed for use in testing
 	 * @return
 	 */
-	public static ObjectMapper createObjectMapper(){
+	private static ObjectMapper createObjectMapper(){
 		// For raw Jackson
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -101,7 +101,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		MangoCoreModule mangoCore = new MangoCoreModule();
 		objectMapper.registerModule(mangoCore);
 		
-		//TODO Make configurable
+		//Custom Date Output Format
 		String customDateFormat = Common.envProps.getString("rest.customDateOutputFormat");
 		if(customDateFormat != null){
 			objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);

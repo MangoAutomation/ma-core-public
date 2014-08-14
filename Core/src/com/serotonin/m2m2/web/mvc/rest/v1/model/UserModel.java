@@ -7,15 +7,20 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.DataPointAccess;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.AlarmLevel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.DataPointPermissionModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.permissions.PermissionEnum;
@@ -30,7 +35,7 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 @ApiModel(value="User", description="User Data Model", parent=AbstractRestModel.class)
 @JsonPropertyOrder({"username", "email"})
 public class UserModel extends AbstractRestModel<User> {
-
+	
 	public UserModel(){
 		super(new User());
 		this.data.setDataPointPermissions(new ArrayList<DataPointAccess>());
@@ -52,9 +57,12 @@ public class UserModel extends AbstractRestModel<User> {
 		data.setUsername(username);
 	}
 
+	//TODO This is not working yet
+	// the idea is that the password will only be
+	// available in the Test View
 	@JsonGetter("password")
 	public String getPassword() {
-		return ""; //Return empty string
+			return ""; //data.getPassword(); 
 	}
 	@JsonSetter("password")
 	public void setPassword(String password) {
@@ -171,20 +179,23 @@ public class UserModel extends AbstractRestModel<User> {
 	public void setMuted(Boolean muted) {
 		data.setMuted(muted);
 	}
-	
-
-
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.serotonin.m2m2.web.mvc.controller.rest.model.BaseRestModel#validate
-	 * (com.serotonin.m2m2.i18n.ProcessResult)
+	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult)
 	 */
 	@Override
-	public void validate(ProcessResult response) {
-		this.data.validate(response);
+	public void validate(RestProcessResult<?> result) throws RestValidationFailedException{
+		ProcessResult validation = new ProcessResult();
+		this.data.validate(validation);
+		
+		if(validation.getHasMessages()){
+			result.addRestMessage(HttpStatus.BAD_REQUEST, new TranslatableMessage("common.default", "Validation failed"));
+			result.addValidationMessages(validation);
+			throw new RestValidationFailedException(this, result);
+		}
 	}
 
+
+	
 }

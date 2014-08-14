@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,8 +22,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.UserModel;
 import com.wordnik.swagger.annotations.Api;
@@ -44,6 +45,7 @@ public class UserRestController extends MangoRestController<UserModel>{
 	
 	public UserRestController(){
 	}
+
 
 	@RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<UserModel>> getAll(HttpServletRequest request) {
@@ -106,7 +108,7 @@ public class UserRestController extends MangoRestController<UserModel>{
     public ResponseEntity<UserModel> updateUser(
     		@PathVariable String username,
     		UserModel model,
-    		HttpServletRequest request) {
+    		HttpServletRequest request) throws RestValidationFailedException {
 
 		RestProcessResult<UserModel> result = new RestProcessResult<UserModel>(HttpStatus.OK);
     	User user = this.checkUser(request, result);
@@ -118,15 +120,9 @@ public class UserRestController extends MangoRestController<UserModel>{
     	    		return result.createResponseEntity();
     	        }
     			model.getData().setId(u.getId());
-    			ProcessResult validation = new ProcessResult();
-				model.validate(validation);
-				if(validation.getHasMessages()){
-		        	result.addRestMessage(model.addValidationMessages(validation));
-		        	return result.createResponseEntity(model); 
-		        }else{
-	    			DaoRegistry.userDao.saveUser(model.getData());
-	    			return result.createResponseEntity(model);
-		        }
+				model.validate(result);
+    			DaoRegistry.userDao.saveUser(model.getData());
+    			return result.createResponseEntity(model);
     		}else{
     			if(u.getId() != user.getId()){
 	    			LOG.warn("Non admin user: " + user.getUsername() + " attempted to access user : " + u.getUsername());
@@ -135,15 +131,9 @@ public class UserRestController extends MangoRestController<UserModel>{
     			}else{
     				//Allow users to update themselves
     				model.getData().setId(u.getId());
-    				ProcessResult validation = new ProcessResult();
-    				model.validate(validation);
-    				if(validation.getHasMessages()){
-    		        	result.addRestMessage(model.addValidationMessages(validation));
-    		        	return result.createResponseEntity(model); 
-    		        }else{
-	        			DaoRegistry.userDao.saveUser(model.getData());
-	    				return result.createResponseEntity(model);
-    		        }
+    				model.validate(result);
+        			DaoRegistry.userDao.saveUser(model.getData());
+    				return result.createResponseEntity(model);
     			}
     		}
     	}
@@ -156,6 +146,7 @@ public class UserRestController extends MangoRestController<UserModel>{
 	 * @param model
 	 * @param request
 	 * @return
+	 * @throws RestValidationFailedException 
 	 */
 	@ApiOperation(
 			value = "Create New User",
@@ -169,9 +160,10 @@ public class UserRestController extends MangoRestController<UserModel>{
 	@RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<UserModel> createNewUser(
     		@ApiParam( value = "User to save", required = true )
+    		@RequestBody
     		UserModel model,
     		UriComponentsBuilder builder,
-    		HttpServletRequest request) {
+    		HttpServletRequest request) throws RestValidationFailedException {
 
 		RestProcessResult<UserModel> result = new RestProcessResult<UserModel>(HttpStatus.OK);
     	User user = this.checkUser(request, result);
@@ -181,17 +173,13 @@ public class UserRestController extends MangoRestController<UserModel>{
     			if (u == null) {
     				//Create new user
     				model.getData().setId(Common.NEW_ID);
-    				DaoRegistry.userDao.saveUser(model.getData());
-    				ProcessResult validation = new ProcessResult();
-    				model.validate(validation);
-    				if(validation.getHasMessages()){
-    		        	result.addRestMessage(model.addValidationMessages(validation));
-    		        	return result.createResponseEntity(model); 
-    		        }else{
-	    		    	URI location = builder.path("/rest/v1/users/{username}").buildAndExpand(model.getUsername()).toUri();
-	    		    	result.addRestMessage(getResourceCreatedMessage(location));
-	    		        return result.createResponseEntity(model);
-    		        }
+    				model.validate(result);
+
+		        	DaoRegistry.userDao.saveUser(model.getData());
+    		    	URI location = builder.path("/rest/v1/users/{username}").buildAndExpand(model.getUsername()).toUri();
+    		    	result.addRestMessage(getResourceCreatedMessage(location));
+    		        return result.createResponseEntity(model);
+    		        
     	        }else{
     	        	result.addRestMessage(getAlreadyExistsMessage());
     	        	return result.createResponseEntity();

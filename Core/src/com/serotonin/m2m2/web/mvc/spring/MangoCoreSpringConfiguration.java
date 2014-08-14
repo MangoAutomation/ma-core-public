@@ -36,6 +36,7 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
  * @author Terry Packer
  *
  */
+@SuppressWarnings("deprecation")
 @Configuration
 @ComponentScan(
 		basePackages = { "com.serotonin.m2m2.web.mvc.controller" })

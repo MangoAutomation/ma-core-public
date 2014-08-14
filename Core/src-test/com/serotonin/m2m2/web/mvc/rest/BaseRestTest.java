@@ -7,14 +7,24 @@ package com.serotonin.m2m2.web.mvc.rest;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.BeforeClass;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver;
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
+import org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestInstance;
 import com.serotonin.m2m2.db.H2Proxy;
+import com.serotonin.m2m2.web.mvc.rest.v1.ExceptionHandlingController;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.util.properties.ReloadingProperties;
 
@@ -57,12 +67,43 @@ public class BaseRestTest {
      * @param controllers
      */
     protected void setupMvc(Object... controllers){
-    	this.objectMapper = MangoRestSpringConfiguration.createObjectMapper();
+    	this.objectMapper = MangoRestSpringConfiguration.objectMapper;
     	
     	MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
     	converter.setObjectMapper(this.objectMapper);
     	
-        this.mockMvc = standaloneSetup(controllers).setMessageConverters(converter).build();
+    	List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+    	converters.add(converter);
+    	
+        this.mockMvc = standaloneSetup(controllers)
+        		.setMessageConverters(converter)
+        		.setHandlerExceptionResolvers(createHandlerExceptionResolvers(converters))
+        		.build();
     }
-    
+
+    /**
+     * Create Handlers for use in Testing
+     * @return
+     */
+    private ExceptionHandlerExceptionResolver createHandlerExceptionResolvers(final List<HttpMessageConverter<?>> converters) {
+    	
+        ExceptionHandlerExceptionResolver exceptionResolver = new ExceptionHandlerExceptionResolver() {
+        	
+        	/* (non-Javadoc)
+        	 * @see org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver#getMessageConverters()
+        	 */
+        	@Override
+        	public List<HttpMessageConverter<?>> getMessageConverters() {
+        		return converters;
+        	}
+        	@Override
+            protected ServletInvocableHandlerMethod getExceptionHandlerMethod(HandlerMethod handlerMethod, Exception exception) {
+            	
+                Method method = new ExceptionHandlerMethodResolver(ExceptionHandlingController.class).resolveMethod(exception);
+                return new ServletInvocableHandlerMethod(new ExceptionHandlingController(), method);
+            }
+        };
+        exceptionResolver.afterPropertiesSet();
+        return exceptionResolver;
+    }
 }

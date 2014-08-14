@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -140,7 +139,6 @@ public class LoginRestController extends MangoRestController<UserModel> {
 				}
 			}
 		}
-		ResponseEntity<UserModel> responseEntity;
 
 		if (authenticated) {
 			// Perform the Login and return the default login URI for the user

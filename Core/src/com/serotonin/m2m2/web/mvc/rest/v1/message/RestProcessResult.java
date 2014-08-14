@@ -5,13 +5,17 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.message;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
@@ -22,6 +26,7 @@ public class RestProcessResult<T> {
 
 	private HttpHeaders headers;
 	private List<RestMessage> restMessages;
+	private Map<String,String> validationMessages;
 	private HttpStatus highestStatus; //Higher numbers indicate errors
 	
 	/**
@@ -31,6 +36,7 @@ public class RestProcessResult<T> {
 		this.headers = new HttpHeaders();
 		this.restMessages = new ArrayList<RestMessage>();
 		this.highestStatus = HttpStatus.CONTINUE; //Lowest level
+		this.validationMessages = null;
 	}
 	
 	/**
@@ -40,6 +46,7 @@ public class RestProcessResult<T> {
 		this.headers = new HttpHeaders();
 		this.restMessages = new ArrayList<RestMessage>();
 		this.highestStatus = status;
+		this.validationMessages = null;
 	}
 
 	public void addRestMessage(RestMessage message){
@@ -86,9 +93,9 @@ public class RestProcessResult<T> {
 	}
 	
 	public ResponseEntity<T> createResponseEntity(){
-		return new ResponseEntity<T>(
-				this.addMessagesToHeaders(headers),
-				this.highestStatus);
+			return new ResponseEntity<T>(
+					this.addMessagesToHeaders(headers),
+					this.highestStatus);
 	}
 
 	public ResponseEntity<List<T>> createResponseEntity(List<T> body){
@@ -98,14 +105,21 @@ public class RestProcessResult<T> {
 				this.highestStatus);
 	}
 
-	
+	/**
+	 * Create a response entity containing one object
+	 * 
+	 * 
+	 * 
+	 * @param body
+	 * @return
+	 */
 	public ResponseEntity<T> createResponseEntity(T body){
-		return new ResponseEntity<T>(
-				body,
-				this.addMessagesToHeaders(headers),
-				this.highestStatus);
+			return new ResponseEntity<T>(
+					body,
+					this.addMessagesToHeaders(headers),
+					this.highestStatus);
 	}
-	
+
 	
 	/**
 	 * Create headers, adding errors if necessary
@@ -113,7 +127,7 @@ public class RestProcessResult<T> {
 	 * @param response
 	 * @return
 	 */
-	protected HttpHeaders addMessagesToHeaders(HttpHeaders headers) {
+	public HttpHeaders addMessagesToHeaders(HttpHeaders headers) {
 		
 			StringBuilder headerErrors = new StringBuilder();
 			StringBuilder headerMessages = new StringBuilder();
@@ -130,9 +144,6 @@ public class RestProcessResult<T> {
 					if(i < this.restMessages.size() - 1)
 						headerMessages.append(" ");
 				}
-				
-				
-				
 			}
 			
 			//Always add, even if empty
@@ -156,5 +167,29 @@ public class RestProcessResult<T> {
 	public void addHeader(String headerName, String headerValue) {
 		this.headers.add(headerName, headerValue);
 	}
+
+	/**
+	 * Add messages from a validation
+	 * 
+	 * @param validation
+	 */
+	public void addValidationMessages(ProcessResult validation) {
+		
+		if(this.validationMessages == null)
+			this.validationMessages = new HashMap<String,String>();
+		
+		for(ProcessMessage message : validation.getMessages()){
+			this.validationMessages.put(message.getContextKey(), message.getContextualMessage().translate(Common.getTranslations()));
+		}
+		
+	}
+
+	/**
+	 * @return
+	 */
+	public Map<String,String> getValidationMessages() {
+		return this.validationMessages;
+	}
+	
 	
 }

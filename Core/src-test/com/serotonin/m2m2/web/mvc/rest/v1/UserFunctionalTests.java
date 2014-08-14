@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -31,6 +33,7 @@ import com.serotonin.m2m2.test.data.UserTestData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.mvc.rest.BaseRestTest;
+import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JsonViews;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.UserModel;
 
 /**
@@ -43,7 +46,6 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.UserModel;
  * @author Terry Packer
  *
  */
-
 public class UserFunctionalTests extends BaseRestTest{
 	
 
@@ -69,6 +71,119 @@ public class UserFunctionalTests extends BaseRestTest{
     	DaoRegistry.dataSourceDao = this.dataSourceDao;
     	DaoRegistry.userDao = this.userDao;
     }
+    
+    
+    /**
+     * Test Posting an empty user
+     * @throws Exception
+     */
+	@Test
+	public void testValidationFailure(){
+		
+		User standardUser = UserTestData.standardUser();
+		User adminUser = UserTestData.adminUser();
+		
+		List<User> users = new ArrayList<User>();
+		users.add(standardUser);
+		
+		//This will ensure that the getUsers() method returns 
+		// the mock list of users
+		when(userDao.getUser(standardUser.getUsername())).thenReturn(null);
+		
+		standardUser.setEmail("");
+		standardUser.setPassword("testing-password");
+		
+		ObjectWriter writer = this.objectMapper.writerWithView(JsonViews.Test.class);
+		
+		try{
+			String userJson = writer.writeValueAsString(new UserModel(standardUser));
+		this.mockMvc.perform(
+	            post("/v1/users/")
+	            .content(userJson)
+	            .contentType(MediaType.APPLICATION_JSON)
+	            .sessionAttr("sessionUser", adminUser)  
+	            .accept(MediaType.APPLICATION_JSON))
+	            .andDo(print())
+	            .andExpect(status().isBadRequest());
+		}catch(Exception e){
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+    
+    
+    /**
+     * Test Creating a User
+     * This test fails!!!! Because we don't render the password in the JSON property yet. :(
+     */
+	@Test
+	public void testAdminCreateUser() {
+		
+		User standardUser = UserTestData.standardUser();
+		User adminUser = UserTestData.adminUser();
+		List<User> users = new ArrayList<User>();
+		users.add(standardUser);
+		
+		//This will ensure that the getUsers() method returns 
+		// the mock list of users
+		when(userDao.getUser(standardUser.getUsername())).thenReturn(null);
+		
+		ObjectWriter writer = this.objectMapper.writerWithView(JsonViews.Test.class);
+		//standardUser.setUsername("");
+		
+		
+		try{
+			String userJson = writer.writeValueAsString(new UserModel(standardUser));
+			this.mockMvc.perform(
+	            post("/v1/users/")
+	            .content(userJson)
+	            .contentType(MediaType.APPLICATION_JSON)
+	            .sessionAttr("sessionUser", adminUser)  
+	            .accept(MediaType.APPLICATION_JSON))
+	            .andDo(print())
+	            .andExpect(status().isCreated());
+		}catch(Exception e){
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+    
+    
+    /**
+     * Test a non-admin user creating a User
+     * 
+     * Should show 401 - Unauthorized
+     * @throws Exception
+     */
+	@Test
+	public void testNonAdminCreateUserError() throws Exception{
+		
+		User standardUser = UserTestData.standardUser();
+		List<User> users = new ArrayList<User>();
+		users.add(standardUser);
+		
+		//This will ensure that the getUsers() method returns 
+		// the mock list of users
+		when(userDao.getUser(standardUser.getUsername())).thenReturn(standardUser);
+		
+		standardUser.setEmail(null);
+		
+		String userJson = this.objectMapper.writeValueAsString(new UserModel(standardUser));
+		
+		try{
+		this.mockMvc.perform(
+	            post("/v1/users/")
+	            .content(userJson)
+	            .contentType(MediaType.APPLICATION_JSON)
+	            .sessionAttr("sessionUser", standardUser)  
+	            .accept(MediaType.APPLICATION_JSON))
+	            .andDo(print())
+	            .andExpect(status().isUnauthorized());
+		}catch(Exception e){
+			fail(e.getMessage());
+		}
+	}
+    
     
     
     /**

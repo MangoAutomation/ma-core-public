@@ -6,12 +6,18 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.pointValue;
 
 import java.util.Date;
 
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
@@ -20,6 +26,9 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  */
 public class PointValueTimeModel extends AbstractRestModel<PointValueTime>{
 
+	public PointValueTimeModel(){
+		super(null);
+	}
 	/**
 	 * @param data
 	 */
@@ -56,7 +65,7 @@ public class PointValueTimeModel extends AbstractRestModel<PointValueTime>{
 	}
 
 	@JsonGetter("annotation")
-	public String getAnnoation(){
+	public String getAnnotation(){
 		if(this.data instanceof AnnotatedPointValueTime){
 			return ((AnnotatedPointValueTime) this.data).getAnnotation(Common.getTranslations());
 		}else{
@@ -64,4 +73,19 @@ public class PointValueTimeModel extends AbstractRestModel<PointValueTime>{
 		}
 	}
 
+	@Override
+	public void validate(RestProcessResult<?> result) throws RestValidationFailedException{
+		ProcessResult validation = new ProcessResult();
+		
+		validation.addContextualMessage("Point Value", "common.default", "Validation Not Implemented");
+		
+		
+		if(validation.getHasMessages()){
+			result.addRestMessage(HttpStatus.BAD_REQUEST, new TranslatableMessage("common.default", "Validation failed"));
+			result.addValidationMessages(validation);
+			throw new RestValidationFailedException(this, result);
+		}
+	}
+	
+	
 }

@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 
 /**
  * @author Terry Packer
@@ -22,13 +24,22 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 		super(data);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.web.mvc.rest.model.BaseRestModel#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult)
 	 */
 	@Override
-	public void validate(ProcessResult response) {
-		this.data.validate(response);
+	public void validate(RestProcessResult<?> result) throws RestValidationFailedException {
+		ProcessResult validation = new ProcessResult();
+		this.data.validate(validation);
+		
+		if(validation.getHasMessages()){
+			result.addValidationMessages(validation);
+			throw new RestValidationFailedException(this, result);
+		}
 	}
+	
+	
 	@JsonGetter(value="purgeOverride")
 	public boolean getPurgeOverride(){
 		return this.data.isPurgeOverride();

@@ -12,7 +12,6 @@ import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
 import com.mangofactory.swagger.plugin.EnableSwagger;
 import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
 import com.serotonin.m2m2.Common;
-import com.wordnik.swagger.config.ScannerFactory;
 import com.wordnik.swagger.model.ApiInfo;
 
 /**
@@ -45,6 +44,7 @@ public class SwaggerConfig{
 //	    AuthorizationType oauth = new OAuthBuilder().scopes(scopes).grantTypes(grantTypes).build();
 	      return new SwaggerSpringMvcPlugin(springSwaggerConfig)
 	      		.apiInfo(apiInfo())
+	      		//.ignoredParameterTypes(ObjectMapper.class) //Ignore these types for Doc generation
 	      		//.authorizationTypes(authorizationTypes)
 	      		.pathProvider(provider)
 	            .includePatterns(".*" + Common.envProps.getString("swagger.mangoApiVersion", "v1") + "/.*");

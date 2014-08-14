@@ -12,9 +12,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.serotonin.json.JsonReader;
 import com.serotonin.json.spi.JsonSerializable;
-import com.serotonin.m2m2.Common;
 
 /**
  * @author Terry Packer
