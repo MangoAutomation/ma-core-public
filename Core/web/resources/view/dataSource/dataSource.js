@@ -324,7 +324,7 @@ dataSources = new StoreView({
      * Refresh the Grid
      */
     refresh: function(){
-    	this.grid.set('query', null);
+    	this.grid.set('query',dataSources.filter, null);
     },
         
 });
