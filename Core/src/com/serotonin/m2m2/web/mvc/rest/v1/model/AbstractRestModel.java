@@ -13,7 +13,7 @@ import com.wordnik.swagger.annotations.ApiModel;
  * @author Terry Packer
  *
  */
-@ApiModel(value="AbstractRestModel", description="Base Data Model", subTypes={UserModel.class})
+@ApiModel(value="AbstractRestModel", description="Base Data Model")
 public abstract class AbstractRestModel<T> {
 	
 	@JsonIgnore

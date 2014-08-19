@@ -5,23 +5,34 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.PurgeSettings;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
 
 /**
  * @author Terry Packer
  *
  */
-public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractRestModel<DataSourceVO<T>>{
-
+@JsonPropertyOrder({"xid", "name", "enabled"})
+@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
+public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractActionVoModel<DataSourceVO<?>>{
+	
+	protected DataSourceVO<T> data;
+	
+	
 	/**
 	 * @param data
 	 */
 	public AbstractDataSourceModel(DataSourceVO<T> data) {
 		super(data);
+		this.data = data;
 	}
 
 	/*
@@ -40,22 +51,20 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 	}
 	
 	
-	@JsonGetter(value="purgeOverride")
-	public boolean getPurgeOverride(){
-		return this.data.isPurgeOverride();
-	}
-	@JsonSetter(value="purgeOverride")
-	public void setPurgeOverride(boolean override){
-		this.data.setPurgeOverride(override);
+	@JsonGetter(value="purgeSettings")
+	public PurgeSettings getPurgeSettings(){
+		return new PurgeSettings(this.data.isPurgeOverride(), this.data.getPurgePeriod(), this.data.getPurgeType());
 	}
 	
-	@JsonGetter(value="xid")
-	public String getXid(){
-		return this.data.getXid();
+	@JsonSetter("purgeSettings")
+	public void setPurgeSettings(PurgeSettings settings){
+		this.data.setPurgeOverride(settings.isOverride());
+		this.data.setPurgePeriod(settings.getFrequency().getPeriods());
+		this.data.setPurgeType(TimePeriodType.convertFrom(settings.getFrequency().getType()));
 	}
-	@JsonSetter(value="xid")
-	public void setXid(String xid){
-		this.data.setXid(xid);
+	
+	@JsonIgnore
+	public DataSourceVO<T> getData(){
+		return this.data;
 	}
-
 }

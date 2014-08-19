@@ -12,6 +12,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class TimePeriod {
 	
+	public TimePeriod(){
+	
+	}
+	
 	public TimePeriod(int periods, TimePeriodType type){
 		this.periods = periods;
 		this.type = type;

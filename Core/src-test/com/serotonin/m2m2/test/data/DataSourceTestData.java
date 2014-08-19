@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.test.data;
 
+import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.MockDataSource;
 
@@ -11,7 +12,7 @@ import com.serotonin.m2m2.vo.dataSource.MockDataSource;
  * @author Terry Packer
  *
  */
-public class DataSourceData {
+public class DataSourceTestData {
 
 	/**
 	 * Get a test data source
@@ -21,6 +22,12 @@ public class DataSourceData {
 		MockDataSource ds = new MockDataSource();
 		ds.setId(1);
 		ds.setXid("mock-xid");
+		ds.setName("Mock Name");
+		ds.setPurgeOverride(false);
+		ds.setPurgeType(PurgeTypes.YEARS);
+		ds.setPurgePeriod(1);
+		ds.setEnabled(false);
+
 		
 		return ds;
 		

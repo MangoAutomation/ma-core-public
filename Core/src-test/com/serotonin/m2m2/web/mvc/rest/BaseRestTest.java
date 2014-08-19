@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.BeforeClass;
+import org.mockito.Mock;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +25,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestInstance;
 import com.serotonin.m2m2.db.H2Proxy;
+import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.web.mvc.rest.v1.ExceptionHandlingController;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.util.properties.ReloadingProperties;
@@ -41,6 +46,21 @@ public class BaseRestTest {
 	
 	protected ObjectMapper objectMapper; //Access to Object mapper configured for Mango Json 
 
+    @Mock
+	protected UserDao userDao;
+    @Mock
+    protected DataSourceDao dataSourceDao;
+    @Mock
+    protected DataPointDao dataPointDao;
+	
+    /**
+     * Setup DAO Layer
+     * this must be called after MockitoAnnotations.initMocks()
+     * in the subclass
+     */
+	public void setup(){
+
+	}
 
     @BeforeClass
     public static void setupMango(){
@@ -67,6 +87,13 @@ public class BaseRestTest {
      * @param controllers
      */
     protected void setupMvc(Object... controllers){
+    	
+        //Mock our Daos so they
+        // return exactly what we want.
+    	DaoRegistry.dataPointDao = this.dataPointDao;
+    	DaoRegistry.dataSourceDao = this.dataSourceDao;
+    	DaoRegistry.userDao = this.userDao;
+    	
     	this.objectMapper = MangoRestSpringConfiguration.objectMapper;
     	
     	MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();

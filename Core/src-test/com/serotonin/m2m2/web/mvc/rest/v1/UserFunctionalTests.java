@@ -18,17 +18,12 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.test.data.DataSourceData;
+import com.serotonin.m2m2.test.data.DataSourceTestData;
 import com.serotonin.m2m2.test.data.UserTestData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -48,28 +43,14 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.UserModel;
  */
 public class UserFunctionalTests extends BaseRestTest{
 	
-
-	//TODO Eventually move these to BaseRestTest
-    @Mock
-	protected UserDao userDao;
-    @Mock
-    protected DataSourceDao dataSourceDao;
-    @Mock
-    protected DataPointDao dataPointDao;
     
     @InjectMocks
     protected UserRestController mockController;
-	
+	    
     @Before
     public void setup() {
     	MockitoAnnotations.initMocks(this);
     	this.setupMvc(mockController);
-    	
-        //Mock our Daos so they
-        // return exactly what we want.
-    	DaoRegistry.dataPointDao = this.dataPointDao;
-    	DaoRegistry.dataSourceDao = this.dataSourceDao;
-    	DaoRegistry.userDao = this.userDao;
     }
     
     
@@ -114,7 +95,7 @@ public class UserFunctionalTests extends BaseRestTest{
     
     /**
      * Test Creating a User
-     * This test fails!!!! Because we don't render the password in the JSON property yet. :(
+     * TODO This test fails!!!! Because we don't render the password in the JSON property yet. :(
      */
 	@Test
 	public void testAdminCreateUser() {
@@ -206,7 +187,7 @@ public class UserFunctionalTests extends BaseRestTest{
 		//Mock up the permissions requests
 		for(User user : users){
 			for(Integer dsId : user.getDataSourcePermissions()){
-				DataSourceVO ds = DataSourceData.mockDataSource();
+				DataSourceVO ds = DataSourceTestData.mockDataSource();
 				when(this.dataSourceDao.get(dsId)).thenReturn(ds);
 				when(this.dataSourceDao.getByXid(ds.getXid())).thenReturn(ds);
 				
@@ -248,7 +229,7 @@ public class UserFunctionalTests extends BaseRestTest{
 		//Mock up the permissions requests
 		for(User user : users){
 			for(Integer dsId : user.getDataSourcePermissions()){
-				DataSourceVO ds = DataSourceData.mockDataSource();
+				DataSourceVO ds = DataSourceTestData.mockDataSource();
 				when(this.dataSourceDao.get(dsId)).thenReturn(ds);
 				when(this.dataSourceDao.getByXid(ds.getXid())).thenReturn(ds);
 				

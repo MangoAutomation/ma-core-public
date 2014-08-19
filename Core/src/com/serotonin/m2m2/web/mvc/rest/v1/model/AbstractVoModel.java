@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.serotonin.m2m2.Common;
@@ -29,6 +30,7 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
  * @author Terry Packer
  *
  */
+@JsonPropertyOrder({"xid", "name"})
 public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<AbstractVO<T>>{
 	
 	
