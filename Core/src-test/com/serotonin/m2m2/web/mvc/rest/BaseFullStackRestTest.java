@@ -18,6 +18,7 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 /**
  * @See http://spring.io/guides/tutorials/rest/4/ 
  * 
+ * For all Tests ma.home must be set just like when running Mango
  * 
  * @author Terry Packer
  *
@@ -34,9 +35,8 @@ public class BaseFullStackRestTest {
     public static void setupMango(){
     	
      	String envPropertiesName = "test-env";
-        String maHome = "/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core";
         try {
-			MangoTestInstance.start(envPropertiesName, maHome);
+			MangoTestInstance.start(envPropertiesName);
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}

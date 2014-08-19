@@ -36,6 +36,8 @@ import com.serotonin.util.properties.ReloadingProperties;
 /**
  * @See http://spring.io/guides/tutorials/rest/2/ 
  * 
+ * For all Tests ma.home must be set just like when running Mango
+ * 
  * 
  * @author Terry Packer
  *
@@ -67,7 +69,7 @@ public class BaseRestTest {
     	
     	
     	Common.envProps = new ReloadingProperties("test-env");
-        Common.MA_HOME = "/Users/tpacker/Documents/Work/Infinite/development/git/infiniteautomation/ma-core-public/Core";
+        Common.MA_HOME =  System.getProperty("ma.home"); 
     	
         //Start the Database so we can use Daos (Base Dao requires this)
     	H2Proxy proxy = new H2Proxy();

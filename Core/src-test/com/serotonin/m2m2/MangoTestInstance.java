@@ -32,10 +32,10 @@ public class MangoTestInstance extends Main{
 	}
 	
 	
-	public static void start(String envPropertiesName, String maHome) throws Exception{
+	public static void start(String envPropertiesName) throws Exception{
         Providers.add(ICoreLicense.class, new CoreLicenseDefinition());
 
-        Common.MA_HOME = maHome; //System.getProperty("ma.home");
+        Common.MA_HOME = System.getProperty("ma.home");
 
         // Remove the restart flag if it exists.
         new File(Common.MA_HOME, "RESTART").delete();
