@@ -6,8 +6,8 @@ package com.serotonin.m2m2.rt.console;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -97,6 +97,5 @@ public class LoggingConsoleRT {
 	public void setHistorySize(int size){
 		this.historySize = size;
 	}
-	
-	
+		
 }
