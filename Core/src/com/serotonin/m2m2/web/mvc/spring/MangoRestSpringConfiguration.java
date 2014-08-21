@@ -16,8 +16,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -65,6 +67,24 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	    return configurer;
 	}
 	
+	
+	/**
+	 * Setup Content Negotiation to map url extensions to returned data types
+	 * 
+	 * @see http://spring.io/blog/2013/05/11/content-negotiation-using-spring-mvc
+	 */
+	@Override
+	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+		// Simple strategy: only path extension is taken into account
+        configurer.favorPathExtension(true).
+            ignoreAcceptHeader(false).
+            useJaf(false). //TODO get maven jar to use application types
+            defaultContentType(MediaType.TEXT_HTML).
+            //mediaType("html", MediaType.TEXT_HTML).
+            mediaType("xml", MediaType.APPLICATION_XML). //TODO add jaxb for this to work
+            mediaType("json", MediaType.APPLICATION_JSON);
+	}
+	
 	/**
 	 * Configure the Message Converters for the API
 	 * for now only JSON
@@ -75,13 +95,8 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setObjectMapper(objectMapper);
-		
-		// For Sero JSON (NOT USING)
-		// JsonMessageConverter seroJson = new
-		// JsonMessageConverter(jackson2Converter);
-		// converters.add(seroJson);
-		
 		converters.add(converter);
+
 	}
 	
 	/**

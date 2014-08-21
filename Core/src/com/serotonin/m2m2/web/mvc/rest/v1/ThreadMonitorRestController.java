@@ -8,11 +8,13 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,9 +22,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.ThreadModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.thread.ThreadModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.thread.ThreadModelProperty;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiParam;
+
+import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * @author Terry Packer
@@ -47,7 +52,12 @@ public class ThreadMonitorRestController extends MangoRestController<ThreadModel
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<List<ThreadModel>> getThreads(HttpServletRequest request,
 			@ApiParam(value = "Limit size of stack trace", allowMultiple = false, defaultValue="10")
-			@RequestParam(value="stackDepth", defaultValue="10") int stackDepth
+			@RequestParam(value="stackDepth", defaultValue="10") int stackDepth,
+			@ApiParam(value = "Return as file", allowMultiple = false, defaultValue="false")
+			@RequestParam(value="asFile", defaultValue="false") boolean asFile,
+			@ApiParam(value = "Order by this member", allowMultiple = false, required=false)
+			@RequestParam(value="orderBy", required=false) String orderBy
+
 			){
 		
 		RestProcessResult<List<ThreadModel>> result = new RestProcessResult<List<ThreadModel>>(HttpStatus.OK);
@@ -61,14 +71,61 @@ public class ThreadMonitorRestController extends MangoRestController<ThreadModel
 			ThreadMXBean manager = ManagementFactory.getThreadMXBean();
 			for(Thread t : allThreads){
 				ThreadInfo info = manager.getThreadInfo(t.getId(), stackDepth);
-				ThreadModel model = new ThreadModel(info, t);
+				ThreadModel model = new ThreadModel(info, t, manager.getThreadCpuTime(t.getId()), manager.getThreadUserTime(t.getId()));
 				models.add(model);
 			}
-			return result.createResponseEntity(models);
+			//Do we need to order this list?
+			if(orderBy != null){
+				
+				//Determine what to order by
+				final ThreadModelProperty orderProperty = ThreadModelProperty.convert(orderBy);
+				
+				
+				Collections.sort(models, new Comparator<ThreadModel>(){
+
+					@Override
+					public int compare(ThreadModel left, ThreadModel right) {
+						switch(orderProperty){
+							case PRIORITY:
+								return left.getPriority() - right.getPriority();
+							case NAME:
+								return left.getName().compareTo(right.getName());
+							case CPU_TIME:
+								if(left.getCpuTime() > right.getCpuTime())
+									return 1;
+								else if((left.getCpuTime() < right.getCpuTime()))
+									return -1;
+								else
+									return 0;
+							case USER_TIME:
+								if(left.getUserTime() > right.getUserTime())
+									return 1;
+								else if((left.getUserTime() < right.getUserTime()))
+									return -1;
+								else
+									return 0;							
+							case STATE:
+								return left.getState().compareTo(right.getState());
+							case LOCATION:
+							case ID:
+							default:
+								return (int) (left.getId() - right.getId());
+						}
+						
+					}
+					
+				});
+			}
+			
+			if(asFile)
+				return result.createResponseEntity(models, MediaType.APPLICATION_OCTET_STREAM);
+			else
+				return result.createResponseEntity(models);
     	}
     	return result.createResponseEntity();
 	}
-		
+
+	
 	private Thread[] getAllThreads( ) {
 	    final ThreadMXBean thbean = ManagementFactory.getThreadMXBean( );
 	    int nAlloc = thbean.getThreadCount( );
@@ -81,4 +138,5 @@ public class ThreadMonitorRestController extends MangoRestController<ThreadModel
 	    } while ( n == nAlloc );
 	    return java.util.Arrays.copyOf( threads, n );
 	}
+	
 }

@@ -11,12 +11,14 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.thread.ThreadModel;
 
 /**
  * @author Terry Packer
@@ -106,10 +108,24 @@ public class RestProcessResult<T> {
 	}
 
 	/**
+	 * Create a response entity with many objects and 
+	 * a custom Data Type
+	 * @param models
+	 * @param octetStream
+	 * @return
+	 */
+	public ResponseEntity<List<T>> createResponseEntity(
+			List<T> body,
+			MediaType mediaType) {
+		this.headers.setContentType(mediaType);
+		return new ResponseEntity<List<T>>(
+				body,
+				this.addMessagesToHeaders(headers),
+				this.highestStatus);
+	}
+	
+	/**
 	 * Create a response entity containing one object
-	 * 
-	 * 
-	 * 
 	 * @param body
 	 * @return
 	 */
@@ -120,7 +136,20 @@ public class RestProcessResult<T> {
 					this.highestStatus);
 	}
 
-	
+	/**
+	 * Create a response entity containing one object
+	 * and a specific content type
+	 * @param body
+	 * @return
+	 */
+	public ResponseEntity<T> createResponseEntity(T body, MediaType mediaType){
+		this.headers.setContentType(mediaType);	
+		return new ResponseEntity<T>(
+					body,
+					this.addMessagesToHeaders(headers),
+					this.highestStatus);
+	}
+
 	/**
 	 * Create headers, adding errors if necessary
 	 * 
@@ -190,6 +219,7 @@ public class RestProcessResult<T> {
 	public Map<String,String> getValidationMessages() {
 		return this.validationMessages;
 	}
+
 	
 	
 }

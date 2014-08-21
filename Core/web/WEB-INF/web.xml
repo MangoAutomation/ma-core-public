@@ -175,6 +175,9 @@
     <load-on-startup>1</load-on-startup>
   </servlet>
   
+  
+  
+  
   <servlet>
     <servlet-name>dwr-invoker</servlet-name>
     <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>

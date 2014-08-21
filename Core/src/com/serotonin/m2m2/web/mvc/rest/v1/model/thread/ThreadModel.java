@@ -2,11 +2,10 @@
  * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.web.mvc.rest.v1.model;
+package com.serotonin.m2m2.web.mvc.rest.v1.model.thread;
 
 import java.lang.Thread.State;
 import java.lang.management.ThreadInfo;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 
@@ -18,14 +17,15 @@ public class ThreadModel {
 	
 	private ThreadInfo info;
 	private Thread thread;
+	private long cpuTime;
+	private long userTime;
+
 	
-	public ThreadModel(){
-		
-	}
-	
-	public ThreadModel(ThreadInfo info, Thread thread){
+	public ThreadModel(ThreadInfo info, Thread thread, long cpuTime, long userTime){
 		this.info = info;
 		this.thread = thread;
+		this.cpuTime = cpuTime;
+		this.userTime = userTime;
 	}
 
 	
@@ -42,7 +42,12 @@ public class ThreadModel {
 
 	@JsonGetter("cpuTime")
 	public long getCpuTime(){
-		return 0;
+		return this.cpuTime;
+	}
+	
+	@JsonGetter("userTime")
+	public long getUserTime(){
+		return this.userTime;
 	}
 
 	@JsonGetter("state")
