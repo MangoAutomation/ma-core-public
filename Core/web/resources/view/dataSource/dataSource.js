@@ -326,6 +326,68 @@ dataSources = new StoreView({
     refresh: function(){
     	this.grid.set('query',dataSources.filter, null);
     },
+    
+    /**
+     * Export data points using the filter
+     */
+    showExportUsingFilter: function() {
+        
+        var query = this.filters;
+        var options = {}; //We don't need any
+        
+        var sortArray, op;
+        if (typeof options.sort === 'string') {
+            op = new SortOption();
+            op.attribute = options.sort;
+            op.desc = false;
+            sortArray = [op];
+        }
+        else if (options.sort && typeof options.sort.length === 'number') {
+            sortArray = [];
+         
+            for (var i = 0; i < options.sort.length; i++) {
+                op = new SortOption();
+                op.attribute = options.sort[i].attribute;
+                op.desc = options.sort[i].descending || false;
+                sortArray.push(op);
+            }
+        }
+        
+        var filterMap = {};
+        for (var prop in query) {
+            var conditions = query[prop];
+            // allow specific regex queries
+            if (conditions instanceof RegExp) {
+                // anything
+                //if (conditions.source === '^.*$')
+                //    continue;
+                filterMap[prop] = 'RegExp:' + conditions.source;
+                //break;
+            }else{
+                if (conditions instanceof ArrayTester) {
+                    conditions = conditions.data;
+                }
+                if (typeof conditions === 'string' || typeof conditions === 'number')
+                    conditions = [conditions];
+                filterMap[prop] = conditions.join();
+            }
+        }
+        
+        var start = (isFinite(options.start)) ? options.start : null;
+        var count = (isFinite(options.count)) ? options.count : null;
+        
+        // controls whether sql is done using or or and
+        var or = true;
+        
+        
+        DataSourceDwr.jsonExportUsingFilter(filterMap, sortArray, start, count, or, function(json){
+            $set("exportData", json);
+            exportDialog.show();
+        });
+
+    },
+    
+    
         
 });
 

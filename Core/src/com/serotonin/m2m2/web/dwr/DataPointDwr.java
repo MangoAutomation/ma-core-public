@@ -5,7 +5,10 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,6 +16,8 @@ import org.springframework.dao.DuplicateKeyException;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.ResultsWithTotal;
+import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
@@ -174,7 +179,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * 
      * @return
      */
-    @DwrPermission(user = true)
+	@DwrPermission(user = true)
     public ProcessResult saveFull(DataPointVO vo) { // TODO combine with save()
         ProcessResult response = new ProcessResult();
         
@@ -333,7 +338,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * 
      * @param newDp
      */
-    @DwrPermission(user = true)
+    @SuppressWarnings("deprecation")
+	@DwrPermission(user = true)
     public void storeEditProperties(DataPointVO newDp){
     	DataPointVO dp = Common.getUser().getEditPoint();  
     	if(dp!=null){
@@ -431,6 +437,75 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	}
 
     	return result;
+    }
+    
+    
+    /**
+     * Load a list of VOs
+     * 
+     * Overridden to provide security
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult dojoQuery(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
+        ProcessResult response = new ProcessResult();
+        
+        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
+        List<DataPointVO> vos = new ArrayList<DataPointVO>();
+        @SuppressWarnings("unchecked")
+		List<DataPointVO> filteredPoints = (List<DataPointVO>) results.getResults();
+       
+        
+      //Filter list on User Permissions
+        User user = Common.getUser();
+        for(DataPointVO vo : filteredPoints){
+        	if(Permissions.hasDataPointReadPermission(user, vo)){
+        		vos.add(vo);
+        	}
+        }
+        
+        //Since we have removed some, we need to review our totals here,,
+        // this will be a bit buggy because we don't know how many of the remaining items 
+        // are actually viewable by this user.
+        int total = results.getTotal() - (filteredPoints.size() - vos.size());
+        response.addData("list", vos);
+        response.addData("total", total);
+        
+        return response;
+    }
+    
+    /**
+     * Export VOs based on a filter
+     * @param id
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+	@DwrPermission(user = true)
+    public String jsonExportUsingFilter(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
+        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        List<DataPointVO> vos = new ArrayList<DataPointVO>();
+        
+        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
+        List<DataPointVO> filteredPoints = (List<DataPointVO>) results.getResults();
+        
+        //Filter list on User Permissions
+        User user = Common.getUser();
+        for(DataPointVO vo : filteredPoints){
+        	if(Permissions.hasDataPointReadPermission(user, vo)){
+        		vos.add(vo);
+        	}
+        }
+        
+        //Get the Full VO for the export
+        data.put(keyName, vos);
+        
+        if (topLevelKeyName != null) {
+            Map<String, Object> topData = new LinkedHashMap<String, Object>();
+            topData.put(topLevelKeyName, data);
+            data = topData;
+        }
+        
+        return EmportDwr.export(data, 3);
     }
     
 }

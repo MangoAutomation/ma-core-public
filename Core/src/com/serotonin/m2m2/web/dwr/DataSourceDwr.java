@@ -18,6 +18,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.ResultsWithTotal;
+import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
@@ -30,6 +32,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -242,7 +245,76 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
         return beans;
     }
 	    
+    /**
+     * Load a list of VOs
+     * 
+     * Overridden to provide security
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult dojoQuery(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
+        ProcessResult response = new ProcessResult();
+        
+        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
+        List<DataSourceVO<?>> vos = new ArrayList<DataSourceVO<?>>();
+        @SuppressWarnings("unchecked")
+		List<DataSourceVO<?>> filtered = (List<DataSourceVO<?>>) results.getResults();
+       
+        
+      //Filter list on User Permissions
+        User user = Common.getUser();
+        for(DataSourceVO<?> vo : filtered){
+        	if(Permissions.hasDataSourcePermission(user, vo.getId())){
+        		vos.add(vo);
+        	}
+        }
+        
+        //Since we have removed some, we need to review our totals here,,
+        // this will be a bit buggy because we don't know how many of the remaining items 
+        // are actually viewable by this user.
+        int total = results.getTotal() - (filtered.size() - vos.size());
+        response.addData("list", vos);
+        response.addData("total", total);
+        
+        return response;
+    }
     
+    
+    /**
+     * Export VOs based on a filter
+     * @param id
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+	@DwrPermission(user = true)
+    public String jsonExportUsingFilter(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
+        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        List<DataSourceVO<?>> vos = new ArrayList<DataSourceVO<?>>();
+        
+        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
+        List<DataSourceVO<?>> filtered = (List<DataSourceVO<?>>) results.getResults();
+        
+        //Filter list on User Permissions
+        User user = Common.getUser();
+        for(DataSourceVO<?> vo : filtered){
+        	if(Permissions.hasDataSourcePermission(user, vo.getId())){
+        		vos.add(vo);
+        		//Not doing this yet, might look weird to user
+        		//data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(vo.getId(), null));
+        	}
+        }
+        
+        //Get the Full VO for the export
+        data.put(keyName, vos);
+        
+        if (topLevelKeyName != null) {
+            Map<String, Object> topData = new LinkedHashMap<String, Object>();
+            topData.put(topLevelKeyName, data);
+            data = topData;
+        }
+        
+        return EmportDwr.export(data, 3);
+    }
     
     
 }

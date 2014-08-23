@@ -51,6 +51,7 @@
 		    <div id="allPointsTableDiv" class="borderDivPadded marB" >
 		        <tag:img png="icon_comp" title="dsEdit.points.details"/>
 		        <span class="smallTitle"><fmt:message key="header.dataPoints"/></span>
+		        <tag:img png="emport" title="emport.export" style="float:right" id="exportDataPoints" onclick="allDataPoints.showExportUsingFilter()" />
 		        <div id="allDataPointsTable"></div>
 		    </div>  
         </div>

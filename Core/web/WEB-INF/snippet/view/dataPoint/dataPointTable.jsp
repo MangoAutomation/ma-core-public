@@ -19,7 +19,6 @@
     <span class="smallTitle"><fmt:message key="header.dataPoints"/></span>
     <c:if test="${!empty pointHelpId}"><tag:help id="${pointHelpId}"/></c:if>
     <tag:img png="add" title="common.add" id="addDataPoint" onclick="dataPoints.open(-1)"/>  
-
     <div id="dataPointTable"></div>
 
 <!-- Include the Edit Div -->
