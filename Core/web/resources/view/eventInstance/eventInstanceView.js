@@ -472,6 +472,7 @@ eventInstances = new StoreView({
     		renderCell: function(eventInstance, userNotified, cell){
     			var div = document.createElement("div");
     			div.className = "dgrid-column-acknowledged";
+    			div.id = "event-acknowledged-div-" + eventInstance.id;
     			var html = "";
     	    	if(eventInstance.userNotified){
     	    		if(eventInstance.acknowledged){
@@ -520,9 +521,17 @@ eventInstances = new StoreView({
     	        	}else if(eventInstance.eventType.systemEventType === constants_TYPE_LICENSE_CHECK){
     	        		html += "<a href='modules.shtm'><img src='/images/puzzle.png' title='";
     	        		html += mangoMsg['modules.modules'] + "'/></a>";
-    	        	}else{
+    	        	}else if(eventInstance.eventType.systemEventType === constants_TYPE_SYSTEM_STARTUP){
+    	        	    //No HTML Link for this
+    	    	    }else if(eventInstance.eventType.systemEventType === constants_TYPE_SYSTEM_SHUTDOWN){
+                        //No HTML Link for this
+                    }else if(eventInstance.eventType.systemEventType === constants_TYPE_USER_LOGIN){
+                        //No HTML Link for this
+                    }else{
     	        		EventInstanceDwr.getSystemEventTypeLink(eventInstance.eventType.systemEventType, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2,function(response){
-    	        			html += response;
+    	        			var toEdit = dojo.byId(div.id);
+    	        			if(response != null)
+    	        			    toEdit.innerHTML += response;
     	        		});
     	        	}
     	    	}else if(eventInstance.eventType.eventType === constants_PUBLISHER){
@@ -553,12 +562,16 @@ eventInstances = new StoreView({
     		    		html += "'/></a>";
     		    	}else{
     		    		EventInstanceDwr.getAuditEventTypeLink(eventInstance.eventType.auditEventType, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
-    		    			html += response;
+                            var toEdit = dojo.byId(div.id);
+                            if(response != null)
+                                toEdit.innerHTML += response;
     		    		});
     		    	}
     			}else{
     				EventInstanceDwr.getEventTypeLink(eventInstance.eventType.eventType, eventInstance.eventType.eventSubtype, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
-    					html += response;
+                        var toEdit = dojo.byId(div.id);
+                        if(response != null)
+                            toEdit.innerHTML += response;
     				});
     			}
     	    	

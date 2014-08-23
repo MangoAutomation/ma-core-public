@@ -5,6 +5,8 @@
 * Upgraded H2 to 1.4.180
 * Upgraded Spring to 4.0.5
 * Upgraded serotonin-utils to 2.1.3
+* Added security to viewing data sources and data points so only users with proper permissions can see them
+* Added additional links to Alarm Report page to allow clicking through to item of interest in event
 
 *Version 2.4.3*
 * Modified data type select tag
