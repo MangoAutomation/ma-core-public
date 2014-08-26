@@ -10,7 +10,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +42,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @RequestMapping("/v1/users")
 public class UserRestController extends MangoRestController<UserModel>{
 	
-	private static Logger LOG = Logger.getLogger(UserRestController.class);
+	private static Log LOG = LogFactory.getLog(UserRestController.class);
 	
 	public UserRestController(){
 	}

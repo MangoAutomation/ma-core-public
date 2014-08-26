@@ -14,7 +14,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
@@ -70,7 +71,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @RequestMapping("/v1/pointValues")
 public class PointValueRestController extends MangoRestController<PointValueTimeModel>{
 
-	private static Logger LOG = Logger.getLogger(PointValueRestController.class);
+	private static Log LOG = LogFactory.getLog(PointValueRestController.class);
 	private PointValueDao dao = Common.databaseProxy.newPointValueDao();
 
 	
@@ -117,7 +118,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 	    	 		return result.createResponseEntity();
 		    	}
 	    	}catch(PermissionException e){
-	    		LOG.error(e.getMessage());
+	    		LOG.error(e.getMessage(), e);
 	    		result.addRestMessage(getUnauthorizedMessage());
 	    		return result.createResponseEntity();
 	    	}
@@ -204,7 +205,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 		    		return result.createResponseEntity();
 		    		}
 	    	}catch(PermissionException e){
-	    		LOG.error(e.getMessage());
+	    		LOG.error(e.getMessage(), e);
 	    		result.addRestMessage(getUnauthorizedMessage());
 	    		return result.createResponseEntity();
 	    	}
@@ -286,7 +287,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 	    		        return result.createResponseEntity(new PointValueTimeModel(pvt));
 	
 	    	        }catch(Exception e){
-	    	        	LOG.error(e.getMessage());
+	    	        	LOG.error(e.getMessage(), e);
 	    	        	result.addRestMessage(getInternalServerErrorMessage(e.getMessage()));
 	    	        	return result.createResponseEntity();
 	    	        	
@@ -298,7 +299,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 		    		return result.createResponseEntity();
 	    		}
 	    	}catch(PermissionException e){
-	    		LOG.error(e.getMessage());
+	    		LOG.error(e.getMessage(), e);
 	    		result.addRestMessage(getUnauthorizedMessage());
 	    		return result.createResponseEntity();
 	    	}
@@ -403,7 +404,7 @@ public class PointValueRestController extends MangoRestController<PointValueTime
 	    	 		//return result.createResponseEntity();
 		    	}
 	    	}catch(PermissionException e){
-	    		LOG.error(e.getMessage());
+	    		LOG.error(e.getMessage(), e);
 	    		result.addRestMessage(getUnauthorizedMessage());
 	    		//return result.createResponseEntity();
 	    	}

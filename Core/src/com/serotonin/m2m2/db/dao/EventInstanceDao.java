@@ -14,13 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
-import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -51,7 +49,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
 					"ue.silenced"},
 				"left join users u on evt.ackUserId=u.id left join userEvents ue on evt.id=ue.eventId ");
-		LOG = Logger.getLogger(EventInstanceDao.class);
+		LOG = LogFactory.getLog(EventInstanceDao.class);
 	}
 
 	/* (non-Javadoc)

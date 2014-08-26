@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -34,7 +35,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  *
  */
 public class DataPointClassConverter extends JsonPropertyConverter{
-	private static Logger LOG = Logger.getLogger(DataPointClassConverter.class);
+	private static Log LOG = LogFactory.getLog(DataPointClassConverter.class);
 
 	private boolean jsonSerializable;
 	private List<SerializableProperty> properties;
@@ -135,7 +136,7 @@ public class DataPointClassConverter extends JsonPropertyConverter{
 	            catch (Exception e) {
 	            	String msg = "JsonException writing property '" + prop.getName() + "' of class "
 	                        + propClass.getName();
-	            	LOG.error(msg);
+	            	LOG.error(msg, e);
 	                throw new JsonException(msg, e);
 	            }
 	        }

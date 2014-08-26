@@ -10,7 +10,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +46,7 @@ public class DataSourceRestController extends MangoRestController<AbstractDataSo
 	public DataSourceRestController(){
 		LOG.info("Creating DS Rest Controller");
 	}
-	private static Logger LOG = Logger.getLogger(DataSourceRestController.class);
+	private static Log LOG = LogFactory.getLog(DataSourceRestController.class);
 	
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
@@ -111,6 +112,7 @@ public class DataSourceRestController extends MangoRestController<AbstractDataSo
 	
 	    		}
 	    	}catch(PermissionException e){
+	    		LOG.warn(e.getMessage(), e);
 	    		result.addRestMessage(getUnauthorizedMessage());
         		return result.createResponseEntity();
         	}

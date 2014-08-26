@@ -10,7 +10,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,7 +49,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @RequestMapping("/v1/dataPoints")
 public class DataPointRestController extends MangoRestController<DataPointModel>{
 
-	private static Logger LOG = Logger.getLogger(DataPointRestController.class);
+	private static Log LOG = LogFactory.getLog(DataPointRestController.class);
 	
 	public DataPointRestController(){
 		LOG.info("Creating Data Point Rest Controller.");
@@ -128,7 +129,7 @@ public class DataPointRestController extends MangoRestController<DataPointModel>
 	        		return result.createResponseEntity();
 	    		}
 	    	}catch(PermissionException e){
-	    		LOG.warn(e.getMessage());
+	    		LOG.warn(e.getMessage(), e);
     			result.addRestMessage(getUnauthorizedMessage());
         		return result.createResponseEntity();	    		
 	    	}
@@ -258,7 +259,7 @@ public class DataPointRestController extends MangoRestController<DataPointModel>
 		try{
 			DataPointDao.instance.delete(vo.getId());
 		}catch(Exception e){
-			LOG.error(e);
+			LOG.error(e.getMessage(), e);
 			result.addRestMessage(getInternalServerErrorMessage(e.getMessage()));
 			return result.createResponseEntity();
 		}

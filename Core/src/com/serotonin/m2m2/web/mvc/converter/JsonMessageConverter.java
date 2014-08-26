@@ -11,7 +11,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -23,7 +24,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
-import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -39,7 +39,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  */
 public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
 	
-	private static Logger LOG = Logger.getLogger(JsonMessageConverter.class);
+	private static Log LOG = LogFactory.getLog(JsonMessageConverter.class);
 	
 	private MappingJackson2HttpMessageConverter converter;
 	
@@ -76,19 +76,19 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<Object> {
 	        	return reader.read(clazz);
 	        }
 	        catch (ClassCastException e) {
-	        	LOG.error(e);
+	        	LOG.error(e.getMessage(), e);
             	throw new HttpMessageNotReadableException(translate("emport.parseError", e.getMessage()));
 	        }
 	        catch (TranslatableJsonException e) {
-	        	LOG.error(e);
+	        	LOG.error(e.getMessage(), e);
             	throw new HttpMessageNotReadableException(translate("emport.parseError", e.getMessage()));
 	        }
 	        catch (IOException e) {
-	        	LOG.error(e);
+	        	LOG.error(e.getMessage(), e);
             	throw new HttpMessageNotReadableException(translate("emport.parseError", e.getMessage()));
 	        }
 	        catch (JsonException e) {
-	        	LOG.error(e);
+	        	LOG.error(e.getMessage(), e);
             	throw new HttpMessageNotReadableException(translate("emport.parseError", e.getMessage()));
 	        } 
 		

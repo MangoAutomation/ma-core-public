@@ -4,7 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.RestValidationResponseModel;
 @ControllerAdvice
 public class ExceptionHandlingController {
 
-	private static Logger LOG = Logger.getLogger(ExceptionHandlingController.class);
+	private static Log LOG = LogFactory.getLog(ExceptionHandlingController.class);
 	
 	public ExceptionHandlingController(){
 	}

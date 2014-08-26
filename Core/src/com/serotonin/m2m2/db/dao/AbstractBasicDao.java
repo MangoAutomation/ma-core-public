@@ -17,12 +17,11 @@ import java.util.Map;
 
 import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.logging.Log;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 
@@ -34,7 +33,7 @@ import com.serotonin.m2m2.DeltamationCommon;
  * @author Jared Wiltshire
  */
 public abstract class AbstractBasicDao<T> extends BaseDao {
-    protected Logger LOG = Logger.getLogger(AbstractBasicDao.class);
+    protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
     
     protected final List<String> properties = getProperties();
     protected final List<Integer> propertyTypes = getPropertyTypes();

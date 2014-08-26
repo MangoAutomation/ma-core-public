@@ -9,7 +9,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +41,7 @@ import com.wordnik.swagger.annotations.Api;
 @RequestMapping("/v1/realtime")
 public class RealTimeDataRestController extends MangoRestController<RealTimeModel>{
 
-	private static Logger LOG = Logger.getLogger(RealTimeDataRestController.class);
+	private static Log LOG = LogFactory.getLog(RealTimeDataRestController.class);
 	
 	/**
 	 * Get all of the Users Real Time Data

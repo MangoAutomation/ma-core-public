@@ -8,7 +8,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -37,7 +38,7 @@ import com.wordnik.swagger.annotations.Api;
 public class PointHierarchyRestController extends MangoRestController<PointHierarchyModel>{
 
 	
-	private static Logger LOG = Logger.getLogger(PointHierarchyRestController.class);
+	private static Log LOG = LogFactory.getLog(PointHierarchyRestController.class);
 	
 	/**
 	 * Get the entire Point Hierarchy
