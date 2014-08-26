@@ -45,7 +45,6 @@ public class MangoCoreSpringConfiguration implements BeanFactoryAware{
 
 	private BeanFactory beanFactory;
 	
-	
 	@Bean(name="viewResolver")
 	public InternalResourceViewResolver internalResourceViewResolver(){
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
