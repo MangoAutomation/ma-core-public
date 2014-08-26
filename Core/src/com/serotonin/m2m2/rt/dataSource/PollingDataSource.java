@@ -7,7 +7,9 @@ package com.serotonin.m2m2.rt.dataSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -17,6 +19,9 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -26,6 +31,10 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
 abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient {
+	
+	public static final int POLL_ABORTED_EXCEPTION_EVENT = 1;
+	private final DataSourceEventType pollAbortedEvent;
+	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private Object terminationLock;
 
@@ -51,6 +60,10 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public PollingDataSource(DataSourceVO<?> vo) {
         super(vo);
         this.vo = vo;
+       
+        this.pollAbortedEvent = new DataSourceEventType(vo.getId(), POLL_ABORTED_EXCEPTION_EVENT,
+        		EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
+        
     }
 
     public void setCronPattern(String cronPattern) {
@@ -74,18 +87,32 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         return unsuccessfulPolls.get();
     }
 
-    public void incrementUnsuccessfulPolls() {
-        unsuccessfulPolls.incrementAndGet();
+    /**
+     * Increment the unsuccessful polls 
+     * and fire event if necessary
+     * @param time
+     */
+    public void incrementUnsuccessfulPolls(long time) {
+        long numBadPolls = unsuccessfulPolls.incrementAndGet();
+        //TODO Make Configurable
+        if(numBadPolls > 10){
+        	//Raise Event
+        	Map<String, Object> context = new HashMap<String, Object>();
+            context.put("dataSource", vo);
+            Common.eventManager.raiseEvent(this.pollAbortedEvent, time, true, this.pollAbortedEvent.getAlarmLevel(),
+            		new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName(), 10), context);
+        }
+        
     }
 
     @Override
     public void scheduleTimeout(long fireTime) {
         if (jobThread != null) {
-            //            // There is another poll still running, so abort this one.
-                        LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
-                                + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
-                                + " is still running");
-            incrementUnsuccessfulPolls();
+            // There is another poll still running, so abort this one.
+            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
+                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
+                    + " is still running");
+            incrementUnsuccessfulPolls(fireTime);
             return;
         }
         incrementSuccessfulPolls();
@@ -178,6 +205,10 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public void terminate() {
         if (timerTask != null)
             timerTask.cancel();
+        
+        //Return the Poll aborted event to normal
+        Common.eventManager.returnToNormal(this.pollAbortedEvent, System.currentTimeMillis());
+        
         super.terminate();
     }
 
