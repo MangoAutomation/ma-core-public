@@ -5,15 +5,19 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
+import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
@@ -34,6 +38,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.m2m2.web.dojo.DojoMemoryStoreListItem;
 import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -406,7 +411,26 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	}
     	return result;
     }
-    
+
+    @DwrPermission(user = true)
+    public ProcessResult getUnitsList(){
+    	ProcessResult result = new ProcessResult();
+		List<DojoMemoryStoreListItem> pairs = new ArrayList<DojoMemoryStoreListItem>();
+		
+		//Get SI Units
+		int id = 0;
+		for (Unit<?> unit : SI.getInstance().getUnits()) {
+	        pairs.add(new DojoMemoryStoreListItem(unit.toString(),id++));
+	    }
+		
+		//Get US Units
+		for(Unit<?> unit : NonSI.getInstance().getUnits()){
+			pairs.add(new DojoMemoryStoreListItem(unit.toString(),id++));
+		}
+		
+		result.addData("units", pairs);
+    	return result;
+    }
     /**
      * Helper to get the most recent value for a point
      * @param id
