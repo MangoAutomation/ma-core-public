@@ -89,12 +89,12 @@ public class MangoCoreSpringConfiguration implements BeanFactoryAware{
 		mapping.registerHandler("/data_source_edit.shtm", dataSourceEditController);
 		mapping.registerHandler("/data_source_properties_error.shtm", dataSourceErrorController);
 		mapping.registerHandler("/help.shtm", helpController);
-		mapping.registerHandler("/startup.shtm", startupController);
-		mapping.registerHandler("/shutdown.shtm", shutdownController);
-		mapping.registerHandler("/login.shtm", loginController);
-		mapping.registerHandler("/logout.shtm", logoutController);
+		mapping.registerHandler("/startup.htm", startupController);
+		mapping.registerHandler("/shutdown.htm", shutdownController);
+		mapping.registerHandler("/login.htm", loginController);
+		mapping.registerHandler("/logout.htm", logoutController);
 		mapping.registerHandler("/publisher_edit.shtm", publisherEditController);
-		mapping.registerHandler("/unauthorized.shtm", unauthorizedController);
+		mapping.registerHandler("/unauthorized.htm", unauthorizedController);
 		mapping.registerHandler("/users.shtm", usersController);
 		
 		return mapping;
