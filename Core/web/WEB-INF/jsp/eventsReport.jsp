@@ -49,6 +49,8 @@
   var constants_TYPE_SYSTEM_SHUTDOWN = "${applicationScope['constants.SystemEventType.TYPE_SYSTEM_SHUTDOWN']}";
   var constants_TYPE_USER_LOGIN = "${applicationScope['constants.SystemEventType.TYPE_USER_LOGIN']}";
   
+  //Get from the URL Parameter
+  var alarmLevelUrlParameter = '${param.level}';
   
   require(["dojo/parser","dijit/Calendar","dojo/domReady!"]);
 

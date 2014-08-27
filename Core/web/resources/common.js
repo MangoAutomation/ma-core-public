@@ -98,7 +98,7 @@ mango.longPoll.pollCB = function(response) {
 	        	mango.soundPlayer.play("level1"); //Play Sound
 	        	if(response.alarmsInformation > 1){
 		            dojo.publish("alarmTopic",[{
-		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_blue.png'/> " + response.alarmsInformation  + " Information Events</a>",
+		            	message: "<a class='ptr' href='/events.shtm?level=information'><img src='/images/flag_blue.png'/> " + response.alarmsInformation  + " Information Events</a>",
 		            	type: "message",
 		            	duration: -1, //Don't Go Away
 		            }]);            		
@@ -118,7 +118,7 @@ mango.longPoll.pollCB = function(response) {
 	        	mango.soundPlayer.play("level2"); //Play Sound
 	        	if(response.alarmsUrgent > 1){
 		            dojo.publish("alarmTopic",[{
-		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_yellow.png'/> " + response.alarmsUrgent + " Urgent Events</a>",
+		            	message: "<a class='ptr' href='/events.shtm?level=urgent'><img src='/images/flag_yellow.png'/> " + response.alarmsUrgent + " Urgent Events</a>",
 		            	type: "warning",
 		            	duration: -1, //Don't Go Away
 		            }]);
@@ -137,7 +137,7 @@ mango.longPoll.pollCB = function(response) {
 	        	mango.soundPlayer.play("level3"); //Play Sound
 	        	if(response.alarmsCritical > 1){
 		            dojo.publish("alarmTopic",[{
-		            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_orange.png'/> " + response.alarmsCritical + " Critical Events</a>",
+		            	message: "<a class='ptr' href='/events.shtm?level=critical'><img src='/images/flag_orange.png'/> " + response.alarmsCritical + " Critical Events</a>",
 		            	type: "error",
 		            	duration: -1, //Don't Go Away
 		            }]);
@@ -156,7 +156,7 @@ mango.longPoll.pollCB = function(response) {
 	        	mango.soundPlayer.play("level4"); //Play Sound
 	        	if(response.alarmsLifeSafety > 1){
 	            dojo.publish("alarmTopic",[{
-	            	message: "<a class='ptr' href='/events.shtm'><img src='/images/flag_red.png'/> " + response.alarmsLifeSafety + " Life Safety Events</a>",
+	            	message: "<a class='ptr' href='/events.shtm?level=lifeSafety'><img src='/images/flag_red.png'/> " + response.alarmsLifeSafety + " Life Safety Events</a>",
 	            	type: "fatal",
 	            	duration: -1, //Don't Go Away
 	            }]);

@@ -13,6 +13,49 @@ function(StoreView, Button, DateTextBox,TimeTextBox, MultiSelect, Select, Valida
 		date, domStyle,html,put,when,on,
 		baseFx,coreFx,query,ContentPane,domConstruct) {
 
+    //Funky auto-filtering for use from Alarms Toaster Widget
+    var defaultEventInstanceQuery,defaultEventLevelValue;
+    if(alarmLevelUrlParameter == 'none'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=0",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 0;
+    }else if(alarmLevelUrlParameter == 'information'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=1",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 1;
+    }else if(alarmLevelUrlParameter == 'urgent'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=2",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 2;
+    }else if(alarmLevelUrlParameter == 'critical'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=3",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 3;
+    }else if(alarmLevelUrlParameter == 'lifeSafety'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=4",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 4;
+    }else{
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=1",
+                acknowledged: "NullCheck:true",
+                //rtnApplicable: 'Y',
+                //rtnTs: "NullCheck:true",
+              };
+        defaultEventLevelValue = 1;
+    }   
+    
+    
 eventInstances = new StoreView({
 	
     prefix: 'EventInstance',
@@ -23,12 +66,7 @@ eventInstances = new StoreView({
     gridId: 'eventInstanceTable',
     editId: 'editEventInstanceDiv',
     defaultSort: [{attribute: "activeTimestamp", descending: true}],
-    defaultQuery: {
-    				alarmLevel: "Int:>=1",
-    				acknowledged: "NullCheck:true",
-					//rtnApplicable: 'Y',
-					//rtnTs: "NullCheck:true",
-    			  },
+    defaultQuery: defaultEventInstanceQuery,
     
     filters: {
     			alarmLevel: "Int:>=1",
@@ -100,6 +138,7 @@ eventInstances = new StoreView({
 				var div = domConstruct.create("div");
 				
 				var input = new Select({
+				    id: 'alarmLevelFilter',
 					name: 'alarmLevelFilter',
 					style: "width: 10em; color: gray",
 					options: [
@@ -110,7 +149,7 @@ eventInstances = new StoreView({
 						{label : mangoMsg['common.alarmLevel.greaterthan.lifeSafety'], value: '4'},
 					],
 				});
-				input.set('value', '1'); //DEFAULT FOR PAGE
+				input.set('value', defaultEventLevelValue); //DEFAULT FOR PAGE
 				//No Label, self explanitory?
 //				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML:  mangoMsg['common.alarmLevel']});
 //				domConstruct.place(label,div);
@@ -528,10 +567,11 @@ eventInstances = new StoreView({
                     }else if(eventInstance.eventType.systemEventType === constants_TYPE_USER_LOGIN){
                         //No HTML Link for this
                     }else{
-    	        		EventInstanceDwr.getSystemEventTypeLink(eventInstance.eventType.systemEventType, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2,function(response){
-    	        			var toEdit = dojo.byId(div.id);
-    	        			if(response != null)
-    	        			    toEdit.innerHTML += response;
+    	        		EventInstanceDwr.getSystemEventTypeLink(div.id, eventInstance.eventType.systemEventType, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2,function(response){
+                            if(response.data.link != null){
+                                var toEdit = dojo.byId(response.data.divId);
+                                toEdit.innerHTML += response.data.link;
+                            }
     	        		});
     	        	}
     	    	}else if(eventInstance.eventType.eventType === constants_PUBLISHER){
@@ -561,17 +601,24 @@ eventInstances = new StoreView({
     		    		html += mangoMsg['events.editHandler'];
     		    		html += "'/></a>";
     		    	}else{
-    		    		EventInstanceDwr.getAuditEventTypeLink(eventInstance.eventType.auditEventType, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
-                            var toEdit = dojo.byId(div.id);
-                            if(response != null)
-                                toEdit.innerHTML += response;
+    		    		EventInstanceDwr.getAuditEventTypeLink(div.id, eventInstance.eventType.auditEventType, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
+                            if(response.data.link != null){
+                                var toEdit = dojo.byId(response.data.divId);
+                                toEdit.innerHTML += response.data.link;
+                            }
+
     		    		});
     		    	}
     			}else{
-    				EventInstanceDwr.getEventTypeLink(eventInstance.eventType.eventType, eventInstance.eventType.eventSubtype, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
-                        var toEdit = dojo.byId(div.id);
-                        if(response != null)
-                            toEdit.innerHTML += response;
+    			    var def = new dojo.Deferred();
+    			    def.then(function(id){
+    			        
+    			    });
+    				EventInstanceDwr.getEventTypeLink(div.id, eventInstance.eventType.eventType, eventInstance.eventType.eventSubtype, eventInstance.eventType.referenceId1, eventInstance.eventType.referenceId2, function(response){
+                        if(response.data.link != null){
+                            var toEdit = dojo.byId(response.data.divId);
+                            toEdit.innerHTML += response.data.link;
+                        }
     				});
     			}
     	    	
@@ -591,7 +638,7 @@ eventInstances = new StoreView({
     preInit: function() {
     },
     
-    postGridInit: function() {
+    postInit: function() {
     },
     
     setInputs: function(vo) {
@@ -893,5 +940,4 @@ eventInstances = new StoreView({
 		}
 	}
 	
-
 }); // require
