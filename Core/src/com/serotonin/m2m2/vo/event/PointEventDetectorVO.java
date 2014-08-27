@@ -22,8 +22,8 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericRegexStateDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogHighLimitDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogLowLimitDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
@@ -43,7 +43,7 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class PointEventDetectorVO implements Cloneable, JsonSerializable, ChangeComparable<PointEventDetectorVO> {
+public class PointEventDetectorVO extends SimpleEventDetectorVO implements Cloneable, JsonSerializable, ChangeComparable<PointEventDetectorVO> {
     public static final String XID_PREFIX = "PED_";
 
     public static final int TYPE_ANALOG_HIGH_LIMIT = 1;
@@ -592,5 +592,10 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
     private void addDuration(ObjectWriter writer) throws JsonException, IOException {
         writer.writeEntry("durationType", Common.TIME_PERIOD_CODES.getCode(durationType));
         writer.writeEntry("duration", duration);
+    }
+    
+    @Override
+    public String getEventDetectorKey() {
+        return SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX + id;
     }
 }

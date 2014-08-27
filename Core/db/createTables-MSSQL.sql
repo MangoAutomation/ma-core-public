@@ -258,3 +258,20 @@ create table publishers (
   primary key (id)
 );
 alter table publishers add constraint publishersUn1 unique (xid);
+
+--
+--
+-- Compound events detectors
+--
+-- create table compoundEventDetectors (
+--   id int not null identity,
+--   xid nvarchar(50) not null,
+--   name nvarchar(100),
+--   alarmLevel int not null,
+--   returnToNormal char(1) not null,
+--   disabled char(1) not null,
+--   conditionText nvarchar(256) not null,
+--   primary key (id)
+-- );
+-- alter table compoundEventDetectors add constraint compoundEventDetectorsUn1 unique (xid);
+
