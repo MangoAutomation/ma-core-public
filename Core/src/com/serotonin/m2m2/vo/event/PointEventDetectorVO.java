@@ -26,6 +26,7 @@ import com.serotonin.m2m2.rt.event.detectors.AlphanumericRegexStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogHighLimitDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogLowLimitDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.AnalogRangeDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.MultistateStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.NegativeCusumDetectorRT;
@@ -58,6 +59,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
     public static final int TYPE_POSITIVE_CUSUM = 10;
     public static final int TYPE_NEGATIVE_CUSUM = 11;
     public static final int TYPE_ALPHANUMERIC_REGEX_STATE = 12;
+    public static final int TYPE_ANALOG_RANGE = 13;
 
     private static List<ImplDefinition> definitions;
 
@@ -89,6 +91,9 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
                     new int[] { DataTypes.NUMERIC }));
             d.add(new ImplDefinition(TYPE_NEGATIVE_CUSUM, null, "pointEdit.detectors.negCusum",
                     new int[] { DataTypes.NUMERIC }));
+            d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
+                    new int[] { DataTypes.NUMERIC }));
+           
             definitions = d;
         }
 
@@ -159,6 +164,8 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             return new PositiveCusumDetectorRT(this);
         case TYPE_NEGATIVE_CUSUM:
             return new NegativeCusumDetectorRT(this);
+        case TYPE_ANALOG_RANGE:
+        	return new AnalogRangeDetectorRT(this);
         }
         throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
     }
@@ -241,7 +248,17 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             else
                 message = new TranslatableMessage("event.detectorVo.negCusumPeriod", dataPoint.getTextRenderer()
                         .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        }else if (detectorType == TYPE_ANALOG_RANGE) {
+            if (durationDesc == null)
+                message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
+                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+                        limit, TextRenderer.HINT_SPECIFIC));
+            else
+                message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer().getText(
+                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
+
         else
             throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
 
@@ -276,6 +293,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         AuditEventType.addPropertyMessage(list, "common.alarmLevel", AlarmLevels.getAlarmLevelMessage(alarmLevel));
         AuditEventType.addPropertyMessage(list, "common.configuration", getConfigurationDescription());
         AuditEventType.addPropertyMessage(list, "pointEdit.detectors.weight", weight);
+        //TODO Add remaining property messages???
     }
 
     @Override
@@ -292,6 +310,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             AuditEventType.maybeAddPropertyChangeMessage(list, "common.configuration",
                     from.getConfigurationDescription(), getConfigurationDescription());
         AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.detectors.weight", from.weight, weight);
+        //TODO Add remaining property messages???
     }
 
     public DataPointVO njbGetDataPoint() {
@@ -421,6 +440,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         TYPE_CODES.addElement(TYPE_ALPHANUMERIC_REGEX_STATE, "ALPHANUMERIC_REGEX_STATE");
         TYPE_CODES.addElement(TYPE_POSITIVE_CUSUM, "POSITIVE_CUSUM");
         TYPE_CODES.addElement(TYPE_NEGATIVE_CUSUM, "NEGATIVE_CUSUM");
+        TYPE_CODES.addElement(TYPE_ANALOG_RANGE, "RANGE");
     }
 
     @Override
@@ -476,6 +496,11 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             writer.writeEntry("weight", weight);
             addDuration(writer);
             break;
+        case TYPE_ANALOG_RANGE:
+        	writer.writeEntry("low", weight);
+        	writer.writeEntry("high", limit);
+        	addDuration(writer);
+        	break;
         }
     }
 
@@ -544,6 +569,10 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             weight = getDouble(jsonObject, "weight");
             updateDuration(jsonObject);
             break;
+        case TYPE_ANALOG_RANGE:
+        	weight = getDouble(jsonObject, "low");
+        	limit = getDouble(jsonObject, "high");
+        	break;
         }
     }
 

@@ -38,7 +38,14 @@
   limit for at least the given duration before the detector becomes active. Events raised by this detector will 
   automatically return to normal when the condition is no longer satisfied.
 </p>
-
+<h1>Range</h1>
+<p>
+  This detector applies only to Numeric points. The <b>Low range limit</b> and <b>High range limit</b>define the range which the detector becomes 
+  active. The detector may optionally be configured with a <b>Duration</b>; the point's value must stay within the
+  range for at least the given duration before the detector becomes active. Events raised by this detector will 
+  automatically return to normal when the condition is no longer satisfied. The range is inclusive of the limits, 
+  meaning that if the value is exactly the low or high range limit the detector will fire an event.
+</p>
 <h1>Change</h1>
 <p>
   This detector applies to all data types. It raises an event whenever the point value changes. Events raised by this 

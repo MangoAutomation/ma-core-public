@@ -7,6 +7,7 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.DecimalFormat;
 
 import javax.measure.unit.Unit;
 
@@ -107,6 +108,24 @@ public class PlainRenderer extends ConvertingRenderer {
         return raw + suffix;
     }
 
+    @Override
+    public String getText(double value, int hint) {
+        if ((hint & HINT_NO_CONVERT) == 0)
+            value = unit.getConverterTo(renderedUnit).convert(value);
+        
+        String suffix = this.suffix;
+        
+        if (useUnitAsSuffix)
+            suffix = " " + UnitUtil.formatLocal(renderedUnit);
+        
+        String raw = Double.toString(value);
+        if ((hint & HINT_RAW) != 0 || suffix == null)
+            return raw;
+        
+        return raw + suffix;
+    }
+    
+    
     public String getSuffix() {
         return suffix;
     }
