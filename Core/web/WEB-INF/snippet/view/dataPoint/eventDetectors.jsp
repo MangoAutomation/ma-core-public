@@ -517,6 +517,15 @@
         </td>
       </tr>
       <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="true"><fmt:message key="pointEdit.detectors.withinRange"/></option>
+            <option value="false"><fmt:message key="pointEdit.detectors.outsideRange"/></option>
+          </select>
+        </td>
+      </tr>
+      <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.rangeLow"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
       </tr>
@@ -679,6 +688,7 @@
               $set("eventDetector"+ detector.id +"Weight", detector.weight);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
           }
           
           $set("eventDetector"+ detector.id +"Xid", detector.xid);
@@ -916,6 +926,7 @@
                   }
               }
               else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
@@ -931,7 +942,7 @@
                       errorMessage = "<fmt:message key='pointEdit.detectors.invalidDuration'/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateAnalogRangeDetector(pedId, xid, alias, limit, weight, duration,
+                      DataPointEditDwr.updateAnalogRangeDetector(pedId, xid, alias, limit, weight, state, duration,
                               durationType, alarmLevel, saveCB);
                   }
               }

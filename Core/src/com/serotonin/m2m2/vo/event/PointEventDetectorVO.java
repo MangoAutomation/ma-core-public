@@ -249,14 +249,28 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
                 message = new TranslatableMessage("event.detectorVo.negCusumPeriod", dataPoint.getTextRenderer()
                         .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
         }else if (detectorType == TYPE_ANALOG_RANGE) {
-            if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
-                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
-                        limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer().getText(
-                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
-                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	
+        	//For within range
+        	if(binaryState){
+	            if (durationDesc == null)
+	                message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC));
+	            else
+	                message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}else{
+        		//Outside of range
+	            if (durationDesc == null)
+	                message = new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC));
+	            else
+	                message = new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}
         }
 
         else
@@ -499,6 +513,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         case TYPE_ANALOG_RANGE:
         	writer.writeEntry("low", weight);
         	writer.writeEntry("high", limit);
+        	writer.writeEntry("withinRange", binaryState);
         	addDuration(writer);
         	break;
         }
@@ -572,6 +587,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         case TYPE_ANALOG_RANGE:
         	weight = getDouble(jsonObject, "low");
         	limit = getDouble(jsonObject, "high");
+        	binaryState = getBoolean(jsonObject, "withinRange");
         	break;
         }
     }

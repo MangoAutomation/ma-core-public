@@ -10,13 +10,14 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 
 /**
- * The AnalogRangeDetector is used to detect occurrences of point values within the given range for a given
+ * The AnalogRangeDetector is used to detect occurrences of point values within/outside the given range for a given
  * duration. For example, a user may need to have an event raised when a temperature is within some range for 10 minutes
  * or more.
  * 
  * This detector overrides the limit (for high end) and weight (for low end) range values thus the range is defined as:
  * weight <= value <= limit
  * 
+ * This detector overrides the binaryState values to indicate within or outside of the range detection
  *
  * 
  * The configuration fields provided are static for the lifetime of this detector. The state fields vary based on the
@@ -53,9 +54,20 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT {
         String prettyHighRange = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         String prettyLowRange = vo.njbGetDataPoint().getTextRenderer().getText(vo.getWeight(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
-        if (durationDescription == null)
-            return new TranslatableMessage("event.detector.range", name, prettyLowRange, prettyHighRange);
-        return new TranslatableMessage("event.detector.rangePeriod", name, prettyLowRange, prettyHighRange, durationDescription);
+        
+        if(vo.isBinaryState()){
+        	//Return message for within range
+            if (durationDescription == null)
+                return new TranslatableMessage("event.detector.range", name, prettyLowRange, prettyHighRange);
+            return new TranslatableMessage("event.detector.rangePeriod", name, prettyLowRange, prettyHighRange, durationDescription);
+
+        }else{
+        	//Return message for outside range
+            if (durationDescription == null)
+                return new TranslatableMessage("event.detector.rangeOutside", name, prettyLowRange, prettyHighRange);
+            return new TranslatableMessage("event.detector.rangeOutsidePeriod", name, prettyLowRange, prettyHighRange, durationDescription);
+
+        }
     }
 
     @Override
@@ -82,17 +94,36 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT {
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         double newDouble = newValue.getDoubleValue();
-        if ((newDouble <= vo.getLimit())&&(newDouble >= vo.getWeight())) {
-            if (!rangeActive) {
-            	rangeActiveTime = newValue.getTime();
-                changeRangeActive();
-            }
-        }
-        else {
-            if (rangeActive) {
-            	rangeInactiveTime = newValue.getTime();
-                changeRangeActive();
-            }
+        
+        //Are we supposed to be within or outside?
+        if(vo.isBinaryState()){
+        	//Fire event if within range
+	        if ((newDouble <= vo.getLimit())&&(newDouble >= vo.getWeight())) {
+	            if (!rangeActive) {
+	            	rangeActiveTime = newValue.getTime();
+	                changeRangeActive();
+	            }
+	        }
+	        else {
+	            if (rangeActive) {
+	            	rangeInactiveTime = newValue.getTime();
+	                changeRangeActive();
+	            }
+	        }
+        }else{
+        	//Fire event if Outside Range detection
+	        if ((newDouble >= vo.getLimit())||(newDouble <= vo.getWeight())) {
+	            if (!rangeActive) {
+	            	rangeActiveTime = newValue.getTime();
+	                changeRangeActive();
+	            }
+	        }
+	        else {
+	            if (rangeActive) {
+	            	rangeInactiveTime = newValue.getTime();
+	                changeRangeActive();
+	            }
+	        }
         }
     }
 

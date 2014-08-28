@@ -334,12 +334,13 @@ public class DataPointEditDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void updateAnalogRangeDetector(int pedId, String xid, String alias, double limit, double weight,
-            int duration, int durationType, int alarmLevel) {
+            boolean withinRange, int duration, int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
         ped.setLimit(limit);
         ped.setWeight(weight);
+        ped.setBinaryState(withinRange);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
