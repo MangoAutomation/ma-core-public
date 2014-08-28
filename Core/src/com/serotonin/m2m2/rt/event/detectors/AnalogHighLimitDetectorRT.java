@@ -12,7 +12,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 /**
  * The AnalogHighLimitDetector is used to detect occurrences of point values exceeding the given high limit for a given
  * duration. For example, a user may need to have an event raised when a temperature exceeds some value for 10 minutes
- * or more.
+ * or more. Or a user may need to have an event raised when a temperature has not exceeded some value for 10 minutes.
  * 
  * The configuration fields provided are static for the lifetime of this detector. The state fields vary based on the
  * changing conditions in the system. In particular, the highLimitActive field describes whether the point's value is
@@ -46,9 +46,18 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
         String name = vo.njbGetDataPoint().getName();
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
-        if (durationDescription == null)
-            return new TranslatableMessage("event.detector.highLimit", name, prettyLimit);
-        return new TranslatableMessage("event.detector.highLimitPeriod", name, prettyLimit, durationDescription);
+        
+        if(vo.isBinaryState()){
+        	//Not Higher than 
+            if (durationDescription == null)
+                return new TranslatableMessage("event.detector.highLimitNotHigher", name, prettyLimit);
+            return new TranslatableMessage("event.detector.highLimitNotHigherPeriod", name, prettyLimit, durationDescription);
+        }else{
+        	//Higher than
+            if (durationDescription == null)
+                return new TranslatableMessage("event.detector.highLimit", name, prettyLimit);
+            return new TranslatableMessage("event.detector.highLimitPeriod", name, prettyLimit, durationDescription);
+        }
     }
 
     @Override
@@ -75,18 +84,36 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         double newDouble = newValue.getDoubleValue();
-        if (newDouble > vo.getLimit()) {
-            if (!highLimitActive) {
-                highLimitActiveTime = newValue.getTime();
-                changeHighLimitActive();
+        if(vo.isBinaryState()){
+        	//Is Not Higher
+            if (newDouble <= vo.getLimit()) {
+                if (!highLimitActive) {
+                    highLimitActiveTime = newValue.getTime();
+                    changeHighLimitActive();
+                }
+            }
+            else {
+                if (highLimitActive) {
+                    highLimitInactiveTime = newValue.getTime();
+                    changeHighLimitActive();
+                }
+            }
+        }else{
+        	//Is Higher
+            if (newDouble > vo.getLimit()) {
+                if (!highLimitActive) {
+                    highLimitActiveTime = newValue.getTime();
+                    changeHighLimitActive();
+                }
+            }
+            else {
+                if (highLimitActive) {
+                    highLimitInactiveTime = newValue.getTime();
+                    changeHighLimitActive();
+                }
             }
         }
-        else {
-            if (highLimitActive) {
-                highLimitInactiveTime = newValue.getTime();
-                changeHighLimitActive();
-            }
-        }
+
     }
 
     @Override

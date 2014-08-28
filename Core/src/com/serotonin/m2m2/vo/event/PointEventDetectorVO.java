@@ -184,20 +184,43 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         TranslatableMessage message;
         TranslatableMessage durationDesc = getDurationDescription();
         if (detectorType == TYPE_ANALOG_HIGH_LIMIT) {
-            if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer().getText(
-                        limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
-                        .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	
+        	if(binaryState){
+        		//Check if Not above
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigher", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigherPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}else{
+        		//Must be above
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}
         }
         else if (detectorType == TYPE_ANALOG_LOW_LIMIT) {
-            if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.lowLimit", dataPoint.getTextRenderer().getText(
-                        limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.lowLimitPeriod", dataPoint.getTextRenderer()
-                        .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	if(binaryState){
+        		//Not below
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLower", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLowerPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}else{
+        		//Must be below
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.lowLimit", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.lowLimitPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}
         }
         else if (detectorType == TYPE_BINARY_STATE) {
             if (durationDesc == null)
@@ -467,10 +490,12 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         case TYPE_ANALOG_HIGH_LIMIT:
             writer.writeEntry("limit", limit);
             addDuration(writer);
+            writer.writeEntry("notHigher", binaryState);
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             writer.writeEntry("limit", limit);
             addDuration(writer);
+            writer.writeEntry("notLower", binaryState);
             break;
         case TYPE_BINARY_STATE:
             writer.writeEntry("state", binaryState);
@@ -541,10 +566,18 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         case TYPE_ANALOG_HIGH_LIMIT:
             limit = getDouble(jsonObject, "limit");
             updateDuration(jsonObject);
+            if(jsonObject.containsKey("notHigher"))
+            	binaryState = getBoolean(jsonObject, "notHigher");
+            else
+            	binaryState = false;
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             limit = getDouble(jsonObject, "limit");
             updateDuration(jsonObject);
+            if(jsonObject.containsKey("notLower"))
+            	binaryState = getBoolean(jsonObject, "notLower");
+            else
+            	binaryState = false;
             break;
         case TYPE_BINARY_STATE:
             binaryState = getBoolean(jsonObject, "state");

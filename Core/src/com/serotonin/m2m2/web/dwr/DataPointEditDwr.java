@@ -193,24 +193,26 @@ public class DataPointEditDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
-    public void updateHighLimitDetector(int pedId, String xid, String alias, double limit, int duration,
+    public void updateHighLimitDetector(int pedId, String xid, String alias, double limit, boolean notHigher, int duration,
             int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
         ped.setLimit(limit);
+        ped.setBinaryState(notHigher);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
-    public void updateLowLimitDetector(int pedId, String xid, String alias, double limit, int duration,
+    public void updateLowLimitDetector(int pedId, String xid, String alias, double limit, boolean notLower, int duration,
             int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
         ped.setLimit(limit);
+        ped.setBinaryState(notLower);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);

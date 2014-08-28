@@ -9,7 +9,9 @@
 * Added additional links to Alarm Report table to allow clicking through to item of interest in event
 * Added filter action to Alarm Links at top of page when multiple alarms are present
 * Added list of available Units to select for each point
-* Added Range Event detectors for Numeric points to alarm when values remain within a range
+* Added Range Event detectors for Numeric points to alarm when values remain within or outside of a range
+* Added Not higher than option to High Limit event detector
+* Added Not lower than option to Low Limit event detector
 * Added ability for Plain Text Renderer to use Units if defined as suffix
 
 *Version 2.4.3*

@@ -56,6 +56,15 @@
         </td>
       </tr>
       <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="false"><fmt:message key="pointEdit.detectors.higher"/></option>
+            <option value="true"><fmt:message key="pointEdit.detectors.notHigher"/></option>
+          </select>
+        </td>
+      </tr>
+      <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.highLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
       </tr>
@@ -94,6 +103,16 @@
           <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="false"><fmt:message key="pointEdit.detectors.lower"/></option>
+            <option value="true"><fmt:message key="pointEdit.detectors.notLower"/></option>
+          </select>
+        </td>
+      </tr>
+      
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.lowLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
@@ -628,11 +647,13 @@
           
           // Set the values in the content controls.
           if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
+              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
+              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
@@ -735,6 +756,7 @@
               var alarmLevel = parseInt($get("eventDetector"+ pedId +"AlarmLevel"));
               
               if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -747,11 +769,12 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, duration, durationType,
+                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, duration, durationType,
                               alarmLevel, saveCB);
                   }
               }
               else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -764,7 +787,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, duration, durationType,
+                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, duration, durationType,
                               alarmLevel, saveCB);
                   }
               }

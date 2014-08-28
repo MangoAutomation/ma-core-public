@@ -25,16 +25,20 @@
 
 <h1>High limit</h1>
 <p>
-  This detector applies only to Numeric points. The <b>High limit</b> is the value above which the detector becomes 
-  active. The detector may optionally be configured with a <b>Duration</b>; the point's value must stay above the high 
+  This detector applies only to Numeric points. The <b>High limit</b> is the value that the detector uses as a boundary.
+  When the <b>State</b> is set to Higher the event becomes active when the value is above the limit, when set to Not Higher 
+  the event becomes active when the value is equal to or greater than the limit.  The detector may optionally be 
+  configured with a <b>Duration</b>; the point's value must stay above the high 
   limit for at least the given duration before the detector becomes active. Events raised by this detector will 
   automatically return to normal when the condition is no longer satisfied.
 </p>
 
 <h1>Low limit</h1>
 <p>
-  This detector applies only to Numeric points. The <b>Low limit</b> is the value below which the detector becomes 
-  active. The detector may optionally be configured with a <b>Duration</b>; the point's value must stay below the low 
+  This detector applies only to Numeric points. The <b>Low limit</b> is the value that the detector uses as a boundary.  
+  When the <b>State</b> is set to Lower the event becomes active when the value is below the limit, when set to Not Lower 
+  the event becomes active when the value is equal to or less than the limit.  The detector may optionally be 
+  configured with a <b>Duration</b>; the point's value must stay below the low 
   limit for at least the given duration before the detector becomes active. Events raised by this detector will 
   automatically return to normal when the condition is no longer satisfied.
 </p>
