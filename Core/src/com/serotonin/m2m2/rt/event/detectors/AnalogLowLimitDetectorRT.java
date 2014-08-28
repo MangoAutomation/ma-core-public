@@ -18,6 +18,9 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * minutes or more. Or a user may need to have an event raised when a temperature does not sink below some value 
  * for 10 minutes.
  * 
+ * Additionally the vo.weight parameter is used as a threshold for turning off the detector and the multistateState value
+ * to determine if we are using the threshold
+ * 
  * The configuration fields provided are static for the lifetime of this detector. The state fields vary based on the
  * changing conditions in the system. In particular, the lowLimitActive field describes whether the point's value is
  * currently below the low limit or not. The eventActive field describes whether the point's value has been below the
@@ -100,10 +103,18 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
                 }
             }
             else {
-                if (lowLimitActive) {
-                    lowLimitInactiveTime = newValue.getTime();
-                    changeLowLimitActive();
-                }
+            	//Are we using a reset value
+            	if(vo.getMultistateState() == 1){
+	                if ((lowLimitActive)&&(newDouble <= vo.getWeight())) {
+	                    lowLimitInactiveTime = newValue.getTime();
+	                    changeLowLimitActive();
+	                }
+            	}else{
+	                if (lowLimitActive) {
+	                    lowLimitInactiveTime = newValue.getTime();
+	                    changeLowLimitActive();
+	                }
+            	}
             }
         }else{
         	//is lower than
@@ -114,10 +125,18 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
                 }
             }
             else {
-                if (lowLimitActive) {
-                    lowLimitInactiveTime = newValue.getTime();
-                    changeLowLimitActive();
-                }
+            	//Are we using a reset value
+            	if(vo.getMultistateState() == 1){
+	                if ((lowLimitActive)&&(newDouble >= vo.getWeight())) {
+                        lowLimitInactiveTime = newValue.getTime();
+                        changeLowLimitActive();
+	                }
+            	}else{
+                    if (lowLimitActive) {
+                        lowLimitInactiveTime = newValue.getTime();
+                        changeLowLimitActive();
+                    }
+            	}
             }
         }
     }

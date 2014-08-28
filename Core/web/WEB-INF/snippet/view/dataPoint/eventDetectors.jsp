@@ -75,6 +75,16 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.useResetLimit"/></td>
+        <td class="formField">
+            <sst:checkbox id="eventDetector_TEMPLATE_UseReset" onclick="changeUseResetLimit(this.checked, getPedId(this));"/>
+        </td>
+      </tr>
+      <tr id="eventDetector_TEMPLATE_ResetRow" style="display:none">
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -123,6 +133,16 @@
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.useResetLimit"/></td>
+        <td class="formField">
+            <sst:checkbox id="eventDetector_TEMPLATE_UseReset" onclick="changeUseResetLimit(this.checked, getPedId(this));"/>
+        </td>
+      </tr>
+      <tr id="eventDetector_TEMPLATE_ResetRow" style="display:none">
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
@@ -599,6 +619,16 @@
       pointEventDetectorEditor.save(callback);
   }
   
+  /**
+   * Change Reset Limit view
+   */
+  function changeUseResetLimit(checked, pedId){
+      var pedResetRowId = "eventDetector" + pedId + "ResetRow";
+      if(checked)
+          show(pedResetRowId);
+      else
+          hide(pedResetRowId);
+  }
   
   
   function getPedId(node) {
@@ -651,12 +681,22 @@
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"Weight", detector.weight);
+              if(detector.multistateState == 1){
+                  $set("eventDetector" + detector.id + "UseReset", true);
+                  changeUseResetLimit(true, detector.id);
+              }
           }
           else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"Weight", detector.weight);
+              if(detector.multistateState == 1){
+                  $set("eventDetector" + detector.id + "UseReset", true);
+                  changeUseResetLimit(true, detector.id);
+              }
           }
           else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_BINARY_STATE %>) {
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
@@ -758,8 +798,15 @@
               if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
                   var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  var useReset = $get("eventDetector" + pedId + "UseReset");
+                  var multistateState;
+                  if(useReset)
+                      multistateState = 1;
+                  else
+                      multistateState = 0;
                   
                   if (isNaN(limit))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
@@ -767,17 +814,33 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                  else if(isNaN(weight))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
+                  else if((multistateState==1)&&(state)&&(limit < weight)){
+                       //Is not higher, so reset limit must be >= limit
+                       errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
+                  }else if((multistateState==1)&&(!state)&&(limit > weight)){
+                      //Is higher, so reset limit must be <= limit
+                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
+                  }
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, duration, durationType,
-                              alarmLevel, saveCB);
+                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, multistateState,
+                              weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
                   var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  var useReset = $get("eventDetector" + pedId + "UseReset");
+                  var multistateState;
+                  if(useReset)
+                      multistateState = 1;
+                  else
+                      multistateState = 0;
                   
                   if (isNaN(limit))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
@@ -785,10 +848,18 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
-                  else {
+                  else if(isNaN(weight))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
+                  else if((multistateState==1)&&(state)&&(limit > weight)){
+                      //Is not lower, so reset limit must be <= limit
+                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
+                  }else if((multistateState==1)&&(!state)&&(limit < weight)){
+                     //Is lower, so reset limit must be >= limit
+                     errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
+                  }else {
                       saveCBCount++;
-                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, duration, durationType,
-                              alarmLevel, saveCB);
+                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, multistateState,
+                              weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == <%= PointEventDetectorVO.TYPE_BINARY_STATE %>) {

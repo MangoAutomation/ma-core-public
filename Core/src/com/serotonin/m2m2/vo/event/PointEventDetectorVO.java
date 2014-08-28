@@ -479,7 +479,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         TYPE_CODES.addElement(TYPE_NEGATIVE_CUSUM, "NEGATIVE_CUSUM");
         TYPE_CODES.addElement(TYPE_ANALOG_RANGE, "RANGE");
     }
-
+    
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
@@ -491,11 +491,15 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             writer.writeEntry("limit", limit);
             addDuration(writer);
             writer.writeEntry("notHigher", binaryState);
+            if(this.multistateState == 1) //Using reset limit
+            	writer.writeEntry("resetLimit", weight);
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             writer.writeEntry("limit", limit);
             addDuration(writer);
             writer.writeEntry("notLower", binaryState);
+            if(this.multistateState == 1) //Using Reset Limit
+            	writer.writeEntry("resetLimit", weight);
             break;
         case TYPE_BINARY_STATE:
             writer.writeEntry("state", binaryState);
@@ -570,6 +574,10 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             	binaryState = getBoolean(jsonObject, "notHigher");
             else
             	binaryState = false;
+            if(jsonObject.containsKey("resetLimit")){
+            	multistateState = 1;
+            	weight = getDouble(jsonObject, "resetLimit");
+            }
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             limit = getDouble(jsonObject, "limit");
@@ -578,6 +586,10 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             	binaryState = getBoolean(jsonObject, "notLower");
             else
             	binaryState = false;
+            if(jsonObject.containsKey("resetLimit")){
+            	multistateState = 1;
+            	weight = getDouble(jsonObject, "resetLimit");
+            }
             break;
         case TYPE_BINARY_STATE:
             binaryState = getBoolean(jsonObject, "state");

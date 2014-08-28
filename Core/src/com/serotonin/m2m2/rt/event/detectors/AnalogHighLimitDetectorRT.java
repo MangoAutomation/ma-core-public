@@ -14,6 +14,9 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * duration. For example, a user may need to have an event raised when a temperature exceeds some value for 10 minutes
  * or more. Or a user may need to have an event raised when a temperature has not exceeded some value for 10 minutes.
  * 
+ * Additionally the vo.weight parameter is used as a threshold for turning off the detector and the multistateState value
+ * to determine if we are using the threshold
+ * 
  * The configuration fields provided are static for the lifetime of this detector. The state fields vary based on the
  * changing conditions in the system. In particular, the highLimitActive field describes whether the point's value is
  * currently above the high limit or not. The eventActive field describes whether the point's value has been above the
@@ -73,7 +76,6 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
      */
     private void changeHighLimitActive() {
         highLimitActive = !highLimitActive;
-
         if (highLimitActive)
             // Schedule a job that will call the event active if it runs.
             scheduleJob();
@@ -93,10 +95,19 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
                 }
             }
             else {
-                if (highLimitActive) {
-                    highLimitInactiveTime = newValue.getTime();
-                    changeHighLimitActive();
-                }
+            	//Are we using a reset value
+            	if(vo.getMultistateState() == 1){
+                    if ((highLimitActive)&&(newDouble >= vo.getWeight())) {
+                        highLimitInactiveTime = newValue.getTime();
+                        changeHighLimitActive();
+                    }
+            	}else{
+            		//Not using reset
+                    if (highLimitActive) {
+                        highLimitInactiveTime = newValue.getTime();
+                        changeHighLimitActive();
+                    }
+            	}
             }
         }else{
         	//Is Higher
@@ -107,10 +118,21 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
                 }
             }
             else {
-                if (highLimitActive) {
-                    highLimitInactiveTime = newValue.getTime();
-                    changeHighLimitActive();
-                }
+            	//Are we using a reset value
+            	if(vo.getMultistateState() == 1){
+                	//Turn off alarm if we are active and below the Reset value
+                    if ((highLimitActive) &&(newDouble <= vo.getWeight())){
+                        highLimitInactiveTime = newValue.getTime();
+                        changeHighLimitActive();
+                    }
+            	}else{
+                	//Turn off alarm if we are active
+                    if (highLimitActive){
+                        highLimitInactiveTime = newValue.getTime();
+                        changeHighLimitActive();
+                    }
+            	}
+
             }
         }
 
