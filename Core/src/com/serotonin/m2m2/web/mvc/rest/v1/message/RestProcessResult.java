@@ -18,7 +18,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.thread.ThreadModel;
 
 /**
  * @author Terry Packer

@@ -5,6 +5,7 @@
  <artifactId>mango</artifactId>
  <!-- When changing version ensure you change Common.java as well. -->
  <version>2.5.0</version>
+ <name>Mango Core</name>
  <properties>
   <!-- previous jetty version: 7.4.5.v20110725 -->
   <jettyVersion>9.2.0.v20140526</jettyVersion>
