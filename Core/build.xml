@@ -150,11 +150,20 @@
             <attribute name="Build-Version" value="${maven-pom.version}" />
         </manifest>
 
-        <!-- Place the build number into the build -->
-        <buildnumber file="${mango.build.number}" />
-        <copy todir="${core.target}/classes" preservelastmodified="true">
-            <fileset file="${mango.build.number}" />
-        </copy>
+        <!-- Place the build number into the build (If there is already one, this breaks compatibility with the store) -->
+        <available property="mango.build.number.exists"
+                           file="mango.build.number"
+                           type="file" />
+        <if>
+            <isset property="mango.build.number.exists" />
+            <then>        
+                <buildnumber file="${mango.build.number}" />
+                <copy todir="${core.target}/classes" preservelastmodified="true">
+                    <fileset file="${mango.build.number}" />
+                </copy>
+
+            </then>
+        </if>
 
 
         <echo message="Building with Java ${ant.java.version}." />
