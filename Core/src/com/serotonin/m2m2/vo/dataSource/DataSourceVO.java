@@ -140,7 +140,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return getConnectionDescription().translate(Common.getTranslations());
     }
 
-    public void setConnectionDescriptionString(@SuppressWarnings("unused") String str) {
+    public void setConnectionDescriptionString(String str) {
         //No-op
     }
 
@@ -153,7 +153,31 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId, message, getAlarmLevel(
                 eventId, defaultAlarmLevel), duplicateHandling);
     }
+    
+    /**
+     * Useful for polling data sources
+     * 
+     * Events are fired by the Polling Data Source RT
+     * @return
+     */
+    protected EventTypeVO createPollAbortedEventType(int eventId) {
+        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId,
+        		new TranslatableMessage("event.ds.pollAborted"), getAlarmLevel(eventId, AlarmLevels.URGENT),
+        		EventType.DuplicateHandling.IGNORE_SAME_MESSAGE);
+    }
 
+	/**
+	 * Allow Polling Data Sources to use an event per Data Source
+	 * if it exists.
+	 * 
+	 * This should be overridden in that case.
+	 * 
+	 * @return
+	 */
+	public int getPollAbortedExceptionEventId() {
+		return -1; //For not available
+	}
+    
     public TranslatableMessage getTypeDescription() {
         return new TranslatableMessage(getDefinition().getDescriptionKey());
     }
@@ -166,7 +190,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return Common.translate(getDefinition().getDescriptionKey());
     }
 
-    public void setTypeDescriptionString(@SuppressWarnings("unused") String m) {
+    public void setTypeDescriptionString(String m) {
         //no op
     }
 
@@ -222,7 +246,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
      * Allows the data source to provide custom context data to its own editing page. Can be used for things like lists
      * of comm ports and such. See DataSourceEditController.
      */
-    public void addEditContext(@SuppressWarnings("unused") Map<String, Object> model) {
+    public void addEditContext(Map<String, Object> model) {
         // No op. Override as required.
     }
 
@@ -345,4 +369,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
 
         return value;
     }
+
+
 }
