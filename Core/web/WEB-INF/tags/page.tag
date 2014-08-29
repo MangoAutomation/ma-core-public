@@ -42,26 +42,31 @@
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
   <c:if test="${empty dojoURI}">
-<%-- 	<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.9.1/</c:set> --%>
 	<c:set var="dojoURI">/resources/</c:set>
   </c:if>
   
   <!-- Style -->
-  <link rel="icon" href="<%= Common.applicationFavicon %>"/>
-  <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
+<%--   <link rel="icon" href="<%= Common.applicationFavicon %>"/> --%>
+  <tag:versionedIcon href="<%= Common.applicationFavicon %>"/>
+  
+<%--   <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/> --%>
+  <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
+ 
+  <tag:versionedCss href="/resources/common.css"/>
+  
+  <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
+    <tag:versionedCss href="/${modStyle}" /></c:forEach>
+<%--     <link href="/${modStyle}" type="text/css" rel="stylesheet"/></c:forEach> --%>
+  <c:forEach items="${css}" var="modStyle">
+    <tag:versionedCss href="${modStyle}"/></c:forEach>
+<%--     <link href="${modStyle}" type="text/css" rel="stylesheet"/></c:forEach> --%>
+  <jsp:invoke fragment="styles"/>
   <style type="text/css">
     @import "${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css";
     @import "${dojoURI}dojox/layout/resources/FloatingPane.css";
     @import "${dojoURI}dijit/themes/${theme}/${theme}.css";
     @import "${dojoURI}dojo/resources/dojo.css";
-  </style>  
-  <link href="/resources/common.css" type="text/css" rel="stylesheet"/>
-  <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
-    <link href="/${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
-  <c:forEach items="${css}" var="modStyle">
-    <link href="${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
-  <jsp:invoke fragment="styles"/>
-  
+  </style>   
   <!-- Scripts -->
   <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
   
