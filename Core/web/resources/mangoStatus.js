@@ -20,7 +20,7 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',
     //Initialized from existing info
     getStatus(0);
     
-    var pollPeriodMs = 1000;
+    var pollPeriodMs = 500;
     var i = 0;
     var myProgressBar = new ProgressBar({
         style: "width: 300px"
