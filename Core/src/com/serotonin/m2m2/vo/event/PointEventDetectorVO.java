@@ -60,6 +60,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
     public static final int TYPE_NEGATIVE_CUSUM = 11;
     public static final int TYPE_ALPHANUMERIC_REGEX_STATE = 12;
     public static final int TYPE_ANALOG_RANGE = 13;
+    public static final int TYPE_ANALOG_CHANGE = 14;
 
     private static List<ImplDefinition> definitions;
 
@@ -93,7 +94,8 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
                     new int[] { DataTypes.NUMERIC }));
             d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
                     new int[] { DataTypes.NUMERIC }));
-           
+//            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
+//                    new int[] { DataTypes.NUMERIC }));           
             definitions = d;
         }
 
@@ -166,6 +168,8 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             return new NegativeCusumDetectorRT(this);
         case TYPE_ANALOG_RANGE:
         	return new AnalogRangeDetectorRT(this);
+//        case TYPE_ANALOG_CHANGE:
+//        	return new AnalogChangeDetectorRT(this);
         }
         throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
     }
