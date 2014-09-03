@@ -1,0 +1,2 @@
+This is a protected area to store documents that require user login to access via a web browser.  
+If a non logged in user tries to access a file in this directory they will be directed to the login page.

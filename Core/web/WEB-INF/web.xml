@@ -108,6 +108,7 @@
   <filter-mapping>
     <filter-name>IsLoggedIn</filter-name>
     <url-pattern>*.shtm</url-pattern>
+    <url-pattern>/protected/*</url-pattern>
   </filter-mapping>
 
 
@@ -167,7 +168,6 @@
   <servlet>
     <servlet-name>springDispatcher</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-    <!--  Un-comment when we are ready to use annotations instead of the springDispatcher-servlet.xml config -->
     <init-param>
         <param-name>contextClass</param-name>
         <param-value>
