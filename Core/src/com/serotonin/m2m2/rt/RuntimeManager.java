@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -89,7 +90,7 @@ public class RuntimeManager {
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
 
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        DataSourceDao dataSourceDao = new DataSourceDao();
+        DataSourceDao dataSourceDao = DaoRegistry.dataSourceDao;
         List<DataSourceVO<?>> configs = dataSourceDao.getDataSources();
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
@@ -130,7 +131,7 @@ public class RuntimeManager {
         rtmdIndex = startRTMDefs(defs, safe, rtmdIndex, Integer.MAX_VALUE);
 
         // Start the publishers that are enabled
-        PublisherDao publisherDao = new PublisherDao();
+        PublisherDao publisherDao = DaoRegistry.publisherDao;
         List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getPublishers();
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
             if (vo.isEnabled()) {
@@ -253,7 +254,7 @@ public class RuntimeManager {
         stopDataSource(vo.getId());
 
         // In case this is a new data source, we need to save to the database first so that it has a proper id.
-        new DataSourceDao().saveDataSource(vo);
+        DaoRegistry.dataSourceDao.saveDataSource(vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -281,7 +282,7 @@ public class RuntimeManager {
             runningDataSources.add(dataSource);
 
             // Add the enabled points to the data source.
-            List<DataPointVO> dataSourcePoints = new DataPointDao().getDataPoints(vo.getId(), null);
+            List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPoints(vo.getId(), null);
             for (DataPointVO dataPoint : dataSourcePoints) {
                 if (dataPoint.isEnabled())
                     startDataPoint(dataPoint);
@@ -353,7 +354,7 @@ public class RuntimeManager {
                 peds.remove();
         }
 
-        new DataPointDao().saveDataPoint(point);
+        DaoRegistry.dataPointDao.saveDataPoint(point);
 
         if (point.isEnabled())
             startDataPoint(point);

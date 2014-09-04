@@ -24,7 +24,7 @@ import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.MockDataSource;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -126,7 +126,7 @@ public class DataSourceListDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
 
         // Create a dummy data source with which to do the validation.
-        DataSourceVO<?> ds = new MockDataSource();
+        DataSourceVO<?> ds = new MockDataSourceVO();
         ds.setName(name);
         ds.setXid(xid);
         ds.validate(response);

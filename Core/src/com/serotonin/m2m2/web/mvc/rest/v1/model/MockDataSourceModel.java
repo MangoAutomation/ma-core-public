@@ -5,7 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.MockDataSource;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 
 /**
  * Useful for testing
@@ -13,16 +13,16 @@ import com.serotonin.m2m2.vo.dataSource.MockDataSource;
  * @author Terry Packer
  *
  */
-public class MockDataSourceModel extends AbstractDataSourceModel<MockDataSource>{
+public class MockDataSourceModel extends AbstractDataSourceModel<MockDataSourceVO>{
 
 	/**
 	 * @param data
 	 */
-	public MockDataSourceModel(DataSourceVO<MockDataSource> data) {
+	public MockDataSourceModel(DataSourceVO<MockDataSourceVO> data) {
 		super(data);
 	}
 
 	public MockDataSourceModel(){
-		super(new MockDataSource());
+		super(new MockDataSourceVO());
 	}
 }
