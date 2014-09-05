@@ -61,12 +61,12 @@
     <tag:versionedCss href="${modStyle}"/></c:forEach>
 <%--     <link href="${modStyle}" type="text/css" rel="stylesheet"/></c:forEach> --%>
   <jsp:invoke fragment="styles"/>
-  <style type="text/css">
-    @import "${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css";
-    @import "${dojoURI}dojox/layout/resources/FloatingPane.css";
-    @import "${dojoURI}dijit/themes/${theme}/${theme}.css";
-    @import "${dojoURI}dojo/resources/dojo.css";
-  </style>   
+
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css"/>   
+
   <!-- Scripts -->
   <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
   

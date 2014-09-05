@@ -374,7 +374,7 @@ html > body .dojoxFloatingPaneTitle {
     background-color: #6D933E;
 }
 html > body .dojoxFloatingCloseIcon {
-    background-image: url(../images/cross_doc.png);
+    background-image: url(/images/cross_doc.png);
     cursor: pointer;
 }
 html > body .dojoxFloatingPaneContent {
