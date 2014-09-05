@@ -121,6 +121,8 @@
   <filter-mapping>
     <filter-name>Translations</filter-name>
     <url-pattern>/exception/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>ERROR</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
