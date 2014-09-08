@@ -105,6 +105,8 @@ public class SystemSettingsDao extends BaseDao {
     public static final String BACKUP_MINUTE = "backupMinute";
     public static final String BACKUP_FILE_COUNT = "backupFileCount";
     public static final String BACKUP_ENABLED = "backupEnabled";
+    
+    public static final String ALLOW_ANONYMOUS_CHART_VIEW = "allowAnonymousGraphicViews";
 
     // Value cache
     private static final Map<String, String> cache = new HashMap<>();
@@ -328,6 +330,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_HOUR, 0);
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
+        //DEFAULT_VALUES.put(ALLOW_ANONYMOUS_GRAPHIC_VIEWS, false);
     }
 
     /**
@@ -408,7 +411,9 @@ public class SystemSettingsDao extends BaseDao {
         vo.setBackupHour(getIntValue(BACKUP_HOUR));
         vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
         vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
-
+        
+        vo.setAllowAnonymousChartView(getBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW));
+        
         return vo;
     }
 
@@ -492,5 +497,8 @@ public class SystemSettingsDao extends BaseDao {
         this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
         this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
         this.setBooleanValue(BACKUP_ENABLED, vo.getBackupEnabled());
+        
+        this.setBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW, vo.getAllowAnonymousChartView());
+        
     }
 }

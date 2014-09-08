@@ -175,6 +175,10 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.BACKUP_ENABLED,
                 SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true));
 
+        //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
+        settings.put(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,false));
+      
         return settings;
     }
 
@@ -494,4 +498,22 @@ public class SystemSettingsDwr extends BaseDwr {
     	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
     	BackupWorkItem.queueBackup(backupLocation);
     }
+    
+    /**
+     * Save the Backup Settings to the DB.
+     * @param backupFileLocation
+     * @param backupPeriod
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult saveChartSettings(boolean allowAnonymousChartView){
+    	ProcessResult result = new ProcessResult();
+    	
+    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+    	
+    	systemSettingsDao.setBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, allowAnonymousChartView);
+
+    	return result;
+    }
+    
+    
 }

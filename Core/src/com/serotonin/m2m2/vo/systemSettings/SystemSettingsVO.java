@@ -156,6 +156,8 @@ public class SystemSettingsVO implements JsonSerializable{
 	private Integer backupMinute;
 	@JsonProperty
 	private Boolean backupEnabled;
+	@JsonProperty
+	private boolean allowAnonymousChartView;
 	
 	/**
 	 * Validate the Settings
@@ -815,6 +817,16 @@ public class SystemSettingsVO implements JsonSerializable{
 		this.lifeSafetyAlarmPurgePeriods = lifeSafetyAlarmPurgePeriods;
 	}
 
+
+	/**
+	 * @return
+	 */
+	public boolean getAllowAnonymousChartView() {
+		return this.allowAnonymousChartView;
+	}
+	public void setAllowAnonymousChartView(boolean allow){
+		this.allowAnonymousChartView = allow;
+	}
 	
 	
 	

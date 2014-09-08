@@ -124,6 +124,8 @@
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>);                
+            $set("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>", settings.<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>);                
+
         });
         
         <c:if test="${!empty param.def}">
@@ -431,6 +433,24 @@
     	
     	SystemSettingsDwr.queueBackup()
     	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.backupQueued"/>");
+    }
+    
+    /**
+     * Save the Chart Settings
+     */
+    function saveChartSettings() {
+        hideContextualMessages("chartSettingsTab"); //Clear out any existing msgs
+        SystemSettingsDwr.saveChartSettings(
+                $get("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>"),
+            function(response) {
+                setDisabled("saveChartSettingsBtn", false);
+                if (response.hasMessages)
+                    showDwrMessages(response.messages);
+                else
+                    setUserMessage("chartSettingsMessage", "<fmt:message key='systemSettings.systemChartSettingsSaved'/>");
+            });
+        setUserMessage("chartSettingsMessage");
+        setDisabled("saveChartSettingsBtn", true);
     }
     
   </script>
@@ -853,7 +873,25 @@
     </table>
   </tag:labelledSection>
   
-  
+    <tag:labelledSection labelKey="systemSettings.chartSettings" closed="true">
+    <table id="chartApiSettingsTab">
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.allowAnonymousChartView"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%=SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW%>"/>" type="checkbox" />
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" align="center">
+          <input id="saveChartSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveChartSettings()"/>
+          <tag:help id="chartSettings"/>
+        </td>
+      </tr>
+      
+      <tr><td colspan="2" id="chartSettingsMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
   
   
   
