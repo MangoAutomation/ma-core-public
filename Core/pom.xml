@@ -7,8 +7,8 @@
  <version>2.5.0</version>
  <name>Mango Core</name>
  <properties>
-  <!-- previous jetty version: 7.4.5.v20110725 -->
-  <jettyVersion>9.2.0.v20140526</jettyVersion>
+  <!-- previous jetty version: 7.4.5.v20110725 9.2.0.v20140526 -->
+  <jettyVersion>9.2.2.v20140723</jettyVersion>
   <!-- previous spring version: 3.1.1.RELEASE,3.1.2.RELEASE, 4.0.5.RELEASE 
    for websockets support -->
   <springVersion>4.0.5.RELEASE</springVersion>
@@ -129,6 +129,21 @@
    <version>${jettyVersion}</version>
   </dependency>
   <dependency>
+     <groupId>org.eclipse.jetty.websocket</groupId>
+     <artifactId>websocket-client</artifactId>
+     <version>${jettyVersion}</version>
+ </dependency>
+  <dependency>
+     <groupId>org.eclipse.jetty.websocket</groupId>
+     <artifactId>websocket-server</artifactId>
+     <version>${jettyVersion}</version>
+ </dependency>
+ <dependency>
+  <groupId>org.eclipse.jetty.websocket</groupId>
+  <artifactId>websocket-api</artifactId>
+  <version>${jettyVersion}</version>
+</dependency>
+  <dependency>
    <groupId>org.springframework</groupId>
    <artifactId>spring-jdbc</artifactId>
    <version>${springVersion}</version>
@@ -138,7 +153,6 @@
    <artifactId>spring-orm</artifactId>
    <version>${springVersion}</version>
   </dependency>
-
   <dependency>
    <groupId>org.springframework</groupId>
    <artifactId>spring-web</artifactId>
@@ -149,6 +163,16 @@
    <artifactId>spring-webmvc</artifactId>
    <version>${springVersion}</version>
   </dependency>
+  <dependency>
+   <groupId>org.springframework</groupId>
+   <artifactId>spring-websocket</artifactId>
+   <version>${springVersion}</version>
+</dependency>
+<dependency>
+   <groupId>org.springframework</groupId>
+   <artifactId>spring-messaging</artifactId>
+   <version>${springVersion}</version>
+</dependency>
   <dependency>
    <groupId>org.jfree</groupId>
    <artifactId>jfreechart</artifactId>

@@ -39,9 +39,9 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 @ComponentScan(
 		basePackages = { "com.serotonin.m2m2.web.mvc.rest" }, 
 		excludeFilters = { @ComponentScan.Filter( pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
-public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
+public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter{
 
-	
+	//TODO Make this a Bean by annotating the createObjectmapper method
 	public static final ObjectMapper objectMapper = createObjectMapper();
 	
 	/**
@@ -66,7 +66,6 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	    configurer.setProperties(properties);
 	    return configurer;
 	}
-	
 	
 	/**
 	 * Setup Content Negotiation to map url extensions to returned data types
@@ -126,5 +125,4 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		
 		return objectMapper;
 	}
-
 }
