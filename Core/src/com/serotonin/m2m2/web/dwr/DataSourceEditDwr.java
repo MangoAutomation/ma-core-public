@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -102,6 +103,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         DataPointVO dp = Common.getUser().getEditPoint();
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
         
+        //Kludge to ensure you don't save the wrong point to the wrong ds
+        if(dp != null){
+	        if(dp.getDataSourceTypeName() != ds.getDefinition().getDataSourceTypeName()){
+	        	throw new RuntimeException("Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
+	        }        
+        }
         //Another Kludge to allow modules to get new-ish data points via this method...
         //TODO This affects the data source tools so be careful with changes.
         if((dp==null)&&(pointId == Common.NEW_ID)){
@@ -156,6 +163,13 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         dp.setName(name);
         dp.setPointLocator(locator);
 
+        //Confirm that we are assinging a point to the correct data source
+        DataSourceVO<?> ds = DataSourceDao.instance.get(dp.getDataSourceId());
+        PointLocatorVO plvo = ds.createPointLocator();
+        if(plvo.getClass() != locator.getClass() ){
+        	response.addGenericMessage("validate.invalidType");
+        	return response;
+        }
         
         //If we are a new point then only validate the basics
         if (id == Common.NEW_ID){

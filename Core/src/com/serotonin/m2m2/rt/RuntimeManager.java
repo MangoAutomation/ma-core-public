@@ -387,7 +387,19 @@ public class RuntimeManager {
                     l.pointInitialized();
 
                 // Add/update it in the data source.
-                ds.addDataPoint(dataPoint);
+                try{
+                	ds.addDataPoint(dataPoint);
+                }catch(Exception e){
+                	//This can happen if there is a corrupt DB with a point for a different 
+                	// data source type linked to this data source...
+                	LOG.error("Failed to start point with xid: " + dataPoint.getVO().getXid()
+                			+ " disabling point."
+                			, e);
+                	//TODO Fire Alarm to warn user.
+                	//Common.eventManager.raiseEvent(type, time, rtnApplicable, alarmLevel, message, context);
+                	dataPoint.getVO().setEnabled(false);
+                	saveDataPoint(dataPoint.getVO()); //Stop it
+                }
             }
         }
     }
@@ -399,7 +411,13 @@ public class RuntimeManager {
 
             // Remove it from the data source, and terminate it.
             if (p != null) {
-                getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+            	try{
+            		getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+            	}catch(Exception e){
+            		LOG.error("Failed to stop point RT with ID: " + dataPointId
+                			+ " stopping point."
+                			, e);
+            	}
                 DataPointListener l = getDataPointListeners(dataPointId);
                 if (l != null)
                     l.pointTerminated();

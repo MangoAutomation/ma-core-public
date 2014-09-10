@@ -14,6 +14,7 @@
 * Added Not lower than option to Low Limit event detector
 * Added ability for Plain Text Renderer to use Units if defined as suffix
 * Added css and favicon to url versioning system to ensure browser cache-refreshes on core updates
+* Added some protective measures to ensure users with multiple tabs open don't clobber points and data sources, only 1 tab is officially supported
 
 *Version 2.4.3*
 * Modified data type select tag
