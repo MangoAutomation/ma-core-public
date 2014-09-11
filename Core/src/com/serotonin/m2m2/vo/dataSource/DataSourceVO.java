@@ -65,7 +65,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     private Map<Integer, Integer> alarmLevels = new HashMap<>();
 
     @JsonProperty
-    private boolean purgeOverride = true;
+    private boolean purgeOverride = false;
     private int purgeType = PurgeTypes.YEARS;
     @JsonProperty
     private int purgePeriod = 1;

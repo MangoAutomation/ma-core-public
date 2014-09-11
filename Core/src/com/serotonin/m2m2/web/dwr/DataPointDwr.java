@@ -124,15 +124,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
             vo.setPointLocator(ds.createPointLocator());
             vo.setDataSourceId(ds.getId());
             vo.setDataSourceName(ds.getName());
-            vo.setDataSourceTypeName(ds.getTypeKey());
+            vo.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
             vo.setDataSourceXid(ds.getXid());
             vo.setDeviceName(ds.getName());
-            
             vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
             vo.defaultTextRenderer();
-
-            
-            
         }else{
             vo = dao.getFull(id);
         }
@@ -140,7 +136,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
         //Should check permissions?
         //Permissions.ensureDataSourcePermission(user, vo.getDataSourceId());
         user.setEditPoint(vo);
-        //TODO NEed to deal with point value defaulter
+        //TODO Need to deal with point value defaulter
         
         ProcessResult response = new ProcessResult();
         response.addData("vo", vo);

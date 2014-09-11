@@ -507,7 +507,7 @@
 
 <script type="text/javascript">
   var pointList = [
-    <c:forEach items="${userPoints}" var="point">{id:${point.id},name:"${sst:dquotEncode(point.extendedName)}"},
-    </c:forEach>
+     <c:forEach items="${userPoints}" var="point" varStatus="status">
+      {id:${point.id},name:"${sst:dquotEncode(point.extendedName)}"}${status.last ? '' : ','}</c:forEach>
   ];
 </script>
