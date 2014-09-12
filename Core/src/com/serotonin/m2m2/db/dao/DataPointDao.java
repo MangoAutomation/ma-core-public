@@ -1079,7 +1079,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		//TODO Could speed this up if necessary...
 		DataSourceVO<?> dsVo = DataSourceDao.instance.get(vo.getDataSourceId());
 		vo.setDataSourceName(dsVo.getName());
-		vo.setDataSourceTypeName(dsVo.getTypeDescriptionString());
+		vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
 		vo.setDataSourceXid(dsVo.getXid());
 
 	}
