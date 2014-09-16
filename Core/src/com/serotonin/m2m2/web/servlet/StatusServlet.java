@@ -17,12 +17,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.directwebremoting.WebContext;
+import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.console.LoggingConsoleRT;
 import com.serotonin.provider.Providers;
 
@@ -68,6 +71,7 @@ public class StatusServlet extends HttpServlet{
         data.put("shutdownProgress", lifecycle.getShutdownProgress());
     	data.put("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
     	
+		data.put("startupUri", DefaultPagesDefinition.getLoginUri(request,response));
     	
         try {
 			writer.writeObject(data);

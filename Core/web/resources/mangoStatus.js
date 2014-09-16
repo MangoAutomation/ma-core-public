@@ -1,4 +1,5 @@
 var lastMessage; //Holds the last recieved log message
+var pollLock = false; //Lock to ensure we don't have duplicate polls running
 
 require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr', "dojo/domReady!"], 
         function(topic, ProgressBar, win, xhr){
@@ -14,6 +15,7 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',
             startupConsole.set('content', "");
         else {
             startupConsole.set('content', message.message + startupConsole.get('content'));
+            
         }
     });
     
@@ -36,7 +38,10 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',
      * Get the Startup Status
      **/
     function getStatus(timestamp){
-        
+        if(pollLock)
+            return;
+        else
+            pollLock = true; //Lock the polls
         xhr.get({
            url: "/status/mango.json?time=" + timestamp,
            handleAs: "json",
@@ -64,10 +69,14 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',
                    }, 500);
                   
                }
-               
+               pollLock = false;
+           },
+           error: function(error){
+               pollLock = false;           
            }
-        
         });
+
+        
     };
     
 });

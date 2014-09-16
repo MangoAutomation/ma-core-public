@@ -21,9 +21,10 @@
     
     <script type="text/javascript">
 var lastMessage; //Holds the last recieved log message
+var pollLock = false; //Ensure we don't overpoll mango
 
-require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], 
-        function(topic, ProgressBar, win){
+require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], 
+        function(xhr, topic, ProgressBar, win){
 
     //Setup the console messages target
     topic.subscribe("startupTopic", function(message) {
@@ -42,7 +43,7 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
     //Initialize Existing info
     getStatus(0);
     
-    var pollPeriodMs = 1000;
+    var pollPeriodMs = 500;
     var i = 0;
     var myProgressBar = new ProgressBar({
         style: "width: 300px"
@@ -60,57 +61,65 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"
      * Get the status from the server
      **/
     function getStatus(timestamp){
-       StartupDwr.getStartupProgress(timestamp, function(response){
- 	            //Do we have a new message
-	            if(typeof response.data.message != 'undefined'){
-	                if((typeof lastMessage == 'undefined')||(lastMessage != response.data.message)){
-	                    lastMessage = response.data.message;
-	                    dojo.publish("startupTopic",[{
-	                            message:response.data.message,
-	                            type: "message",
-	                            duration: -1, //Don't go away
-	                            }]
-	                    );
-	                }
-	            }
+        if(pollLock)
+            return;
+        else
+            pollLock = true;
+        xhr.get({
+            url: "/status/mango.json?time=" + timestamp,
+            handleAs: "json",
+            load: function(data){
+ 	            
+                //Update my messages
+                var startupMessageDiv = dojo.byId("startupMessage");
+                startupMessageDiv.innerHTML = data.state;
+
+                for(var i=0; i<data.messages.length; i++){
+                    dojo.publish("startupTopic",[{
+                        message:data.messages[i] + "<br>",
+                        type: "message",
+                        duration: -1, //Don't go away
+                        }]
+                    );
+                }
+
 	
 	            var redirect = false;
 	            
-	            //Print the message for what Mango is doing
-	            var startingMessageDiv = dojo.byId("startingMessage");
-	            startingMessageDiv.innerHTML = response.data.processMessage; 
-	            
 	            var progress = 0;
 	            //We don't care if we are starting up or shutting down, just need to know which one
-	            if((response.data.startupProgress >= 100) && (response.data.shutdownProgress > 0)){
+	            if((data.startupProgress >= 100) && (data.shutdownProgress > 0)){
 	                //Dirty hack for now to show that the restart has happened, once the web server is off no more messages.
 	                progress = 98; //This looks like its almost restarted, then if it does it will flip over to 'Starting' messages
 	            }
 	
-	            if(response.data.startupProgress < 100)
-	                progress = response.data.startupProgress;
+	            if(data.startupProgress < 100)
+	                progress = data.startupProgress;
 	
+
 	            
 	            //If the interval is > 100 then we should redirect, just remember at this point we could be shutting down
-	             if((response.data.startupProgress >= 100) && (response.data.shutdownProgress == 0)){
+	             if((data.startupProgress >= 100) && (data.shutdownProgress == 0)){
 	                 progress = 100; //Ready for start, redirect now
 	                 redirect = true;
 	             }
 	            
-	            
-	            myProgressBar.set("value", progress + "%");
-	            var startupMessageDiv = dojo.byId("startupMessage");
-	            startupMessageDiv.innerHTML = response.data.state;
-	            
 	            //Do redirect?
 	            if(redirect){
 	                setTimeout(function(){
-	                    window.location.href = response.data.startupUri;
+	                    window.location.href = data.startupUri;
 	                }, 500);
 	               
 	            }
-            });
-    
+                //Update the progress bar
+                myProgressBar.set("value", progress + "%");
+	            
+	            pollLock = false; 
+            },
+            error: function(error){
+                pollLock = false;           
+            }
+        });
     }
     
 });
