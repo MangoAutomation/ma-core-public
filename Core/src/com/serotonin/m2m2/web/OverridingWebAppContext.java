@@ -30,6 +30,7 @@ public class OverridingWebAppContext extends WebAppContext {
         setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
         
         //Temp and JSP Compilation Settings (The order of these is important)
+        //@See http://eclipse.org/jetty/documentation/current/ref-temporary-directories.html
         String tempDirPath = Common.MA_HOME + "/work";
         File file = new File(tempDirPath);
         if (!file.exists())
