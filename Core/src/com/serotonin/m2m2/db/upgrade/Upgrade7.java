@@ -29,7 +29,8 @@ public class Upgrade7 extends DBUpgrade {
     private final String[] mssqlScript = { };
 
     private final String[] mysqlScript = { //
-    	"ALTER TABLE pointValues ENGINE=InnoDB;",//
-    	"ALTER TABLE pointValueAnnotations ENGINE=InnoDB;",
+    	//Removed September 14, 2014 as this is too slow and is causing difficulty in upgrades 
+         //"ALTER TABLE pointValues ENGINE=InnoDB;",//
+    	//"ALTER TABLE pointValueAnnotations ENGINE=InnoDB;",
     };
 }
