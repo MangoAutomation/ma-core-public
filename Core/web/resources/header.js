@@ -4,6 +4,64 @@
 */
 dojo.require("dojox.layout.FloatingPane");
 
+//The following allows fixes to the positioning of the Help Floating Pane
+var ConstrainedFloatingPane;
+
+require(["dojo/_base/fx", "dojo/_base/lang", "dojo/dom-style", "dojo/dnd/move", "dojo/dom-geometry", "dojo/domReady!"], 
+        function(fx, lang, domStyle, move, domGeom) {
+    
+    ConstrainedFloatingPane = dojo.declare(dojox.layout.FloatingPane, {
+        
+        postCreate: function() {
+            this.inherited(arguments);
+            this.moveable = new  move.constrainedMoveable(
+                this.domNode, {
+                    handle: this.focusNode,
+                    constraints: function() {
+                        var coordsBody = dojo.coords(dojo.body());
+                        // or
+                        var coordsWindow = {
+                            l: 0,
+                            t: 0,
+                            w: window.innerWidth,
+                            h: window.innerHeight                            
+                        };
+                        
+                        return coordsWindow;
+                    },
+                    within: true
+                }
+            );                            
+        },
+        show: function(/* Function? */callback){
+            // summary:
+            //      Show the FloatingPane
+            var anim = fx.fadeIn({node:this.domNode, duration:this.duration,
+                beforeBegin: lang.hitch(this,function(){
+                    this.domNode.style.display = "";
+                    this.domNode.style.visibility = "visible";
+                    if (this.dockTo && this.dockable) { this.dockTo._positionDock(null); }
+                    if (typeof callback == "function") { callback(); }
+                    this._isDocked = false;
+                    if (this._dockNode) {
+                        this._dockNode.destroy();
+                        this._dockNode = null;
+                    }
+                })
+            }).play();
+            // use w / h from content box dimensions and x / y from position
+            var contentBox = domGeom.getContentBox(this.domNode)
+            var pos = domGeom.position(this.domNode, true);
+            pos = lang.mixin(pos, {w: contentBox.w, h: contentBox.h});
+            this.resize(pos);
+            this._onShow(); // lazy load trigger
+        }
+        
+    });
+});
+
+    
+
 //
 // Error handling
 window.onerror = function mangoHandler(desc, page, line)  {
@@ -52,22 +110,21 @@ function help(documentId, source) {
     if (!fp) {
         var div = dojo.doc.createElement("div");
         dojo.body().appendChild(div);
-        fp = new dojox.layout.FloatingPane({
+        fp = new ConstrainedFloatingPane({
             id: fpId,
             title: mango.i18n["js.help.loading"], 
             closeable: true,
             dockable: false,
             resizable: true,
-            style: "position: absolute; zIndex: 980; padding: 2px;"
+            style: "position: absolute; zIndex: 980; padding: 2px; left:10; top:10;"
         }, div);
         
         fp.startup();
     }
-
     
     var top, left;
     if (source) {
-        var position = dojo.position(source, true);
+        var position = dojo.position(source, false);
         left = position.x + position.w;
         top = position.y + position.h;
     }
@@ -117,8 +174,9 @@ function helpImpl(documentId) {
             content = "<div>"+ content +"</div><div style='height:13px'></div>";
             fp.set('content', content);
         }
-        if(fp.get('_wasShown') === true)
-        	fp.show(); //Show the values
+        
+        fp.show();
+
     });
 };
 

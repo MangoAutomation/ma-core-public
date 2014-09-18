@@ -1,6 +1,6 @@
 *Version 2.5.0*
 * Upgraded to Jetty 9
-* Improved JSP Performance
+* Improved JSP Performance by changing/upgrading Engine
 * Added status servlet to serve Mango application Status in JSON format at /status/mango.json
 * Upgraded H2 to 1.4.180
 * Upgraded Spring to 4.0.5
@@ -15,6 +15,8 @@
 * Added ability for Plain Text Renderer to use Units if defined as suffix
 * Added css and favicon to url versioning system to ensure browser cache-refreshes on core updates
 * Added some protective measures to ensure users with multiple tabs open don't clobber points and data sources, only 1 tab is officially supported
+* Removed upgrade for MySQL PointValues table from MyISAM to InnoDB (users are expected to do this manually if desired)
+* Fixed Help Window from floating around after clicking a linked help file. 
 
 *Version 2.4.3*
 * Modified data type select tag
