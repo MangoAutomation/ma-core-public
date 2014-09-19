@@ -12,27 +12,6 @@ require(["dojo/_base/fx", "dojo/_base/lang", "dojo/dom-style", "dojo/dnd/move", 
     
     ConstrainedFloatingPane = dojo.declare(dojox.layout.FloatingPane, {
         
-        postCreate: function() {
-            this.inherited(arguments);
-            this.moveable = new  move.constrainedMoveable(
-                this.domNode, {
-                    handle: this.focusNode,
-                    constraints: function() {
-                        var coordsBody = dojo.coords(dojo.body());
-                        // or
-                        var coordsWindow = {
-                            l: 0,
-                            t: 0,
-                            w: window.innerWidth,
-                            h: window.innerHeight                            
-                        };
-                        
-                        return coordsWindow;
-                    },
-                    within: true
-                }
-            );                            
-        },
         show: function(/* Function? */callback){
             // summary:
             //      Show the FloatingPane
