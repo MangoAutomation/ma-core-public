@@ -17,6 +17,8 @@
 * Added some protective measures to ensure users with multiple tabs open don't clobber points and data sources, only 1 tab is officially supported
 * Removed upgrade for MySQL PointValues table from MyISAM to InnoDB (users are expected to do this manually if desired)
 * Fixed Help Window from floating around after clicking a linked help file. 
+* Added additional methods for scripting and meta points: (getPointValuesBetween, getPointValuesSince, getPointValueBefore, getPointValueAfter)
+* Added additional method for Numeric points in scripts:  getStats(from, to)
 
 *Version 2.4.3*
 * Modified data type select tag

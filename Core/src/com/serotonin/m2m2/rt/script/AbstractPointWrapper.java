@@ -118,4 +118,45 @@ abstract public class AbstractPointWrapper {
         if (setter != null)
             setter.set(point, value, timestamp);
     }
+    
+    //New methods exposed September 2014
+    
+    /**
+     * Get point values between the times.  
+     * Inclusive of the value at from, exclusisve of the value at to
+     * @param from
+     * @param to
+     * @return List of PointValueTime objects or empty list
+     */
+    public List<PointValueTime> pointValuesBetween(long from, long to){
+    	return point.getPointValuesBetween(from, to);
+    }
+    
+    /**
+     * Get point values since timestamp
+     * @param since
+     * @return List of PointValueTime objects or empty list
+     */
+    public List<PointValueTime> pointValuesSince(long since){
+    	return point.getPointValues(since);
+    	
+    }
+    
+    /**
+     * Get the nearest point value before the timestamp
+     * @param timestamp
+     * @return nearest value OR null
+     */
+    public PointValueTime pointValueBefore(long timestamp){
+    	return point.getPointValueBefore(timestamp);
+    }
+    
+    /**
+     * Get the nearest point value after the timestamp
+     * @param timestamp
+     * @return nearest value OR null
+     */
+    public PointValueTime pointValueAfter(long timestamp){
+    	return point.getPointValueAfter(timestamp);
+    }    
 }

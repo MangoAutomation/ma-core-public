@@ -74,7 +74,7 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
         return getStats(from, to);
     }
 
-    private ValueChangeCounter getStats(long from, long to) {
+    public ValueChangeCounter getStats(long from, long to) {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         ValueChangeCounter stats = new ValueChangeCounter(from, to, start, values);

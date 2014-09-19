@@ -49,7 +49,7 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
         return getStats(from, to);
     }
 
-    private StartsAndRuntimeList getStats(long from, long to) {
+    public StartsAndRuntimeList getStats(long from, long to) {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         PointValueTime end = point.getPointValueAfter(from);

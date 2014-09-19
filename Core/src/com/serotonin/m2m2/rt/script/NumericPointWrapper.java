@@ -32,7 +32,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     @Override
     public String toString() {
         return "{value=" + getValue() + ", ago(periodType, count), past(periodType, count), prev(periodType, count), "
-                + "previous(periodType, count), last(limit), lastValue(index)}";
+                + "previous(periodType, count), last(limit), lastValue(index), getStats(from, to)}";
     }
 
     public double ago(int periodType) {
@@ -75,7 +75,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         return getStats(from, to);
     }
 
-    private AnalogStatistics getStats(long from, long to) {
+    public AnalogStatistics getStats(long from, long to) {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         PointValueTime end = point.getPointValueAfter(from);
