@@ -415,25 +415,41 @@ function deletePoint() {
   * Save Point method
   */
  function savePoint() {
+     
+     
      startImageFader("pointSaveImg", true);
      hideContextualMessages("pointDetails");
 
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
+
+     //Perform check on point here
+     DataPointEditDwr.ensureEditingPointMatch(currentPoint.id, function(response){
+         
+         if(response.data.match === true){
+             if(currentPoint.id != -1){
+                 //Point Properties
+                 getPointProperties(currentPoint); //Set the values from the inputs
+                 getLoggingProperties(currentPoint);
+                 getTextRenderer(currentPoint);
+                 getChartRenderer(currentPoint);
+                 getEventDetectors(currentPoint,finishSavePoint); //
+              }else{
+                  //For now because values aren't set before DWR Call
+                  delete currentPoint.discardLowLimit;
+                  delete currentPoint.discardHighLimit;      
+                  finishSavePoint();
+              }
+         }else{
+             //Do not allow editing.
+             alert(response.data.message);
+         }
+         
+         
+     });
+
      
-     if(currentPoint.id != -1){
-		//Point Properties
-		getPointProperties(currentPoint); //Set the values from the inputs
-		getLoggingProperties(currentPoint);
-		getTextRenderer(currentPoint);
-		getChartRenderer(currentPoint);
-		getEventDetectors(currentPoint,finishSavePoint); //
-     }else{
-    	 //For now because values aren't set before DWR Call
-    	 delete currentPoint.discardLowLimit;
-    	 delete currentPoint.discardHighLimit;    	
-    	 finishSavePoint();
-     }
+
 
  }
  

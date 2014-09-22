@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
@@ -38,6 +39,22 @@ public class DataPointEditDwr extends BaseDwr {
         DataPointVO dataPoint = user.getEditPoint();
         Permissions.ensureDataSourcePermission(user, dataPoint.getDataSourceId());
         return dataPoint;
+    }
+    
+    @DwrPermission(user = true)
+    public ProcessResult ensureEditingPointMatch(int uiPointId){
+    	ProcessResult result = new ProcessResult();
+    	User user = Common.getUser();
+    	DataPointVO dataPoint = user.getEditPoint();
+    	if(dataPoint.getId() == uiPointId){
+    		result.addData("match",true);
+    	}else{
+    		
+    		result.addData("message", Common.translate("common.dataPointSaveFailed"));
+    		result.addData("match", false);
+    	}
+    	
+    	return result;
     }
     
     //

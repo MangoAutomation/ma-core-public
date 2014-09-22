@@ -23,7 +23,6 @@ import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
-import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRTM;
@@ -122,7 +121,11 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 				//This is an issue for opening AllDataPoints Point because it opens the Datasource too.
 				//TODO to fix this we need to fix DataSourceEditDwr to not save the editing DataPoint state in the User, this will propogate into existing modules...
 				DataSourceVO<?> vo = (DataSourceVO<?>)response.getData().get("vo");
-				if((Common.getUser().getEditPoint() == null)||(Common.getUser().getEditPoint().getDataSourceTypeName() != vo.getTypeDescriptionString())){
+				
+				//Quick fix to ensure we don't keep the edit point around if we have switched data sources
+				if((Common.getUser().getEditPoint() == null)
+						||(Common.getUser().getEditPoint().getDataSourceId() != vo.getId())
+						||(Common.getUser().getEditPoint().getDataSourceTypeName() != vo.getDefinition().getDataSourceTypeName())){
 					DataPointVO dp = new DataPointVO();
      	
 		        	dp.setXid(DataPointDao.instance.generateUniqueXid());

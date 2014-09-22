@@ -105,7 +105,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         
         //Kludge to ensure you don't save the wrong point to the wrong ds
         if(dp != null){
-	        if(dp.getDataSourceTypeName() != ds.getDefinition().getDataSourceTypeName()){
+	        if((dp.getDataSourceTypeName() != ds.getDefinition().getDataSourceTypeName())
+	        		||(dp.getDataSourceId() != ds.getId())){
 	        	throw new RuntimeException("Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
 	        }        
         }
