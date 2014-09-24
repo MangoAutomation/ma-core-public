@@ -222,6 +222,7 @@ public class PointFolder implements JsonSerializable {
 			for(DataPointSummary pointSummary : folder.getPoints()){
 				this.removePointRecursively(pointSummary.getId());
 			}
+			this.removePointsRecursively(folder.getSubfolders());
 		}
 		
 		
