@@ -51,20 +51,20 @@
   
   <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
 
+<%--     Changing these to versioned StyleSheets will require handling .png images as they are part of the theme --%>
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css"/>
+
+  <tag:versionedCss href="/resources/common.css"/>
   
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
     <tag:versionedCss href="/${modStyle}" /></c:forEach>
   <c:forEach items="${css}" var="modStyle">
     <tag:versionedCss href="${modStyle}"/></c:forEach>
   <jsp:invoke fragment="styles"/>
-
-<%--     Changing these to versioned StyleSheets will require handling .png images as they are part of the theme --%>
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>   
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/>   
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/>   
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css"/>
-     
-  <tag:versionedCss href="/resources/common.css"/>
+  
   <!-- Scripts -->
   <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
   
