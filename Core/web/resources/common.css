@@ -210,6 +210,7 @@ input[type="checkbox"], input[type="radio"] {
 }
 input[type="submit"], input[type="button"] {
 	overflow: visible;
+	cursor: pointer;
 }
 
 
