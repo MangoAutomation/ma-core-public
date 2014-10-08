@@ -70,28 +70,37 @@ public class PointValueFacade {
         return pointValueDao.getPointValues(dataPointId, since);
     }
 
+    /**
+     * Gets point values since a certain time, can add an initial value and final value to the returned
+     * results. Useful for creating graphs.
+     * @param since
+     * 			epoch time in ms
+     * @param insertInitial
+     * 			fetch the previous point value before 'since', and insert it at time 'since' 
+     * @param insertFinal
+     * 			take the last point value from the list and insert it at the current time
+     * @return
+     */
     public List<PointValueTime> getPointValues(long since, boolean insertInitial, boolean insertFinal) {
-        List<PointValueTime> list;
+        List<PointValueTime> list = getPointValues(since);
         
-        if (point != null) {
-            list = point.getPointValues(since);
-        }
-        else {
-            list = pointValueDao.getPointValues(dataPointId, since);
-        }
-        
-        if (insertInitial && !(list.size() > 0 && list.get(0).getTime() == since)) {
+        if (insertInitial && !list.isEmpty()) {
             PointValueTime prevValue = getPointValueBefore(since);
-            if (prevValue != null) {
-                PointValueTime initialValue = new PointValueTime(prevValue.getValue(), since);
-                list.add(0, initialValue);
+            
+            // don't insert the initial value if it already exists
+            if (prevValue != null && list.get(0).getTime() != since) {
+                list.add(0, new PointValueTime(prevValue.getValue(), since));
             }
         }
         
         if (insertFinal && !list.isEmpty()) {
-            PointValueTime finalValue = list.get(list.size()-1);
-            if (finalValue != null)
-                list.add(new PointValueTime(finalValue.getValue(), System.currentTimeMillis()));
+        	PointValueTime finalValue = list.get(list.size()-1);
+        	long endTime = System.currentTimeMillis();
+        	
+        	// don't insert the final value if it already exists
+        	if (finalValue != null && finalValue.getTime() != endTime) {
+                list.add(new PointValueTime(finalValue.getValue(), endTime));
+        	}
         }
         
         return list;
@@ -103,29 +112,40 @@ public class PointValueFacade {
         return pointValueDao.getPointValuesBetween(dataPointId, from, to);
     }
 
+    /**
+     * Gets point values in a certain time period, can add an initial value and final value to the returned
+     * results. Useful for creating graphs.
+     * @param from
+     * 			epoch time in ms
+     * @param to
+     * 			epoch time in ms
+     * @param insertInitial
+     * 			fetch the previous point value before 'from', and insert it at time 'from' 
+     * @param insertFinal
+     * 			take the last point value from the list and insert it at time 'to'
+     * @return
+     */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
-        List<PointValueTime> list;
+        List<PointValueTime> list = getPointValuesBetween(from, to);
         
-        if (point != null) {
-            list = point.getPointValuesBetween(from, to);
-        }
-        else {
-            list = pointValueDao.getPointValuesBetween(dataPointId, from, to);
-        }
-        
-        if (insertInitial && !(list.size() > 0 && list.get(0).getTime() == from)) {
+        if (insertInitial && !list.isEmpty()) {
             PointValueTime prevValue = getPointValueBefore(from);
-            if (prevValue != null) {
-                PointValueTime initialValue = new PointValueTime(prevValue.getValue(), from);
-                list.add(0, initialValue);
+            
+            // don't insert the initial value if it already exists
+            if (prevValue != null && list.get(0).getTime() != from) {
+                list.add(0, new PointValueTime(prevValue.getValue(), from));
             }
         }
         
         if (insertFinal && !list.isEmpty()) {
-            long endTime = to <= System.currentTimeMillis() ? to : System.currentTimeMillis();
-            PointValueTime finalValue = list.get(list.size()-1);
-            if (finalValue != null)
+        	PointValueTime finalValue = list.get(list.size()-1);
+        	// don't insert final value in the future
+        	long endTime = to <= System.currentTimeMillis() ? to : System.currentTimeMillis();
+        	
+        	// don't insert the final value if it already exists
+        	if (finalValue != null && finalValue.getTime() != endTime) {
                 list.add(new PointValueTime(finalValue.getValue(), endTime));
+        	}
         }
         
         return list;
