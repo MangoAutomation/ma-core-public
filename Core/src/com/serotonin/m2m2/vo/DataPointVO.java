@@ -1232,6 +1232,34 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+		}else if (ver == 7) {
+			textRenderer = (TextRenderer) in.readObject();
+			chartRenderer = (ChartRenderer) in.readObject();
+			pointLocator = (PointLocatorVO) in.readObject();
+			discardLowLimit = in.readDouble();
+			discardHighLimit = in.readDouble();
+			chartColour = SerializationHelper.readSafeUTF(in);
+			plotType = in.readInt();
+			unit = (Unit<?>) in.readObject();
+			integralUnit = (Unit<?>) in.readObject();
+			renderedUnit = (Unit<?>) in.readObject();
+			useIntegralUnit = in.readBoolean();
+			useRenderedUnit = in.readBoolean();
+		}else if (ver == 8) {
+			textRenderer = (TextRenderer) in.readObject();
+			chartRenderer = (ChartRenderer) in.readObject();
+			pointLocator = (PointLocatorVO) in.readObject();
+			discardLowLimit = in.readDouble();
+			discardHighLimit = in.readDouble();
+			chartColour = SerializationHelper.readSafeUTF(in);
+			plotType = in.readInt();
+			unit = (Unit<?>) in.readObject();
+			integralUnit = (Unit<?>) in.readObject();
+			renderedUnit = (Unit<?>) in.readObject();
+			useIntegralUnit = in.readBoolean();
+			useRenderedUnit = in.readBoolean();
+			in.readDouble(); // error
+			in.readBoolean(); // error is a percentage
         }else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
