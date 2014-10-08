@@ -489,6 +489,13 @@ public class RuntimeManager {
             ds.relinquish(dataPoint);
     }
 
+    /**
+     * This method forces a point read ONLY if the 
+     * underlying data source has implemented that ability.
+     * 
+     * Currently only a few data sources implement this functionality
+     * @param dataPointId
+     */
     public void forcePointRead(int dataPointId) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
         if (dataPoint == null)

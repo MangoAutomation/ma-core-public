@@ -146,8 +146,8 @@ public class SystemSettingsVO implements JsonSerializable{
 	private Integer backupPeriodType;
 	@JsonProperty
 	private Integer backupPeriods;
-	@JsonProperty 
-	private Boolean backupLastRunSuccess;
+	 
+	private String backupLastRunSuccess;
 	@JsonProperty
 	private Integer backupFileCount;
 	@JsonProperty
@@ -603,12 +603,12 @@ public class SystemSettingsVO implements JsonSerializable{
 	}
 
 
-	public Boolean getBackupLastRunSuccess() {
+	public String getBackupLastRunSuccess() {
 		return backupLastRunSuccess;
 	}
 
 
-	public void setBackupLastRunSuccess(Boolean backupLastRunSuccess) {
+	public void setBackupLastRunSuccess(String backupLastRunSuccess) {
 		this.backupLastRunSuccess = backupLastRunSuccess;
 	}
 

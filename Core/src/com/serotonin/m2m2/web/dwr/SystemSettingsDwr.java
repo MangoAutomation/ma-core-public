@@ -447,7 +447,6 @@ public class SystemSettingsDwr extends BaseDwr {
 
     	//Validate the Hour and Minute
     	if((backupHour < 24)&&(backupHour>=0)){
-    		updateTask = true;
     		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_HOUR, backupHour);
     	}else{
     		updateTask = false;
@@ -455,7 +454,6 @@ public class SystemSettingsDwr extends BaseDwr {
     				"systemSettings.validation.backupHourInvalid");
     	}
     	if((backupMinute < 60)&&(backupMinute>=0)){
-    		updateTask = true;
     		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_MINUTE, backupMinute);
     	}else{
     		updateTask = false;
@@ -474,7 +472,6 @@ public class SystemSettingsDwr extends BaseDwr {
     	
     	boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, !backupEnabled);
     	if(backupEnabled != oldBackupEnabled){
-    		updateTask = true;
     		systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
     	}
     	    	

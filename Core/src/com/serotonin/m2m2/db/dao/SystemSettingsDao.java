@@ -406,7 +406,7 @@ public class SystemSettingsDao extends BaseDao {
         vo.setBackupFileLocation(getValue(BACKUP_FILE_LOCATION));
         vo.setBackupPeriodType(getIntValue(BACKUP_PERIOD_TYPE));
         vo.setBackupPeriods(getIntValue(BACKUP_PERIODS));
-        vo.setBackupLastRunSuccess(getBooleanValue(BACKUP_LAST_RUN_SUCCESS));
+        vo.setBackupLastRunSuccess(getValue(BACKUP_LAST_RUN_SUCCESS));
         vo.setBackupFileCount(getIntValue(BACKUP_FILE_COUNT));
         vo.setBackupHour(getIntValue(BACKUP_HOUR));
         vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
@@ -492,7 +492,7 @@ public class SystemSettingsDao extends BaseDao {
         this.setValue(BACKUP_FILE_LOCATION, vo.getBackupFileLocation());
         this.setIntValue(BACKUP_PERIOD_TYPE, vo.getBackupPeriodType());
         this.setIntValue(BACKUP_PERIODS, vo.getBackupPeriods());
-        this.setBooleanValue(BACKUP_LAST_RUN_SUCCESS, vo.getBackupLastRunSuccess());
+        this.setValue(BACKUP_LAST_RUN_SUCCESS, vo.getBackupLastRunSuccess());
         this.setIntValue(BACKUP_FILE_COUNT, vo.getBackupFileCount());
         this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
         this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
