@@ -10,10 +10,8 @@
   <c:when test="${!empty showHeader}">
 	  <c:choose>
 	    <c:when test="${showHeader == false}">style="display:none;"</c:when>
-	    <c:otherwise>style="width:100%; height: 85px"</c:otherwise>
 	  </c:choose>
 	</c:when>
-	<c:otherwise>style="width:100%; height: 85px"</c:otherwise>
 	</c:choose>
 	>
 	<div id="mainHeader_leadingRegion"
