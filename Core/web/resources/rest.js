@@ -188,16 +188,17 @@ require(['dojo/json', 'dojo/_base/xhr', "dojo/request", "dojo/store/JsonRest", "
                     color: 'red'
             });
             
-            if(dataPoint.pointLocator.dataType === "ALPHANUMERIC"){
+            //TODO fix up when we have a pl available
+            //if(dataPoint.pointLocator.dataType === "ALPHANUMERIC"){
                 
                 //Need to create .y(function(d) {})
                 // in the chart that will map strings to a value
                 // and pull out that value to display it
                 // then change the y axis to show Strings as labels to those numbers
                 
-                hide("chart");
-                return; 
-            }
+             //   hide("chart");
+             //   return; 
+            //}
 
             
             mangoRest.dataPoints.createDateGraph(chartData,"chart");
