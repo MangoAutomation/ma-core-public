@@ -60,7 +60,6 @@ public class ImportTask extends ProgressiveTask {
         JsonObject obj = root.getJsonObject(EmportDwr.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj));
-
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));

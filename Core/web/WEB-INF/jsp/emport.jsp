@@ -108,7 +108,9 @@
         </td>
         <td>
           <c:forEach items="${definitions}" var="def">
+            <c:if test="${def.inView == true }">
             <input type="checkbox" name="exportElement" id="${def.elementId}" value="${def.elementId}"/> <label for="${def.elementId}"><fmt:message key="${def.descriptionKey}"/></label><br/>
+            </c:if>
           </c:forEach>
         </td>
 <!--          <input type="checkbox" id="systemSettings"/> <label for="systemSettings"><fmt:message key="header.systemSettings"/></label><br/>-->
