@@ -87,7 +87,7 @@ public class CompiledScriptExecutor {
         // Create the wrapper object context.
         ScriptEngine engine = script.getEngine();
         ScriptUtils.wrapperContext(engine, new WrapperContext(runtime));
-        Bindings engineScope = new SimpleBindings();
+        Bindings engineScope = engine.createBindings(); //new SimpleBindings();
 
         // Put the context variables into the engine with engine scope.
         for (String varName : context.keySet()) {

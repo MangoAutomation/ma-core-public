@@ -7,6 +7,10 @@ package com.serotonin.m2m2.view.stats;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
+ * Additions for primitive types to be returned force the 
+ * Nashorn JS Engine to use Number instead of the Java Type Object
+ * that cannot be autoboxed.
+ * 
  * @author Matthew Lohbihler
  */
 public class StartsAndRuntime {

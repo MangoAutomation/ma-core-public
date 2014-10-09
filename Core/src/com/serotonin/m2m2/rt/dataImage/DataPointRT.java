@@ -21,7 +21,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
-import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -388,7 +387,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                     endValue = averagingValues.get(averagingValues.size() - 1);
                 AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue,
                         averagingValues, endValue);
-                if (stats.getAverage() == null)
+                if (!stats.hasAverage())
                     value = null;
                 else
                     value = new NumericValue(stats.getAverage());

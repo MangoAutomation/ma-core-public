@@ -97,7 +97,7 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
                 if (includeSum)
                     model.put("sum", stats.getSum());
                 model.put("count", stats.getCount());
-                model.put("noData", stats.getAverage() == null);
+                model.put("noData", !stats.hasAverage());
                 model.put("integral", stats.getIntegral());
             }
             else if (dataTypeId == DataTypes.ALPHANUMERIC) {
