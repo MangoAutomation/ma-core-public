@@ -9,10 +9,6 @@ import java.util.List;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
- * Additions for primitive types to be returned force the 
- * Nashorn JS Engine to use Number instead of the Java Type Object
- * that cannot be autoboxed.
- * 
  * @author Matthew Lohbihler
  */
 public class AnalogStatistics implements StatisticsGenerator {
@@ -152,27 +148,27 @@ public class AnalogStatistics implements StatisticsGenerator {
         return periodEnd;
     }
 
-    public double getMinimumValue() {
+    public Double getMinimumValue() {
         return minimumValue;
     }
 
-    public long getMinimumTime() {
+    public Long getMinimumTime() {
         return minimumTime;
     }
 
-    public double getMaximumValue() {
+    public Double getMaximumValue() {
         return maximumValue;
     }
 
-    public long getMaximumTime() {
+    public Long getMaximumTime() {
         return maximumTime;
     }
 
-    public double getAverage() {
+    public Double getAverage() {
         return average;
     }
     
-    public double getIntegral() {
+    public Double getIntegral() {
         return integral;
     }
 
@@ -180,15 +176,15 @@ public class AnalogStatistics implements StatisticsGenerator {
         return sum;
     }
 
-    public double getFirstValue() {
+    public Double getFirstValue() {
         return firstValue;
     }
 
-    public long getFirstTime() {
+    public Long getFirstTime() {
         return firstTime;
     }
 
-    public double getLastValue() {
+    public Double getLastValue() {
         return lastValue;
     }
 
@@ -204,10 +200,6 @@ public class AnalogStatistics implements StatisticsGenerator {
         return toString();
     }
 
-    public boolean hasAverage(){
-    	return (this.average != null);
-    }
-    
     @Override
     public String toString() {
         return "{minimumValue: " + minimumValue + ", minimumTime=" + minimumTime + ", maximumValue: " + maximumValue

@@ -47,39 +47,40 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         return pvt.getDoubleValue();
     }
 
-    public AnalogStatistics past(int periodType) {
+    public AnalogStatisticsWrapper past(int periodType) {
         return past(periodType, 1);
     }
 
-    public AnalogStatistics past(int periodType, int count) {
+    public AnalogStatisticsWrapper past(int periodType, int count) {
         long to = getContext().getRuntime();
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to);
     }
 
-    public AnalogStatistics prev(int periodType) {
+    public AnalogStatisticsWrapper prev(int periodType) {
         return previous(periodType, 1);
     }
 
-    public AnalogStatistics prev(int periodType, int count) {
+    public AnalogStatisticsWrapper prev(int periodType, int count) {
         return previous(periodType, count);
     }
 
-    public AnalogStatistics previous(int periodType) {
+    public AnalogStatisticsWrapper previous(int periodType) {
         return previous(periodType, 1);
     }
 
-    public AnalogStatistics previous(int periodType, int count) {
+    public AnalogStatisticsWrapper previous(int periodType, int count) {
         long to = DateUtils.truncate(getContext().getRuntime(), periodType);
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to);
     }
 
-    public AnalogStatistics getStats(long from, long to) {
+    public AnalogStatisticsWrapper getStats(long from, long to) {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         PointValueTime end = point.getPointValueAfter(from);
         AnalogStatistics stats = new AnalogStatistics(from, to, start, values, end);
-        return stats;
+        AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
+        return wrapper;
     }
 }

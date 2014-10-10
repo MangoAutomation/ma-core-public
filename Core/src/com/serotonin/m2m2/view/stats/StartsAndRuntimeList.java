@@ -17,11 +17,6 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
- * 
- * Additions for primitive types to be returned force the 
- * Nashorn JS Engine to use Number instead of the Java Type Object
- * that cannot be autoboxed.
- *  
  * @author Matthew Lohbihler
  */
 public class StartsAndRuntimeList implements StatisticsGenerator {
@@ -138,7 +133,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         return firstValue;
     }
 
-    public long getFirstTime() {
+    public Long getFirstTime() {
         return firstTime;
     }
 
@@ -146,7 +141,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         return lastValue;
     }
 
-    public long getLastTime() {
+    public Long getLastTime() {
         return lastTime;
     }
 
