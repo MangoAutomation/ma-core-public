@@ -20,6 +20,7 @@
 * Added additional methods for scripting and meta points: (pointValuesBetween, pointValuesSince, pointValueBefore, pointValueAfter)
 * Added additional method for point statistics in scripts:  getStats(from, to)
 * Fixed bug where Units were being squared on copy.
+* Increase timeout to 20s on Alarms Report page for improved reliability on very large installations
 
 *Version 2.4.3*
 * Modified data type select tag
