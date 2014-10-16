@@ -7,6 +7,9 @@ package com.serotonin.m2m2.web.dwr.emport;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -33,6 +36,9 @@ import com.serotonin.util.ProgressiveTask;
  * @author Matthew Lohbihler
  */
 public class ImportTask extends ProgressiveTask {
+	
+	private static Log LOG = LogFactory.getLog(ImportTask.class);
+	
     private final ImportContext importContext;
     private final User user;
 
@@ -46,17 +52,26 @@ public class ImportTask extends ProgressiveTask {
 
         for (JsonValue jv : nonNullList(root, EmportDwr.USERS))
             addImporter(new UserImporter(jv.toJsonObject()));
+        
         for (JsonValue jv : nonNullList(root, EmportDwr.DATA_SOURCES))
             addImporter(new DataSourceImporter(jv.toJsonObject()));
+        
         for (JsonValue jv : nonNullList(root, EmportDwr.DATA_POINTS))
             addImporter(new DataPointImporter(jv.toJsonObject()));
-        addImporter(new PointHierarchyImporter(root.getJsonArray(EmportDwr.POINT_HIERARCHY)));
+        
+        JsonArray phJson = root.getJsonArray(EmportDwr.POINT_HIERARCHY);
+        if(phJson != null)
+        	addImporter(new PointHierarchyImporter(phJson));
+        
         for (JsonValue jv : nonNullList(root, EmportDwr.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject()));
+        
         for (JsonValue jv : nonNullList(root, EmportDwr.PUBLISHERS))
             addImporter(new PublisherImporter(jv.toJsonObject()));
+        
         for (JsonValue jv : nonNullList(root, EmportDwr.EVENT_HANDLERS))
             addImporter(new EventHandlerImporter(jv.toJsonObject()));
+        
         JsonObject obj = root.getJsonObject(EmportDwr.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj));
@@ -123,13 +138,15 @@ public class ImportTask extends ProgressiveTask {
                         importerSuccess = true;
                         importers.remove(importerIndex);
                     }
-                    else
+                    else{
                         // The import failed. Leave it in the list since the run of another importer
                         // may resolved the problem.
                         importerIndex++;
+                    }
                 }
                 catch (Exception e) {
                     // Uh oh...
+                	LOG.error(e.getMessage(),e);
                     addException(e);
                     importers.remove(importerIndex);
                 }
@@ -162,6 +179,9 @@ public class ImportTask extends ProgressiveTask {
         Throwable t = e;
         while ((t = t.getCause()) != null)
             msg += ", " + importContext.getTranslations().translate("emport.causedBy") + " '" + t.getMessage() + "'";
+        //We were missing NPE and others without a msg
+        if(msg == null)
+        	msg = e.getClass().getCanonicalName();
         importContext.getResult().addGenericMessage("common.default", msg);
     }
 }

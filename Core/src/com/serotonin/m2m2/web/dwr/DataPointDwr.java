@@ -17,7 +17,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
-import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
@@ -39,7 +38,6 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dojo.DojoMemoryStoreListItem;
-import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.taglib.Functions;
@@ -195,11 +193,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
 
             //When potential for the defaulter is available one must use the DataSourceEditDwr.validate method and store/pull
         	// the data point vo into/outof the session (Common.User.data)
-            DataPointDefaulter defaulter = null;
+//TODO            DataPointDefaulter defaulter = null;
             try {
                 Common.runtimeManager.saveDataPoint(vo);
-                if (defaulter != null)
-                    defaulter.postSave(vo);
+//TODO             if (defaulter != null)
+//                    defaulter.postSave(vo);
      
             } catch(Exception e) {
                 // Handle the exceptions.
@@ -518,12 +516,6 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
         
         //Get the Full VO for the export
         data.put(keyName, vos);
-        
-        if (topLevelKeyName != null) {
-            Map<String, Object> topData = new LinkedHashMap<String, Object>();
-            topData.put(topLevelKeyName, data);
-            data = topData;
-        }
         
         return EmportDwr.export(data, 3);
     }

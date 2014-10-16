@@ -2,7 +2,7 @@
 * Upgraded to Jetty 9
 * Improved JSP Performance by changing/upgrading Engine
 * Added status servlet to serve Mango application Status in JSON format at /status/mango.json
-* Upgraded H2 to 1.4.180
+* Upgraded H2 to 1.4.181
 * Upgraded Spring to 4.0.5
 * Upgraded serotonin-utils to 2.1.3
 * Added security to viewing data sources and data points so only users with proper permissions can see them
@@ -21,6 +21,7 @@
 * Added additional method for point statistics in scripts:  getStats(from, to)
 * Fixed bug where Units were being squared on copy.
 * Increase timeout to 20s on Alarms Report page for improved reliability on very large installations
+* Fixed bug where PointHierarchy Importer was running and failing silently on every JSON Import
 
 *Version 2.4.3*
 * Modified data type select tag

@@ -310,12 +310,6 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
         //Get the Full VO for the export
         data.put(keyName, vos);
         
-        if (topLevelKeyName != null) {
-            Map<String, Object> topData = new LinkedHashMap<String, Object>();
-            topData.put(topLevelKeyName, data);
-            data = topData;
-        }
-        
         return EmportDwr.export(data, 3);
     }
     

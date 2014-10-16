@@ -75,7 +75,7 @@ public class H2Proxy extends DatabaseProxy {
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
-        url += ";DB_CLOSE_ON_EXIT=FALSE";
+        url += ";DB_CLOSE_ON_EXIT=FALSE;MV_STORE=FALSE";
         return url;
     }
 

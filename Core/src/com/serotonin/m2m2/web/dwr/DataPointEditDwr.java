@@ -50,7 +50,7 @@ public class DataPointEditDwr extends BaseDwr {
     		result.addData("match",true);
     	}else{
     		
-    		result.addData("message", Common.translate("common.dataPointSaveFailed"));
+    		result.addData("message", Common.translate("pointEdit.error.uiPointMismatch"));
     		result.addData("match", false);
     	}
     	
