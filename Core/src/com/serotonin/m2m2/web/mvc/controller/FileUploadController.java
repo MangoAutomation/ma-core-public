@@ -27,13 +27,12 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter;
-import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.FileType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.PointValueEmporter;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.dataPoint.DataPointEmporter;
+import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter;
+import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.FileType;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
 /**
@@ -178,20 +177,10 @@ public class FileUploadController implements UrlHandler {
 
         if(dataType != null){
 	        if(dataType.equals("dataPoint")){
-//	            Integer dataSourceId;
-//	            try{
-//	            	dataSourceId = Integer.parseInt((String)model.get("dsId"));
-//	            }
-//	            catch (NumberFormatException e) {
-//	            	dataSourceId = null;
-//	            }
-//	        	emporter.doImport(input, new DataPointEmporter(dataSourceId,true));
+	        	throw new ShouldNeverHappenException("Unsupported data.");
 	        }else if(dataType.equals("pointValue")){
-
 	        	//Get the file
 	        	emporter.doImport(input, new PointValueEmporter());
-	        	
-	        	
 	        }
     	}
 

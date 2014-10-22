@@ -26,7 +26,6 @@ import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 import com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController;
-import com.serotonin.m2m2.web.mvc.controller.FileDownloadController;
 import com.serotonin.m2m2.web.mvc.controller.FileUploadController;
 import com.serotonin.m2m2.web.mvc.controller.ModulesController;
 
@@ -378,9 +377,6 @@ public class ModuleRegistry {
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
                 "none.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/download.shtm", new FileDownloadController(),
-                "none.jsp"));
-        
         
         /* MOBILE MAPPINGS */
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",

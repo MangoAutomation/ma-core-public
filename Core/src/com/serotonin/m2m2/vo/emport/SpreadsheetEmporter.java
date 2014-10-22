@@ -188,9 +188,13 @@ public class SpreadsheetEmporter {
             	//Import this row
                 sheetEmporter.importRow(sheet.getRow(rowNum));
             }
-            catch (SpreadsheetException e) {
-                e.setRowNum(rowNum);
-                errorMessages.addAll(e.getMessages());
+            catch (Exception e) {
+            	if(e instanceof SpreadsheetException){
+            		((SpreadsheetException)e).setRowNum(rowNum);
+            		errorMessages.addAll(((SpreadsheetException)e).getMessages());
+            	}else{
+            		errorMessages.add(new TranslatableMessage("common.default", e.getMessage() + " - row " + rowNum));
+            	}
                 rowErrors++;
             }
             rowsProcessed++;
@@ -423,7 +427,7 @@ public class SpreadsheetEmporter {
      * @return
      * @throws SpreadsheetException
      */
-    private double readNumericCell(Integer rowNum, Cell cell) throws SpreadsheetException {
+    public double readNumericCell(Integer rowNum, Cell cell) throws SpreadsheetException {
         if (cell == null) {
             throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumberGeneric");
         }
@@ -451,7 +455,7 @@ public class SpreadsheetEmporter {
      * @return Date object
      * @throws SpreadsheetException
      */
-    private Date readDateCell(Integer rowNum, Cell cell) throws SpreadsheetException {
+    public Date readDateCell(Integer rowNum, Cell cell) throws SpreadsheetException {
         if (cell == null) {
             throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumberGeneric");
         }

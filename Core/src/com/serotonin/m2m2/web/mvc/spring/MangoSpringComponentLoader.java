@@ -41,7 +41,7 @@ public class MangoSpringComponentLoader {
 			annotationContext.register(SwaggerConfig.class);
 		}
 		
-		if(enableSwagger || enableRest){
+		if(enableRest){
 			annotationContext.refresh();
 		}
 		
