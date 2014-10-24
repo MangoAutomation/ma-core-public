@@ -47,7 +47,7 @@
             <td class="formLabel"><fmt:message key="dsEdit.logging.purge"/></td>
             <td class="formField">
               <div>
-                <sst:checkbox id="dataSource.purgeOverride" selectedValue="${dataSource.purgeOverride}" onclick="changePurgeOverride()"/>
+                <sst:checkbox id="dataSource.purgeOverride" selectedValue="${dataSource.purgeOverride}" onclick="changeDataSourcePurgeOverride()"/>
                 <label for="dataSource.purgeOverride"><fmt:message key="dsEdit.logging.purgeOverride"/></label>
               </div>
               <div>
