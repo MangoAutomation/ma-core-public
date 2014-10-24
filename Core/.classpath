@@ -28,5 +28,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="/Users/tpacker/Documents/Work/Infinite/projects/RXTX OSX"/>
+	<classpathentry kind="lib" path="/MBus/lib/RXTXcomm.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/Users/tpacker/Documents/Work/Infinite/projects/RXTX OSX"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="maven-target/classes"/>
 </classpath>
