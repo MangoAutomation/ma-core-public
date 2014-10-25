@@ -131,6 +131,8 @@ public class StatusServlet extends HttpServlet{
 			return this.translations.translate("startup.state.maintenanceInitialize");
 		case 170:
 			return this.translations.translate("startup.state.imageSetInitialize");
+		case 175:
+			return this.translations.translate("startup.state.webServerFinalize");
 		case 180:
 			return this.translations.translate("startup.state.postInitialize");
 		case 190:
