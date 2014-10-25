@@ -17,8 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.directwebremoting.WebContext;
-import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;

@@ -1,47 +1,24 @@
-var lastMessage; //Holds the last recieved log message
-var pollLock = false; //Lock to ensure we don't have duplicate polls running
+var lastMessage; //Holds the last received log message
 
-require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr', "dojo/domReady!"], 
-        function(topic, ProgressBar, win, xhr){
+require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr', "dojo/domReady!"], 
+        function(ProgressBar, win, xhr){
 
-    //Setup the console messages target
-    topic.subscribe("startupTopic", function(message) {
-        //Message has members:
-        // duration - int
-        // message - string
-        // type - string
-        var startupConsole = dijit.byId("startupConsole");
-        if (message.type == 'clear')
-            startupConsole.set('content', "");
-        else {
-            startupConsole.set('content', message.message + startupConsole.get('content'));
-            
-        }
-    });
+
     
     //Initialized from existing info
     getStatus(0);
     
-    var pollPeriodMs = 500;
     var i = 0;
     var myProgressBar = new ProgressBar({
         style: "width: 300px"
     },"startupProgress");
-    
-    
-    setInterval(function(){
-        var timestamp = new Date().getTime() - pollPeriodMs;
-        getStatus(timestamp);
-    }, pollPeriodMs);
+
     
     /**
      * Get the Startup Status
      **/
     function getStatus(timestamp){
-        if(pollLock)
-            return;
-        else
-            pollLock = true; //Lock the polls
+        var lastPollTime = new Date().getTime();
         xhr.get({
            url: "/status/mango.json?time=" + timestamp,
            handleAs: "json",
@@ -53,14 +30,17 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',
                //Update my messages
                var startupMessageDiv = dojo.byId("startupMessage");
                startupMessageDiv.innerHTML = data.state;
+               
+               //Combine this block of messages into 1 HTML String
+               var newMessages = "";
                for(var i=0; i<data.messages.length; i++){
-                   dojo.publish("startupTopic",[{
-                       message:data.messages[i] + "<br>",
-                       type: "message",
-                       duration: -1, //Don't go away
-                       }]
-                   );
+                   newMessages += data.messages[i] + "<br>";
                }
+               
+               //Push it out to the div
+               var startupConsole = dijit.byId("startupConsole");
+               startupConsole.set('content', newMessages + startupConsole.get('content'));
+               
                
                //Do redirect?
                if(data.startupProgress >= 100){
@@ -68,15 +48,24 @@ require(["dojo/topic","dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',
                        window.location.href = '';
                    }, 500);
                   
+               }else{
+                   schedulePoll(lastPollTime);
                }
-               pollLock = false;
+
            },
-           error: function(error){
-               pollLock = false;           
+           error: function(error, ioArgs){
+               alert(error);
            }
         });
-
-        
-    };
+    }
+    
+    /**
+     * Schedule another poll of the status
+     */
+    function schedulePoll(lastPollTime){
+        setTimeout(function(){
+            getStatus(lastPollTime);
+        }, 100);
+    }
     
 });
