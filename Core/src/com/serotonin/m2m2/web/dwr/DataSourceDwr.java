@@ -132,7 +132,6 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 		            dp.setDataSourceId(vo.getId());
 		            dp.setDataSourceTypeName(vo.getDefinition().getDataSourceTypeName());
 		            dp.setDeviceName(vo.getName());
-		            dp.setPointLocator(vo.createPointLocator());
 		            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
 		            dp.defaultTextRenderer();
 		            dp.setXid(DataPointDao.instance.generateUniqueXid());

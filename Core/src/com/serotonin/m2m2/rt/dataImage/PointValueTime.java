@@ -103,7 +103,7 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
 
     @Override
     public String toString() {
-        return "PointValueTime(" + value + "@" + Functions.getTime(time) + ")";
+        return "PointValueTime(" + value + "@" + Functions.getFullSecondTime(time) + ")";
     }
 
     @Override
