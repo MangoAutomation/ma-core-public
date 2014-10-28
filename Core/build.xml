@@ -21,7 +21,7 @@
     <property file="build.properties" />
     <property name="fullName"
               value="m2m2-${maven-pom.artifactId}-${maven-pom.version}" />
-    <property name="core.target" value="${coreHome}/target" />
+    <property name="core.target" value="${coreHome}" />
     <property name="core.release" value="${coreHome}/release" />
     <property name="core.deploy.paths" value="${core.release}" />
     <!-- Build number file to allow overidding for Release Builds -->

@@ -23,6 +23,7 @@
 * Increase timeout to 20s on Alarms Report page for improved reliability on very large installations
 * Fixed bug where PointHierarchy Importer was running and failing silently on every JSON Import
 * Changed Point Value CSV Export format to match Excel export format
+* Fix to Numeric Point Wrapper's getStats method to correctly compute the end value for the period.
 
 
 *Version 2.4.3*
