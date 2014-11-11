@@ -49,6 +49,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
+import com.serotonin.m2m2.rt.serial.EthernetComBridge;
 import com.serotonin.m2m2.shared.VersionData;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.DocumentationManifest;
@@ -401,6 +402,7 @@ public class Common {
     // Misc
     public static List<CommPortProxy> getCommPorts() throws CommPortConfigException {
         List<CommPortProxy> ports = SerialUtils.getCommPorts();
+       
         return ports;
     }
 

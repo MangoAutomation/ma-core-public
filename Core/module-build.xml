@@ -465,10 +465,17 @@
                 <property name="cw-tagpkg"
                           value="work/jsp/org/apache/jsp/tag/web/${name}" />
 
-                <echo message="Copying Tags to ${core.target}/${cw-tagpkg}" />
+                <echo message="Copying Tag Classes to ${core.target}/${cw-tagpkg}" />
                 <copy todir="${core.target}/web/WEB-INF/tags/${name}"
                       preservelastmodified="true">
                     <fileset dir="${module.target}/${cw-tagpkg}">
+                        <include name="**/*" />
+                    </fileset>
+                </copy>
+            	<echo message="Copying Tags to ${core.target}/${cw-tagpkg}" />
+                <copy todir="${core.target}/web/WEB-INF/tags/${name}"
+                      preservelastmodified="true">
+                	<fileset dir="${module.core}/${tagdir}">
                         <include name="**/*" />
                     </fileset>
                 </copy>

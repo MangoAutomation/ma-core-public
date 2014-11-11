@@ -159,4 +159,13 @@ abstract public class AbstractPointWrapper {
     public PointValueTime pointValueAfter(long timestamp){
     	return point.getPointValueAfter(timestamp);
     }    
+    
+    /**
+     * Get the point value AT this time
+     * @param timestamp
+     * @return value at exactly this time OR null
+     */
+    public PointValueTime pointValueAt(long timestamp){
+    	return point.getPointValueAt(timestamp);
+    }
 }

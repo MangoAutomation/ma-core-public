@@ -113,4 +113,10 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 		return dataTypeId;
 	}
 
+	@Override
+	public PointValueTime getPointValueAt(long time) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
