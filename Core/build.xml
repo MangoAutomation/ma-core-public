@@ -153,7 +153,7 @@
 
         <!-- Place the build number into the build (If there is already one, this breaks compatibility with the store) -->
         <available property="mango.build.number.exists"
-                           file="mango.build.number"
+                           file="${mango.build.number}"
                            type="file" />
         <if>
             <isset property="mango.build.number.exists" />
