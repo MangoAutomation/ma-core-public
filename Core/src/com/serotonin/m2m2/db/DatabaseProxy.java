@@ -214,6 +214,8 @@ abstract public class DatabaseProxy {
         }
     }
 
+    
+    
     abstract public void terminateImpl();
 
     abstract public DataSource getDataSource();
@@ -221,6 +223,12 @@ abstract public class DatabaseProxy {
     abstract public double applyBounds(double value);
 
     abstract public File getDataDirectory();
+    
+    /**
+     * 
+     * @return size of Database in bytes or null if don't know
+     */
+    abstract public Long getDatabaseSizeInBytes();
 
     abstract public void executeCompress(ExtendedJdbcTemplate ejt);
 
@@ -232,7 +240,7 @@ abstract public class DatabaseProxy {
 
     abstract public int getIdleConnections();
 
-    protected void postInitialize(@SuppressWarnings("unused") ExtendedJdbcTemplate ejt) {
+    protected void postInitialize(ExtendedJdbcTemplate ejt) {
         // no op - override as necessary
     }
 

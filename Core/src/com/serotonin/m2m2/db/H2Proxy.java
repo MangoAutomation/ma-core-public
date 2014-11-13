@@ -27,6 +27,8 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.util.DirectoryInfo;
+import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
 
 public class H2Proxy extends DatabaseProxy {
@@ -195,7 +197,24 @@ public class H2Proxy extends DatabaseProxy {
 
     @Override
     public File getDataDirectory() {
-        return null;
+    	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(this.getDataSource());
+        String dataDir = ejt.queryForObject("call DATABASE_PATH()", String.class);
+    	return new File(dataDir);
+    	
+    }
+    
+    @Override
+    public Long getDatabaseSizeInBytes(){
+    	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(this.getDataSource());
+        String dataDir = ejt.queryForObject("call DATABASE_PATH()", String.class);
+        File dbData = new File(dataDir + ".h2.db"); //Good until we change to MVStore
+    	if(dbData.exists()){
+    		DirectoryInfo dbInfo = DirectoryUtils.getSize(dbData);
+    		return dbInfo.getSize();
+    	}else
+    		return null;
     }
 
     @Override
@@ -212,7 +231,8 @@ public class H2Proxy extends DatabaseProxy {
 
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
-        return ejt.queryForInt("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
-                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'") > 0;
+    	return ejt.queryForObject("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
+                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", Integer.class) > 0;
     }
+    
 }

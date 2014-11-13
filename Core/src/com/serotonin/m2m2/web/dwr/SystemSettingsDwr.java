@@ -187,16 +187,14 @@ public class SystemSettingsDwr extends BaseDwr {
         Map<String, Object> data = new HashMap<String, Object>();
 
         // Database size
-        File dataDirectory = Common.databaseProxy.getDataDirectory();
-        long dbSize = 0;
-        if (dataDirectory != null) {
-            DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
-            dbSize = dbInfo.getSize();
+        Long dbSize = Common.databaseProxy.getDatabaseSizeInBytes();
+        if (dbSize != null) {
             data.put("databaseSize", DirectoryUtils.bytesDescription(dbSize));
         }
-        else
+        else{
             data.put("databaseSize", "(" + translate("common.unknown") + ")");
-
+            dbSize = 0L;
+        }
         
         //Do we have any NoSQL Data
         long noSqlSize = 0L;

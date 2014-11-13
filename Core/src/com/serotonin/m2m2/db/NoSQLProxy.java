@@ -5,7 +5,6 @@ import java.io.File;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
-import com.serotonin.m2m2.db.dao.logging.LoggingDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 import com.serotonin.util.DirectoryUtils;

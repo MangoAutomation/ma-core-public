@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import org.springframework.jdbc.core.RowMapper;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.util.DirectoryInfo;
+import com.serotonin.util.DirectoryUtils;
 
 public class MySQLProxy extends BasePooledProxy {
     @Override
@@ -94,4 +97,26 @@ public class MySQLProxy extends BasePooledProxy {
     protected String getLimitDelete(String sql, int chunkSize) {
         return sql + " LIMIT " + chunkSize;
     }
+    
+    @Override
+    public File getDataDirectory() {
+    	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(this.getDataSource());
+        String dataDir = ejt.queryForObject("select @@DATADIR", String.class);
+    	return new File(dataDir);
+    }
+    
+    @Override
+    public Long getDatabaseSizeInBytes(){
+    	
+    	File dataDirectory = getDataDirectory();
+    	if(dataDirectory != null){
+	        DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
+	        return dbInfo.getSize();
+    	}else
+    		return null;
+    }
+    
+    
+    
 }
