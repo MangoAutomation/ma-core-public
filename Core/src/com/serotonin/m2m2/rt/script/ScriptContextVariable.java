@@ -153,8 +153,10 @@ public class ScriptContextVariable implements Serializable{
                     throw new TranslatableJsonException("emport.error.meta.missing", "dataPointXid");
 
                 DataPointVO dp = dataPointDao.getDataPoint(xid);
-                if (dp == null)
+                if (dp == null){
+                	//This can also happen if the point is in its own context (Bug from legacy systems).
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
+                }
 
                 //For compatibility with varName and variableName json types
                 String var = jo.getString("varName");

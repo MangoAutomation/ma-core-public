@@ -102,7 +102,9 @@ public class MySQLProxy extends BasePooledProxy {
     public File getDataDirectory() {
     	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(this.getDataSource());
-        String dataDir = ejt.queryForObject("select @@DATADIR", String.class);
+        String dataDir = ejt.queryForObject("select @@DATADIR", new Object[]{}, String.class, null);
+        if(dataDir == null)
+        	return null;
     	return new File(dataDir);
     }
     

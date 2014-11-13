@@ -199,7 +199,9 @@ public class H2Proxy extends DatabaseProxy {
     public File getDataDirectory() {
     	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(this.getDataSource());
-        String dataDir = ejt.queryForObject("call DATABASE_PATH()", String.class);
+        String dataDir = ejt.queryForObject("call DATABASE_PATH()", new Object[]{}, String.class, null);
+        if(dataDir == null)
+        	return null;
     	return new File(dataDir);
     	
     }
@@ -208,7 +210,10 @@ public class H2Proxy extends DatabaseProxy {
     public Long getDatabaseSizeInBytes(){
     	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(this.getDataSource());
-        String dataDir = ejt.queryForObject("call DATABASE_PATH()", String.class);
+        String dataDir = ejt.queryForObject("call DATABASE_PATH()", new Object[]{}, String.class, null);
+        if(dataDir == null){
+        	return null;
+        }
         File dbData = new File(dataDir + ".h2.db"); //Good until we change to MVStore
     	if(dbData.exists()){
     		DirectoryInfo dbInfo = DirectoryUtils.getSize(dbData);
@@ -232,7 +237,7 @@ public class H2Proxy extends DatabaseProxy {
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
     	return ejt.queryForObject("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
-                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", Integer.class) > 0;
+                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", new Object[]{}, Integer.class, 0) > 0;
     }
     
 }

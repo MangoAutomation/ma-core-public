@@ -118,7 +118,7 @@ public class DerbyProxy extends DatabaseProxy {
         });
 
         for (IdentityStart is : starts) {
-            int maxId = ejt.queryForObject("select max(" + is.column + ") from " + is.table, Integer.class);
+        	int maxId = ejt.queryForObject("select max(" + is.column + ") from " + is.table, new Object[]{}, Integer.class, 0);
             if (is.aiValue <= maxId)
                 ejt.execute("alter table " + is.table + " alter column " + is.column + " restart with " + (maxId + 1));
         }
@@ -231,7 +231,7 @@ public class DerbyProxy extends DatabaseProxy {
 
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
-        return ejt.queryForObject("select count(1) from sys.systables where tablename='" + tableName.toUpperCase() + "'", Integer.class) > 0;
+        return ejt.queryForObject("select count(1) from sys.systables where tablename='" + tableName.toUpperCase() + "'", new Object[]{}, Integer.class, 0) > 0;
     }
 
     @Override
