@@ -230,7 +230,7 @@ create table userEvents (
 ) engine=InnoDB;
 alter table userEvents add constraint userEventsFk1 foreign key (eventId) references events(id) on delete cascade;
 alter table userEvents add constraint userEventsFk2 foreign key (userId) references users(id);
-alter table userEvents add index performance1 (activeTs, ASC);
+alter table userEvents add index performance1 (userId ASC, silenced ASC);
 
 --
 --
