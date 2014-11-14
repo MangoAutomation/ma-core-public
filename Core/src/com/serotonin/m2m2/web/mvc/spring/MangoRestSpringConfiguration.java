@@ -42,6 +42,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter{
 
 	//TODO Make this a Bean by annotating the createObjectmapper method
+	//This is public for use in testing
 	public static final ObjectMapper objectMapper = createObjectMapper();
 	
 	/**
@@ -99,7 +100,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter{
 	}
 	
 	/**
-	 * Exposed for use in testing
+	 * 
 	 * @return
 	 */
 	private static ObjectMapper createObjectMapper(){
