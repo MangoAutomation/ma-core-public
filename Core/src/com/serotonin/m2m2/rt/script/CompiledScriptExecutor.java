@@ -108,7 +108,7 @@ public class CompiledScriptExecutor {
         	for(Entry<String,Object> entry: entries)
         		engineScope.put(entry.getKey(), entry.getValue());
         }
-        
+                
         // Put the context variables into the engine with engine scope.
         for (String varName : context.keySet()) {
             IDataPointValueSource point = context.get(varName);
@@ -124,6 +124,9 @@ public class CompiledScriptExecutor {
             else
                 throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
         }
+        
+        //Add in Additional Time/Date Utility Object with Engine Scope
+        engineScope.put("DateTimeUtility", new DateTimeUtility());
 
         // Execute.
         Object result;

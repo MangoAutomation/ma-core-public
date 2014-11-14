@@ -25,6 +25,7 @@
 * Changed Point Value CSV Export format to match Excel export format
 * Fix to Numeric Point Wrapper's getStats method to correctly compute the end value for the period.
 * Improved database size reporting on system settings page
+* Added DateTimeUtility for Meta Data Scripts
 
 
 *Version 2.4.3*
