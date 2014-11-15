@@ -26,6 +26,7 @@
 * Fix to Numeric Point Wrapper's getStats method to correctly compute the end value for the period.
 * Improved database size reporting on system settings page
 * Added DateTimeUtility for Meta Data Scripts
+* Fixed bug where DO NOT LOG Alarm levels were being added to the Database when they Returned to normal.
 
 
 *Version 2.4.3*

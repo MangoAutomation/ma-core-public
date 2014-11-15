@@ -49,6 +49,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         //Set the Export Query (HACK, but will work for now for exporting)
         this.setExportQuery(query, sort, or);
         
+        //TODO Use the Event Manager to access Current Events since the DO NOT LOG events are only in memory
         query.put("userId", Common.getUser().getId()+"");
         
         ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);

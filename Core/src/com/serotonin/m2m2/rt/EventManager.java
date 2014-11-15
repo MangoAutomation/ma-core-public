@@ -215,7 +215,8 @@ public class EventManager implements ILifecycle {
 			resetHighestAlarmLevel(time);
 
 			evt.returnToNormal(time, cause);
-			eventDao.saveEvent(evt);
+			if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
+				eventDao.saveEvent(evt);
 
 			// Call inactiveEvent handlers.
 			handleInactiveEvent(evt);
