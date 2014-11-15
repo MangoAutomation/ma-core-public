@@ -62,13 +62,8 @@ public class ModulesDwr extends BaseDwr {
             long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
             Lifecycle lifecycle = (Lifecycle)Providers.get(ILifecycle.class);
             SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout,true);
-
-            
             //Get the redirect page
 			result.addData("shutdownUri", "/shutdown.htm");
-			
-			//Logout the User
-			
         }else{
         	result.addData("message", Common.translate("modules.restartAlreadyScheduled"));
         }

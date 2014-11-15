@@ -287,7 +287,11 @@
     <servlet-name>springDispatcher</servlet-name>
     <url-pattern>/api-docs*</url-pattern>
   </servlet-mapping>
-
+  <!-- For MANGO Javascript API -->
+  <servlet-mapping>
+    <servlet-name>springDispatcher</servlet-name>
+    <url-pattern>/mango-javascript/*</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>dwr-invoker</servlet-name>
