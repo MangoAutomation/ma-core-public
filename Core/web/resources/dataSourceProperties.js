@@ -314,7 +314,7 @@
 	 dataPoints.open(point.id,{voToLoad: point});
 	 
 	 if (typeof editPointCBImpl == 'function') 
-		 cancel = editPointCBImpl(locator);
+		 cancel = editPointCBImpl(locator, point);
 	 if (!cancel) {
 		 //Give focus to the tab
 		 var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
@@ -475,7 +475,7 @@ function deletePoint() {
      delete locator.dataTypeMessage;
 
      DataPointDwr.storeEditProperties(myPoint,function(){
-         savePointImpl(locator);
+         savePointImpl(locator, myPoint); //Edit to allow access to entire point this is a step towards removing server side state of edit point
      });
  }
  

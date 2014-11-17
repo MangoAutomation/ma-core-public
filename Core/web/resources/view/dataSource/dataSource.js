@@ -401,7 +401,10 @@ dataSources.open = function(id,options,callback){
     this.currentId = id;
     var _this = this;
     options = options || {};
-    
+    //Hook for data sources to cleanup anything before thier view is expired
+    if(typeof dataSourceCleanup == 'function')
+    	dataSourceCleanup(id, options);
+
     if (options.voToLoad) {
     	//Copy
     	when(DataSourceDwr.get(options.voToLoad.id, function(vo) {

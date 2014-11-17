@@ -342,7 +342,7 @@ dataPoints = new StoreView({
     	//Set the enabled value
     	this.updateStatus(vo.id,vo.enabled);
     	
-    	if( typeof editPointCBImpl == 'function') editPointCBImpl(vo.pointLocator);
+    	if( typeof editPointCBImpl == 'function') editPointCBImpl(vo.pointLocator, vo);
 		
     	
 

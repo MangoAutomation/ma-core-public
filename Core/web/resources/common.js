@@ -269,7 +269,13 @@ function isMouseLeaveOrEnter(e, handler) {
 function show(node, styleType) {
     if (!styleType)
         styleType = '';
+    try{
     getNodeIfString(node).style.display = styleType;
+    }catch (err){
+    	if(console != 'undefined'){
+    		console.error('show failed for node: ' + node + ", " + err.message );
+    	}
+    }
 }
 
 function hide(node) {
