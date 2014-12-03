@@ -8,5 +8,5 @@
 <c:if test="${empty errorMessage}">
     <m2m2:translate key="dsEdit.error.general"/>
 </c:if>
-${errorMessage}
+${fn:escapeXml(errorMessage)}
 </tag:page>

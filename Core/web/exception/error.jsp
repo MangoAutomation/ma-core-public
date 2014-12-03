@@ -102,7 +102,7 @@ request.setAttribute("stackTrace", sw.toString());
     }
   </script>
   <a id="errorDataMessage" href="#" onclick="return toggleErrorData();">Show error details</a><br/>
-  <div id="errorData" style="display:none;"><pre>${stackTrace}</pre></div>
+  <div id="errorData" style="display:none;"><pre>${fn:escapeXml(stackTrace)}</pre></div>
   
   <log:error message="${stackTrace}"/>
 </tag:page>

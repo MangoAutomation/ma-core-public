@@ -28,6 +28,7 @@
 * Added DateTimeUtility for Meta Data Scripts
 * Fixed bug where DO NOT LOG Alarm levels were being added to the Database when they Returned to normal.
 * Changed Point Value import to ignore Blank and Empty XLS and XLSX rows.
+* XSS (Cross Site Scripting) measures implemented
 
 
 *Version 2.4.3*
