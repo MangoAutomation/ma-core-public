@@ -147,7 +147,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	if(dp == null){
     		dp = dataPointDao.getDataPoint(xid);
             if (dp == null)
-            	throw new SpreadsheetException(rowData.getRowNum(), "emport.error.xidRequired");
+            	throw new SpreadsheetException(rowData.getRowNum(),"emport.error.missingPoint", xid);
         	dpRt = Common.runtimeManager.getDataPoint(dp.getId());
 
     		rtMap.put(xid, dpRt);

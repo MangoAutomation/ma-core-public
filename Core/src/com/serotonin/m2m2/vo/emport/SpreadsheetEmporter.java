@@ -181,12 +181,16 @@ public class SpreadsheetEmporter {
 	        }
 	        rowNum += 1;
         }
-        
+ 
         // import the actual data rows
         for (; rowNum < numRows; rowNum++) {
             try {
             	//Import this row
-                sheetEmporter.importRow(sheet.getRow(rowNum));
+            	row  = sheet.getRow(rowNum);
+            	if(!isRowEmpty(row)){
+            		sheetEmporter.importRow(row);
+                    rowsProcessed++;
+            	}
             }
             catch (Exception e) {
             	if(e instanceof SpreadsheetException){
@@ -197,7 +201,7 @@ public class SpreadsheetEmporter {
             	}
                 rowErrors++;
             }
-            rowsProcessed++;
+
         }
     }
     
@@ -530,6 +534,20 @@ public class SpreadsheetEmporter {
             errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.ioError"));
             return;
         }
+    }
+    
+    /**
+     * Helper function to check for blank Rows
+     * @param row
+     * @return
+     */
+    public boolean isRowEmpty(Row row) {
+        for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
+            Cell cell = row.getCell(c);
+            if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
+                return false;
+        }
+        return true;
     }
     
     public boolean hasErrors() {
