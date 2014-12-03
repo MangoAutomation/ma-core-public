@@ -806,7 +806,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			copy.setSettable(settable);
 			copy.setTextRenderer(textRenderer);
 			copy.setTolerance(tolerance);
-			copy.setUnit(integralUnit);
+			copy.setUnit(unit);
 			copy.setUseIntegralUnit(useIntegralUnit);
 			copy.setUseRenderedUnit(useRenderedUnit);
 			copy.setXid(xid);
