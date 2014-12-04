@@ -1,12 +1,14 @@
 var lastMessage; //Holds the last received log message
 
-require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr', "dojo/domReady!"], 
-        function(ProgressBar, win, xhr){
-
+require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready", "dojo/domReady!"], 
+        function(ProgressBar, win, xhr, ready){
 
     
+    
     //Initialized from existing info
-    getStatus(0);
+	ready(function(){
+	    getStatus(0);
+	});
     
     var i = 0;
     var myProgressBar = new ProgressBar({
@@ -39,6 +41,7 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr', "dojo/domRea
                
                //Push it out to the div
                var startupConsole = dijit.byId("startupConsole");
+               //var startupConsole = registry.byId("startupConsole");
                startupConsole.set('content', newMessages + startupConsole.get('content'));
                
                
