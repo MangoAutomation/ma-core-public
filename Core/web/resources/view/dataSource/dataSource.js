@@ -377,10 +377,10 @@ dataSources = new StoreView({
         var count = (isFinite(options.count)) ? options.count : null;
         
         // controls whether sql is done using or or and
-        var or = true;
+        //var or = true;
         
         
-        DataSourceDwr.jsonExportUsingFilter(filterMap, sortArray, start, count, or, function(json){
+        DataSourceDwr.jsonExportUsingFilter(filterMap, sortArray, start, count, this.viewStore.dwr.or, function(json){
             $set("exportData", json);
             exportDialog.show();
         });

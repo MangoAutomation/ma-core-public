@@ -12,6 +12,7 @@ function(CachedDwrStore,QueryResults) {
 if (typeof DataSourceDwr !== 'undefined') {
     stores.dataSource = new CachedDwrStore(DataSourceDwr, "DataSourceDwr");
     stores.dataSource.dwr.queryLocally = false;
+    stores.dataSource.dwr.or = false; //Use AND in queries
 }
 
 if (typeof DataPointDwr !== 'undefined') {
