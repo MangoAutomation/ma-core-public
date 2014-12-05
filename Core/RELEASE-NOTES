@@ -29,7 +29,8 @@
 * Fixed bug where DO NOT LOG Alarm levels were being added to the Database when they Returned to normal.
 * Changed Point Value import to ignore Blank and Empty XLS and XLSX rows.
 * XSS (Cross Site Scripting) measures implemented
-
+* Fixing bug in Configuration backup where name would start with file separator
+* Adding ability to backup and restore H2 databases
 
 *Version 2.4.3*
 * Modified data type select tag

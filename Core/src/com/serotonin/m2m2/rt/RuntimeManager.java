@@ -37,6 +37,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
+import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -144,10 +145,16 @@ public class RuntimeManager {
             }
         }
         
-        //Schedule the Backup Task if necessary
+        //Schedule the Backup Tasks if necessary
         // No way to set the default value for Bools in SystemSettingsDao so must do here
-        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true)){
-       		BackupWorkItem.schedule();
+        if(!safe){
+	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true)){
+	       		BackupWorkItem.schedule();
+	        }
+	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED,true)){
+	       		DatabaseBackupWorkItem.schedule();
+	        }
+
         }
     }
 

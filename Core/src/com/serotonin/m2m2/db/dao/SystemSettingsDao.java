@@ -108,6 +108,15 @@ public class SystemSettingsDao extends BaseDao {
     
     public static final String ALLOW_ANONYMOUS_CHART_VIEW = "allowAnonymousGraphicViews";
 
+    public static final String DATABASE_BACKUP_FILE_LOCATION = "databaseBackupFileLocation";
+    public static final String DATABASE_BACKUP_PERIOD_TYPE = "databaseBackupPeriodType";
+    public static final String DATABASE_BACKUP_PERIODS = "databaseBackupPeriods";
+    public static final String DATABASE_BACKUP_LAST_RUN_SUCCESS = "databaseBackupLastSuccessfulRun";
+    public static final String DATABASE_BACKUP_HOUR = "databaseBackupHour";
+    public static final String DATABASE_BACKUP_MINUTE = "databaseBackupMinute";
+    public static final String DATABASE_BACKUP_FILE_COUNT = "databaseBackupFileCount";
+    public static final String DATABASE_BACKUP_ENABLED = "databaseBackupEnabled";
+    
     // Value cache
     private static final Map<String, String> cache = new HashMap<>();
 
@@ -331,6 +340,12 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
         //DEFAULT_VALUES.put(ALLOW_ANONYMOUS_GRAPHIC_VIEWS, false);
+        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
+        DEFAULT_VALUES.put(DATABASE_BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
+        DEFAULT_VALUES.put(DATABASE_BACKUP_PERIODS, 1);
+        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_COUNT, 10);
+        DEFAULT_VALUES.put(DATABASE_BACKUP_HOUR, 0);
+        DEFAULT_VALUES.put(DATABASE_BACKUP_MINUTE, 5);
     }
 
     /**
@@ -413,6 +428,16 @@ public class SystemSettingsDao extends BaseDao {
         vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
         
         vo.setAllowAnonymousChartView(getBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW));
+        
+        vo.setDatabaseBackupFileLocation(getValue(DATABASE_BACKUP_FILE_LOCATION));
+        vo.setDatabaseBackupPeriodType(getIntValue(DATABASE_BACKUP_PERIOD_TYPE));
+        vo.setDatabaseBackupPeriods(getIntValue(DATABASE_BACKUP_PERIODS));
+        vo.setDatabaseBackupLastRunSuccess(getValue(DATABASE_BACKUP_LAST_RUN_SUCCESS));
+        vo.setDatabaseBackupFileCount(getIntValue(DATABASE_BACKUP_FILE_COUNT));
+        vo.setDatabaseBackupHour(getIntValue(DATABASE_BACKUP_HOUR));
+        vo.setDatabaseBackupMinute(getIntValue(DATABASE_BACKUP_MINUTE));
+        vo.setDatabaseBackupEnabled(getBooleanValue(DATABASE_BACKUP_ENABLED));
+
         
         return vo;
     }
@@ -500,5 +525,14 @@ public class SystemSettingsDao extends BaseDao {
         
         this.setBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW, vo.getAllowAnonymousChartView());
         
+        this.setValue(DATABASE_BACKUP_FILE_LOCATION, vo.getDatabaseBackupFileLocation());
+        this.setIntValue(DATABASE_BACKUP_PERIOD_TYPE, vo.getDatabaseBackupPeriodType());
+        this.setIntValue(DATABASE_BACKUP_PERIODS, vo.getDatabaseBackupPeriods());
+        this.setValue(DATABASE_BACKUP_LAST_RUN_SUCCESS, vo.getDatabaseBackupLastRunSuccess());
+        this.setIntValue(DATABASE_BACKUP_FILE_COUNT, vo.getDatabaseBackupFileCount());
+        this.setIntValue(DATABASE_BACKUP_HOUR, vo.getDatabaseBackupHour());
+        this.setIntValue(DATABASE_BACKUP_MINUTE, vo.getDatabaseBackupMinute());
+        this.setBooleanValue(DATABASE_BACKUP_ENABLED, vo.getDatabaseBackupEnabled());
+
     }
 }

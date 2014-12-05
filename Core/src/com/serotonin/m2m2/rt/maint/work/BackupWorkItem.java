@@ -113,10 +113,10 @@ public class BackupWorkItem implements WorkItem {
 			filename += ".json";
 			//Fill the full path
 			String fullFilePath = this.backupLocation;
-			if(fullFilePath.endsWith(File.pathSeparator)){
+			if(fullFilePath.endsWith(File.separator)){
 				fullFilePath += filename;
 			}else{
-				fullFilePath += File.pathSeparator;
+				fullFilePath += File.separator;
 				fullFilePath += filename;
 			}
 
