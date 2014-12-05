@@ -260,7 +260,9 @@ dataSources = new StoreView({
     	}
 
     	DataSourceDwr.toggle(id, function(result) {
-    	    $set("dataSource.enabled", result.data.enabled); //Save state on page
+    		var dsEnabled = $("dataSource.enabled");
+    		if(dsEnabled != null)
+    			$set("dataSource.enabled", result.data.enabled); //Save state on page
             if(result.data.enabled){
                 
                 var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
