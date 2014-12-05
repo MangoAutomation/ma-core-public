@@ -515,6 +515,9 @@
     * Restore the database
     */
    function restoreDatabaseFromBackup(){
+	   
+	   var restoreMessages = document.getElementById("databaseRestoreMessages");
+	   restoreMessages.innerHTML = ""; //Clear out messages
 	   var backupFileSelect = document.getElementById("databaseFileToRestore");
 	   var selectedFile = backupFileSelect.options[backupFileSelect.selectedIndex];
 	   if(typeof selectedFile == 'undefined'){
@@ -525,9 +528,11 @@
 	   
 	   SystemSettingsDwr.restoreDatabaseFromBackup(selectedFile.value, function(response){
 		   if (response.hasMessages)
-               showDwrMessages(response.messages);
+               showDwrMessages(response.messages, $("databaseRestoreMessages"));
+		   else
+			   setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseRestored'/>");
+
 	   });
-	   setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseRestored'/>");
 
    }
    
@@ -1006,8 +1011,15 @@
           <tag:help id="databaseBackupSettings"/>
         </td>
       </tr>
-      
       <tr><td colspan="2" id="databaseBackupSettingsMessage" class="formError"></td></tr>
+     <tr>
+     	<td colspan="2">
+          <table>
+              <tbody id="databaseRestoreMessages"></tbody>
+          </table>
+       </td>
+     </tr>
+
     </table>
   </tag:labelledSection>
   
