@@ -516,6 +516,9 @@
     */
    function restoreDatabaseFromBackup(){
 	   
+	   if(!confirm("<fmt:message key='systemSettings.confirmRestoreDatabase'/>"))
+		   return;
+	   
 	   var restoreMessages = document.getElementById("databaseRestoreMessages");
 	   restoreMessages.innerHTML = ""; //Clear out messages
 	   var backupFileSelect = document.getElementById("databaseFileToRestore");
