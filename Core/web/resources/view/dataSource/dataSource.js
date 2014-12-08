@@ -45,6 +45,8 @@ dataSources = new StoreView({
     defaultSort: [{attribute: "name"}],
     closeEditOnSave: false,  /* We are managing this ourselves */
     copyId: null, /* ID for creating a copy */
+    minRowsPerPage: 100,
+    maxRowsPerPage: 100,
     filters: new Array(),
 	sortMap: [
 	          {attribute: "name", descending:true},

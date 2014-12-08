@@ -33,7 +33,8 @@ dataPoints = new StoreView({
     defaultQuery: {dataSourceId: [dataPointsDataSourceId]},
     closeEditOnSave: false,  /* We are managing this ourselves */
     filter: new Array(),
-    
+    minRowsPerPage: 100,
+    maxRowsPerPage: 100,
     sortMap: [
               {attribute: "deviceName", descending:true},
               {attribute: "name", descending:true},

@@ -291,6 +291,8 @@
             <fileset dir="">
                 <include name="RELEASE-NOTES" />
                 <include name="licenseTypes.xml" />
+                <include name="LICENSE" />
+                <include name="README" />
             </fileset>
             <zipfileset dir="${core.target}" filemode="755">
                 <include name="bin/**/*" />

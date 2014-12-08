@@ -31,7 +31,8 @@ allDataPoints = new StoreView({
     editId: 'pointDetails',
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
     filter: new Array(),
-
+    minRowsPerPage: 100,
+    maxRowsPerPage: 100,
     sortMap: [
               {attribute: "dataSourceTypeName", descending:true},
               {attribute: "deviceName", descending:true},

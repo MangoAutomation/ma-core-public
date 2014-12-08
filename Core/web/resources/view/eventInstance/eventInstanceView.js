@@ -67,7 +67,8 @@ eventInstances = new StoreView({
     editId: 'editEventInstanceDiv',
     defaultSort: [{attribute: "activeTimestamp", descending: true}],
     defaultQuery: defaultEventInstanceQuery,
-    
+    minRowsPerPage: 200,
+    maxRowsPerPage: 200,
     filters: {
     			alarmLevel: "Int:>=1",
     			acknowledged: "NullCheck:true",
