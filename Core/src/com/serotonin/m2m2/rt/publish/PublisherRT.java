@@ -192,8 +192,10 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
     }
 
     public void terminate() {
-        sendThread.terminate();
-        sendThread.joinTermination();
+    	if(sendThread != null){
+	        sendThread.terminate();
+	        sendThread.joinTermination();
+    	}
 
         // Unschedule any job that is running.
         if (snapshotTask != null)

@@ -31,6 +31,7 @@
 * XSS (Cross Site Scripting) measures implemented
 * Fixing bug in Configuration backup where name would start with file separator
 * Adding ability to backup and restore H2 databases
+* Fixed bug where Publisher's that failed to initialize properly were rendered un-editable
 
 *Version 2.4.3*
 * Modified data type select tag
