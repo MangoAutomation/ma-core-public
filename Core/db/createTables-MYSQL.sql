@@ -219,6 +219,8 @@ create table events (
   primary key (id)
 ) engine=InnoDB;
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
+alter table events add index performance1 (activeTs ASC);
+
 
 create table userEvents (
   eventId int not null,
@@ -228,7 +230,7 @@ create table userEvents (
 ) engine=InnoDB;
 alter table userEvents add constraint userEventsFk1 foreign key (eventId) references events(id) on delete cascade;
 alter table userEvents add constraint userEventsFk2 foreign key (userId) references users(id);
-
+alter table userEvents add index performance1 (userId ASC, silenced ASC);
 
 --
 --
@@ -264,3 +266,20 @@ create table publishers (
   primary key (id)
 ) engine=InnoDB;
 alter table publishers add constraint publishersUn1 unique (xid);
+
+--
+--
+-- Compound events detectors
+--
+-- create table compoundEventDetectors (
+--   id int not null auto_increment,
+--  xid varchar(50) not null,
+--   name varchar(100),
+--   alarmLevel int not null,
+--   returnToNormal char(1) not null,
+--   disabled char(1) not null,
+--   conditionText varchar(256) not null,
+--   primary key (id)
+-- ) engine=InnoDB;
+-- alter table compoundEventDetectors add constraint compoundEventDetectorsUn1 unique (xid);
+

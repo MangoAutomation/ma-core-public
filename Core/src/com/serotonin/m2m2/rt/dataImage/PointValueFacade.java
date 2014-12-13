@@ -70,10 +70,85 @@ public class PointValueFacade {
         return pointValueDao.getPointValues(dataPointId, since);
     }
 
+    /**
+     * Gets point values since a certain time, can add an initial value and final value to the returned
+     * results. Useful for creating graphs.
+     * @param since
+     * 			epoch time in ms
+     * @param insertInitial
+     * 			fetch the previous point value before 'since', and insert it at time 'since' 
+     * @param insertFinal
+     * 			take the last point value from the list and insert it at the current time
+     * @return
+     */
+    public List<PointValueTime> getPointValues(long since, boolean insertInitial, boolean insertFinal) {
+        List<PointValueTime> list = getPointValues(since);
+        
+        if (insertInitial && !list.isEmpty()) {
+            PointValueTime prevValue = getPointValueBefore(since);
+            
+            // don't insert the initial value if it already exists
+            if (prevValue != null && list.get(0).getTime() != since) {
+                list.add(0, new PointValueTime(prevValue.getValue(), since));
+            }
+        }
+        
+        if (insertFinal && !list.isEmpty()) {
+        	PointValueTime finalValue = list.get(list.size()-1);
+        	long endTime = System.currentTimeMillis();
+        	
+        	// don't insert the final value if it already exists
+        	if (finalValue != null && finalValue.getTime() != endTime) {
+                list.add(new PointValueTime(finalValue.getValue(), endTime));
+        	}
+        }
+        
+        return list;
+    }
+    
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
     	if ((point != null)&&(useCache))
             return point.getPointValuesBetween(from, to);
         return pointValueDao.getPointValuesBetween(dataPointId, from, to);
+    }
+
+    /**
+     * Gets point values in a certain time period, can add an initial value and final value to the returned
+     * results. Useful for creating graphs.
+     * @param from
+     * 			epoch time in ms
+     * @param to
+     * 			epoch time in ms
+     * @param insertInitial
+     * 			fetch the previous point value before 'from', and insert it at time 'from' 
+     * @param insertFinal
+     * 			take the last point value from the list and insert it at time 'to'
+     * @return
+     */
+    public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
+        List<PointValueTime> list = getPointValuesBetween(from, to);
+        
+        if (insertInitial && !list.isEmpty()) {
+            PointValueTime prevValue = getPointValueBefore(from);
+            
+            // don't insert the initial value if it already exists
+            if (prevValue != null && list.get(0).getTime() != from) {
+                list.add(0, new PointValueTime(prevValue.getValue(), from));
+            }
+        }
+        
+        if (insertFinal && !list.isEmpty()) {
+        	PointValueTime finalValue = list.get(list.size()-1);
+        	// don't insert final value in the future
+        	long endTime = to <= System.currentTimeMillis() ? to : System.currentTimeMillis();
+        	
+        	// don't insert the final value if it already exists
+        	if (finalValue != null && finalValue.getTime() != endTime) {
+                list.add(new PointValueTime(finalValue.getValue(), endTime));
+        	}
+        }
+        
+        return list;
     }
 
     public List<PointValueTime> getLatestPointValues(int limit) {

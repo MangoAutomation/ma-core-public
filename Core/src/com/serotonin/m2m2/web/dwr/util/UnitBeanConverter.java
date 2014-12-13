@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.dwr.util;
 
+import java.net.URLDecoder;
+
 import javax.measure.unit.Unit;
 
 import org.directwebremoting.dwrp.SimpleOutboundVariable;
@@ -15,6 +17,7 @@ import org.directwebremoting.extend.MarshallException;
 import org.directwebremoting.extend.OutboundContext;
 import org.directwebremoting.extend.OutboundVariable;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.UnitUtil;
 
 /**
@@ -37,7 +40,7 @@ public class UnitBeanConverter implements Converter{
 			if(paramInboundVariable.getValue().equals("ONE"))
 				return Unit.ONE;
 			else
-				return UnitUtil.parseLocal(paramInboundVariable.getValue());
+				return UnitUtil.parseLocal(URLDecoder.decode(paramInboundVariable.getValue(), Common.UTF8));
 		}catch(Exception e){
 			throw new MarshallException(paramClass);
 		}

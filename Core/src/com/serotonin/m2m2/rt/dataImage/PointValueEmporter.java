@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -36,6 +38,20 @@ import com.serotonin.m2m2.vo.export.ExportPointInfo;
 public class PointValueEmporter extends AbstractSheetEmporter{
 	
 	private ExportPointInfo pointInfo;
+	
+    //Map of XIDs to non-running data points
+    private Map<String, DataPointVO> voMap = new HashMap<String, DataPointVO>();
+    //Map of XIDs to running data points
+    private Map<String, DataPointRT> rtMap = new HashMap<String, DataPointRT>();
+
+    private DataPointDao dataPointDao = DataPointDao.instance;
+    private PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
+	
+	
+	public PointValueEmporter(){
+	}
+	
+	
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.emport.AbstractSheetEmporter#getSheetName()
@@ -121,11 +137,23 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	if((xidCell.getStringCellValue() == null)||(xidCell.getStringCellValue().isEmpty()))
     		throw new SpreadsheetException("emport.error.xidRequired");
     	
-    	DataPointVO dp = DataPointDao.instance.getByXid(xidCell.getStringCellValue());
+    	
+    	//First Check to see if we already have a point
+    	String xid = xidCell.getStringCellValue();
+    	DataPointVO dp = voMap.get(xid);
+    	DataPointRT dpRt = rtMap.get(xid);
+    	
+    	//We will always have the vo in the map but the RT may be null if the point isn't running
     	if(dp == null){
-        	throw new SpreadsheetException(rowData.getRowNum(), "emport.error.xidRequired");
-        }
-    	DataPointRT dpRt = Common.runtimeManager.getDataPoint(dp.getId());
+    		dp = dataPointDao.getDataPoint(xid);
+            if (dp == null)
+            	throw new SpreadsheetException(rowData.getRowNum(),"emport.error.missingPoint", xid);
+        	dpRt = Common.runtimeManager.getDataPoint(dp.getId());
+
+    		rtMap.put(xid, dpRt);
+    		voMap.put(xid, dp);
+    	}
+
     	PointValueTime pvt;
     	
     	//Cell Device name (Not using Here)
@@ -176,20 +204,41 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     	
     	
     	//Cell Value
+    	Cell cell;
+    	cell = rowData.getCell(cellNum++);
     	//Create a data value
     	DataValue dataValue;
     	switch(dp.getPointLocator().getDataTypeId()){
 		case DataTypes.ALPHANUMERIC:
-			dataValue = new AlphanumericValue((String)rowData.getCell(cellNum++).getStringCellValue());
+			dataValue = new AlphanumericValue(cell.getStringCellValue());
 			break;
 		case DataTypes.BINARY:
-			dataValue = new BinaryValue(new Boolean(rowData.getCell(cellNum++).getBooleanCellValue()));
+			
+			switch(cell.getCellType()){
+				case Cell.CELL_TYPE_BOOLEAN:
+					dataValue = new BinaryValue(new Boolean(cell.getBooleanCellValue()));
+				break;
+				case Cell.CELL_TYPE_NUMERIC:
+					if(cell.getNumericCellValue() == 0)
+						dataValue = new BinaryValue(new Boolean(false));
+					else
+						dataValue = new BinaryValue(new Boolean(true));
+				break;	
+				case Cell.CELL_TYPE_STRING:
+					if(cell.getStringCellValue().equalsIgnoreCase("false"))
+						dataValue = new BinaryValue(new Boolean(false));
+					else
+						dataValue = new BinaryValue(new Boolean(true));
+					break;
+				default:
+					throw new SpreadsheetException(rowData.getRowNum(), "common.default", "Invalid cell type for extracting boolean");
+			}
 			break;
 		case DataTypes.MULTISTATE:
-			dataValue = new MultistateValue((int)rowData.getCell(cellNum++).getNumericCellValue());
+			dataValue = new MultistateValue((int)cell.getNumericCellValue());
 			break;
 		case DataTypes.NUMERIC:
-			dataValue = new NumericValue(rowData.getCell(cellNum++).getNumericCellValue());
+			dataValue = new NumericValue(cell.getNumericCellValue());
 		break;
 		default:
 			throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.unsupportedDataType", dp.getPointLocator().getDataTypeId());
@@ -216,7 +265,6 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	if(dpRt != null)
 	    		dpRt.savePointValueDirectToCache(pvt, null, true, true);
 	    	else{
-	            PointValueDao pointValueDao =Common.databaseProxy.newPointValueDao();
 	    		pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
 	    	}
     	}else{
@@ -224,7 +272,6 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	if(dpRt != null)
 	    		dpRt.updatePointValueInCache(pvt, null, true, true);
 	    	else{
-	            PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 	    		pointValueDao.updatePointValueAsync(dp.getId(),pvt,null);
 	    	}
 

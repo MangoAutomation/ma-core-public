@@ -1,0 +1,22 @@
+Congratulations for downloading Mango.  Here are some tips to get you up and running as fast as possible.
+
+For help installing see our Installation form: http://forum.infiniteautomation.com/forum/forums/show/20.page
+
+*****Installation*****
+
+Mango requires Java JDK 1.7 (also known as JDK 7) to be already installed on your system. Infinite Automation recommends using the Oracle JDK 7..  You may need to set a JAVA_HOME environmental variable pointing to your JDK install folder.
+
+1.) Unzip the Mango zip file into any directory you like.  
+2.) To start Mango Automation, run one of the scripts provided in the /bin folder, either ma-start.bat for Windows platforms or ma.sh for *nix or Mac. (Also note: for *nix you may have to run "chmod +x ma-start.sh" to make the script executable.) 
+In addition, for *nix users ensure that the Mango home directory and all subdirectories are writable by the user under which Mango will run. 
+
+To use the /bin/ma.sh script on your command line, change to the bin directory and then type ./ma.sh start or ./ma.sh stop
+
+If you are having trouble starting Mango Automation:
+
+1. Make sure you have Java JDK 1.7 installed.
+2. JAVA_HOME is set to the Java JDK 1.7 install directory.  On windows usually: C:\Program Files\Java\jdk1.7.0_XX
+3. Nothing else is using port 8080 or change Mango to run on a different port.  See the /classes/env.properties file to set the new port number, read the instructions on how to use the overrides directory.
+
+If you still have trouble and you notice that script window briefly pops up and then the window closes: Open a command prompt and run mango from there so the window doesn't close.  Make a post in this forum with the results of the script and we will help you diagnose the issue.
+

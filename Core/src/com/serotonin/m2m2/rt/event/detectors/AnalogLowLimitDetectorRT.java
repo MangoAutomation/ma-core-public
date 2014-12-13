@@ -15,7 +15,11 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 /**
  * The AnalogLowLimitDetector is used to detect occurances of point values below the given low limit for a given
  * duration. For example, a user may need to have an event raised when a temperature sinks below some value for 10
- * minutes or more.
+ * minutes or more. Or a user may need to have an event raised when a temperature does not sink below some value 
+ * for 10 minutes.
+ * 
+ * Additionally the vo.weight parameter is used as a threshold for turning off the detector and the multistateState value
+ * to determine if we are using the threshold
  * 
  * The configuration fields provided are static for the lifetime of this detector. The state fields vary based on the
  * changing conditions in the system. In particular, the lowLimitActive field describes whether the point's value is
@@ -51,10 +55,18 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
         TranslatableMessage durationDescription = getDurationDescription();
         String name = vo.njbGetDataPoint().getName();
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
-
-        if (durationDescription == null)
-            return new TranslatableMessage("event.detector.lowLimit", name, prettyLimit);
-        return new TranslatableMessage("event.detector.lowLimitPeriod", name, prettyLimit, durationDescription);
+        
+        if(vo.isBinaryState()){
+        	//Is not lower
+            if (durationDescription == null)
+                return new TranslatableMessage("event.detector.lowLimitNotLower", name, prettyLimit);
+            return new TranslatableMessage("event.detector.lowLimitNotLowerPeriod", name, prettyLimit, durationDescription);
+        }else{
+        	//is lower
+            if (durationDescription == null)
+                return new TranslatableMessage("event.detector.lowLimit", name, prettyLimit);
+            return new TranslatableMessage("event.detector.lowLimitPeriod", name, prettyLimit, durationDescription);
+        }
     }
 
     @Override
@@ -81,16 +93,50 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         double newDouble = newValue.getDoubleValue();
-        if (newDouble < vo.getLimit()) {
-            if (!lowLimitActive) {
-                lowLimitActiveTime = newValue.getTime();
-                changeLowLimitActive();
+        
+        if(vo.isBinaryState()){
+        	//Not Lower than
+            if (newDouble >= vo.getLimit()) {
+                if (!lowLimitActive) {
+                    lowLimitActiveTime = newValue.getTime();
+                    changeLowLimitActive();
+                }
             }
-        }
-        else {
-            if (lowLimitActive) {
-                lowLimitInactiveTime = newValue.getTime();
-                changeLowLimitActive();
+            else {
+            	//Are we using a reset value
+            	if(vo.getMultistateState() == 1){
+	                if ((lowLimitActive)&&(newDouble <= vo.getWeight())) {
+	                    lowLimitInactiveTime = newValue.getTime();
+	                    changeLowLimitActive();
+	                }
+            	}else{
+	                if (lowLimitActive) {
+	                    lowLimitInactiveTime = newValue.getTime();
+	                    changeLowLimitActive();
+	                }
+            	}
+            }
+        }else{
+        	//is lower than
+            if (newDouble < vo.getLimit()) {
+                if (!lowLimitActive) {
+                    lowLimitActiveTime = newValue.getTime();
+                    changeLowLimitActive();
+                }
+            }
+            else {
+            	//Are we using a reset value
+            	if(vo.getMultistateState() == 1){
+	                if ((lowLimitActive)&&(newDouble >= vo.getWeight())) {
+                        lowLimitInactiveTime = newValue.getTime();
+                        changeLowLimitActive();
+	                }
+            	}else{
+                    if (lowLimitActive) {
+                        lowLimitInactiveTime = newValue.getTime();
+                        changeLowLimitActive();
+                    }
+            	}
             }
         }
     }

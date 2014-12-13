@@ -314,7 +314,7 @@
 	 dataPoints.open(point.id,{voToLoad: point});
 	 
 	 if (typeof editPointCBImpl == 'function') 
-		 cancel = editPointCBImpl(locator);
+		 cancel = editPointCBImpl(locator, point);
 	 if (!cancel) {
 		 //Give focus to the tab
 		 var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
@@ -415,25 +415,41 @@ function deletePoint() {
   * Save Point method
   */
  function savePoint() {
+     
+     
      startImageFader("pointSaveImg", true);
      hideContextualMessages("pointDetails");
 
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
+
+     //Perform check on point here
+     DataPointEditDwr.ensureEditingPointMatch(currentPoint.id, function(response){
+         
+         if(response.data.match === true){
+             if(currentPoint.id != -1){
+                 //Point Properties
+                 getPointProperties(currentPoint); //Set the values from the inputs
+                 getLoggingProperties(currentPoint);
+                 getTextRenderer(currentPoint);
+                 getChartRenderer(currentPoint);
+                 getEventDetectors(currentPoint,finishSavePoint); //
+              }else{
+                  //For now because values aren't set before DWR Call
+                  delete currentPoint.discardLowLimit;
+                  delete currentPoint.discardHighLimit;      
+                  finishSavePoint();
+              }
+         }else{
+             //Do not allow editing.
+             alert(response.data.message);
+         }
+         
+         
+     });
+
      
-     if(currentPoint.id != -1){
-		//Point Properties
-		getPointProperties(currentPoint); //Set the values from the inputs
-		getLoggingProperties(currentPoint);
-		getTextRenderer(currentPoint);
-		getChartRenderer(currentPoint);
-		getEventDetectors(currentPoint,finishSavePoint); //
-     }else{
-    	 //For now because values aren't set before DWR Call
-    	 delete currentPoint.discardLowLimit;
-    	 delete currentPoint.discardHighLimit;    	
-    	 finishSavePoint();
-     }
+
 
  }
  
@@ -459,7 +475,7 @@ function deletePoint() {
      delete locator.dataTypeMessage;
 
      DataPointDwr.storeEditProperties(myPoint,function(){
-         savePointImpl(locator);
+         savePointImpl(locator, myPoint); //Edit to allow access to entire point this is a step towards removing server side state of edit point
      });
  }
  

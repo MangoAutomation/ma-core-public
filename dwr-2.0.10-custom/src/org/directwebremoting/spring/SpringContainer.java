@@ -52,7 +52,7 @@ public class SpringContainer extends DefaultContainer implements Container, Bean
     public void addParameter(Object askFor, Object valueParam)
     throws InstantiationException, IllegalAccessException {
         try {
-            Class clz = ClassUtils.forName((String)askFor);
+            Class clz = ClassUtils.forName((String)askFor, this.getClass().getClassLoader());
             if (log.isDebugEnabled()) {
                 log.debug("trying to resolve the following class from the Spring bean container: " + clz.getName());
             }

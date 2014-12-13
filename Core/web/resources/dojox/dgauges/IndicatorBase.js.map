@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"IndicatorBase.js",
+"lineCount":1,
+"mappings":"A,SAAAA,MAAA,mFAA4F,QAAA,CAASC,CAAT,CAAkBC,CAAlB,QACpFD,EAAA,+BAAuCC,CAAvC,cADoF,CAA5F;",
+"sources":["IndicatorBase.js.uncompressed.js"],
+"names":["define","declare","_Invalidating"]
+}

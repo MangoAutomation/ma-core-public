@@ -25,20 +25,36 @@
 
 <h1>High limit</h1>
 <p>
-  This detector applies only to Numeric points. The <b>High limit</b> is the value above which the detector becomes 
-  active. The detector may optionally be configured with a <b>Duration</b>; the point's value must stay above the high 
-  limit for at least the given duration before the detector becomes active. Events raised by this detector will 
-  automatically return to normal when the condition is no longer satisfied.
+  This detector applies only to Numeric points. The <b>High limit</b> is the value that the detector uses as a boundary.
+  When the <b>State</b> is set to Greater than the event becomes active when the value is above the limit, when set to Less than or equal to 
+  the event becomes active when the value is equal to or less than the limit.  The optional <b>Reset Limit</b> is the value at 
+  which the alarm will reset after it has been triggered.  For a <b>State</b> of Greater than the value must become less than 
+  or equal to the <b>Reset Limit</b>.  For a <b>State</b> of Less than or equal to the value must become greater than or equal to the <b>Reset Limit</b>.
+  If not entered this value will be set to the  limit. The detector may optionally be configured with a <b>Duration</b>; 
+  the point's value must stay above the high limit for at least the given duration before the detector becomes active. 
+  Events raised by this detector will automatically return to normal when the condition is no longer satisfied.
 </p>
 
 <h1>Low limit</h1>
 <p>
-  This detector applies only to Numeric points. The <b>Low limit</b> is the value below which the detector becomes 
-  active. The detector may optionally be configured with a <b>Duration</b>; the point's value must stay below the low 
+  This detector applies only to Numeric points. The <b>Low limit</b> is the value that the detector uses as a boundary.  
+  When the <b>State</b> is set to Less than the event becomes active when the value is below the limit, when set to Greater than or equal to 
+  the event becomes active when the value is equal to or greater than the limit.  The optional <b>Reset Limit</b> is the value at 
+  which the alarm will reset after it has been triggered. For a <b>State</b> of Less than the value must become greater than 
+  or equal to the <b>Reset Limit</b>.  For a <b>State</b> of Greater than or equal to the value must become less than or equal to the <b>Reset Limit</b>.
+  If not entered this value will be set to the  limit. If not entered this value will be set to the 
+  limit.  The detector may optionally be configured with a <b>Duration</b>; the point's value must stay below the low 
   limit for at least the given duration before the detector becomes active. Events raised by this detector will 
   automatically return to normal when the condition is no longer satisfied.
 </p>
-
+<h1>Range</h1>
+<p>
+  This detector applies only to Numeric points. The <b>Low range limit</b> and <b>High range limit</b>define the range which the detector becomes 
+  active. The detector may optionally be configured with a <b>Duration</b>; the point's value must stay within the
+  range for at least the given duration before the detector becomes active. Events raised by this detector will 
+  automatically return to normal when the condition is no longer satisfied. The range is inclusive of the limits, 
+  meaning that if the value is exactly the low or high range limit the detector will fire an event.
+</p>
 <h1>Change</h1>
 <p>
   This detector applies to all data types. It raises an event whenever the point value changes. Events raised by this 

@@ -1,20 +1,22 @@
 @echo off
 rem
-rem | Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+rem | Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
 rem | @author Matthew Lohbihler
 rem
-rem | Runs Mango Automation.
+rem | Runs Mango Automation. (Script Version 2.0 - To be run from MA_HOME\bin)
 
 rem | Check if MA_HOME is properly defined
 if "%MA_HOME%" == "" goto useCD
-if exist "%MA_HOME%\ma-start.bat" goto okHome
+if exist "%MA_HOME%\bin\ma-start.bat" goto okHome
 echo The MA_HOME environment variable is not defined correctly: %MA_HOME%. Trying the current directory instead...
 
 rem | Check if the current directory is ok to use
 :useCD
-set CURRENT_DIR=%CD%
-set MA_HOME=%CURRENT_DIR%
-if exist "%MA_HOME%\ma-start.bat" goto okHome
+set BIN_DIR=%CD%
+pushd ..
+set MA_HOME=%CD%
+popd
+if exist "%MA_HOME%\bin\ma-start.bat" goto okHome
 
 rem | Don't know where home is.
 echo Cannot determine the MA home directory
@@ -31,9 +33,12 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 set MA_CP=%MA_HOME%\overrides\classes
 set MA_CP=%MA_CP%;%MA_HOME%\classes
 set MA_CP=%MA_CP%;%MA_HOME%\overrides\properties
-FOR /F %%A IN ('dir /b "%MA_HOME%\overrides\lib\*.jar"') DO set MA_CP=!MA_CP!;%MA_HOME%\overrides\lib\%%A
-FOR /F %%A IN ('dir /b "%MA_HOME%\lib\*.jar"') DO set MA_CP=!MA_CP!;%MA_HOME%\lib\%%A
-rem echo %MA_CP%
+set MA_CP=%MA_CP%;%MA_HOME%\overrides\lib\*
+set MA_CP=%MA_CP%;%MA_HOME%\lib\*
+
+rem FOR /F %%A IN ('dir /b "%MA_HOME%\overrides\lib\*.jar"') DO set MA_CP=!MA_CP!;%MA_HOME%\overrides\lib\%%A
+rem FOR /F %%A IN ('dir /b "%MA_HOME%\lib\*.jar"') DO set MA_CP=!MA_CP!;%MA_HOME%\lib\%%A
+echo %MA_CP%
 
 rem | Native libraries can be put into the overrides directory
 PATH=%PATH%;%MA_HOME%\overrides

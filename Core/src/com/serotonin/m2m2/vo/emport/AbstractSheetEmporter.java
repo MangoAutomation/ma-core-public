@@ -17,7 +17,7 @@ import org.apache.poi.ss.usermodel.Sheet;
  */
 public abstract class AbstractSheetEmporter {
 	public static enum CellType {
-        STRING, NUMERIC, DATE, PERCENT
+        STRING, NUMERIC, DATE, PERCENT, BOOLEAN
     }
     protected boolean useNames;
 	protected int rowNum = 0;

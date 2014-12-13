@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -36,6 +37,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
+import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -89,7 +91,7 @@ public class RuntimeManager {
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
 
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        DataSourceDao dataSourceDao = new DataSourceDao();
+        DataSourceDao dataSourceDao = DaoRegistry.dataSourceDao;
         List<DataSourceVO<?>> configs = dataSourceDao.getDataSources();
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
@@ -130,7 +132,7 @@ public class RuntimeManager {
         rtmdIndex = startRTMDefs(defs, safe, rtmdIndex, Integer.MAX_VALUE);
 
         // Start the publishers that are enabled
-        PublisherDao publisherDao = new PublisherDao();
+        PublisherDao publisherDao = DaoRegistry.publisherDao;
         List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getPublishers();
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
             if (vo.isEnabled()) {
@@ -143,10 +145,16 @@ public class RuntimeManager {
             }
         }
         
-        //Schedule the Backup Task if necessary
+        //Schedule the Backup Tasks if necessary
         // No way to set the default value for Bools in SystemSettingsDao so must do here
-        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true)){
-       		BackupWorkItem.schedule();
+        if(!safe){
+	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true)){
+	       		BackupWorkItem.schedule();
+	        }
+	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED,true)){
+	       		DatabaseBackupWorkItem.schedule();
+	        }
+
         }
     }
 
@@ -253,7 +261,7 @@ public class RuntimeManager {
         stopDataSource(vo.getId());
 
         // In case this is a new data source, we need to save to the database first so that it has a proper id.
-        new DataSourceDao().saveDataSource(vo);
+        DaoRegistry.dataSourceDao.saveDataSource(vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -281,7 +289,7 @@ public class RuntimeManager {
             runningDataSources.add(dataSource);
 
             // Add the enabled points to the data source.
-            List<DataPointVO> dataSourcePoints = new DataPointDao().getDataPoints(vo.getId(), null);
+            List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPoints(vo.getId(), null);
             for (DataPointVO dataPoint : dataSourcePoints) {
                 if (dataPoint.isEnabled())
                     startDataPoint(dataPoint);
@@ -353,7 +361,7 @@ public class RuntimeManager {
                 peds.remove();
         }
 
-        new DataPointDao().saveDataPoint(point);
+        DaoRegistry.dataPointDao.saveDataPoint(point);
 
         if (point.isEnabled())
             startDataPoint(point);
@@ -386,7 +394,19 @@ public class RuntimeManager {
                     l.pointInitialized();
 
                 // Add/update it in the data source.
-                ds.addDataPoint(dataPoint);
+                try{
+                	ds.addDataPoint(dataPoint);
+                }catch(Exception e){
+                	//This can happen if there is a corrupt DB with a point for a different 
+                	// data source type linked to this data source...
+                	LOG.error("Failed to start point with xid: " + dataPoint.getVO().getXid()
+                			+ " disabling point."
+                			, e);
+                	//TODO Fire Alarm to warn user.
+                	//Common.eventManager.raiseEvent(type, time, rtnApplicable, alarmLevel, message, context);
+                	dataPoint.getVO().setEnabled(false);
+                	saveDataPoint(dataPoint.getVO()); //Stop it
+                }
             }
         }
     }
@@ -398,7 +418,13 @@ public class RuntimeManager {
 
             // Remove it from the data source, and terminate it.
             if (p != null) {
-                getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+            	try{
+            		getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+            	}catch(Exception e){
+            		LOG.error("Failed to stop point RT with ID: " + dataPointId
+                			+ " stopping point."
+                			, e);
+            	}
                 DataPointListener l = getDataPointListeners(dataPointId);
                 if (l != null)
                     l.pointTerminated();
@@ -470,6 +496,13 @@ public class RuntimeManager {
             ds.relinquish(dataPoint);
     }
 
+    /**
+     * This method forces a point read ONLY if the 
+     * underlying data source has implemented that ability.
+     * 
+     * Currently only a few data sources implement this functionality
+     * @param dataPointId
+     */
     public void forcePointRead(int dataPointId) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
         if (dataPoint == null)

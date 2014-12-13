@@ -91,6 +91,7 @@ public class ChartExportServlet extends HttpServlet {
             DataPointVO dp = dataPointDao.getDataPoint(pointId);
             if (Permissions.hasDataPointReadPermission(user, dp)) {
                 ExportPointInfo pointInfo = new ExportPointInfo();
+                pointInfo.setXid(dp.getXid());
                 pointInfo.setPointName(dp.getName());
                 pointInfo.setDeviceName(dp.getDeviceName());
                 pointInfo.setTextRenderer(dp.getTextRenderer());

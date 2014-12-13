@@ -3,9 +3,9 @@ package com.serotonin.m2m2.web;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.ReadableByteChannel;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,9 +45,9 @@ public class OverridingFileResource extends Resource {
     }
 
     @Override
-    public void release() {
-        override.release();
-        base.release();
+    public void close() {
+        override.close();
+        base.close();
     }
 
     @Override
@@ -104,12 +104,12 @@ public class OverridingFileResource extends Resource {
         return base.getInputStream();
     }
 
-    @Override
-    public OutputStream getOutputStream() throws IOException, SecurityException {
-        if (override.exists())
-            return override.getOutputStream();
-        return base.getOutputStream();
-    }
+//    @Override
+//    public OutputStream getOutputStream() throws IOException, SecurityException {
+//        if (override.exists())
+//            return override.getOutputStream();
+//        return base.getOutputStream();
+//    }
 
     @Override
     public boolean delete() throws SecurityException {
@@ -146,4 +146,14 @@ public class OverridingFileResource extends Resource {
     public String toString() {
         return base.toString();
     }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jetty.util.resource.Resource#getReadableByteChannel()
+	 */
+	@Override
+	public ReadableByteChannel getReadableByteChannel() throws IOException {
+        if (override.exists())
+            return override.getReadableByteChannel();
+        return base.getReadableByteChannel();
+	}
 }

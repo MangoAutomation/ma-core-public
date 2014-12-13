@@ -28,5 +28,8 @@ public interface IDataPointValueSource {
 
     List<PointValueTime> getPointValuesBetween(long from, long to);
 
+    PointValueTime getPointValueAt(long time);
+
+    
     int getDataTypeId();
 }

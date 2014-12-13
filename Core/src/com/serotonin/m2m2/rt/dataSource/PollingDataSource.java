@@ -20,11 +20,13 @@ import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
 abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient {
+	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private Object terminationLock;
 
@@ -73,18 +75,27 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         return unsuccessfulPolls.get();
     }
 
-    public void incrementUnsuccessfulPolls() {
-        unsuccessfulPolls.incrementAndGet();
+    /**
+     * Increment the unsuccessful polls 
+     * and fire event if necessary
+     * @param time
+     */
+    public void incrementUnsuccessfulPolls(long time) {
+        long unsuccessful = unsuccessfulPolls.incrementAndGet();
+        //Raise Event
+        int eventId = vo.getPollAbortedExceptionEventId();
+        if(eventId >= 0)
+        	this.raiseEvent(eventId, time, true, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName(), unsuccessful));
     }
 
     @Override
     public void scheduleTimeout(long fireTime) {
         if (jobThread != null) {
-            //            // There is another poll still running, so abort this one.
-            //            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
-            //                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
-            //                    + " is still running");
-            incrementUnsuccessfulPolls();
+            // There is another poll still running, so abort this one.
+            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
+                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
+                    + " is still running");
+            incrementUnsuccessfulPolls(fireTime);
             return;
         }
         incrementSuccessfulPolls();
@@ -176,7 +187,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     @Override
     public void terminate() {
         if (timerTask != null)
-            timerTask.cancel();
+            timerTask.cancel();       
         super.terminate();
     }
 

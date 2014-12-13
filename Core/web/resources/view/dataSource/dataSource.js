@@ -45,6 +45,8 @@ dataSources = new StoreView({
     defaultSort: [{attribute: "name"}],
     closeEditOnSave: false,  /* We are managing this ourselves */
     copyId: null, /* ID for creating a copy */
+    minRowsPerPage: 100,
+    maxRowsPerPage: 100,
     filters: new Array(),
 	sortMap: [
 	          {attribute: "name", descending:true},
@@ -260,7 +262,9 @@ dataSources = new StoreView({
     	}
 
     	DataSourceDwr.toggle(id, function(result) {
-    	    $set("dataSource.enabled", result.data.enabled); //Save state on page
+    		var dsEnabled = $("dataSource.enabled");
+    		if(dsEnabled != null)
+    			$set("dataSource.enabled", result.data.enabled); //Save state on page
             if(result.data.enabled){
                 
                 var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
@@ -324,8 +328,70 @@ dataSources = new StoreView({
      * Refresh the Grid
      */
     refresh: function(){
-    	this.grid.set('query', null);
+    	this.grid.set('query',dataSources.filter, null);
     },
+    
+    /**
+     * Export data points using the filter
+     */
+    showExportUsingFilter: function() {
+        
+        var query = this.filters;
+        var options = {}; //We don't need any
+        
+        var sortArray, op;
+        if (typeof options.sort === 'string') {
+            op = new SortOption();
+            op.attribute = options.sort;
+            op.desc = false;
+            sortArray = [op];
+        }
+        else if (options.sort && typeof options.sort.length === 'number') {
+            sortArray = [];
+         
+            for (var i = 0; i < options.sort.length; i++) {
+                op = new SortOption();
+                op.attribute = options.sort[i].attribute;
+                op.desc = options.sort[i].descending || false;
+                sortArray.push(op);
+            }
+        }
+        
+        var filterMap = {};
+        for (var prop in query) {
+            var conditions = query[prop];
+            // allow specific regex queries
+            if (conditions instanceof RegExp) {
+                // anything
+                //if (conditions.source === '^.*$')
+                //    continue;
+                filterMap[prop] = 'RegExp:' + conditions.source;
+                //break;
+            }else{
+                if (conditions instanceof ArrayTester) {
+                    conditions = conditions.data;
+                }
+                if (typeof conditions === 'string' || typeof conditions === 'number')
+                    conditions = [conditions];
+                filterMap[prop] = conditions.join();
+            }
+        }
+        
+        var start = (isFinite(options.start)) ? options.start : null;
+        var count = (isFinite(options.count)) ? options.count : null;
+        
+        // controls whether sql is done using or or and
+        //var or = true;
+        
+        
+        DataSourceDwr.jsonExportUsingFilter(filterMap, sortArray, start, count, this.viewStore.dwr.or, function(json){
+            $set("exportData", json);
+            exportDialog.show();
+        });
+
+    },
+    
+    
         
 });
 
@@ -339,7 +405,10 @@ dataSources.open = function(id,options,callback){
     this.currentId = id;
     var _this = this;
     options = options || {};
-    
+    //Hook for data sources to cleanup anything before thier view is expired
+    if(typeof dataSourceCleanup == 'function')
+    	dataSourceCleanup(id, options);
+
     if (options.voToLoad) {
     	//Copy
     	when(DataSourceDwr.get(options.voToLoad.id, function(vo) {

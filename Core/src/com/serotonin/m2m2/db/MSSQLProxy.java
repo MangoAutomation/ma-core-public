@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -79,4 +80,16 @@ public class MSSQLProxy extends BasePooledProxy {
     protected String getLimitDelete(String sql, int chunkSize) {
         return sql;
     }
+    
+    @Override
+    public File getDataDirectory() {
+    	return null; //TODO 
+    	
+    }
+    
+    @Override
+    public Long getDatabaseSizeInBytes(){
+    	return null;
+    }
+    
 }

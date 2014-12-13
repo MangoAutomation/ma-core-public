@@ -4,7 +4,7 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@ page import="com.serotonin.m2m2.Common"%>
-<c:set var="storeUrl" value="<%= Common.envProps.getString("store.url") %>"/>
+<c:set var="storeUrl" value="<%= Common.envProps.getString(\"store.url\") %>"/>
 
 <tag:page>
   <br/>

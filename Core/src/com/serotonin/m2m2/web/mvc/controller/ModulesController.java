@@ -6,8 +6,6 @@ package com.serotonin.m2m2.web.mvc.controller;
 
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +45,7 @@ public class ModulesController implements UrlHandler {
         	version += " build " + props.getProperty("build.number");
         }
         Module core = new Module("core", version, new TranslatableMessage(
-                "modules.core.description"), "Serotonin Software Technologies, Inc and InfiniteAUTOMATION SYSTEMS.",
+                "modules.core.description"), "Serotonin Software Technologies, Inc and Infinite Automation Systems.",
                 "http://infiniteautomation.com", null, -1);
 
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
@@ -65,8 +63,14 @@ public class ModulesController implements UrlHandler {
         Map<String, String> jsonModules = new HashMap<String, String>();
         json.put("modules", jsonModules);
 
-        for (Module module : modules)
-            jsonModules.put(module.getName(), module.getVersion());
+        for (Module module : modules){
+        	if(module.getName().equals("core")){
+        		//Don't add that core module as it might have the build number in the version
+        		jsonModules.put("core", Common.getVersion().getFullString());
+        	}else{
+        		jsonModules.put(module.getName(), module.getVersion());
+        	}
+        }
 
         try {
             StringWriter out = new StringWriter();

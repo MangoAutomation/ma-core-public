@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.collect.Maps;
 import com.serotonin.m2m2.web.dwr.util.DwrClassConversion;
 
 /**
@@ -74,6 +75,20 @@ abstract public class DwrConversionDefinition extends ModuleElementDefinition {
         conversions.add(dcc);
     }
     
+    /**
+     * Declares that objects of the given class are allowed to be converted as a bean and will use
+     * the given javascript name
+     * 
+     * @param clazz
+     *            the class to allow
+     * @param javascriptName
+     * 	          the name which will be used in javascript
+     */
+    public void addBeanConversion(Class<?> clazz, String javascriptName) {
+    	Map<String, String> params = Maps.newHashMap();
+        params.put("javascript", javascriptName);
+        addConversion(clazz, "bean", params);
+    }
     
     /**
      * Declares that objects of the given class are allowed to be converted using a bean converter. Only the given

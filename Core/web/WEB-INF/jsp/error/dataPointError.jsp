@@ -7,5 +7,5 @@
 <c:if test="${errorMessage != null }">
     <m2m2:translate key="pointEdit.error.general"/>
 </c:if>
-${errorMessage}
+${fn:escapeXml(errorMessage)}
 </tag:page>

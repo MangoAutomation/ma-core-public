@@ -14,7 +14,7 @@
     --%><jviews:chartPoint xid="${chartPoint.xid}" color="${chartPoint.color}"/><%--
   --%></c:forEach><%--
 --%></jviews:chart><%--
---%><img id="c${componentId}" src="images/hourglass.png"/><%--
+--%><img id="c${componentId}" src="/images/hourglass.png"/><%--
 --%><script type="text/javascript">
   mango.view.jsp.functions["c${componentId}"] = function(value) { $("c${componentId}").src = value; }
 </script>

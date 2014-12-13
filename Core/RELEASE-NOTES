@@ -1,3 +1,41 @@
+*Version 2.5.0*
+* Upgraded to Jetty 9
+* Improved JSP Performance by changing/upgrading Engine
+* Added status servlet to serve Mango application Status in JSON format at /status/mango.json
+* Upgraded H2 to 1.4.181
+* Upgraded Spring to 4.0.5
+* Upgraded serotonin-utils to 2.1.3
+* Added security to viewing data sources and data points so only users with proper permissions can see them
+* Added additional links to Alarm Report table to allow clicking through to item of interest in event
+* Added filter action to Alarm Links at top of page when multiple alarms are present
+* Added list of available Units to select for each point
+* Added Range Event detectors for Numeric points to alarm when values remain within or outside of a range
+* Added Not higher than option to High Limit event detector
+* Added Not lower than option to Low Limit event detector
+* Added ability for Plain Text Renderer to use Units if defined as suffix
+* Added css and favicon to url versioning system to ensure browser cache-refreshes on core updates
+* Added some protective measures to ensure users with multiple tabs open don't clobber points and data sources, only 1 tab is officially supported
+* Removed upgrade for MySQL PointValues table from MyISAM to InnoDB (users are expected to do this manually if desired)
+* Fixed Help Window from floating around after clicking a linked help file. 
+* Added additional methods for scripting and meta points: (pointValuesBetween, pointValuesSince, pointValueBefore, pointValueAfter)
+* Added additional method for point statistics in scripts:  getStats(from, to)
+* Fixed bug where Units were being squared on copy.
+* Increase timeout to 20s on Alarms Report page for improved reliability on very large installations
+* Fixed bug where PointHierarchy Importer was running and failing silently on every JSON Import
+* Changed Point Value CSV Export format to match Excel export format
+* Fix to Numeric Point Wrapper's getStats method to correctly compute the end value for the period.
+* Improved database size reporting on system settings page
+* Added DateTimeUtility for Meta Data Scripts
+* Fixed bug where DO NOT LOG Alarm levels were being added to the Database when they Returned to normal.
+* Changed Point Value import to ignore Blank and Empty XLS and XLSX rows.
+* XSS (Cross Site Scripting) measures implemented
+* Fixing bug in Configuration backup where name would start with file separator
+* Adding ability to backup and restore H2 databases
+* Fixed bug where Publisher's that failed to initialize properly were rendered un-editable
+
+*Version 2.4.3*
+* Modified data type select tag
+
 *Version 2.4.2*
 * Fixed bug when using H2 and filtering Data Points, Data Sources or Alarms tables
 * Changed all filtering to be case insensitive

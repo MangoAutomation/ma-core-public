@@ -13,6 +13,7 @@
     <!-- Select Type of DataSource -->
     <select id="dataSourceTypes" ></select>             
     <tag:img png="add" title="common.add" id="addDataSource" onclick="dataSources.open(-1)"/>
+    <tag:img png="emport" title="emport.export" style="float:right" id="exportDataSources" onclick="dataSources.showExportUsingFilter()" />
     
     <div id="dataSourceTable"></div>
     

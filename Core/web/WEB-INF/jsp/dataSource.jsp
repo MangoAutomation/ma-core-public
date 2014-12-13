@@ -36,10 +36,10 @@
   
   <jsp:body>
     
-    <script language="javascript" type="text/javascript" src="/resources/stores.js"></script>
+    <tag:versionedJavascript src="/resources/stores.js"/>
     <!-- Import the scripts for the table -->
- 	<script language="javascript" type="text/javascript" src="/resources/view/dataSource/dataSource.js"></script>
-    <script language="javascript" type="text/javascript" src="/resources/view/dataPoint/allDataPoints.js"></script>
+ 	<tag:versionedJavascript src="/resources/view/dataSource/dataSource.js"/>
+    <tag:versionedJavascript src="/resources/view/dataPoint/allDataPoints.js"/>
 
     <div data-dojo-type="dijit/layout/TabContainer" data-dojo-props="doLayout: false"  style="height: auto;">
         <!-- All Data Sources Table -->
@@ -51,6 +51,7 @@
 		    <div id="allPointsTableDiv" class="borderDivPadded marB" >
 		        <tag:img png="icon_comp" title="dsEdit.points.details"/>
 		        <span class="smallTitle"><fmt:message key="header.dataPoints"/></span>
+		        <tag:img png="emport" title="emport.export" style="float:right" id="exportDataPoints" onclick="allDataPoints.showExportUsingFilter()" />
 		        <div id="allDataPointsTable"></div>
 		    </div>  
         </div>

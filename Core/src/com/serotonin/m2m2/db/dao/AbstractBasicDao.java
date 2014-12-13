@@ -17,11 +17,11 @@ import java.util.Map;
 
 import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 
@@ -33,7 +33,7 @@ import com.serotonin.m2m2.DeltamationCommon;
  * @author Jared Wiltshire
  */
 public abstract class AbstractBasicDao<T> extends BaseDao {
-    protected Log LOG;
+    protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
     
     protected final List<String> properties = getProperties();
     protected final List<Integer> propertyTypes = getPropertyTypes();
@@ -194,10 +194,12 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             return sql + " LIMIT ? OFFSET ?";
         case DERBY:
         case MSSQL:
+        case H2:
             args.add(offset);
             args.add(limit);
             return sql + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         default:
+        	LOG.warn("No case for adding limit to database of type: " + Common.databaseProxy.getType());
             return sql;
         }
     }
@@ -255,6 +257,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 		                            	tempSql += "(CHAR(" + this.tablePrefix + dbProp + ") LIKE '" + condition + "')";
 	                            	break;
 	                            default:
+	                            	LOG.warn("No case for converting regex expressing for database of type: " + Common.databaseProxy.getType());
+
 	                            }
 	                        }
 	                        else {

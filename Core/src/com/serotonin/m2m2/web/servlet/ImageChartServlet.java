@@ -27,6 +27,7 @@ import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
@@ -34,6 +35,7 @@ import com.serotonin.m2m2.util.chart.ImageChartUtils;
 import com.serotonin.m2m2.util.chart.NumericTimeSeries;
 import com.serotonin.m2m2.util.chart.PointTimeSeriesCollection;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.util.ColorUtils;
 
@@ -50,6 +52,15 @@ public class ImageChartServlet extends BaseInfoServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	
+    	//Check out Public Graphic Views
+    	User user = Common.getUser(request);
+        if (user == null){
+        	boolean allowView = SystemSettingsDao.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false);
+        	if(!allowView)
+        		return;
+        }
+    	
         String imageInfo = request.getPathInfo();
 
         CacheElement ce = cachedImages.get(imageInfo);

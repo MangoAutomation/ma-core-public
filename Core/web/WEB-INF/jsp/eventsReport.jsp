@@ -45,7 +45,12 @@
   var constants_AUDIT_TYPE_POINT_EVENT_DETECTOR = '${applicationScope['constants.AuditEventType.TYPE_POINT_EVENT_DETECTOR']}';
   var constants_AUDIT_TYPE_EVENT_HANDLER = '${applicationScope['constants.AuditEventType.TYPE_EVENT_HANDLER']}';
   var constants_USER_COMMENT_TYPE_EVENT = "${applicationScope['constants.UserComment.TYPE_EVENT']}";
+  var constants_TYPE_SYSTEM_STARTUP = "${applicationScope['constants.SystemEventType.TYPE_SYSTEM_STARTUP']}";
+  var constants_TYPE_SYSTEM_SHUTDOWN = "${applicationScope['constants.SystemEventType.TYPE_SYSTEM_SHUTDOWN']}";
+  var constants_TYPE_USER_LOGIN = "${applicationScope['constants.SystemEventType.TYPE_USER_LOGIN']}";
   
+  //Get from the URL Parameter
+  var alarmLevelUrlParameter = '${param.level}';
   
   require(["dojo/parser","dijit/Calendar","dojo/domReady!"]);
 

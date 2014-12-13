@@ -235,7 +235,7 @@ public class ImageChartUtils {
     }
 
     public static String getContentType() {
-        return "image/x-png";
+        return "image/png";
     }
 
     public static void addMillisecond(TimeSeries timeSeries, long time, Number value) {

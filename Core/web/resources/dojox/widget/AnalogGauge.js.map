@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"AnalogGauge.js",
+"lineCount":1,
+"mappings":"A,SACAA,MAAA,uHAA+H,QAAA,CAASC,CAAT,CAAeC,CAAf,CAAoBC,CAApB,EAE/HD,CAAAE,QAAA,4BACAF,EAAAG,QAAA,6BAEAH,EAAAG,QAAA,4BACAF,EAAAG,OAAAC,YAN+H,CAMpGJ,CAAAK,OAAAD,YAC3BJ,EAAAG,OAAAG,MAAAC,oBAP+H,CAOtFP,CAAAK,OAAAE,oBAPsF,CAA/H;",
+"sources":["AnalogGauge.js.uncompressed.js"],
+"names":["define","dijit","dojo","dojox","provide","require","widget","AnalogGauge","gauges","gauge","AnalogLineIndicator"]
+}

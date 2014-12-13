@@ -13,13 +13,11 @@ html > body {
 }
 a, a:visited, a:link, .link {
 	color: #804000;
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	text-decoration: underline;
 	font-size: 11px;
 }
 a:hover {
 	color: #F07800;
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	text-decoration: underline;
 	font-size: 11px;
 }
@@ -32,13 +30,11 @@ a.titleLink:hover {
 	font-weight: bold;
 }
 .bigTitle {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	color: #333333;
 	font-size: 16px;
 	font-weight: bold;
 }
 .smallTitle {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	color: #804000;
 	font-size: 13px;
 	font-weight: bold;
@@ -51,12 +47,10 @@ a.titleLink:hover {
 	font-size: 10px;
 }
 .bodyCopy {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	color: #333333;
 	font-size: 11px;
 }
 .footer {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	color: #333333;
 	font-size: 9px;
 }
@@ -65,8 +59,6 @@ a.titleLink:hover {
 }
 
 img { border-style: none; }
-
-
 
 /**
  * Header styles
@@ -78,6 +70,8 @@ img { border-style: none; }
 #mainHeader {
 	padding-top: 5px;
 	background-color: #FFFFFF;
+	width: 100%;
+	height: 85px;
 }
 #subHeader {
 	background-color: #F0F0F0;
@@ -90,7 +84,6 @@ img { border-style: none; }
  * List cell styles.
  */
 .rowHeader td, .smRowHeader td, .row td, .smRow td, .rowAlt td, .smRowAlt td, .rowAlt2 td {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 11px;
 }
 .rowHeader td, .smRowHeader td {
@@ -158,12 +151,10 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
     width: 370px;
 }
 
-
 /**
  * Form styles
  */
 .formLabel, .formLabelRequired, .formField, .formError, .formWarning, .formInfo, select, input, textarea {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 11px;
 }
 .formLabel, .formLabelRequired {
@@ -178,7 +169,6 @@ a.rowHeaderLink, a.rowHeaderLink:visited, a.rowHeaderLink:link, a.rowHeaderLink:
 .formField { padding: 2px; color: #333333; }
 .formError, .formWarning { color: #FF0000; }
 .formWarning, .formWarning, .formWarning { padding-left: 10px; }
-
 
 select, input, textarea, button {
 	color: #333333;
@@ -210,9 +200,8 @@ input[type="checkbox"], input[type="radio"] {
 }
 input[type="submit"], input[type="button"] {
 	overflow: visible;
+	cursor: pointer;
 }
-
-
 
 /**
  * View styles
@@ -318,7 +307,6 @@ input[type="submit"], input[type="button"] {
     height:16px;
 }
 .componentInput {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 10px;
 	color: #333333;
 	border: 1px solid #F07800;
@@ -374,11 +362,10 @@ html > body .dojoxFloatingPaneTitle {
     background-color: #6D933E;
 }
 html > body .dojoxFloatingCloseIcon {
-    background-image: url(../images/cross_doc.png);
+    background-image: url(/images/cross_doc.png);
     cursor: pointer;
 }
 html > body .dojoxFloatingPaneContent {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 10px;
     background-color: #f0f0f0;
 }
@@ -627,4 +614,12 @@ label.formLabelRequired, label.formLabel {
     margin-top:5px;
 }
 
+/* misc dojo dijit styles */
 
+.claro .dijitTabContainerTop-tabs .dijitTabChecked {
+	padding-top: 3px;
+}
+
+table.dijit {
+	border-spacing: 0;
+}

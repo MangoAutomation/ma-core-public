@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"_Gauge.js",
+"lineCount":1,
+"mappings":"A,SACAA,MAAA,yFAAiG,QAAA,CAASC,CAAT,CAAeC,CAAf,CAAoBC,CAApB,EACjGD,CAAAE,QAAA,6BACAF,EAAAG,QAAA,uBAEAF,EAAAG,OAAAC,MAAAC,OAJiG,CAIrEL,CAAAM,OAAAD,OAC5BL,EAAAG,OAAAC,MAAAG,MALiG,CAKtEP,CAAAM,OAAAC,MAC3BP,EAAAG,OAAAC,MAAAI,WANiG,CAMjER,CAAAM,OAAAE,WANiE,CAAjG;",
+"sources":["_Gauge.js.uncompressed.js"],
+"names":["define","dijit","dojo","dojox","provide","require","widget","gauge","_Gauge","gauges","Range","_indicator"]
+}
