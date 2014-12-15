@@ -51,7 +51,7 @@
     </for>
     
     <!-- Compile the default core private modules into the core -->
-    <property name="private-modules" value="BACnet,Custom Dashboards,Data File Data Source,DGLux,DNP3,Galil Data Source,HTTP,JMX Data Source,Log4jDataSource,LoggingConsole,Mango API,MBus,Meta Data Source,Modbus,OneWire,OPC DA,OpenV,Pachube,Persistent TCP,POP3,Scripting,SNMP,SQL Data Source,SST Global Scripts,TemplateConfiguration,Twilio,Zwave"/>
+    <property name="private-modules" value="BACnet,ControlCore,Custom Dashboards,Data File Data Source,DGLux,DNP3,Galil Data Source,HTTP,JMX Data Source,Log4jDataSource,LoggingConsole,Mango API,MBus,Meta Data Source,Modbus,OneWire,OPC DA,OpenV,Pachube,Persistent TCP,POP3,Scripting,SNMP,SQL Data Source,SST Global Scripts,TemplateConfiguration,Twilio,Zwave"/>
 
     <for list="${private-modules}" param="moduleName" delimiter=",">
         <sequential>
