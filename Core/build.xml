@@ -356,15 +356,15 @@
 
 
     <target name="docs" description="Generate Java Doc">
-        <mkdir dir="${core.target}/java/doc" />
+        <mkdir dir="${core.release}/java/doc" />
         <javadoc sourcepath="src"
-                 destdir="release/java/doc"
+                 destdir="${core.release}/java/doc"
                  classpathref="master-classpath" />
     </target>
 
     <target name="jar-doc" depends="docs" description="Create a jar file of the javadocs">
-        <delete file="release/${fullName}-doc.jar" />
-        <jar destfile="release/${fullName}-doc.jar">
+        <delete file="${core.release}/{fullName}-doc.jar" />
+        <jar destfile="${core.release}/{fullName}-doc.jar">
             <fileset dir="${core.target}/java/doc">
                 <include name="**/*" />
             </fileset>
@@ -373,8 +373,8 @@
 
 
     <target name="jar-src" description="Create a jar file of the sources">
-        <delete file="release/${fullName}-src.jar" />
-        <jar destfile="release/${fullName}-src.jar">
+        <delete file="${core.release}/{fullName}-src.jar" />
+        <jar destfile="${core.release}/{fullName}-src.jar">
             <fileset dir="src">
                 <include name="**/*.java" />
             </fileset>
@@ -392,7 +392,7 @@
         </copy>
     </target>
 
-    <!-- NEW Targets for Debugging at the Core Level, above target -->
+    <!-- NEW Targets for Debugging at the Core Directory Level, above target directory-->
     <target name="jsp-compile-eclipse"
             description="Compile the JSPs in place for debugging">
         <taskdef name="jasper2" classname="org.apache.jasper.JspC">
