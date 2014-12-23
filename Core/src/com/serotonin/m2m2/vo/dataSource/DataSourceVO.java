@@ -163,7 +163,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     protected EventTypeVO createPollAbortedEventType(int eventId) {
         return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId,
         		new TranslatableMessage("event.ds.pollAborted"), getAlarmLevel(eventId, AlarmLevels.URGENT),
-        		EventType.DuplicateHandling.IGNORE_SAME_MESSAGE);
+        		EventType.DuplicateHandling.IGNORE);
     }
 
 	/**

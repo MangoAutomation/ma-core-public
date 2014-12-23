@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -46,6 +47,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     private volatile Thread jobThread;
     private long jobThreadStartTime;
 
+    private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
     private final AtomicLong unsuccessfulPolls = new AtomicLong();
 
@@ -67,8 +69,16 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         return successfulPolls.get();
     }
 
-    public void incrementSuccessfulPolls() {
+    public void incrementSuccessfulPolls(long time) {
         successfulPolls.incrementAndGet();
+        boolean lastPollSuccessful = this.lastPollSuccessful.getAndSet(true);
+        if (lastPollSuccessful) {
+	        // Return event to normal
+	        int eventId = vo.getPollAbortedExceptionEventId();
+	        if(eventId >= 0) {
+	        	returnToNormal(eventId, time);
+	        }
+        }
     }
 
     public long getUnsuccessfulPolls() {
@@ -82,6 +92,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
      */
     public void incrementUnsuccessfulPolls(long time) {
         long unsuccessful = unsuccessfulPolls.incrementAndGet();
+        lastPollSuccessful.set(false);
         //Raise Event
         int eventId = vo.getPollAbortedExceptionEventId();
         if(eventId >= 0)
@@ -98,7 +109,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             incrementUnsuccessfulPolls(fireTime);
             return;
         }
-        incrementSuccessfulPolls();
+        incrementSuccessfulPolls(fireTime);
 
         try {
             jobThread = Thread.currentThread();
