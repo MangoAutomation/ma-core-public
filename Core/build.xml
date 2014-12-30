@@ -267,7 +267,7 @@
 
         <mvn:install file="${core.target}/lib/ma-core-${maven-pom.version}.jar">
             <pom refid="maven-pom" />
-            <attach file="release/${fullName}-src.jar"
+            <attach file="${core.release}/${fullName}-src.jar"
                     type="jar"
                     classifier="sources" />
 <!--            <attach file="release/${fullName}-doc.jar"
@@ -363,8 +363,8 @@
     </target>
 
     <target name="jar-doc" depends="docs" description="Create a jar file of the javadocs">
-        <delete file="${core.release}/{fullName}-doc.jar" />
-        <jar destfile="${core.release}/{fullName}-doc.jar">
+        <delete file="${core.release}/${fullName}-doc.jar" />
+        <jar destfile="${core.release}/${fullName}-doc.jar">
             <fileset dir="${core.target}/java/doc">
                 <include name="**/*" />
             </fileset>
@@ -373,8 +373,8 @@
 
 
     <target name="jar-src" description="Create a jar file of the sources">
-        <delete file="${core.release}/{fullName}-src.jar" />
-        <jar destfile="${core.release}/{fullName}-src.jar">
+        <delete file="${core.release}/${fullName}-src.jar" />
+        <jar destfile="${core.release}/${fullName}-src.jar">
             <fileset dir="src">
                 <include name="**/*.java" />
             </fileset>
