@@ -267,10 +267,10 @@
 
         <mvn:install file="${core.target}/lib/ma-core-${maven-pom.version}.jar">
             <pom refid="maven-pom" />
-            <attach file="release/${fullName}-src.jar"
+            <attach file="${core.release}/${fullName}-src.jar"
                     type="jar"
                     classifier="sources" />
-<!--            <attach file="release/${fullName}-doc.jar"
+<!--            <attach file="${core.release}/${fullName}-doc.jar"
                     type="jar"
                     classifier="javadoc" /> -->
         </mvn:install>
