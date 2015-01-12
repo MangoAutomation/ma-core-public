@@ -546,6 +546,18 @@ function enableOnclick(node) {
     }
 }
 
+function disableButton(node) {
+    node = getNodeIfString(node);
+    disableOnclick(node);
+    setDisabled(node, true);
+}
+
+function enableButton(node) {
+    node = getNodeIfString(node);
+    enableOnclick(node);
+    setDisabled(node, false);
+}
+
 function updateTemplateNode(elem, replaceText) {
     var i;
     for (i=0; i<elem.attributes.length; i++) {

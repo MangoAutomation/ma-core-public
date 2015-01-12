@@ -31,6 +31,7 @@ public class BackgroundProcessing implements ILifecycle {
 
     public void addWorkItem(final WorkItem item) {
         Runnable runnable = new Runnable() {
+            @Override
             public void run() {
                 try {
                     item.execute();
@@ -59,6 +60,7 @@ public class BackgroundProcessing implements ILifecycle {
         return mediumPriorityService.getQueue().size();
     }
 
+    @Override
     public void initialize() {
         mediumPriorityService = new ThreadPoolExecutor(3, 30, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>());
@@ -66,12 +68,14 @@ public class BackgroundProcessing implements ILifecycle {
         lowPriorityService = Executors.newSingleThreadExecutor();
     }
 
+    @Override
     public void terminate() {
         // Close the executor services.
         mediumPriorityService.shutdown();
         lowPriorityService.shutdown();
     }
 
+    @Override
     public void joinTermination() {
         boolean medDone = false;
         boolean lowDone = false;
@@ -90,11 +94,12 @@ public class BackgroundProcessing implements ILifecycle {
                     break;
 
                 if (!lowDone && !medDone)
-                    log.info("BackgroundProcessing waiting for medium (" + mediumPriorityService.getQueue().size()
-                            + ") and low priority tasks to complete");
+                    log.info("BackgroundProcessing waiting for medium (" + mediumPriorityService.getActiveCount() + ","
+                            + mediumPriorityService.getQueue().size() + ") and low priority tasks to complete");
                 else if (!medDone)
                     log.info("BackgroundProcessing waiting for medium priority tasks ("
-                            + mediumPriorityService.getQueue().size() + ") to complete");
+                            + mediumPriorityService.getActiveCount() + "," + mediumPriorityService.getQueue().size()
+                            + ") to complete");
                 else
                     log.info("BackgroundProcessing waiting for low priority tasks to complete");
 

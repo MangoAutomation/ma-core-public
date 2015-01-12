@@ -80,6 +80,7 @@ public class M2M2ContextListener implements ServletContextListener {
         ctx.setAttribute("constants.SystemEventType.TYPE_EMAIL_SEND_FAILURE", SystemEventType.TYPE_EMAIL_SEND_FAILURE);
         ctx.setAttribute("constants.SystemEventType.TYPE_PROCESS_FAILURE", SystemEventType.TYPE_PROCESS_FAILURE);
         ctx.setAttribute("constants.SystemEventType.TYPE_LICENSE_CHECK", SystemEventType.TYPE_LICENSE_CHECK);
+        ctx.setAttribute("constants.SystemEventType.TYPE_UPGRADE_CHECK", SystemEventType.TYPE_UPGRADE_CHECK);
 
         ctx.setAttribute("constants.AuditEventType.TYPE_DATA_SOURCE", AuditEventType.TYPE_DATA_SOURCE);
         ctx.setAttribute("constants.AuditEventType.TYPE_DATA_POINT", AuditEventType.TYPE_DATA_POINT);
@@ -97,7 +98,7 @@ public class M2M2ContextListener implements ServletContextListener {
                 "js.email.noRecipients", "js.email.addMailingList", "js.email.addUser", "js.email.addAddress",
                 "js.email.noRecipForEmail", "js.email.testSent", "events.silence", "events.unsilence", "header.mute",
                 "header.unmute", };
-        Map<String, TranslatableMessage> messages = new HashMap<String, TranslatableMessage>();
+        Map<String, TranslatableMessage> messages = new HashMap<>();
         for (String code : codes)
             messages.put(code, new TranslatableMessage(code));
         ctx.setAttribute("clientSideMessages", messages);
