@@ -35,7 +35,7 @@ public class Module {
     @SuppressWarnings("unchecked")
     public static <T extends ModuleElementDefinition> List<T> getDefinitions(List<ModuleElementDefinition> definitions,
             Class<T> clazz) {
-        List<T> defs = new ArrayList<T>();
+        List<T> defs = new ArrayList<>();
         for (ModuleElementDefinition def : definitions) {
             if (clazz.isAssignableFrom(def.getClass()))
                 defs.add((T) def);
@@ -45,6 +45,7 @@ public class Module {
 
     private final String name;
     private final String version;
+    private String licenseType;
     private final TranslatableMessage description;
     private final String vendor;
     private final String vendorUrl;
@@ -53,9 +54,9 @@ public class Module {
     private boolean markedForDeletion;
     //    private boolean disabled;
 
-    private final List<ModuleElementDefinition> definitions = new ArrayList<ModuleElementDefinition>();
+    private final List<ModuleElementDefinition> definitions = new ArrayList<>();
 
-    private final Set<String> locales = new HashSet<String>();
+    private final Set<String> locales = new HashSet<>();
     private String graphics;
     private String emailTemplates;
 
@@ -161,6 +162,14 @@ public class Module {
         return version;
     }
 
+    public String getLicenseType() {
+        return licenseType;
+    }
+
+    public void setLicenseType(String licenseType) {
+        this.licenseType = licenseType;
+    }
+
     public TranslatableMessage getDescription() {
         return description;
     }
@@ -212,14 +221,14 @@ public class Module {
     }
 
     public List<TranslatableMessage> getLicenseErrors() {
-        List<TranslatableMessage> errors = new ArrayList<TranslatableMessage>();
+        List<TranslatableMessage> errors = new ArrayList<>();
         for (LicenseDefinition def : getDefinitions(LicenseDefinition.class))
             def.addLicenseErrors(errors);
         return errors;
     }
 
     public List<TranslatableMessage> getLicenseWarnings() {
-        List<TranslatableMessage> warnings = new ArrayList<TranslatableMessage>();
+        List<TranslatableMessage> warnings = new ArrayList<>();
         for (LicenseDefinition def : getDefinitions(LicenseDefinition.class))
             def.addLicenseWarnings(warnings);
         return warnings;

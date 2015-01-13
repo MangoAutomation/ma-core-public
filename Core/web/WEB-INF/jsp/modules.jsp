@@ -6,6 +6,8 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="ModulesDwr">
+  <c:set var="storeUrl" value='<%= Common.envProps.getString("store.url") %>'/>
+
   <style type="text/css">
     .modName { width: 150px; display: inline-block; }
     .relNotes { width: 50px; display: inline-block; }
@@ -258,6 +260,13 @@
         }
     }
     
+    function downloadLicense() {
+        var r = bareUri();
+        var g = "${guid}";
+        var d = "${distributor}";
+        window.location = "${storeUrl}/account/servlet/getDownloadToken?r="+ r +"&g="+ g +"&d="+ d;
+    }
+    
     function storeCheck() {
         if (window.location.href.indexOf('store') != -1) {
             $("goToStore").click();
@@ -265,9 +274,22 @@
         }
     }
     
-    window.onload = function() {
+    dojo.ready(function() {
+        <c:if test="${licenseDownloaded}">
+          alert("<m2m2:translate key="modules.licenseDownloaded" escapeDQuotes="true"/>");
+        </c:if>
+    	
         storeCheck();
-    };
+        $set("redirectURI", bareUri());
+    });
+    
+    function bareUri() {
+        var s = ""+ window.location;
+        var pos = s.indexOf("?");
+        if (pos != -1)
+            s = s.substring(0, pos);
+        return s;
+    }
   </script>
   
   <div>
@@ -276,10 +298,12 @@
   </div>
   
   <div id="guid">
-    <form action="<c:out value='<%= Common.envProps.getString("store.url") %>'/>/account/store" method="post" target="_blank">
+    <form action="${storeUrl}/account/store" method="post" target="mangoStore">
       <fmt:message key="modules.guid"/> <b>${guid}</b>
       <textarea rows="2" cols="80" style="display:none;" name="orderJson">${json}</textarea>
+      <input type="hidden" id="redirectURI" name="redirect" value=""/>
       <input id="goToStore" type="submit" value="<fmt:message key="modules.update"/>" style="margin-left:20px;"/>
+      <input id="downloadLicenseBtn" type="button" value="<fmt:message key="modules.downloadLicense"/>" onclick="downloadLicense();"/>
       <input type="button" value="<m2m2:translate key='modules.restart'/>" onclick="restartInstance();"/>
 <%--       <input type="button" value="<m2m2:translate key='modules.shutdown'/>" onclick="shutdownInstance();"/> --%>
       <input id="versionCheckBtn" type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/>
@@ -357,7 +381,13 @@
           </c:otherwise>
         </c:choose>
         
-        <span class="version">${module.version}</span>
+        <span class="version">
+          ${module.version} -
+          <c:choose>
+            <c:when test="${empty module.licenseType}">*** unlicensed ***</c:when>
+            <c:otherwise>${module.licenseType}</c:otherwise>
+          </c:choose> 
+        </span>
                
         <div class="vendor">
           <c:choose>

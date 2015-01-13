@@ -11,7 +11,7 @@ import com.serotonin.m2m2.module.LicenseDefinition;
  * such as "paid".
  */
 public class BasicModuleLicense extends LicenseDefinition {
-    private final List<TranslatableMessage> ERRORS = new ArrayList<TranslatableMessage>();
+    private final List<TranslatableMessage> ERRORS = new ArrayList<>();
 
     @Override
     public void addLicenseErrors(List<TranslatableMessage> errors) {
@@ -26,6 +26,7 @@ public class BasicModuleLicense extends LicenseDefinition {
     @Override
     public void licenseCheck(boolean initialization) {
         if (initialization) {
+            ERRORS.clear();
             if (getModule().license() == null)
                 ERRORS.add(new TranslatableMessage("module.notLicensed"));
         }
