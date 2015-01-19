@@ -10,14 +10,16 @@ public interface ILifecycle extends Provider {
     void addStartupTask(Runnable task);
 
     void addShutdownTask(Runnable task);
-    
+
     /**
      * Get the state of the Lifecycle
+     * 
      * @return
      */
-    public int getLifecycleState();    
+    public int getLifecycleState();
+
     /**
-     * Get the percentage 0-100 
+     * Get the percentage 0-100
      * 0 is Not Started
      * 100 is running
      * 
@@ -25,13 +27,18 @@ public interface ILifecycle extends Provider {
      * @return
      */
     public float getStartupProgress();
-    
+
     /**
-     * Get the percentage 0-100 
+     * Get the percentage 0-100
      * 0 is Running
      * 100 is Shutdown
      * 
      * @return
      */
     public float getShutdownProgress();
+
+    /**
+     * (Re)load the license
+     */
+    public void lic();
 }

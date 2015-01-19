@@ -25,7 +25,7 @@ import com.serotonin.io.StreamUtils;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
-import com.serotonin.m2m2.Lifecycle;
+import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.LicenseDefinition;
@@ -64,13 +64,12 @@ public class ModulesController implements UrlHandler {
 
         Module core = new Module("core", version, new TranslatableMessage("modules.core.description"),
                 "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1);
-        core.setLicenseType(Common.license().getLicenseType());
-
+        core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
         modules.add(0, core);
 
         model.put("guid", Providers.get(ICoreLicense.class).getGuid());
-        model.put("distributor", Common.license().getDistributor());
+        model.put("distributor", Common.envProps.getString("distributor"));
         model.put("modules", modules);
 
         // The JSON
@@ -135,7 +134,7 @@ public class ModulesController implements UrlHandler {
         StreamUtils.writeFile(licenseFile, responseData);
 
         // Reload the license file.
-        Lifecycle.lic();
+        Providers.get(ILifecycle.class).lic();
 
         return true;
     }
