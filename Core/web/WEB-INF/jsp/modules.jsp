@@ -9,9 +9,11 @@
   <c:set var="storeUrl" value='<%= Common.envProps.getString("store.url") %>'/>
 
   <style type="text/css">
-    .modName { width: 150px; display: inline-block; }
+    .modName { width: 200px; display: inline-block; }
     .relNotes { width: 50px; display: inline-block; }
     .relNotesContent { margin: 2px; max-height: 300px; overflow: auto; }
+    .relNotesContent .desc { color: #699D2E; }
+    .relNotesContent .vendor { font-style: italic; margin-bottom: 5px; }
     .upgradeSection { margin-bottom: 20px; }
     .upgradeSectionTitle { margin-bottom: 5px; }
     .upgradeSectionOptions { margin-left: 20px; }
@@ -141,7 +143,14 @@
         
         // Get the release notes content. Get the module name by clipping 'relNotes' from the end of the id.
         var modName = this.id.substring(0, this.id.length - 8);
-        var content = getElement(allModuleList, modName, "name").releaseNotes;
+        var mod = getElement(allModuleList, modName, "name");
+        
+        var content = "<div class='relNotesContent'>";
+        content += "<div class='desc'>"+ mod.shortDescription +"</div>";
+        if (mod.vendorName)
+            content += "<div class='vendor'>"+ mod.vendorName +"</div>";
+        content += "<div class='notes'>"+ mod.releaseNotes +"</div>";
+        content += "</div>";
         
         // Start a timeout to display the content instead of displaying immediately. This so that a mouse that just 
         // happens to hover over the element - without the intention of viewing the notes - does not actually open
@@ -155,7 +164,7 @@
                 myTooltipDialog = new TooltipDialog({
                     id: 'myTooltipDialog',
                     style: "width: 500px;",
-                    content: "<div class='relNotesContent'>"+ content +"</div>",
+                    content: content,
                     onMouseLeave: function() { 
                         popup.close(myTooltipDialog);
                     }
