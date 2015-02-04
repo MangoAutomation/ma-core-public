@@ -1,5 +1,7 @@
 *Version 2.5.1*
 * Development Version for 2.5.2 Release
+* Added ability to check for upgrades, and install upgrades and new modules locally
+* Exposed medium and low priority work queue items
 
 *Version 2.5.0*
 * Upgraded to Jetty 9
