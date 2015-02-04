@@ -40,5 +40,5 @@ public interface ILifecycle extends Provider {
     /**
      * (Re)load the license
      */
-    public void lic();
+    public void loadLic();
 }

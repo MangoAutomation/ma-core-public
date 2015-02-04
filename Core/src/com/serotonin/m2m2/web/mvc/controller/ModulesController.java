@@ -134,7 +134,7 @@ public class ModulesController implements UrlHandler {
         StreamUtils.writeFile(licenseFile, responseData);
 
         // Reload the license file.
-        Providers.get(ILifecycle.class).lic();
+        Providers.get(ILifecycle.class).loadLic();
 
         return true;
     }
