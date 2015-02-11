@@ -270,7 +270,7 @@
             <attach file="${core.release}/${fullName}-src.jar"
                     type="jar"
                     classifier="sources" />
-<!--            <attach file="release/${fullName}-doc.jar"
+<!--            <attach file="${core.release}/${fullName}-doc.jar"
                     type="jar"
                     classifier="javadoc" /> -->
         </mvn:install>

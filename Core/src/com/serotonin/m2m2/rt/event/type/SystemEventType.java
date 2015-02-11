@@ -43,11 +43,11 @@ public class SystemEventType extends EventType {
     public static final String TYPE_EMAIL_SEND_FAILURE = "EMAIL_SEND_FAILURE";
     public static final String TYPE_PROCESS_FAILURE = "PROCESS_FAILURE";
     public static final String TYPE_LICENSE_CHECK = "LICENSE_CHECK";
-	public static final String TYPE_BACKUP_FAILURE = "BACKUP_FAILURE";
+    public static final String TYPE_BACKUP_FAILURE = "BACKUP_FAILURE";
+    public static final String TYPE_UPGRADE_CHECK = "UPGRADE_CHECK";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
-    public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
-
+    public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<>();
 
     public static void initialize() {
         addEventType(TYPE_SYSTEM_STARTUP, "event.system.startup", AlarmLevels.INFORMATION);
@@ -58,7 +58,8 @@ public class SystemEventType extends EventType {
         addEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email", AlarmLevels.INFORMATION);
         addEventType(TYPE_PROCESS_FAILURE, "event.system.process", AlarmLevels.URGENT);
         addEventType(TYPE_LICENSE_CHECK, "event.system.licenseCheck", AlarmLevels.URGENT);
-        addEventType(TYPE_BACKUP_FAILURE,"event.system.backupFailure",AlarmLevels.URGENT);
+        addEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure", AlarmLevels.URGENT);
+        addEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck", AlarmLevels.INFORMATION);
 
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey(), def.getDefaultAlarmLevel());

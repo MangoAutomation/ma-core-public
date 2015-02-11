@@ -38,6 +38,7 @@
   var constants_SYSTEM = '${applicationScope['constants.EventType.EventTypeNames.SYSTEM']}';
   var constants_TYPE_SET_POINT_HANDLER_FAILURE = '${applicationScope['constants.SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE']}';
   var constants_TYPE_LICENSE_CHECK = '${applicationScope['constants.SystemEventType.TYPE_LICENSE_CHECK']}';
+  var constants_TYPE_UPGRADE_CHECK = '${applicationScope['constants.SystemEventType.TYPE_UPGRADE_CHECK']}';
   var constants_PUBLISHER = '${applicationScope['constants.EventType.EventTypeNames.PUBLISHER']}';
   var constants_AUDIT = '${applicationScope['constants.EventType.EventTypeNames.AUDIT']}';
   var constants_AUDIT_TYPE_DATA_SOURCE = '${applicationScope['constants.AuditEventType.TYPE_DATA_SOURCE']}';

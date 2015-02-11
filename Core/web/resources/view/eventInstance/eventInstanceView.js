@@ -561,6 +561,9 @@ eventInstances = new StoreView({
     	        	}else if(eventInstance.eventType.systemEventType === constants_TYPE_LICENSE_CHECK){
     	        		html += "<a href='modules.shtm'><img src='/images/puzzle.png' title='";
     	        		html += mangoMsg['modules.modules'] + "'/></a>";
+    	        	}else if(eventInstance.eventType.systemEventType === constants_TYPE_UPGRADE_CHECK){
+    	        		html += "<a href='modules.shtm'><img src='/images/puzzle.png' title='";
+    	        		html += mangoMsg['modules.modules'] + "'/></a>";
     	        	}else if(eventInstance.eventType.systemEventType === constants_TYPE_SYSTEM_STARTUP){
     	        	    //No HTML Link for this
     	    	    }else if(eventInstance.eventType.systemEventType === constants_TYPE_SYSTEM_SHUTDOWN){

@@ -389,7 +389,6 @@ abstract public class BaseDwr {
         // For users that log in on multiple machines (or browsers), reset the last alarm timestamp so that it always
         // gets reset with at least each new poll. For now this beats writing user-specific event change tracking code.
         state.setLastAlarmLevelChange(0);
-
         while (!pollRequest.isTerminated() && System.currentTimeMillis() < expireTime) {
             if (Providers.get(ILifecycle.class).isTerminated()) {
                 pollRequest.setTerminated(true);
@@ -405,7 +404,7 @@ abstract public class BaseDwr {
             		lastUnsilencedAlarmCount = 0;
             	
             	//Sort into lists for the different types
-            	int lifeSafetyTotal=EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.LIFE_SAFETY);
+            	int lifeSafetyTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.LIFE_SAFETY);
             	int noneTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.NONE);
             	int informationTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.INFORMATION);
             	int criticalTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.CRITICAL);
