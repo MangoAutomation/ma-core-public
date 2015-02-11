@@ -364,7 +364,7 @@
 
     <target name="jar-doc" depends="docs" description="Create a jar file of the javadocs">
         <delete file="${core.release}/${fullName}-doc.jar" />
-        <jar destfile="${core.release}$/{fullName}-doc.jar">
+        <jar destfile="${core.release}/${fullName}-doc.jar">
             <fileset dir="${core.target}/java/doc">
                 <include name="**/*" />
             </fileset>
