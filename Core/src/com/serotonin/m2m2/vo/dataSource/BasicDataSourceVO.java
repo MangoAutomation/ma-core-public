@@ -10,6 +10,7 @@ public class BasicDataSourceVO {
     private String xid;
     private String name;
     private boolean enabled;
+    private String editPermission;
     private boolean purgeOverride;
     private int purgeType;
     private int purgePeriod;
@@ -89,12 +90,19 @@ public class BasicDataSourceVO {
         this.purgePeriod = purgePeriod;
     }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-    
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getEditPermission() {
+        return editPermission;
+    }
+
+    public void setEditPermission(String editPermission) {
+        this.editPermission = editPermission;
+    }
 }

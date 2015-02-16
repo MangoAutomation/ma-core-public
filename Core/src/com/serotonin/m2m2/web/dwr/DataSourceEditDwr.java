@@ -53,6 +53,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     protected void setBasicProps(DataSourceVO<?> ds, BasicDataSourceVO basic) {
         ds.setName(basic.getName());
         ds.setXid(basic.getXid());
+        ds.setEditPermission(basic.getEditPermission());
         ds.setPurgeOverride(basic.isPurgeOverride());
         ds.setPurgeType(basic.getPurgeType());
         ds.setPurgePeriod(basic.getPurgePeriod());
@@ -67,7 +68,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (!response.getHasMessages()) {
             Common.runtimeManager.saveDataSource(ds);
             response.addData("id", ds.getId());
-            response.addData("vo",ds); //For new table method
+            response.addData("vo", ds); //For new table method
         }
 
         return response;
@@ -102,49 +103,52 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         //Added to allow saving point settings from data point edit view
         DataPointVO dp = Common.getUser().getEditPoint();
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        
+
         //Kludge to ensure you don't save the wrong point to the wrong ds
-        if(dp != null){
-	        if((dp.getDataSourceTypeName() != ds.getDefinition().getDataSourceTypeName())
-	        		||(dp.getDataSourceId() != ds.getId())){
-	        	throw new RuntimeException("Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
-	        }        
+        if (dp != null) {
+            if ((dp.getDataSourceTypeName() != ds.getDefinition().getDataSourceTypeName())
+                    || (dp.getDataSourceId() != ds.getId())) {
+                throw new RuntimeException(
+                        "Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
+            }
         }
         //Another Kludge to allow modules to get new-ish data points via this method...
         //TODO This affects the data source tools so be careful with changes.
-        if((dp==null)&&(pointId == Common.NEW_ID)){
-        	dp = new DataPointVO();
-        	dp.setId(pointId);       	
-        	dp.setXid(DataPointDao.instance.generateUniqueXid());
+        if ((dp == null) && (pointId == Common.NEW_ID)) {
+            dp = new DataPointVO();
+            dp.setId(pointId);
+            dp.setXid(DataPointDao.instance.generateUniqueXid());
             dp.setDataSourceId(ds.getId());
             dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
             dp.setDeviceName(ds.getName());
             dp.setPointLocator(ds.createPointLocator());
             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
             dp.defaultTextRenderer();
-        }else if((dp!=null)&&(pointId != dp.getId())){
-        	if(pointId == -1){
-        		dp = new DataPointVO();
-            	dp.setId(pointId);       	
-            	dp.setXid(DataPointDao.instance.generateUniqueXid());
+        }
+        else if ((dp != null) && (pointId != dp.getId())) {
+            if (pointId == -1) {
+                dp = new DataPointVO();
+                dp.setId(pointId);
+                dp.setXid(DataPointDao.instance.generateUniqueXid());
                 dp.setDataSourceId(ds.getId());
                 dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
                 dp.setDeviceName(ds.getName());
                 dp.setPointLocator(ds.createPointLocator());
                 dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-                dp.defaultTextRenderer();	
-        	}else
-        		dp = DataPointDao.instance.get(pointId);
+                dp.defaultTextRenderer();
+            }
+            else
+                dp = DataPointDao.instance.get(pointId);
         }
-        
+
         //Use the defaulter
-        if(defaulter != null){
-        	if(dp.getId() == Common.NEW_ID)
-        		defaulter.setDefaultValues(dp);
-        	else
-        		defaulter.updateDefaultValues(dp);
+        if (defaulter != null && dp != null) {
+            if (dp.getId() == Common.NEW_ID)
+                defaulter.setDefaultValues(dp);
+            else
+                defaulter.updateDefaultValues(dp);
         }
-        
+
         return dp;
     }
 
@@ -167,16 +171,16 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         //Confirm that we are assinging a point to the correct data source
         DataSourceVO<?> ds = DataSourceDao.instance.get(dp.getDataSourceId());
         PointLocatorVO plvo = ds.createPointLocator();
-        if(plvo.getClass() != locator.getClass() ){
-        	response.addGenericMessage("validate.invalidType");
-        	return response;
+        if (plvo.getClass() != locator.getClass()) {
+            response.addGenericMessage("validate.invalidType");
+            return response;
         }
-        
+
         //If we are a new point then only validate the basics
-        if (id == Common.NEW_ID){
+        if (id == Common.NEW_ID) {
             // Limit enforcement.
             DataSourceTypePointsLimit.checkLimit(dp.getDataSourceTypeName(), response);
-            
+
             if (StringUtils.isBlank(xid))
                 response.addContextualMessage("xid", "validate.required");
             else if (StringValidation.isLengthGreaterThan(xid, 50))
@@ -186,40 +190,39 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
             if (StringUtils.isBlank(name))
                 response.addContextualMessage("name", "validate.required");
-            
+
             //Should really be done elsewhere
             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>());
-            
-        }else{
-	        //New validation on save for all settings on existing points
-        	
-	        dp.validate(response);
-	        
-	        if(dp.getChartRenderer() != null)
-	        	dp.getChartRenderer().validate(response);
-	        
-	        if(dp.getTextRenderer() != null)
-	        	dp.getTextRenderer().validate(response);
+
+        }
+        else {
+            //New validation on save for all settings on existing points
+
+            dp.validate(response);
+
+            if (dp.getChartRenderer() != null)
+                dp.getChartRenderer().validate(response);
+
+            if (dp.getTextRenderer() != null)
+                dp.getTextRenderer().validate(response);
         }
         //Validate Locator
         locator.validate(response, dp);
 
         if (!response.getHasMessages()) {
-        	
 
-        	
             Common.runtimeManager.saveDataPoint(dp);
-        	
+
             //If we have the need to copy permissions then do it now
             // Dirty kludge but whatever for now this all needs reworking.
-            if(dp.getCopyPermissionsFrom() > 0){
-        		DataPointDao.instance.copyPermissions(dp.getCopyPermissionsFrom(), dp.getId());
-        	}
-        	
+            //if(dp.getCopyPermissionsFrom() > 0){
+            //	DataPointDao.instance.copyPermissions(dp.getCopyPermissionsFrom(), dp.getId());
+            //}
+
             if (defaulter != null)
                 defaulter.postSave(dp);
             response.addData("id", dp.getId());
-            response.addData("vo",dp);
+            response.addData("vo", dp);
             if (includePointList)
                 response.addData("points", getPoints());
             //Set the User Point
@@ -257,7 +260,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     public List<EventInstanceBean> getAlarms() {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
         List<EventInstance> events = new EventDao().getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
-        List<EventInstanceBean> beans = new ArrayList<EventInstanceBean>();
+        List<EventInstanceBean> beans = new ArrayList<>();
         if (events != null) {
             for (EventInstance event : events)
                 beans.add(new EventInstanceBean(event.isActive(), event.getAlarmLevel(), Functions.getTime(event
@@ -274,8 +277,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public String exportDataSource() {
-        Map<String, Object> data = new LinkedHashMap<String, Object>();
-        List<DataSourceVO<?>> dss = new ArrayList<DataSourceVO<?>>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        List<DataSourceVO<?>> dss = new ArrayList<>();
         dss.add(Common.getUser().getEditDataSource());
         data.put(EmportDwr.DATA_SOURCES, dss);
         return EmportDwr.export(data);
@@ -290,8 +293,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (dp.getDataSourceId() != ds.getId())
             throw new PermissionException("Wrong data source", Common.getUser());
 
-        Map<String, Object> data = new LinkedHashMap<String, Object>();
-        List<DataPointVO> dss = new ArrayList<DataPointVO>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        List<DataPointVO> dss = new ArrayList<>();
         dss.add(dp);
         data.put(EmportDwr.DATA_POINTS, dss);
         return EmportDwr.export(data);
@@ -304,7 +307,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         DataSourceVO<?> vo = Common.getUser().getEditDataSource();
         DataSourceRT rt = Common.runtimeManager.getRunningDataSource(vo.getId());
 
-        List<TranslatableMessage> messages = new ArrayList<TranslatableMessage>();
+        List<TranslatableMessage> messages = new ArrayList<>();
         result.addData("messages", messages);
         if (rt == null)
             messages.add(new TranslatableMessage("dsEdit.notEnabled"));
@@ -316,14 +319,14 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         return result;
     }
-    
+
     //
     // Data purge
     //
     @DwrPermission(user = true)
     public long purgeNow(int purgeType, int purgePeriod, boolean allData) {
-       
-    	DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+
+        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
         if (ds.getId() == Common.NEW_ID)
             return 0;
 
@@ -331,14 +334,13 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
 
         Long count = 0L;
-        for(DataPointVO point : points){
-        if (allData)
-            count += Common.runtimeManager.purgeDataPointValues(point.getId());
-        else
-            count += Common.runtimeManager.purgeDataPointValues(point.getId(), purgeType, purgePeriod);
+        for (DataPointVO point : points) {
+            if (allData)
+                count += Common.runtimeManager.purgeDataPointValues(point.getId());
+            else
+                count += Common.runtimeManager.purgeDataPointValues(point.getId(), purgeType, purgePeriod);
         }
         return count;
     }
-    
-    
+
 }

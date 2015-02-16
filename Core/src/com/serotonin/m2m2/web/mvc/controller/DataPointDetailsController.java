@@ -70,13 +70,13 @@ public class DataPointDetailsController implements UrlHandler {
         if (point == null && id != -1)
             point = dataPointDao.getDataPoint(id);
 
-        if (point == null && id != -2 /* -2 means an explicit XID was provided but not found */&& !userPoints.isEmpty()){
-        	//Load at least 1 point, there may be many points but some might not actually load if thier data source DNE anymore
-        	for(DataPointSummary userPoint : userPoints){
-        		point = dataPointDao.getDataPoint(userPoint.getId());
-        		if(point != null)
-        			break;
-        	}
+        if (point == null && id != -2 /* -2 means an explicit XID was provided but not found */&& !userPoints.isEmpty()) {
+            //Load at least 1 point, there may be many points but some might not actually load if thier data source DNE anymore
+            for (DataPointSummary userPoint : userPoints) {
+                point = dataPointDao.getDataPoint(userPoint.getId());
+                if (point != null)
+                    break;
+            }
         }
 
         if (point != null) {
@@ -88,13 +88,13 @@ public class DataPointDetailsController implements UrlHandler {
 
             // Get the users that have access to this point.
             List<User> allUsers = new UserDao().getUsers();
-            List<Map<String, Object>> users = new LinkedList<Map<String, Object>>();
+            List<Map<String, Object>> users = new LinkedList<>();
             Map<String, Object> userData;
             int accessType;
             for (User mangoUser : allUsers) {
                 accessType = Permissions.getDataPointAccessType(mangoUser, point);
                 if (accessType != Permissions.DataPointAccessTypes.NONE) {
-                    userData = new HashMap<String, Object>();
+                    userData = new HashMap<>();
                     userData.put("user", mangoUser);
                     userData.put("accessType", accessType);
                     users.add(userData);

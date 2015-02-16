@@ -4,10 +4,7 @@
  */
 package com.serotonin.m2m2.vo;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -18,24 +15,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.json.JsonException;
-import com.serotonin.json.JsonReader;
-import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.spi.JsonSerializable;
-import com.serotonin.json.type.JsonArray;
-import com.serotonin.json.type.JsonObject;
-import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.DataPointAccess;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -45,7 +31,7 @@ import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.validation.StringValidation;
 
-public class User implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
+public class User implements SetPointSource, HttpSessionBindingListener /* , JsonSerializable */{
     private int id = Common.NEW_ID;
     @JsonProperty
     private String username;
@@ -59,8 +45,6 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     private boolean admin;
     @JsonProperty
     private boolean disabled;
-    private List<Integer> dataSourcePermissions;
-    private List<DataPointAccess> dataPointPermissions;
     @JsonProperty
     private String homeUrl;
     private long lastLogin;
@@ -72,12 +56,14 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     private String timezone;
     @JsonProperty
     private boolean muted = true;
+    @JsonProperty
+    private String permissions;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
     //
-    private transient Map<String, Object> attributes = new HashMap<String, Object>();
+    private transient Map<String, Object> attributes = new HashMap<>();
     private transient DataPointVO editPoint;
     private transient DataSourceVO<?> editDataSource;
     private transient TestingUtility testingUtility;
@@ -264,20 +250,12 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
         this.disabled = disabled;
     }
 
-    public List<Integer> getDataSourcePermissions() {
-        return dataSourcePermissions;
+    public String getPermissions() {
+        return permissions;
     }
 
-    public void setDataSourcePermissions(List<Integer> dataSourcePermissions) {
-        this.dataSourcePermissions = dataSourcePermissions;
-    }
-
-    public List<DataPointAccess> getDataPointPermissions() {
-        return dataPointPermissions;
-    }
-
-    public void setDataPointPermissions(List<DataPointAccess> dataPointPermissions) {
-        this.dataPointPermissions = dataPointPermissions;
+    public void setPermissions(String permissions) {
+        this.permissions = permissions;
     }
 
     public DataSourceVO<?> getEditDataSource() {
@@ -391,20 +369,21 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     }
 
     /**
-	 * @return the ipAddress
-	 */
-	public String getRemoteAddr() {
-		return remoteAddr;
-	}
+     * @return the ipAddress
+     */
+    public String getRemoteAddr() {
+        return remoteAddr;
+    }
 
-	/**
-	 * @param ipAddress the ipAddress to set
-	 */
-	public void setRemoteAddr(String ipAddress) {
-		this.remoteAddr = ipAddress;
-	}
+    /**
+     * @param ipAddress
+     *            the ipAddress to set
+     */
+    public void setRemoteAddr(String ipAddress) {
+        this.remoteAddr = ipAddress;
+    }
 
-	public void validate(ProcessResult response) {
+    public void validate(ProcessResult response) {
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         if (StringUtils.isBlank(email))
@@ -424,74 +403,9 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + ", phone="
-                + phone + ", admin=" + admin + ", disabled=" + disabled + ", dataSourcePermissions="
-                + dataSourcePermissions + ", dataPointPermissions=" + dataPointPermissions + ", homeUrl=" + homeUrl
-                + ", lastLogin=" + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails
-                + ", receiveOwnAuditEvents=" + receiveOwnAuditEvents + ", timezone=" + timezone + "]";
-    }
-
-    //
-    //
-    // Serialization
-    //
-    @Override
-    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        if (!admin) {
-            List<String> dsXids = new ArrayList<String>();
-            DataSourceDao dataSourceDao = new DataSourceDao();
-            for (Integer dsId : dataSourcePermissions)
-                dsXids.add(dataSourceDao.getDataSource(dsId).getXid());
-            writer.writeEntry("dataSourcePermissions", dsXids);
-            writer.writeEntry("dataPointPermissions", dataPointPermissions);
-        }
-    }
-
-    @Override
-    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        // Note: data source permissions are explicitly deserialized by the import/export because the data sources and
-        // points need to be certain to exist before we can resolve the xids.
-    }
-
-    public void jsonDeserializePermissions(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        if (admin) {
-            dataSourcePermissions.clear();
-            dataPointPermissions.clear();
-        }
-        else {
-            JsonArray jsonDataSources = jsonObject.getJsonArray("dataSourcePermissions");
-            if (jsonDataSources != null) {
-                dataSourcePermissions.clear();
-                DataSourceDao dataSourceDao = new DataSourceDao();
-
-                for (JsonValue jv : jsonDataSources) {
-                    String xid = jv.toString();
-                    DataSourceVO<?> ds = dataSourceDao.getDataSource(xid);
-                    if (ds == null)
-                        throw new TranslatableJsonException("emport.error.missingSource", xid);
-                    dataSourcePermissions.add(ds.getId());
-                }
-            }
-
-            JsonArray jsonPoints = jsonObject.getJsonArray("dataPointPermissions");
-            if (jsonPoints != null) {
-                // Get a list of points to which permission already exists due to data source access.
-                DataPointDao dataPointDao = new DataPointDao();
-                List<Integer> permittedPoints = new ArrayList<Integer>();
-                for (Integer dsId : dataSourcePermissions) {
-                    for (DataPointVO dp : dataPointDao.getDataPoints(dsId, null, false))
-                        permittedPoints.add(dp.getId());
-                }
-
-                dataPointPermissions.clear();
-
-                for (JsonValue jv : jsonPoints) {
-                    DataPointAccess access = reader.read(DataPointAccess.class, jv);
-                    if (!permittedPoints.contains(access.getDataPointId()))
-                        // The user doesn't already have access to the point.
-                        dataPointPermissions.add(access);
-                }
-            }
-        }
+                + phone + ", admin=" + admin + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
+                + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails + ", receiveOwnAuditEvents="
+                + receiveOwnAuditEvents + ", timezone=" + timezone + ", permissions=" + permissions + "]";
     }
 
     @Override

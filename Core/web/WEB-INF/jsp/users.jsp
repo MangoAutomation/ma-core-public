@@ -6,15 +6,20 @@
 <%@page import="com.serotonin.m2m2.Common"%>
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="UsersDwr" onload="init">
+  <style type="text/css">
+    .permissionStr { display: block; }
+  </style>
+
   <script type="text/javascript">
     dojo.require("dojo.store.Memory");
     dojo.require("dijit.form.FilteringSelect");
   
     var userId = ${sessionUser.id};
     var editingUserId;
-    var dataSources;
+//     var dataSources;
     var adminUser;
     var userMemoryStore; //For realtime user manip
+    var myTooltipDialog;
     
     function init() {
         UsersDwr.getInitData(function(data) {
@@ -25,7 +30,7 @@
                 show("usernameRow");
                 show("administrationRow");
                 show("disabledRow");
-                show("dataSources");
+                show("permissionsRow");
                 show("deleteImg");
                 show("sendTestEmailImg");
                 
@@ -38,67 +43,16 @@
                     updateUser(data.users[i]);
                 }
                 
-
-                
                 //Create the Filtering Select
                 new dijit.form.FilteringSelect({
-                store: userMemoryStore,
-                searchAttr: "username",                  
-                autoComplete: false,
-                style: "width: 100%",
-                highlightMatch: "all",
-                queryExpr: "*\${0}*",
-                required: false
+                    store: userMemoryStore,
+                    searchAttr: "username",                  
+                    autoComplete: false,
+                    style: "width: 100%",
+                    highlightMatch: "all",
+                    queryExpr: "*\${0}*",
+                    required: false
                 }, "su_username");
-                
-//                 //alert(data.allowed);
-//                 var ss;
-//                 if (data.allowed == 1)
-//                 	ss = ' '+ data.allowed + ' user allowed ';
-//                 else	
-//                 	ss = ' '+ data.allowed + ' users allowed ';
-//                 ss += data.users.length+' defined';
-//                 if (data.allowed < +data.users.length)
-//                 	ss += '<br>some users will be disabled'; 
-//                 ss += '<br>';	
-//                 document.getElementById('allowed').innerHTML = ss;
-
-                var dshtml = "", id, dp;
-                dataSources = data.dataSources;
-                for (i=0; i<dataSources.length; i++) {
-                    id = "ds"+ dataSources[i].id;
-                    dshtml += "<img id='tgup" + dataSources[i].id + "' src='images/icon_toggle_plus.png' onclick='expandSource(this);'/><img id='tgdn" + dataSources[i].id + "' src='images/icon_toggle_minus.png' onclick='collapseSource(this);' style='display:none'/>";
-                    dshtml += '<input type="checkbox" id="'+ id +'" onclick="dataSourceChange(this)">';
-                    dshtml += '<label for="'+ id +'"> '+ dataSources[i].name +"</label>";
-                    dshtml += " <a onclick=\"bulkSetPermissions('none',"+dataSources[i].id+");\"><fmt:message key='common.access.none'/></a> ";
-                	dshtml += "<a onclick=\"bulkSetPermissions('read',"+dataSources[i].id+");\"><fmt:message key='common.access.read'/></a> ";
-                	dshtml += "<a onclick=\"bulkSetPermissions('set',"+dataSources[i].id+");\"><fmt:message key='common.access.set'/></a><br></br>";
-                    dshtml += '<div style="margin-left:25px; margin-top: -10px" id="dsps'+ dataSources[i].id +'">';
-                    if (dataSources[i].points.length > 0) {
-                        dshtml +=   '<table cellspacing="0" cellpadding="1">';
-                        for (j=0; j<dataSources[i].points.length; j++) {
-                            dp = dataSources[i].points[j];
-                            dshtml += '<tr>';
-                            dshtml +=   '<td class="formLabelRequired">'+ dp.deviceName + ' - ' + dp.name +'</td>';
-                            dshtml +=   '<td>';
-                            dshtml +=     '<input type="radio" name="dp'+ dp.id +'" id="dp'+ dp.id +'/0" value="0">';
-                            dshtml +=             '<label for="dp'+ dp.id +'/0"><fmt:message key="common.access.none"/></label> ';
-                            dshtml +=     '<input type="radio" name="dp'+ dp.id +'" id="dp'+ dp.id +'/1" value="1">';
-                            dshtml +=             '<label for="dp'+ dp.id +'/1"><fmt:message key="common.access.read"/></label> ';
-                            if (dp.settable) {
-                                dshtml +=     '<input type="radio" name="dp'+ dp.id +'" id="dp'+ dp.id +'/2" value="2">';
-                                dshtml +=             '<label for="dp'+ dp.id +'/2"><fmt:message key="common.access.set"/></label>';
-                            }
-                            dshtml +=   '</td>';
-                            dshtml += '</tr>';
-                        }
-                        dshtml +=   '</table>';
-                    }else{
-                    	dshtml += "<fmt:message key='users.dataSources.noPoints'/>";
-                    }
-                    dshtml += '</div>';
-                }
-                $("dataSourceList").innerHTML = dshtml;
             }
             else {
                 // Not an admin user.
@@ -112,11 +66,11 @@
         });
     }
     
-    
-    
     function showUser(userId) {
         if (editingUserId)
             stopImageFader($("u"+ editingUserId +"Img"));
+        if (myTooltipDialog)
+            myTooltipDialog.destroy();
         editingUserId = userId;
         UsersDwr.getUser(userId, showUserCB);
         startImageFader($("u"+ editingUserId +"Img"));
@@ -133,34 +87,7 @@
         $set("receiveAlarmEmails", user.receiveAlarmEmails);
         $set("receiveOwnAuditEvents", user.receiveOwnAuditEvents);
         $set("timezone", user.timezone);
-        
-        if (adminUser) {
-            // Turn off all data sources and set all data points to 'none'.
-            var i, j, dscb, dp,tgup;
-            for (i=0; i<dataSources.length; i++) {
-                dscb = $("ds"+ dataSources[i].id);
-                dscb.checked = false;
-                dataSourceChange(dscb);
-                
-                tgup = $("tgup" + dataSources[i].id);
-                collapseSource(tgup); //Collapse the source
-                for (j=0; j<dataSources[i].points.length; j++)
-                    $set("dp"+ dataSources[i].points[j].id, "0");
-            }
-            
-            // Turn on the data sources to which the user has permission.
-            for (i=0; i<user.dataSourcePermissions.length; i++) {
-                dscb = $("ds"+ user.dataSourcePermissions[i]);
-                dscb.checked = true;
-                //Just Don't expand dataSourceChange(dscb);
-            }
-            
-            //TODO Collapse ALL HERE
-            
-            // Update the data point permissions.
-            for (i=0; i<user.dataPointPermissions.length; i++)
-                $set("dp"+ user.dataPointPermissions[i].dataPointId, user.dataPointPermissions[i].permission);
-        }
+        $set("permissions", user.permissions);
         
         setUserMessage();
         updateUserImg();
@@ -168,28 +95,10 @@
     
     function saveUser() {
         setUserMessage();
-        if (adminUser) {
-            // Create the list of allowed data sources and data point permissions.
-            var i, j;
-            var dsPermis = new Array();
-            var dpPermis = new Array();
-            var dpval;
-            for (i=0; i<dataSources.length; i++) {
-                if ($("ds"+ dataSources[i].id).checked)
-                    dsPermis[dsPermis.length] = dataSources[i].id;
-                else {
-                    for (j=0; j<dataSources[i].points.length; j++) {
-                        dpval = $get("dp"+ dataSources[i].points[j].id);
-                        if (dpval == "1" || dpval == "2")
-                            dpPermis[dpPermis.length] = {dataPointId: dataSources[i].points[j].id, permission: dpval};
-                    }
-                }
-            }
-            
+        if (adminUser)
             UsersDwr.saveUserAdmin(editingUserId, $get("username"), $get("password"), $get("email"), $get("phone"), 
                     $get("administrator"), $get("disabled"), $get("receiveAlarmEmails"), $get("receiveOwnAuditEvents"),
-                    $get("timezone"), dsPermis, dpPermis, saveUserCB);
-        }
+                    $get("timezone"), $get("permissions"), saveUserCB);
         else
             UsersDwr.saveUser(editingUserId, $get("password"), $get("email"), $get("phone"),
                     $get("receiveAlarmEmails"), $get("receiveOwnAuditEvents"), $get("timezone"), saveUserCB);
@@ -214,31 +123,6 @@
             UsersDwr.getUser(editingUserId, updateUser)
         }
     }
-    
-//     function saveUserCB(response) {
-//         if (response.hasMessages)
-//             showDwrMessages(response.messages, "genericMessages");
-//         else {
-//         	if (!adminUser)
-// 	            setUserMessage("<fmt:message key="users.dataSaved"/>");
-// 	        else {
-<%-- 	            if (editingUserId == <c:out value="<%= Common.NEW_ID %>"/>) { --%>
-// 	                stopImageFader($("u"+ editingUserId +"Img"));
-// 	                editingUserId = response.data.userId;
-// 	                appendUser(editingUserId);
-// 	                startImageFader($("u"+ editingUserId +"Img"));
-// 	                setUserMessage("<fmt:message key="users.added"/>");
-// 	            }
-// 	            else
-// 	                setUserMessage("<fmt:message key="users.saved"/>");
-// 	            UsersDwr.getUser(editingUserId, updateUser)
-// 	        }
-//         	//shouldn't have to call this twice, but I do
-//             FadeOut($("userDetails"));
-//             stopImageFader($("u"+ editingUserId +"Img"));
-//             FadeOut($("userDetails"));
-//         }
-//     }
     
     function sendTestEmail() {
         UsersDwr.sendTestEmail($get("email"), $get("username"), function(result) {
@@ -266,35 +150,12 @@
     }
     
     function updateUser(user) {
-//     	if (user.defaultUser)
-//     		$("u"+ user.id +"Username").innerHTML = user.username+" (default)";
-//     	else
-//     		if (user.disabled)
-//     			$("u"+ user.id +"Username").innerHTML = user.username+'  disabled';
-//     		else
-//         		$("u"+ user.id +"Username").innerHTML = user.username;
         $("u"+ user.id +"Username").innerHTML = user.username;
         setUserImg(user.admin, user.disabled, $("u"+ user.id +"Img"));
     }
     
     function updateUserImg() {
-        var admin = $get("administrator");
-        if (adminUser) {
-            if (admin)
-                hide("dataSources");
-            else
-                show("dataSources");
-        }
-        setUserImg(admin, $get("disabled"), $("userImg"));
-    }
-    
-    function dataSourceChange(dscb) {
-    	if(dscb.checked){
-    		//Close the Points
-    		var dsId = dscb.id.substring(2);
-    		var tgup = dojo.byId("tgup" + dsId);
-    		collapseSource(tgup)
-    	}
+        setUserImg($get("administrator"), $get("disabled"), $("userImg"));
     }
     
     function deleteUser() {
@@ -317,100 +178,6 @@
         }
     }
     
-    /**
-     * tgup = "xxxxID" where ID is the id of the datasource to expand
-    */
-    function expandSource(tgdn){
-    	//Get the DS ID
-    	var dsId = tgdn.id.substring(4);
-    	
-    	//Check to see if the checkbox is selected, if it is we won't open this
-    	var dscb = dojo.byId("ds" + dsId);
-    	if(!dscb.checked){
-	    	//Hide the expand image
-	    	hide("tgup"+dsId);
-	    	//Show the collapse image
-	    	show("tgdn"+dsId);
-	    	display("dsps"+ dsId, true);
-    	}
-    }
-    
-    /**
-     * tgup = "xxxxID" where ID is the id of the datasource to collapse
-    */
-    function collapseSource(tgup){
-    	var dsId = tgup.id.substring(4);
-    	//Hide the collapse image
-    	hide("tgdn"+dsId);
-    	//Show the expand image
-    	show("tgup"+dsId);
-    	//Show the Data
-    	display("dsps"+ dsId, false);
-    }
-    
-    /**
-     * Bulk Set All Permissions
-    **/
-    function bulkSetPermissions(type,dsId){
-    	
-    	var permission = "0";
-    	if(type === 'none')
-    		permission = "0";
-    	else if (type === 'read')
-    		permission = "1";
-    	else if (type == 'set')
-    		permission = "2";
-    	
-    	if(dsId){
-            var i, j;
-            for (i=0; i<dataSources.length; i++) {
-	            if(dataSources[i].id === dsId){
-	                for (j=0; j<dataSources[i].points.length; j++){
-	                	//Check to see if point is settable
-	                    setPoint(dataSources[i].points[j],permission);
-	                }
-	                break; //Drop out after updating the DS We want
-            	}
-            }
-    	}else{
-	    	setAllPermissions(permission);
-    	}
-    }
-
-    /**
-     * Set a points permission, ensure that if it is not settable in can only be either none or read-only
-     */
-    function setPoint(point,permission){
-    	 if(point === null)
-    		 return; //Can't set a null point
-    	 if(permission === "2"){ //Are we going to set to read/wrtie
-    		  if(point.settable === true)
-    			  $set("dp"+ point.id, permission); 
-    		  else
-    			  $set("dp"+ point.id, 1);
-    	 }else{
-    		 $set("dp"+ point.id, permission); // Set read only at most
-    	 }
-    }
-    
-    /**
-     * 0 for none
-     * 1 for read
-     * 2 for set
-    **/
-    function setAllPermissions(permission){
-        var i, j, dscb;
-        for (i=0; i<dataSources.length; i++) {
-            dscb = $("ds"+ dataSources[i].id);
-            dscb.checked = false;
-            dataSourceChange(dscb);
-            for (j=0; j<dataSources[i].points.length; j++){
-            	setPoint(dataSources[i].points[j], permission);
-            }
-        }
-     
-    }
-    
     /*
      * Make a Copy of an existing user
     */
@@ -421,12 +188,9 @@
     	editingUserId = <c:out value="<%= Common.NEW_ID %>"/>;
     	var userId = copyImage.id.substring(6); //Strip off the first 'uImage'
     	UsersDwr.getCopy(userId,function(response){
-    		
     		//Load up the new User
     		showUserCB(response.data.vo);
-    		
     	});
-    	
     }
     
     /*
@@ -435,21 +199,67 @@
      function switchUser(){
         var newUser = $get("su_username");
         UsersDwr.su(newUser,function(response){
-            if(response.hasMessages){
+            if(response.hasMessages)
                 showDwrMessages(response.messages);           
-            }else{
-	           //Will need to reload the page
+            else
+	           // Will need to reload the page
 	           window.location.reload();
-            }
         });
-        
+    }
+    
+    function openPermissionList() {
+    	UsersDwr.getAllUserGroups($get("permissions"), function(groups) {
+            if (myTooltipDialog)
+                myTooltipDialog.destroy();
+            
+    		var content = "";
+    		if (groups.length == 0)
+    		    content = "<m2m2:translate key="users.permissions.nothingNew" escapeDQuotes="true"/>";
+    		else {
+    		    for (var i=0; i<groups.length; i++)
+    		        content += "<a id='perm-"+ escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
+    		}
+    		
+            require(["dijit/TooltipDialog", "dijit/popup", "dojo/dom" ], function(TooltipDialog, popup, dom) {
+                myTooltipDialog = new TooltipDialog({
+                    id: 'myTooltipDialog',
+                    content: content,
+                    onMouseLeave: function() { 
+                        popup.close(myTooltipDialog);
+                    }
+                });
+                
+                popup.open({
+                    popup: myTooltipDialog,
+                    around: $("permissions")
+                });
+            });
+            
+            require(["dojo/query"], function(query) {
+            	query(".permissionStr").forEach(function(e) {
+            		// Curious combination of AMD and non.
+                    dojo.connect(e, "onclick", addGroups);
+            	})
+            });
+    	});
+    }
+    
+    function addGroups() {
+    	var self = this;
+    	var groups = $get("permissions");
+    	if (groups.length > 0 && groups.substring(groups.length-1) != ",")
+    		groups += ",";
+    	groups += this.id.substring(5);
+    	$set("permissions", groups);
+    	openPermissionList();
     }
   </script>
+  
   <table>
     <tr>
       <td valign="top" id="userList" style="display:none;">
         <div class="borderDiv">
-          <table width="100%">
+          <table class="wide">
             <tr>
               <td>
                 <span class="smallTitle"><fmt:message key="users.title"/></span>
@@ -482,7 +292,7 @@
       
       <td valign="top" style="display:none;" id="userDetails">
         <div class="borderDiv">
-          <table width="100%">
+          <table class="wide">
             <tr>
               <td>
                 <span class="smallTitle"><tag:img id="userImg" png="user_green" title="users.user"/>
@@ -539,19 +349,13 @@
               <td class="formLabelRequired"><fmt:message key="users.timezone"/></td>
               <td class="formField"><select id="timezone"></select></td>
             </tr>
-            <tbody id="dataSources" style="display:none;">
-              <tr><td class="horzSeparator" colspan="2"></td></tr>
+            <tbody id="permissionsRow" style="display:none;">
               <tr>
-              	<td class="formLabelRequired"><fmt:message key="users.dataSources.bulkSet"/></td>
+                <td class="formLabelRequired"><fmt:message key="users.permissions"/></td>
                 <td class="formField">
-                	<a onclick="bulkSetPermissions('none');"><fmt:message key="common.access.none"/></a>
-                	<a onclick="bulkSetPermissions('read');"><fmt:message key="common.access.read"/></a>
-                	<a onclick="bulkSetPermissions('set');"><fmt:message key="common.access.set"/></a>
+                  <input id="permissions" type="text" class="formLong"/>
+                  <tag:img png="bullet_down" onclick="openPermissionList()"/>
                 </td>
-              </tr>
-              <tr id="dataSources">
-                <td class="formLabelRequired"><fmt:message key="users.dataSources"/></td>
-                <td class="formField" id="dataSourceList"></td>
               </tr>
             </tbody>
           </table>

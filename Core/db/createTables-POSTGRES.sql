@@ -28,6 +28,7 @@ CREATE TABLE users (
   receiveOwnAuditEvents character(1) NOT NULL,
   timezone varchar(50),
   muted character(1),
+  permissions varchar(255),
   PRIMARY KEY (id)
 );
 
@@ -81,19 +82,10 @@ CREATE TABLE dataSources (
   dataSourceType varchar(40) NOT NULL,
   data bytea NOT NULL,
   rtdata bytea,
+  editPermission varchar(255),
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
-
-
--- Data source permissions
-CREATE TABLE dataSourceUsers (
-  dataSourceId integer NOT NULL,
-  userId integer NOT NULL
-);
-ALTER TABLE dataSourceUsers ADD CONSTRAINT dataSourceUsersFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
-ALTER TABLE dataSourceUsers ADD CONSTRAINT dataSourceUsersFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
-
 
 
 --
@@ -120,6 +112,8 @@ CREATE TABLE dataPoints (
   discardExtremeValues character(1),
   engineeringUnits integer,
   data bytea NOT NULL,
+  readPermission varchar(255),
+  setPermission varchar(255),
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
@@ -133,16 +127,6 @@ CREATE TABLE dataPointHierarchy (
   name varchar(100),
   PRIMARY KEY (id)
 );
-
-
--- Data point permissions
-CREATE TABLE dataPointUsers (
-  dataPointId integer NOT NULL,
-  userId integer NOT NULL,
-  permission integer NOT NULL
-);
-ALTER TABLE dataPointUsers ADD CONSTRAINT dataPointUsersFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
-ALTER TABLE dataPointUsers ADD CONSTRAINT dataPointUsersFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
 
 
 --

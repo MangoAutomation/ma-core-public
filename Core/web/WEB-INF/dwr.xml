@@ -89,6 +89,10 @@
     
     <convert converter="bean" match="com.serotonin.io.serial.CommPortProxy"/>
     
+    <convert converter="bean" match="com.serotonin.m2m2.module.PermissionDefinition">
+        <param name="exclude" value="module"/>
+    </convert>
+    
     <convert converter="bean" match="com.serotonin.m2m2.util.IntMessagePair"/>
     
 <!-- <convert converter="bean" match="com.serotonin.m2m2.view.chart.*" /> -->
@@ -164,6 +168,7 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.mailingList.*"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.pair.*"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.permission.DataPointAccess"/>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.permission.PermissionDetails"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.publish.PublishedPointVO"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.publish.PublisherVO">
       <param name="exclude" value="definition,eventCodes"/>
@@ -176,7 +181,7 @@
     </convert>
 
     <convert converter="bean" match="com.serotonin.m2m2.vo.User">
-      <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,dataSourcePermissions,dataPointPermissions"/>
+      <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,permissions"/>
     </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.UserComment" javascript="UserComment"/>
     

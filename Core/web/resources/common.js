@@ -1127,3 +1127,90 @@ mango.pad = function(number, length) {
         str = '0' + str;
     return str;
 };
+
+
+//
+// User permissions
+//
+function PermissionUI(dwr) {
+	this.dwr = dwr;
+	this.myTooltipDialog = null;
+	
+	this.viewPermissions = function(textNodeId) {
+		var self = this;
+		this.dwr.getUserPermissionInfo($get(textNodeId), function(result) {
+			if (self.myTooltipDialog)
+				self.myTooltipDialog.destroy();
+            
+			// Generate the content
+			var content = '<table class="userPerms">';
+			for (var i=0; i<result.length; i++) {
+				content += '<tr><td>';
+				if (result[i].admin)
+					content += '<img src="/images/user_suit.png"/> ';
+				else if (result[i].access)
+					content += '<img src="/images/tick.png"/> ';
+				else
+					content += '<img src="/images/cross.png"/> ';
+				
+				content += '</td><td class="permUser">'+ result[i].username +'</td><td>';
+				
+				for (var j=0; j<result[i].allGroups.length; j++) {
+					var p = result[i].allGroups[j];
+					var matched = false;
+					for (var k=0; k<result[i].matchingGroups.length; k++) {
+						if (p == result[i].matchingGroups[k]) {
+							matched = true;
+							break;
+						}
+					}
+					
+					if (j > 0)
+						content += ",";
+					
+					if (matched)
+						content += "<b>"+ p +"</b>";
+					else
+						content += "<a id='perm-"+ textNodeId +"-"+ escapeQuotes(p) +"' class='ptr groupStr'>"+ p +"</a>";
+				}
+				
+				content += "</td></tr>";
+			}
+			content += "</table>";
+			
+			// Open the dialog
+			require(["dijit/TooltipDialog", "dijit/popup", "dojo/dom" ], function(TooltipDialog, popup, dom) {
+				self.myTooltipDialog = new TooltipDialog({
+					id: 'myTooltipDialog',
+					content: content,
+					onMouseLeave: function() { popup.close(self.myTooltipDialog); }
+				});
+				
+				popup.open({
+					popup: self.myTooltipDialog,
+					around: $(textNodeId)
+				});
+			});
+      
+			// Wire up the group strings
+			require(["dojo/query"], function(query) {
+				query(".groupStr").forEach(function(e) {
+					// Curious combination of AMD and non.
+					dojo.connect(e, "onclick", function() {
+						var g = this.id.substring(5 + textNodeId.length + 1);
+						self.addGroup(textNodeId, g);
+					});
+				})
+			});
+		});
+	}
+	
+    this.addGroup = function(textNodeId, group) {
+        var groups = $get(textNodeId);
+        if (groups.length > 0 && groups.substring(groups.length-1) != ",")
+            groups += ",";
+        groups += group;
+        $set(textNodeId, groups);
+        this.viewPermissions(textNodeId);
+    }
+}

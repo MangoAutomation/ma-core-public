@@ -56,7 +56,7 @@ public class ControllerUtils {
     public static List<DataPointSummary> addPointListDataToModel(User user, int pointId, Map<String, Object> model) {
         List<DataPointSummary> allPoints = new DataPointDao()
                 .getDataPointSummaries(DataPointExtendedNameComparator.instance);
-        List<DataPointSummary> userPoints = new LinkedList<DataPointSummary>();
+        List<DataPointSummary> userPoints = new LinkedList<>();
 
         int pointIndex = -1;
         for (DataPointSummary dp : allPoints) {

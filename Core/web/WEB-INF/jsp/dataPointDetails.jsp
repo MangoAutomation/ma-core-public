@@ -191,7 +191,7 @@
     </script>
   </c:if>
       
-  <table width="100%">
+  <table class="wide">
     <tr>
       <td valign="top" align="right">
         <fmt:message key="pointDetails.goto"/>:&nbsp;
@@ -217,7 +217,7 @@
     <c:when test="${empty point && !empty currentXid}"><m2m2:translate key="pointDetails.pointNotFound"/></c:when>
     <c:when test="${empty point}"><m2m2:translate key="pointDetails.noPoints"/></c:when>
     <c:otherwise>
-      <table width="100%" cellspacing="0" cellpadding="0">
+      <table class="wide">
         <tr>
           <td valign="top">
             <div class="borderDiv marB marR">
@@ -261,18 +261,19 @@
                     <td class="formField">${hierPath}</td>
                   </tr>
                 </c:if>
-                <tr><td colspan="2">
-                        <div style='max-height:100px; overflow-y: scroll'>
-                            <table><tr><td id="pointMessages"></td></tr>
-                            </table>
-                        </div>
-                   </td>
+                <tr>
+                  <td colspan="2">
+                    <div style='max-height:100px; overflow-y: scroll'>
+                      <table><tr><td id="pointMessages"></td></tr>
+                      </table>
+                    </div>
+                  </td>
                 </tr>
               </table>
             </div>
             
             <div class="borderDiv marB marR">
-              <table width="100%">
+              <table class="wide">
                 <tr>
                   <td class="smallTitle"><fmt:message key="pointDetails.statistics"/></td>
                   <td id="statsAsof"></td>
@@ -291,7 +292,7 @@
           
           <td valign="top">
             <div class="borderDiv marB marR">
-              <table width="100%">
+              <table class="wide">
                 <tr>
                   <td class="smallTitle"><fmt:message key="pointDetails.history"/></td>
                   <td id="historyTableAsof"></td>
@@ -318,7 +319,7 @@
           
           <td valign="top">
             <div class="borderDiv marB">
-              <table width="100%">
+              <table class="wide">
                 <tr>
                   <td class="smallTitle"><fmt:message key="notes.userNotes"/></td>
                   <td align="right">
@@ -337,7 +338,7 @@
             <td colspan="3">
               <!-- chart with editable properties and annotations -->
               <div class="borderDiv marB">
-                <table width="100%">
+                <table class="wide">
                   <tr>
                     <td class="smallTitle"><fmt:message key="pointDetails.chart"/> &nbsp; <tag:help id="chartServlet"/></td>
                     <td id="imageChartAsof"></td>
@@ -364,7 +365,7 @@
           <tr>
             <td colspan="3">
               <div class="borderDiv marB">
-                <table width="100%">
+                <table class="wide">
                   <tr>
                     <td class="smallTitle"><fmt:message key="pointDetails.flipbook"/></td>
                     <td id="flipbookAsof"></td>
@@ -387,7 +388,7 @@
         <tr>
           <td colspan="3">
             <div class="borderDiv marB">
-              <table width="100%">
+              <table class="wide">
                 <tr>
                   <td class="smallTitle"><fmt:message key="pointDetails.events"/></td>
                   <td align="right">
@@ -396,7 +397,7 @@
                   </td>
                 </tr>
               </table>
-              <table id="eventsTable" cellspacing="1" cellpadding="0" width="100%">
+              <table id="eventsTable" cellspacing="1" cellpadding="0" class="wide">
                 <tr class="rowHeader">
                   <td><fmt:message key="pointDetails.id"/></td>
                   <td><fmt:message key="common.alarmLevel"/></td>
@@ -412,7 +413,7 @@
                     <td align="center"><tag:eventIcon event="${event}"/></td>
                     <td>${m2m2:time(event.activeTimestamp)}</td>
                     <td>
-                      <table cellspacing="0" cellpadding="0" width="100%">
+                      <table cellspacing="0" cellpadding="0" class="wide">
                         <tr>
                           <td><b><m2m2:translate message="${event.message}"/></b></td>
                           <td align="right"><tag:img png="comment_add" title="notes.addNote"
@@ -472,7 +473,7 @@
           <td colspan="3" valign="top">
             <div class="borderDiv">
               <span class="smallTitle" style="margin:3px;"><fmt:message key="pointDetails.userAccess"/></span>
-              <table width="100%" cellspacing="1">
+              <table class="wide" cellspacing="1">
                 <tr class="rowHeader">
                   <td width="16"></td>
                   <td><fmt:message key="pointDetails.username"/></td>

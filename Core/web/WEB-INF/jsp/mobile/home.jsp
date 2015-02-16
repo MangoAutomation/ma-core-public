@@ -2,7 +2,6 @@
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.module.MenuItemDefinition"%>
 
-
  <tag:mobile-page>
      <div id="icons" dojoType="dojox.mobile.View">
          <div id="iconsMain">

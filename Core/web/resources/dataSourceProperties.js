@@ -148,15 +148,15 @@
      startImageFader("dsSaveImg", true);
      hideContextualMessages($("dataSourceProperties"));
      
- 	     saveDataSourceImpl({
-	         name: $get("dataSource.name"),
-	         xid: $get("dataSource.xid"),
-	         enabled: $get("dataSource.enabled"),
-	         purgeOverride: $get("dataSource.purgeOverride"),
-	         purgePeriod: $get("dataSource.purgePeriod"),
-	         purgeType: $get("dataSource.purgeType")
-	     });
-     
+     saveDataSourceImpl({
+         name: $get("dataSource.name"),
+         xid: $get("dataSource.xid"),
+         editPermission: $get("dataSource.editPermission"),
+         enabled: $get("dataSource.enabled"),
+         purgeOverride: $get("dataSource.purgeOverride"),
+         purgePeriod: $get("dataSource.purgePeriod"),
+         purgeType: $get("dataSource.purgeType")
+     });
  }
  
  /**
@@ -416,13 +416,12 @@ function deletePoint() {
   */
  function savePoint() {
      
-     
      startImageFader("pointSaveImg", true);
      hideContextualMessages("pointDetails");
 
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
-
+     
      //Perform check on point here
      DataPointEditDwr.ensureEditingPointMatch(currentPoint.id, function(response){
          

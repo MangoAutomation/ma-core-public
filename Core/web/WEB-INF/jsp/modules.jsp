@@ -152,7 +152,7 @@
         content += "<div class='notes'>"+ mod.releaseNotes +"</div>";
         content += "</div>";
         
-        // Start a timeout to display the content instead of displaying immediately. This so that a mouse that just 
+        // Start a timeout to display the content instead of displaying immediately. This is so that a mouse that just 
         // happens to hover over the element - without the intention of viewing the notes - does not actually open
         // the dialog, since the mouseout event will cancel the timeout. This is important because, to close an open
         // dialog, the user must mouseout of the *dialog*, not the 'notes' element.

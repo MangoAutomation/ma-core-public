@@ -49,7 +49,7 @@ public class EmportDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public String createExportData(int prettyIndent, String[] exportElements) {
-        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
 
         if (ArrayUtils.contains(exportElements, DATA_SOURCES))
             data.put(DATA_SOURCES, new DataSourceDao().getDataSources());
@@ -65,9 +65,9 @@ public class EmportDwr extends BaseDwr {
             data.put(EVENT_HANDLERS, new EventDao().getEventHandlers());
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
             data.put(POINT_HIERARCHY, new DataPointDao().getPointHierarchy(true).getRoot().getSubfolders());
-        if(ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
-        	data.put(SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettings());
-        
+        if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
+            data.put(SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettings());
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if (ArrayUtils.contains(exportElements, def.getElementId()))
                 data.put(def.getElementId(), def.getExportData());

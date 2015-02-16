@@ -7,7 +7,6 @@ package com.serotonin.m2m2.db.dao;
 import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -23,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
@@ -42,17 +40,17 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
 public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
-    
-	static final Log LOG = LogFactory.getLog(DataSourceDao.class);
-    private static final String DATA_SOURCE_SELECT = "select id, xid, name, dataSourceType, data from dataSources ";
+
+    static final Log LOG = LogFactory.getLog(DataSourceDao.class);
+    private static final String DATA_SOURCE_SELECT = //
+    "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";
 
     public static final DataSourceDao instance = new DataSourceDao();
-    
-    public DataSourceDao(){
-    	super(AuditEventType.TYPE_DATA_SOURCE);
+
+    public DataSourceDao() {
+        super(AuditEventType.TYPE_DATA_SOURCE);
     }
-    
-    
+
     public List<DataSourceVO<?>> getDataSources() {
         List<DataSourceVO<?>> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
         Collections.sort(dss, new DataSourceNameComparator());
@@ -73,11 +71,11 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     }
 
     public DataSourceVO<?> getDataSource(int id) {
-        return queryForObject(DATA_SOURCE_SELECT + " where id=?", new Object[] { id }, new DataSourceRowMapper(), null);
+        return queryForObject(DATA_SOURCE_SELECT + " WHERE id=?", new Object[] { id }, new DataSourceRowMapper(), null);
     }
 
     public DataSourceVO<?> getDataSource(String xid) {
-        return queryForObject(DATA_SOURCE_SELECT + " where xid=?", new Object[] { xid }, new DataSourceRowMapper(),
+        return queryForObject(DATA_SOURCE_SELECT + " WHERE xid=?", new Object[] { xid }, new DataSourceRowMapper(),
                 null);
     }
 
@@ -85,7 +83,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         @Override
         public List<DataSourceVO<?>> extractData(ResultSet rs) throws SQLException, DataAccessException {
             DataSourceRowMapper rowMapper = new DataSourceRowMapper();
-            List<DataSourceVO<?>> results = new ArrayList<DataSourceVO<?>>();
+            List<DataSourceVO<?>> results = new ArrayList<>();
             int rowNum = 0;
             while (rs.next()) {
                 try {
@@ -96,7 +94,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                     // thrown. Check the inner exception to confirm.
                     if (e.getCause() instanceof ObjectStreamException) {
                         // Yep. Log the occurrence and continue.
-                        LOG.error("Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
+                        LOG.error(
+                                "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
                                         + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
                     }
                 }
@@ -113,14 +112,17 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
             ds.setXid(rs.getString(2));
             ds.setName(rs.getString(3));
             ds.setDefinition(ModuleRegistry.getDataSourceDefinition(rs.getString(4)));
+            ds.setEditPermission(rs.getString(6));
             return ds;
         }
     }
 
+    @Override
     public String generateUniqueXid() {
         return generateUniqueXid(DataSourceVO.XID_PREFIX, "dataSources");
     }
 
+    @Override
     public boolean isXidUnique(String xid, int excludeId) {
         return isXidUnique(xid, excludeId, "dataSources");
     }
@@ -134,28 +136,29 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     }
 
     private void insertDataSource(final DataSourceVO<?> vo) {
-        vo.setId(doInsert("insert into dataSources (xid, name, dataSourceType, data) values (?,?,?,?)",
+        vo.setId(ejt.doInsert(
+                "INSERT INTO dataSources (xid, name, dataSourceType, data, editPermission) values (?,?,?,?,?)",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
-                        SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                        Types.BINARY }));
+                        SerializationHelper.writeObject(vo), vo.getEditPermission() }, new int[] { Types.VARCHAR,
+                        Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR }));
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
     }
 
     @SuppressWarnings("unchecked")
     private void updateDataSource(final DataSourceVO<?> vo) {
-    	super.save(vo);
+        super.save(vo);
         //DataSourceVO<?> old = getDataSource(vo.getId());
-        
+
         //_updateDataSource(vo);
         //AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_SOURCE, old, (ChangeComparable<DataSourceVO<?>>) vo);
     }
 
     public void _updateDataSource(DataSourceVO<?> vo) {
-        ejt.update("update dataSources set xid=?, name=?, dataSourceType=?, data=? where id=?",
+        ejt.update("UPDATE dataSources SET xid=?, name=?, dataSourceType=?, data=?, editPermission WHERE id=?",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
-                        SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                        Types.VARCHAR, Types.BINARY, Types.INTEGER });
+                        SerializationHelper.writeObject(vo), vo.getEditPermission(), vo.getId() }, new int[] {
+                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR, Types.INTEGER });
     }
 
     public void deleteDataSource(final int dataSourceId) {
@@ -168,10 +171,9 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    ejt2.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=?", new Object[] {
+                    ejt2.update("DELETE FROM eventHandlers WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
                             EventType.EventTypeNames.DATA_SOURCE, dataSourceId });
-                    ejt2.update("delete from dataSourceUsers where dataSourceId=?", new Object[] { dataSourceId });
-                    ejt2.update("delete from dataSources where id=?", new Object[] { dataSourceId });
+                    ejt2.update("DELETE FROM dataSources WHERE id=?", new Object[] { dataSourceId });
                 }
             });
 
@@ -180,39 +182,17 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     }
 
     public void deleteDataSourceType(final String dataSourceType) {
-        List<Integer> dsids = queryForList("select id from dataSources where dataSourceType=?",
+        List<Integer> dsids = queryForList("SELECT id FROM dataSources WHERE dataSourceType=?",
                 new Object[] { dataSourceType }, Integer.class);
         for (Integer dsid : dsids)
             deleteDataSource(dsid);
     }
 
-    public void copyPermissions(final int fromDataSourceId, final int toDataSourceId) {
-        final List<Integer> userIds = queryForList("select userId from dataSourceUsers where dataSourceId=?",
-                new Object[] { fromDataSourceId }, Integer.class);
-
-        ejt.batchUpdate("insert into dataSourceUsers values (?,?)", new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return userIds.size();
-            }
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setInt(1, toDataSourceId);
-                ps.setInt(2, userIds.get(i));
-            }
-        });
-    }
-
-
-
-    
     //TODO See how this works, with the Device name situation
     @Override
-	public int copy(int existingId, String newXid, String newName) {
-		return this.copyDataSource(existingId, newName,newXid, newName+"Device");
-	}
-
+    public int copy(int existingId, String newXid, String newName) {
+        return this.copyDataSource(existingId, newName, newXid, newName + "Device");
+    }
 
     /**
      * Copy a data source points
@@ -221,19 +201,14 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
      * @param newDataSourceId
      * @return
      */
-	public int copyDataSourcePoints(final int dataSourceId, final int newDataSourceId) {
+    public int copyDataSourcePoints(final int dataSourceId, final int newDataSourceId) {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 DataPointDao dataPointDao = new DataPointDao();
 
-                DataSourceVO<?> dataSource = getDataSource(dataSourceId);
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
-               
-
-                // Copy permissions.
-                copyPermissions(dataSource.getId(), dataSourceCopy.getId());
 
                 // Copy the points.
                 for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
@@ -253,25 +228,23 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                     }
 
                     dataPointDao.saveDataPoint(dataPointCopy);
-
-                    // Copy permissions
-                    dataPointDao.copyPermissions(dataPoint.getId(), dataPointCopy.getId());
                 }
 
                 return dataSourceCopy.getId();
             }
         });
     }
-    
+
     /**
      * Copy Data Source Points and Source itself
+     * 
      * @param dataSourceId
      * @param name
      * @param xid
      * @param deviceName
      * @return
      */
-	public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
+    public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
@@ -285,9 +258,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                 dataSourceCopy.setEnabled(false);
                 dataSourceCopy.setName(name);
                 saveDataSource(dataSourceCopy);
-
-                // Copy permissions.
-                copyPermissions(dataSource.getId(), dataSourceCopy.getId());
 
                 // Copy the points.
                 for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
@@ -307,9 +277,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                     }
 
                     dataPointDao.saveDataPoint(dataPointCopy);
-
-                    // Copy permissions
-                    dataPointDao.copyPermissions(dataPoint.getId(), dataPointCopy.getId());
                 }
 
                 return dataSourceCopy.getId();
@@ -341,196 +308,197 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     }
 
     public void savePersistentData(int id, Object data) {
-        ejt.update("update dataSources set rtdata=? where id=?", new Object[] { SerializationHelper.writeObject(data),
+        ejt.update("UPDATE dataSources SET rtdata=? WHERE id=?", new Object[] { SerializationHelper.writeObject(data),
                 id }, new int[] { Types.BINARY, Types.INTEGER });
     }
 
+    public String getEditPermission(int id) {
+        return ejt.queryForObject("SELECT editPermission FROM dataSources WHERE id=?", new Object[] { id },
+                String.class, null);
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
-	 */
-	@Override
-	protected String getTableName() {
-		return SchemaDefinition.DATASOURCES_TABLE;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
+     */
+    @Override
+    protected String getTableName() {
+        return SchemaDefinition.DATASOURCES_TABLE;
+    }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
+     */
+    @Override
+    protected String getXidPrefix() {
+        return DataSourceVO.XID_PREFIX;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-	 */
-	@Override
-	protected String getXidPrefix() {
-		return DataSourceVO.XID_PREFIX;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
+     */
+    @Override
+    protected Object[] voToObjectArray(DataSourceVO<?> vo) {
+        return new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
+                SerializationHelper.writeObject(vo), vo.getEditPermission() };
+    }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
+     */
+    @Override
+    public DataSourceVO<?> getNewVo() {
+        throw new ShouldNeverHappenException("Unable to create generic data source, must supply a type");
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
-	 */
-	@Override
-	protected Object[] voToObjectArray(DataSourceVO<?> vo) {
-		return new Object[] { 
-				vo.getXid(), 
-				vo.getName(), 
-				vo.getDefinition().getDataSourceTypeName(),
-                SerializationHelper.writeObject(vo)};
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
+     */
+    @Override
+    protected List<String> getProperties() {
+        return Arrays.asList("id", "xid", "name", "dataSourceType", "data", "editPermission");
+    }
 
+    @Override
+    protected Integer getIndexType() {
+        return Types.INTEGER;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-	 */
-	@Override
-	public DataSourceVO<?> getNewVo() {
-		throw new ShouldNeverHappenException("Unable to create generic data source, must supply a type");
-	}
+    @Override
+    protected List<Integer> getPropertyTypes() {
+        return Arrays.asList(Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR);
+    }
 
+    @Override
+    protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
+        HashMap<String, Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<>();
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
-	 */
-	@Override
-	protected List<String> getProperties() {
-		return Arrays.asList(
-                "id",
-                "xid",
-                "name",
-                "dataSourceType",
-                "data"
-                );
-	}
-	@Override
-	protected Integer getIndexType(){
-		return Types.INTEGER;
-	}
-	@Override
-	protected List<Integer> getPropertyTypes(){
-		return Arrays.asList(
-					Types.VARCHAR,
-					Types.VARCHAR,
-					Types.VARCHAR,
-					Types.BINARY
-				);		
-	}
-	
-	@Override
-	protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
-		HashMap<String,Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<String,Comparator<DataSourceVO<?>>>();
-		
-		comparatorMap.put("typeDescriptionString", new Comparator<DataSourceVO<?>>(){
-			public int compare(DataSourceVO<?> lhs, DataSourceVO<?>rhs){
-				return lhs.getTypeDescriptionString().compareTo(rhs.getTypeDescriptionString());
-			}
-		});
-		
-		comparatorMap.put("connectionDescriptionString", new Comparator<DataSourceVO<?>>(){
-			public int compare(DataSourceVO<?> lhs, DataSourceVO<?>rhs){
-				return lhs.getConnectionDescriptionString().compareTo(rhs.getConnectionDescriptionString());
-			}
-		});
-		
-		return comparatorMap;
-	}
+        comparatorMap.put("typeDescriptionString", new Comparator<DataSourceVO<?>>() {
+            @Override
+            public int compare(DataSourceVO<?> lhs, DataSourceVO<?> rhs) {
+                return lhs.getTypeDescriptionString().compareTo(rhs.getTypeDescriptionString());
+            }
+        });
 
-	@Override
-	protected Map<String, IFilter<DataSourceVO<?>>> getFilterMap(){
-		HashMap<String, IFilter<DataSourceVO<?>>> filterMap = new HashMap<String,IFilter<DataSourceVO<?>>>();
-		
-		filterMap.put("typeDescriptionString", new IFilter<DataSourceVO<?>>(){
-			
-			private String regex;
-			@Override
-			public boolean filter(DataSourceVO<?> vo) {
-				return !vo.getTypeDescriptionString().matches(regex);
-			}
+        comparatorMap.put("connectionDescriptionString", new Comparator<DataSourceVO<?>>() {
+            @Override
+            public int compare(DataSourceVO<?> lhs, DataSourceVO<?> rhs) {
+                return lhs.getConnectionDescriptionString().compareTo(rhs.getConnectionDescriptionString());
+            }
+        });
 
-			@Override
-			public void setFilter(Object matches) {
-				this.regex = "(?i)"+(String)matches;
-				
-			}
-			
-		});
-		
-		filterMap.put("connectionDescriptionString", new IFilter<DataSourceVO<?>>(){
-			private String regex;
-			@Override
-			public boolean filter(DataSourceVO<?> vo) {
-				return !vo.getConnectionDescriptionString().matches(regex);
-			}
+        return comparatorMap;
+    }
 
-			@Override
-			public void setFilter(Object matches) {
-				this.regex = "(?i)"+(String)matches; //Make case insensitive like DB
-				
-				
-			}
-			
-		});		
-		
-		return filterMap;
-	}
-	
-	
-	
-	
-	
+    @Override
+    protected Map<String, IFilter<DataSourceVO<?>>> getFilterMap() {
+        HashMap<String, IFilter<DataSourceVO<?>>> filterMap = new HashMap<>();
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-	 */
-	@Override
-	protected Map<String, String> getPropertiesMap() {
-		return new HashMap<String,String>();
-	}
+        filterMap.put("typeDescriptionString", new IFilter<DataSourceVO<?>>() {
 
+            private String regex;
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-	 */
-	@Override
-	public RowMapper<DataSourceVO<?>> getRowMapper() {
-		return new DataSourceRowMapper();
-	}
+            @Override
+            public boolean filter(DataSourceVO<?> vo) {
+                return !vo.getTypeDescriptionString().matches(regex);
+            }
+
+            @Override
+            public void setFilter(Object matches) {
+                this.regex = "(?i)" + (String) matches;
+
+            }
+
+        });
+
+        filterMap.put("connectionDescriptionString", new IFilter<DataSourceVO<?>>() {
+            private String regex;
+
+            @Override
+            public boolean filter(DataSourceVO<?> vo) {
+                return !vo.getConnectionDescriptionString().matches(regex);
+            }
+
+            @Override
+            public void setFilter(Object matches) {
+                this.regex = "(?i)" + (String) matches; //Make case insensitive like DB
+
+            }
+
+        });
+
+        return filterMap;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
+     */
+    @Override
+    protected Map<String, String> getPropertiesMap() {
+        return new HashMap<>();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
+     */
+    @Override
+    public RowMapper<DataSourceVO<?>> getRowMapper() {
+        return new DataSourceRowMapper();
+    }
 
     /**
      * 
      * Overridable method to extract the data
      * 
-	 * @return
-	 */
-	@Override
-	public ResultSetExtractor<List<DataSourceVO<?>>> getResultSetExtractor(final RowMapper<DataSourceVO<?>> rowMapper, final FilterListCallback<DataSourceVO<?>> filters) {
+     * @return
+     */
+    @Override
+    public ResultSetExtractor<List<DataSourceVO<?>>> getResultSetExtractor(final RowMapper<DataSourceVO<?>> rowMapper,
+            final FilterListCallback<DataSourceVO<?>> filters) {
 
-		return new ResultSetExtractor<List<DataSourceVO<?>>>(){
-			List<DataSourceVO<?>> results = new ArrayList<DataSourceVO<?>>();
-			int rowNum = 0;
-			@Override
-			public List<DataSourceVO<?>> extractData(ResultSet rs)
-					throws SQLException, DataAccessException {
-				while (rs.next()){
-						try{
-						DataSourceVO<?> row = rowMapper.mapRow(rs, rowNum);
-						//Should we filter the row?
-						if(!filters.filterRow(row, rowNum++))
-							results.add(row);
-						}catch (ShouldNeverHappenException e) {
-			                // If the module was removed but there are still records in the database, this exception will be
-			                // thrown. Check the inner exception to confirm.
-			                if (e.getCause() instanceof ObjectStreamException) {
-			                    // Yep. Log the occurrence and continue.
-			                	String desc = "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
-                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?";
-		                        LOG.error(desc, e);
-		                        throw new ShouldNeverHappenException(desc);
-			           }
-			        }
-				}
-				return results;
-			
-			}
-		};
-		
-	}
+        return new ResultSetExtractor<List<DataSourceVO<?>>>() {
+            List<DataSourceVO<?>> results = new ArrayList<>();
+            int rowNum = 0;
+
+            @Override
+            public List<DataSourceVO<?>> extractData(ResultSet rs) throws SQLException, DataAccessException {
+                while (rs.next()) {
+                    try {
+                        DataSourceVO<?> row = rowMapper.mapRow(rs, rowNum);
+                        //Should we filter the row?
+                        if (!filters.filterRow(row, rowNum++))
+                            results.add(row);
+                    }
+                    catch (ShouldNeverHappenException e) {
+                        // If the module was removed but there are still records in the database, this exception will be
+                        // thrown. Check the inner exception to confirm.
+                        if (e.getCause() instanceof ObjectStreamException) {
+                            // Yep. Log the occurrence and continue.
+                            String desc = "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
+                                    + rs.getString("xid") + "' could not be loaded. Is its module missing?";
+                            LOG.error(desc, e);
+                            throw new ShouldNeverHappenException(desc);
+                        }
+                    }
+                }
+                return results;
+
+            }
+        };
+
+    }
 
 }

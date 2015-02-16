@@ -27,6 +27,7 @@ create table users (
   receiveOwnAuditEvents char(1) not null,
   timezone nvarchar(50),
   muted char(1),
+  permissions nvarchar(255),
   primary key (id)
 );
 
@@ -78,18 +79,10 @@ create table dataSources (
   dataSourceType nvarchar(40) not null,
   data image not null,
   rtdata image,
+  editPermission nvarchar(255),
   primary key (id)
 );
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
-
-
--- Data source permissions
-create table dataSourceUsers (
-  dataSourceId int not null,
-  userId int not null
-);
-alter table dataSourceUsers add constraint dataSourceUsersFk1 foreign key (dataSourceId) references dataSources(id);
-alter table dataSourceUsers add constraint dataSourceUsersFk2 foreign key (userId) references users(id) on delete cascade;
 
 
 --
@@ -116,6 +109,8 @@ create table dataPoints (
   discardExtremeValues char(1),
   engineeringUnits int,
   data image not null,
+  readPermission nvarchar(255),
+  setPermission nvarchar(255),
   primary key (id)
 );
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
@@ -129,16 +124,6 @@ CREATE TABLE dataPointHierarchy (
   name nvarchar(100),
   PRIMARY KEY (id)
 );
-
-
--- Data point permissions
-create table dataPointUsers (
-  dataPointId int not null,
-  userId int not null,
-  permission int not null
-);
-alter table dataPointUsers add constraint dataPointUsersFk1 foreign key (dataPointId) references dataPoints(id);
-alter table dataPointUsers add constraint dataPointUsersFk2 foreign key (userId) references users(id) on delete cascade;
 
 
 --

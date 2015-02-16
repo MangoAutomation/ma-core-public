@@ -106,9 +106,9 @@ public class Common {
     public static final RealTimeTimer timer = new RealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
-    
+
     public LoggedInFilter loggedInFilter; //Hack to allow setting the license early on in startup TBRedesigned
-    
+
     //
     // License
     static InstanceLicense license;
@@ -141,11 +141,11 @@ public class Common {
     }
 
     public static final int getMicroVersion() {
-        return 2;
+        return 3;
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 9;
+        return 10;
     }
 
     public static String getWebPath(String path) {
@@ -401,7 +401,7 @@ public class Common {
     // Misc
     public static List<CommPortProxy> getCommPorts() throws CommPortConfigException {
         List<CommPortProxy> ports = SerialUtils.getCommPorts();
-       
+
         return ports;
     }
 
@@ -434,61 +434,53 @@ public class Common {
     }
 
     public static HttpClient getHttpClient(int timeout) {
-    	// Create global request configuration
-        RequestConfig defaultRequestConfig = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.BEST_MATCH)
-            .setExpectContinueEnabled(true)
-            .setStaleConnectionCheckEnabled(true)
-            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
-            .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
-            .setSocketTimeout(timeout)
-            .setConnectTimeout(timeout)
-            .build();
-        
-		if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
-		      String proxyHost = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
-		      int proxyPort = SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
-		      String username = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, "");
-		      String password = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, "");
-		      
-		      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-		      credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort),
-				              new UsernamePasswordCredentials(username, password));
-		    	// Create an HttpClient with the given custom dependencies and configuration.
-		        CloseableHttpClient httpclient = HttpClients.custom()
-		            .setProxy(new HttpHost(proxyHost, proxyPort))
-		            .setDefaultRequestConfig(defaultRequestConfig)
-		            .setDefaultCredentialsProvider(credentialsProvider)
-		            .build();
-		        return httpclient;   
-		}else{
-	    	// Create an HttpClient with the given custom dependencies and configuration.
-	        CloseableHttpClient httpclient = HttpClients.custom()
-	            .setDefaultRequestConfig(defaultRequestConfig)
-	            .build();
-	        return httpclient;
-		}
-//LEGACY CODE LEFT HERE UNTIL Testing of above code is confirmed as working
-//        DefaultHttpClient client = new DefaultHttpClient();
-//        client.getParams().setParameter("http.socket.timeout", timeout);
-//        client.getParams().setParameter("http.connection.timeout", timeout);
-//        client.getParams().setParameter("http.connection-manager.timeout", timeout);
-//        client.getParams().setParameter("http.protocol.head-body-timeout", timeout);
-//
-//        if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
-//            String proxyHost = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
-//            int proxyPort = SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
-//            String username = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, "");
-//            String password = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, "");
-//
-//            client.getCredentialsProvider().setCredentials(new AuthScope(proxyHost, proxyPort),
-//                    new UsernamePasswordCredentials(username, password));
-//            
-//        }
-//
-//        return client;
-    }    
-    
+        // Create global request configuration
+        RequestConfig defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.BEST_MATCH)
+                .setExpectContinueEnabled(true).setStaleConnectionCheckEnabled(true)
+                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
+                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC)).setSocketTimeout(timeout)
+                .setConnectTimeout(timeout).build();
+
+        if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
+            String proxyHost = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
+            int proxyPort = SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
+            String username = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, "");
+            String password = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, "");
+
+            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), new UsernamePasswordCredentials(
+                    username, password));
+            // Create an HttpClient with the given custom dependencies and configuration.
+            CloseableHttpClient httpclient = HttpClients.custom().setProxy(new HttpHost(proxyHost, proxyPort))
+                    .setDefaultRequestConfig(defaultRequestConfig).setDefaultCredentialsProvider(credentialsProvider)
+                    .build();
+            return httpclient;
+        }
+        else {
+            // Create an HttpClient with the given custom dependencies and configuration.
+            CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build();
+            return httpclient;
+        }
+        //LEGACY CODE LEFT HERE UNTIL Testing of above code is confirmed as working
+        //        DefaultHttpClient client = new DefaultHttpClient();
+        //        client.getParams().setParameter("http.socket.timeout", timeout);
+        //        client.getParams().setParameter("http.connection.timeout", timeout);
+        //        client.getParams().setParameter("http.connection-manager.timeout", timeout);
+        //        client.getParams().setParameter("http.protocol.head-body-timeout", timeout);
+        //
+        //        if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
+        //            String proxyHost = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
+        //            int proxyPort = SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
+        //            String username = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, "");
+        //            String password = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, "");
+        //
+        //            client.getCredentialsProvider().setCredentials(new AuthScope(proxyHost, proxyPort),
+        //                    new UsernamePasswordCredentials(username, password));
+        //            
+        //        }
+        //
+        //        return client;
+    }
 
     //
     //
@@ -509,12 +501,11 @@ public class Common {
         return systemTranslations;
     }
 
-        
     public static Locale getLocale() {
         ensureI18n();
         return parseLocale(systemLanguage);
     }
-    
+
     private static void ensureI18n() {
         if (systemLanguage == null) {
             synchronized (i18nLock) {

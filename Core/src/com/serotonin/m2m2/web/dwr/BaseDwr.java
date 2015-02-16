@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.measure.converter.UnitConverter;
 import javax.servlet.ServletException;
@@ -54,6 +56,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
+import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.BasePointState;
 import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
@@ -215,14 +218,13 @@ abstract public class BaseDwr {
             DataValue value = DataValue.stringToValue(valueStr, point.getPointLocator().getDataTypeId());
             // do reverse conversion of renderer
             TextRenderer tr = point.getTextRenderer();
-            if (point.getPointLocator().getDataTypeId() == DataTypes.NUMERIC && 
-                    tr instanceof ConvertingRenderer) {
+            if (point.getPointLocator().getDataTypeId() == DataTypes.NUMERIC && tr instanceof ConvertingRenderer) {
                 ConvertingRenderer cr = (ConvertingRenderer) tr;
                 UnitConverter converter = cr.getRenderedUnit().getConverterTo(cr.getUnit());
                 double convertedValue = converter.convert(value.getDoubleValue());
                 value = new NumericValue(convertedValue);
             }
-            
+
             Common.runtimeManager.setDataPointValue(point.getId(), value, source);
         }
     }
@@ -272,7 +274,7 @@ abstract public class BaseDwr {
 
         List<DataPointVO> points = new DataPointDao().getDataPoints(DataPointExtendedNameComparator.instance, false);
         if (!Permissions.hasAdmin(user)) {
-            List<DataPointVO> userPoints = new ArrayList<DataPointVO>();
+            List<DataPointVO> userPoints = new ArrayList<>();
             for (DataPointVO dp : points) {
                 if (Permissions.hasDataPointReadPermission(user, dp))
                     userPoints.add(dp);
@@ -280,7 +282,7 @@ abstract public class BaseDwr {
             points = userPoints;
         }
 
-        List<DataPointBean> result = new ArrayList<DataPointBean>();
+        List<DataPointBean> result = new ArrayList<>();
         for (DataPointVO dp : points)
             result.add(new DataPointBean(dp));
 
@@ -289,7 +291,7 @@ abstract public class BaseDwr {
 
     @DwrPermission(anonymous = true)
     public Map<String, Object> getDateRangeDefaults(int periodType, int period) {
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap<>();
 
         DateTimeZone dtz = Common.getUserDateTimeZone(Common.getUser());
 
@@ -347,7 +349,7 @@ abstract public class BaseDwr {
     }
 
     protected List<User> getShareUsers(User excludeUser) {
-        List<User> users = new ArrayList<User>();
+        List<User> users = new ArrayList<>();
         for (User u : new UserDao().getUsers()) {
             if (u.getId() != excludeUser.getId())
                 users.add(u);
@@ -361,7 +363,7 @@ abstract public class BaseDwr {
     //
     private static final String LONG_POLL_DATA_KEY = "LONG_POLL_DATA";
     private static final String LONG_POLL_DATA_TIMEOUT_KEY = "LONG_POLL_DATA_TIMEOUT";
-    private final List<LongPollHandler> longPollHandlers = new ArrayList<LongPollHandler>();
+    private final List<LongPollHandler> longPollHandlers = new ArrayList<>();
 
     @DwrPermission(anonymous = true)
     public Map<String, Object> initializeLongPoll(int pollSessionId, LongPollRequest request) {
@@ -372,7 +374,7 @@ abstract public class BaseDwr {
 
     @DwrPermission(anonymous = true)
     public Map<String, Object> doLongPoll(int pollSessionId) {
-        Map<String, Object> response = new HashMap<String, Object>();
+        Map<String, Object> response = new HashMap<>();
         HttpServletRequest httpRequest = WebContextFactory.get().getHttpServletRequest();
         User user = Common.getUser(httpRequest);
         EventDao eventDao = new EventDao();
@@ -398,69 +400,79 @@ abstract public class BaseDwr {
             if (pollRequest.isMaxAlarm() && user != null) {
 
                 //Track the last alarm count to see if we need to update the alarm toaster
-            	Integer lastUnsilencedAlarmCount = (Integer) data.getState().getAttribute("lastUnsilencedAlarmCount");
-            	//Ensure we have one, as we won't on first run
-            	if(lastUnsilencedAlarmCount == null)
-            		lastUnsilencedAlarmCount = 0;
-            	
-            	//Sort into lists for the different types
-            	int lifeSafetyTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.LIFE_SAFETY);
-            	int noneTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.NONE);
-            	int informationTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.INFORMATION);
-            	int criticalTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.CRITICAL);
-            	int urgentTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.URGENT);
-            	
-            	int currentUnsilencedAlarmCount = noneTotal + informationTotal + urgentTotal + criticalTotal + lifeSafetyTotal;
-            	//If we have some new information we should show it
-            	if(lastUnsilencedAlarmCount != currentUnsilencedAlarmCount ){
-            		data.getState().setAttribute("lastUnsilencedAlarmCount", currentUnsilencedAlarmCount); //Update the value
-            		response.put("alarmsUpdated",true); //Indicate to UI that there is a new alarm
-	            	response.put("alarmsNone", noneTotal);
-	            	if(noneTotal == 1){
-		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.NONE);
-		                response.put("noneEvent",event);
-	            	}
-	
-	            	response.put("alarmsInformation", informationTotal);
-	            	if(informationTotal == 1){
-		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.INFORMATION);
-		                response.put("informationEvent",event);
-	            	}
-	
-	            	response.put("alarmsUrgent", urgentTotal);
-	            	if(urgentTotal == 1){
-		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.URGENT);
-		                response.put("urgentEvent",event);
-	            	}
-	            	response.put("alarmsCritical", criticalTotal);
-	            	if(criticalTotal == 1){
-		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.CRITICAL);
-		                response.put("criticalEvent",event);
-	            	}
-	            	
-	            	response.put("alarmsLifeSafety", lifeSafetyTotal);
-	            	if(lifeSafetyTotal == 1){
-		                EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(), AlarmLevels.LIFE_SAFETY);
-		                response.put("lifeSafetyEvent",event);
-	            	}
-	            }else{//end if new alarm toaster info
-	            	//response.put("alarmsUpdated",false);
-	            }
-            	// The events have changed. See if the user's particular max alarm level has changed.
+                Integer lastUnsilencedAlarmCount = (Integer) data.getState().getAttribute("lastUnsilencedAlarmCount");
+                //Ensure we have one, as we won't on first run
+                if (lastUnsilencedAlarmCount == null)
+                    lastUnsilencedAlarmCount = 0;
+
+                //Sort into lists for the different types
+                int lifeSafetyTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(),
+                        AlarmLevels.LIFE_SAFETY);
+                int noneTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.NONE);
+                int informationTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(),
+                        AlarmLevels.INFORMATION);
+                int criticalTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.CRITICAL);
+                int urgentTotal = EventInstanceDao.instance.countUnsilencedEvents(user.getId(), AlarmLevels.URGENT);
+
+                int currentUnsilencedAlarmCount = noneTotal + informationTotal + urgentTotal + criticalTotal
+                        + lifeSafetyTotal;
+                //If we have some new information we should show it
+                if (lastUnsilencedAlarmCount != currentUnsilencedAlarmCount) {
+                    data.getState().setAttribute("lastUnsilencedAlarmCount", currentUnsilencedAlarmCount); //Update the value
+                    response.put("alarmsUpdated", true); //Indicate to UI that there is a new alarm
+                    response.put("alarmsNone", noneTotal);
+                    if (noneTotal == 1) {
+                        EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(),
+                                AlarmLevels.NONE);
+                        response.put("noneEvent", event);
+                    }
+
+                    response.put("alarmsInformation", informationTotal);
+                    if (informationTotal == 1) {
+                        EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(),
+                                AlarmLevels.INFORMATION);
+                        response.put("informationEvent", event);
+                    }
+
+                    response.put("alarmsUrgent", urgentTotal);
+                    if (urgentTotal == 1) {
+                        EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(),
+                                AlarmLevels.URGENT);
+                        response.put("urgentEvent", event);
+                    }
+                    response.put("alarmsCritical", criticalTotal);
+                    if (criticalTotal == 1) {
+                        EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(),
+                                AlarmLevels.CRITICAL);
+                        response.put("criticalEvent", event);
+                    }
+
+                    response.put("alarmsLifeSafety", lifeSafetyTotal);
+                    if (lifeSafetyTotal == 1) {
+                        EventInstanceVO event = EventInstanceDao.instance.getHighestUnsilencedEvent(user.getId(),
+                                AlarmLevels.LIFE_SAFETY);
+                        response.put("lifeSafetyEvent", event);
+                    }
+                }
+                else {//end if new alarm toaster info
+                      //response.put("alarmsUpdated",false);
+                }
+                // The events have changed. See if the user's particular max alarm level has changed.
                 int maxAlarmLevel = eventDao.getHighestUnsilencedAlarmLevel(user.getId());
-               
+
                 if (maxAlarmLevel != state.getMaxAlarmLevel()) {
                     response.put("highestUnsilencedAlarmLevel", maxAlarmLevel);
                     state.setMaxAlarmLevel(maxAlarmLevel);
                 }
 
-            	// Check the max alarm. First check if the events have changed since the last time this request checked.
+                // Check the max alarm. First check if the events have changed since the last time this request checked.
                 long lastEMUpdate = Common.eventManager.getLastAlarmTimestamp();
                 //If there is a new alarm then do stuff
                 if (state.getLastAlarmLevelChange() < lastEMUpdate) {
                     state.setLastAlarmLevelChange(lastEMUpdate);
-                }else{//end no new alarms
-                	//Don't add data for nothing, this will cause tons of polls. response.put("alarmsUpdated",false);
+                }
+                else {//end no new alarms
+                      //Don't add data for nothing, this will cause tons of polls. response.put("alarmsUpdated",false);
                 }
             }//end for max alarms
 
@@ -481,11 +493,11 @@ abstract public class BaseDwr {
                     state.setPointDetailsState(newState);
                 }
             }
-            
+
             //TODO This is dead code as of 2.0.7, can remove eventually
             if (pollRequest.isPendingAlarms() && user != null) {
                 // Create the list of most current pending alarm content.
-                Map<String, Object> model = new HashMap<String, Object>();
+                Map<String, Object> model = new HashMap<>();
                 model.put("events", eventDao.getPendingEvents(user.getId()));
                 model.put("pendingEvents", true);
                 model.put("noContentWhenEmpty", true);
@@ -493,11 +505,12 @@ abstract public class BaseDwr {
                 currentContent = com.serotonin.util.StringUtils.trimWhitespace(currentContent);
 
                 if (!StringUtils.equals(currentContent, state.getPendingAlarmsContent())) {
-                	response.put("newAlarms",true);
+                    response.put("newAlarms", true);
                     response.put("pendingAlarmsContent", currentContent);
                     state.setPendingAlarmsContent(currentContent);
-                }else{
-                	response.put("newAlarms", false);
+                }
+                else {
+                    response.put("newAlarms", false);
                 }
             }
 
@@ -590,7 +603,7 @@ abstract public class BaseDwr {
             synchronized (session) {
                 data = (List<LongPollData>) session.getAttribute(LONG_POLL_DATA_KEY);
                 if (data == null) {
-                    data = new ArrayList<LongPollData>();
+                    data = new ArrayList<>();
                     session.setAttribute(LONG_POLL_DATA_KEY, data);
                 }
             }
@@ -655,5 +668,31 @@ abstract public class BaseDwr {
     @DwrPermission(anonymous = true)
     public void ping() {
         // no op
+    }
+
+    /**
+     * Power tools for user permissions.
+     */
+    @DwrPermission(user = true)
+    public List<PermissionDetails> getUserPermissionInfo(String query) {
+        List<PermissionDetails> ds = new ArrayList<>();
+        for (User user : new UserDao().getActiveUsers())
+            ds.add(Permissions.getPermissionDetails(query, user));
+        return ds;
+    }
+
+    @DwrPermission(user = true)
+    public static Set<String> getAllUserGroups(String exclude) {
+        Set<String> result = new TreeSet<>();
+
+        for (User user : new UserDao().getActiveUsers())
+            result.addAll(Permissions.explodePermissionGroups(user.getPermissions()));
+
+        if (!StringUtils.isEmpty(exclude)) {
+            for (String part : exclude.split(","))
+                result.remove(part);
+        }
+
+        return result;
     }
 }
