@@ -119,9 +119,9 @@
 
 <div id="mainContainer" style="height:100%">
     <div id="headerArea">
-        <page:header showHeader="${showHeader}"/>
-        <page:toolbar showToolbar="${showToolbar}"/>
-        <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
+      <page:header showHeader="${showHeader}"/>
+      <page:toolbar showToolbar="${showToolbar}"/>
+      <jsp:include page="/WEB-INF/snippet/errorBox.jsp"/>
     </div>
     <div id="mainContent" style="padding:5px; ">
         <jsp:doBody/>
@@ -142,9 +142,8 @@
 
 <c:if test="${!empty onload}">
   <script type="text/javascript">
-    dojo.ready(${onload});
+     dojo.ready(${onload});
   </script>
-
 </c:if>
 
 <c:forEach items="<%= Common.moduleJspfs %>" var="modJspf">

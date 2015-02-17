@@ -35,14 +35,14 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public abstract class BaseDataSourceController extends ParameterizableViewController{
-	
-	BaseDataSourceController(String viewName, String errorViewName){
-		setViewName(viewName);
-		setErrorViewName(errorViewName);
-	}
-	
-	private String errorViewName;
+public abstract class BaseDataSourceController extends ParameterizableViewController {
+
+    BaseDataSourceController(String viewName, String errorViewName) {
+        setViewName(viewName);
+        setErrorViewName(errorViewName);
+    }
+
+    private String errorViewName;
 
     public void setErrorViewName(String errorViewName) {
         this.errorViewName = errorViewName;
@@ -81,7 +81,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             }
 
             //Prepare the DS        
-            Permissions.ensureAdmin(user);
+            Permissions.ensureDataSourcePermission(user);
 
             // A new data source
             DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(type);
@@ -163,7 +163,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                 return new ModelAndView(new RedirectView(errorViewName), model);
 
             }
-            Permissions.ensureDataSourcePermission(user, id);
+            Permissions.ensureDataSourcePermission(user, dataSourceVO);
         }
 
         // Set the id of the data source in the user object for the DWR.

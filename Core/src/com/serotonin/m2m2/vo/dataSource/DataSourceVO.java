@@ -38,7 +38,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     public static final String XID_PREFIX = "DS_";
 
     abstract public AbstractDataSourceModel<T> getModel();
-    
+
     abstract public TranslatableMessage getConnectionDescription();
 
     abstract public PointLocatorVO createPointLocator();
@@ -69,6 +69,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     private int purgeType = PurgeTypes.YEARS;
     @JsonProperty
     private int purgePeriod = 1;
+    @JsonProperty
+    private String editPermission;
 
     public final DataSourceDefinition getDefinition() {
         return definition;
@@ -123,6 +125,14 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         this.purgePeriod = purgePeriod;
     }
 
+    public String getEditPermission() {
+        return editPermission;
+    }
+
+    public void setEditPermission(String editPermission) {
+        this.editPermission = editPermission;
+    }
+
     public EventTypeVO getEventType(int eventId) {
         for (EventTypeVO vo : getEventTypes()) {
             if (vo.getTypeRef2() == eventId)
@@ -153,31 +163,31 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId, message, getAlarmLevel(
                 eventId, defaultAlarmLevel), duplicateHandling);
     }
-    
+
     /**
      * Useful for polling data sources
      * 
      * Events are fired by the Polling Data Source RT
+     * 
      * @return
      */
     protected EventTypeVO createPollAbortedEventType(int eventId) {
-        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId,
-        		new TranslatableMessage("event.ds.pollAborted"), getAlarmLevel(eventId, AlarmLevels.URGENT),
-        		EventType.DuplicateHandling.IGNORE);
+        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId, new TranslatableMessage(
+                "event.ds.pollAborted"), getAlarmLevel(eventId, AlarmLevels.URGENT), EventType.DuplicateHandling.IGNORE);
     }
 
-	/**
-	 * Allow Polling Data Sources to use an event per Data Source
-	 * if it exists.
-	 * 
-	 * This should be overridden in that case.
-	 * 
-	 * @return
-	 */
-	public int getPollAbortedExceptionEventId() {
-		return -1; //For not available
-	}
-    
+    /**
+     * Allow Polling Data Sources to use an event per Data Source
+     * if it exists.
+     * 
+     * This should be overridden in that case.
+     * 
+     * @return
+     */
+    public int getPollAbortedExceptionEventId() {
+        return -1; //For not available
+    }
+
     public TranslatableMessage getTypeDescription() {
         return new TranslatableMessage(getDefinition().getDescriptionKey());
     }
@@ -220,6 +230,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         super.addProperties(list);
         AuditEventType.addPropertyMessage(list, "dsEdit.logging.purgeOverride", purgeOverride);
         AuditEventType.addPeriodMessage(list, "dsEdit.logging.purge", purgeType, purgePeriod);
+        AuditEventType.addPropertyMessage(list, "dsEdit.permission.edit", editPermission);
 
         addPropertiesImpl(list);
     }
@@ -230,6 +241,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
                 purgeOverride);
         AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.getPurgeType(),
                 from.getPurgePeriod(), purgeType, purgePeriod);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.permission.edit", from.getEditPermission(),
+                editPermission);
 
         addPropertyChangesImpl(list, from);
     }
@@ -369,6 +382,5 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
 
         return value;
     }
-
 
 }

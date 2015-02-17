@@ -9,7 +9,7 @@
 <!--      <div  class="borderDiv marB"> -->
     <div id="pointDetails" class="borderDiv marB" style="display:none" >
     <div id="pointProperties" style="display:none"></div> <!-- For tricking the legacy modules to believe this is still in use, it will be "shown" when a data source is saved or viewed -->    
-        <table width="100%">
+        <table class="wide">
           <tr>
             <td>
               <span class="smallTitle"><fmt:message key="dsEdit.points.details"/></span>

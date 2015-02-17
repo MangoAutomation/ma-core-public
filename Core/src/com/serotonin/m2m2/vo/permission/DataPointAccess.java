@@ -20,7 +20,9 @@ import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Matthew Lohbihler
+ * @deprecated use tag-based permissions instead
  */
+@Deprecated
 public class DataPointAccess implements JsonSerializable {
     public static final int READ = 1;
     public static final int SET = 2;

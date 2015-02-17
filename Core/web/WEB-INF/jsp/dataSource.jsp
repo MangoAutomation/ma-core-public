@@ -23,7 +23,6 @@
   </style>
   
   <script type="text/javascript">
-
 	  //Collect the table js interface
 	  var dojoConfig = {packages:[{name: "deltamation", location: "/resources/deltamation"}]};
 	  
@@ -35,6 +34,9 @@
   </jsp:attribute>
   
   <jsp:body>
+    <script type="text/javascript">
+      var permissionUI = new PermissionUI(MiscDwr);
+    </script>
     
     <tag:versionedJavascript src="/resources/stores.js"/>
     <!-- Import the scripts for the table -->

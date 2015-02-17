@@ -31,6 +31,7 @@ create table users (
   receiveOwnAuditEvents char(1) not null,
   timezone varchar(50),
   muted char(1),
+  permissions varchar(255),
   primary key (id)
 ) engine=InnoDB;
 
@@ -84,19 +85,10 @@ create table dataSources (
   dataSourceType varchar(40) not null,
   data longblob not null,
   rtdata longblob,
+  editPermission varchar(255),
   primary key (id)
 ) engine=InnoDB;
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
-
-
--- Data source permissions
-create table dataSourceUsers (
-  dataSourceId int not null,
-  userId int not null
-) engine=InnoDB;
-alter table dataSourceUsers add constraint dataSourceUsersFk1 foreign key (dataSourceId) references dataSources(id);
-alter table dataSourceUsers add constraint dataSourceUsersFk2 foreign key (userId) references users(id) on delete cascade;
-
 
 
 --
@@ -123,6 +115,8 @@ create table dataPoints (
   discardExtremeValues char(1),
   engineeringUnits int,
   data longblob not null,
+  readPermission varchar(255),
+  setPermission varchar(255),
   primary key (id)
 ) engine=InnoDB;
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
@@ -136,16 +130,6 @@ CREATE TABLE dataPointHierarchy (
   name varchar(100),
   PRIMARY KEY (id)
 ) engine=InnoDB;
-
-
--- Data point permissions
-create table dataPointUsers (
-  dataPointId int not null,
-  userId int not null,
-  permission int not null
-) engine=InnoDB;
-alter table dataPointUsers add constraint dataPointUsersFk1 foreign key (dataPointId) references dataPoints(id);
-alter table dataPointUsers add constraint dataPointUsersFk2 foreign key (userId) references users(id) on delete cascade;
 
 
 --

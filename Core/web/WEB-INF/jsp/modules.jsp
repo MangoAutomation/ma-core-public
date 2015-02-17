@@ -6,7 +6,22 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="ModulesDwr">
+  <c:set var="storeUrl" value='<%= Common.envProps.getString("store.url") %>'/>
+
+  <style type="text/css">
+    .modName { width: 200px; display: inline-block; }
+    .relNotes { width: 50px; display: inline-block; }
+    .relNotesContent { margin: 2px; max-height: 300px; overflow: auto; }
+    .relNotesContent .desc { color: #699D2E; }
+    .relNotesContent .vendor { font-style: italic; margin-bottom: 5px; }
+    .upgradeSection { margin-bottom: 20px; }
+    .upgradeSectionTitle { margin-bottom: 5px; }
+    .upgradeSectionOptions { margin-left: 20px; }
+    .modulesList { margin-top: 5px; }
+  </style>
   <script type="text/javascript">
+    dojo.require("dijit.TooltipDialog");
+  
     function toggleDeletion(name) {
         var id = "module-"+name;
         if (!dojo.hasClass(id, "marked")) {
@@ -39,41 +54,226 @@
             });
     }
     
-    var versionUpgradeList;
+    var allModuleList;
     function versionCheck() {
-        ModulesDwr.versionCheck(function(upgrades) {
-            if (upgrades.length > 0) {
-                versionUpgradeList = upgrades;
-                var s = "";
-                for (var i=0; i<upgrades.length; i++) {
-                    s += ""+ upgrades[i].key +": "+ upgrades[i].value;
-                    s += "<span class='infoData' style='padding-left:20px;' id='"+ upgrades[i].key +"downloadResult'></span>";
-                    s += "</br>";
-                }
-                $set("upgradeModules", s);
-                show("upgradesDiv");
+        disableButton("versionCheckBtn");
+        
+        ModulesDwr.versionCheck(function(result) {
+            enableButton("versionCheckBtn");
+        	
+            if (result.data.error) {
+                alert("<m2m2:translate key="modules.versionCheck.error" escapeDQuotes="true"/> "+ result.data.error);
+                return;
             }
-            else
-                alert("<m2m2:translate key="modules.versionCheck.none" escapeDQuotes="true"/>");
+            
+            allModuleList = [];
+            var upgradeList = result.data.upgrades;
+            var newInstallList = result.data.newInstalls;
+            
+            var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
+            // Draw the upgrade list.
+            if (upgradeList.length > 0) {
+                var s = "";
+                for (var i=0; i<upgradeList.length; i++) {
+                    allModuleList.push(upgradeList[i]);
+                    var name = upgradeList[i].name;
+                    s += "<div>";
+                    s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB'>";
+                    s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ upgradeList[i].version +"</label></div>";
+                    s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
+                    s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
+                    s += "</div>";
+                }
+                $set("upgradeModulesList", s);
+                show("upgradeModulesOptions");
+                hide("upgradeModulesNone");
+            }
+            else {
+                hide("upgradeModulesOptions");
+                show("upgradeModulesNone");
+            }
+            
+            // Draw the new install list.
+            if (newInstallList.length > 0) {
+                s = "";
+                for (var i=0; i<newInstallList.length; i++) {
+                    allModuleList.push(newInstallList[i]);
+                    var name = newInstallList[i].name;
+                    s += "<div>";
+                    s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB'>";
+                    s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
+                    s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
+                    s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
+                    s += "</div>";
+                }
+                $set("newInstallModulesList", s);
+                show("newInstallModulesOptions");
+                hide("newInstallModulesNone");
+            }
+            else {
+                hide("newInstallModulesOptions");
+                show("newInstallModulesNone");
+            }
+            
+            // Create the rollovers for the release notes.
+            var notes = dojo.query(".relNotes");
+            for (var i=0; i<notes.length; i++) {
+                dojo.connect(notes[i], "onmouseover", showReleaseNotes);
+                dojo.connect(notes[i], "onmouseout", cancelReleaseNotes);
+            }
+            
+            // Reset the state of all of the upgrade stuff in case this is a second run.
+            show("upgradeModulesButtons");
+            hide("upgradeModulesThrobber");
+            hide("upgradeModulesFinished");
+            hide("upgradeModulesError");
+            show("upgradesDiv");
+            $("masterUpgradeCB").disabled = false;
+            $("masterNewInstallCB").disabled = false;
+            toggler($("newInstallToggler"), true);
+            toggler($("advancedOptionsToggler"), true);
+            $set("upgradeStage");
         });
     }
     
-    function downloadUpgrades() {
-        ModulesDwr.startDownloads(versionUpgradeList, function() { downloadMonitor(); });
+    var myTooltipDialog;
+    var relNotesTimeout;
+    function showReleaseNotes() {
+        var thisNode = this;
+        
+        // Get the release notes content. Get the module name by clipping 'relNotes' from the end of the id.
+        var modName = this.id.substring(0, this.id.length - 8);
+        var mod = getElement(allModuleList, modName, "name");
+        
+        var content = "<div class='relNotesContent'>";
+        content += "<div class='desc'>"+ mod.shortDescription +"</div>";
+        if (mod.vendorName)
+            content += "<div class='vendor'>"+ mod.vendorName +"</div>";
+        content += "<div class='notes'>"+ mod.releaseNotes +"</div>";
+        content += "</div>";
+        
+        // Start a timeout to display the content instead of displaying immediately. This is so that a mouse that just 
+        // happens to hover over the element - without the intention of viewing the notes - does not actually open
+        // the dialog, since the mouseout event will cancel the timeout. This is important because, to close an open
+        // dialog, the user must mouseout of the *dialog*, not the 'notes' element.
+        relNotesTimeout = setTimeout(function() {
+        	if (myTooltipDialog)
+                myTooltipDialog.destroy();
+        	
+            require(["dijit/TooltipDialog", "dijit/popup", "dojo/dom" ], function(TooltipDialog, popup, dom) {
+                myTooltipDialog = new TooltipDialog({
+                    id: 'myTooltipDialog',
+                    style: "width: 500px;",
+                    content: content,
+                    onMouseLeave: function() { 
+                        popup.close(myTooltipDialog);
+                    }
+                });
+                
+                popup.open({
+                    popup: myTooltipDialog,
+                    around: thisNode
+                });
+            });
+        }, 200);
+    }
+    
+    function cancelReleaseNotes() {
+    	clearTimeout(relNotesTimeout);
+    }
+    
+    function startDownloads() {
+        disableButton("downloadUpgradesBtn");
+        show("upgradeModulesThrobber");
+        
+        // Create a list of the checked modules.
+        var checkedModules = [];
+        var cbs = dojo.query(".modCB");
+        for (var i=0; i<cbs.length; i++) {
+            if (cbs[i].checked) {
+                var name = cbs[i].id;
+                // Remove the 'Check' at the end.
+                name = name.substring(0, name.length - 5);
+                checkedModules.push({"key": name, "value": getElement(allModuleList, name, 'name').version});
+            }
+        }
+        
+        ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
+            // Check if there was an error with the selected modules.
+            if (error)
+                alert("<m2m2:translate key="modules.consistencyCheck" escapeDQuotes="true"/>");
+            else {
+                // Disable all of the checkboxes
+                var cbs = dojo.query(".modCB");
+                for (var i=0; i<cbs.length; i++)
+                    cbs[i].disabled = true;
+                $("masterUpgradeCB").disabled = true;
+                $("masterNewInstallCB").disabled = true;
+                
+                downloadMonitor();
+            }
+        });
     }
     
     function downloadMonitor() {
         ModulesDwr.monitorDownloads(function(results) {
+        	$set("upgradeStage", results.data.stage);
             for (var i=0; i<results.data.results.length; i++)
                 $set(results.data.results[i].key +"downloadResult", results.data.results[i].value);
                 
             if (results.data.finished) {
+                enableButton("downloadUpgradesBtn");
                 hide("upgradeModulesButtons");
-                show("upgradeModulesFinished");
+                hide("upgradeModulesThrobber");
+                
+                if (results.data.error) {
+                    $set("upgradeModulesErrorMessage", results.data.error);
+                    show("upgradeModulesError");
+                }
+                else if (results.data.restart)
+                    // Forward to the shutdown page
+                    window.location = "/shutdown.htm";
+                else
+                    show("upgradeModulesFinished");
             }
             else
                 setTimeout(downloadMonitor, 1000);
         });
+    }
+    
+    function updateCBs(checked, clazz) {
+        var cbs = dojo.query("."+ clazz);
+        for (var i=0; i<cbs.length; i++)
+            cbs[i].checked = checked;
+    }
+    
+    function toggler(a, showing) {
+    	if (typeof(showing) == "undefined")
+    		showing = a.showing;
+    	
+        if (showing) {
+            delete a.showing;
+            $set(a, "<fmt:message key="common.show"/>");
+            if (a.id == "newInstallToggler")
+                hide("newInstallModulesOptions")
+            else
+                hide("advancedOptionsList")
+        }
+        else {
+            a.showing = true;
+            $set(a, "<fmt:message key="common.hide"/>");
+            if (a.id == "newInstallToggler")
+                show("newInstallModulesOptions")
+            else
+                show("advancedOptionsList")
+        }
+    }
+    
+    function downloadLicense() {
+        var r = bareUri();
+        var g = "${guid}";
+        var d = "${distributor}";
+        window.location = "${storeUrl}/account/servlet/getDownloadToken?r="+ r +"&g="+ g +"&d="+ d;
     }
     
     function storeCheck() {
@@ -83,9 +283,22 @@
         }
     }
     
-    window.onload = function() {
+    dojo.ready(function() {
+        <c:if test="${licenseDownloaded}">
+          alert("<m2m2:translate key="modules.licenseDownloaded" escapeDQuotes="true"/>");
+        </c:if>
+    	
         storeCheck();
-    };
+        $set("redirectURI", bareUri());
+    });
+    
+    function bareUri() {
+        var s = ""+ window.location;
+        var pos = s.indexOf("?");
+        if (pos != -1)
+            s = s.substring(0, pos);
+        return s;
+    }
   </script>
   
   <div>
@@ -94,26 +307,71 @@
   </div>
   
   <div id="guid">
-    <form action="<c:out value='<%= Common.envProps.getString("store.url") %>'/>/account/store" method="post" target="_blank">
+    <form action="${storeUrl}/account/store" method="post" target="mangoStore">
       <fmt:message key="modules.guid"/> <b>${guid}</b>
       <textarea rows="2" cols="80" style="display:none;" name="orderJson">${json}</textarea>
+      <input type="hidden" id="redirectURI" name="redirect" value=""/>
       <input id="goToStore" type="submit" value="<fmt:message key="modules.update"/>" style="margin-left:20px;"/>
+      <input id="downloadLicenseBtn" type="button" value="<fmt:message key="modules.downloadLicense"/>" onclick="downloadLicense();"/>
       <input type="button" value="<m2m2:translate key='modules.restart'/>" onclick="restartInstance();"/>
 <%--       <input type="button" value="<m2m2:translate key='modules.shutdown'/>" onclick="shutdownInstance();"/> --%>
-<%--       <input type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/> --%>
+      <input id="versionCheckBtn" type="button" value="<m2m2:translate key="modules.versionCheck"/>" onclick="versionCheck();"/>
     </form>
   </div>
   
   <div id="upgradesDiv" class="borderDiv" style="display:none; margin: 10px 100px 0px 100px; padding: 10px;">
-    <p><b><m2m2:translate key="modules.versionCheck.some"/></b><p>
-    <div id="upgradeModules" style="margin:20px;"></div>
+    <div class="upgradeSection">
+      <div class="upgradeSectionTitle">
+        <b><m2m2:translate key="modules.versionCheck.some"/></b>
+      </div>
+      <div id="upgradeModulesNone" class="upgradeSectionOptions">
+        <m2m2:translate key="modules.versionCheck.none"/>
+      </div>
+      <div id="upgradeModulesOptions" class="upgradeSectionOptions">
+        <input type="checkbox" id="masterUpgradeCB" checked="checked" onclick="updateCBs(this.checked, 'upgradeCB')"/>
+        <label for="masterUpgradeCB"><m2m2:translate key="common.all"/></label>
+        <div id="upgradeModulesList" class="modulesList"></div>
+      </div>
+    </div>
+    
+    <div class="upgradeSection">
+      <div class="upgradeSectionTitle">
+        <b><m2m2:translate key="modules.versionCheck.new"/></b>
+        (<a id="newInstallToggler" class="ptr" onclick="toggler(this)"><fmt:message key="common.show"/></a>)
+      </div>
+      <div id="newInstallModulesNone" class="upgradeSectionOptions">
+        <m2m2:translate key="modules.versionCheck.noneToInstall"/>
+      </div>
+      <div id="newInstallModulesOptions" class="upgradeSectionOptions">
+        <input type="checkbox" id="masterNewInstallCB" onclick="updateCBs(this.checked, 'newInstallCB')"/>
+        <label for="masterNewInstallCB"><m2m2:translate key="common.all"/></label>
+        <div id="newInstallModulesList" class="modulesList"></div>
+      </div>
+    </div>
+    
+    <div class="upgradeSection">
+      <div class="upgradeSectionTitle">
+        <b><m2m2:translate key="modules.versionCheck.advanced"/></b>
+        (<a id="advancedOptionsToggler" class="ptr" onclick="toggler(this)"><fmt:message key="common.show"/></a>)
+      </div>
+      <div id="advancedOptionsList" class="upgradeSectionOptions">
+        <div><input type='checkbox' id='backupCheck' checked="checked"><label for='backupCheck'>&nbsp;<m2m2:translate key="modules.versionCheck.advanced.backup"/></label></div>
+        <div><input type='checkbox' id='restartCheck' checked="checked"><label for='restartCheck'>&nbsp;<m2m2:translate key="modules.versionCheck.advanced.restart"/></label></div>
+      </div>
+    </div>
+    
     <div id="upgradeModulesButtons">
-      <input type="button" value="<fmt:message key="modules.downloadUpgrades"/>" onclick="downloadUpgrades()"/>
-      <input type="button" value="<fmt:message key="modules.upgradesClose"/>" onclick="hide('upgradesDiv')"/>
+      <input id="downloadUpgradesBtn" type="button" value="<fmt:message key="modules.downloadUpgrades"/>" onclick="startDownloads()"/>
+      <input id="upgradesCloseBtn" type="button" value="<fmt:message key="modules.upgradesClose"/>" onclick="hide('upgradesDiv')"/>
+      <img id="upgradeModulesThrobber" src="/images/throbber.gif" style="vertical-align: bottom;"/>&nbsp;
+      <span id="upgradeStage"></span>
     </div>
     <div id="upgradeModulesFinished" style="display:none;">
       <b><fmt:message key="modules.downloadsFinished"/></b>
       <input type="button" value="<m2m2:translate key="modules.restart"/>" style="margin-left:20px;" onclick="restartInstance();"/>
+    </div>
+    <div id="upgradeModulesError" style="display:none;" class="infoData">
+      <b><fmt:message key="modules.downloadsError"/> <span id="upgradeModulesErrorMessage"></span></b>
     </div>
   </div>
   
@@ -132,7 +390,13 @@
           </c:otherwise>
         </c:choose>
         
-        <span class="version">${module.version}</span>
+        <span class="version">
+          ${module.version} -
+          <c:choose>
+            <c:when test="${empty module.licenseType}">*** unlicensed ***</c:when>
+            <c:otherwise>${module.licenseType}</c:otherwise>
+          </c:choose> 
+        </span>
                
         <div class="vendor">
           <c:choose>

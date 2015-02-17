@@ -26,7 +26,8 @@ create table users (
   receiveAlarmEmails int not null,
   receiveOwnAuditEvents char(1) not null,
   timezone varchar(50),
-  muted char(1)
+  muted char(1),
+  permissions varchar(255)
 );
 alter table users add constraint usersPk primary key (id);
 
@@ -79,20 +80,11 @@ create table dataSources (
   name varchar(40) not null,
   dataSourceType varchar(40) not null,
   data blob not null,
-  rtdata blob
+  rtdata blob,
+  editPermission varchar(255)
 );
 alter table dataSources add constraint dataSourcesPk primary key (id);
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
-
-
--- Data source permissions
-create table dataSourceUsers (
-  dataSourceId int not null,
-  userId int not null
-);
-alter table dataSourceUsers add constraint dataSourceUsersFk1 foreign key (dataSourceId) references dataSources(id);
-alter table dataSourceUsers add constraint dataSourceUsersFk2 foreign key (userId) references users(id) on delete cascade;
-
 
 
 --
@@ -118,7 +110,9 @@ create table dataPoints (
   defaultCacheSize int,
   discardExtremeValues char(1),
   engineeringUnits int,
-  data blob not null
+  data blob not null,
+  readPermission varchar(255),
+  setPermission varchar(255)
 );
 alter table dataPoints add constraint dataPointsPk primary key (id);
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
@@ -132,16 +126,6 @@ CREATE TABLE dataPointHierarchy (
   name varchar(100)
 );
 ALTER TABLE dataPointHierarchy ADD CONSTRAINT dataPointHierarchyPk PRIMARY KEY (id);
-
-
--- Data point permissions
-create table dataPointUsers (
-  dataPointId int not null,
-  userId int not null,
-  permission int not null
-);
-alter table dataPointUsers add constraint dataPointUsersFk1 foreign key (dataPointId) references dataPoints(id);
-alter table dataPointUsers add constraint dataPointUsersFk2 foreign key (userId) references users(id) on delete cascade;
 
 
 --

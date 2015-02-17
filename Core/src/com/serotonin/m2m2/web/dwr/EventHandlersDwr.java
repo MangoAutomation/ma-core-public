@@ -56,14 +56,23 @@ public class EventHandlersDwr extends BaseDwr {
         Permissions.ensureDataSourcePermission(user);
 
         EventDao eventDao = new EventDao();
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
+
+        // Get the data sources.
+        List<DataSourceVO<?>> dss = new DataSourceDao().getDataSources();
+
+        // Create a lookup of data sources to quickly determine data point permissions.
+        Map<Integer, DataSourceVO<?>> dslu = new HashMap<>();
+        for (DataSourceVO<?> ds : dss)
+            dslu.put(ds.getId(), ds);
 
         // Get the data points
-        List<DataPointBean> allPoints = new ArrayList<DataPointBean>();
-        List<EventSourceBean> dataPoints = new ArrayList<EventSourceBean>();
+        List<DataPointBean> allPoints = new ArrayList<>();
+        List<EventSourceBean> dataPoints = new ArrayList<>();
         List<DataPointVO> dps = new DataPointDao().getDataPoints(DataPointExtendedNameComparator.instance, true);
+
         for (DataPointVO dp : dps) {
-            if (!Permissions.hasDataSourcePermission(user, dp.getDataSourceId()))
+            if (!Permissions.hasDataSourcePermission(user, dslu.get(dp.getDataSourceId())))
                 continue;
 
             allPoints.add(new DataPointBean(dp));
@@ -84,9 +93,9 @@ public class EventHandlersDwr extends BaseDwr {
         }
 
         // Get the data sources
-        List<EventSourceBean> dataSources = new ArrayList<EventSourceBean>();
-        for (DataSourceVO<?> ds : new DataSourceDao().getDataSources()) {
-            if (!Permissions.hasDataSourcePermission(user, ds.getId()))
+        List<EventSourceBean> dataSources = new ArrayList<>();
+        for (DataSourceVO<?> ds : dss) {
+            if (!Permissions.hasDataSourcePermission(user, ds))
                 continue;
 
             if (ds.getEventTypes().size() > 0) {
@@ -103,7 +112,7 @@ public class EventHandlersDwr extends BaseDwr {
             }
         }
 
-        Map<String, Map<String, Object>> userEventTypes = new LinkedHashMap<String, Map<String, Object>>();
+        Map<String, Map<String, Object>> userEventTypes = new LinkedHashMap<>();
         model.put("userEventTypes", userEventTypes);
         for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class)) {
             if (!def.getHandlersRequireAdmin()) {
@@ -112,7 +121,7 @@ public class EventHandlersDwr extends BaseDwr {
                 for (EventTypeVO vo : vos)
                     vo.setHandlers(eventDao.getEventHandlers(vo));
 
-                Map<String, Object> info = new HashMap<String, Object>();
+                Map<String, Object> info = new HashMap<>();
                 info.put("vos", vos);
                 info.put("iconPath", def.getIconPath());
                 info.put("description", translate(def.getDescriptionKey()));
@@ -123,7 +132,7 @@ public class EventHandlersDwr extends BaseDwr {
 
         if (Permissions.hasAdmin(user)) {
             // Get the publishers
-            List<EventSourceBean> publishers = new ArrayList<EventSourceBean>();
+            List<EventSourceBean> publishers = new ArrayList<>();
             for (PublisherVO<? extends PublishedPointVO> p : new PublisherDao()
                     .getPublishers(new PublisherDao.PublisherNameComparator())) {
                 if (p.getEventTypes().size() > 0) {
@@ -142,7 +151,7 @@ public class EventHandlersDwr extends BaseDwr {
             model.put("publishers", publishers);
 
             // Get the system events
-            List<EventTypeVO> systemEvents = new ArrayList<EventTypeVO>();
+            List<EventTypeVO> systemEvents = new ArrayList<>();
             for (EventTypeVO sets : SystemEventType.EVENT_TYPES) {
                 sets.setHandlers(eventDao.getEventHandlers(sets));
                 systemEvents.add(sets);
@@ -150,14 +159,14 @@ public class EventHandlersDwr extends BaseDwr {
             model.put("systemEvents", systemEvents);
 
             // Get the audit events
-            List<EventTypeVO> auditEvents = new ArrayList<EventTypeVO>();
+            List<EventTypeVO> auditEvents = new ArrayList<>();
             for (EventTypeVO aets : AuditEventType.EVENT_TYPES) {
                 aets.setHandlers(eventDao.getEventHandlers(aets));
                 auditEvents.add(aets);
             }
             model.put("auditEvents", auditEvents);
 
-            Map<String, Map<String, Object>> adminEventTypes = new LinkedHashMap<String, Map<String, Object>>();
+            Map<String, Map<String, Object>> adminEventTypes = new LinkedHashMap<>();
             model.put("adminEventTypes", adminEventTypes);
             for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class)) {
                 if (def.getHandlersRequireAdmin()) {
@@ -166,7 +175,7 @@ public class EventHandlersDwr extends BaseDwr {
                     for (EventTypeVO vo : vos)
                         vo.setHandlers(eventDao.getEventHandlers(vo));
 
-                    Map<String, Object> info = new HashMap<String, Object>();
+                    Map<String, Object> info = new HashMap<>();
                     info.put("vos", vos);
                     info.put("iconPath", def.getIconPath());
                     info.put("description", translate(def.getDescriptionKey()));

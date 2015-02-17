@@ -1,5 +1,9 @@
-*Version 2.5.1*
-* Development Version for 2.5.2 Release
+*Version 2.5.2*
+* Added ability to check for upgrades, and install upgrades and new modules locally
+* Exposed medium and low priority work queue items
+* Upgraded Serotonin JSON to 2.0.8
+* Fixed swagger to work from other than localhost
+* Upgraded Serotonin Utils to 2.0.8
 
 *Version 2.5.0*
 * Upgraded to Jetty 9

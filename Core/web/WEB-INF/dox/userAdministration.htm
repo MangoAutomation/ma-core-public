@@ -11,7 +11,7 @@
 <p>
   There are two basic user levels: administrators (<img src="images/user_suit.png"/>), and other users 
   (<img src="images/user_green.png"/>). Administrators have access to all system functionality. Other users have 
-  various privileges based upon configuration.
+  various privileges based upon permission configuration.
 </p>
 
 <h1>Editing users</h1>
@@ -40,12 +40,16 @@
 <h1>User privileges</h1>
 <p>The <b>Administrator</b> checkbox determines if this user is an administrator.</p>
 <p>
-  If the user is not an administrator, all data sources for the customer will be listed. Checking the box next to the 
-  data source name indicates that the user can alter the data source settings, as well as access all data produced by 
-  that data source.
+  If the user is not an administrator, the <b>Permissions</b> field determines what access to various areas of Mango
+  the user has. The field contains a comma-delimited list of virtual "groups" to which the user belongs. If the user
+  should have access to, for example, data source management, then at least one of the groups in the data source 
+  management permission list (see System Settings) needs to match at least one of the groups in the user's list.
 </p>
 <p>
-  If the data source is not checked, a list of all points within the data source will be displayed. Each point can be 
-  individually set for no access, read access, or&mdash;if the point is settable&mdash;write access. (Having write 
-  access implies have read access.)
+  Clicking on the <img src="images/user_green.png"/> will present a list of permission groups that other users have,
+  but the current user does not. Clicking on a group name will add it to the current user's group list. The user must
+  still be saved for the permissions to persist.
+</p>
+<p>
+  Note that the virtual group names are case-sensitive.
 </p>

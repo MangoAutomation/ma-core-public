@@ -112,6 +112,9 @@
                 <c:when test="${event.eventType.systemEventType == applicationScope['constants.SystemEventType.TYPE_LICENSE_CHECK']}">
                   <a href="modules.shtm"><tag:img png="puzzle" title="modules.modules"/></a>
                 </c:when>
+                <c:when test="${event.eventType.systemEventType == applicationScope['constants.SystemEventType.TYPE_UPGRADE_CHECK']}">
+                  <a href="modules.shtm"><tag:img png="puzzle" title="modules.modules"/></a>
+                </c:when>
                 <c:otherwise>
                   ${m2m2:systemEventTypeLink(event.eventType.systemEventType, event.eventType.referenceId1, event.eventType.referenceId2, pageContext)}
                 </c:otherwise>

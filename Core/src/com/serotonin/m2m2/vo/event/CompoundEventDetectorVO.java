@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.vo.event;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,6 +19,7 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -28,6 +31,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.web.dwr.DwrResponseI18n;
 import com.serotonin.web.i18n.LocalizableMessage;
@@ -55,8 +59,8 @@ public class CompoundEventDetectorVO implements ChangeComparable<CompoundEventDe
     }
 
     public EventTypeVO getEventType() {
-        return new EventTypeVO(EventType.EventTypeNames.COMPOUND, null, id, -1, new TranslatableMessage("common.default", name),
-                alarmLevel);
+        return new EventTypeVO(EventType.EventTypeNames.COMPOUND, null, id, -1, new TranslatableMessage(
+                "common.default", name), alarmLevel);
     }
 
     @Override
@@ -82,13 +86,18 @@ public class CompoundEventDetectorVO implements ChangeComparable<CompoundEventDe
             // Get all of the point event detectors.
             List<DataPointVO> dataPoints = new DataPointDao().getDataPoints(null, true);
 
+            // Create a lookup of data sources.
+            Map<Integer, DataSourceVO<?>> dss = new HashMap<>();
+            for (DataSourceVO<?> ds : new DataSourceDao().getAll())
+                dss.put(ds.getId(), ds);
+
             for (String key : keys) {
                 if (!key.startsWith(SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX))
                     continue;
 
                 boolean found = false;
                 for (DataPointVO dp : dataPoints) {
-                    if (!Permissions.hasDataSourcePermission(user, dp.getDataSourceId()))
+                    if (!Permissions.hasDataSourcePermission(user, dss.get(dp.getDataSourceId())))
                         continue;
 
                     for (PointEventDetectorVO ped : dp.getEventDetectors()) {

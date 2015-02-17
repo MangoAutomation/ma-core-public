@@ -16,7 +16,6 @@ import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -43,7 +42,7 @@ public class DataSourceListDwr extends BaseDwr {
         if (user.isAdmin()) {
             response.addData("dataSources", allDataSources);
 
-            List<StringStringPair> translatedTypes = new ArrayList<StringStringPair>();
+            List<StringStringPair> translatedTypes = new ArrayList<>();
             for (String type : ModuleRegistry.getDataSourceDefinitionTypes())
                 translatedTypes.add(new StringStringPair(type, translate(ModuleRegistry.getDataSourceDefinition(type)
                         .getDescriptionKey())));
@@ -51,9 +50,9 @@ public class DataSourceListDwr extends BaseDwr {
             response.addData("types", translatedTypes);
         }
         else {
-            List<DataSourceVO<?>> dataSources = new ArrayList<DataSourceVO<?>>();
+            List<DataSourceVO<?>> dataSources = new ArrayList<>();
             for (DataSourceVO<?> ds : allDataSources) {
-                if (Permissions.hasDataSourcePermission(user, ds.getId()))
+                if (Permissions.hasDataSourcePermission(user, ds))
                     dataSources.add(ds);
             }
 
@@ -65,10 +64,11 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public Map<String, Object> toggleDataSource(int dataSourceId) {
-        Permissions.ensureDataSourcePermission(Common.getUser(), dataSourceId);
-
         DataSourceVO<?> dataSource = Common.runtimeManager.getDataSource(dataSourceId);
-        Map<String, Object> result = new HashMap<String, Object>();
+
+        Permissions.ensureDataSourcePermission(Common.getUser(), dataSource);
+
+        Map<String, Object> result = new HashMap<>();
 
         dataSource.setEnabled(!dataSource.isEnabled());
         Common.runtimeManager.saveDataSource(dataSource);
@@ -105,9 +105,9 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult dataSourceInfo(int dataSourceId) {
-        Permissions.ensureDataSourcePermission(Common.getUser(), dataSourceId);
         DataSourceDao dataSourceDao = new DataSourceDao();
         DataSourceVO<?> ds = dataSourceDao.getDataSource(dataSourceId);
+        Permissions.ensureDataSourcePermission(Common.getUser(), ds);
         ProcessResult response = new ProcessResult();
 
         String name = StringUtils.abbreviate(
@@ -133,7 +133,6 @@ public class DataSourceListDwr extends BaseDwr {
 
         if (!response.getHasMessages()) {
             int dsId = new DataSourceDao().copyDataSource(dataSourceId, name, xid, deviceName);
-            new UserDao().populateUserPermissions(Common.getUser());
             response.addData("newId", dsId);
         }
 
@@ -142,8 +141,8 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public String exportDataSourceAndPoints(int dataSourceId) {
-        Map<String, Object> data = new LinkedHashMap<String, Object>();
-        List<DataSourceVO<?>> dss = new ArrayList<DataSourceVO<?>>();
+        Map<String, Object> data = new LinkedHashMap<>();
+        List<DataSourceVO<?>> dss = new ArrayList<>();
         dss.add(new DataSourceDao().getDataSource(dataSourceId));
         data.put(EmportDwr.DATA_SOURCES, dss);
         data.put(EmportDwr.DATA_POINTS, new DataPointDao().getDataPoints(dataSourceId, null));

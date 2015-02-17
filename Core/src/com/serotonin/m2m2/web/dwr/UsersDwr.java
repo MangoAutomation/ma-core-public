@@ -25,14 +25,12 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.DataPointAccess;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -48,7 +46,7 @@ public class UsersDwr extends BaseDwr {
     //
     @DwrPermission(user = true)
     public Map<String, Object> getInitData() {
-        Map<String, Object> initData = new HashMap<String, Object>();
+        Map<String, Object> initData = new HashMap<>();
 
         User user = Common.getUser();
         if (Permissions.hasAdmin(user)) {
@@ -60,18 +58,18 @@ public class UsersDwr extends BaseDwr {
 
             // Data sources
             List<DataSourceVO<?>> dataSourceVOs = new DataSourceDao().getDataSources();
-            List<Map<String, Object>> dataSources = new ArrayList<Map<String, Object>>(dataSourceVOs.size());
+            List<Map<String, Object>> dataSources = new ArrayList<>(dataSourceVOs.size());
             Map<String, Object> ds, dp;
             List<Map<String, Object>> points;
             DataPointDao dataPointDao = new DataPointDao();
             for (DataSourceVO<?> dsvo : dataSourceVOs) {
-                ds = new HashMap<String, Object>();
+                ds = new HashMap<>();
                 ds.put("id", dsvo.getId());
                 ds.put("name", dsvo.getName());
-                points = new LinkedList<Map<String, Object>>();
+                points = new LinkedList<>();
                 for (DataPointVO dpvo : dataPointDao.getDataPoints(dsvo.getId(), DataPointNameComparator.instance,
                         false)) {
-                    dp = new HashMap<String, Object>();
+                    dp = new HashMap<>();
                     dp.put("id", dpvo.getId());
                     dp.put("name", dpvo.getName());
                     dp.put("deviceName", dpvo.getDeviceName());
@@ -93,19 +91,15 @@ public class UsersDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public User getUser(int id) {
-        if (id == Common.NEW_ID) {
-            User user = new User();
-            user.setDataSourcePermissions(new ArrayList<Integer>(0));
-            user.setDataPointPermissions(new ArrayList<DataPointAccess>(0));
-            return user;
-        }
+        if (id == Common.NEW_ID)
+            return new User();
         return new UserDao().getUser(id);
     }
 
     @DwrPermission(admin = true)
     public ProcessResult saveUserAdmin(int id, String username, String password, String email, String phone,
             boolean admin, boolean disabled, int receiveAlarmEmails, boolean receiveOwnAuditEvents, String timezone,
-            List<Integer> dataSourcePermissions, List<DataPointAccess> dataPointPermissions) {
+            String permissions) {
         // Validate the given information. If there is a problem, return an appropriate error message.
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
         User currentUser = Common.getUser(request);
@@ -126,8 +120,7 @@ public class UsersDwr extends BaseDwr {
         user.setReceiveAlarmEmails(receiveAlarmEmails);
         user.setReceiveOwnAuditEvents(receiveOwnAuditEvents);
         user.setTimezone(timezone);
-        user.setDataSourcePermissions(dataSourcePermissions);
-        user.setDataPointPermissions(dataPointPermissions);
+        user.setPermissions(permissions);
 
         ProcessResult response = new ProcessResult();
         user.validate(response);
@@ -223,10 +216,10 @@ public class UsersDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public Map<String, Object> sendTestEmail(String email, String username) {
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap<>();
         try {
             Translations translations = Common.getTranslations();
-            Map<String, Object> model = new HashMap<String, Object>();
+            Map<String, Object> model = new HashMap<>();
             model.put("message", new TranslatableMessage("ftl.userTestEmail", username));
             MangoEmailContent cnt = new MangoEmailContent("testEmail", model, translations,
                     translations.translate("ftl.testEmail"), Common.UTF8);
@@ -252,67 +245,67 @@ public class UsersDwr extends BaseDwr {
 
         return response;
     }
-    
+
     /**
      * Create a copy of a User
+     * 
      * @param id
      * @return
      */
     @DwrPermission(admin = true)
-    public ProcessResult getCopy(int id){
-    	ProcessResult result = new ProcessResult();
-    	
-    	UserDao dao = new UserDao();
-    	User existing = dao.getUser(id);
-    	
-    	User newUser = new User();
-    	newUser.setUsername("Copy of " + existing.getUsername());
- 
-    	newUser.setEmail(existing.getEmail());
-    	newUser.setAdmin(existing.isAdmin());
-    	newUser.setPhone(existing.getPhone());
-    	newUser.setDisabled(existing.isDisabled());
+    public ProcessResult getCopy(int id) {
+        ProcessResult result = new ProcessResult();
+
+        UserDao dao = new UserDao();
+        User existing = dao.getUser(id);
+
+        User newUser = new User();
+        newUser.setUsername("Copy of " + existing.getUsername());
+
+        newUser.setEmail(existing.getEmail());
+        newUser.setAdmin(existing.isAdmin());
+        newUser.setPhone(existing.getPhone());
+        newUser.setDisabled(existing.isDisabled());
         newUser.setReceiveAlarmEmails(existing.getReceiveAlarmEmails());
         newUser.setReceiveOwnAuditEvents(existing.isReceiveOwnAuditEvents());
-    	newUser.setTimezone(existing.getTimezone());
-    	newUser.setDataPointPermissions(existing.getDataPointPermissions());
-    	newUser.setDataSourcePermissions(existing.getDataSourcePermissions());
-    	
-    	result.addData("vo", newUser);
-    	
-    	return result;
-    	
+        newUser.setTimezone(existing.getTimezone());
+        newUser.setPermissions(existing.getPermissions());
+
+        result.addData("vo", newUser);
+
+        return result;
+
     }
-    
+
     /**
      * Switch to new user if admin
+     * 
      * @param username
      * @return
      */
     @DwrPermission(admin = true)
-    public ProcessResult su(String username){
-    	ProcessResult result = new ProcessResult();
-    	UserDao userDao = new UserDao();
-    	User user = userDao.getUser(username);
-    	
-    	if(user == null){
-    		//No User Found
-    		result.addMessage("suMessage",new TranslatableMessage("login.validation.noSuchUser"));
-    		
-    		return result;
-    	}
-    	
-    	
-        if (user.isDisabled()){
-        	result.addMessage("suMessage", new TranslatableMessage("common.userDisabled", user.getUsername()));
-        	return result;
+    public ProcessResult su(String username) {
+        ProcessResult result = new ProcessResult();
+        UserDao userDao = new UserDao();
+        User user = userDao.getUser(username);
+
+        if (user == null) {
+            //No User Found
+            result.addMessage("suMessage", new TranslatableMessage("login.validation.noSuchUser"));
+
+            return result;
         }
-        
+
+        if (user.isDisabled()) {
+            result.addMessage("suMessage", new TranslatableMessage("common.userDisabled", user.getUsername()));
+            return result;
+        }
+
         // Update the last login time.
         userDao.recordLogin(user.getId());
 
         WebContext ctx = WebContextFactory.get();
-        
+
         // Add the user object to the session. This indicates to the rest of the application whether the user is logged 
         // in or not. Will replace any existing user object.
         Common.setUser(ctx.getHttpServletRequest(), user);
@@ -325,5 +318,5 @@ public class UsersDwr extends BaseDwr {
         //If we want to redirect... String uri = DefaultPagesDefinition.getDefaultUri(request, response, user);        
         return result;
     }
-    
+
 }

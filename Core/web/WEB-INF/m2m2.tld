@@ -111,6 +111,7 @@
       <rtexprvalue>true</rtexprvalue>
     </attribute>
   </tag>
+  
   <tag>
     <name>mobile-menuItem</name>
     <tag-class>com.serotonin.m2m2.web.taglib.MobileMenuItemTag</tag-class>

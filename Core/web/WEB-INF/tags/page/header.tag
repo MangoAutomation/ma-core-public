@@ -5,21 +5,13 @@
 <%@tag import="com.serotonin.m2m2.Common"%>
 <%@attribute name="showHeader"%>
 
-<div id="mainHeader" data-dojo-type="dijit/layout/BorderContainer"
-	<c:choose>
-  <c:when test="${!empty showHeader}">
-	  <c:choose>
-	    <c:when test="${showHeader == false}">style="display:none;"</c:when>
-	  </c:choose>
-	</c:when>
-	</c:choose>
-	>
+<c:if test="${!empty showHeader && showHeader == false}"><c:set var="tbstyle">style="display:none;"</c:set></c:if>
+<div id="mainHeader" data-dojo-type="dijit/layout/BorderContainer" ${tbstyle}>
 	<div id="mainHeader_leadingRegion"
 		style="width: 20%; border: 0px; padding: 0px"
 		data-dojo-type="dijit/layout/ContentPane"
 		data-dojo-props="region:'leading'">
-		<img id="application_logo" src="<%=Common.applicationLogo%>"
-			alt="Logo" />
+      <img id="application_logo" src="<%=Common.applicationLogo%>" alt="Logo" />
 	</div>
 
 	<c:if test="${!simple}">

@@ -105,7 +105,7 @@ public class SystemSettingsDao extends BaseDao {
     public static final String BACKUP_MINUTE = "backupMinute";
     public static final String BACKUP_FILE_COUNT = "backupFileCount";
     public static final String BACKUP_ENABLED = "backupEnabled";
-    
+
     public static final String ALLOW_ANONYMOUS_CHART_VIEW = "allowAnonymousGraphicViews";
 
     public static final String DATABASE_BACKUP_FILE_LOCATION = "databaseBackupFileLocation";
@@ -116,7 +116,10 @@ public class SystemSettingsDao extends BaseDao {
     public static final String DATABASE_BACKUP_MINUTE = "databaseBackupMinute";
     public static final String DATABASE_BACKUP_FILE_COUNT = "databaseBackupFileCount";
     public static final String DATABASE_BACKUP_ENABLED = "databaseBackupEnabled";
-    
+
+    // Permissions
+    public static final String PERMISSION_DATASOURCE = "permissionDatasource";
+
     // Value cache
     private static final Map<String, String> cache = new HashMap<>();
 
@@ -426,9 +429,9 @@ public class SystemSettingsDao extends BaseDao {
         vo.setBackupHour(getIntValue(BACKUP_HOUR));
         vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
         vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
-        
+
         vo.setAllowAnonymousChartView(getBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW));
-        
+
         vo.setDatabaseBackupFileLocation(getValue(DATABASE_BACKUP_FILE_LOCATION));
         vo.setDatabaseBackupPeriodType(getIntValue(DATABASE_BACKUP_PERIOD_TYPE));
         vo.setDatabaseBackupPeriods(getIntValue(DATABASE_BACKUP_PERIODS));
@@ -438,7 +441,6 @@ public class SystemSettingsDao extends BaseDao {
         vo.setDatabaseBackupMinute(getIntValue(DATABASE_BACKUP_MINUTE));
         vo.setDatabaseBackupEnabled(getBooleanValue(DATABASE_BACKUP_ENABLED));
 
-        
         return vo;
     }
 
@@ -522,9 +524,9 @@ public class SystemSettingsDao extends BaseDao {
         this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
         this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
         this.setBooleanValue(BACKUP_ENABLED, vo.getBackupEnabled());
-        
+
         this.setBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW, vo.getAllowAnonymousChartView());
-        
+
         this.setValue(DATABASE_BACKUP_FILE_LOCATION, vo.getDatabaseBackupFileLocation());
         this.setIntValue(DATABASE_BACKUP_PERIOD_TYPE, vo.getDatabaseBackupPeriodType());
         this.setIntValue(DATABASE_BACKUP_PERIODS, vo.getDatabaseBackupPeriods());

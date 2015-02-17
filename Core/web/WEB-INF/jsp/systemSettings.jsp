@@ -136,7 +136,38 @@
             $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>);                
 
-            
+            //
+            // Permissions
+            $set("<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>", settings.<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>);
+            dwr.util.addRows("modulePermissions", settings.modulePermissions, [
+                    function(p) { return p.label },
+                    function(p) {
+                        var s = '<input id="'+ escapeDQuotes(p.name) +'" type="text" class="formLong modulePermission"/>';
+                        s += ' <img id="permView-'+ escapeDQuotes(p.name) +'" class="ptr permissionBtn" src="/images/bullet_down.png">';                        
+                        return s;
+                      }
+                ],
+                {
+                    cellCreator: function(options) {
+                        var td = document.createElement("td");
+                        if (options.cellNum == 0)
+                            td.className = "formLabel";
+                        else if (options.cellNum == 1)
+                            td.className = "formField";
+                        return td;
+                    }
+                }
+            );
+            // Set the values in the text boxes
+            for (var i=0; i<settings.modulePermissions.length; i++)
+                $set(settings.modulePermissions[i].name, settings.modulePermissions[i].value);
+            // Add onclick to the bullets
+            require(["dojo/query"], function(query) {
+                query(".permissionBtn").forEach(function(e) {
+                    // Curious combination of AMD and non.
+                    dojo.connect(e, "onclick", viewPermissions);
+                })
+            });
         });
         
         <c:if test="${!empty param.def}">
@@ -198,6 +229,26 @@
             $set("topPoints", cnt);
             $set("eventCount", data.eventCount);
         });
+    }
+    
+    function saveSystemPermissions() {
+        // Gather the module permissions
+        var modulePermissions = [];
+        request(["dojo/query"], function(query) {
+            query(".modulePermission").forEach(function(e) {
+                modulePermissions.push({ key: e.id, value: e.value });
+            });
+        });
+
+        SystemSettingsDwr.saveSystemPermissions(
+                $get("<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>"),
+                modulePermissions,
+                function() {
+                    setDisabled("systemPermissionsBtn", false);
+                    setUserMessage("systemPermissionsMessage", "<fmt:message key="systemSettings.systemPermissionsSaved"/>");
+                });
+        setUserMessage("systemPermissionsMessage");
+        setDisabled("systemPermissionsBtn", true);
     }
     
     function saveEmailSettings() {
@@ -420,30 +471,29 @@
      * Save the Backup Settings
      */
     function saveBackupSettings() {
-    	hideContextualMessages("backupSettingsTab"); //Clear out any existing msgs
+        hideContextualMessages("backupSettingsTab"); //Clear out any existing msgs
         SystemSettingsDwr.saveBackupSettings(
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>"),
-       		function(response) {
-	            setDisabled("saveBackupSettingsBtn", false);
-	            if (response.hasMessages)
-	                showDwrMessages(response.messages);
-	            else
-	            	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.systemBackupSettingsSaved"/>");
-	        });
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_LOCATION %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>"),
+               function(response) {
+                setDisabled("saveBackupSettingsBtn", false);
+                if (response.hasMessages)
+                    showDwrMessages(response.messages);
+                else
+                    setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.systemBackupSettingsSaved"/>");
+            });
         setUserMessage("backupSettingsMessage");
         setDisabled("saveBackupSettingsBtn", true);
     }
     
     function backupNow(){
-    	
-    	SystemSettingsDwr.queueBackup()
-    	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.backupQueued"/>");
+        SystemSettingsDwr.queueBackup()
+        setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.backupQueued"/>");
     }
     
     /**
@@ -468,46 +518,46 @@
      * Save the Backup Settings
      */
     function saveDatabaseBackupSettings() {
-    	hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
+        hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
         SystemSettingsDwr.saveDatabaseBackupSettings(
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIODS %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>"),
-        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>"),
-       		function(response) {
-	            setDisabled("saveDatabaseBackupSettingsBtn", false);
-	            if (response.hasMessages)
-	                showDwrMessages(response.messages);
-	            else
-	            	setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseBackupSettingsSaved'/>");
-	        });
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>"),
+               function(response) {
+                setDisabled("saveDatabaseBackupSettingsBtn", false);
+                if (response.hasMessages)
+                    showDwrMessages(response.messages);
+                else
+                    setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseBackupSettingsSaved'/>");
+            });
         setUserMessage("databaseBackupSettingsMessage");
         setDisabled("saveDatabaseBackupSettingsBtn", true);
     }
     
     function backupDatabaseNow(){
-    	SystemSettingsDwr.queueDatabaseBackup()
-    	setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.backupQueued'/>");
+        SystemSettingsDwr.queueDatabaseBackup()
+        setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.backupQueued'/>");
     }
    /*
     * Save the Backup Settings
     */
     function getDatabaseBackupFiles() {
-   	  hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
-   	  SystemSettingsDwr.getDatabaseBackupFiles(function(response){
-   		  var backupFileSelect = document.getElementById("databaseFileToRestore");
-   		  while(backupFileSelect.length > 0)
-   			  backupFileSelect.remove(0);
-   		  for(var x=0; x<response.data.filenames.length; x++){
-   			  var option = document.createElement("option");
-   			  option.text = response.data.filenames[x];
-   			  option.value = response.data.filenames[x];
-   			  backupFileSelect.add(option, x);
-   		  }
-   	  });
+         hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
+         SystemSettingsDwr.getDatabaseBackupFiles(function(response){
+             var backupFileSelect = document.getElementById("databaseFileToRestore");
+             while(backupFileSelect.length > 0)
+                 backupFileSelect.remove(0);
+             for(var x=0; x<response.data.filenames.length; x++){
+                 var option = document.createElement("option");
+                 option.text = response.data.filenames[x];
+                 option.value = response.data.filenames[x];
+                 backupFileSelect.add(option, x);
+             }
+         });
     
     }
    
@@ -515,30 +565,41 @@
     * Restore the database
     */
    function restoreDatabaseFromBackup(){
-	   
-	   if(!confirm("<fmt:message key='systemSettings.confirmRestoreDatabase'/>"))
-		   return;
-	   
-	   var restoreMessages = document.getElementById("databaseRestoreMessages");
-	   restoreMessages.innerHTML = ""; //Clear out messages
-	   var backupFileSelect = document.getElementById("databaseFileToRestore");
-	   var selectedFile = backupFileSelect.options[backupFileSelect.selectedIndex];
-	   if(typeof selectedFile == 'undefined'){
-		   alert("<fmt:message key='systemSettings.noBackupSelected'/>");
-		   return;
-	   }
-		   
-	   
-	   SystemSettingsDwr.restoreDatabaseFromBackup(selectedFile.value, function(response){
-		   if (response.hasMessages)
+       if(!confirm("<fmt:message key='systemSettings.confirmRestoreDatabase'/>"))
+           return;
+       
+       var restoreMessages = document.getElementById("databaseRestoreMessages");
+       restoreMessages.innerHTML = ""; //Clear out messages
+       var backupFileSelect = document.getElementById("databaseFileToRestore");
+       var selectedFile = backupFileSelect.options[backupFileSelect.selectedIndex];
+       if(typeof selectedFile == 'undefined'){
+           alert("<fmt:message key='systemSettings.noBackupSelected'/>");
+           return;
+       }
+           
+       
+       SystemSettingsDwr.restoreDatabaseFromBackup(selectedFile.value, function(response){
+           if (response.hasMessages)
                showDwrMessages(response.messages, $("databaseRestoreMessages"));
-		   else
-			   setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseRestored'/>");
+           else
+               setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseRestored'/>");
 
-	   });
-
+       });
    }
    
+    //
+    // Permission management
+    //
+    var permissionUI = new PermissionUI(SystemSettingsDwr);
+    function viewPermissions(e, id, permId) {
+        if (!permId) {
+            if (!id)
+                id = this.id;
+            // Remove the 'permView-' prefix
+            permId = id.substring(9);
+        }
+        permissionUI.viewPermissions(permId);
+    }
   </script>
   
   <tag:labelledSection labelKey="systemSettings.systemInformation">
@@ -594,6 +655,28 @@
         </td>
       </tr>
       <tr><td colspan="2" id="infoMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
+  
+  <tag:labelledSection labelKey="systemSettings.systemPermissions" closed="true">
+    <table>
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.permissions.datasourceManagement"/></td>
+        <td class="formField">
+          <c:set var="dsPermId"><c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/></c:set>
+          <input id="${dsPermId}" type="text" class="formLong"/>
+          <c:set var="dsPermId">permView-${dsPermId}</c:set>
+          <tag:img id="${dsPermId}" png="bullet_down" onclick="viewPermissions(null, this.id)"/>
+        </td>
+      </tr>
+      <tbody id="modulePermissions"></tbody>
+      <tr>
+        <td colspan="2" align="center">
+          <input id="systemPermissionsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveSystemPermissions()"/>
+          <tag:help id="systemPermissions"/>
+        </td>
+      </tr>
+      <tr><td colspan="2" id="systemPermissionsMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
   
@@ -934,19 +1017,19 @@
           <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
         </td>
       </tr>
-	  <tr>
-	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
         <td class="formField">
           <fmt:message key="systemSettings.backupHour"/><input id="<c:out value="<%= SystemSettingsDao.BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
           <fmt:message key="systemSettings.backupMinute"/><input id="<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
          </td>
-	 </tr>
-	  <tr>
-	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
+     </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
         <td class="formField">
           <input id="<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>" type="text" class="formShort"/>
          </td>
-	 </tr>
+     </tr>
       <tr>
         <td colspan="2" align="center">
           <input id="executeBackupNowBtn" type="button" value="<fmt:message key="systemSettings.backupNow"/>" onclick="backupNow()"/>
@@ -985,28 +1068,28 @@
           <tag:timePeriods id="${dbTpid}" d="true" w="true" mon="true" y="true"/>
         </td>
       </tr>
-	  <tr>
-	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
         <td class="formField">
           <fmt:message key="systemSettings.backupHour"/><input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
           <fmt:message key="systemSettings.backupMinute"/><input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
          </td>
-	 </tr>
-	  <tr>
-	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
+     </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
         <td class="formField">
           <input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>" type="text" class="formShort"/>
          </td>
-	 </tr>
-	 <tr>
-	    <td class="formLabel">
-	    	<select id="databaseFileToRestore"></select>
-	    </td>
+     </tr>
+     <tr>
+        <td class="formLabel">
+          <select id="databaseFileToRestore"></select>
+        </td>
         <td class="formField">
           <input type="button" value="<fmt:message key="systemSettings.getBackupFiles"/>" onclick="getDatabaseBackupFiles()"/>
           <input id="restoreDatabaseBtn" type="button" value="<fmt:message key="systemSettings.restoreDatabase"/>" onclick="restoreDatabaseFromBackup()"/>
          </td>
-	 </tr>
+     </tr>
       <tr>
         <td colspan="2" align="center">
           <input id="executeDatabaseBackupNowBtn" type="button" value="<fmt:message key="systemSettings.backupNow"/>" onclick="backupDatabaseNow()"/>
@@ -1016,7 +1099,7 @@
       </tr>
       <tr><td colspan="2" id="databaseBackupSettingsMessage" class="formError"></td></tr>
      <tr>
-     	<td colspan="2">
+         <td colspan="2">
           <table>
               <tbody id="databaseRestoreMessages"></tbody>
           </table>

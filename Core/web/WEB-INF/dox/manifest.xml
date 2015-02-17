@@ -16,7 +16,9 @@
     <relation id="nmeaListenerDS"/>
   </item>
   
-  <item id="userAdministration" key="dox.userAdministration" filename="userAdministration.htm"/>
+  <item id="userAdministration" key="dox.userAdministration" filename="userAdministration.htm">
+    <relation id="systemPermissions"/>
+  </item>
 
   <item id="generalPublisherProperties" key="dox.generalPublisherProperties" filename="generalPublisherProperties.htm"/>
   
@@ -103,5 +105,9 @@
   
   <item id="chartSettings" key="dox.chartSettings" filename="chartSettings.htm">
     <relation id="chartServlet"/>
+  </item>
+  
+  <item id="systemPermissions" key="dox.systemPermissions" filename="systemPermissions.htm">
+    <relation id="userAdministration"/>
   </item>
 </doxManifest>

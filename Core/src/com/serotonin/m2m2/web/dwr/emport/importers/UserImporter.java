@@ -1,7 +1,5 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
-import java.util.ArrayList;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.JsonException;
@@ -10,7 +8,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.DataPointAccess;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class UserImporter extends Importer {
@@ -29,8 +26,6 @@ public class UserImporter extends Importer {
                 user = new User();
                 user.setUsername(username);
                 user.setPassword(Common.encrypt(username));
-                user.setDataSourcePermissions(new ArrayList<Integer>());
-                user.setDataPointPermissions(new ArrayList<DataPointAccess>());
             }
 
             try {
@@ -48,9 +43,6 @@ public class UserImporter extends Importer {
                     boolean isnew = user.getId() == Common.NEW_ID;
                     ctx.getUserDao().saveUser(user);
                     addSuccessMessage(isnew, "emport.user.prefix", username);
-
-                    // Add the user to the second pass list.
-                    addImporter(new UserPermissionsImporter(json));
                 }
             }
             catch (TranslatableJsonException e) {

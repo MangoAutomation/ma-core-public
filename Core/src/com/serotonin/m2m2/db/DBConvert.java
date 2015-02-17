@@ -59,7 +59,7 @@ public class DBConvert {
     }
 
     private List<String> getCoreTableNames() {
-        List<String> tableNames = new ArrayList<String>();
+        List<String> tableNames = new ArrayList<>();
         tableNames.add("systemSettings");
         tableNames.add("users");
         tableNames.add("userComments");
@@ -67,9 +67,7 @@ public class DBConvert {
         tableNames.add("mailingListInactive");
         tableNames.add("mailingListMembers");
         tableNames.add("dataSources");
-        tableNames.add("dataSourceUsers");
         tableNames.add("dataPoints");
-        tableNames.add("dataPointUsers");
         tableNames.add("pointValues");
         tableNames.add("pointValueAnnotations");
         tableNames.add("pointEventDetectors");

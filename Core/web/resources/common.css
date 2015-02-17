@@ -623,3 +623,8 @@ label.formLabelRequired, label.formLabel {
 table.dijit {
 	border-spacing: 0;
 }
+
+
+/** User permission styles **/
+.userPerms td { padding: 2px 5px; }
+.permUser { font-weight: bold; color: #699D2E; }

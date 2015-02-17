@@ -9,11 +9,11 @@
 <!-- <div id="dataSourcePropertiesTab" data-dojo-type="dijit/layout/ContentPane" title="Data Source" data-dojo-props="selected:true" style="overflow-y:auto" > -->
 <div id="dataSourcePropertiesTab">
 <input type="hidden" id="dataSource.enabled" value="${dataSource.enabled}"/>
-<table cellpadding="0" cellspacing="0">
+<table>
   <tr>
     <td valign="top">
       <div class="borderDiv marB marR" id="dataSourceProperties">
-        <table width="100%">
+        <table class="wide">
           <tr>
             <td class="smallTitle">
               <tag:img png="icon_ds" title="common.edit"/>
@@ -28,12 +28,12 @@
           </tr>
         </table>
         <div id="dataSourceMessage" class="ctxmsg formError"></div>
-        <table >
+        <table>
           <c:if test="${copy}">
-          <tr id="copyDeviceName">
-            <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>
-            <td class="formField"><input type="text" id="dataSource.deviceName" value="${dataSource.name}"/></td>
-          </tr>
+            <tr id="copyDeviceName">
+              <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>
+              <td class="formField"><input type="text" id="dataSource.deviceName" value="${dataSource.name}"/></td>
+            </tr>
           </c:if>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.head.name"/></td>
@@ -42,6 +42,13 @@
           <tr>
             <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
             <td class="formField"><input type="text" id="dataSource.xid" value="${dataSource.xid}"/></td>
+          </tr>
+          <tr>
+            <td class="formLabel"><fmt:message key="dsEdit.permission.edit"/></td>
+            <td class="formField">
+              <input type="text" id="dataSource.editPermission" value="${dataSource.editPermission}" class="formLong"/>
+              <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('dataSource.editPermission')"/>
+            </td>
           </tr>
           <tr>
             <td class="formLabel"><fmt:message key="dsEdit.logging.purge"/></td>

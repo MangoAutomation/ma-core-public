@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.MissingResourceException;
 
@@ -39,7 +38,6 @@ import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.DataPointAccess;
 
 abstract public class DatabaseProxy {
     public enum DatabaseType {
@@ -143,8 +141,6 @@ abstract public class DatabaseProxy {
                     user.setPhone("");
                     user.setAdmin(true);
                     user.setDisabled(false);
-                    user.setDataSourcePermissions(new LinkedList<Integer>());
-                    user.setDataPointPermissions(new LinkedList<DataPointAccess>());
                     new UserDao().saveUser(user);
 
                     SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
@@ -214,8 +210,6 @@ abstract public class DatabaseProxy {
         }
     }
 
-    
-    
     abstract public void terminateImpl();
 
     abstract public DataSource getDataSource();
@@ -223,7 +217,7 @@ abstract public class DatabaseProxy {
     abstract public double applyBounds(double value);
 
     abstract public File getDataDirectory();
-    
+
     /**
      * 
      * @return size of Database in bytes or null if don't know

@@ -19,4 +19,8 @@ public interface IDataPoint {
     int getPointFolderId();
 
     String getExtendedName();
+
+    String getReadPermission();
+
+    String getSetPermission();
 }
