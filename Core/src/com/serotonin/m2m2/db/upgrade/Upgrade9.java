@@ -80,7 +80,9 @@ public class Upgrade9 extends DBUpgrade {
         String permission = map.get(id);
         if (permission == null)
             permission = "";
-        permission += username + ",";
+        else
+            permission += ",";
+        permission += username;
         map.put(id, permission);
     }
 
