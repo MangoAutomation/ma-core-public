@@ -23,7 +23,19 @@ public class OverridingWebAppContext extends WebAppContext {
 
         setBaseResource(ofr);
         setContextPath("/");
-        setDescriptor("/WEB-INF/web.xml");
+        
+        //Detect and load any web.xml in the overrides since the baseResource doesn't account for this file
+        File overrideDescriptor = new File(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB + "/web.xml");
+        if(overrideDescriptor.exists())
+        	setDescriptor(overrideDescriptor.getAbsolutePath());
+        else
+        	setDescriptor("/WEB-INF/web.xml");
+        
+        //Detect and load a override-web.xml file if it exists
+        File overrideWebXml = new File(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB + "/override-web.xml");
+        if(overrideWebXml.exists())
+        	setOverrideDescriptor(overrideWebXml.getAbsolutePath());
+        
         setParentLoaderPriority(true);
         setClassLoader(classLoader);
         // Disallow directory listing
