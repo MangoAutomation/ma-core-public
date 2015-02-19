@@ -178,10 +178,12 @@ public class Permissions {
         if (hasAdmin(user))
             return true;
 
-        if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT)
-                || eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE)) {
+        if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT)){
             DataPointVO point = new DataPointDao().get(eventType.getDataPointId());
             return hasDataPointReadPermission(user, point);
+        }else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE)){
+        	DataSourceVO<?> ds = new DataSourceDao().get(eventType.getDataSourceId());
+        	return hasDataSourcePermission(user, ds);
         }
 
         return false;

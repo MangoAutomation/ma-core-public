@@ -497,7 +497,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         //Filter list on User Permissions
         User user = Common.getUser();
         for (DataPointVO vo : filteredPoints) {
-            if (Permissions.hasDataPointReadPermission(user, vo)) {
+            if (Permissions.hasDataSourcePermission(user, vo.getDataSourceId())){ //.hasDataPointReadPermission(user, vo)) {
                 vos.add(vo);
             }
         }

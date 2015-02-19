@@ -234,7 +234,7 @@
     function saveSystemPermissions() {
         // Gather the module permissions
         var modulePermissions = [];
-        request(["dojo/query"], function(query) {
+        require(["dojo/query"], function(query) {
             query(".modulePermission").forEach(function(e) {
                 modulePermissions.push({ key: e.id, value: e.value });
             });
