@@ -9,7 +9,7 @@
  <!-- default to have all git repos in same location -->
  <property name="modules.public.path" value="../.." />
  <property name="modules.private.path" value="../.." />
- <property name="modules.iasdev.path" value="../.." />
+ <property name="modules.proprietary.path" value="../.." />
  
 
  <!-- 
@@ -18,7 +18,7 @@
     - the ${core.target} that will force a core build into as the target and the modules will use for building against
     - the ${modules.public.path} set to where the public modules are located
     - the ${modules.private.path} set to where the private modules are located
-    - the ${modules.iasdev.path} set to where the IAS Development modules are located
+    - the ${modules.proprietary.path} set to where the proprietary modules are located
     - the ${core.deploy.path} set to where the core release hierarchy should begin
   -->
  <target name="release-full" description="Deploy Release with specified public modules into ${deploy.core.paths}/${core-version}" >
@@ -64,13 +64,13 @@
 
 
     <!-- Compile the default IAS Development modules into the core -->
-    <property name="iasdev-modules" value="TinyTSDBDataBase,BrewersDashboard"/>
+    <property name="proprietary-modules" value="TinyTSDBDataBase,BrewersDashboard"/>
 
-    <for list="${iasdev-modules}" param="moduleName" delimiter=",">
+    <for list="${proprietary-modules}" param="moduleName" delimiter=",">
         <sequential>
             <subant target="deploy">
                 <property name="core.target" value="${core.target}"/>
-                <fileset dir="${modules.iasdev.path}/@{moduleName}" includes="build.xml"/>
+                <fileset dir="${modules.proprietary.path}/@{moduleName}" includes="build.xml"/>
             </subant>
         </sequential>
     </for>
@@ -97,7 +97,7 @@
     <subant target="deploy-all-somewhere">
         <property name="core.target" value="${core.target}" />
         <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/${TODAY}"/>
-        <fileset dir="${modules.iasdev.path}" includes="build.xml"/>
+        <fileset dir="${modules.proprietary.path}" includes="build.xml"/>
     </subant>
 
 
