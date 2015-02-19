@@ -64,7 +64,7 @@
 
 
     <!-- Compile the default IAS Development modules into the core -->
-    <property name="proprietary-modules" value="TinyTSDBDataBase,BrewersDashboard"/>
+    <property name="proprietary-modules" value="MangoNoSQL,BrewersDashboard"/>
 
     <for list="${proprietary-modules}" param="moduleName" delimiter=",">
         <sequential>
