@@ -123,6 +123,7 @@
         <copy todir="${core.target}/bin" preservelastmodified="true">
             <fileset dir="scripts" includes="**/*.bat" />
             <fileset dir="scripts" includes="**/*.sh" />
+        	<fileset dir="scripts" includes="**/README" />
         </copy>
 
         <!-- Cleanup the Linux scripts -->
@@ -131,6 +132,9 @@
                  eol="lf"
                  eof="remove" />
         <chmod dir="${core.target}/bin" includes="**/*.sh" perm="755" />
+    	
+    	<!-- Create empty ext-enabled folder -->
+    	<mkdir dir="${core.target}/bin/ext-enabled"/>
 
         <!-- Create the modules dir -->
         <mkdir dir="${core.target}/web/modules" />

@@ -20,6 +20,7 @@ LOOP_EXIT=false
 while [ $LOOP_EXIT = false ]; do
     # Check for core upgrade
     if [ -r "$MA_HOME"/m2m2-core-*.zip ]; then
+    	echo `date` 'ma-start: upgrading core...' >> "$MA_HOME"/logs/ma-script.log
         "$MA_HOME"/bin/upgrade.sh
         exit 0
     fi
@@ -28,24 +29,26 @@ while [ $LOOP_EXIT = false ]; do
     MA_CP="$MA_HOME"/overrides/classes
     MA_CP=$MA_CP:"$MA_HOME"/classes
     MA_CP=$MA_CP:"$MA_HOME"/overrides/properties
-    
-    # Add all of the jar files in the overrides/lib dir to the classpath
-    for f in "$MA_HOME"/overrides/lib/*.jar
-    do
-      MA_CP=$MA_CP:$f
-    done
-    
-    # Add all of the jar files in the lib dir to the classpath
-    for f in "$MA_HOME"/lib/*.jar
-    do
-      MA_CP=$MA_CP:$f
-    done
-    
+	MA_CP="$MA_CP:$MA_HOME/overrides/lib/*"
+    MA_CP="$MA_CP:$MA_HOME/lib/*"
+
+	# Commented out because Mango dynamically builds the library path of module libs during startup
+    #for f in `find "$MA_HOME"/web/modules -name '*.jar' -type f`
+    #do
+    #    dname=`dirname $f`
+    #    if [[ $dname == */lib ]]; then
+    #        MA_CP=$MA_CP:$f
+    #    fi
+    #done
+
     # Run enabled start extensions
-    for f in "$MA_HOME"/bin/ext-enabled/*.sh
-    do
-        source $f start
-    done
+    if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+        echo `date` 'ma-start: running start extensions...' >> "$MA_HOME"/logs/ma-script.log
+        for f in "$MA_HOME/bin/ext-enabled/*.sh"
+        do
+            source $f start
+        done
+    fi
     
     # Check for output redirection
     if [ ! -z $SYSOUT ] && [ ! -z $SYSERR ]; then
@@ -59,34 +62,52 @@ while [ $LOOP_EXIT = false ]; do
         exec >$SYSERR
     fi
     
+    # Make sure there are no explicit stop or termination flag files
+    rm -f "$MA_HOME"/STOP
+    rm -f "$MA_HOME"/TERMINATED
+    
+    echo `date` 'ma-start: starting MA' >> $MA_HOME/logs/ma-script.log
     $EXECJAVA $JPDA $JAVAOPTS -server -cp "$MA_CP" \
         "-Dma.home=$MA_HOME" \
         "-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
         com.serotonin.m2m2.Main &
     
     PID=$!
+    echo `date` ma-start: MA started with PID $PID >> "$MA_HOME"/logs/ma-script.log
     echo "Started Mango with ProcessID: " $PID
     echo $PID > "$MA_HOME"/bin/ma.pid
-    until !(ps $PID > /dev/null) do
-        sleep 10
+	until !(ps $PID > /dev/null) do
+        # Check for a termination flag file. If found, kill the process.
+        if [ -r "$MA_HOME"/TERMINATED ]; then
+            sleep 1
+            kill -9 $PID
+        else
+            sleep 3
+        fi
     done
     rm "$MA_HOME"/bin/ma.pid
     
-    if [ ! -r "$MA_HOME"/RESTART ]; then
-        LOOP_EXIT=true
-    fi
+    # Commented this section out because MA should always restart unless explicitly stopped.
+    #if [ ! -r "$MA_HOME"/RESTART ]; then
+    #    echo `date` 'ma-start: no restart flag found. Exiting restart loop' >> "$MA_HOME"/logs/ma-script.log
+    #    LOOP_EXIT=true
+    #fi
     
     # Run enabled restart extensions
-    if [ -d "$MA_HOME"/bin/ext-enabled ]; then
-    for f in "$MA_HOME"/bin/ext-enabled/*.sh
-    do
-        source $f restart
-    done
+    if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+    	echo `date` 'ma-start: running restart extentions' >> "$MA_HOME"/logs/ma-script.log
+    	for f in "$MA_HOME"/bin/ext-enabled/*.sh
+    	do
+        	source $f restart
+    	done
     fi
     
     # Check if MA was explicitly stopped by the stop script.
     if [ -r "$MA_HOME"/STOP ]; then
+    	echo `date` 'ma-start: MA explicitly stopped. Exiting restart loop' >> "$MA_HOME"/logs/ma-script.log
         rm "$MA_HOME"/STOP
         LOOP_EXIT=true
     fi
 done
+
+echo `date` ma-start: done >> "$MA_HOME"/logs/ma-script.log

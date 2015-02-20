@@ -2,6 +2,7 @@
 * Added ability to override web.xml via placing a modified file at overrides/web/web.xml
 * Added ability to enhance the base web.xml by placing override-web.xml into overrides/web/override-web.xml
 * Added new permission groups to replace legacy permissions
+* Upgraded startup/shutdown/restart scripts to log to logs/ma-script.log
 
 
 *Version 2.5.2*

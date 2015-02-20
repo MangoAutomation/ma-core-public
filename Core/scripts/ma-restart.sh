@@ -14,6 +14,7 @@ fi
 
 # If there is a pid file, use it to kill the Java process.
 if [ -f "$MA_HOME"/bin/ma.pid ]; then
+    echo `date` 'ma-restart: restart initiated...' >> "$MA_HOME"/logs/ma-script.log
     echo pleaseRestart > "$MA_HOME"/RESTART
     kill `cat "$MA_HOME"/bin/ma.pid`
 else

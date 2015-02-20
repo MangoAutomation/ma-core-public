@@ -20,5 +20,14 @@ done
 chmod +x "$MA_HOME"/bin/*.sh
 chmod +x "$MA_HOME"/bin/ext-available/*.sh
 
+#This feature does not exist but could be added in future releases
+# Execute any one-off scripts there may be. Delete when done.
+#for f in "$MA_HOME"/bin/upgrade/*.sh
+#do
+#    $f
+#    rm $f
+#done
+
+
 # Start MA
 "$MA_HOME"/bin/ma.sh start &
