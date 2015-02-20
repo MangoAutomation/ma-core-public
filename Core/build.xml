@@ -142,10 +142,11 @@
         <!-- Create the filedata dir -->
         <mkdir dir="${core.target}/web/WEB-INF/filedata" />
 
-        <!-- Create the empty folders for the build -->
+        <!-- Create the empty folders for the overrides -->
         <mkdir dir="${core.target}/overrides/classes" />
         <mkdir dir="${core.target}/overrides/properties" />
-
+        <mkdir dir="${core.target}/overrides/web" />
+   
         <mkdir dir="${core.target}/logs" />
     </target>
 
@@ -312,12 +313,10 @@
             <zipfileset dir="${core.target}" filemode="755">
                 <include name="bin/**/*" />
             </zipfileset>
-            <fileset dir="${core.target}">
-                <include name="backup" />
+            <fileset dir="${core.target}" >
                 <include name="db/**/*" />
                 <include name="ftl/**/*" />
                 <include name="lib/**/*" />
-                <include name="logs/**/*" />
                 <include name="web/**/*" />
                 <include name="work/jsp/**/*" />
                 <include name="classes/debug-log4j.xml" />
@@ -335,7 +334,18 @@
             </fileset>
             <fileset dir="${core.target}/overrides/properties">
                 <exclude name="**/*" />
-            </fileset>            
+            </fileset>
+            <fileset dir="${core.target}/overrides/web">
+                <exclude name="**/*" />
+            </fileset> 
+        	<!-- add the empty logs dir -->
+        	<fileset dir="${core.target}/logs">
+                <exclude name="**/*" />
+            </fileset>
+        	<!-- add the empty backup dir -->
+        	<fileset dir="${core.target}/backup">
+                <exclude name="**/*" />
+            </fileset>
         </zip>
     </target>
 
