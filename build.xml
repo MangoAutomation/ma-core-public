@@ -63,8 +63,8 @@
     </for>
 
 
-    <!-- Compile the default IAS Development modules into the core -->
-    <property name="proprietary-modules" value="MangoNoSQL,BrewersDashboard"/>
+    <!-- Compile the default Proprietary modules into the core -->
+    <property name="proprietary-modules" value="MangoNoSql,BrewersDashboard"/>
 
     <for list="${proprietary-modules}" param="moduleName" delimiter=",">
         <sequential>
