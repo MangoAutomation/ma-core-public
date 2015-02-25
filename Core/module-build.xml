@@ -383,6 +383,9 @@
             <fileset dir="">
                 <include name="classes/**/*" />
             </fileset>
+            <fileset dir="">
+                <include name="resources/**/*" />
+            </fileset>
             <fileset dir="${module.target}">
                 <include name="work/jsp/**/*" />
             </fileset>
