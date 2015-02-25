@@ -10,12 +10,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
-import com.serotonin.util.ILifecycle;
 
 /**
  * A cheesy name for a class, i know, but it pretty much says it like it is. This class keeps an inbox of items to
@@ -31,6 +28,7 @@ public class BackgroundProcessing implements ILifecycle {
 
     public void addWorkItem(final WorkItem item) {
         Runnable runnable = new Runnable() {
+            @Override
             public void run() {
                 try {
                     item.execute();
@@ -43,6 +41,11 @@ public class BackgroundProcessing implements ILifecycle {
                         t.printStackTrace();
                     }
                 }
+            }
+
+            @Override
+            public String toString() {
+                return item.toString();
             }
         };
 
