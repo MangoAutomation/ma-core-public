@@ -46,6 +46,11 @@ public class BackgroundProcessing implements ILifecycle {
                     }
                 }
             }
+
+            @Override
+            public String toString() {
+                return item.toString();
+            }
         };
 
         if (item.getPriority() == WorkItem.PRIORITY_HIGH)
