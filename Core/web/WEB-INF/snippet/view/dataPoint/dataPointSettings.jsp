@@ -11,7 +11,7 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 
-
+<%@ include file="/WEB-INF/snippet/view/dataPoint/dataPointTemplate.jsp" %>
 <%@ include file="/WEB-INF/snippet/view/dataPoint/pointProperties.jsp" %>
 <%@ include file="/WEB-INF/snippet/view/dataPoint/loggingProperties.jsp" %>
 <%@ include file="/WEB-INF/snippet/view/dataPoint/valuePurge.jsp" %>

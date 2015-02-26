@@ -10,6 +10,19 @@ create table systemSettings (
   primary key (settingName)
 );
 
+--
+-- Templates
+create table templates (
+  id int not null identity,
+  xid nvarchar(50) not null,
+  name nvarchar(255) not null,
+  templateType nvarchar(50) not null,
+  readPermission nvarchar(255),
+  setPermission nvarchar(255),
+  data image not null,
+  primary key (id)
+);
+alter table templates add constraint templatesUn1 unique (xid);
 
 --
 -- Users
@@ -111,10 +124,12 @@ create table dataPoints (
   data image not null,
   readPermission nvarchar(255),
   setPermission nvarchar(255),
+  templateId int,
   primary key (id)
 );
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
 alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 
 
 -- Data point hierarchy

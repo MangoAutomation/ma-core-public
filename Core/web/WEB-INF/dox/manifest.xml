@@ -5,7 +5,9 @@
 -->
 
 <doxManifest>
-  <item id="chartRenderers" key="dox.chartRenderers" filename="chartRenderers.htm"/>
+  <item id="chartRenderers" key="dox.chartRenderers" filename="chartRenderers.htm">
+  	<relation id="dataPointTemplate"/>
+  </item>
   <item id="chartServlet" key="dox.chartServlet" filename="chartServlet.htm">
     <relation id="chartSettings" />
   </item>
@@ -38,16 +40,27 @@
 
   <item id="regex" key="dox.regex" filename="regex.htm"/>
   
-  <item id="pointValueLogging" key="dox.pointValueLogging" filename="pointValueLogging.htm"/>
+  <item id="pointValueLogging" key="dox.pointValueLogging" filename="pointValueLogging.htm">
+  	<relation id="dataPointTemplate"/>
+  </item>
   
   <item id="publisherList" key="dox.publisherList" filename="publisherList.htm"/>
 
   <item id="datetimeFormats" key="dox.datetimeFormats" filename="datetimeFormats.htm">
     <relation id="textRenderers"/>
   </item>
+
+  <item id="dataPointTemplate" key="dox.template.dataPointTemplate" filename="dataPointTemplate.htm">
+    <relation id="dataPointEditing"/>
+    <relation id="pointValueLogging"/>
+    <relation id="textRenderers"/>
+    <relation id="chartRenderers"/>
+  </item>
+  
   
   <item id="dataPointEditing" key="dox.dataPointEditing" filename="dataPointEditing.htm">
     <relation id="colours"/>
+    <relation id="dataPointTemplate"/>
   </item>
   
   <item id="numberFormats" key="dox.numberFormats" filename="numberFormats.htm">
@@ -65,6 +78,7 @@
   <item id="textRenderers" key="dox.textRenderers" filename="textRenderers.htm">
     <relation id="numberFormats"/>
     <relation id="datetimeFormats"/>
+    <relation id="dataPointTemplate"/>
   </item>
   
   <item id="systemInformation" key="dox.systemInformation" filename="systemInformation.htm"/>

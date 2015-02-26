@@ -14,6 +14,19 @@ create table systemSettings (
   primary key (settingName)
 ) engine=InnoDB;
 
+--
+-- Templates 
+create table templates (
+  id int not null auto_increment,
+  xid varchar(50) not null,
+  name varchar(255) not null,
+  templateType varchar(50) not null,
+  data longblob not null,
+  readPermission varchar(255),
+  setPermission varchar(255),
+  primary key (id)
+) engine=InnoDB;
+alter table templates add constraint templatesUn1 unique (xid);
 
 --
 -- Users
@@ -117,10 +130,12 @@ create table dataPoints (
   data longblob not null,
   readPermission varchar(255),
   setPermission varchar(255),
+  templateId int,
   primary key (id)
 ) engine=InnoDB;
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
 alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 
 
 -- Data point hierarchy

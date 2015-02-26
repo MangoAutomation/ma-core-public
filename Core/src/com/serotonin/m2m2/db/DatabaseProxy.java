@@ -29,6 +29,7 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -38,6 +39,8 @@ import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
+import com.serotonin.provider.Providers;
 
 abstract public class DatabaseProxy {
     public enum DatabaseType {
@@ -152,6 +155,17 @@ abstract public class DatabaseProxy {
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
                     systemSettingsDao.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+                    
+                    /**
+                     * Add a startup task to run after the Audit system is ready 
+                     */
+                    Providers.get(ILifecycle.class).addStartupTask(new Runnable() {
+                        @Override
+                        public void run() {
+                            DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
+                            factory.saveDefaultTemplates();
+                       }
+                    });
                 }
             }
             else
@@ -177,7 +191,7 @@ abstract public class DatabaseProxy {
         postInitialize(ejt);
     }
 
-    private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
+	private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
         boolean coreIsNew = false;
 
         if (!tableExists(ejt, "users")) {
@@ -364,4 +378,5 @@ abstract public class DatabaseProxy {
     //        		return noSQLProxy.createLoggingDao();
     //        }
     //	}
+    
 }

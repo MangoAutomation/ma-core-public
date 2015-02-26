@@ -100,7 +100,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
             + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
             + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, ds.name, " //
+            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
             + "  ds.xid, ds.dataSourceType " //
             + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
 
@@ -184,6 +184,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setEngineeringUnits(rs.getInt(++i));
             dp.setReadPermission(rs.getString(++i));
             dp.setSetPermission(rs.getString(++i));
+            dp.setTemplateId(rs.getInt(++i));
 
             // Data source information.
             dp.setDataSourceName(rs.getString(++i));
@@ -237,18 +238,18 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 "insert into dataPoints (xid, dataSourceId, name, deviceName, enabled, pointFolderId, loggingType, " //
                         + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
                         + "purgeOverride, purgeType, purgePeriod, defaultCacheSize, discardExtremeValues, " //
-                        + "engineeringUnits, readPermission, setPermission, data) " //
-                        + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
+                        + "engineeringUnits, readPermission, setPermission, templateId, data) " //
+                        + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
                 new Object[] { dp.getXid(), dp.getDataSourceId(), dp.getName(), dp.getDeviceName(),
                         boolToChar(dp.isEnabled()), dp.getPointFolderId(), dp.getLoggingType(),
                         dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(),
                         dp.getTolerance(), boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), SerializationHelper.writeObject(dp) }, //
+                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), SerializationHelper.writeObject(dp) }, //
                 new int[] { Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR,
-                        Types.VARCHAR, Types.BINARY }));
+                        Types.VARCHAR, Types.INTEGER, Types.BINARY }));
 
         // Save the relational information.
         saveEventDetectors(dp);
@@ -291,17 +292,17 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 "update dataPoints set xid=?, name=?, deviceName=?, enabled=?, pointFolderId=?, loggingType=?, " //
                         + "intervalLoggingPeriodType=?, intervalLoggingPeriod=?, intervalLoggingType=?, " //
                         + "tolerance=?, purgeOverride=?, purgeType=?, purgePeriod=?, defaultCacheSize=?, " //
-                        + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, data=? " //
+                        + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, templateId=?, data=? " //
                         + "where id=?", //
                 new Object[] { dp.getXid(), dp.getName(), dp.getDeviceName(), boolToChar(dp.isEnabled()),
                         dp.getPointFolderId(), dp.getLoggingType(), dp.getIntervalLoggingPeriodType(),
                         dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(), dp.getTolerance(),
                         boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), SerializationHelper.writeObject(dp), dp.getId() }, //
+                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), SerializationHelper.writeObject(dp), dp.getId() }, //
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR, Types.INTEGER,
-                        Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
+                        Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                         Types.BINARY, Types.INTEGER });
     }
 
@@ -834,7 +835,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         return Arrays.asList("id", "data", "xid", "dataSourceId", "name", "deviceName", "enabled", "pointFolderId",
                 "loggingType", "intervalLoggingPeriodType", "intervalLoggingPeriod", "intervalLoggingType",
                 "tolerance", "purgeOverride", "purgeType", "purgePeriod", "defaultCacheSize", "discardExtremeValues",
-                "engineeringUnits", "readPermission", "setPermission");
+                "engineeringUnits", "readPermission", "setPermission", "templateId");
     }
 
     @Override
@@ -866,7 +867,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 Types.CHAR, //Discard Extremem Values
                 Types.INTEGER, //get Engineering Units
                 Types.VARCHAR, // Read permission
-                Types.VARCHAR // Set permission
+                Types.VARCHAR, // Set permission
+                Types.INTEGER //Template ID FK
                 );
     }
 
@@ -1005,6 +1007,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setEngineeringUnits(rs.getInt(++i));
             dp.setReadPermission(rs.getString(++i));
             dp.setSetPermission(rs.getString(++i));
+            dp.setTemplateId(rs.getInt(++i));
 
             // Data source information from Join
             dp.setDataSourceName(rs.getString(++i));
@@ -1111,14 +1114,22 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                         else {
                             LOG.error(e.getMessage(), e);
                         }
-
                     }
                 }
                 return results;
-
             }
         };
-
     }
+
+	/**
+	 * Get a list of all Data Points using a given template
+	 * @param id
+	 * @return
+	 */
+	public List<DataPointVO> getByTemplate(int id) {
+		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
+		setRelationalData(dps); //We will need this to restart the points after updating them
+		return dps;
+	}
 
 }

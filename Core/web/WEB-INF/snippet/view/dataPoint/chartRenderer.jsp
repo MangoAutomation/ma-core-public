@@ -3,14 +3,13 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-
 <div >
   <table>
     <tr><td colspan="3">
       <span class="smallTitle"><fmt:message key="pointEdit.chart.props"/></span>
       <tag:help id="chartRenderers"/>
-    </td></tr>
-    
+    </td>
+    </tr>
     <tr>
       <td class="formLabelRequired"><fmt:message key="pointEdit.chart.type"/></td>
       <td class="formField">
@@ -38,9 +37,6 @@
         <td class="formField"><input id="includeSum" data-dojo-type="dijit/form/CheckBox"/></td>
       </tr>
     </tbody>
-    
-    
-    
     <tr>
       <td colspan="2"><fmt:message key="pointEdit.chart.note"/></td>
     </tr>
@@ -88,6 +84,8 @@ var chartRendererSelect = new dijit.form.Select({
                   dijit.byId("includeSum").set("checked", vo.chartRenderer.includeSum);
               }else if(vo.chartRenderer.typeName == "chartRendererImageFlipbook"){
                   $set("limit", vo.chartRenderer.limit);
+              }else if(vo.chartRenderer.typeName == "chartRendererNone"){
+            	  //Do nothing
               }else{
                   dojo.debug("Unknown chart renderer: " + vo.chartRenderer.typeName);
               }
@@ -114,9 +112,11 @@ var chartRendererSelect = new dijit.form.Select({
         	  limit=-1;
           renderer = new TableChartRenderer();
           renderer.limit = limit;
+          renderer.typeName = "chartRendererTable";
       }
       else if (typeName == "chartRendererImage") {
           renderer = new ImageChartRenderer();
+          renderer.typeName = "chartRendererImage";
           renderer.timePeriod = $get("timePeriod");
           renderer.numberOfPeriods = parseInt($get("numberOfPeriods"));
           if(isNaN(renderer.numberOfPeriods))
@@ -124,6 +124,7 @@ var chartRendererSelect = new dijit.form.Select({
       }
       else if (typeName == "chartRendererStats") {
           renderer = new StatisticsChartRenderer();
+          renderer.typeName = "chartRendererStats";
           renderer.timePeriod = $get("timePeriod");
     	  renderer.numberOfPeriods = parseInt($get("numberOfPeriods"));
     	  renderer.includeSum = dijit.byId("includeSum").get('checked');
@@ -132,6 +133,7 @@ var chartRendererSelect = new dijit.form.Select({
       }
       else if (typeName == "chartRendererImageFlipbook") {
     	  renderer = new ImageFlipbookRenderer();
+    	  renderer.typeName = "chartRendererImageFlipbook";
     	  renderer.limit = parseInt($get("limit"));
     	  if(isNaN(renderer.limit))
     		  renderer.limit=-1;
@@ -141,8 +143,45 @@ var chartRendererSelect = new dijit.form.Select({
       vo.chartRenderer = renderer;
   }
   
+  /**
+   * Reset the Chart Renderer Input to the default for that data type
+   */
+  function resetChartRendererOptions(dataTypeId){
+
+	  //Change the renderer to the default for this data type
+        var vo = {
+      		 chartRenderer: {
+      			 typeName: 'chartRendererNone',
+      			 numberOfPeriods: -1,
+      			 timePeriod: 1,
+      			 limit: 1,
+          		 },
+      		 pointLocator: {dataTypeId: dataTypeId},
+      		 
+      		 
+        };
+        setChartRenderer(vo);
+  }
+  //Register for callbacks when the data type is changed
+  dataTypeChangedCallbacks.push(resetChartRendererOptions);
+  
   function ChartRendererEditor() {
 
+	  this.disableInputs = function(){
+		  chartRendererSelect.set('disabled', true);
+		  setDisabled('limit', true);
+		  setDisabled('numberOfPeriods', true);
+		  setDisabled('timePeriod', true);
+          dijit.byId("includeSum").set('disabled', true);
+	  }
+	  
+	  this.enableInputs = function(){
+		  chartRendererSelect.set('disabled', false);
+		  setDisabled('limit', false);
+		  setDisabled('numberOfPeriods', false);
+		  setDisabled('timePeriod', false);
+          dijit.byId("includeSum").set('disabled', false);
+      }
   
       this.change = function(name,oldValue,value) {
     	  

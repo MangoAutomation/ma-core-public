@@ -3,7 +3,8 @@
 * Added ability to enhance the base web.xml by placing override-web.xml into overrides/web/override-web.xml
 * Added new permission groups to replace legacy permissions
 * Upgraded startup/shutdown/restart scripts to log to logs/ma-script.log
-
+* Adding template system to template Data Point creation.
+* Data Point Edit page now changes Point Settings options when data type is changed
 
 *Version 2.5.2*
 * Added ability to check for upgrades, and install upgrades and new modules locally

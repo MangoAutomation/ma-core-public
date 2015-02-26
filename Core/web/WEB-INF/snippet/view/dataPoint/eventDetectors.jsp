@@ -616,8 +616,29 @@
    * This is messy but this page is huge
    */
   function getEventDetectors(vo,callback){
+	  //TODO Need to know if data type changed so we can delete all the existing Point Event Detectors for this point
       pointEventDetectorEditor.save(callback);
   }
+  
+  /**
+   * Reset the Chart Renderer Input to the default for that data type
+   */
+  function resetEventDetectorOptions(dataTypeId){
+	  DataPointDwr.getEventDetectorOptions(dataTypeId,function(response){
+
+          var options = [];
+          for(var i=0; i<response.data.options.length; i++){
+              options.push({
+                  label: mangoMsg[response.data.options[i].nameKey],
+                  value: response.data.options[i].id,
+              })
+          }
+          pointEventDetectorEditor.eventDetectorSelect.options = [];
+          pointEventDetectorEditor.eventDetectorSelect.addOption(options);
+      });
+  }
+  //Register for callbacks when the data type is changed
+  dataTypeChangedCallbacks.push(resetEventDetectorOptions);
   
   /**
    * Change Reset Limit view

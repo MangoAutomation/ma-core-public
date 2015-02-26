@@ -145,7 +145,7 @@ public class Common {
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 10;
+        return 11;
     }
 
     public static String getWebPath(String path) {

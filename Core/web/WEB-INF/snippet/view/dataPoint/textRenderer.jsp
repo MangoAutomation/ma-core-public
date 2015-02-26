@@ -3,6 +3,7 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
+<%@page import="com.serotonin.m2m2.DataTypes"%>
 <div>
   <table>
     <tr><td colspan="3">
@@ -96,7 +97,7 @@
                 <a href="#" onclick="textRendererEditor.handlerMultistateColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
               </td>
               <td valign="top">
-                <tag:img png="add" title="common.add" onclick="return textRendererEditor.addMultistateValue();"/>
+                <tag:img id="multistateValueAdd" png="add" title="common.add" onclick="return textRendererEditor.addMultistateValue();"/>
               </td>
             </tr>
             <tbody id="textRendererMultistateTable"></tbody>
@@ -151,7 +152,7 @@
                 <a href="#" onclick="textRendererEditor.handlerRangeColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
               </td>
               <td valign="top">
-                <tag:img png="add" title="common.add" onclick="return textRendererEditor.addRangeValue();"/>
+                <tag:img id="addRangeRendererRange" png="add" title="common.add" onclick="return textRendererEditor.addRangeValue();"/>
               </td>
             </tr>
             <tbody id="textRendererRangeTable"></tbody>
@@ -246,12 +247,13 @@
       }
   }
   
+  
+  
   /*
    * Set the page values from the current data point VO
    */
   function setTextRenderer(vo){
       
-      //Clear and Setup the Chart Renderer Options
       DataPointDwr.getTextRendererOptions(vo.pointLocator.dataTypeId,function (response){
           var options = [];
           for(var i=0; i<response.data.options.length; i++){
@@ -264,36 +266,38 @@
           textRendererEditor.textRendererSelect.addOption(options);
           textRendererEditor.multistateValues = new Array(); //clear out
           textRendererEditor.rangeValues = new Array(); //clear out
-          if(vo.textRenderer != null){
-        	  textRendererEditor.textRendererSelect.set('value',vo.textRenderer.typeName);
-        	  
-              if (vo.textRenderer.typeName == "textRendererAnalog"){
-            	  dojo.byId("format").value = vo.textRenderer.format;
-                  dojo.byId("suffix").value = vo.textRenderer.suffix;
-                  dijit.byId("useUnitAsSuffix").set('checked',vo.textRenderer.useUnitAsSuffix);
-              }else if (vo.textRenderer.typeName == "textRendererBinary"){
-            	  dojo.byId("zeroLabel").value = vo.textRenderer.zeroLabel;
-            	  textRendererEditor.handlerBinaryZeroColour( vo.textRenderer.zeroColour);
-            	  dojo.byId("oneLabel").value = vo.textRenderer.oneLabel;
-            	  textRendererEditor.handlerBinaryOneColour(vo.textRenderer.oneColour);
-              }else if (vo.textRenderer.typeName == "textRendererMultistate"){
-            	  textRendererEditor.setMultistateValues(vo.textRenderer.multistateValues);
-              }else if (vo.textRenderer.typeName == "textRendererNone"){
-            	  //Nothing
-              }else if (vo.textRenderer.typeName == "textRendererPlain"){
-            	  dojo.byId("suffix").value = vo.textRenderer.suffix;
-            	  dijit.byId("useUnitAsSuffix").set('checked',vo.textRenderer.useUnitAsSuffix);
-              }else if (vo.textRenderer.typeName == "textRendererRange"){
-            	  dojo.byId("format").value = vo.textRenderer.format;
-            	  textRendererEditor.setRangeValues(vo.textRenderer.rangeValues);
-              }else if (vo.textRenderer.typeName == "textRendererTime"){
-            	  dojo.byId("format").value = vo.textRenderer.format;
-            	  dojo.byId("conversionExponent").value = vo.textRenderer.conversionExponent;
-              }else{
-                  alert("Unknown text renderer: " + vo.textRenderer.typeName);
-              }
-          }//Not null
-      });
+    
+        if(vo.textRenderer != null){
+      	  textRendererEditor.textRendererSelect.set('value',vo.textRenderer.typeName);
+      	  
+            if (vo.textRenderer.typeName == "textRendererAnalog"){
+          	  	dojo.byId("format").value = vo.textRenderer.format;
+                dojo.byId("suffix").value = vo.textRenderer.suffix;
+                dijit.byId("useUnitAsSuffix").set('checked',vo.textRenderer.useUnitAsSuffix);
+            }else if (vo.textRenderer.typeName == "textRendererBinary"){
+          	  dojo.byId("zeroLabel").value = vo.textRenderer.zeroLabel;
+          	  textRendererEditor.handlerBinaryZeroColour( vo.textRenderer.zeroColour);
+          	  dojo.byId("oneLabel").value = vo.textRenderer.oneLabel;
+          	  textRendererEditor.handlerBinaryOneColour(vo.textRenderer.oneColour);
+            }else if (vo.textRenderer.typeName == "textRendererMultistate"){
+          	  textRendererEditor.setMultistateValues(vo.textRenderer.multistateValues);
+            }else if (vo.textRenderer.typeName == "textRendererNone"){
+          	  //Nothing
+            }else if (vo.textRenderer.typeName == "textRendererPlain"){
+          	  dojo.byId("suffix").value = vo.textRenderer.suffix;
+          	  dijit.byId("useUnitAsSuffix").set('checked',vo.textRenderer.useUnitAsSuffix);
+            }else if (vo.textRenderer.typeName == "textRendererRange"){
+          	  dojo.byId("format").value = vo.textRenderer.format;
+          	  textRendererEditor.setRangeValues(vo.textRenderer.rangeValues);
+            }else if (vo.textRenderer.typeName == "textRendererTime"){
+          	  dojo.byId("format").value = vo.textRenderer.format;
+          	  dojo.byId("conversionExponent").value = vo.textRenderer.conversionExponent;
+            }else{
+                alert("Unknown text renderer: " + vo.textRenderer.typeName);
+            }
+        }//Not null
+        });
+      
   }
 
   /*
@@ -304,7 +308,7 @@
 	   var typeName = textRendererEditor.textRendererSelect.get('value');
 	   
        if (typeName == "textRendererAnalog"){
-     	  vo.textRenderer = new AnalogRenderer();
+     	   vo.textRenderer = new AnalogRenderer();
            vo.textRenderer.format = dojo.byId("format").value;
            vo.textRenderer.suffix = dojo.byId("suffix").value;
            vo.textRenderer.useUnitAsSuffix = dojo.byId("useUnitAsSuffix").checked;
@@ -334,8 +338,42 @@
        }else{
            alert("Unknown text renderer: " + vo.textRenderer.typeName);
        }
+       //Set the type name
+       vo.textRenderer.typeName = typeName;
   }
   
+  /**
+   * Reset the Text Renderer Input to the default for that data type
+   */
+  function resetTextRendererOptions(dataTypeId){
+          //Change the renderer to the default for this data type
+          var vo = {
+        		 textRenderer: {
+        			 typeName: 'textRendererNone',
+        			 suffix: '',
+            		 useUnitAsSuffix: false
+            		 },
+        		 pointLocator: {dataTypeId: dataTypeId},
+        		 
+        		 
+          };
+          switch(dataTypeId){
+          	case <%= DataTypes.ALPHANUMERIC %>:
+          	case <%= DataTypes.BINARY %>:
+          	case <%= DataTypes.MULTISTATE %>:
+          	case <%= DataTypes.NUMERIC %>:
+          		vo.textRenderer.typeName = "textRendererPlain";
+          	break;
+          	case <%= DataTypes.IMAGE %>:
+          		vo.textRenderer.typeName = "textRendererNone";
+          	break;
+          }
+          setTextRenderer(vo);
+     // });
+  }
+  //Register for callbacks when the data type is changed
+  dataTypeChangedCallbacks.push(resetTextRendererOptions);
+
   /**
    * Main Editing Logic
    */
@@ -345,7 +383,6 @@
       
       this.multistateValues = new Array();
       this.rangeValues = new Array();
-      
       
       this.init = function() {
           // Colour handler events
@@ -368,9 +405,55 @@
         	  else
         		  show("suffix");
           });
-          
-          
       }
+      
+      this.disableInputs = function(){
+    	  dijit.byId('textRendererSelect').set('disabled', true);
+    	  dijit.byId('useUnitAsSuffix').set('disabled', true);
+    	  setDisabled('suffix', true);
+    	  setDisabled('format', true);
+    	  setDisabled('conversionExponent', true);
+    	  setDisabled('zeroLabel', true);
+    	  dijit.byId('zeroColour').set('disabled', true);
+    	  setDisabled('oneLabel', true);
+    	  dijit.byId('oneColour').set('disabled', true);
+    	  setDisabled('textRendererMultistateKey', true);
+    	  setDisabled('textRendererMultistateText', true);
+    	  hide('multistateValueAdd');
+    	  setDisabled('textRendererAnalogFormat', true);
+    	  setDisabled('textRendererAnalogSuffix', true);
+    	  setDisabled('textRendererPlainSuffix', true);
+    	  setDisabled('textRendererRangeFrom', true);
+    	  setDisabled('textRendererRangeTo', true);
+    	  setDisabled('textRendererRangeText', true);
+    	  hide('addRangeRendererRange');
+    	  setDisabled('textRendererTimeFormat', true);
+    	  setDisabled('textRendererTimeConversionExponent', true);
+      };
+      
+      this.enableInputs = function(){
+    	  dijit.byId('textRendererSelect').set('disabled', false);
+    	  dijit.byId('useUnitAsSuffix').set('disabled', false);
+    	  setDisabled('suffix', false);
+    	  setDisabled('format', false);
+    	  setDisabled('conversionExponent', false);
+    	  setDisabled('zeroLabel', false);
+    	  dijit.byId('zeroColour').set('disabled', false);
+    	  setDisabled('oneLabel', false);
+    	  dijit.byId('oneColour').set('disabled', false);
+    	  setDisabled('textRendererMultistateKey', false);
+    	  setDisabled('textRendererMultistateText', false);
+    	  show('multistateValueAdd');
+    	  setDisabled('textRendererAnalogFormat', false);
+    	  setDisabled('textRendererAnalogSuffix', false);
+    	  setDisabled('textRendererPlainSuffix', false);
+    	  setDisabled('textRendererRangeFrom', false);
+    	  setDisabled('textRendererRangeTo', false);
+    	  setDisabled('textRendererRangeText', false);
+    	  show('addRangeRendererRange');
+    	  setDisabled('textRendererTimeFormat', false);
+    	  setDisabled('textRendererTimeConversionExponent', false);
+      };
   
       this.change = function() {
           if (currentTextRenderer)
@@ -589,7 +672,6 @@
       };
   }
   var textRendererEditor = new TextRendererEditor();
-  
   
   
 </script>

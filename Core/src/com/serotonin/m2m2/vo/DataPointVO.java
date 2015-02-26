@@ -27,6 +27,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -43,6 +44,7 @@ import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
@@ -59,7 +61,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         int ON_TS_CHANGE = 5;
     }
 
-    private static final ExportCodes LOGGING_TYPE_CODES = new ExportCodes();
+    public static final ExportCodes LOGGING_TYPE_CODES = new ExportCodes();
     static {
         LOGGING_TYPE_CODES.addElement(LoggingTypes.ON_CHANGE, "ON_CHANGE", "pointEdit.logging.type.change");
         LOGGING_TYPE_CODES.addElement(LoggingTypes.ALL, "ALL", "pointEdit.logging.type.all");
@@ -100,7 +102,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         int SPLINE = 3;
     }
 
-    private static final ExportCodes PLOT_TYPE_CODES = new ExportCodes();
+    public static final ExportCodes PLOT_TYPE_CODES = new ExportCodes();
     static {
         PLOT_TYPE_CODES.addElement(PlotTypes.STEP, "STEP", "pointEdit.plotType.step");
         PLOT_TYPE_CODES.addElement(PlotTypes.LINE, "LINE", "pointEdit.plotType.line");
@@ -190,6 +192,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String readPermission;
     @JsonProperty
     private String setPermission;
+    
+    //Template for properties
+    private Integer templateId;
 
     //
     //
@@ -713,6 +718,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setSetPermission(String setPermission) {
         this.setPermission = setPermission;
     }
+    
+    public Integer getTemplateId(){
+    	return templateId;
+    }
+    
+    public void setTemplateId(Integer id){
+    	this.templateId = id;
+    }
 
     /* Helpers for Use on JSP Page */
     public String getUnitString() {
@@ -774,7 +787,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         try {
             DataPointVO copy = (DataPointVO) super.clone();
 
-            // TODO is all of this necessary after we made a clone?
+            // is all of this necessary after we made a clone?
             copy.setChartColour(chartColour);
             copy.setChartRenderer(chartRenderer);
             copy.setDataSourceId(dataSourceId);
@@ -812,6 +825,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
             copy.setReadPermission(readPermission);
             copy.setSetPermission(setPermission);
+            copy.setTemplateId(templateId);
 
             return copy;
         }
@@ -932,6 +946,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
             }
         }
+        
+        if((templateId!=null) &&(templateId > 0)){
+        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.get(templateId);
+        	if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
+        		response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
+        	}
+        	
+        }
     }
 
     /**
@@ -1002,7 +1024,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue + ", settable="
                 + settable + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
-                + readPermission + ", setPermission=" + setPermission + " ]";
+                + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId + "]";
     }
 
     //

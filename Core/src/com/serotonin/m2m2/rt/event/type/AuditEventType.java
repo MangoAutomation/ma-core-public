@@ -39,7 +39,8 @@ public class AuditEventType extends EventType {
     public static final String TYPE_POINT_EVENT_DETECTOR = "POINT_EVENT_DETECTOR";
     public static final String TYPE_EVENT_HANDLER = "EVENT_HANDLER";
     public static final String TYPE_COMPOUND_EVENT_DETECTOR = "COMPOUND_EVENT_DETECTOR";
-
+    public static final String TYPE_TEMPLATE = "TEMPLATE";
+    
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
 
@@ -48,6 +49,7 @@ public class AuditEventType extends EventType {
         addEventType(TYPE_DATA_POINT, "event.audit.dataPoint");
         addEventType(TYPE_POINT_EVENT_DETECTOR, "event.audit.pointEventDetector");
         addEventType(TYPE_EVENT_HANDLER, "event.audit.eventHandler");
+        addEventType(TYPE_TEMPLATE, "event.audit.template");
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey());

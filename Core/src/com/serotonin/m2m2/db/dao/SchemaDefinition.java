@@ -14,6 +14,7 @@ public class SchemaDefinition {
 	public static final String DATASOURCES_TABLE = "dataSources";
 	public static final String DATAPOINTS_TABLE = "dataPoints";
 	public static final String EVENTS_TABLE = "events";
+	public static final String TEMPLATES_TABLE = "templates";
 	
 	
 	

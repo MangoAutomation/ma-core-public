@@ -82,42 +82,6 @@
      if (typeof appendPointListColumnFunctions == 'function')
          appendPointListColumnFunctions(pointListColumnHeaders, pointListColumnFunctions);
      
-//     pointListColumnHeaders.push("");
-//     pointListColumnFunctions.push(function(p) {
-//         var html = "<a href='/data_point_edit.shtm?dpid=" + p.id + "'>";
-//         html += writeImage("editImg"+ p.id, null, "icon_comp_edit", "<fmt:message key='pointEdit.props.props'/>",null);
-//         html += "</a>";
-//         html += writeImage("editImg"+ p.id, null, "pencil", "<fmt:message key='common.edit'/>", "editPoint("+ p.id +")");
-//         
-//         return html;
-//     });
-//     
-//     var headers = $("pointListHeaders");
-//     var td;
-//     for (var i=0; i<pointListColumnHeaders.length; i++) {
-//         td = document.createElement("td");
-//         if (typeof(pointListColumnHeaders[i]) == "string")
-//             td.innerHTML = pointListColumnHeaders[i];
-//         else
-//             pointListColumnHeaders[i](td);
-//         headers.appendChild(td);
-//     }
-//     
-//     pointListOptions = {
-//             rowCreator: function(options) {
-//                 var tr = document.createElement("tr");
-//                 tr.mangoId = "p"+ options.rowData.id;
-//                 tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
-//                 return tr;
-//             },
-//             cellCreator: function(options) {
-//                 var td = document.createElement("td");
-//                 if (options.cellNum == 2)
-//                     td.align = "center";
-//                 return td;
-//             }
-//     };
-     
        var dsStatus = $("dsStatusImg");
        setDataSourceStatusImg(dataSourceEnabled, dsStatus);
        show(dsStatus);
@@ -132,6 +96,7 @@
      getStatusMessages();
      
      //Init the point settings
+     initDataPointTemplates();
      textRendererEditor.init();
      pointEventDetectorEditor.init();
      
@@ -310,6 +275,10 @@
 	 
 	 //Load in the proper values
 	 var locator = point.pointLocator;
+	 
+	 //Notify that the Data Type may have been changed
+	 dataTypeChanged(locator.dataTypeId);
+	 
 	 //dataPoints.setInputs(point);
 	 dataPoints.open(point.id,{voToLoad: point});
 	 
@@ -428,6 +397,7 @@ function deletePoint() {
          if(response.data.match === true){
              if(currentPoint.id != -1){
                  //Point Properties
+            	 getDataPointTemplate(currentPoint);
                  getPointProperties(currentPoint); //Set the values from the inputs
                  getLoggingProperties(currentPoint);
                  getTextRenderer(currentPoint);
@@ -497,6 +467,20 @@ function deletePoint() {
          
      }else if (response.hasMessages)
          showDwrMessages(response.messages);
+ }
+ 
+ /* Listeners for Data Type Changed */
+ var dataTypeChangedCallbacks = new Array(); //Push any listeners into this
+ /**	
+  * Method to be called from all Data Point pages when the data type is changed
+  */
+ function dataPointDataTypeChanged(newDataTypeId){
+ 	dataPoints.currentDataTypeId = newDataTypeId;
+ 	for(var i=0; i<dataTypeChangedCallbacks.length; i++){
+ 		if(typeof dataTypeChangedCallbacks[i] == 'function'){
+ 			dataTypeChangedCallbacks[i](newDataTypeId);
+ 		}
+ 	}
  }
  
 

@@ -10,6 +10,19 @@ create table systemSettings (
 );
 alter table systemSettings add constraint systemSettingsPk primary key (settingName);
 
+--
+-- Templates
+CREATE TABLE templates (
+  id int NOT NULL auto_increment,
+  xid varchar(50) NOT NULL,
+  name varchar(255),
+  templateType varchar(50),
+  readPermission varchar(255),
+  setPermission varchar(255),
+  data longblob NOT NULL,
+  PRIMARY KEY (id)
+);
+ALTER TABLE templates ADD CONSTRAINT templatesUn1 UNIQUE (xid);
 
 --
 -- Users
@@ -112,11 +125,13 @@ create table dataPoints (
   engineeringUnits int,
   data blob not null,
   readPermission varchar(255),
-  setPermission varchar(255)
+  setPermission varchar(255),
+  templateId int,
 );
 alter table dataPoints add constraint dataPointsPk primary key (id);
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
 alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 
 
 -- Data point hierarchy

@@ -18,7 +18,9 @@
       <param name="messageSourceKey">messageSource</param>
     </filter>
     
-    
+    <create creator="new" javascript="TemplateDwr" scope="application">
+      <param name="class" value="com.serotonin.m2m2.web.dwr.TemplateDwr"/>
+    </create>
     
     <!-- New DWR Classes in Upgrade -->
     <create creator="new" javascript="DataSourceDwr" scope="application">
@@ -105,7 +107,9 @@
     <convert converter="bean" match="com.serotonin.m2m2.view.chart.TimePeriodChartRenderer" javascript="TimePeriodChartRenderer"/>
     
 <!--     <convert converter="bean" match="com.serotonin.m2m2.view.text.*"/> -->
-    <convert converter="bean" match="com.serotonin.m2m2.view.text.AnalogRenderer" javascript="AnalogRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.AnalogRenderer" javascript="AnalogRenderer">
+    	<param name="exclude" value="unit,renderedUnit"/>
+    </convert>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.BaseTextRenderer" javascript="BaseTextRenderer"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.BinaryTextRenderer" javascript="BinaryTextRenderer"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.MultistateRenderer" javascript="MultistateRenderer"/>
@@ -179,6 +183,10 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointVO" javascript="DataPointVO">
         <param name="exclude" value="typeKey,unit,renderedUnit,integralUnit,integralConverter,new,configurationDescription,dataTypeMessage"/>
     </convert>
+
+    <convert converter="bean" match="com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO" javascript="DataPointPropertiesTemplateVO">
+    </convert>
+
 
     <convert converter="bean" match="com.serotonin.m2m2.vo.User">
       <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,permissions"/>

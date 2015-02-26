@@ -299,6 +299,13 @@ dataPoints = new StoreView({
     	this.name.set('value',vo.name);
     	this.xid.set('value',vo.xid);
     	this.deviceName.set('value',vo.deviceName);
+////    	//Signal a new data type?
+//    	if(this.currentDataTypeId != vo.pointLocator.dataTypeId)
+//    		dataPointDataTypeChanged(vo.pointLocator.dataTypeId);
+    	
+    	this.currentDataTypeId = vo.pointLocator.dataTypeId;
+        $set("readPermission", vo.readPermission);
+        $set("setPermission", vo.setPermission);
     	
     	dataPointsDataSourceId = vo.dataSourceId;
     	
@@ -330,6 +337,7 @@ dataPoints = new StoreView({
 	    	setTextRenderer(vo);
 	    	setChartRenderer(vo);
 	    	setEventDetectors(vo);
+	    	setDataPointTemplate(vo); //Load last to disable inputs if necessary
 	    	show("extraPointSettings");
     	}else{
     		//Disable the point settings inputs
@@ -352,6 +360,8 @@ dataPoints = new StoreView({
     getInputs: function() {
     	currentPoint.deviceName = this.deviceName.get('value');
     	currentPoint.enabled = this.enabled;
+ 	    currentPoint.readPermission = $get("readPermission");
+	    currentPoint.setPermission = $get("setPermission");
         //Just return the global that the modules use
     	// We actually collect the values in savePoint() in dataSourceProperties.js
         return currentPoint;
