@@ -55,7 +55,7 @@
             <tr>
               <td valign="top"><input id="zeroLabel" type="text"/></td>
               <td width="10"></td>
-              <td valign="top" align="center">
+              <td valign="top" align="center" id="zeroColourInputRow">
                 <div dojoType="dijit.ColorPalette" palette="3x4" id="zeroColour"></div>
                 <a href="#" onclick="textRendererEditor.handlerBinaryZeroColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
               </td>
@@ -70,9 +70,9 @@
             <tr>
               <td valign="top"><input id="oneLabel" type="text"/></td>
               <td width="10"></td>
-              <td valign="top" align="center">
+              <td valign="top" align="center" id="oneColourInputRow">
                 <div dojoType="dijit.ColorPalette" palette="3x4" id="oneColour"></div>
-                <a href="#" onclick="textRendererEditor.handlerBinaryOneColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+                <a id="oneColourDefault" href="#" onclick="textRendererEditor.handlerBinaryOneColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
               </td>
             </tr>
           </table>
@@ -414,9 +414,9 @@
     	  setDisabled('format', true);
     	  setDisabled('conversionExponent', true);
     	  setDisabled('zeroLabel', true);
-    	  dijit.byId('zeroColour').set('disabled', true);
+    	  hide('zeroColourInputRow');
     	  setDisabled('oneLabel', true);
-    	  dijit.byId('oneColour').set('disabled', true);
+    	  hide('oneColourInputRow');
     	  setDisabled('textRendererMultistateKey', true);
     	  setDisabled('textRendererMultistateText', true);
     	  hide('multistateValueAdd');
@@ -438,9 +438,9 @@
     	  setDisabled('format', false);
     	  setDisabled('conversionExponent', false);
     	  setDisabled('zeroLabel', false);
-    	  dijit.byId('zeroColour').set('disabled', false);
+    	  show('zeroColourInputRow');
     	  setDisabled('oneLabel', false);
-    	  dijit.byId('oneColour').set('disabled', false);
+    	  show('oneColourInputRow');
     	  setDisabled('textRendererMultistateKey', false);
     	  setDisabled('textRendererMultistateText', false);
     	  show('multistateValueAdd');

@@ -62,13 +62,15 @@
 <div data-dojo-type="dijit.Dialog" id="updateTemplateDialog"
   title="<fmt:message key='template.update'/>" style="width: 300px">
   <div class="dijitDialogPaneContentArea">
-    <span style="text:red">
+    <span style="color:red">
       <fmt:message key="pointEdit.template.updateWarning" />
     </span>
+    <br>
+    <!-- INSERT TABLE OF POINTS TO UPDATE HERE -->
     <label for='updateTemplateName'>
         <fmt:message key="common.name" />
-    </label><input id='updateTemplateName'
-      type='text' />
+    </label>
+    <input id='updateTemplateName'type='text' />
   </div>
   <div class="dijitDialogPaneActionBar">
     <button id='confirmUpdateDataPointTemplateButton' onClick='updateDataPointTemplate()'>
@@ -97,7 +99,7 @@
 	var dataPointTemplatesList, dataPointTemplatePicker, newTemplateDialog, usePointPropertyTemplate, dataPointTemplateDataTypeId;
 	var savedMessageArray = [ {
 		genericMessage : '<fmt:message key="pointEdit.template.templateSaved"/>',
-		level : 'info'
+		level : 'error' //So message is RED like the other save messages
 	} ];
 	var templateNotSavedMessage = {
 		genericMessage : '<fmt:message key="pointEdit.template.templateNotSaved"/>',
@@ -191,7 +193,14 @@
 				dataPointTemplatePicker.set('_onChangeActive', true);
 				usePointPropertyTemplate.set('checked', true);
 			} else {
-				usePointPropertyTemplate.set('checked', false);
+				if(usePointPropertyTemplate.get('checked')){
+					usePointPropertyTemplate.set('checked', false);
+				}else{
+					//Watch won't fire so just disable the template controls and enable inputs
+					//Not Using Template
+					disableTemplateControls();
+					enableDataPointInputs();
+				}
 			}
 		});
 
@@ -285,6 +294,8 @@
 	 **/
 	function updateDataPointTemplate() {
 		hideContextualMessages("pointDetails");
+		//Close Popup
+		dijit.byId('updateTemplateDialog').hide();
 		//Get currently selected template
 		var template = dataPointTemplatePicker.item;
 		//Check to see that something is selected
