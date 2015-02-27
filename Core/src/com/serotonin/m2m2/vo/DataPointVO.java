@@ -949,7 +949,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         
         if((templateId!=null) &&(templateId > 0)){
         	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.get(templateId);
-        	if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
+        	if(template == null){
+        		response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", templateId);
+        	}else if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
         		response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
         	}
         	
@@ -1379,6 +1381,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));
         if (useRenderedUnit)
             writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
+        if(templateId != null){
+        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.get(templateId);
+        	if(template != null)
+        		writer.writeEntry("templateXid", template.getXid());
+        }
     }
 
     @Override

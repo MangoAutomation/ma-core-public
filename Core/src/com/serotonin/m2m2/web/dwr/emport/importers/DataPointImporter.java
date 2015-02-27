@@ -8,12 +8,14 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class DataPointImporter extends Importer {
@@ -43,13 +45,33 @@ public class DataPointImporter extends Importer {
                 vo.setDataSourceXid(dsxid);
                 vo.setPointLocator(dsvo.createPointLocator());
                 vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-                vo.setTextRenderer(new PlainRenderer());
+                if(json.containsKey("templateXid")){
+                	String templateXid = json.getString("templateXid");
+                	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.getByXid(templateXid);
+                	if(template != null){
+                		template.updateDataPointVO(vo);
+                	}else{
+                		addFailureMessage("emport.dataPoint.badReference", templateXid);
+                	}
+                }else{
+                    vo.setTextRenderer(new PlainRenderer());
+                }
             }
         }
         
         if (vo != null) {
             try {
-                ctx.getReader().readInto(vo, json);
+            	if(json.containsKey("templateXid")){
+                	String templateXid = json.getString("templateXid");
+                	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.getByXid(templateXid);
+                	if(template != null){
+                		template.updateDataPointVO(vo);
+                	}else{
+                		addFailureMessage("emport.dataPoint.badReference", templateXid);
+                	}
+                }else{
+                    ctx.getReader().readInto(vo, json);
+                }
                 
                 // If the name is not provided, default to the XID
                 if (StringUtils.isBlank(vo.getName()))
