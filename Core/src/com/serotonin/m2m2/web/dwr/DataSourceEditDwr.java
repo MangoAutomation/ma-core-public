@@ -15,6 +15,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
@@ -28,6 +29,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -190,6 +192,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
             if (StringUtils.isBlank(name))
                 response.addContextualMessage("name", "validate.required");
+
+            //Load in the default Template
+            DataPointPropertiesTemplateVO template = TemplateDao.instance.getDefaultDataPointTemplate(locator.getDataTypeId());
+            if(template != null){
+            	template.updateDataPointVO(dp);
+            }
 
             //Should really be done elsewhere
             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>());

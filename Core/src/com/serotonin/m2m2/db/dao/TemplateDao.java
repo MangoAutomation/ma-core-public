@@ -16,8 +16,10 @@ import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
+import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -29,6 +31,7 @@ import com.serotonin.util.SerializationHelper;
  */
 public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 
+	private static final String TEMPLATE_SELECT = "SELECT id, xid, name, templateType, readPermission, setPermission, data FROM templates ";
 	public static final TemplateDao instance = new TemplateDao();
 	
 	/**
@@ -62,7 +65,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 		return new Object[]{
 				vo.getXid(),
 				vo.getName(),
-				vo.getTemplateType(),
+				vo.getDefinition().getTemplateTypeName(),
 				vo.getReadPermission(),
 				vo.getSetPermission(),
 				SerializationHelper.writeObject(vo)
@@ -169,11 +172,28 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 	 * @return
 	 */
 	public List<DataPointPropertiesTemplateVO> getAllDataPointTemplates() {
-		return this.query("SELECT id, xid, name, templateType, readPermission, setPermission, data FROM templates WHERE templateType = ?", 
-				new Object[]{DataPointPropertiesTemplateVO.TEMPLATE_TYPE}, 
+		return this.query(TEMPLATE_SELECT + " WHERE templateType = ?", 
+				new Object[]{DataPointPropertiesTemplateDefinition.TEMPLATE_TYPE}, 
 				new DataPointPropertiesTemplateRowMapper());
 	}
 
+
+	/**
+	 * Get the default Template for a given Data Type
+	 * @param dataTypeId
+	 * @return Template if there is one else NULL
+	 */
+	public DataPointPropertiesTemplateVO getDefaultDataPointTemplate(
+			int dataTypeId) {
+		List<DataPointPropertiesTemplateVO> allDataPointTemplates = this.getAllDataPointTemplates();
+		for(DataPointPropertiesTemplateVO dataPointTemplate : allDataPointTemplates ){
+			if((dataPointTemplate.getDataTypeId() == dataTypeId)&&(dataPointTemplate.isDefaultTemplate()))
+				return dataPointTemplate;
+		}
+		return null;
+
+	}
+	
 	class DataPointPropertiesTemplateRowMapper implements RowMapper<DataPointPropertiesTemplateVO>{
 
 		/* (non-Javadoc)
@@ -187,6 +207,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 			template.setXid(rs.getString(2));
 			template.setName(rs.getString(3));
 			//Skipping Template Type as that is inherent to the template object
+			template.setDefinition(ModuleRegistry.getTemplateDefinition(rs.getString(4)));
 			template.setReadPermission(rs.getString(5));
 			template.setSetPermission(rs.getString(6));
 			
@@ -195,4 +216,13 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 		
 	}
 
+	/**
+	 * @param templateTypeName
+	 */
+	public void deletTemplateType(String templateTypeName) {
+		//TODO Need to delete the templates of this type from the table
+		// should be done after all other references are fixed
+		throw new ShouldNeverHappenException("Unimplemented!");
+		
+	}
 }

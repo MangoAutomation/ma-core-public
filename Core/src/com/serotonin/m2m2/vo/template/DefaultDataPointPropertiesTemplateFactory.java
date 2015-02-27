@@ -67,10 +67,11 @@ public class DefaultDataPointPropertiesTemplateFactory {
 	protected DataPointPropertiesTemplateVO createDefaultAlphanumericTemplate(){
 		DataPointPropertiesTemplateVO defaultAlphanumericPointTemplate = new DataPointPropertiesTemplateVO();
 		defaultAlphanumericPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
-		defaultAlphanumericPointTemplate.setUnit("");
 		defaultAlphanumericPointTemplate.setName("Alphanumeric");
 		defaultAlphanumericPointTemplate.setDataTypeId(DataTypes.ALPHANUMERIC);
 		defaultAlphanumericPointTemplate.setDefaultTemplate(true);
+		defaultAlphanumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
+		defaultAlphanumericPointTemplate.setUnit("");
 		defaultAlphanumericPointTemplate.setChartColour("red");
 		defaultAlphanumericPointTemplate.setPlotType(PlotTypes.STEP);
 		defaultAlphanumericPointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
@@ -88,6 +89,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultBinaryPointTemplate.setDataTypeId(DataTypes.BINARY);
 		defaultBinaryPointTemplate.setDefaultTemplate(true);
 		defaultBinaryPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
+		defaultBinaryPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
 		defaultBinaryPointTemplate.setUnit("");
 		defaultBinaryPointTemplate.setChartColour("blue");
 		defaultBinaryPointTemplate.setPlotType(PlotTypes.STEP);
@@ -111,6 +113,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultMultistatePointTemplate.setDataTypeId(DataTypes.MULTISTATE);
 		defaultMultistatePointTemplate.setDefaultTemplate(true);
 		defaultMultistatePointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
+		defaultMultistatePointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
 		defaultMultistatePointTemplate.setUnit("");
 		defaultMultistatePointTemplate.setChartColour("green");
 		defaultMultistatePointTemplate.setPlotType(PlotTypes.STEP);
@@ -129,6 +132,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultNumericPointTemplate.setDefaultTemplate(true);
 		defaultNumericPointTemplate.setDataTypeId(DataTypes.NUMERIC);
 		defaultNumericPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
+		defaultNumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
 		defaultNumericPointTemplate.setUnit("");
 		defaultNumericPointTemplate.setChartColour("black");
 		defaultNumericPointTemplate.setPlotType(PlotTypes.SPLINE);

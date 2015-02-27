@@ -39,7 +39,6 @@ import com.serotonin.util.SerializationHelper;
  */
 public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPropertiesTemplateVO>{
 
-	public static final String TEMPLATE_TYPE = "DATA_POINT_PROPERTIES";
 	
     
 	/* Point Locator Properties */
@@ -49,13 +48,13 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     
 	/* Point Properties */
     @JsonProperty
-    private String unit;
+    private String unit = new String();
 	
     private boolean useIntegralUnit = false;
-    private String integralUnit;
+    private String integralUnit = new String();
     
     private boolean useRenderedUnit = false;
-	private String renderedUnit;
+	private String renderedUnit = new String();
 	
     @JsonProperty
     private String chartColour;
@@ -111,14 +110,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 	@Override
 	public String getTypeKey() {
 		return "event.audit.dataPointPropertiesTemplate";
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.template.BaseTemplateVO#getTemplateTypeName()
-	 */
-	@Override
-	protected String getTemplateTypeName() {
-		return TEMPLATE_TYPE;
 	}
 	
 	public boolean isDefaultTemplate(){
@@ -584,7 +575,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        
         out.writeBoolean(defaultTemplate);
         out.writeInt(dataTypeId);
         /* Point Properties */
@@ -758,11 +748,23 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 	public void updateDataPointVO(DataPointVO vo){
 		
 		/* Point Properties */
-		vo.setUnit(UnitUtil.parseLocal(getUnit()));
+		if(unit == null)
+			vo.setUnit(UnitUtil.parseLocal(new String()));
+		else
+			vo.setUnit(UnitUtil.parseLocal(getUnit()));
+			
 		vo.setUseIntegralUnit(isUseIntegralUnit());
-		vo.setIntegralUnit(UnitUtil.parseLocal(getIntegralUnit()));
+		if(integralUnit == null)
+			vo.setIntegralUnit(UnitUtil.parseLocal(new String()));
+		else
+			vo.setIntegralUnit(UnitUtil.parseLocal(getIntegralUnit()));
+			
 		vo.setUseRenderedUnit(isUseRenderedUnit());
-		vo.setRenderedUnit(UnitUtil.parseLocal(getRenderedUnit()));
+		if(renderedUnit == null)
+			vo.setRenderedUnit(UnitUtil.parseLocal(new String()));
+		else
+			vo.setRenderedUnit(UnitUtil.parseLocal(getRenderedUnit()));
+			
 		vo.setChartColour(getChartColour());
 		vo.setPlotType(getPlotType());
 		
@@ -788,6 +790,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		
 		/* Chart Renderer */
 		vo.setChartRenderer(getChartRenderer());
+		
+		vo.setTemplateId(getId());
 		
 	}
 	

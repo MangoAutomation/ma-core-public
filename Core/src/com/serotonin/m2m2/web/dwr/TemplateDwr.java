@@ -19,6 +19,7 @@ import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
@@ -61,6 +62,18 @@ public class TemplateDwr extends BaseDwr{
     	return result;
     }
     
+    /**
+     * Get a new Data Point Template
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult getNewDataPointTemplate(){
+    	ProcessResult response = new ProcessResult();
+    	DataPointPropertiesTemplateVO vo = new DataPointPropertiesTemplateVO();
+    	vo.setDefinition(new DataPointPropertiesTemplateDefinition());
+    	response.addData("vo", vo);
+    	return response;
+    }
     
 	/**
 	 * Save a Data Point template

@@ -5,12 +5,15 @@
 package com.serotonin.m2m2.vo.template;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.TemplateDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -36,12 +39,21 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private TemplateDefinition definition;
 	
     /* Template Permissions */
     @JsonProperty
     private String readPermission;
     @JsonProperty
     private String setPermission;
+    
+	public TemplateDefinition getDefinition() {
+		return definition;
+	}
+
+	public void setDefinition(TemplateDefinition definition) {
+		this.definition = definition;
+	}
 
 	public String getReadPermission() {
 		return readPermission;
@@ -59,26 +71,11 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
 		this.setPermission = setPermission;
 	}
 
-	public String getTemplateType() {
-		return getTemplateTypeName();
-	}
-
-	/**
-	 * Override in subclass for specific type, this will 
-	 * be stored in the templateType column in the DB.
-	 * 
-	 * Must be unique within an MA instance, and is recommended
-     * to be unique inasmuch as possible across all modules.
-	 * @return
-	 */
-	protected abstract String getTemplateTypeName();
-
-
         
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        writer.writeEntry("templateType", this.getTemplateType());
+        writer.writeEntry("templateType", this.getDefinition().getTemplateTypeName());
     }
 
     @Override
@@ -98,6 +95,23 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
                 setPermission);
     }
     
-    
+    //
+    //
+    // Serialization
+    //
+    private static final int version = 1;
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+    	
+    }
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+//        int ver = in.readInt();
+//
+//        // Switch on the version of the class so that version changes can be
+//        // elegantly handled.
+//        if (ver == 1) {
+//        	
+//        }
+    }
     
 }

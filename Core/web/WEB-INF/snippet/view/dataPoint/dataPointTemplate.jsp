@@ -3,6 +3,7 @@
     @author Terry Packer
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp"%>
+<%@page import="com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition" %>
 <table>
   <tr>
     <td colspan="2"><span class="smallTitle"><fmt:message
@@ -341,35 +342,38 @@
 		dijit.byId('newTemplateDialog').hide();
 
 		//Get currently selected template
-		//var template = dataPointTemplatePicker.item;
-		var template = new DataPointPropertiesTemplateVO();
-		template.id = NEW_ID;
-		template.name = $get('templateName');
-		//Load the values into the template from the input
-		loadIntoDataPointTemplate(template);
+		//Could create a DWR Call to request a new template of this type
+		// then access the module registry and create a new one and return it
+		TemplateDwr.getNewDataPointTemplate(function(response){
+			var template = response.data.vo;
+			template.name = $get('templateName');
+			//Load the values into the template from the input
+			loadIntoDataPointTemplate(template);
 
-		//Check to see that something is selected
-		if (template != null) {
-			TemplateDwr.saveDataPointTemplate(template, function(response) {
-				if (response.hasMessages) {
-					response.messages.push(templateNotSavedMessage);
-					showTemplateMessages(response.messages,
-							'pointPropertyTemplateMessages');
-				} else {
-					template.id = response.data.id;
-					dataPointTemplatesList.put(template);
-					//Select the template in the list
-					dataPointTemplatePicker.set('item', template);
-					showTemplateMessages(savedMessageArray,
-							'pointPropertyTemplateMessages');
-					show('editDataPointTemplateButton');
-					hide('cancelEditDataPointTemplateButton');
-					hide('updateDataPointTemplateButton');
-					hide('saveNewDataPointTemplateButton');
-					disableDataPointInputs();
-				}
-			});
-		}
+			//Check to see that something is selected
+			if (template != null) {
+				TemplateDwr.saveDataPointTemplate(template, function(response) {
+					if (response.hasMessages) {
+						response.messages.push(templateNotSavedMessage);
+						showTemplateMessages(response.messages,
+								'pointPropertyTemplateMessages');
+					} else {
+						template.id = response.data.id;
+						dataPointTemplatesList.put(template);
+						//Select the template in the list
+						dataPointTemplatePicker.set('item', template);
+						showTemplateMessages(savedMessageArray,
+								'pointPropertyTemplateMessages');
+						show('editDataPointTemplateButton');
+						hide('cancelEditDataPointTemplateButton');
+						hide('updateDataPointTemplateButton');
+						hide('saveNewDataPointTemplateButton');
+						disableDataPointInputs();
+					}
+				});
+			}
+		});
+
 
 	}
 

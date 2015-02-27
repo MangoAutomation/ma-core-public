@@ -184,7 +184,11 @@
         <param name="exclude" value="typeKey,unit,renderedUnit,integralUnit,integralConverter,new,configurationDescription,dataTypeMessage"/>
     </convert>
 
+    <convert converter="bean" match="com.serotonin.m2m2.module.TemplateDefinition" javascript="TemplateDefinition">
+    </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO" javascript="DataPointPropertiesTemplateVO">
+    </convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition" javascript="DataPointPropertiesTemplateDefinition">
     </convert>
 
 
