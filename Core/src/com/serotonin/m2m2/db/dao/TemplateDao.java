@@ -137,7 +137,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 			template.setId(rs.getInt(1));
 			template.setXid(rs.getString(2));
 			template.setName(rs.getString(3));
-			//Skipping Template Type as that is inherent to the template object
+			template.setDefinition(ModuleRegistry.getTemplateDefinition(rs.getString(4)));
 			template.setReadPermission(rs.getString(5));
 			template.setSetPermission(rs.getString(6));
 			
@@ -206,7 +206,6 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 			template.setId(rs.getInt(1));
 			template.setXid(rs.getString(2));
 			template.setName(rs.getString(3));
-			//Skipping Template Type as that is inherent to the template object
 			template.setDefinition(ModuleRegistry.getTemplateDefinition(rs.getString(4)));
 			template.setReadPermission(rs.getString(5));
 			template.setSetPermission(rs.getString(6));

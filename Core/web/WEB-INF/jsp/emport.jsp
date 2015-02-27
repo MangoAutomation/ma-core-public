@@ -104,6 +104,7 @@
           <input type="checkbox" name="exportElement" id="publishers" value="publishers"/> <label for="publishers"><fmt:message key="header.publishers"/></label><br/>
           <input type="checkbox" name="exportElement" id="pointHierarchy" value="pointHierarchy"/> <label for="pointHierarchy"><fmt:message key="header.pointHierarchy"/></label><br/>
           <input type="checkbox" name="exportElement" id="systemSettings" value="systemSettings"/> <label for="systemSettings"><fmt:message key="header.systemSettings"/></label><br/>
+          <input type="checkbox" name="exportElement" id="templates" value="templates"/> <label for="templates"><fmt:message key="header.templates"/></label><br/>
           
         </td>
         <td>
