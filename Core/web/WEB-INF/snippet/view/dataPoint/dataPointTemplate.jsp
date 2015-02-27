@@ -178,6 +178,8 @@
 	 * Set the template from the DataPointVO
 	 */
 	function setDataPointTemplate(vo) {
+		//Clear out my messages
+		hideGenericMessages("pointPropertyTemplateMessages");
 		//Save as reference
 		dataPointTemplateDataTypeId = vo.pointLocator.dataTypeId;
 		//Reload the template list with only available templates

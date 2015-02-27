@@ -184,7 +184,10 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setEngineeringUnits(rs.getInt(++i));
             dp.setReadPermission(rs.getString(++i));
             dp.setSetPermission(rs.getString(++i));
+            //Because we read 0 for null
             dp.setTemplateId(rs.getInt(++i));
+            if(rs.wasNull())
+            	dp.setTemplateId(null);
 
             // Data source information.
             dp.setDataSourceName(rs.getString(++i));
@@ -1007,7 +1010,10 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setEngineeringUnits(rs.getInt(++i));
             dp.setReadPermission(rs.getString(++i));
             dp.setSetPermission(rs.getString(++i));
+            //Because we read 0 for null
             dp.setTemplateId(rs.getInt(++i));
+            if(rs.wasNull())
+            	dp.setTemplateId(null);
 
             // Data source information from Join
             dp.setDataSourceName(rs.getString(++i));
