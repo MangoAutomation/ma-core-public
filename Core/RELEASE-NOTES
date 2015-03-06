@@ -5,6 +5,9 @@
 * Upgraded startup/shutdown/restart scripts to log to logs/ma-script.log
 * Adding template system to template Data Point creation.
 * Data Point Edit page now changes Point Settings options when data type is changed
+* Added CSV export feature for all Mango elements to be exported and imported from a CSV definition, not all elements yet support this feature
+* Added new Module Element Definitions for Templates, Rest Models and Rest JSON De-serialization so new Modules can leverage these features
+* Added ability for Data Source modules to allow exporting of their data points as CSV and JSON
 
 *Version 2.5.2*
 * Added ability to check for upgrades, and install upgrades and new modules locally
