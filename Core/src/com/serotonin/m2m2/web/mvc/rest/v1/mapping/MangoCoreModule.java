@@ -4,8 +4,14 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.mapping;
 
+import java.util.List;
+
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.RestJsonDeserializerDefinition;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.SuperclassModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
 /**
  * Module to extend Jackson JSON rendering
@@ -26,6 +32,16 @@ public class MangoCoreModule extends SimpleModule {
 	
 	@Override
 	public void setupModule(SetupContext context) {
+		//Add the core deserializers
+		this.addDeserializer(PointLocatorModel.class, new PointLocatorModelDeserializer());
+		this.addDeserializer(SuperclassModel.class, new SuperclassModelDeserializer());
+		
+		//Setup the Deserializer's from the Module Registry
+		List<RestJsonDeserializerDefinition> defs = ModuleRegistry.getDefinitions(RestJsonDeserializerDefinition.class);
+		for(RestJsonDeserializerDefinition def : defs){
+			this.addDeserializer(def.getType(), def.getDeserializer());
+		}
+		
 		super.setupModule(context);
 	}
 }

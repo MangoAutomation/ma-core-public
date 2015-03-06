@@ -11,7 +11,6 @@ import java.util.Map;
 
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 

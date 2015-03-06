@@ -25,4 +25,5 @@ public class MockDataSourceModel extends AbstractDataSourceModel<MockDataSourceV
 	public MockDataSourceModel(){
 		super(new MockDataSourceVO());
 	}
+
 }

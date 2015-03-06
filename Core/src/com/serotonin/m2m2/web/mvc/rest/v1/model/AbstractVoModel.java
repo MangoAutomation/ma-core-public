@@ -15,11 +15,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
+import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
+import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JsonViews;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessage;
@@ -30,6 +34,8 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
  * @author Terry Packer
  *
  */
+@CSVEntity
+@JsonEntity
 @JsonPropertyOrder({"xid", "name"})
 public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<AbstractVO<T>>{
 	
@@ -42,28 +48,32 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		this.messages = new HashMap<String,String>();
 
 	}
-
+	@CSVColumnGetter(order=0, header="xid")
 	@JsonGetter("xid")
 	public String getXid(){
 		return this.data.getXid();
 	}
+	@CSVColumnSetter(order=0, header="xid")
 	@JsonSetter("xid")
 	public void setXid(String xid){
 		this.data.setXid(xid);
 	}
 	
+	@CSVColumnGetter(order=1, header="name")
 	@JsonGetter("name")
 	public String getName(){
 		return this.data.getName();
 	}
+	@CSVColumnSetter(order=1, header="name")
 	@JsonSetter("name")
 	public void setName(String name){
 		this.data.setName(name);
 	}
 	
+	//TODO Make the JSON Views work, it currently does nothing
 	@ApiModelProperty(value = "Messages for validation of data", required = false)
 	@JsonProperty("validationMessages")
-	@JsonView(JsonViews.Validation.class) //Only show in validation views
+	@JsonView(JsonViews.Validation.class) //Only show in validation views (NOT WORKING YET)
 	private Map<String,String> messages;
 	
 	public void setMessages(Map<String,String> messages){
@@ -106,4 +116,5 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		
 		return new RestMessage(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage("common.default", "Validation error"));
 	}
+
 }

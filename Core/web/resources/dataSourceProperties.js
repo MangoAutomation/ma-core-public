@@ -277,7 +277,8 @@
 	 var locator = point.pointLocator;
 	 
 	 //Notify that the Data Type may have been changed
-	 dataTypeChanged(locator.dataTypeId);
+	 if(typeof dataTypeChanged == 'function')
+		dataTypeChanged(locator.dataTypeId);
 	 
 	 //dataPoints.setInputs(point);
 	 dataPoints.open(point.id,{voToLoad: point});

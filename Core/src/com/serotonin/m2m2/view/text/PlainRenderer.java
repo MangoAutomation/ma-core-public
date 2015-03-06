@@ -7,7 +7,6 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.text.DecimalFormat;
 
 import javax.measure.unit.Unit;
 

@@ -45,6 +45,7 @@ public class ModuleRegistry {
     private static Map<String, SystemEventTypeDefinition> SYSTEM_EVENT_TYPE_DEFINITIONS;
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
     private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
+    private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
 
@@ -210,7 +211,7 @@ public class ModuleRegistry {
             }
         }
     }
-
+    
     //
     //
     // Template special handling
@@ -238,6 +239,38 @@ public class ModuleRegistry {
                             map.put(def.getTemplateTypeName(), def);
                     }
                     TEMPLATE_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // Template special handling
+    //
+    public static ModelDefinition getModelDefinition(String type) {
+        ensureModelDefinitions();
+        return MODEL_DEFINITIONS.get(type);
+    }
+
+    public static Set<String> getModelDefinitionTypes() {
+        ensureModelDefinitions();
+        return MODEL_DEFINITIONS.keySet();
+    }
+
+    private static void ensureModelDefinitions() {
+        if (MODEL_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (MODEL_DEFINITIONS == null) {
+                    Map<String, ModelDefinition> map = new HashMap<String, ModelDefinition>();
+                    //Add in the Core Types
+                    //TODO Data Point Properties Template DEF
+
+                    for (Module module : MODULES.values()) {
+                        for (ModelDefinition def : module.getDefinitions(ModelDefinition.class))
+                            map.put(def.getModelTypeName(), def);
+                    }
+                    MODEL_DEFINITIONS = map;
                 }
             }
         }

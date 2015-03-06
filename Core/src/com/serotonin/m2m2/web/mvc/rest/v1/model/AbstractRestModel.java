@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.wordnik.swagger.annotations.ApiModel;
@@ -14,6 +15,7 @@ import com.wordnik.swagger.annotations.ApiModel;
  *
  */
 @ApiModel(value="AbstractRestModel", description="Base Data Model")
+@JsonEntity
 public abstract class AbstractRestModel<T> {
 	
 	@JsonIgnore
@@ -27,7 +29,6 @@ public abstract class AbstractRestModel<T> {
 	 * Get the data for the model
 	 * @return T
 	 */
-	@JsonIgnore
 	public T getData(){
 		return data;
 	}
@@ -36,7 +37,6 @@ public abstract class AbstractRestModel<T> {
 	 * 
 	 * @param response
 	 */
-	@JsonIgnore
 	public void validate(RestProcessResult<?> response) throws RestValidationFailedException{
 		return;
 	}
