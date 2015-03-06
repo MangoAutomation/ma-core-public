@@ -15,7 +15,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -35,7 +34,6 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
  *
  */
 @CSVEntity
-@JsonEntity
 @JsonPropertyOrder({"xid", "name"})
 public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<AbstractVO<T>>{
 	

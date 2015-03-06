@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
@@ -19,7 +18,6 @@ import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
  *
  */
 @CSVEntity
-@JsonEntity
 @JsonPropertyOrder({"enabled"})
 public abstract class AbstractActionVoModel<T extends AbstractActionVO<T>> extends AbstractVoModel<T>{
 
@@ -28,9 +26,9 @@ public abstract class AbstractActionVoModel<T extends AbstractActionVO<T>> exten
 	/**
 	 * @param data
 	 */
-	public AbstractActionVoModel(AbstractActionVO<T> data) {
+	public AbstractActionVoModel(T data) {
 		super(data);
-		this.data = (T)data;
+		this.data = data;
 	}
 
 	@CSVColumnGetter(order=2, header="enabled")
