@@ -28,13 +28,16 @@ public class OverridingWebAppContext extends WebAppContext {
         setClassLoader(classLoader);
         // Disallow directory listing
         setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
-    }
-
-    @Override
-    public File getTempDirectory() {
-        File file = new File(Common.MA_HOME + "/work");
+        
+        //Temp and JSP Compilation Settings (The order of these is important)
+        //@See http://eclipse.org/jetty/documentation/current/ref-temporary-directories.html
+        String tempDirPath = Common.MA_HOME + "/work";
+        File file = new File(tempDirPath);
         if (!file.exists())
             file.mkdirs();
-        return file;
+        setAttribute("javax.servlet.context.tempdir", tempDirPath);
+        setPersistTempDirectory(true);
+        setTempDirectory(file);
+
     }
 }

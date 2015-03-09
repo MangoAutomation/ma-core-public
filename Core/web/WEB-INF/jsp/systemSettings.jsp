@@ -124,6 +124,19 @@
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_MINUTE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>);                
+
+            $set("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>", settings.<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>);                
+
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>);                
+
+            
         });
         
         <c:if test="${!empty param.def}">
@@ -433,6 +446,99 @@
     	setUserMessage("backupSettingsMessage", "<fmt:message key="systemSettings.backupQueued"/>");
     }
     
+    /**
+     * Save the Chart Settings
+     */
+    function saveChartSettings() {
+        hideContextualMessages("chartSettingsTab"); //Clear out any existing msgs
+        SystemSettingsDwr.saveChartSettings(
+                $get("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>"),
+            function(response) {
+                setDisabled("saveChartSettingsBtn", false);
+                if (response.hasMessages)
+                    showDwrMessages(response.messages);
+                else
+                    setUserMessage("chartSettingsMessage", "<fmt:message key='systemSettings.systemChartSettingsSaved'/>");
+            });
+        setUserMessage("chartSettingsMessage");
+        setDisabled("saveChartSettingsBtn", true);
+    }
+    
+    /**
+     * Save the Backup Settings
+     */
+    function saveDatabaseBackupSettings() {
+    	hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
+        SystemSettingsDwr.saveDatabaseBackupSettings(
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIODS %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>"),
+        		$get("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>"),
+       		function(response) {
+	            setDisabled("saveDatabaseBackupSettingsBtn", false);
+	            if (response.hasMessages)
+	                showDwrMessages(response.messages);
+	            else
+	            	setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseBackupSettingsSaved'/>");
+	        });
+        setUserMessage("databaseBackupSettingsMessage");
+        setDisabled("saveDatabaseBackupSettingsBtn", true);
+    }
+    
+    function backupDatabaseNow(){
+    	SystemSettingsDwr.queueDatabaseBackup()
+    	setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.backupQueued'/>");
+    }
+   /*
+    * Save the Backup Settings
+    */
+    function getDatabaseBackupFiles() {
+   	  hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
+   	  SystemSettingsDwr.getDatabaseBackupFiles(function(response){
+   		  var backupFileSelect = document.getElementById("databaseFileToRestore");
+   		  while(backupFileSelect.length > 0)
+   			  backupFileSelect.remove(0);
+   		  for(var x=0; x<response.data.filenames.length; x++){
+   			  var option = document.createElement("option");
+   			  option.text = response.data.filenames[x];
+   			  option.value = response.data.filenames[x];
+   			  backupFileSelect.add(option, x);
+   		  }
+   	  });
+    
+    }
+   
+   /**
+    * Restore the database
+    */
+   function restoreDatabaseFromBackup(){
+	   
+	   if(!confirm("<fmt:message key='systemSettings.confirmRestoreDatabase'/>"))
+		   return;
+	   
+	   var restoreMessages = document.getElementById("databaseRestoreMessages");
+	   restoreMessages.innerHTML = ""; //Clear out messages
+	   var backupFileSelect = document.getElementById("databaseFileToRestore");
+	   var selectedFile = backupFileSelect.options[backupFileSelect.selectedIndex];
+	   if(typeof selectedFile == 'undefined'){
+		   alert("<fmt:message key='systemSettings.noBackupSelected'/>");
+		   return;
+	   }
+		   
+	   
+	   SystemSettingsDwr.restoreDatabaseFromBackup(selectedFile.value, function(response){
+		   if (response.hasMessages)
+               showDwrMessages(response.messages, $("databaseRestoreMessages"));
+		   else
+			   setUserMessage("databaseBackupSettingsMessage", "<fmt:message key='systemSettings.databaseRestored'/>");
+
+	   });
+
+   }
+   
   </script>
   
   <tag:labelledSection labelKey="systemSettings.systemInformation">
@@ -802,7 +908,7 @@
     </table>
   </tag:labelledSection>
   
-    <tag:labelledSection labelKey="systemSettings.backupSettings" closed="true">
+  <tag:labelledSection labelKey="systemSettings.backupSettings" closed="true">
     <table id="backupSettingsTab">
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.backupEnable"/></td>
@@ -853,7 +959,92 @@
     </table>
   </tag:labelledSection>
   
+    <tag:labelledSection labelKey="systemSettings.databaseBackupSettings" closed="true">
+    <table id="databaseBackupSettingsTab">
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupEnable"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>" type="checkbox" />
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.backupLastSuccessfulRun"/></td>
+        <td class="formField"><span id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS %>"/>"></span></td>
+      </tr>
+    
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupLocation"/></td>
+        <td class="formField"><input type="text" id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>"/> </td>
+      </tr>
+
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.backupFrequency"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="dbTpid"><c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${dbTpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupTime"/></td>
+        <td class="formField">
+          <fmt:message key="systemSettings.backupHour"/><input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_HOUR %>"/>" type="text" class="formShort"/>:
+          <fmt:message key="systemSettings.backupMinute"/><input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_MINUTE %>"/>" type="text" class="formShort"/>
+         </td>
+	 </tr>
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.backupFileCount"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>" type="text" class="formShort"/>
+         </td>
+	 </tr>
+	 <tr>
+	    <td class="formLabel">
+	    	<select id="databaseFileToRestore"></select>
+	    </td>
+        <td class="formField">
+          <input type="button" value="<fmt:message key="systemSettings.getBackupFiles"/>" onclick="getDatabaseBackupFiles()"/>
+          <input id="restoreDatabaseBtn" type="button" value="<fmt:message key="systemSettings.restoreDatabase"/>" onclick="restoreDatabaseFromBackup()"/>
+         </td>
+	 </tr>
+      <tr>
+        <td colspan="2" align="center">
+          <input id="executeDatabaseBackupNowBtn" type="button" value="<fmt:message key="systemSettings.backupNow"/>" onclick="backupDatabaseNow()"/>
+          <input id="saveDatabaseBackupSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveDatabaseBackupSettings()"/>
+          <tag:help id="databaseBackupSettings"/>
+        </td>
+      </tr>
+      <tr><td colspan="2" id="databaseBackupSettingsMessage" class="formError"></td></tr>
+     <tr>
+     	<td colspan="2">
+          <table>
+              <tbody id="databaseRestoreMessages"></tbody>
+          </table>
+       </td>
+     </tr>
+
+    </table>
+  </tag:labelledSection>
   
+  <tag:labelledSection labelKey="systemSettings.chartSettings" closed="true">
+    <table id="chartApiSettingsTab">
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.allowAnonymousChartView"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%=SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW%>"/>" type="checkbox" />
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" align="center">
+          <input id="saveChartSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveChartSettings()"/>
+          <tag:help id="chartSettings"/>
+        </td>
+      </tr>
+      
+      <tr><td colspan="2" id="chartSettingsMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
   
   
   

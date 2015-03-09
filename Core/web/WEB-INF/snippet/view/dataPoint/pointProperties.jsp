@@ -8,13 +8,75 @@
 
 <script type="text/javascript">
 
+   //Create a filter select list
+   var unitsMasterListStore;
+   var unitPicker,displayedUnitPicker,integralUnitPicker;
+   
+ require(["dojo","dojo/store/Memory","dijit/form/ComboBox"], 
+            function(dojo,Memory,ComboBox){
+    
+     //Go get the units list
+     DataPointDwr.getUnitsList(function(response){
+         //Create the store
+         unitsMasterListStore = new dojo.store.Memory({ 
+             idProperty: "key",
+             valueProperty: "value",
+             data: response.data.units });
+         
+         //Create the base unit input
+         unitPicker = new ComboBox({
+             store: unitsMasterListStore,
+             autoComplete: false,
+             style: "width: 250px;",
+             queryExpr: "*\${0}*",
+             highlightMatch: "all",
+             required: false,
+             placeHolder: "select unit",
+             onChange: function(unit) {
+                 validateUnit(unit, 'unitMessage');
+             }
+         }, "unit");   
+         
+         //Create the base unit input
+         renderedUnitPicker = new ComboBox({
+             store: unitsMasterListStore,
+             autoComplete: false,
+             style: "width: 250px;",
+             queryExpr: "*\${0}*",
+             highlightMatch: "all",
+             required: false,
+             placeHolder: "select unit",
+             onChange: function(unit) {
+                 validateUnit(unit, 'renderedUnitMessage');
+             }
+         }, "renderedUnit");   
+         
+         //Create the base unit input
+         integralUnitPicker = new ComboBox({
+             store: unitsMasterListStore,
+             autoComplete: false,
+             style: "width: 250px;",
+             queryExpr: "*\${0}*",
+             highlightMatch: "all",
+             required: false,
+             placeHolder: "select unit",
+             onChange: function(unit) {
+                 validateUnit(unit, 'integralUnitMessage');
+             }
+         }, "integralUnit");   
+     });
+     
+
+     
+ });
+
    /**
     * Set the input values on the page using this vo
     */
    function setPointProperties(vo) {
        
       var useIntegralUnit = dijit.byId('useIntegralUnit');
-      var integralUnit = dojo.byId('integralUnit');
+
       useIntegralUnit.watch('checked',function(value) {
          if(useIntegralUnit.checked){
              show("integralUnitSection");
@@ -36,9 +98,12 @@
       
           
        //Set all necessary values
-       dojo.byId("unit").value = vo.unitString;
-       dojo.byId("renderedUnit").value = vo.renderedUnitString;
-       dojo.byId("integralUnit").value = vo.integralUnitString;
+       //dojo.byId("unit").value = vo.unitString;
+       unitPicker.set('value', vo.unitString);
+       //dojo.byId("renderedUnit").value = vo.renderedUnitString;
+       renderedUnitPicker.set('value',vo.renderedUnitString);
+       //dojo.byId("integralUnit").value = vo.integralUnitString;
+       integralUnitPicker.set('value', vo.integralUnitString);
        
        //Not sure why the watch isn't working
        useRenderedUnit.set('checked',vo.useRenderedUnit);
@@ -70,17 +135,15 @@
     */
    function getPointProperties(vo){
        
-       vo.unitString = dojo.byId("unit").value;
-       vo.renderedUnitString = dojo.byId("renderedUnit").value;
-       vo.integralUnitString = dojo.byId("integralUnit").value;
+       vo.unitString = unitPicker.get('value'); //dojo.byId("unit").value;
+       vo.renderedUnitString = renderedUnitPicker.get('value'); //dojo.byId("renderedUnit").value;
+       vo.integralUnitString = integralUnitPicker.get('value'); //dojo.byId("integralUnit").value;
        vo.useRenderedUnit = dijit.byId("useRenderedUnit").get('checked');
        vo.useIntegralUnit = dijit.byId("useIntegralUnit").get('checked');
 
        vo.chartColour = dojo.byId("chartColour").value;
        vo.plotType =  dojo.byId("plotType").value;
-       
-       //For now 
-       
+
    }
    
    /**
@@ -113,10 +176,10 @@
     <tbody id="unitSection" style="display:none;">
         <tr>
           <td class="formLabel"><fmt:message key="pointEdit.props.unit"/></td>
-          <td class="formField"><input type="text" name="unit" id="unit" 
-                onkeyup="validateUnit(value,'unitMessage');" 
-                oninput="validateUnit(value,'unitMessage');"
-                onpaste="validateUnit(value,'unitMessage');"/><div id="unitMessage"></div></td>
+          <td class="formField">
+            <div id="unit"></div>
+            <div id="unitMessage"></div>
+            </td>
         </tr>
        <tr>
         <td class="formLabel"><fmt:message key="pointEdit.props.useRenderedUnit"/></td>
@@ -126,10 +189,10 @@
       </tr>
       <tr id="renderedUnitSection">
           <td class="formLabelRequired"><fmt:message key="pointEdit.props.renderedUnit"/></td>
-          <td class="formField"><input type="text" name="renderedUnit" id="renderedUnit" 
-                onkeyup="validateUnit(value,'renderedUnitMessage');" 
-                oninput="validateUnit(value,'renderedUnitMessage');"
-                onpaste="validateUnit(value,'renderedUnitMessage');"/><div id="renderedUnitMessage"></div></td>
+          <td class="formField">
+            <div id="renderedUnit"></div>
+            <div id="renderedUnitMessage"></div>
+          </td>
         </tr>
       <tr>
         <td class="formLabel"><fmt:message key="pointEdit.props.useIntegralUnit"/></td>
@@ -139,10 +202,10 @@
       </tr>
       <tr id="integralUnitSection">
           <td class="formLabelRequired"><fmt:message key="pointEdit.props.integralUnit"/></td>
-          <td class="formField"><input type="text" name="integralUnit" id="integralUnit" 
-                onkeyup="validateUnit(value,'integralUnitMessage');" 
-                oninput="validateUnit(value,'integralUnitMessage');"
-                onpaste="validateUnit(value,'integralUnitMessage');"/><div id="integralUnitMessage"></div></td>
+          <td class="formField">
+            <div id="integralUnit"></div>
+            <div id="integralUnitMessage"></div>
+          </td>
        </tr>
         
     </tbody>

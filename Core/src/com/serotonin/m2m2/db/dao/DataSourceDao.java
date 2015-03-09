@@ -409,7 +409,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 					Types.VARCHAR,
 					Types.VARCHAR,
 					Types.VARCHAR,
-					Types.BLOB
+					Types.BINARY
 				);		
 	}
 	

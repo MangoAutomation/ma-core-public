@@ -46,4 +46,13 @@ abstract public class EmportDefinition extends ModuleElementDefinition {
      *            the import context
      */
     abstract public void doImport(JsonValue json, ImportContext importContext) throws JsonException;
+    
+    /**
+     * Does this emporter need to show up in the UI
+     * @return
+     */
+    public boolean getInView(){
+    	return true; 
+    }
+    
 }

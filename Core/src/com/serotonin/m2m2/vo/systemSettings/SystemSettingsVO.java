@@ -146,8 +146,8 @@ public class SystemSettingsVO implements JsonSerializable{
 	private Integer backupPeriodType;
 	@JsonProperty
 	private Integer backupPeriods;
-	@JsonProperty 
-	private Boolean backupLastRunSuccess;
+	 
+	private String backupLastRunSuccess;
 	@JsonProperty
 	private Integer backupFileCount;
 	@JsonProperty
@@ -156,7 +156,25 @@ public class SystemSettingsVO implements JsonSerializable{
 	private Integer backupMinute;
 	@JsonProperty
 	private Boolean backupEnabled;
+	@JsonProperty
+	private boolean allowAnonymousChartView;
 	
+	@JsonProperty
+	private String databaseBackupFileLocation;
+	@JsonProperty
+	private Integer databaseBackupPeriodType;
+	@JsonProperty
+	private Integer databaseBackupPeriods;
+	 
+	private String databaseBackupLastRunSuccess;
+	@JsonProperty
+	private Integer databaseBackupFileCount;
+	@JsonProperty
+	private Integer databaseBackupHour;
+	@JsonProperty
+	private Integer databaseBackupMinute;
+	@JsonProperty
+	private Boolean databaseBackupEnabled;
 	/**
 	 * Validate the Settings
 	 * @param response
@@ -239,7 +257,34 @@ public class SystemSettingsVO implements JsonSerializable{
     		response.addContextualMessage(SystemSettingsDao.BACKUP_FILE_COUNT,
     				"systemSettings.validation.backupFileCountInvalid");
     	}   	
-		
+
+
+		//Validate
+    	tmp = new File(databaseBackupFileLocation);
+    	if(!tmp.exists()){
+    		//Doesn't exist, push up message
+    		response.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
+    				"systemSettings.validation.databaseBackupLocationNotExists");
+    	}
+    	if(!tmp.canWrite()){
+    		response.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
+    				"systemSettings.validation.cannotWriteToDatabaseBackupFileLocation");
+    	}
+    	//Validate the Hour and Minute
+    	if((databaseBackupHour > 23)||(databaseBackupHour<0)){
+    		response.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_HOUR,
+    				"systemSettings.validation.databaseBackupHourInvalid");
+    	}
+    	if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
+    		response.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_MINUTE,
+    				"systemSettings.validation.databaseBackupMinuteInvalid");
+    	}
+    	
+    	//Validate the number of backups to keep
+    	if(databaseBackupFileCount < 1){
+    		response.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT,
+    				"systemSettings.validation.databaseBackupFileCountInvalid");
+    	} 
 	}
 	
 
@@ -601,12 +646,12 @@ public class SystemSettingsVO implements JsonSerializable{
 	}
 
 
-	public Boolean getBackupLastRunSuccess() {
+	public String getBackupLastRunSuccess() {
 		return backupLastRunSuccess;
 	}
 
 
-	public void setBackupLastRunSuccess(Boolean backupLastRunSuccess) {
+	public void setBackupLastRunSuccess(String backupLastRunSuccess) {
 		this.backupLastRunSuccess = backupLastRunSuccess;
 	}
 
@@ -815,6 +860,96 @@ public class SystemSettingsVO implements JsonSerializable{
 		this.lifeSafetyAlarmPurgePeriods = lifeSafetyAlarmPurgePeriods;
 	}
 
+
+	/**
+	 * @return
+	 */
+	public boolean getAllowAnonymousChartView() {
+		return this.allowAnonymousChartView;
+	}
+	public void setAllowAnonymousChartView(boolean allow){
+		this.allowAnonymousChartView = allow;
+	}
+
+
+	public String getDatabaseBackupFileLocation() {
+		return databaseBackupFileLocation;
+	}
+
+
+	public void setDatabaseBackupFileLocation(String databaseBackupFileLocation) {
+		this.databaseBackupFileLocation = databaseBackupFileLocation;
+	}
+
+
+	public Integer getDatabaseBackupPeriodType() {
+		return databaseBackupPeriodType;
+	}
+
+
+	public void setDatabaseBackupPeriodType(Integer databaseBackupPeriodType) {
+		this.databaseBackupPeriodType = databaseBackupPeriodType;
+	}
+
+
+	public Integer getDatabaseBackupPeriods() {
+		return databaseBackupPeriods;
+	}
+
+
+	public void setDatabaseBackupPeriods(Integer databaseBackupPeriods) {
+		this.databaseBackupPeriods = databaseBackupPeriods;
+	}
+
+
+	public String getDatabaseBackupLastRunSuccess() {
+		return databaseBackupLastRunSuccess;
+	}
+
+
+	public void setDatabaseBackupLastRunSuccess(String databaseBackupLastRunSuccess) {
+		this.databaseBackupLastRunSuccess = databaseBackupLastRunSuccess;
+	}
+
+
+	public Integer getDatabaseBackupFileCount() {
+		return databaseBackupFileCount;
+	}
+
+
+	public void setDatabaseBackupFileCount(Integer databaseBackupFileCount) {
+		this.databaseBackupFileCount = databaseBackupFileCount;
+	}
+
+
+	public Integer getDatabaseBackupHour() {
+		return databaseBackupHour;
+	}
+
+
+	public void setDatabaseBackupHour(Integer databaseBackupHour) {
+		this.databaseBackupHour = databaseBackupHour;
+	}
+
+
+	public Integer getDatabaseBackupMinute() {
+		return databaseBackupMinute;
+	}
+
+
+	public void setDatabaseBackupMinute(Integer databaseBackupMinute) {
+		this.databaseBackupMinute = databaseBackupMinute;
+	}
+
+
+	public Boolean getDatabaseBackupEnabled() {
+		return databaseBackupEnabled;
+	}
+
+
+	public void setDatabaseBackupEnabled(Boolean databaseBackupEnabled) {
+		this.databaseBackupEnabled = databaseBackupEnabled;
+	}
 	
 	
 	

@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
@@ -38,6 +39,22 @@ public class DataPointEditDwr extends BaseDwr {
         DataPointVO dataPoint = user.getEditPoint();
         Permissions.ensureDataSourcePermission(user, dataPoint.getDataSourceId());
         return dataPoint;
+    }
+    
+    @DwrPermission(user = true)
+    public ProcessResult ensureEditingPointMatch(int uiPointId){
+    	ProcessResult result = new ProcessResult();
+    	User user = Common.getUser();
+    	DataPointVO dataPoint = user.getEditPoint();
+    	if(dataPoint.getId() == uiPointId){
+    		result.addData("match",true);
+    	}else{
+    		
+    		result.addData("message", Common.translate("pointEdit.error.uiPointMismatch"));
+    		result.addData("match", false);
+    	}
+    	
+    	return result;
     }
     
     //
@@ -193,24 +210,30 @@ public class DataPointEditDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
-    public void updateHighLimitDetector(int pedId, String xid, String alias, double limit, int duration,
-            int durationType, int alarmLevel) {
+    public void updateHighLimitDetector(int pedId, String xid, String alias, double limit, boolean notHigher,
+    		int useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
         ped.setLimit(limit);
+        ped.setBinaryState(notHigher);
+        ped.setMultistateState(useResetLimit);
+        ped.setWeight(resetLimit);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
-    public void updateLowLimitDetector(int pedId, String xid, String alias, double limit, int duration,
-            int durationType, int alarmLevel) {
+    public void updateLowLimitDetector(int pedId, String xid, String alias, double limit, boolean notLower,
+    		int useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
         ped.setLimit(limit);
+        ped.setBinaryState(notLower);
+        ped.setMultistateState(useResetLimit);
+        ped.setWeight(resetLimit);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
@@ -332,6 +355,20 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setAlarmLevel(alarmLevel);
     }
 
+    @DwrPermission(user = true)
+    public void updateAnalogRangeDetector(int pedId, String xid, String alias, double limit, double weight,
+            boolean withinRange, int duration, int durationType, int alarmLevel) {
+        PointEventDetectorVO ped = getEventDetector(pedId);
+        ped.setXid(xid);
+        ped.setAlias(alias);
+        ped.setLimit(limit);
+        ped.setWeight(weight);
+        ped.setBinaryState(withinRange);
+        ped.setDuration(duration);
+        ped.setDurationType(durationType);
+        ped.setAlarmLevel(alarmLevel);
+    }
+    
     private PointEventDetectorVO getEventDetector(int pedId) {
         DataPointVO dp = getDataPoint();
         for (PointEventDetectorVO ped : dp.getEventDetectors()) {

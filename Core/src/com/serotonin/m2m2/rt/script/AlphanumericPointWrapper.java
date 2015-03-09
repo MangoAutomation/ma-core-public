@@ -46,38 +46,39 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
         return pvt.getValue().getStringValue();
     }
 
-    public ValueChangeCounter past(int periodType) {
+    public ValueChangeCounterWrapper past(int periodType) {
         return past(periodType, 1);
     }
 
-    public ValueChangeCounter past(int periodType, int count) {
+    public ValueChangeCounterWrapper past(int periodType, int count) {
         long to = getContext().getRuntime();
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to);
     }
 
-    public ValueChangeCounter prev(int periodType) {
+    public ValueChangeCounterWrapper prev(int periodType) {
         return previous(periodType, 1);
     }
 
-    public ValueChangeCounter prev(int periodType, int count) {
+    public ValueChangeCounterWrapper prev(int periodType, int count) {
         return previous(periodType, count);
     }
 
-    public ValueChangeCounter previous(int periodType) {
+    public ValueChangeCounterWrapper previous(int periodType) {
         return previous(periodType, 1);
     }
 
-    public ValueChangeCounter previous(int periodType, int count) {
+    public ValueChangeCounterWrapper previous(int periodType, int count) {
         long to = DateUtils.truncate(getContext().getRuntime(), periodType);
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to);
     }
 
-    private ValueChangeCounter getStats(long from, long to) {
+    public ValueChangeCounterWrapper getStats(long from, long to) {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         ValueChangeCounter stats = new ValueChangeCounter(from, to, start, values);
-        return stats;
+        ValueChangeCounterWrapper wrapper = new ValueChangeCounterWrapper(stats);
+        return wrapper;
     }
 }

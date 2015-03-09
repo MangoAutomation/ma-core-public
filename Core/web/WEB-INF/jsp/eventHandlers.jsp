@@ -655,7 +655,6 @@
             hide("inactiveAddresses2");
     }
   </script>
-  
   <table class="borderDiv marB"><tr><td>
     <tag:img png="cog" title="eventHandlers.eventHandlers"/>
     <span class="smallTitle"><fmt:message key="eventHandlers.eventHandlers"/></span>

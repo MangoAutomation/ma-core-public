@@ -10,6 +10,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.view.export.CsvWriter;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -21,10 +22,11 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
     private final PrintWriter out;
     private final Translations translations;
 
+    public final static int columns = 8;
     // Working fields
     private TextRenderer textRenderer;
-    private final String[] data = new String[5];
-    private final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy/MM/dd HH:mm:ss.SSS");
+    private final String[] data = new String[columns];
+    public static final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy/MM/dd HH:mm:ss.SSS");
     private final CsvWriter csvWriter = new CsvWriter();
 
     public ExportCsvStreamer(PrintWriter out, Translations translations) {
@@ -32,36 +34,44 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
         this.translations = translations;
 
         // Write the headers.
-        data[0] = translations.translate("common.pointName");
-        data[1] = translations.translate("common.time");
-        data[2] = translations.translate("common.value");
-        data[3] = translations.translate("common.rendered");
-        data[4] = translations.translate("common.annotation");
+        data[0] = Common.translate("emport.dataPoint.xid");
+    	data[1] = Common.translate("pointEdit.props.deviceName");
+    	data[2] = Common.translate("common.pointName");
+    	data[3] = Common.translate("common.time");
+        data[4] = Common.translate("common.value");
+        data[5] = Common.translate("common.rendered");
+        data[6] = Common.translate("common.annotation");
+        data[7] = Common.translate("common.modify");
+
         out.write(csvWriter.encodeRow(data));
+        
+        data[7] = "";
     }
 
     @Override
     public void startPoint(ExportPointInfo pointInfo) {
-        data[0] = pointInfo.getExtendedName();
+        data[0] = pointInfo.getXid();
+        data[1] = pointInfo.getDeviceName();
+        data[2] = pointInfo.getPointName();
         textRenderer = pointInfo.getTextRenderer();
     }
 
     @Override
     public void pointData(ExportDataValue rdv) {
-        data[1] = dtf.print(new DateTime(rdv.getTime()));
+        data[3] = dtf.print(new DateTime(rdv.getTime()));
 
         if (rdv.getValue() == null)
-            data[2] = data[3] = null;
+            data[4] = data[5] = null;
         else {
-            data[2] = rdv.getValue().toString();
-            data[3] = textRenderer.getText(rdv.getValue(), TextRenderer.HINT_FULL);
+            data[4] = rdv.getValue().toString();
+            data[5] = textRenderer.getText(rdv.getValue(), TextRenderer.HINT_FULL);
         }
 
         if (rdv.getAnnotation() == null)
-            data[4] = "";
+            data[6] = "";
         else
-            data[4] = rdv.getAnnotation().translate(translations);
-
+            data[6] = rdv.getAnnotation().translate(translations);
+        
         out.write(csvWriter.encodeRow(data));
     }
 

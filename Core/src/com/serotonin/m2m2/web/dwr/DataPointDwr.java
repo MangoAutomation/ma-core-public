@@ -5,7 +5,13 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,6 +19,8 @@ import org.springframework.dao.DuplicateKeyException;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.ResultsWithTotal;
+import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
@@ -29,7 +37,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
+import com.serotonin.m2m2.web.dojo.DojoMemoryStoreListItem;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.taglib.Functions;
@@ -114,15 +122,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
             vo.setPointLocator(ds.createPointLocator());
             vo.setDataSourceId(ds.getId());
             vo.setDataSourceName(ds.getName());
-            vo.setDataSourceTypeName(ds.getTypeKey());
+            vo.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
             vo.setDataSourceXid(ds.getXid());
             vo.setDeviceName(ds.getName());
-            
             vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
             vo.defaultTextRenderer();
-
-            
-            
         }else{
             vo = dao.getFull(id);
         }
@@ -130,7 +134,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
         //Should check permissions?
         //Permissions.ensureDataSourcePermission(user, vo.getDataSourceId());
         user.setEditPoint(vo);
-        //TODO NEed to deal with point value defaulter
+        //TODO Need to deal with point value defaulter
         
         ProcessResult response = new ProcessResult();
         response.addData("vo", vo);
@@ -174,7 +178,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * 
      * @return
      */
-    @DwrPermission(user = true)
+	@DwrPermission(user = true)
     public ProcessResult saveFull(DataPointVO vo) { // TODO combine with save()
         ProcessResult response = new ProcessResult();
         
@@ -189,11 +193,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
 
             //When potential for the defaulter is available one must use the DataSourceEditDwr.validate method and store/pull
         	// the data point vo into/outof the session (Common.User.data)
-            DataPointDefaulter defaulter = null;
+//TODO            DataPointDefaulter defaulter = null;
             try {
                 Common.runtimeManager.saveDataPoint(vo);
-                if (defaulter != null)
-                    defaulter.postSave(vo);
+//TODO             if (defaulter != null)
+//                    defaulter.postSave(vo);
      
             } catch(Exception e) {
                 // Handle the exceptions.
@@ -333,7 +337,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
      * 
      * @param newDp
      */
-    @DwrPermission(user = true)
+    @SuppressWarnings("deprecation")
+	@DwrPermission(user = true)
     public void storeEditProperties(DataPointVO newDp){
     	DataPointVO dp = Common.getUser().getEditPoint();  
     	if(dp!=null){
@@ -400,7 +405,26 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	}
     	return result;
     }
-    
+
+    @DwrPermission(user = true)
+    public ProcessResult getUnitsList(){
+    	ProcessResult result = new ProcessResult();
+		List<DojoMemoryStoreListItem> pairs = new ArrayList<DojoMemoryStoreListItem>();
+		
+		//Get SI Units
+		int id = 0;
+		for (Unit<?> unit : SI.getInstance().getUnits()) {
+	        pairs.add(new DojoMemoryStoreListItem(unit.toString(),id++));
+	    }
+		
+		//Get US Units
+		for(Unit<?> unit : NonSI.getInstance().getUnits()){
+			pairs.add(new DojoMemoryStoreListItem(unit.toString(),id++));
+		}
+		
+		result.addData("units", pairs);
+    	return result;
+    }
     /**
      * Helper to get the most recent value for a point
      * @param id
@@ -431,6 +455,69 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao>{
     	}
 
     	return result;
+    }
+    
+    
+    /**
+     * Load a list of VOs
+     * 
+     * Overridden to provide security
+     * @return
+     */
+    @DwrPermission(user = true)
+    public ProcessResult dojoQuery(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
+        ProcessResult response = new ProcessResult();
+        
+        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
+        List<DataPointVO> vos = new ArrayList<DataPointVO>();
+        @SuppressWarnings("unchecked")
+		List<DataPointVO> filteredPoints = (List<DataPointVO>) results.getResults();
+       
+        
+      //Filter list on User Permissions
+        User user = Common.getUser();
+        for(DataPointVO vo : filteredPoints){
+        	if(Permissions.hasDataPointReadPermission(user, vo)){
+        		vos.add(vo);
+        	}
+        }
+        
+        //Since we have removed some, we need to review our totals here,,
+        // this will be a bit buggy because we don't know how many of the remaining items 
+        // are actually viewable by this user.
+        int total = results.getTotal() - (filteredPoints.size() - vos.size());
+        response.addData("list", vos);
+        response.addData("total", total);
+        
+        return response;
+    }
+    
+    /**
+     * Export VOs based on a filter
+     * @param id
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+	@DwrPermission(user = true)
+    public String jsonExportUsingFilter(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
+        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        List<DataPointVO> vos = new ArrayList<DataPointVO>();
+        
+        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
+        List<DataPointVO> filteredPoints = (List<DataPointVO>) results.getResults();
+        
+        //Filter list on User Permissions
+        User user = Common.getUser();
+        for(DataPointVO vo : filteredPoints){
+        	if(Permissions.hasDataPointReadPermission(user, vo)){
+        		vos.add(vo);
+        	}
+        }
+        
+        //Get the Full VO for the export
+        data.put(keyName, vos);
+        
+        return EmportDwr.export(data, 3);
     }
     
 }

@@ -22,10 +22,11 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericRegexStateDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogHighLimitDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogLowLimitDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.AnalogRangeDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.MultistateStateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.NegativeCusumDetectorRT;
@@ -43,7 +44,7 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class PointEventDetectorVO implements Cloneable, JsonSerializable, ChangeComparable<PointEventDetectorVO> {
+public class PointEventDetectorVO extends SimpleEventDetectorVO implements Cloneable, JsonSerializable, ChangeComparable<PointEventDetectorVO> {
     public static final String XID_PREFIX = "PED_";
 
     public static final int TYPE_ANALOG_HIGH_LIMIT = 1;
@@ -58,6 +59,8 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
     public static final int TYPE_POSITIVE_CUSUM = 10;
     public static final int TYPE_NEGATIVE_CUSUM = 11;
     public static final int TYPE_ALPHANUMERIC_REGEX_STATE = 12;
+    public static final int TYPE_ANALOG_RANGE = 13;
+    public static final int TYPE_ANALOG_CHANGE = 14;
 
     private static List<ImplDefinition> definitions;
 
@@ -89,6 +92,10 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
                     new int[] { DataTypes.NUMERIC }));
             d.add(new ImplDefinition(TYPE_NEGATIVE_CUSUM, null, "pointEdit.detectors.negCusum",
                     new int[] { DataTypes.NUMERIC }));
+            d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
+                    new int[] { DataTypes.NUMERIC }));
+//            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
+//                    new int[] { DataTypes.NUMERIC }));           
             definitions = d;
         }
 
@@ -159,6 +166,10 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             return new PositiveCusumDetectorRT(this);
         case TYPE_NEGATIVE_CUSUM:
             return new NegativeCusumDetectorRT(this);
+        case TYPE_ANALOG_RANGE:
+        	return new AnalogRangeDetectorRT(this);
+//        case TYPE_ANALOG_CHANGE:
+//        	return new AnalogChangeDetectorRT(this);
         }
         throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
     }
@@ -177,20 +188,43 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
         TranslatableMessage message;
         TranslatableMessage durationDesc = getDurationDescription();
         if (detectorType == TYPE_ANALOG_HIGH_LIMIT) {
-            if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer().getText(
-                        limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
-                        .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	
+        	if(binaryState){
+        		//Check if Not above
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigher", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigherPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}else{
+        		//Must be above
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}
         }
         else if (detectorType == TYPE_ANALOG_LOW_LIMIT) {
-            if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.lowLimit", dataPoint.getTextRenderer().getText(
-                        limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.lowLimitPeriod", dataPoint.getTextRenderer()
-                        .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	if(binaryState){
+        		//Not below
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLower", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLowerPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}else{
+        		//Must be below
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.lowLimit", dataPoint.getTextRenderer().getText(
+                            limit, TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.lowLimitPeriod", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}
         }
         else if (detectorType == TYPE_BINARY_STATE) {
             if (durationDesc == null)
@@ -241,7 +275,31 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             else
                 message = new TranslatableMessage("event.detectorVo.negCusumPeriod", dataPoint.getTextRenderer()
                         .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        }else if (detectorType == TYPE_ANALOG_RANGE) {
+        	
+        	//For within range
+        	if(binaryState){
+	            if (durationDesc == null)
+	                message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC));
+	            else
+	                message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}else{
+        		//Outside of range
+	            if (durationDesc == null)
+	                message = new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC));
+	            else
+	                message = new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint.getTextRenderer().getText(
+	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
+	                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+        	}
         }
+
         else
             throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
 
@@ -276,6 +334,7 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
         AuditEventType.addPropertyMessage(list, "common.alarmLevel", AlarmLevels.getAlarmLevelMessage(alarmLevel));
         AuditEventType.addPropertyMessage(list, "common.configuration", getConfigurationDescription());
         AuditEventType.addPropertyMessage(list, "pointEdit.detectors.weight", weight);
+        //TODO Add remaining property messages???
     }
 
     @Override
@@ -292,6 +351,7 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             AuditEventType.maybeAddPropertyChangeMessage(list, "common.configuration",
                     from.getConfigurationDescription(), getConfigurationDescription());
         AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.detectors.weight", from.weight, weight);
+        //TODO Add remaining property messages???
     }
 
     public DataPointVO njbGetDataPoint() {
@@ -421,8 +481,9 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
         TYPE_CODES.addElement(TYPE_ALPHANUMERIC_REGEX_STATE, "ALPHANUMERIC_REGEX_STATE");
         TYPE_CODES.addElement(TYPE_POSITIVE_CUSUM, "POSITIVE_CUSUM");
         TYPE_CODES.addElement(TYPE_NEGATIVE_CUSUM, "NEGATIVE_CUSUM");
+        TYPE_CODES.addElement(TYPE_ANALOG_RANGE, "RANGE");
     }
-
+    
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
@@ -433,10 +494,16 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
         case TYPE_ANALOG_HIGH_LIMIT:
             writer.writeEntry("limit", limit);
             addDuration(writer);
+            writer.writeEntry("notHigher", binaryState);
+            if(this.multistateState == 1) //Using reset limit
+            	writer.writeEntry("resetLimit", weight);
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             writer.writeEntry("limit", limit);
             addDuration(writer);
+            writer.writeEntry("notLower", binaryState);
+            if(this.multistateState == 1) //Using Reset Limit
+            	writer.writeEntry("resetLimit", weight);
             break;
         case TYPE_BINARY_STATE:
             writer.writeEntry("state", binaryState);
@@ -476,6 +543,12 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             writer.writeEntry("weight", weight);
             addDuration(writer);
             break;
+        case TYPE_ANALOG_RANGE:
+        	writer.writeEntry("low", weight);
+        	writer.writeEntry("high", limit);
+        	writer.writeEntry("withinRange", binaryState);
+        	addDuration(writer);
+        	break;
         }
     }
 
@@ -501,10 +574,26 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
         case TYPE_ANALOG_HIGH_LIMIT:
             limit = getDouble(jsonObject, "limit");
             updateDuration(jsonObject);
+            if(jsonObject.containsKey("notHigher"))
+            	binaryState = getBoolean(jsonObject, "notHigher");
+            else
+            	binaryState = false;
+            if(jsonObject.containsKey("resetLimit")){
+            	multistateState = 1;
+            	weight = getDouble(jsonObject, "resetLimit");
+            }
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             limit = getDouble(jsonObject, "limit");
             updateDuration(jsonObject);
+            if(jsonObject.containsKey("notLower"))
+            	binaryState = getBoolean(jsonObject, "notLower");
+            else
+            	binaryState = false;
+            if(jsonObject.containsKey("resetLimit")){
+            	multistateState = 1;
+            	weight = getDouble(jsonObject, "resetLimit");
+            }
             break;
         case TYPE_BINARY_STATE:
             binaryState = getBoolean(jsonObject, "state");
@@ -544,6 +633,11 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
             weight = getDouble(jsonObject, "weight");
             updateDuration(jsonObject);
             break;
+        case TYPE_ANALOG_RANGE:
+        	weight = getDouble(jsonObject, "low");
+        	limit = getDouble(jsonObject, "high");
+        	binaryState = getBoolean(jsonObject, "withinRange");
+        	break;
         }
     }
 
@@ -592,5 +686,10 @@ public class PointEventDetectorVO implements Cloneable, JsonSerializable, Change
     private void addDuration(ObjectWriter writer) throws JsonException, IOException {
         writer.writeEntry("durationType", Common.TIME_PERIOD_CODES.getCode(durationType));
         writer.writeEntry("duration", duration);
+    }
+    
+    @Override
+    public String getEventDetectorKey() {
+        return SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX + id;
     }
 }

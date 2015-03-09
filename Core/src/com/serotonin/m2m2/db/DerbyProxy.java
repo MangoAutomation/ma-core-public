@@ -34,6 +34,8 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.util.DirectoryInfo;
+import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
 
 public class DerbyProxy extends DatabaseProxy {
@@ -116,7 +118,7 @@ public class DerbyProxy extends DatabaseProxy {
         });
 
         for (IdentityStart is : starts) {
-            int maxId = ejt.queryForInt("select max(" + is.column + ") from " + is.table);
+        	int maxId = ejt.queryForObject("select max(" + is.column + ") from " + is.table, new Object[]{}, Integer.class, 0);
             if (is.aiValue <= maxId)
                 ejt.execute("alter table " + is.table + " alter column " + is.column + " restart with " + (maxId + 1));
         }
@@ -165,7 +167,20 @@ public class DerbyProxy extends DatabaseProxy {
 
     @Override
     public File getDataDirectory() {
-        return new File(getUrl(""));
+    	String dataDir = getUrl("");
+    	return new File(dataDir);
+    	
+    }
+    
+    @Override
+    public Long getDatabaseSizeInBytes(){
+    	String dataDir = getUrl("");
+    	File dbData = new File(dataDir);
+    	if(dbData.exists()){
+    		DirectoryInfo dbInfo = DirectoryUtils.getSize(dbData);
+    		return dbInfo.getSize();
+    	}else
+    		return null;
     }
 
     @Override
@@ -216,7 +231,7 @@ public class DerbyProxy extends DatabaseProxy {
 
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
-        return ejt.queryForInt("select count(1) from sys.systables where tablename='" + tableName.toUpperCase() + "'") > 0;
+        return ejt.queryForObject("select count(1) from sys.systables where tablename='" + tableName.toUpperCase() + "'", new Object[]{}, Integer.class, 0) > 0;
     }
 
     @Override

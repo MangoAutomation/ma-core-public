@@ -6,7 +6,9 @@
 
 <doxManifest>
   <item id="chartRenderers" key="dox.chartRenderers" filename="chartRenderers.htm"/>
-  <item id="chartServlet" key="dox.chartServlet" filename="chartServlet.htm"/>
+  <item id="chartServlet" key="dox.chartServlet" filename="chartServlet.htm">
+    <relation id="chartSettings" />
+  </item>
   
   <item id="cronPatterns" key="dox.cronPatterns" filename="cronPatterns.htm"/>
 
@@ -94,7 +96,12 @@
   <item id="pointHierarchy" key="dox.pointHierarchy" filename="pointHierarchy.htm"/>
   
   <item id="backupSettings" key="dox.backupSettings" filename="backupSettings.htm"/>
+
+  <item id="databaseBackupSettings" key="dox.databaseBackup" filename="databaseBackup.htm"/>
   
   <item id="eventReport" key="dox.eventReport" filename="eventReport.htm"/>
   
+  <item id="chartSettings" key="dox.chartSettings" filename="chartSettings.htm">
+    <relation id="chartServlet"/>
+  </item>
 </doxManifest>

@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"mouse.js",
+"lineCount":2,
+"mappings":"A,SAAAA,MAAA,wDAAkE,QAAA,CAASC,CAAT,CAAaC,CAAb,EACjEC,QAASA,EAATA,CAAiBC,CAAjBD,CAA2BE,CAA3BF,QAWQ,SAAA,CAASG,CAAT,CAAeC,CAAf,QACCN,EAAA,CAAGK,CAAH,CAASF,CAAT,KAA0BC,CAA1B,CAAgC,QAAA,CAASG,CAAT,MAClCN,CAAAO,aAAA,CAAiBD,CAAAE,cAAjB,MADkC,OAE9BH,EAAAI,KAAA,MAAoBH,CAApB,CAF8B,CAAhC,CADD,CAXRL,CADiE,gBAwBtDA,CAAA,yCAxBsD,WAyBrDA,CAAA,0CAzBqD,iBA0B/CA,CAAA,yCA1B+C,UA2BtDA,CAAA,wCA3BsD,WA4BrDA,CAAA,yCA5BqD,iBA6B/CA,CAAA;WA7B+C,yBAgCvCA,CAhCuC,EAAlE;",
+"sources":["mouse.js.uncompressed.js"],
+"names":["define","on","dom","handler","selector","type","node","listener","evt","isDescendant","relatedTarget","call"]
+}

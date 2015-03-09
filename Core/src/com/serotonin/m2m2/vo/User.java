@@ -64,6 +64,7 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
     @JsonProperty
     private String homeUrl;
     private long lastLogin;
+    //Receive emails for alarm levels >= this
     private int receiveAlarmEmails;
     @JsonProperty
     private boolean receiveOwnAuditEvents;

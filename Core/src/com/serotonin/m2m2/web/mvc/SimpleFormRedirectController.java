@@ -7,12 +7,15 @@ package com.serotonin.m2m2.web.mvc;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.SimpleFormController;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
-@SuppressWarnings("deprecation")
-public class SimpleFormRedirectController extends SimpleFormController {
+/**
+ * Unusable as of 2.5.0 due to Spring 4 upgrade
+ *
+ */
+@Deprecated
+public class SimpleFormRedirectController {
     private String successUrl;
 
     public void setSuccessUrl(String successUrl) {

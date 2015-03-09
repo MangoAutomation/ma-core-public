@@ -133,7 +133,7 @@
     </convert>
 
     <convert converter="blabberBean" match="com.serotonin.m2m2.vo.dataSource.DataSourceVO" javascript="DataSourceVO">
-      <param name="exclude" value="definition,eventCodes"/>
+      <param name="exclude" value="definition,eventCodes,model"/>
     </convert>
     
     <convert converter="bean" match="com.serotonin.m2m2.web.dojo.*"/>

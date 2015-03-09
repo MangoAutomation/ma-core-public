@@ -56,6 +56,15 @@
         </td>
       </tr>
       <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="false"><fmt:message key="pointEdit.detectors.higher"/></option>
+            <option value="true"><fmt:message key="pointEdit.detectors.notHigher"/></option>
+          </select>
+        </td>
+      </tr>
+      <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.highLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
       </tr>
@@ -65,6 +74,16 @@
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.useResetLimit"/></td>
+        <td class="formField">
+            <sst:checkbox id="eventDetector_TEMPLATE_UseReset" onclick="changeUseResetLimit(this.checked, getPedId(this));"/>
+        </td>
+      </tr>
+      <tr id="eventDetector_TEMPLATE_ResetRow" style="display:none">
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
@@ -95,6 +114,16 @@
         </td>
       </tr>
       <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="false"><fmt:message key="pointEdit.detectors.lower"/></option>
+            <option value="true"><fmt:message key="pointEdit.detectors.notLower"/></option>
+          </select>
+        </td>
+      </tr>
+      
+      <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.lowLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
       </tr>
@@ -104,6 +133,16 @@
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.useResetLimit"/></td>
+        <td class="formField">
+            <sst:checkbox id="eventDetector_TEMPLATE_UseReset" onclick="changeUseResetLimit(this.checked, getPedId(this));"/>
+        </td>
+      </tr>
+      <tr id="eventDetector_TEMPLATE_ResetRow" style="display:none">
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
@@ -491,6 +530,57 @@
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
+    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>">
+      <tr><td class="horzSeparator" colspan="2"></td></tr>
+      <tr>
+        <td class="formLabelRequired">
+          <tag:img png="delete" title="common.delete" onclick="pointEventDetectorEditor.deleteDetector(getPedId(this))"/>
+          <fmt:message key="pointEdit.detectors.type"/>
+        </td>
+        <td class="formField"><fmt:message key="pointEdit.detectors.rangeDet"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
+        <td class="formField">
+          <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
+                  onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="true"><fmt:message key="pointEdit.detectors.withinRange"/></option>
+            <option value="false"><fmt:message key="pointEdit.detectors.outsideRange"/></option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.rangeLow"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.rangeHigh"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
+    </tbody>
   </table>
 </div>
 
@@ -529,6 +619,16 @@
       pointEventDetectorEditor.save(callback);
   }
   
+  /**
+   * Change Reset Limit view
+   */
+  function changeUseResetLimit(checked, pedId){
+      var pedResetRowId = "eventDetector" + pedId + "ResetRow";
+      if(checked)
+          show(pedResetRowId);
+      else
+          hide(pedResetRowId);
+  }
   
   
   function getPedId(node) {
@@ -577,14 +677,26 @@
           
           // Set the values in the content controls.
           if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
+              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"Weight", detector.weight);
+              if(detector.multistateState == 1){
+                  $set("eventDetector" + detector.id + "UseReset", true);
+                  changeUseResetLimit(true, detector.id);
+              }
           }
           else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
+              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"Weight", detector.weight);
+              if(detector.multistateState == 1){
+                  $set("eventDetector" + detector.id + "UseReset", true);
+                  changeUseResetLimit(true, detector.id);
+              }
           }
           else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_BINARY_STATE %>) {
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
@@ -632,6 +744,13 @@
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
+          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>) {
+              $set("eventDetector"+ detector.id +"Limit", detector.limit);
+              $set("eventDetector"+ detector.id +"Weight", detector.weight);
+              $set("eventDetector"+ detector.id +"Duration", detector.duration);
+              $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
+          }
           
           $set("eventDetector"+ detector.id +"Xid", detector.xid);
           $set("eventDetector"+ detector.id +"Alias", detector.alias);
@@ -677,9 +796,17 @@
               var alarmLevel = parseInt($get("eventDetector"+ pedId +"AlarmLevel"));
               
               if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  var useReset = $get("eventDetector" + pedId + "UseReset");
+                  var multistateState;
+                  if(useReset)
+                      multistateState = 1;
+                  else
+                      multistateState = 0;
                   
                   if (isNaN(limit))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
@@ -687,16 +814,33 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                  else if(isNaN(weight))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
+                  else if((multistateState==1)&&(state)&&(limit < weight)){
+                       //Is not higher, so reset limit must be >= limit
+                       errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
+                  }else if((multistateState==1)&&(!state)&&(limit > weight)){
+                      //Is higher, so reset limit must be <= limit
+                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
+                  }
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, duration, durationType,
-                              alarmLevel, saveCB);
+                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, multistateState,
+                              weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  var useReset = $get("eventDetector" + pedId + "UseReset");
+                  var multistateState;
+                  if(useReset)
+                      multistateState = 1;
+                  else
+                      multistateState = 0;
                   
                   if (isNaN(limit))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
@@ -704,10 +848,18 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
-                  else {
+                  else if(isNaN(weight))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
+                  else if((multistateState==1)&&(state)&&(limit > weight)){
+                      //Is not lower, so reset limit must be <= limit
+                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
+                  }else if((multistateState==1)&&(!state)&&(limit < weight)){
+                     //Is lower, so reset limit must be >= limit
+                     errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
+                  }else {
                       saveCBCount++;
-                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, duration, durationType,
-                              alarmLevel, saveCB);
+                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, multistateState,
+                              weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == <%= PointEventDetectorVO.TYPE_BINARY_STATE %>) {
@@ -867,7 +1019,28 @@
                               durationType, alarmLevel, saveCB);
                   }
               }
-              
+              else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>) {
+                  var state = $get("eventDetector"+ pedId +"State");
+                  var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
+                  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
+                  var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  
+                  if (isNaN(limit))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingHighLimit'/>";
+                  else if (isNaN(weight))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingLowLimit'/>";
+                  else if (isNaN(duration))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingDuration'/>";
+                  else if (duration < 0)
+                      errorMessage = "<fmt:message key='pointEdit.detectors.invalidDuration'/>";
+                  else {
+                      saveCBCount++;
+                      DataPointEditDwr.updateAnalogRangeDetector(pedId, xid, alias, limit, weight, state, duration,
+                              durationType, alarmLevel, saveCB);
+                  }
+              }
+
               if (errorMessage != null) {
                   runSaveCallback = false;
                   $("eventDetector"+ pedId +"ErrorMessage").innerHTML = errorMessage;

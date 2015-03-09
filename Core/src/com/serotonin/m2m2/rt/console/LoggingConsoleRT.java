@@ -6,7 +6,6 @@ package com.serotonin.m2m2.rt.console;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -78,7 +77,6 @@ public class LoggingConsoleRT {
 	 * @return
 	 */
 	public List<String> getMessagesSince(long time){
-		
 		List<String> messages = new ArrayList<String>();
 		Iterator<LogConsoleMessage> it = this.console.iterator();
 		while(it.hasNext()){
@@ -97,6 +95,5 @@ public class LoggingConsoleRT {
 	public void setHistorySize(int size){
 		this.historySize = size;
 	}
-	
-	
+		
 }

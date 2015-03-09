@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"lifecycle.js",
+"lineCount":1,
+"mappings":"A,SAAAA,MAAA,kEAA2E,QAAA,CAASC,CAAT,CAAkBC,CAAlB,QACnED,EAAA,2FAYKE,QAAAA,SACHC,aADGD,CAZL,WAgBKE,QAAAA,CAASC,CAATD,EACVD,YADUC,CACKC,CAIfJ,EAAAK,QAAA,eAA6BD,CAA7B,CALUD,CAhBL,EADmE,CAA3E;",
+"sources":["lifecycle.js.uncompressed.js"],
+"names":["define","declare","topic","getStatus","_status","setStatus","newStatus","publish"]
+}

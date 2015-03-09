@@ -38,6 +38,7 @@ public class AuditEventType extends EventType {
     public static final String TYPE_DATA_POINT = "DATA_POINT";
     public static final String TYPE_POINT_EVENT_DETECTOR = "POINT_EVENT_DETECTOR";
     public static final String TYPE_EVENT_HANDLER = "EVENT_HANDLER";
+    public static final String TYPE_COMPOUND_EVENT_DETECTOR = "COMPOUND_EVENT_DETECTOR";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();

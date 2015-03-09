@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.dwr;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
+import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -175,6 +177,38 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.BACKUP_ENABLED,
                 SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true));
 
+        //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
+        settings.put(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,false));
+      
+        //Database Backup Settings
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
+                SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIODS));
+        try{
+        	
+	        SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
+	        String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
+	        Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
+	        lastRunString = sdf.format(lastRunDate);
+	        settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS,lastRunString);
+        }catch(Exception e){
+        	settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS,"unknown");
+        }
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_HOUR,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR));
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_MINUTE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE));
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT));
+        //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
+        settings.put(SystemSettingsDao.DATABASE_BACKUP_ENABLED,
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED,true));
+        
+        
         return settings;
     }
 
@@ -183,16 +217,14 @@ public class SystemSettingsDwr extends BaseDwr {
         Map<String, Object> data = new HashMap<String, Object>();
 
         // Database size
-        File dataDirectory = Common.databaseProxy.getDataDirectory();
-        long dbSize = 0;
-        if (dataDirectory != null) {
-            DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
-            dbSize = dbInfo.getSize();
+        Long dbSize = Common.databaseProxy.getDatabaseSizeInBytes();
+        if (dbSize != null) {
             data.put("databaseSize", DirectoryUtils.bytesDescription(dbSize));
         }
-        else
+        else{
             data.put("databaseSize", "(" + translate("common.unknown") + ")");
-
+            dbSize = 0L;
+        }
         
         //Do we have any NoSQL Data
         long noSqlSize = 0L;
@@ -443,7 +475,6 @@ public class SystemSettingsDwr extends BaseDwr {
 
     	//Validate the Hour and Minute
     	if((backupHour < 24)&&(backupHour>=0)){
-    		updateTask = true;
     		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_HOUR, backupHour);
     	}else{
     		updateTask = false;
@@ -451,7 +482,6 @@ public class SystemSettingsDwr extends BaseDwr {
     				"systemSettings.validation.backupHourInvalid");
     	}
     	if((backupMinute < 60)&&(backupMinute>=0)){
-    		updateTask = true;
     		systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_MINUTE, backupMinute);
     	}else{
     		updateTask = false;
@@ -470,7 +500,6 @@ public class SystemSettingsDwr extends BaseDwr {
     	
     	boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, !backupEnabled);
     	if(backupEnabled != oldBackupEnabled){
-    		updateTask = true;
     		systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
     	}
     	    	
@@ -493,5 +522,135 @@ public class SystemSettingsDwr extends BaseDwr {
     	
     	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
     	BackupWorkItem.queueBackup(backupLocation);
+    }
+    
+    /**
+     * Save the Backup Settings to the DB.
+     * @param backupFileLocation
+     * @param backupPeriod
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult saveChartSettings(boolean allowAnonymousChartView){
+    	ProcessResult result = new ProcessResult();
+    	
+    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+    	
+    	systemSettingsDao.setBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, allowAnonymousChartView);
+
+    	return result;
+    }
+    
+    /**
+     * Save the Backup Settings to the DB.
+     * @param backupFileLocation
+     * @param backupPeriod
+     */
+    @DwrPermission(admin = true)
+    public ProcessResult saveDatabaseBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods,
+    		int backupHour, int backupMinute, int backupHistory, boolean backupEnabled){
+    	ProcessResult result = new ProcessResult();
+    	boolean updateTask = true;
+    	
+    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+    	//Validate
+    	File tmp = new File(backupFileLocation);
+    	if(!tmp.exists()){
+    		//Doesn't exist, push up message
+    		result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
+    				"systemSettings.validation.backupLocationNotExists");
+    		return result;
+    	}
+    	if(!tmp.canWrite()){
+    		result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
+    				"systemSettings.validation.cannotWriteToBackupFileLocation");
+    		return result;
+    	}
+    	systemSettingsDao.setValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION, backupFileLocation);
+
+    	//Not validating because select list.
+    	systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE, backupPeriodType);
+    	systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIODS, backupPeriods);
+
+    	//Validate the Hour and Minute
+    	if((backupHour < 24)&&(backupHour>=0)){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR, backupHour);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_HOUR,
+    				"systemSettings.validation.backupHourInvalid");
+    	}
+    	if((backupMinute < 60)&&(backupMinute>=0)){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE, backupMinute);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_MINUTE,
+    				"systemSettings.validation.backupMinuteInvalid");
+    	}
+    	
+    	//Validate the number of backups to keep
+    	if(backupHistory > 0){
+    		systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT, backupHistory);
+    	}else{
+    		updateTask = false;
+    		result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT,
+    				"systemSettings.validation.backupFileCountInvalid");
+    	}   	
+    	
+    	boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, !backupEnabled);
+    	if(backupEnabled != oldBackupEnabled){
+    		systemSettingsDao.setBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, backupEnabled);
+    	}
+    	    	
+    	if(updateTask){
+    		//Reschedule the task
+    		DatabaseBackupWorkItem.unschedule();
+    		if(backupEnabled)
+    			DatabaseBackupWorkItem.schedule();
+    	}
+    	
+    	return result;
+    }
+    
+    /**
+     * Queue a backup to run now.
+     * @param backupLocation
+     */
+    @DwrPermission(admin=true)
+    public void queueDatabaseBackup(){
+    	
+    	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+    	DatabaseBackupWorkItem.queueBackup(backupLocation);
+    }
+    
+    /**
+     * Queue a backup to run now.
+     * @param backupLocation
+     */
+    @DwrPermission(admin=true)
+    public ProcessResult restoreDatabaseFromBackup(String file){
+    	ProcessResult result = DatabaseBackupWorkItem.restore(file);
+    	return result;
+    }
+    
+    /**
+     * Queue a backup to run now.
+     * @param backupLocation
+     */
+    @DwrPermission(admin=true)
+    public ProcessResult getDatabaseBackupFiles(){
+    	ProcessResult result = new ProcessResult();
+    	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+
+    	File[] backupFiles = DatabaseBackupWorkItem.getBackupFiles(backupLocation);
+    	
+    	//Parse the list into data for a select list
+    	//Files of form core-database-TYPE-date_time
+    	List<String> filenames = new ArrayList<String>();
+    	for(File file : backupFiles){
+    		String filename = file.getName();
+    		filenames.add(filename);
+    	}
+    	result.addData("filenames", filenames);
+    	return result;
     }
 }

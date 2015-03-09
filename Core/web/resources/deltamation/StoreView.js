@@ -22,6 +22,8 @@ return declare("deltamation.StoreView", null, {
     postGridInit: null,
     postEditInit: null,
     closeEditOnSave: true,
+    minRowsPerPage: 25,
+    maxRowsPerPage: 25,
    
     
     constructor: function(options) {
@@ -92,6 +94,8 @@ return declare("deltamation.StoreView", null, {
             columns: _this.columns,
             loadingMessage: _this.loadingMessage,
             noDataMessage: _this.noDataMessage,
+            minRowsPerPage: _this.minRowsPerPage,
+            maxRowsPerPage: _this.maxRowsPerPage,
             query: _this.defaultQuery,
             sort: _this.defaultSort,
             renderRow: function(object, options) {

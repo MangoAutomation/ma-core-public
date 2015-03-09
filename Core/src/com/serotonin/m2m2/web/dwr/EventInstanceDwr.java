@@ -49,6 +49,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         //Set the Export Query (HACK, but will work for now for exporting)
         this.setExportQuery(query, sort, or);
         
+        //TODO Use the Event Manager to access Current Events since the DO NOT LOG events are only in memory
         query.put("userId", Common.getUser().getId()+"");
         
         ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
@@ -72,28 +73,59 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
 	
 
 	// Utility Methods for help with rendering some strings
+	/**
+	 * 
+	 * @param divId - Id of link to place div on return
+	 * @param subtype
+	 * @param ref1
+	 * @param ref2
+	 * @return
+	 */
 	@DwrPermission(user = true)
-    public static String getSystemEventTypeLink(String subtype, int ref1, int ref2) {
-        SystemEventTypeDefinition def = ModuleRegistry.getSystemEventTypeDefinition(subtype);
+    public static ProcessResult getSystemEventTypeLink(String divId, String subtype, int ref1, int ref2) {
+		ProcessResult result = new ProcessResult();
+		result.addData("divId", divId);
+		SystemEventTypeDefinition def = ModuleRegistry.getSystemEventTypeDefinition(subtype);
         if (def != null)
-            return def.getEventListLink(ref1, ref2, Common.getTranslations());
-        return null;
+            result.addData("link", def.getEventListLink(ref1, ref2, Common.getTranslations()));
+        return result;
     }
 	
+	/**
+	 * 
+	 * @param divId - Id of div to place link on return
+	 * @param subtype
+	 * @param ref1
+	 * @param ref2
+	 * @return
+	 */
 	@DwrPermission(user = true)
-    public static String getAuditEventTypeLink(String subtype, int ref1, int ref2) {
-        AuditEventTypeDefinition def = ModuleRegistry.getAuditEventTypeDefinition(subtype);
+    public static ProcessResult getAuditEventTypeLink(String divId, String subtype, int ref1, int ref2) {
+		ProcessResult result = new ProcessResult();
+		result.addData("divId", divId);
+		AuditEventTypeDefinition def = ModuleRegistry.getAuditEventTypeDefinition(subtype);
         if (def != null)
-            return def.getEventListLink(ref1, ref2, Common.getTranslations());
-        return null;
+            result.addData("link", def.getEventListLink(ref1, ref2, Common.getTranslations()));
+        return result;
     }
 	
+	/**
+	 * 
+	 * @param divId - Id of div to place the link
+	 * @param type
+	 * @param subtype
+	 * @param ref1
+	 * @param ref2
+	 * @return
+	 */
 	@DwrPermission(user = true)
-    public static String getEventTypeLink(String type, String subtype, int ref1, int ref2) {
-        EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(type);
+    public static ProcessResult getEventTypeLink(String divId, String type, String subtype, int ref1, int ref2) {
+		ProcessResult result = new ProcessResult();
+		result.addData("divId", divId);
+		EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(type);
         if (def != null)
-            return def.getEventListLink(subtype, ref1, ref2, Common.getTranslations());
-        return null;
+            result.addData("link", def.getEventListLink(subtype, ref1, ref2, Common.getTranslations()));
+        return result;
     }
 
     /**

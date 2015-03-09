@@ -1,0 +1,103 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.infiniteautomation.mango</groupId>
+	<artifactId>dwr</artifactId>
+	<version>2.0.11</version>
+	<name>Mango Automation DWR Library</name>
+	<build>
+		<directory>maven-target</directory>
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+	<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+</dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+       <dependency>
+    <groupId>backport-util-concurrent</groupId>
+    <artifactId>backport-util-concurrent</artifactId>
+    <version>3.1</version>
+</dependency>
+ <dependency>
+    <groupId>org.jdom</groupId>
+    <artifactId>jdom</artifactId>
+    <version>1.1.3</version>
+</dependency>
+<dependency>
+    <groupId>dom4j</groupId>
+    <artifactId>dom4j</artifactId>
+    <version>1.6.1</version>
+</dependency>
+<dependency>
+    <groupId>xom</groupId>
+    <artifactId>xom</artifactId>
+    <version>1.2.5</version>
+</dependency>
+<dependency>
+    <groupId>bsf</groupId>
+    <artifactId>bsf</artifactId>
+    <version>2.4.0</version>
+</dependency>
+<dependency>
+    <groupId>javax.faces</groupId>
+    <artifactId>javax.faces-api</artifactId>
+    <version>2.2</version>
+</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+		</dependency>
+		
+		
+		<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-core</artifactId>
+    <version>3.3.0.GA</version>
+</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>4.0.5.RELEASE</version> <!-- 3.1.1.RELEASE -->
+        </dependency>
+        <dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-mock</artifactId>
+    <version>2.0.8</version>
+</dependency>
+<dependency>
+    <groupId>struts</groupId>
+    <artifactId>struts</artifactId>
+    <version>1.2.9</version>
+</dependency>
+<dependency>
+    <groupId>opensymphony</groupId>
+    <artifactId>webwork</artifactId>
+    <version>2.2.3</version>
+</dependency>
+<dependency>
+    <groupId>opensymphony</groupId>
+    <artifactId>xwork</artifactId>
+    <version>1.2.3</version>
+</dependency>
+	</dependencies>
+</project>

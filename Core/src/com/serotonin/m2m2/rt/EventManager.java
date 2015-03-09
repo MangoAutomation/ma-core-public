@@ -50,6 +50,15 @@ public class EventManager implements ILifecycle {
 	//
 	// Basic event management.
 	//
+	/**
+	 * Raise Event 
+	 * @param type
+	 * @param time
+	 * @param rtnApplicable - does this event return to normal?
+	 * @param alarmLevel
+	 * @param message
+	 * @param context
+	 */
 	public void raiseEvent(EventType type, long time, boolean rtnApplicable,
 			int alarmLevel, TranslatableMessage message,
 			Map<String, Object> context) {
@@ -206,7 +215,8 @@ public class EventManager implements ILifecycle {
 			resetHighestAlarmLevel(time);
 
 			evt.returnToNormal(time, cause);
-			eventDao.saveEvent(evt);
+			if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
+				eventDao.saveEvent(evt);
 
 			// Call inactiveEvent handlers.
 			handleInactiveEvent(evt);

@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"FileView.js",
+"lineCount":3,
+"mappings":"A,SACAA,MAAA,4GAAoH,QAAA,CAASC,CAAT,CAAeC,CAAf,CAAoBC,CAApB,EACpHD,CAAAE,QAAA,qCACAF,EAAAG,QAAA,oBACAH,EAAAG,QAAA,iBAEAH,EAAAI,QAAA,sCAAmDL,CAAAM,QAAnD,CAAkEN,CAAAO,WAAlE,kBAGiBN,CAAAO,MAAA,4mDAHjB;2IAkBaC,QAAAA,GACXC,aAAAC,YAAA,CAA0BC,QAAAC,eAAA,CAAwBC,SAAxB,CAA1B,CACAC,cAAAJ,YAAA,CAA0BC,QAAAC,eAAA,CAAwBG,SAAxB,CAA1B,CACAC,cAAAN,YAAA,CAA0BC,QAAAC,eAAA,CAAwBK,SAAxB,CAA1B,CACAC,mBAAAR,YAAA,CAA+BC,QAAAC,eAAA,CAAwBO,cAAxB,CAA/B,CACAC,mBAAAV,YAAA,CAA+BC,QAAAC,eAAA,CAAwBS,cAAxB,CAA/B,CALWb,IAMPc,aANOd,IAMUc,aAAAC,OANVf,MAONgB,CAPMhB;IAQLgB,CARKhB,GAQEgB,CARFhB,CAQMc,aAAAC,OARNf,CAQ4BgB,CAR5BhB,QASLiB,EAAQd,QAAAC,eAAA,CAAwBU,aAAA,CAAcE,CAAd,CAAxB,CACZE,kBAAAhB,YAAA,CAA8Be,CAA9B,CACID,EAXKhB,CAWAc,aAAAC,OAXAf,IAYRkB,iBAAAhB,YAAA,CAA8BC,QAAAgB,cAAA,MAA9B,CAZQnB,GAlBb,EALoH,CAApH;",
+"sources":["FileView.js.uncompressed.js"],
+"names":["define","dijit","dojo","dojox","provide","require","declare","_Widget","_Templated","cache","postCreate","nameNode","appendChild","document","createTextNode","name","pathNode","path","sizeNode","size","directoryNode","directory","parentDirNode","parentDir","children","length","i","tNode","childrenNode","createElement"]
+}

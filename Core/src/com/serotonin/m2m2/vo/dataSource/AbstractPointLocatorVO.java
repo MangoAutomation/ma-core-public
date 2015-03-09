@@ -45,7 +45,7 @@ abstract public class AbstractPointLocatorVO implements PointLocatorVO {
     private void readObject(ObjectInputStream in) throws IOException {
         in.readInt(); // Read the version. Value is currently not used.
     }
-
+    
     protected void writeDataType(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("dataType", DataTypes.CODES.getCode(getDataTypeId()));
     }
@@ -94,6 +94,5 @@ abstract public class AbstractPointLocatorVO implements PointLocatorVO {
     public void setClassName(String s){
     	//NoOp
     }
-    
     
 }

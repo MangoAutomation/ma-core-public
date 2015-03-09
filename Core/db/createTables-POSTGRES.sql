@@ -261,3 +261,20 @@ CREATE TABLE publishers (
   PRIMARY KEY (id)
 );
 ALTER TABLE publishers ADD CONSTRAINT publishersUn1 UNIQUE (xid);
+
+--
+--
+-- Compound events detectors
+--
+-- CREATE TABLE compoundEventDetectors (
+--   id SERIAL,
+--   xid varchar(50) NOT NULL,
+--   name varchar(100),
+--   alarmLevel int not null,
+--   returnToNormal char(1) not null,
+--   disabled char(1) not null,
+--   conditionText varchar(256) not null,
+--   primary key (id)
+-- );
+-- alter table compoundEventDetectors add constraint compoundEventDetectorsUn1 unique (xid);
+

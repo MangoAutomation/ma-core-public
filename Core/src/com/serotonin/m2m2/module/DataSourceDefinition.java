@@ -112,6 +112,10 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
      * @return the class of the DWR proxy.
      */
     abstract public Class<?> getDwrClass();
+    
+    
+    //This can be used to force a TYPE into the Point Locator JSON
+    //abstract public List<PointLocatorDefinition> getPointLocatorDefinitions();
 
     /**
      * Override this method as required. The start priority determines the order in which data sources are started by

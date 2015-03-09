@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.io.ByteArrayInputStream;
 import java.io.ObjectStreamException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +36,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataSourceDao.DataSourceRowMapper;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -230,7 +230,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         // Create a default text renderer
         if (dp.getTextRenderer() == null)
             dp.defaultTextRenderer();
-
+        
         dp.setId(doInsert(
                 "insert into dataPoints (xid, dataSourceId, name, deviceName, enabled, pointFolderId, loggingType, " //
                         + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
@@ -898,7 +898,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	@Override
 	protected List<Integer> getPropertyTypes(){
 		return Arrays.asList(
-					Types.BLOB, //Locator
+					Types.BINARY, //Locator
 					Types.VARCHAR, //Xid
 					Types.INTEGER, //Dsid
 					Types.VARCHAR, //Name
@@ -908,18 +908,14 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 					Types.INTEGER, //Logging Type
 					Types.INTEGER, //Interval Logging Period Type
 					Types.INTEGER, //Interval Logging Period
-					Types.DOUBLE,  //Interval Logging Type
-					Types.CHAR,	   //Tolerance
-					Types.INTEGER, //Purge Override
+					Types.INTEGER,  //Interval Logging Type
+					Types.DOUBLE,	   //Tolerance
+					Types.CHAR, //Purge Override
 					Types.INTEGER, //Purge Type
 					Types.INTEGER, //Purge Period
 					Types.INTEGER, //Default Cache Size
 					Types.CHAR,    //Discard Extremem Values
-					Types.INTEGER, //get Engineering Units
-					Types.VARCHAR, //DS Name
-					Types.VARCHAR, //DS XID
-					Types.VARCHAR //DS TYPE NAME
-				
+					Types.INTEGER //get Engineering Units
 				);		
 	}
 	
@@ -1079,7 +1075,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		//TODO Could speed this up if necessary...
 		DataSourceVO<?> dsVo = DataSourceDao.instance.get(vo.getDataSourceId());
 		vo.setDataSourceName(dsVo.getName());
-		vo.setDataSourceTypeName(dsVo.getTypeDescriptionString());
+		vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
 		vo.setDataSourceXid(dsVo.getXid());
 
 	}
@@ -1096,6 +1092,18 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		return list;
 	}
 	
+    /**
+     * Persist the vo or if it already exists update it
+     * @param vo to save
+     */
+    @Override
+	public void save(DataPointVO vo) {
+        if (vo.getId() == Common.NEW_ID) {
+            insert(vo);
+        } else {
+            update(vo);
+        }
+    }
 	@Override
 	public void saveFull(DataPointVO vo){
 		//TODO Eventually Fix this up by using the new AbstractDao for the query
@@ -1118,19 +1126,22 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			public List<DataPointVO> extractData(ResultSet rs)
 					throws SQLException, DataAccessException {
 				while (rs.next()){
-						try{
+					try{
 						DataPointVO row = rowMapper.mapRow(rs, rowNum);
 						//Should we filter the row?
 						if(!filters.filterRow(row, rowNum++))
 							results.add(row);
-						}catch (ShouldNeverHappenException e) {
-			                // If the module was removed but there are still records in the database, this exception will be
-			                // thrown. Check the inner exception to confirm.
-			                if (e.getCause() instanceof ObjectStreamException) {
-			                    // Yep. Log the occurrence and continue.
-			                    LOG.error("Data point with xid '" + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
-			           }
-			        }
+					}catch (ShouldNeverHappenException e) {
+		                // If the module was removed but there are still records in the database, this exception will be
+		                // thrown. Check the inner exception to confirm.
+		                if (e.getCause() instanceof ObjectStreamException) {
+		                    // Yep. Log the occurrence and continue.
+		                    LOG.error("Data point with xid '" + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
+		                }else{
+		                	LOG.error(e.getMessage(), e);
+		                }
+		                
+					}
 				}
 				return results;
 			

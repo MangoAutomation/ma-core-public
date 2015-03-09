@@ -21,7 +21,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
-import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -98,6 +97,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         return Common.databaseProxy.newPointValueDao().getPointValueBefore(vo.getId(), time);
     }
 
+    @Override
     public PointValueTime getPointValueAt(long time) {
         for (PointValueTime pvt : valueCache.getCacheContents()) {
             if (pvt.getTime() == time)
@@ -166,14 +166,19 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
      */
     @Override
     public void updatePointValue(PointValueTime newValue) {
-        savePointValue(newValue, null, true);
+        savePointValue(newValue, null, true, true);
     }
 
     @Override
     public void updatePointValue(PointValueTime newValue, boolean async) {
-        savePointValue(newValue, null, async);
+        savePointValue(newValue, null, async, true);
     }
+    
 
+    public void updatePointValue(PointValueTime newValue, boolean async, boolean saveToDatabase) {
+        savePointValue(newValue, null, async, saveToDatabase);
+    }
+    
     /**
      * Use this method to update a data point for reasons other than just data source update.
      * 
@@ -186,12 +191,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     @Override
     public void setPointValue(PointValueTime newValue, SetPointSource source) {
         if (source == null)
-            savePointValue(newValue, source, true);
+            savePointValue(newValue, source, true, true);
         else
-            savePointValue(newValue, source, false);
+            savePointValue(newValue, source, false, true);
     }
 
-    private void savePointValue(PointValueTime newValue, SetPointSource source, boolean async) {
+    private void savePointValue(PointValueTime newValue, SetPointSource source, boolean async, boolean saveToDatabase) {
         // Null values are not very nice, and since they don't have a specific meaning they are hereby ignored.
         if (newValue == null)
             return;
@@ -275,10 +280,20 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         default:
             logValue = false;
         }
-
+        
+        if(!saveToDatabase)
+        	logValue = false;
+        
         if (saveValue)
             valueCache.savePointValue(newValue, source, logValue, async);
 
+        // add annotation to newValue before firing events so event detectors can
+        // fetch the annotation
+        if (source != null) {
+            newValue = new AnnotatedPointValueTime(newValue.getValue(),
+                    newValue.getTime(), source.getSetPointSourceMessage());
+        }
+        
         // Ignore historical values.
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
@@ -590,15 +605,20 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         terminateIntervalLogging();
     }
 
-	/**
-	 * @param pvt
-	 * @param object
-	 * @param b
-	 * @param c
-	 */
+
+    /**
+     * Update the value in the cache with the option to log to DB.
+     * 
+     * This only updates an existing value
+     * 
+     * Caution, this bypasses the Logging Settings
+     * 
+     * @param newValue
+     * @param source
+     * @param logValue
+     * @param async
+     */
 	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
-
-		
 	}
 }

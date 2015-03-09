@@ -181,19 +181,27 @@ public class SpreadsheetEmporter {
 	        }
 	        rowNum += 1;
         }
-        
+ 
         // import the actual data rows
         for (; rowNum < numRows; rowNum++) {
             try {
             	//Import this row
-                sheetEmporter.importRow(sheet.getRow(rowNum));
+            	row  = sheet.getRow(rowNum);
+            	if(!isRowEmpty(row)){
+            		sheetEmporter.importRow(row);
+                    rowsProcessed++;
+            	}
             }
-            catch (SpreadsheetException e) {
-                e.setRowNum(rowNum);
-                errorMessages.addAll(e.getMessages());
+            catch (Exception e) {
+            	if(e instanceof SpreadsheetException){
+            		((SpreadsheetException)e).setRowNum(rowNum);
+            		errorMessages.addAll(((SpreadsheetException)e).getMessages());
+            	}else{
+            		errorMessages.add(new TranslatableMessage("common.default", e.getMessage() + " - row " + rowNum));
+            	}
                 rowErrors++;
             }
-            rowsProcessed++;
+
         }
     }
     
@@ -423,7 +431,7 @@ public class SpreadsheetEmporter {
      * @return
      * @throws SpreadsheetException
      */
-    private double readNumericCell(Integer rowNum, Cell cell) throws SpreadsheetException {
+    public double readNumericCell(Integer rowNum, Cell cell) throws SpreadsheetException {
         if (cell == null) {
             throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumberGeneric");
         }
@@ -451,7 +459,7 @@ public class SpreadsheetEmporter {
      * @return Date object
      * @throws SpreadsheetException
      */
-    private Date readDateCell(Integer rowNum, Cell cell) throws SpreadsheetException {
+    public Date readDateCell(Integer rowNum, Cell cell) throws SpreadsheetException {
         if (cell == null) {
             throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumberGeneric");
         }
@@ -526,6 +534,20 @@ public class SpreadsheetEmporter {
             errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.ioError"));
             return;
         }
+    }
+    
+    /**
+     * Helper function to check for blank Rows
+     * @param row
+     * @return
+     */
+    public boolean isRowEmpty(Row row) {
+        for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
+            Cell cell = row.getCell(c);
+            if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
+                return false;
+        }
+        return true;
     }
     
     public boolean hasErrors() {

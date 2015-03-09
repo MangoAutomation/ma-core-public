@@ -19,7 +19,6 @@ import org.springframework.jdbc.core.RowMapper;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
-import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -267,9 +266,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 			}
 			
 		});
-		
-		
-		
 		return filterMap;
 	}
 	
@@ -377,11 +373,8 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	 * @return
 	 */
 	public EventInstanceVO getHighestUnsilencedEvent(int userId, int level) {
-//        return ejt.queryForObject(SELECT_ALL
-//                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
         return ejt.queryForObject(SELECT_ALL
-                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
-
+                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
 	}
 
 	/**
@@ -421,9 +414,13 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return type;
     }
 
-    
-    
-    
-    
+	/**
+	 * @param lifeSafety
+	 * @return
+	 */
+	public int countUnsilencedEvents(int userId, int level) {
+		//return ejt.queryForInt("SELECT COUNT(*) FROM events AS evt left join userEvents ue on evt.id=ue.eventId where ue.silenced=? and evt.ackUserId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
+		return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
+	}    
     
 }

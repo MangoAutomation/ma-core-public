@@ -1,0 +1,3 @@
+These fragments in this directory are left here for legacy reference but are not used.
+
+See snippet/view/dataPoint for the currently used code.

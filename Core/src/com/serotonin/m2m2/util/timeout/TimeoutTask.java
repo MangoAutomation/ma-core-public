@@ -6,6 +6,9 @@ package com.serotonin.m2m2.util.timeout;
 
 import java.util.Date;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.OneTimeTrigger;
@@ -13,6 +16,9 @@ import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
 
 public class TimeoutTask extends TimerTask {
+	
+	private final Log LOG = LogFactory.getLog(TimeoutTask.class);
+	
     private final TimeoutClient client;
 
     public TimeoutTask(long delay, TimeoutClient client) {
@@ -44,6 +50,10 @@ public class TimeoutTask extends TimerTask {
     
     @Override
     public void run(long runtime) {
-        client.scheduleTimeout(runtime);
+    	try{
+    		client.scheduleTimeout(runtime);
+    	}catch(Exception e){
+    		LOG.error("Uncaught Task Exception", e);
+    	}
     }
 }

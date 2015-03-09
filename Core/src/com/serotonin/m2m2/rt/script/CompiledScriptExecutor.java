@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -79,16 +81,34 @@ public class CompiledScriptExecutor {
         ensureInit();
         return ((Compilable) ENGINE).compile(script);
     }
-
+    
+    /**
+     * Allow access to add in additional context for the Script
+     * @param script
+     * @param context
+     * @param additionalContext
+     * @param runtime
+     * @param dataTypeId
+     * @param timestamp
+     * @return
+     * @throws ScriptException
+     * @throws ResultTypeException
+     */
     public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
-            long runtime, int dataTypeId, long timestamp) throws ScriptException, ResultTypeException {
+           Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp) throws ScriptException, ResultTypeException {
         ensureInit();
 
         // Create the wrapper object context.
         ScriptEngine engine = script.getEngine();
         ScriptUtils.wrapperContext(engine, new WrapperContext(runtime));
-        Bindings engineScope = new SimpleBindings();
+        Bindings engineScope = engine.createBindings(); //new SimpleBindings();
 
+        if(additionalContext != null){
+        	Set<Entry<String,Object>> entries = additionalContext.entrySet();
+        	for(Entry<String,Object> entry: entries)
+        		engineScope.put(entry.getKey(), entry.getValue());
+        }
+                
         // Put the context variables into the engine with engine scope.
         for (String varName : context.keySet()) {
             IDataPointValueSource point = context.get(varName);
@@ -104,6 +124,9 @@ public class CompiledScriptExecutor {
             else
                 throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
         }
+        
+        //Add in Additional Time/Date Utility Object with Engine Scope
+        engineScope.put("DateTimeUtility", new DateTimeUtility());
 
         // Execute.
         Object result;
@@ -171,6 +194,25 @@ public class CompiledScriptExecutor {
                     DataTypes.getDataTypeMessage(dataTypeId)));
 
         return new PointValueTime(value, timestamp);
+    }
+    
+    
+
+    /**
+     * Wrapper for executing with additional context of only points
+     * @param script
+     * @param context
+     * @param runtime
+     * @param dataTypeId
+     * @param timestamp
+     * @return
+     * @throws ScriptException
+     * @throws ResultTypeException
+     */
+    public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
+            long runtime, int dataTypeId, long timestamp) throws ScriptException, ResultTypeException {
+        
+    	return execute(script, context, null, runtime, dataTypeId, timestamp);
     }
 
     public static ScriptException prettyScriptMessage(ScriptException e) {

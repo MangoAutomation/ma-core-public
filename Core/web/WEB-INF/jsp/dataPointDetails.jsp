@@ -295,7 +295,7 @@
                 <tr>
                   <td class="smallTitle"><fmt:message key="pointDetails.history"/></td>
                   <td id="historyTableAsof"></td>
-                  <td><sst:checkbox id="usePointCache" selectedValue="true"/>&nbsp<fmt:message key="pointDetails.useCache"/></td>
+                  <td><sst:checkbox id="usePointCache" selectedValue="true"/>&nbsp;<fmt:message key="pointDetails.useCache"/></td>
                   <td align="right">
                     <fmt:message key="pointDetails.show"/>
                     <input id="historyLimit" type="text" style="text-align:right;" value="${historyLimit}"
@@ -339,7 +339,7 @@
               <div class="borderDiv marB">
                 <table width="100%">
                   <tr>
-                    <td class="smallTitle"><fmt:message key="pointDetails.chart"/> &nbsp <tag:help id="chartServlet"/></td>
+                    <td class="smallTitle"><fmt:message key="pointDetails.chart"/> &nbsp; <tag:help id="chartServlet"/></td>
                     <td id="imageChartAsof"></td>
                     <td align="right"><tag:dateRange/></td>
                     <td>
@@ -507,7 +507,7 @@
 
 <script type="text/javascript">
   var pointList = [
-    <c:forEach items="${userPoints}" var="point">{id:${point.id},name:"${sst:dquotEncode(point.extendedName)}"},
-    </c:forEach>
+     <c:forEach items="${userPoints}" var="point" varStatus="status">
+      {id:${point.id},name:"${sst:dquotEncode(point.extendedName)}"}${status.last ? '' : ','}</c:forEach>
   ];
 </script>

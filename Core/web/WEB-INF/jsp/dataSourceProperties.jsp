@@ -51,8 +51,8 @@
       <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
       <jsp:include page="${incpage}"/>
       <!-- Import the Table and Scripts -->
-      <script language="javascript" type="text/javascript" src="/resources/stores.js"></script>
-      <script language="javascript" type="text/javascript" src="/resources/view/dataPoint/dataPoint.js"></script>
+      <tag:versionedJavascript src="/resources/stores.js"/>
+      <tag:versionedJavascript src="/resources/view/dataPoint/dataPoint.js"/>
       
       <div style="display: none;"><jsp:include page="/WEB-INF/snippet/view/dataPoint/dataPointTable.jsp"/></div>
       

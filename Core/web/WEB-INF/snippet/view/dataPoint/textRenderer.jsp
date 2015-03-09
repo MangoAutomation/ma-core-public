@@ -410,7 +410,7 @@
       //
       // Multistate list manipulation
       this.addMultistateValue = function(theKey, text, colour) {
-          if (theKey === null)
+          if (!theKey)
               theKey = $get("textRendererMultistateKey");
           var theNumericKey = parseInt(theKey);
           if (isNaN(theNumericKey)) {

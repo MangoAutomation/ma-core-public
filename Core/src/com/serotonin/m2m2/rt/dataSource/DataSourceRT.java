@@ -133,6 +133,13 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
         // No op by default. Override as required.
     }
 
+    /**
+     * 
+     * @param eventId
+     * @param time
+     * @param rtn - Can this event return to normal
+     * @param message
+     */
     protected void raiseEvent(int eventId, long time, boolean rtn, TranslatableMessage message) {
         message = new TranslatableMessage("event.ds", vo.getName(), message);
         DataSourceEventType type = getEventType(eventId);

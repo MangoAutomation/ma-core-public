@@ -14,3 +14,7 @@
 /release
 /save
 /mango.build.number
+/maven-target
+/databases
+/backup
+/dist/

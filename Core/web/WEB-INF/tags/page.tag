@@ -42,28 +42,31 @@
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
   <c:if test="${empty dojoURI}">
-<%-- 	<c:set var="dojoURI">http://ajax.googleapis.com/ajax/libs/dojo/1.9.1/</c:set> --%>
 	<c:set var="dojoURI">/resources/</c:set>
   </c:if>
   
   <!-- Style -->
-  <link rel="icon" href="<%= Common.applicationFavicon %>"/>
-  <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
-  <style type="text/css">
-    @import "${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css";
-    @import "${dojoURI}dojox/layout/resources/FloatingPane.css";
-    @import "${dojoURI}dijit/themes/${theme}/${theme}.css";
-    @import "${dojoURI}dojo/resources/dojo.css";
-  </style>  
-  <link href="/resources/common.css" type="text/css" rel="stylesheet"/>
+<%--   <link rel="icon" href="<%= Common.applicationFavicon %>"/> --%>
+  <tag:versionedIcon href="<%= Common.applicationFavicon %>"/>
+  
+  <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
+
+<%--     Changing these to versioned StyleSheets will require handling .png images as they are part of the theme --%>
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css"/>
+
+  <tag:versionedCss href="/resources/common.css"/>
+  
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
-    <link href="/${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
+    <tag:versionedCss href="/${modStyle}" /></c:forEach>
   <c:forEach items="${css}" var="modStyle">
-    <link href="${modStyle}" type="text/css" rel="stylesheet"/></c:forEach>
+    <tag:versionedCss href="${modStyle}"/></c:forEach>
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
-  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': false}, async: false, parseOnLoad: true, isDebug:false, extraLocale: ['${lang}']"></script>
+  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
   
   <tag:versionedJavascript  src="/dwr/engine.js" />
   <tag:versionedJavascript  src="/dwr/util.js" />

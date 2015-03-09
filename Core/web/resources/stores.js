@@ -12,6 +12,7 @@ function(CachedDwrStore,QueryResults) {
 if (typeof DataSourceDwr !== 'undefined') {
     stores.dataSource = new CachedDwrStore(DataSourceDwr, "DataSourceDwr");
     stores.dataSource.dwr.queryLocally = false;
+    stores.dataSource.dwr.or = false; //Use AND in queries
 }
 
 if (typeof DataPointDwr !== 'undefined') {
@@ -38,7 +39,7 @@ if (typeof EventInstanceDwr !== 'undefined') {
     stores.eventInstances = new CachedDwrStore(EventInstanceDwr, "EventInstanceDwr");
     stores.eventInstances.dwr.queryLocally = false;
     stores.eventInstances.dwr.or = false; //Use AND in Queries to combine filters
-
+    stores.eventInstances.dwr.dwrTimeout = 20000; //Default to use 20s timeout for larger Tables
 }
 
 

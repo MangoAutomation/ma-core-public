@@ -22,16 +22,16 @@ export MA_HOME
 
 case "$1" in
     start)
-        echo MA_HOME is $MA_HOME
+        echo MA_HOME is "$MA_HOME"
         export JPDA EXECJAVA JAVAOPTS SYSOUT SYSERR
-        source $MA_HOME/bin/ma-init.sh
-        $MA_HOME/bin/ma-start.sh &
+        source "$MA_HOME"/bin/ma-init.sh
+        "$MA_HOME"/bin/ma-start.sh &
         ;;
     restart)
-        source $MA_HOME/bin/ma-restart.sh
+        source "$MA_HOME"/bin/ma-restart.sh
         ;;
     stop)
-        source $MA_HOME/bin/ma-stop.sh
+        source "$MA_HOME"/bin/ma-stop.sh
         ;;
     *)
         echo "Usage: ma.sh {start|stop|restart}"

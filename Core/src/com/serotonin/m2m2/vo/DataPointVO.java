@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.measure.converter.UnitConverter;
@@ -149,7 +150,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	@JsonProperty
 	private double tolerance = 0;
 	@JsonProperty
-	private boolean purgeOverride = true;
+	private boolean purgeOverride = false;
 	private int purgeType = Common.TimePeriods.YEARS;
 	@JsonProperty
 	private int purgePeriod = 1;
@@ -157,7 +158,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	private TextRenderer textRenderer;
 	@JsonProperty
 	private ChartRenderer chartRenderer;
-	private List<PointEventDetectorVO> eventDetectors;
+	private List<PointEventDetectorVO> eventDetectors = new ArrayList<PointEventDetectorVO>();
 	private List<UserComment> comments;
 	@JsonProperty
 	private int defaultCacheSize = 1;
@@ -662,7 +663,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
     public void setUnit(Unit<?> unit) {
         this.unit = unit;
-        //this.unitString = UnitUtil.formatLocal(unit); //TODO this is dirty, ensures we have the String in the UI
     }
     
     public Unit<?> getRenderedUnit() {
@@ -671,7 +671,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 
     public void setRenderedUnit(Unit<?> renderedUnit) {
         this.renderedUnit = renderedUnit;
-        //this.renderedUnitString = UnitUtil.formatLocal(renderedUnit);
     }
     
     public boolean isUseIntegralUnit() {
@@ -807,7 +806,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 			copy.setSettable(settable);
 			copy.setTextRenderer(textRenderer);
 			copy.setTolerance(tolerance);
-			copy.setUnit(integralUnit);
+			copy.setUnit(unit);
 			copy.setUseIntegralUnit(useIntegralUnit);
 			copy.setUseRenderedUnit(useRenderedUnit);
 			copy.setXid(xid);
@@ -1233,6 +1232,34 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
             
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+		}else if (ver == 7) {
+			textRenderer = (TextRenderer) in.readObject();
+			chartRenderer = (ChartRenderer) in.readObject();
+			pointLocator = (PointLocatorVO) in.readObject();
+			discardLowLimit = in.readDouble();
+			discardHighLimit = in.readDouble();
+			chartColour = SerializationHelper.readSafeUTF(in);
+			plotType = in.readInt();
+			unit = (Unit<?>) in.readObject();
+			integralUnit = (Unit<?>) in.readObject();
+			renderedUnit = (Unit<?>) in.readObject();
+			useIntegralUnit = in.readBoolean();
+			useRenderedUnit = in.readBoolean();
+		}else if (ver == 8) {
+			textRenderer = (TextRenderer) in.readObject();
+			chartRenderer = (ChartRenderer) in.readObject();
+			pointLocator = (PointLocatorVO) in.readObject();
+			discardLowLimit = in.readDouble();
+			discardHighLimit = in.readDouble();
+			chartColour = SerializationHelper.readSafeUTF(in);
+			plotType = in.readInt();
+			unit = (Unit<?>) in.readObject();
+			integralUnit = (Unit<?>) in.readObject();
+			renderedUnit = (Unit<?>) in.readObject();
+			useIntegralUnit = in.readBoolean();
+			useRenderedUnit = in.readBoolean();
+			in.readDouble(); // error
+			in.readBoolean(); // error is a percentage
         }else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
@@ -1322,8 +1349,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements
 	public void jsonWrite(ObjectWriter writer) throws IOException,
 			JsonException {
 		super.jsonWrite(writer);
-//		writer.writeEntry("xid", xid);
-//		writer.writeEntry("name", name);
 		writer.writeEntry("loggingType",
 				LOGGING_TYPE_CODES.getCode(loggingType));
 		writer.writeEntry("intervalLoggingPeriodType",

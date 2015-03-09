@@ -80,10 +80,10 @@ public class Security
     /**
      * Perform the following replacements:<ul>
      * <li>&amp; to +</li>
-     * <li>&lt; to \\u2039 (\u2039) (‹)</li>
-     * <li>&gt; to \\u203A (\u203A) (›)</li>
-     * <li>&apos; to \\u2018 (\u2018) (‘)</li>
-     * <li>&quot; to \\u201C (\u201C) (“)</li>
+     * <li>&lt; to \\u2039 (\u2039) ()</li>
+     * <li>&gt; to \\u203A (\u203A) ()</li>
+     * <li>&apos; to \\u2018 (\u2018) ()</li>
+     * <li>&quot; to \\u201C (\u201C) ()</li>
      * </ul>
      * These replacements are useful when readibility is more important than
      * retaining the exact character string of the original.

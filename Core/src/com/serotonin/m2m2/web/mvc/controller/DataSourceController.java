@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
  * @author Terry Packer
  *
  */
+@Deprecated
 public class DataSourceController  extends ParameterizableViewController {
     private String errorViewName;
 

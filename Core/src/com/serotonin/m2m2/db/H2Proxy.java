@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,33 +20,69 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
+import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.util.DirectoryInfo;
+import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
 
 public class H2Proxy extends DatabaseProxy {
     private static final Log LOG = LogFactory.getLog(H2Proxy.class);
 
     private JdbcConnectionPool dataSource;
-
+    private Server web; //web UI
+    
     @Override
     protected void initializeImpl(String propertyPrefix) {
         LOG.info("Initializing H2 connection manager");
         JdbcDataSource jds = new JdbcDataSource();
         jds.setURL(getUrl(propertyPrefix));
         jds.setDescription("maDataSource");
+        
+        String user = Common.envProps.getString(propertyPrefix + "db.username", null);
+	    if(user != null){
+	    	jds.setUser(user);
+	    
+	        String password = Common.envProps.getString(propertyPrefix + "db.password", null);
+	        if(password != null)
+	        	jds.setPassword(password);
+        }
         dataSource = JdbcConnectionPool.create(jds);
         dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
+        
+    	if(Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)){
+    		LOG.info("Initializing H2 web server");
+    		String webArgs[] = new String[4];
+    		webArgs[0] = "-webPort";
+    		webArgs[1] = Common.envProps.getString(propertyPrefix + "db.web.port");
+    		webArgs[2] = "-ifExists";
+    		webArgs[3] = "-webAllowOthers";
+    		try {
+				this.web = Server.createWebServer(webArgs);
+	    		this.web.start();
+			} catch (SQLException e) {
+				LOG.error(e);
+			}
+
+    	}
+        
+        
     }
 
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
-        url += ";DB_CLOSE_ON_EXIT=FALSE";
+        if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
+        	url += ";DB_CLOSE_ON_EXIT=FALSE";
+        }
+        if (!url.contains(";MV_STORE=")) {
+        	url += ";MV_STORE=FALSE";
+        }
         return url;
     }
 
@@ -165,18 +202,47 @@ public class H2Proxy extends DatabaseProxy {
 
     @Override
     public File getDataDirectory() {
-        return null;
+    	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(this.getDataSource());
+        String dataDir = ejt.queryForObject("call DATABASE_PATH()", new Object[]{}, String.class, null);
+        if(dataDir == null)
+        	return null;
+    	return new File(dataDir);
+    	
+    }
+    
+    @Override
+    public Long getDatabaseSizeInBytes(){
+    	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(this.getDataSource());
+        String dataDir = ejt.queryForObject("call DATABASE_PATH()", new Object[]{}, String.class, null);
+        if(dataDir == null){
+        	return null;
+        }
+        File dbData = new File(dataDir + ".h2.db"); //Good until we change to MVStore
+    	if(dbData.exists()){
+    		DirectoryInfo dbInfo = DirectoryUtils.getSize(dbData);
+    		return dbInfo.getSize();
+    	}else
+    		return null;
     }
 
     @Override
     public void terminateImpl() {
         if (dataSource != null)
             dataSource.dispose();
+        if(web != null){
+        	if(web.isRunning(true)){
+        		web.stop();
+        		web.shutdown();
+        	}
+        }
     }
 
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
-        return ejt.queryForInt("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
-                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'") > 0;
+    	return ejt.queryForObject("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
+                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", new Object[]{}, Integer.class, 0) > 0;
     }
+    
 }
