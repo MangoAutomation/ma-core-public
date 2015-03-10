@@ -53,7 +53,7 @@ public class Upgrade10 extends DBUpgrade {
             "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);" //
     };
     private final String[] mysqlScript = { //
-    		"CREATE TABLE templates { id int NOT NULL auto_increment, xid varchar(50) NOT NULL, name VARCHAR(255), templateType VARCHAR(50), readPermission VARCHAR(255), setPermission VARCHAR(255), data longblob NOT NULL, PRIMARY KEY (id) ) engine=InnoDB;", //
+    		"CREATE TABLE templates ( id int NOT NULL auto_increment, xid varchar(50) NOT NULL, name VARCHAR(255), templateType VARCHAR(50), readPermission VARCHAR(255), setPermission VARCHAR(255), data longblob NOT NULL, PRIMARY KEY (id) ) engine=InnoDB;", //
             "ALTER TABLE templates ADD CONSTRAINT templatesUn1 UNIQUE (xid);", //
             "ALTER TABLE dataPoints ADD COLUMN templateId INT;", //
             "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);" //
