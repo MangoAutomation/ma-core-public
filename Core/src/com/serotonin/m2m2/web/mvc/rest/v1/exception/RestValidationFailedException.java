@@ -11,7 +11,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.RestValidationResponseModel;
  * @author Terry Packer
  *
  */
-public class RestValidationFailedException extends RestException{
+public class RestValidationFailedException extends RestProcessResultException{
 
 	
 	private RestValidationResponseModel model;

@@ -13,15 +13,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.view.text.PlainRenderer;
-import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.NoSupportingModelException;
 
 /**
  * Class that handles the mapping between Pojo classes their children and CSV
@@ -59,7 +54,7 @@ class CSVPojoHandler<T> {
 		return definition != null;
 	}
 	
-	public void initialize(T instance){
+	public void initialize(T instance) throws NoSupportingModelException{
 		this.instance = instance;
 		this.clazz = (Class<T>) instance.getClass();
 		//TODO Need to Create a Registry in the ModuleRegsitry to create new models for Types...
@@ -72,7 +67,7 @@ class CSVPojoHandler<T> {
 		buildMapping(instance);
 	}
 	
-	public void initialize(String[] line, T instance){
+	public void initialize(String[] line, T instance) throws ModelNotFoundException, NoSupportingModelException{
 		this.clazz = (Class<T>) instance.getClass();
 		this.definition = findModelDefinition(this.clazz);
 		
@@ -85,26 +80,28 @@ class CSVPojoHandler<T> {
 	
 	/**
 	 * @return
+	 * @throws NoSupportingModelException 
 	 */
-	public ModelDefinition findModelDefinition(Class<T> clazz) {
+	public ModelDefinition findModelDefinition(Class<T> clazz) throws NoSupportingModelException {
 		List<ModelDefinition> definitions = ModuleRegistry.getDefinitions(ModelDefinition.class);
 		for(ModelDefinition definition : definitions){
 			if(definition.supportsClass(clazz))
 				return definition;
 		}
-		return null; //TODO Somehow notify Mango 
+		throw new NoSupportingModelException(clazz);
 	}
 
 	/**
 	 * @return
+	 * @throws ModelNotFoundException 
 	 */
-	public ModelDefinition findModelDefinition(String typeName) {
+	public ModelDefinition findModelDefinition(String typeName) throws ModelNotFoundException {
 		List<ModelDefinition> definitions = ModuleRegistry.getDefinitions(ModelDefinition.class);
 		for(ModelDefinition definition : definitions){
 			if(definition.getModelTypeName().equalsIgnoreCase(typeName))
 				return definition;
 		}
-		return null; //TODO Somehow notify Mango 
+		throw new ModelNotFoundException(typeName);
 	}
 
 	
@@ -144,7 +141,7 @@ class CSVPojoHandler<T> {
 //		return headers;
 	}
 
-	public void setupModelDefinition(Class<T> clazz){
+	public void setupModelDefinition(Class<T> clazz) throws NoSupportingModelException{
 		this.clazz = clazz;
 		this.definition = findModelDefinition(this.clazz);
 	}
@@ -258,7 +255,7 @@ class CSVPojoHandler<T> {
 
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void buildMapping(String[] line) {
+	private void buildMapping(String[] line) throws ModelNotFoundException, NoSupportingModelException {
 		for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
 			if (c.getAnnotation(CSVEntity.class) != null) {
 				for (Field field : c.getDeclaredFields()) {
@@ -387,12 +384,16 @@ class CSVPojoHandler<T> {
 								
 								//Check Runtime Type for return value
 								if(csvEntity.derived()){
-									ModelDefinition definition = this.findModelDefinition(line[method.getGetterAnnotation().order()]);
-									handler.initialize(line, definition.createModel());
-									editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
-									CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
-									handlers.add(methodHandler);
-									mapping.put(csvColumnGetter.header(), methodHandler);
+									ModelDefinition definition = null;
+									if(line.length > method.getGetterAnnotation().order())
+										definition = this.findModelDefinition(line[method.getGetterAnnotation().order()]);
+									if(definition != null){
+										handler.initialize(line, definition.createModel());
+										editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
+										CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
+										handlers.add(methodHandler);
+										mapping.put(csvColumnGetter.header(), methodHandler);
+									}
 								}else{
 									if(!csvEntity.typeName().equals("")){
 										ModelDefinition definition = this.findModelDefinition(csvEntity.typeName());
@@ -436,9 +437,10 @@ class CSVPojoHandler<T> {
 	 *
 	 * @param clazz
 	 *            The pojo class
+	 * @throws NoSupportingModelException 
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void buildMapping(T instance) {
+	private void buildMapping(T instance) throws NoSupportingModelException {
 		for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
 			if (c.getAnnotation(CSVEntity.class) != null) {
 				for (Field field : c.getDeclaredFields()) {
@@ -572,16 +574,19 @@ class CSVPojoHandler<T> {
 							if (csvEntity != null) {
 								CSVPojoHandler handler = new CSVPojoHandler();
 								PojoChildMethod child = new PojoChildMethod(csvColumnGetter.header(), order, method.getGetter(), method.getSetter(), handler, csvEntity);
-								handler.initialize(child.getValue(instance));
-								children.add(child);
-								//Check Runtime Type for return value
-								Object o = child.getValue(instance);
-								csvEntity = o.getClass().getAnnotation(CSVEntity.class);
-								if(!csvEntity.typeName().equals("")){
-									editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
-									CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
-									handlers.add(methodHandler);
-									mapping.put(csvColumnGetter.header(), methodHandler);
+								Object value = child.getValue(instance);
+								if(value != null){
+									//We can't do anything with a null object anyway
+									handler.initialize(value);
+									children.add(child);
+									//Check Runtime Type for return value
+									csvEntity = value.getClass().getAnnotation(CSVEntity.class);
+									if(!csvEntity.typeName().equals("")){
+										editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
+										CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
+										handlers.add(methodHandler);
+										mapping.put(csvColumnGetter.header(), methodHandler);
+									}
 								}
 
 							} else {

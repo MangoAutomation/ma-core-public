@@ -13,9 +13,9 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
 
@@ -47,22 +47,20 @@ public class PointLocatorModelDeserializer extends StdDeserializer<PointLocatorM
 			JsonProcessingException {
 		ObjectMapper mapper = (ObjectMapper) jp.getCodec();  
 		JsonNode tree = jp.readValueAsTree();
-	    //ObjectNode root = (ObjectNode) mapper.readTree(jp);
 	    ModelDefinition definition = findModelDefinition(tree.get("type").asText());
-	    
 	    return (PointLocatorModel<?>) mapper.treeToValue(tree, definition.createModel().getClass());
 	}
 
 	/**
 	 * @return
 	 */
-	public ModelDefinition findModelDefinition(String typeName) {
+	public ModelDefinition findModelDefinition(String typeName) throws ModelNotFoundException{
 		List<ModelDefinition> definitions = ModuleRegistry.getDefinitions(ModelDefinition.class);
 		for(ModelDefinition definition : definitions){
 			if(definition.getModelTypeName().equalsIgnoreCase(typeName))
 				return definition;
 		}
-		return null; //TODO Somehow notify Mango 
+		throw new ModelNotFoundException(typeName);
 	}
 
 

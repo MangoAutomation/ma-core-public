@@ -841,13 +841,18 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         if (StringValidation.isLengthGreaterThan(deviceName, 255))
             response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 
+        if(pointLocator != null){
+            if (loggingType == DataPointVO.LoggingTypes.ON_CHANGE && pointLocator.getDataTypeId() == DataTypes.NUMERIC) {
+                if (tolerance < 0)
+                    response.addContextualMessage("tolerance", "validate.cannotBeNegative");
+            }
+        }else{
+        	response.addContextualMessage("pointLocator", "validate.required");
+        	return;
+        }
+        
         if (!LOGGING_TYPE_CODES.isValidId(loggingType))
             response.addContextualMessage("loggingType", "validate.invalidValue");
-        if (loggingType == DataPointVO.LoggingTypes.ON_CHANGE && pointLocator.getDataTypeId() == DataTypes.NUMERIC) {
-            if (tolerance < 0)
-                response.addContextualMessage("tolerance", "validate.cannotBeNegative");
-        }
-
         if (!Common.TIME_PERIOD_CODES.isValidId(intervalLoggingPeriodType))
             response.addContextualMessage("intervalLoggingPeriodType", "validate.invalidValue");
         if (intervalLoggingPeriod <= 0)
@@ -904,11 +909,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             if (e instanceof IllegalArgumentException) {
                 response.addContextualMessage("unit", "validate.unitInvalid", ((IllegalArgumentException) e).getCause()
                         .getMessage());
-            }
-            else {
+            }else{
                 response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
             }
-
         }
 
         try {

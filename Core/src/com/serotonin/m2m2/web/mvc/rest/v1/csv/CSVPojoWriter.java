@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.NoSupportingModelException;
+
 import au.com.bytecode.opencsv.CSVWriter;
 
 /**
@@ -57,8 +59,9 @@ public class CSVPojoWriter<T> implements Closeable {
     * The writer will make sure that the CSV file starts with a header
     *
     * @param pojo The pojo to write
+ * @throws NoSupportingModelException 
     */
-   public void writeNext(T pojo) {
+   public void writeNext(T pojo) throws NoSupportingModelException {
 	  if(!pojoHandler.isInitialized() && pojo != null){
 		  pojoHandler.initialize(pojo);
 		  this.headers = pojoHandler.getHeaders().toArray(new String[0]);
@@ -87,8 +90,9 @@ public class CSVPojoWriter<T> implements Closeable {
     * The writer will make sure the file starts with a header.
     *
     * @param list The list of pojos to write
+    * @throws NoSupportingModelException 
     */
-   public void writeAll(List<T> list) {
+   public void writeAll(List<T> list) throws NoSupportingModelException {
 	   if(list.size() == 0)
 		   writeNext(null);
 	   else{

@@ -10,7 +10,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
  * @author Terry Packer
  *
  */
-public class RestException extends Exception {
+public class RestProcessResultException extends BaseRestException {
 
 	/**
 	 * 
@@ -19,7 +19,7 @@ public class RestException extends Exception {
 
 	protected RestProcessResult<?> result;
 	
-	public RestException(RestProcessResult<?> result){
+	public RestProcessResultException(RestProcessResult<?> result){
 		this.result = result;
 	}
 	
