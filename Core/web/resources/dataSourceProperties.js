@@ -9,6 +9,7 @@
  dojo.require("dojo.dom-construct");
  dojo.require("dijit.layout.TabContainer");
  dojo.require("dijit.layout.ContentPane");
+ dojo.require("dojo.request.xhr");
  
  
  var currentPoint;
@@ -541,6 +542,21 @@ function deletePoint() {
          $set("exportData", json);
          exportDialog.show();
      });
+ }
+ 
+ /**
+  * Export the currently loaded datasource as CSV
+  */
+ function exportDataSourcePointsCSV(){
+	 //Check the dataSources object to see if we have a saved one
+	 if(dataSources.currentId == -1){
+		 alert('Please Save Data Source First');
+		 return;
+	 }
+	 var xid = $get("dataSource.xid");
+	 //TODO Check for empty or null
+	 window.open("/rest/v1/dataPoints/dataSource/" + xid + ".csv", '_dataSourceCsv');
+	 return;
  }
  
  function exportDataPoint() {
