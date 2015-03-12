@@ -1128,7 +1128,9 @@
       <tr><td colspan="2" id="chartSettingsMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
-  
+  <%-- Include the Data Point Template Configuration When ready
+  <jsp:include page="/WEB-INF/jsp/dataPointTemplateManagement.jsp"/>
+  --%>
   
   
 </tag:page>

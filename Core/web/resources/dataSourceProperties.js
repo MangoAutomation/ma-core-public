@@ -547,16 +547,22 @@ function deletePoint() {
  /**
   * Export the currently loaded datasource as CSV
   */
- function exportDataSourcePointsCSV(){
+ function exportDataSourcePointsCSV(dsXid){
 	 //Check the dataSources object to see if we have a saved one
-	 if(dataSources.currentId == -1){
-		 alert('Please Save Data Source First');
+	 if(dsXid === null){
 		 return;
 	 }
-	 var xid = $get("dataSource.xid");
-	 //TODO Check for empty or null
-	 window.open("/rest/v1/dataPoints/dataSource/" + xid + ".csv", '_dataSourceCsv');
+	 window.open("/rest/v1/dataPoints/dataSource/" + dsXid + ".csv", '_self');
 	 return;
+ }
+ 
+ function exportDataSourcePointsFromEditingSource(){
+	 var dsId = dataSources.currentId;
+	 if(dsId == -1){ 
+		 alert('Please Save Data Source First'); 
+		 return; 
+	  }
+	 exportDataSourcePointsCSV($get('dataSource.xid'));
  }
  
  function exportDataPoint() {

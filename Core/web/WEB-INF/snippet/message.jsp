@@ -119,7 +119,9 @@ String[] mangoMessageKeys = {
 	    "pointEdit.logging.type.never",
 	    "pointEdit.logging.type.interval",
 	    "pointEdit.logging.type.tsChange",
-	    
+      
+	    "pointEdit.template.templateName",  
+      
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",
         "table.confirmDelete.AllDataPoints",
@@ -130,6 +132,7 @@ String[] mangoMessageKeys = {
         "table.copy",
         "table.toggle",
         "table.export",
+        "table.exportCSV",
         "table.noData",
         "table.missingKey",
         "table.error.wrongId",

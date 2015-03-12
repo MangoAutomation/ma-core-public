@@ -31,7 +31,7 @@
         <fmt:message key="pointEdit.template.cancelEditPropertyTemplate" />
       </button>
       <button type="button" id='updateDataPointTemplateButton'
-        onClick="showUpdateTemplateDialog();" style="display:none">
+        onClick="getPointsUpdatedByTemplate();" style="display:none">
         <fmt:message key="pointEdit.template.updatePropertyTemplate" />
       </button>
       <button type="button" id='saveNewDataPointTemplateButton' style='display:none'
@@ -61,17 +61,31 @@
 </div>
 <%-- Update Dialog --%>
 <div data-dojo-type="dijit.Dialog" id="updateTemplateDialog"
-  title="<fmt:message key='template.update'/>" style="width: 300px">
+  title="<fmt:message key='template.update'/>" style="width: 400px">
   <div class="dijitDialogPaneContentArea">
     <span style="color:red">
       <fmt:message key="pointEdit.template.updateWarning" />
     </span>
     <br>
-    <!-- INSERT TABLE OF POINTS TO UPDATE HERE -->
-    <label for='updateTemplateName'>
-        <fmt:message key="common.name" />
-    </label>
-    <input id='updateTemplateName'type='text' />
+  <%-- Points To Update Table --%> 
+   <div style="max-height: 200px; overflow-y: scroll">
+    <table style="margin: 5px auto">
+      <thead>
+        <tr class="rowHeader">
+          <td><fmt:message key="common.xid"/></td>
+          <td><fmt:message key="common.name"/></td>
+          <td><fmt:message key="dsEdit.deviceName"/></td>
+        </tr>
+      </thead>
+      <tbody id="templateChangeAffectsPointsList"></tbody>
+    </table>
+    </div>
+    <div style="width: 200px; margin: 5px auto">
+      <label for='updateTemplateName'>
+        <fmt:message key="pointEdit.template.templateName" />
+      </label>
+      <input id='updateTemplateName'type='text' />
+    </div>
   </div>
   <div class="dijitDialogPaneActionBar">
     <button id='confirmUpdateDataPointTemplateButton' onClick='updateDataPointTemplate()'>
@@ -290,6 +304,40 @@
 		if (dataPointTemplatePicker.item != null)
 			loadFromDataPointTemplate(dataPointTemplatePicker.item);
 		disableDataPointInputs();
+	}
+	
+	/*
+	 * Get a list of points updated by the template if 
+	 * they were to save it.
+	 */
+	function getPointsUpdatedByTemplate(){
+		var template = dataPointTemplatePicker.item;
+		//Check to see that something is selected
+		if (template != null) {
+			TemplateDwr.findPointsWithTemplate(template, function(response){
+			  //Load the template List
+              dwr.util.removeAllRows("templateChangeAffectsPointsList");
+              dwr.util.addRows("templateChangeAffectsPointsList", response.data.dataPoints, [
+                      function(t) { return t.xid; },
+                      function(t) { return t.name; },
+                      function(t) { return t.deviceName; }
+                  ],
+                  {
+                      rowCreator: function(options) {
+                          var tr = document.createElement("tr");
+                          tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
+                          return tr;
+                      },
+                      cellCreator: function(options) {
+                          var td = document.createElement("td");
+                          td.vAlign = "top";
+                          return td;
+                      }
+                  }
+              );				
+				showUpdateTemplateDialog();
+			});
+		}
 	}
 	
 	/**

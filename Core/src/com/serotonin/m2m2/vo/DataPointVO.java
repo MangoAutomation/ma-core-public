@@ -202,6 +202,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     private String dataSourceTypeName;
     private String dataSourceName;
+    private String templateName;
 
     //
     //
@@ -779,7 +780,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setLoggingIntervalString(String type) {
         // No Op
     }
-
+    
+    public String getTemplateName(){
+    	return this.templateName;
+    }
+    public void setTemplateName(String name){
+    	this.templateName = name;
+    }
     /* ############################## */
 
     @Override

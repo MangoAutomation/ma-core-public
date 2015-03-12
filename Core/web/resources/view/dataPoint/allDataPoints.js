@@ -41,7 +41,7 @@ allDataPoints = new StoreView({
               {attribute: "dataTypeString", descending: true},
               {attribute: "loggingTypeString", descending: true},
               {attribute: "loggingIntervalString", descending: true},
-              {attribute: "tolerance", descending: true},
+              {attribute: "templateName", descending: true},
               
               ],
     
@@ -351,7 +351,7 @@ allDataPoints = new StoreView({
     		},
     	 },
     	 
-      	tolerance: {
+      	templateName: {
     		sortable: false,
     		renderHeaderCell: function(th){
 				var div = domConstruct.create("div");
@@ -361,15 +361,15 @@ allDataPoints = new StoreView({
 					style: "width: 10em",
 					intermediateChanges: true,
 				});
-				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['pointEdit.logging.tolerance'],});
+				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['pointEdit.template.templateName'],});
 				domConstruct.place(label,div);
 				input.placeAt(div);
 				input.watch("value",function(name,oldValue,value){
 					
 					if(value == '')
-						delete allDataPoints.filter['tolerance'];
+						delete allDataPoints.filter['templateName'];
 					else
-						allDataPoints.filter['tolerance'] = new RegExp("^.*"+value+".*$");
+						allDataPoints.filter['templateName'] = new RegExp("^.*"+value+".*$");
 					
 					allDataPoints.grid.set('query',allDataPoints.filter);
 				});
@@ -378,7 +378,7 @@ allDataPoints = new StoreView({
 					
 					//Flip through the list to see if we already have an order?
 					for(var i =0; i<allDataPoints.sortMap.length; i++){
-						if(allDataPoints.sortMap[i].attribute === "tolerance"){
+						if(allDataPoints.sortMap[i].attribute === "templateName"){
 							allDataPoints.sortMap[i].descending = !allDataPoints.sortMap[i].descending;
 							break;
 						}

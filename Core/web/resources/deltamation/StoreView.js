@@ -114,8 +114,8 @@ return declare("deltamation.StoreView", null, {
             this.postGridInit();
     },
     
-    imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue'},
-    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run'},
+    imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', 'exportCSV': 'csv'},
+    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run', 'exportCSV': 'exportCSV'},
     
     renderButtonsHeader: function(th){
     	
@@ -146,7 +146,13 @@ return declare("deltamation.StoreView", null, {
             if (src.substring(0,1) !== '/')
                 src = '/images/' + src + '.png';
             
-            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+           
+            var action = "";
+            if(button == 'exportCSV'){
+            	action = this.varName + '.' + this.fnMap[button] + '("' + object.xid + '");';
+            }else{
+            	action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+            }
             
             var img = put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
         }
@@ -364,6 +370,10 @@ return declare("deltamation.StoreView", null, {
         if (id <= 0)
             return;
         this.editStore.dwr.dwr.run(id);
+    },
+    
+    exportCSV: function(xid){
+    	//No Op must be overriden
     },
     
     /**

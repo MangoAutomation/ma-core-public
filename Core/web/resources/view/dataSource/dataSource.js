@@ -182,36 +182,9 @@ dataSources = new StoreView({
 		},
 		}
     },
-    
-    /**
-     * Not using this because filtering on Enable/Disable would require accessing the blob from the db.
-     */
-//    renderButtonsHeader: function(th){
-//		var div = domConstruct.create("div");
-//		
-//		//Create sort link
-//		var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
-//		on(sortLink,'click',function(event){
-//			
-//			//Flip through the list to see if we already have an order?
-//			for(var i =0; i<dataSources.sortMap.length; i++){
-//				if(dataSources.sortMap[i].attribute === "enabled"){
-//					dataSources.sortMap[i].descending = !dataSources.sortMap[i].descending;
-//					break;
-//				}
-//			}
-//			var options = {};
-//			options.sort = [{attribute: dataSources.sortMap[i].attribute, descending: dataSources.sortMap[i].descending}];
-//			dataSources.grid.set("query",dataSources.filters,options);
-//		});
-//		domConstruct.place(sortLink,div);
-//		return div;
-//    },
-    
-    buttons: ['toggle','edit','delete','copy','export'],
-    
-    
-    
+
+    buttons: ['toggle','edit','delete','copy','export','exportCSV'],
+ 
     preInit: function() {
     },
     
@@ -391,6 +364,13 @@ dataSources = new StoreView({
 
     },
     
+    exportCSV: function(dsXid){
+	   	 if(dsXid === null){
+	   		 return;
+	   	 }
+	   	 window.open("/rest/v1/dataPoints/dataSource/" + dsXid + ".csv", '_self');
+	   	 return;
+    }
     
         
 });

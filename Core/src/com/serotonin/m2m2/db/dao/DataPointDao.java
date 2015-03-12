@@ -48,6 +48,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
+import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -70,8 +71,9 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
      * @param typeName
      */
     public DataPointDao() {
-        super(AuditEventType.TYPE_DATA_POINT, "dp", new String[] { "ds.name", "ds.xid", "ds.dataSourceType" },
-                "join dataSources ds on ds.id = dp.dataSourceId");
+        super(AuditEventType.TYPE_DATA_POINT, "dp", 
+        		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
+                "join dataSources ds on ds.id = dp.dataSourceId join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
 
     }
 
@@ -899,7 +901,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 return lhs.getLoggingIntervalString().compareTo(rhs.getLoggingIntervalString());
             }
         });
-
         return comparatorMap;
     }
 
@@ -953,7 +954,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
             }
         });
-
         return filterMap;
     }
 
@@ -968,6 +968,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         map.put("dataSourceName", "ds.name");
         map.put("dataSourceTypeName", "ds.dataSourceType");
         map.put("dataSourceXid", "ds.xid");
+        map.put("templateName", "template.name");
         return map;
     }
 
@@ -1015,10 +1016,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             if(rs.wasNull())
             	dp.setTemplateId(null);
 
-            // Data source information from Join
+            // Data source information from Extra Joins set in Constructor
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
+            dp.setTemplateName(rs.getString(++i));
 
             dp.ensureUnitsCorrect();
             return dp;
@@ -1033,6 +1035,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         this.loadDataSource(vo);
         this.setEventDetectors(vo);
         this.setPointComments(vo);
+        this.setTemplateName(vo);
         return vo;
     }
 
@@ -1060,10 +1063,18 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             this.loadDataSource(vo);
             this.setEventDetectors(vo);
             this.setPointComments(vo);
+            this.setTemplateName(vo);
         }
         return list;
     }
 
+    public void setTemplateName(DataPointVO vo){
+    	if(vo.getTemplateId() > 0){
+	    	BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
+	    	if(template != null)
+	    		vo.setTemplateName(template.getName());
+    	}
+    }
     /**
      * Persist the vo or if it already exists update it
      * 
@@ -1137,5 +1148,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		setRelationalData(dps); //We will need this to restart the points after updating them
 		return dps;
 	}
+
 
 }

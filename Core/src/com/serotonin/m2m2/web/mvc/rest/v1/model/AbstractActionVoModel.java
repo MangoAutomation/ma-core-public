@@ -31,12 +31,12 @@ public abstract class AbstractActionVoModel<T extends AbstractActionVO<T>> exten
 		this.data = data;
 	}
 
-	@CSVColumnGetter(order=2, header="enabled")
+	@CSVColumnGetter(order=3, header="enabled")
 	@JsonGetter(value="enabled")
 	public boolean isEnabled(){
 		return this.data.isEnabled();
 	}
-	@CSVColumnSetter(order=2, header="enabled")
+	@CSVColumnSetter(order=3, header="enabled")
 	@JsonSetter(value="enabled")
 	public void setEnabled(boolean enabled){
 		this.data.setEnabled(enabled);

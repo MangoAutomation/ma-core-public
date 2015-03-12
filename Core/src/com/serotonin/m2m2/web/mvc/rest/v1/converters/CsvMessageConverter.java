@@ -20,8 +20,11 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.ModelDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoReader;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
@@ -56,7 +59,9 @@ public class CsvMessageConverter extends AbstractHttpMessageConverter<List<Abstr
 	protected List<AbstractRestModel<?>> readInternal(Class<? extends List<AbstractRestModel<?>>> clazz,
 			HttpInputMessage inputMessage) throws IOException,
 			HttpMessageNotReadableException {
-		CSVPojoReader in = new CSVPojoReader(clazz, new CSVReader(new InputStreamReader(inputMessage.getBody()),separator, quote));
+		
+		
+		CSVPojoReader in = new CSVPojoReader(new CSVReader(new InputStreamReader(inputMessage.getBody()),separator, quote));
 		List records = in.readAll();
 		in.close();
 		return records;

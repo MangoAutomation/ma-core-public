@@ -26,7 +26,7 @@
               <m2m2:moduleExists name="mangoApi">
                 <tag:img png="emport" title="emport.export" onclick="exportDataSource()"/>
               </m2m2:moduleExists>
-              <tag:img png="csv" title="emport.exportDataPointsAsCsv" onclick="exportDataSourcePointsCSV()"/>
+              <tag:img png="csv" title="emport.exportDataPointsAsCsv" onclick="exportDataSourcePointsFromEditingSource();"/>
             </td>
           </tr>
         </table>

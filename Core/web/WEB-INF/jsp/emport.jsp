@@ -9,6 +9,37 @@
 <c:set var="definitions" value="<%= ModuleRegistry.getDefinitions(EmportDefinition.class) %>"/>
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="EmportDwr" onload="init">
   <script type="text/javascript">
+  var doCsvImport;
+  
+  require(['dojo/json', 'dojo/_base/xhr', "dojo/request/xhr", "dojo/domReady!"], 
+	        function(JSON, baseXhr, xhr){
+	    doCsvImport = function () {
+	    	
+	        setDisabled("importCsvBtn", true);
+	        hideGenericMessages("importCsvMessages");
+	        $set("alternateCsvMessage", "<fmt:message key="emport.importProgress"/>");
+			
+	        var emportData = $get("emportData");
+	        xhr("/rest/v1/dataPoints.csv", {
+					method: "PUT",
+	        		data: emportData,
+	        		headers: {'Content-Type' : 'text/csv'},
+	        		handleAs: "text",
+	        	}
+	        	).then(function(data){
+	        		alert('Done' + data);
+	        	}, function(err){
+	        		alert('Error' + err);
+	        	}, function(evt){
+	        		alert('Event ' + evt)
+	        	});
+	        
+	        //When done
+	        setDisabled("importCsvBtn", false);
+	    };
+  });
+  
+  
     function init() {
         setDisabled("cancelBtn", true);
         importUpdate();
@@ -40,6 +71,9 @@
             }
         });
     }
+    
+
+    
     
     function importUpdate() {
         EmportDwr.importUpdate(function(response) {
@@ -144,6 +178,22 @@
       <tr><td id="alternateMessage"></td></tr>
     </table>
   </div>
+  
+  <div class="borderDiv marB" style="float:left;">
+    <table width="100%">
+      <tr><td><span class="smallTitle"><fmt:message key="emport.importDataPointsFromCsv"/></span></td></tr>
+      <tr>
+        <td>
+          <fmt:message key="emport.importInstruction"/>
+          <input id="importCsvBtn" type="button" value="<fmt:message key="emport.import"/>" onclick="doCsvImport()"/>
+          <input id="cancelCsvBtn" type="button" value="<fmt:message key="common.cancel"/>" onclick="importCsvCancel()" disabled="disabled"/>
+        </td>
+      </tr>
+      <tbody id="importCsvMessages"></tbody>
+      <tr><td id="alternateCsvMessage"></td></tr>
+    </table>
+  </div>
+  
   
   <div style="clear:both;">
     <span class="formLabelRequired"><fmt:message key="emport.data"/></span><br/>

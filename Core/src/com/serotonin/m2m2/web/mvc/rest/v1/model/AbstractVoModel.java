@@ -46,23 +46,33 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		this.messages = new HashMap<String,String>();
 
 	}
-	@CSVColumnGetter(order=0, header="xid")
+	
+	//For CSV Models to define the type
+	@CSVColumnGetter(order=0, header="modelType")
+	public abstract String getModelType();
+	
+	@CSVColumnSetter(order=0, header="modelType")
+	public void setModelType(String typeName){ }
+	
+	
+	
+	@CSVColumnGetter(order=1, header="xid")
 	@JsonGetter("xid")
 	public String getXid(){
 		return this.data.getXid();
 	}
-	@CSVColumnSetter(order=0, header="xid")
+	@CSVColumnSetter(order=1, header="xid")
 	@JsonSetter("xid")
 	public void setXid(String xid){
 		this.data.setXid(xid);
 	}
 	
-	@CSVColumnGetter(order=1, header="name")
+	@CSVColumnGetter(order=2, header="name")
 	@JsonGetter("name")
 	public String getName(){
 		return this.data.getName();
 	}
-	@CSVColumnSetter(order=1, header="name")
+	@CSVColumnSetter(order=2, header="name")
 	@JsonSetter("name")
 	public void setName(String name){
 		this.data.setName(name);

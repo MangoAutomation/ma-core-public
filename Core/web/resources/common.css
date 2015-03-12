@@ -586,6 +586,10 @@ div.dgridLoadNoData {
 }
 
 /* For extra button */
+#dataSourceTable .dgrid-column-buttons{
+	width: 120px;
+}
+/* For extra button */
 #allPointsTableDiv .dgrid-column-buttons{
 	width: 120px;
 }
