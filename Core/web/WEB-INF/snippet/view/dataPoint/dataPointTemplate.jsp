@@ -72,9 +72,9 @@
     <table style="margin: 5px auto">
       <thead>
         <tr class="rowHeader">
-          <td><fmt:message key="common.xid"/></td>
-          <td><fmt:message key="common.name"/></td>
           <td><fmt:message key="dsEdit.deviceName"/></td>
+          <td><fmt:message key="common.name"/></td>
+          <td><fmt:message key="common.xid"/></td>
         </tr>
       </thead>
       <tbody id="templateChangeAffectsPointsList"></tbody>
@@ -318,9 +318,9 @@
 			  //Load the template List
               dwr.util.removeAllRows("templateChangeAffectsPointsList");
               dwr.util.addRows("templateChangeAffectsPointsList", response.data.dataPoints, [
-                      function(t) { return t.xid; },
+                      function(t) { return t.deviceName; },
                       function(t) { return t.name; },
-                      function(t) { return t.deviceName; }
+                      function(t) { return t.xid; }
                   ],
                   {
                       rowCreator: function(options) {

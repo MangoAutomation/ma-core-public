@@ -20,6 +20,7 @@
   
   <item id="userAdministration" key="dox.userAdministration" filename="userAdministration.htm">
     <relation id="systemPermissions"/>
+    <relation id="permissions"/>
   </item>
 
   <item id="generalPublisherProperties" key="dox.generalPublisherProperties" filename="generalPublisherProperties.htm"/>
@@ -50,6 +51,12 @@
     <relation id="textRenderers"/>
   </item>
 
+  <item id="permissions" key="dox.permissions" filename="permissions.htm">
+    <relation id="dataPointEditing"/>
+    <relation id="userAdministration"/>
+    <relation id="systemPermissions"/>
+  </item>
+  
   <item id="dataPointTemplate" key="dox.template.dataPointTemplate" filename="dataPointTemplate.htm">
     <relation id="dataPointEditing"/>
     <relation id="pointValueLogging"/>
@@ -61,6 +68,7 @@
   <item id="dataPointEditing" key="dox.dataPointEditing" filename="dataPointEditing.htm">
     <relation id="colours"/>
     <relation id="dataPointTemplate"/>
+    <relation id="permissions"/>
   </item>
   
   <item id="numberFormats" key="dox.numberFormats" filename="numberFormats.htm">

@@ -14,30 +14,82 @@
   require(['dojo/json', 'dojo/_base/xhr', "dojo/request/xhr", "dojo/domReady!"], 
 	        function(JSON, baseXhr, xhr){
 	    doCsvImport = function () {
-	    	
-	        setDisabled("importCsvBtn", true);
-	        hideGenericMessages("importCsvMessages");
-	        $set("alternateCsvMessage", "<fmt:message key="emport.importProgress"/>");
+	        setDisabled("importBtn", true);
+	        hideGenericMessages("importMessages");
+	        $set("alternateMessage", "<fmt:message key="emport.importProgress"/>");
 			
 	        var emportData = $get("emportData");
-	        xhr("/rest/v1/dataPoints.csv", {
+	        xhr("/rest/v1/dataPoints.json", {
 					method: "PUT",
 	        		data: emportData,
-	        		headers: {'Content-Type' : 'text/csv'},
-	        		handleAs: "text",
+	        		headers: {
+	        			'Content-Type' : 'text/csv',
+	        			'Accept' : 'application/json'
+	        			},
+	        		handleAs: "json",
 	        	}
 	        	).then(function(data){
-	        		alert('Done' + data);
+	        		show("csvMessageTable");
+	        		var importMessageList = dojo.byId("importMessages"); //A tbody
+	        		//Should be an array of validated point models
+        			var messages = new Array();
+	        		for(var i=0; i<data.length; i++){
+	        			var dp = data[i];
+	        			if(dp.validationMessages != null){
+	        				
+	        				for(var key in dp.validationMessages){
+	        					//Check for saved or updated keys and add level
+	        					messages.push({'xid': dp.xid, 'key': key, 'message': dp.validationMessages[key]});
+	        				}
+	        			}
+	        		}
+    				showImportMessages(messages);
+
 	        	}, function(err){
-	        		alert('Error' + err);
+	        		//Set the overall message:
+	        		show("csvMessageTable");
+	        		$set("alternateMessage", err.message);
+        			var messages = new Array();
+        			for(var i=0; i<err.response.data.length; i++){
+            			var dp = err.response.data[i];
+            			if(dp.validationMessages != null){
+            				for(var key in dp.validationMessages){
+            					messages.push({'xid': dp.xid, 'key': key, 'message': dp.validationMessages[key]});
+            				}
+            			}
+        			}
+    				showImportMessages(messages);
 	        	}, function(evt){
 	        		alert('Event ' + evt)
 	        	});
 	        
 	        //When done
-	        setDisabled("importCsvBtn", false);
+	        setDisabled("importBtn", false);
 	    };
   });
+  
+  
+  function showImportMessages(messages){
+	  dwr.util.removeAllRows("importCsvMessages");
+      dwr.util.addRows("importCsvMessages", messages, [
+              function(m) { return m.xid; },
+              function(m) { return m.key; },
+              function(m) { return m.message; }
+          ],
+          {
+              rowCreator: function(options) {
+                  var tr = document.createElement("tr");
+                  tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
+                  return tr;
+              },
+              cellCreator: function(options) {
+                  var td = document.createElement("td");
+                  td.vAlign = "top";
+                  return td;
+              }
+          }
+      );	
+  }
   
   
     function init() {
@@ -46,6 +98,7 @@
     }
     
     function doExport() {
+    	hide("csvMessageTable");
         setDisabled("exportBtn", true);
         EmportDwr.createExportData($get("prettyIndent"), $get("exportElement"), function(data) {
             $set("emportData", data);
@@ -53,7 +106,17 @@
         });
     }
     
-    function doImport() {
+    function doImport(){
+    	hide("csvMessageTable");
+    	dwr.util.removeAllRows("importCsvMessages");
+    	var importType = $get('importType');
+		if(importType == "JSON")
+    		doJsonImport();
+		else if(importType == "CSV")
+			doCsvImport();
+    }
+    
+    function doJsonImport() {
         setDisabled("importBtn", true);
         hideGenericMessages("importMessages");
         $set("alternateMessage", "<fmt:message key="emport.importProgress"/>");
@@ -174,26 +237,28 @@
           <input id="cancelBtn" type="button" value="<fmt:message key="common.cancel"/>" onclick="importCancel()" disabled="disabled"/>
         </td>
       </tr>
+      <tr>
+        <td>
+          <select id="importType">
+            <option value="JSON" selected="selected">JSON</option>
+            <option value="CSV">CSV</option>
+          </select>
+        </td>
+      </tr>
       <tbody id="importMessages"></tbody>
       <tr><td id="alternateMessage"></td></tr>
     </table>
-  </div>
-  
-  <div class="borderDiv marB" style="float:left;">
-    <table width="100%">
-      <tr><td><span class="smallTitle"><fmt:message key="emport.importDataPointsFromCsv"/></span></td></tr>
-      <tr>
-        <td>
-          <fmt:message key="emport.importInstruction"/>
-          <input id="importCsvBtn" type="button" value="<fmt:message key="emport.import"/>" onclick="doCsvImport()"/>
-          <input id="cancelCsvBtn" type="button" value="<fmt:message key="common.cancel"/>" onclick="importCsvCancel()" disabled="disabled"/>
-        </td>
-      </tr>
+    <table id="csvMessageTable" style="margin: 5px auto; display: none">
+      <thead>
+        <tr class="rowHeader">
+          <td><fmt:message key="common.xid"/></td>
+          <td>property</td>
+          <td>message</td>
+        </tr>
+      </thead>
       <tbody id="importCsvMessages"></tbody>
-      <tr><td id="alternateCsvMessage"></td></tr>
     </table>
   </div>
-  
   
   <div style="clear:both;">
     <span class="formLabelRequired"><fmt:message key="emport.data"/></span><br/>

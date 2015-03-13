@@ -64,7 +64,7 @@
 
 
     <!-- Compile the default Proprietary modules into the core -->
-    <property name="proprietary-modules" value="MangoNoSql,BrewersDashboard"/>
+    <property name="proprietary-modules" value="MangoNoSql,DataPointDetailsView,BrewersDashboard"/>
 
     <for list="${proprietary-modules}" param="moduleName" delimiter=",">
         <sequential>

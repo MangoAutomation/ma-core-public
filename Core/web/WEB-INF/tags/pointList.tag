@@ -41,6 +41,7 @@
             <td class="formField">
               <input type="text" id="readPermission" class="formLong"/>
               <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('readPermission')"/>
+              <tag:help id="permissions"/>
             </td>
           </tr>
           <tr>

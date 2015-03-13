@@ -51,6 +51,7 @@
             <td class="formField">
               <input type="text" id="dataSource.editPermission" value="${dataSource.editPermission}" class="formLong"/>
               <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('dataSource.editPermission')"/>
+              <tag:help id="permissions"/>
             </td>
           </tr>
           <tr>
