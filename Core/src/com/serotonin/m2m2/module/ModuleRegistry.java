@@ -29,6 +29,7 @@ import com.serotonin.m2m2.web.mvc.UrlHandler;
 import com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController;
 import com.serotonin.m2m2.web.mvc.controller.FileUploadController;
 import com.serotonin.m2m2.web.mvc.controller.ModulesController;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 
 /**
  * The registry of all modules in an MA instance.
@@ -232,6 +233,8 @@ public class ModuleRegistry {
                 if (TEMPLATE_DEFINITIONS == null) {
                     Map<String, TemplateDefinition> map = new HashMap<String, TemplateDefinition>();
                     //Add in the Core Types
+                    //NOTE: THIS MODEL IS NOT AVAILABLE IF YOU USE getDefinitions()
+                    //TODO Probably should make this a Module at some point
                     DataPointPropertiesTemplateDefinition dppDef = new DataPointPropertiesTemplateDefinition();
                     map.put(dppDef.getTemplateTypeName(), dppDef);
                     for (Module module : MODULES.values()) {
@@ -252,6 +255,11 @@ public class ModuleRegistry {
         ensureModelDefinitions();
         return MODEL_DEFINITIONS.get(type);
     }
+    
+    public static List<ModelDefinition> getModelDefinitions(){
+        ensureModelDefinitions();
+        return new ArrayList<ModelDefinition>(MODEL_DEFINITIONS.values());
+    }
 
     public static Set<String> getModelDefinitionTypes() {
         ensureModelDefinitions();
@@ -264,7 +272,10 @@ public class ModuleRegistry {
                 if (MODEL_DEFINITIONS == null) {
                     Map<String, ModelDefinition> map = new HashMap<String, ModelDefinition>();
                     //Add in the Core Types
-                    //TODO Data Point Properties Template DEF
+                    //NOTE: THIS MODEL IS NOT AVAILABLE IF YOU USE getDefinitions()
+                    //TODO Probably should make this a Module at some point
+                    RestErrorModelDefinition remD = new RestErrorModelDefinition();
+                    map.put(remD.getModelTypeName(), remD);
 
                     for (Module module : MODULES.values()) {
                         for (ModelDefinition def : module.getDefinitions(ModelDefinition.class))

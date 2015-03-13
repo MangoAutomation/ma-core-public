@@ -55,7 +55,7 @@ public class SuperclassModelDeserializer extends StdDeserializer<SuperclassModel
 	 * @throws ModelNotFoundException 
 	 */
 	public ModelDefinition findModelDefinition(String typeName) throws ModelNotFoundException {
-		List<ModelDefinition> definitions = ModuleRegistry.getDefinitions(ModelDefinition.class);
+		List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
 		for(ModelDefinition definition : definitions){
 			if(definition.getModelTypeName().equalsIgnoreCase(typeName))
 				return definition;

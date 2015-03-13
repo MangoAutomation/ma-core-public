@@ -5,8 +5,6 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
-import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.wordnik.swagger.annotations.ApiModel;
 
 /**
@@ -32,11 +30,13 @@ public abstract class AbstractRestModel<T> {
 	}
 	
 	/**
-	 * 
+	 * Used to validate the model.
+	 * Override as required in subclassess
 	 * @param response
 	 */
-	public void validate(RestProcessResult<?> response) throws RestValidationFailedException{
-		return;
+	@JsonIgnore
+	public boolean validate(){
+		return true;
 	}
 
 }

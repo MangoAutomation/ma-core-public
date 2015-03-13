@@ -37,11 +37,12 @@ public class CsvEntityAnnotationPropertyEditor extends CSVPropertyEditor{
 	 */
 	@Override
 	public Object getValue() {
-		List<ModelDefinition> definitions = ModuleRegistry.getDefinitions(ModelDefinition.class);
+		List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
 		for(ModelDefinition definition : definitions){
 			if(definition.getModelTypeName().equalsIgnoreCase(typeName))
 				return definition.createModel();
 		}
+		//TODO LOG This
 		return null;
 	}
 

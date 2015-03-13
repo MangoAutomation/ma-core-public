@@ -95,7 +95,6 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 	 * (non-Javadoc)
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult)
 	 */
-	@Override
 	public void validate(RestProcessResult<?> result) throws RestValidationFailedException {
 		ProcessResult validation = new ProcessResult();
 		this.data.validate(validation);

@@ -4,13 +4,10 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -23,10 +20,9 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
-import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JsonViews;
-import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessage;
-import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessageLevel;
+import com.serotonin.m2m2.web.mvc.rest.v1.message.RestValidationMessage;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 /**
@@ -37,15 +33,21 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 @JsonPropertyOrder({"xid", "name"})
 public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<AbstractVO<T>>{
 	
+	//TODO Make the JSON Views work, it currently does nothing
+	@ApiModelProperty(value = "Messages for validation of data", required = false)
+	@JsonProperty("validationMessages")
+	@JsonView(JsonViews.Validation.class) //Only show in validation views (NOT WORKING YET)
+	private List<RestValidationMessage> messages;
 	
 	/**
 	 * @param data
 	 */
 	public AbstractVoModel(AbstractVO<T> data) {
 		super(data);
-		this.messages = new HashMap<String,String>();
+		this.messages = new ArrayList<RestValidationMessage>();
 
 	}
+	
 	
 	//For CSV Models to define the type
 	@CSVColumnGetter(order=0, header="modelType")
@@ -78,16 +80,10 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		this.data.setName(name);
 	}
 	
-	//TODO Make the JSON Views work, it currently does nothing
-	@ApiModelProperty(value = "Messages for validation of data", required = false)
-	@JsonProperty("validationMessages")
-	@JsonView(JsonViews.Validation.class) //Only show in validation views (NOT WORKING YET)
-	private Map<String,String> messages;
-	
-	public void setMessages(Map<String,String> messages){
+	public void setMessages(List<RestValidationMessage> messages){
 		this.messages = messages;
 	}
-	public Map<String,String> getMessages(){
+	public List<RestValidationMessage> getMessages(){
 		return this.messages;
 	}	
 	
@@ -97,32 +93,33 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult)
 	 */
 	@Override
-	public void validate(RestProcessResult<?> result) throws RestValidationFailedException {
+	public boolean validate(){
 		ProcessResult validation = new ProcessResult();
 		this.data.validate(validation);
 		
 		if(validation.getHasMessages()){
-			result.addValidationMessages(validation);
-			throw new RestValidationFailedException(this, result);
+			//Add our messages to the list
+			for(ProcessMessage message : validation.getMessages()){
+				this.messages.add(new RestValidationMessage(
+						message.getContextualMessage().translate(Common.getTranslations()),
+						RestMessageLevel.ERROR,
+						message.getContextKey()
+						));
+			}
+			return false;
+		}else{
+			return true; //Validated ok
 		}
 	}
-
+	
 	/**
-	 * Add messages from a validation
-	 * 
-	 * @param validation
+	 * Helper to add Validation Message
+	 * @param messageKey
+	 * @param level
+	 * @param property
 	 */
-	@JsonIgnore
-	public RestMessage addValidationMessages(ProcessResult validation) {
-		
-		if(this.messages == null)
-			this.messages = new HashMap<String,String>();
-		
-		for(ProcessMessage message : validation.getMessages()){
-			this.messages.put(message.getContextKey(), message.getContextualMessage().translate(Common.getTranslations()));
-		}
-		
-		return new RestMessage(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage("common.default", "Validation error"));
+	public void addValidationMessage(String messageKey, RestMessageLevel level, String property){
+		this.messages.add(new RestValidationMessage(new TranslatableMessage(messageKey).translate(Common.getTranslations()), level, property));
 	}
 
 }

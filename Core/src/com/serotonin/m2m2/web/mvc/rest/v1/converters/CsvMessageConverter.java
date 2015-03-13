@@ -20,11 +20,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.ModelDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoReader;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
-import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**

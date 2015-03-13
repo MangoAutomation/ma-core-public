@@ -4,39 +4,40 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.message;
 
-import org.springframework.http.HttpStatus;
-
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
  * @author Terry Packer
  *
  */
-public class RestValidationMessage extends RestMessage{
+public class RestValidationMessage extends BaseRestMessage{
 
-	private String contextKey;
+	private String property;
 	
 	public RestValidationMessage(){
-		super(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage("common.default"));
-		this.contextKey = "";
+		super();
+	}
+	
+	public RestValidationMessage(String message, RestMessageLevel level, String propertyName){
+		super(message, level);
+		this.property = propertyName;
 	}
 	/**
 	 * @param status
 	 * @param message
 	 */
-	public RestValidationMessage(String contextKey, TranslatableMessage message) {
-		super(HttpStatus.NOT_ACCEPTABLE, message);
-		this.contextKey = contextKey;
+	public RestValidationMessage(TranslatableMessage message, RestMessageLevel level, String propertyName) {
+		super(message.translate(Common.getTranslations()), level);
+		this.property = propertyName;
 	}
 
-	public String getContextKey(){
-		return this.contextKey;
+	public String getProperty() {
+		return property;
 	}
-	/**
-	 * @param contextKey2
-	 */
-	public void setContextKey(String contextKey) {
-		this.contextKey = contextKey;
-		
+
+	public void setProperty(String property) {
+		this.property = property;
 	}
+	
 }

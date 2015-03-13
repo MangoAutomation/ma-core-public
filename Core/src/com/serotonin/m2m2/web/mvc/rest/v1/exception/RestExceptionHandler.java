@@ -12,10 +12,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.BaseErrorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModel;
 
 /**
+ * 
+ * Class to handle REST Specific Errors and present the user with a Model
+ * 
+ * This is a work-in-progress and will be improved on as the API develops
+ * 
  * @author Terry Packer
  *
  */
@@ -23,11 +27,10 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.BaseErrorModel;
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({ 
-    	ShouldNeverHappenException.class,
     	NoSupportingModelException.class,
     	ModelNotFoundException.class
     	})
-    protected ResponseEntity<Object> handleMangoError(Exception e, WebRequest request) {
+    protected ResponseEntity<RestErrorModel> handleMangoError(Exception e, WebRequest request) {
     	return processErrorModel(e, HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
@@ -48,7 +51,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(status)) {
 			request.setAttribute("javax.servlet.error.exception", ex, WebRequest.SCOPE_REQUEST);
 		}
-    	BaseErrorModel error = new BaseErrorModel(ex);
+    	RestErrorModel error = new RestErrorModel(ex);
         headers.set("Messages", "error");
         headers.set("Errors", ex.getMessage());
 		return new ResponseEntity<Object>(error, headers, status);
@@ -63,12 +66,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 	 * @param request
 	 * @return
 	 */
-	private ResponseEntity<Object> processErrorModel(Exception e, HttpStatus status, WebRequest request){
-    	BaseErrorModel error = new BaseErrorModel(e);
+	private ResponseEntity<RestErrorModel> processErrorModel(Exception e, HttpStatus status, WebRequest request){
+    	RestErrorModel error = new RestErrorModel(e);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Messages", "error");
         headers.set("Errors", e.getMessage());
-        return super.handleExceptionInternal(e, error, headers, status, request);
+        headers.set("Content-Type", "text");
+        return new ResponseEntity<RestErrorModel>(error, headers, status);
 
 	}
 

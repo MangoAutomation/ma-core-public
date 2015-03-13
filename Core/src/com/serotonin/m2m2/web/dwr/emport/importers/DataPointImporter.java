@@ -7,11 +7,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
@@ -26,12 +24,14 @@ public class DataPointImporter extends Importer {
     @Override
     protected void importImpl() {
         String xid = json.getString("xid");
+        DataPointVO vo = null;
+        DataSourceVO<?> dsvo = null;
 
         if (StringUtils.isBlank(xid))
             xid = ctx.getDataPointDao().generateUniqueXid();
-
-        DataSourceVO<?> dsvo;
-        DataPointVO vo = ctx.getDataPointDao().getDataPoint(xid);
+        else
+        	vo = ctx.getDataPointDao().getDataPoint(xid);
+        
         if (vo == null) {
             // Locate the data source for the point.
             String dsxid = json.getString("dataSourceXid");
@@ -45,32 +45,25 @@ public class DataPointImporter extends Importer {
                 vo.setDataSourceXid(dsxid);
                 vo.setPointLocator(dsvo.createPointLocator());
                 vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-                if(json.containsKey("templateXid")){
-                	String templateXid = json.getString("templateXid");
-                	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.getByXid(templateXid);
-                	if(template != null){
-                		template.updateDataPointVO(vo);
-                	}else{
-                		addFailureMessage("emport.dataPoint.badReference", templateXid);
-                	}
-                }else{
-                    vo.setTextRenderer(new PlainRenderer());
-                }
+                //Not needed as it will be set via the template or JSON or it exists in the DB already: vo.setTextRenderer(new PlainRenderer());
             }
         }
         
         if (vo != null) {
-            try {
+        	try {
+            	DataPointPropertiesTemplateVO template = null;            	
             	if(json.containsKey("templateXid")){
                 	String templateXid = json.getString("templateXid");
-                	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.getByXid(templateXid);
-                	if(template != null){
-                		template.updateDataPointVO(vo);
-                	}else{
-                		addFailureMessage("emport.dataPoint.badReference", templateXid);
-                	}
-                }else{
-                    ctx.getReader().readInto(vo, json);
+                	if(!StringUtils.isEmpty(templateXid))
+                		template = (DataPointPropertiesTemplateVO) TemplateDao.instance.getByXid(templateXid);
+                	
+                }
+            	//Read into the VO to get all properties
+            	ctx.getReader().readInto(vo, json);
+            	//Override the settings if we need to
+                if(template != null){
+                	template.updateDataPointVO(vo);
+                	
                 }
                 
                 // If the name is not provided, default to the XID
@@ -90,32 +83,19 @@ public class DataPointImporter extends Importer {
                     if (dsvo == null)
 	                      	addFailureMessage("emport.dataPoint.badReference", xid);
 	                else {
-	                    //TODO Compare this point to the existing point in DB to ensure
+	                    //Compare this point to the existing point in DB to ensure
 	                    // that we aren't moving a point to a different type of Data Source
-	                    DataPointDao dpDao = new DataPointDao();
-	                    DataPointVO oldPoint = dpDao.getDataPoint(vo.getId());
+	                
+	                    DataPointVO oldPoint = ctx.getDataPointDao().getDataPoint(vo.getId());
 	                    
 	                    //Does the old point have a different data source?
 	                    if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
 	                        vo.setDataSourceId(dsvo.getId());
 	                        vo.setDataSourceName(dsvo.getName());
 	                    }
-	
-	                    // Sweet. Save it.
-	                	//Why would you save it 2x? DataPointDao.instance.saveFull(vo);
                     }
 
                     boolean isnew = vo.isNew();
-
-                    //                        // Check if this data source is enabled. Because data sources do automatic stuff upon the
-                    //                        // starting of a point, we need to shut it down. We restart again once all data points are
-                    //                        // imported.
-                    //                        if (dsvo.isEnabled() && !disabledDataSources.contains(dsvo.getId())) {
-                    //                            disabledDataSources.add(dsvo.getId());
-                    //                            dsvo.setEnabled(false);
-                    //                            Common.runtimeManager.saveDataSource(dsvo);
-                    //                        }
-             
                     Common.runtimeManager.saveDataPoint(vo);
                     addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
                 }

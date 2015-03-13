@@ -70,7 +70,9 @@
   </li>
 </ul>
 
-<h1>Format</h1>
+<h1>Data Format</h1>
+
+<h2>Import/Export JSON</h2>
 <p>
   The import/export facility uses the JSON format (see <a href="http://www.json.org/" target="_blank">http://www.json.org/</a>
   for more information) as the data format for configuration files. JSON is a very similar data format that is easy to 
@@ -82,3 +84,16 @@
   Mango will automatically create "pretty" JSON export files, i.e. it will format the output with appropriate line 
   breaks and indenting. The amount of indenting can be controlled with the <b>Indent level</b> attribute.
 </p>
+<h2>Import Data Points from CSV</h2>
+<p>Data Points can be imported from a CSV file.  The format is very specific to each Data Source.  It is recommended to export a point from the data source page
+for your type of point, modify the file and then upload it here.</p>
+<p><b>Important Notes:</b></p>
+<ul>
+  <li>Column order is important.</li>
+  <li>Header names must not be modified.</li>
+  <li>Template XIDs must be used as not all properties are available within the CSV.</li>
+  <li>The data source type for all points must match, ie. no mixing points from multiple types of data sources in one upload.</li>
+  <li>New points can be created.</li>
+</ul>
+
+

@@ -73,7 +73,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public DataPointDao() {
         super(AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
-                "join dataSources ds on ds.id = dp.dataSourceId join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
+                "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
 
     }
 
@@ -1069,7 +1069,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     }
 
     public void setTemplateName(DataPointVO vo){
-    	if(vo.getTemplateId() > 0){
+    	if(vo.getTemplateId() != null){
 	    	BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
 	    	if(template != null)
 	    		vo.setTemplateName(template.getName());

@@ -33,6 +33,13 @@ dataSourcePropertiesDiv.onUnload = function(){
 		unInitImpl();
 };
 
+//Quick check to see if we can Export CSV
+var dataSourcesButtons;
+if(mangoApiExists)
+	dataSourcesButtons = ['toggle','edit','delete','copy','export','exportCSV'];
+else
+	dataSourcesButtons = ['toggle','edit','delete','copy','export'];
+
 dataSources = new StoreView({
 	
     prefix: 'DataSource',
@@ -183,7 +190,7 @@ dataSources = new StoreView({
 		}
     },
 
-    buttons: ['toggle','edit','delete','copy','export','exportCSV'],
+    buttons: dataSourcesButtons,
  
     preInit: function() {
     },

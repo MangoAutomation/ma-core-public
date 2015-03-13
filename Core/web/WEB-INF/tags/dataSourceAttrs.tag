@@ -23,10 +23,11 @@
             <td align="right">
               <tag:img png="icon_ds" onclick="toggleDataSource()" id="dsStatusImg" style="display:none"/>
               <tag:img id="dsSaveImg" png="save" onclick="saveDataSource()" title="common.save"/>
-              <m2m2:moduleExists name="mangoApi">
+
                 <tag:img png="emport" title="emport.export" onclick="exportDataSource()"/>
+              <m2m2:moduleExists name="mangoApi">
+                <tag:img png="csv" title="emport.exportDataPointsAsCsv" onclick="exportDataSourcePointsFromEditingSource();"/>
               </m2m2:moduleExists>
-              <tag:img png="csv" title="emport.exportDataPointsAsCsv" onclick="exportDataSourcePointsFromEditingSource();"/>
             </td>
           </tr>
         </table>

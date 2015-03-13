@@ -30,16 +30,19 @@
 	        	}
 	        	).then(function(data){
 	        		show("csvMessageTable");
-	        		var importMessageList = dojo.byId("importMessages"); //A tbody
 	        		//Should be an array of validated point models
         			var messages = new Array();
 	        		for(var i=0; i<data.length; i++){
 	        			var dp = data[i];
 	        			if(dp.validationMessages != null){
 	        				
-	        				for(var key in dp.validationMessages){
-	        					//Check for saved or updated keys and add level
-	        					messages.push({'xid': dp.xid, 'key': key, 'message': dp.validationMessages[key]});
+	        				for(var m=0; m<dp.validationMessages.length; m++){
+	        					var msg = dp.validationMessages[m];
+	        					messages.push({
+	        						'xid': dp.xid, 
+	        						'property': msg.property, 
+	        						'level': msg.level,
+	        						'message': msg.message});
 	        				}
 	        			}
 	        		}
@@ -55,7 +58,7 @@
             			if(dp.validationMessages != null){
             				for(var key in dp.validationMessages){
             					messages.push({'xid': dp.xid, 'key': key, 'message': dp.validationMessages[key]});
-            				}
+            				}	
             			}
         			}
     				showImportMessages(messages);
@@ -73,7 +76,7 @@
 	  dwr.util.removeAllRows("importCsvMessages");
       dwr.util.addRows("importCsvMessages", messages, [
               function(m) { return m.xid; },
-              function(m) { return m.key; },
+              function(m) { return m.property; },
               function(m) { return m.message; }
           ],
           {
@@ -85,6 +88,8 @@
               cellCreator: function(options) {
                   var td = document.createElement("td");
                   td.vAlign = "top";
+                  if(options.rowData.level == 'ERROR')
+                	  td.style.color = "red";
                   return td;
               }
           }
@@ -241,7 +246,7 @@
         <td>
           <select id="importType">
             <option value="JSON" selected="selected">JSON</option>
-            <option value="CSV">CSV</option>
+            <m2m2:moduleExists name="mangoApi"><option value="CSV">CSV</option></m2m2:moduleExists>
           </select>
         </td>
       </tr>

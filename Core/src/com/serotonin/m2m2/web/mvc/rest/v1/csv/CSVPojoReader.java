@@ -27,7 +27,6 @@ public class CSVPojoReader<T> implements Closeable {
 	private CSVReader reader;
 	private String[] headers;
 	private CSVPojoHandler<T> pojoHandler;
-	private Class<T> clazz;
 
 	/**
 	 * Constructs CSVPojoReader using a comma for the separator.
@@ -78,8 +77,7 @@ public class CSVPojoReader<T> implements Closeable {
 				String typeName = line[0]; // Always needs to be
 				// Find the model
 				ModelDefinition definition = null;
-				List<ModelDefinition> definitions = ModuleRegistry
-						.getDefinitions(ModelDefinition.class);
+				List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
 				for (ModelDefinition d : definitions) {
 					if (d.getModelTypeName().equalsIgnoreCase(typeName)) {
 						definition = d;
