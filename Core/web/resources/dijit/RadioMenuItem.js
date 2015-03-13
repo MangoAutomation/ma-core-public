@@ -1,4 +1,4 @@
 //>>built
-define("dijit/RadioMenuItem",["dojo/_base/declare","dojo/dom-class","./CheckedMenuItem"],function(b,d,c){return b("dijit.RadioButtonMenuItem",c,{baseClass:"dijitRadioMenuItem",role:"menuitemradio",checkedChar:"*",group:"",_currentlyChecked:{},_setCheckedAttr:function(a){a&&(this.group&&this._currentlyChecked[this.group]&&this._currentlyChecked[this.group]!=this)&&this._currentlyChecked[this.group].set("checked",!1);this.inherited(arguments);this.group&&(a?this._currentlyChecked[this.group]=this:this._currentlyChecked[this.group]==
-this&&(this._currentlyChecked[this.group]=null))},_onClick:function(a){!this.disabled&&!this.checked&&(this.set("checked",!0),this.onChange(!0));this.onClick(a)}})});
-//@ sourceMappingURL=RadioMenuItem.js.map
+define("dijit/RadioMenuItem","dojo/_base/array dojo/_base/declare dojo/dom-class dojo/query!css2 ./CheckedMenuItem ./registry".split(" "),function(c,d,h,e,f,g){return d("dijit.RadioButtonMenuItem",f,{baseClass:"dijitMenuItem dijitRadioMenuItem",role:"menuitemradio",checkedChar:"*",group:"",_setGroupAttr:"domNode",_setCheckedAttr:function(b){this.inherited(arguments);this._created&&b&&this.group&&c.forEach(this._getRelatedWidgets(),function(a){a!=this&&a.checked&&a.set("checked",!1)},this)},_onClick:function(b){!this.disabled&&
+!this.checked&&(this.set("checked",!0),this.onChange(!0));this.onClick(b)},_getRelatedWidgets:function(){var b=[];e("[group\x3d"+this.group+"][role\x3d"+this.role+"]").forEach(function(a){(a=g.getEnclosingWidget(a))&&b.push(a)});return b}})});
+//# sourceMappingURL=RadioMenuItem.js.map

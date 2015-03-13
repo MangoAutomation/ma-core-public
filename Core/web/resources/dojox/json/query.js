@@ -6,4 +6,4 @@ function(a){return"."==a.charAt(0)?a:"@"==a?"$obj":(a.match(/:|^(\$|Math|true|fa
 b[1].replace(/\s*,?\s*([\/\\])\s*([^,\\\/]+)/g,function(a,b,c){return"var av\x3d "+c.replace(/\$obj/,"a")+",bv\x3d "+c.replace(/\$obj/,"b")+";if(av\x3ebv||bv\x3d\x3dnull){return "+("/"==b?1:-1)+";}\nif(bv\x3eav||av\x3d\x3dnull){return "+("/"==b?-1:1)+";}\n"})+"return 0;})":(b=a.match(/^\[(-?[0-9]*):(-?[0-9]*):?(-?[0-9]*)\]/))?(d("dojox.json._slice"),","+(b[1]||0)+","+(b[2]||0)+","+(b[3]||1)+")"):a.match(/^\.\.|\.\*|\[\s*\*\s*\]|,/)?(d("dojox.json._find"),("."==a.charAt(1)?",'"+c+"'":a.match(/,/)?
 ","+a:"")+")"):a}).replace(/(\$obj\s*((\.\s*[\w_$]+\s*)|(\[\s*`([0-9]+)\s*`\]))*)(==|~)\s*`([0-9]+)/g,g).replace(/`([0-9]+)\s*(==|~)\s*(\$obj\s*((\.\s*[\w_$]+)|(\[\s*`([0-9]+)\s*`\]))*)/g,function(a,b,c,d,e,f,h,k){return g(a,d,e,f,h,k,c,b)});c=e+("$"==c.charAt(0)?"":"$")+c.replace(/`([0-9]+|\])/g,function(a,b){return"]"==b?"]":h[b]});for(var k=eval("1\x26\x26function($,$1,$2,$3,$4,$5,$6,$7,$8,$9){var $obj\x3d$;return "+c+"}"),f=0;f<arguments.length-1;f++)arguments[f]=arguments[f+1];return b?k.apply(this,
 arguments):k}});
-//@ sourceMappingURL=query.js.map
+//# sourceMappingURL=query.js.map

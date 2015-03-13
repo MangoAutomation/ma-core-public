@@ -1,3 +1,3 @@
 //>>built
-define("dojox/analytics/plugins/consoleMessages",["dojo/_base/lang","../_base","dojo/_base/config","dojo/aspect"],function(d,b,a,f){var g=d.getObject("dojox.analytics.plugins.consoleMessages",!0);this.addData=d.hitch(b,"addData","consoleMessages");b=a.consoleLogFuncs||["error","warn","info","rlog"];console||(console={});for(a=0;a<b.length;a++){var c=b[a],e=d.hitch(this,"addData",c);console[c]?f.after(console,c,e,!0):console[c]=e}return g});
-//@ sourceMappingURL=consoleMessages.js.map
+define("dojox/analytics/plugins/consoleMessages",["dojo/_base/lang","../_base","dojo/_base/config","dojo/aspect"],function(d,b,a,g){var e=d.getObject("dojox.analytics.plugins.consoleMessages",!0);e.addData=d.hitch(b,"addData","consoleMessages");b=a.consoleLogFuncs||["error","warn","info","rlog"];console||(console={});for(a=0;a<b.length;a++){var c=b[a],f=d.hitch(e,"addData",c);console[c]?g.after(console,c,f,!0):console[c]=f}return e});
+//# sourceMappingURL=consoleMessages.js.map

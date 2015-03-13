@@ -112,12 +112,6 @@
                 <exclude name="modules/**"/>
             </fileset>
         </copy>
-        <!-- Copy the Dojo Debug JS Libraries -->
-        <copy todir="${core.target}/web/resources" preservelastmodified="true">
-            <fileset dir="dojo-build/dist/">
-                <include name="**/*.*" />
-            </fileset>
-        </copy>
 
         <!-- Copy the Scripts into the target -->
         <copy todir="${core.target}/bin" preservelastmodified="true">
@@ -296,8 +290,8 @@
 
         <!-- Delete the uncompressed javascript files for dojo (removes about 5M) -->
         <delete>
-            <fileset dir="${core.target}/web/resources"
-                     includes="**/*.uncompressed.js" />
+            <fileset dir="${core.target}/web/resources" includes="**/*.js.uncompressed.js" />
+        	<fileset dir="${core.target}/web/resources" includes="**/*.js.map" />
             <fileset dir="${core.release}" includes="${fullName}.zip" />
         </delete>
 
@@ -393,17 +387,6 @@
                 <include name="**/*.java" />
             </fileset>
         </jar>
-    </target>
-    
-    
-    <target name="update-dojo"
-            description="copy dojo debug files to target/web/resources">
-        <!-- Copy the Dojo Debug JS Libraries -->
-        <copy todir="${core.target}/web/resources" preservelastmodified="true">
-            <fileset dir="dojo-build/dist/">
-                <include name="**/*.*" />
-            </fileset>
-        </copy>
     </target>
 
     <!-- NEW Targets for Debugging at the Core Directory Level, above target directory-->
@@ -566,12 +549,6 @@
 
         <copy todir="${core.target}/web" preservelastmodified="true">
             <fileset dir="web">
-                <include name="**/*.*" />
-            </fileset>
-        </copy>
-        <!-- Copy the Dojo Debug JS Libraries -->
-        <copy todir="${core.target}/web/resources" preservelastmodified="true">
-            <fileset dir="dojo-build/dist/">
                 <include name="**/*.*" />
             </fileset>
         </copy>

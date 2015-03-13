@@ -1,3 +1,3 @@
 //>>built
 define("dojox/jsonPath",["./jsonPath/query"],function(){});
-//@ sourceMappingURL=jsonPath.js.map
+//# sourceMappingURL=jsonPath.js.map
