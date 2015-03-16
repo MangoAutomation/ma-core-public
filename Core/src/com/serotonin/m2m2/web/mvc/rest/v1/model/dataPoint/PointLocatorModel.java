@@ -49,6 +49,22 @@ public abstract class PointLocatorModel<T extends PointLocatorVO> extends Abstra
     public void setDataType(String dataTypeCode){ }
     
     
+    /**
+     * Can the value be set in the data source?
+     */
+    @JsonGetter("settable")
+    public boolean isSettable(){
+    	return this.data.isSettable();
+    }
+
+    /**
+     * Supplemental to being settable, can the set value be relinquished?
+     */
+    @JsonGetter("reqliquishable")
+    public boolean isRelinquishable(){
+    	return this.data.isRelinquishable();
+    }
+    
     @Override
     public T getData(){
     	return data;
