@@ -550,6 +550,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         public int getPriority() {
             return WorkItem.PRIORITY_MEDIUM;
         }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+		 */
+		@Override
+		public String getDescription() {
+			return "Event notify: " + listener.getClass().getCanonicalName();
+		}
     }
 
     //

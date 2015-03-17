@@ -64,4 +64,9 @@ public class SetPointWorkItem implements WorkItem {
     public int getPriority() {
         return WorkItem.PRIORITY_HIGH;
     }
+    
+    @Override
+    public String getDescription(){
+    	return "Setting point with ID: " + Integer.toString(this.targetPointId) + " via " +  source.getSetPointSourceType() + "-" + Integer.toString(source.getSetPointSourceId());
+    }
 }

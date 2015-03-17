@@ -50,6 +50,11 @@ public class ProcessWorkItem implements WorkItem {
         }
     }
 
+	@Override
+	public String getDescription() {
+		return "Process: " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
+	}
+    
     public static StringStringPair executeProcessCommand(String command, int timeoutSeconds) throws IOException {
         Process process = Runtime.getRuntime().exec(command);
 
@@ -137,6 +142,12 @@ public class ProcessWorkItem implements WorkItem {
             catch (InterruptedException e) { /* no op */
             }
         }
+        
+    	@Override
+    	public String getDescription() {
+    		return "ProcessTimeout : " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
+    	}
+        
     }
 
     static class InputReader implements WorkItem {
@@ -185,6 +196,17 @@ public class ProcessWorkItem implements WorkItem {
                 }
             }
         }
+    	
+        @Override
+    	public String getDescription() {
+        	String state;
+        	if(!done)
+        		state = "waiting";
+        	else
+        		state = "processing";
+    		return "Input Reader: " + state;
+    	}
+        
     }
     //    
     // public static void main(String[] args) throws Exception {
@@ -217,4 +239,9 @@ public class ProcessWorkItem implements WorkItem {
     // System.out.println("out: "+ out.getInput());
     // System.out.println("err: "+ err.getInput());
     // }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+	 */
+
 }

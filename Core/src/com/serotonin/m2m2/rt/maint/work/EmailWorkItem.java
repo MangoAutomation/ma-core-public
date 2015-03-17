@@ -101,4 +101,12 @@ public class EmailWorkItem implements WorkItem {
             }
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Sending email from " + this.fromAddress.toString() + " about " + this.subject; 
+	}
 }

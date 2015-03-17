@@ -297,5 +297,13 @@ public class DatabaseBackupWorkItem implements WorkItem {
 		
 		return result;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Backing up database to " + this.backupLocation;
+	}
 	
 }
