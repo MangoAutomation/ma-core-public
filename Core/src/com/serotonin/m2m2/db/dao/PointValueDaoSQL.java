@@ -1045,7 +1045,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		 */
 		@Override
 		public String getDescription() {
-			return "Batch Write Behind, size: " + ENTRIES.size(); 
+			return "Batch Writing from batch of size: " + ENTRIES.size(); 
 		}
     }
 
@@ -1263,7 +1263,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		 */
 		@Override
 		public String getDescription() {
-			return "Batch Update Behind, size: " + ENTRIES.size();
+			return "Batch Updating from batch of size: " + ENTRIES.size();
 		}
     }
 

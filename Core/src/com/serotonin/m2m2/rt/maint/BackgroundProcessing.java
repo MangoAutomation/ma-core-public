@@ -4,8 +4,10 @@
  */
 package com.serotonin.m2m2.rt.maint;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,6 +18,8 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
+import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
 /**
@@ -82,7 +86,7 @@ public class BackgroundProcessing implements ILifecycle {
     public Map<String, Integer> getLowPriorityServiceQueueClassCounts() {
         return getClassCounts(lowPriorityService);
     }
-
+    
     private Map<String, Integer> getClassCounts(ThreadPoolExecutor e) {
         Map<String, Integer> classCounts = new HashMap<>();
         Iterator<Runnable> iter = e.getQueue().iterator();
@@ -98,6 +102,34 @@ public class BackgroundProcessing implements ILifecycle {
         return classCounts;
     }
 
+    public List<WorkItemModel> getHighPriorityServiceItems(){
+    	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
+    	Iterator<TimerTask> iter = Common.timer.getTasks().iterator();
+    	while(iter.hasNext()){
+    		TimerTask task = iter.next();
+    		list.add(new WorkItemModel(task.getClass().getCanonicalName(), task.toString(), "HIGH"));
+    	}
+    	return list;
+    }
+
+    public List<WorkItemModel> getMediumPriorityServiceQueueItems(){
+    	return getQueueItems(mediumPriorityService, "MEDIUM");
+    	
+    }
+    public List<WorkItemModel> getLowPriorityServiceQueueItems(){
+    	return getQueueItems(lowPriorityService, "LOW");
+    }
+    
+    private List<WorkItemModel> getQueueItems(ThreadPoolExecutor e, String priority){
+    	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
+    	Iterator<Runnable> iter = e.getQueue().iterator();
+    	while (iter.hasNext()) {
+            Runnable r = iter.next();
+            WorkItemRunnable wir = (WorkItemRunnable)r;
+            list.add(new WorkItemModel(wir.getWorkItemClass().getCanonicalName(), wir.getDescription(), priority));
+        }
+    	return list;
+    }
     @Override
     public void initialize() {
         mediumPriorityService = new ThreadPoolExecutor(3, 30, 60L, TimeUnit.SECONDS,
@@ -150,6 +182,11 @@ public class BackgroundProcessing implements ILifecycle {
         }
     }
     
+    /**
+     * Helper class to get more info on Work Items while queued up
+     * @author Terry Packer
+     *
+     */
     abstract class WorkItemRunnable implements Runnable{
 
     	public abstract Class<?> getWorkItemClass();
@@ -157,4 +194,6 @@ public class BackgroundProcessing implements ILifecycle {
     	public abstract String getDescription();
     	
     }
+    
+
 }
