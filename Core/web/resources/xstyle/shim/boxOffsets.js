@@ -4,4 +4,4 @@ function cssx_boxOffsets_checkBoxHeight(b,c){function d(){null==c&&(c=b.style.pi
 c.call(this)}},10);d()}
 function cssx_boxOffsets_checkBoxWidth(b,c){function d(){null==c&&(c=b.style.pixelRight);b.runtimeStyle.right="0px";var a=b.currentStyle,e=b.offsetParent,d=b.ownerDocument;e&&"auto"!=a.left&&"absolute"==a.position||"fixed"==a.position?(a=(e==d.body?d.body.clientWidth:e.offsetWidth)-(b.offsetWidth-b.clientWidth)-parseInt(a.paddingLeft)-parseInt(a.paddingRight),a=a-b.offsetLeft-c+"px"):a="";b.runtimeStyle.width=a}setTimeout(function(){var a=b.parentNode,c=a.onresize;a.onresize=function(){d();c&&c.call(this)}},
 10);d()};
-//@ sourceMappingURL=boxOffsets.js.map
+//# sourceMappingURL=boxOffsets.js.map

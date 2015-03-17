@@ -1,3 +1,3 @@
 //>>built
 define("dojox/editor/plugins/nls/sv/PageBreak",{pageBreak:"Sidbrytning"});
-//@ sourceMappingURL=PageBreak.js.map
+//# sourceMappingURL=PageBreak.js.map

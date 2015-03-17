@@ -1,4 +1,0 @@
-//>>built
-define("xstyle/core/utils",[],function(){var c={};return{when:function(a,b){return a&&a.then?a.then(b)||a:b(a)},convertCssNameToJs:function(a){return a.replace(/-(\w)/g,function(a,c){return c.toUpperCase()})},isTagSupported:function(a){if(a in c)return c[a];var b=(element=document.createElement(a)).toString();return c[a]=!("[object HTMLUnknownElement]"==b||"[object]"==b)},extend:function(a,b,c){var d=a.getDefinition(b,!0);if(d)return this.when(d,function(b){if(b.extend)b.extend(a,!0);else for(var c in b)a[c]=
-b[c]});a.tagName=b;this.isTagSupported(b)||c("Extending undefined definition "+b)}}});
-//@ sourceMappingURL=utils.js.map

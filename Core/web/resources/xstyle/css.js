@@ -1,4 +1,4 @@
 //>>built
-define("xstyle/css",["require"],function(g){function h(a,b,d){var e=document.documentElement;a=e.insertBefore(document.createElement(a),e.firstChild);a.id=b;b=(a.currentStyle||getComputedStyle(a,null))[d];e.removeChild(a);return b}return{load:function(a,b,d,e){function f(){var a=h("x-parse",null,"content");a&&"none"!=a?b([eval(a)],d):d()}var k=b.toUrl(a),c=b.cache&&b.cache["url:"+k];if(c)return c.xCss&&(c=c.cssText),g(["./util/createStyleSheet"],function(a){a(c)}),f();if("none"==h("div",a.replace(/\//g,
-"-").replace(/\..*/,"")+"-loaded","display"))return f();g(["./core/load-css"],function(a){a(k,f)})}}});
-//@ sourceMappingURL=css.js.map
+define("xstyle/css",["require"],function(h){function k(a,c,e){var f=document.documentElement;a=f.insertBefore(document.createElement(a),f.firstChild);a.id=c;c=(a.currentStyle||getComputedStyle(a,null))[e];f.removeChild(a);return c}return{load:function(a,c,e,f){function g(a){var b=k("x-parse",null,"content"),d=a&&(a.sheet||a.styleSheet);b&&"none"!=b?c([eval(b)],function(b){a?b.process(a,e):(b.processAll(),e(d))}):e(d)}var b=c.toUrl(a),l;b.match(/!$/)&&(l={wait:!1},b=b.slice(0,-1));var d=c.cache&&c.cache["url:"+
+b];if(d)d.xCss&&(d=d.cssText),h(["./core/load-css"],function(a){g(a.insertCss(d))});else{if("none"==k("div",a.replace(/\//g,"-").replace(/\..*/,"")+"-loaded","display"))return g();h(["./core/load-css"],function(a){a(b,g,l)})}}}});
+//# sourceMappingURL=css.js.map

@@ -1,3 +1,4 @@
 //>>built
-define("dojox/mobile/FormLayout",["dojo/_base/declare","dojo/dom-class","./Container"],function(b,a,c){return b("dojox.mobile.FormLayout",c,{columns:"auto",rightAlign:!1,baseClass:"mblFormLayout",buildRendering:function(){this.inherited(arguments);"auto"==this.columns?a.add(this.domNode,"mblFormLayoutAuto"):"single"==this.columns?a.add(this.domNode,"mblFormLayoutSingleCol"):"two"==this.columns&&a.add(this.domNode,"mblFormLayoutTwoCol");this.rightAlign&&a.add(this.domNode,"mblFormLayoutRightAlign")}})});
-//@ sourceMappingURL=FormLayout.js.map
+define("dojox/mobile/FormLayout",["dojo/_base/declare","dojo/dom-class","./Container","dojo/has","dojo/has!dojo-bidi?dojox/mobile/bidi/FormLayout"],function(c,a,b,d,e){b=c(d("dojo-bidi")?"dojox.mobile.NonBidiFormLayout":"dojox.mobile.FormLayout",b,{columns:"auto",rightAlign:!1,baseClass:"mblFormLayout",buildRendering:function(){this.inherited(arguments);"auto"==this.columns?a.add(this.domNode,"mblFormLayoutAuto"):"single"==this.columns?a.add(this.domNode,"mblFormLayoutSingleCol"):"two"==this.columns&&
+a.add(this.domNode,"mblFormLayoutTwoCol");this.rightAlign&&a.add(this.domNode,"mblFormLayoutRightAlign")}});return d("dojo-bidi")?c("dojox.mobile.FormLayout",[b,e]):b});
+//# sourceMappingURL=FormLayout.js.map

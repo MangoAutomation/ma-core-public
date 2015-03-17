@@ -1,0 +1,4 @@
+//>>built
+define("dojox/encoding/digests/_sha2",[],function(){return function(a,g,l,k){function d(b,c){c=c||a.outputTypes.Base64;var e=a.digest(a.toWord(b),8*b.length,k,g);switch(c){case a.outputTypes.Raw:return e;case a.outputTypes.Hex:return a.toHex(e);case a.outputTypes.String:return a._toString(e);default:return a.toBase64(e)}}d.hmac=function(b,c,e){e=e||a.outputTypes.Base64;var h=a.toWord(c);16<h.length&&(h=a.digest(h,8*c.length,k,g));var d=l/32,m=Array(d);c=Array(d);for(var f=0;f<d;f++)m[f]=h[f]^909522486,
+c[f]=h[f]^1549556828;b=a.digest(m.concat(a.toWord(b)),l+8*b.length,k,g);b=a.digest(c.concat(b),l+g,k,g);switch(e){case a.outputTypes.Raw:return b;case a.outputTypes.Hex:return a.toHex(b);case a.outputTypes.String:return a._toString(b);default:return a.toBase64(b)}};d._hmac=d.hmac;return d}});
+//# sourceMappingURL=_sha2.js.map

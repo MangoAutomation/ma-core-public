@@ -1,13 +1,2 @@
-/dgrid
-/dijit
-/dojo
-/dojox
-/put-selector
-/util
-/xstyle
-/dgrid.js
-/dijit.js
-/dojo.js
-/package.json
-/put-selector.js
-/xstyle.js
+*
+!.gitignore

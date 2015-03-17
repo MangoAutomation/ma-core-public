@@ -1,8 +1,0 @@
-{
-"version":3,
-"file":"event.js",
-"lineCount":1,
-"mappings":"A,SAAAA,MAAA,gCAAwC,QAAA,CAASC,CAAT,MACnCC,CADmC,OAEhCA,EAFgC,aAG1BC,QAAAA,CAASC,CAATD,CAAeE,CAAfF,CAAsBG,CAAtBH,EACXF,CAAAM,YAAA,CAAmBH,CAAnB,CAAyBC,CAAzB,CAAgCC,CAAhC,CAAsC,QAAA,CAASE,CAAT,EACrCN,CAAAO,GAAA,CAAUD,CAAV,CAAmBJ,CAAAM,MAAA,GAAnB,CAAkC,QAAA,CAASC,CAAT,GAAlC,CADqC,CAAtC,CADWR,CAH0B,IACHS,QAAAC,iBADG,CASZ,QAAA,CAASC,CAAT,CAAiBC,CAAjB,CAAwBC,CAAxB,EAEzBF,CAAAD,iBAAA,CAAwBE,CAAxB,CAA+BC,CAA/B,IAFyB,CATY,CAatC,QAAA,CAASF,CAAT,CAAiBC,CAAjB,CAAwBC,CAAxB,EACCF,CAAAG,YAAA,CAAmBF,CAAnB,CAA0BC,CAA1B,CADD,CAbsC,EAAxC;",
-"sources":["event.js.uncompressed.js"],
-"names":["define","xstyle","module","onProperty","name","value","rule","addRenderer","element","on","slice","e","document","addEventListener","target","event","listener","attachEvent"]
-}

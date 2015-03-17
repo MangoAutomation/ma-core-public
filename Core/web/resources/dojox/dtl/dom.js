@@ -29,4 +29,4 @@ a||(a=[]);for(var d=0;d<a.length;d++)b[a[d]]=!0;for(d=new c._DomNodeList;this.i<
 e[3]));else if(m.trim(e[3]))try{x.attr(g,e[2],e[3])}catch(s){}}else if(h==c.TOKEN_NODE)(k=v.getTag("node:"+g.tagName.toLowerCase(),!0))&&d.push(k(null,new c.Token(h,g),g.tagName.toLowerCase())),d.push(new c._DomNode(g));else if(h==c.TOKEN_VAR)d.push(new c._DomVarNode(g));else if(h==c.TOKEN_TEXT)d.push(new c._DomTextNode(g.data||g));else if(h==c.TOKEN_BLOCK){if(b[g])return--this.i,d;e=g.split(/\s+/g);if(e.length){e=e[0];k=v.getTag(e);if("function"!=typeof k)throw Error("Function not found for "+e);
 (g=k(this,new c.Token(h,g)))&&d.push(g)}}}if(a.length)throw Error("Could not find closing tag(s): "+a.toString());return d},next_token:function(){var a=this.contents[this.i++];return new c.Token(a[0],a[1])},delete_first_token:function(){this.i++},skip_past:function(a){return c._Parser.prototype.skip_past.call(this,a)},create_variable_node:function(a){return new c._DomVarNode(a)},create_text_node:function(a){return new c._DomTextNode(a||"")},getTemplate:function(a){return new c.DomTemplate(s.getTemplate(a))}});
 return s});
-//@ sourceMappingURL=dom.js.map
+//# sourceMappingURL=dom.js.map

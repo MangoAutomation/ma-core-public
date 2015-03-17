@@ -1,3 +1,3 @@
 //>>built
 
-//@ sourceMappingURL=cometd.js.map
+//# sourceMappingURL=cometd.js.map

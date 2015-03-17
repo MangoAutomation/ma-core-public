@@ -1,3 +1,3 @@
 //>>built
 define("dojox/form/nls/fi/Uploader",{label:"Valitse tiedostot..."});
-//@ sourceMappingURL=Uploader.js.map
+//# sourceMappingURL=Uploader.js.map

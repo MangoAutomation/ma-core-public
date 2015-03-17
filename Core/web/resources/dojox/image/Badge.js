@@ -5,4 +5,4 @@ Math.floor(Math.random()*c);setTimeout(d.hitch(this,"_enbiggen",{target:this._nl
 Math.round(Math.random()))c.top=this.cellSize*(a.y-b);b=this.baseClass;d.addClass(a.n,b+"Top");d.addClass(a.n,b+"Seen");d.animateProperty({node:a.n,properties:c,onEnd:d.hitch(this,"_loadUnder",a,c),easing:this.easing}).play()}},_loadUnder:function(a,b){var c=a.io,e=0<=b.left,k=0<=b.top,h=this.cols,f=c+(e?-1:1),c=c+(k?-h:h),g=this.baseClass;d.forEach([f,c,k?e?f-h:c+1:e?c-1:f+h],function(a){(a=this._nl[a])&&d.hasClass(a,g+"Seen")&&d.removeClass(a,g+"Seen")},this);setTimeout(d.hitch(this,"_disenbiggen",
 a,b),1.25*this.delay)},_disenbiggen:function(a,b){0<=b.top&&(b.top+=this.cellSize);0<=b.left&&(b.left+=this.cellSize);var c=this.cellSize-2*this.cellMargin;d.animateProperty({node:a.n,properties:d.mixin(b,{width:c,height:c}),onEnd:d.hitch(this,"_cycle",a,b)}).play(5)},_cycle:function(a,b){var c=this.baseClass;d.removeClass(a.n,c+"Top");var e=this._nl.filter(function(a){return!d.hasClass(a,c+"Seen")}),e=e[Math.floor(Math.random()*e.length)];setTimeout(d.hitch(this,"_enbiggen",{target:e}),this.delay/
 2)}})});
-//@ sourceMappingURL=Badge.js.map
+//# sourceMappingURL=Badge.js.map

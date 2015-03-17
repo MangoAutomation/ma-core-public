@@ -3,4 +3,4 @@ define("dojox/app/utils/hash",["dojo/_base/lang"],function(k){var f={getParams:f
 c.length-1).split("\x26"),f=0;f<e.length;f++){var g=e[f].split("\x3d"),h=g[0],g=encodeURIComponent(g[1]||"");h&&g&&(b||(b={}),b[h]=g)}a[d]=b;return a},buildWithParams:function(a,c){"#"!==a.charAt(0)&&(a="#"+a);for(var b in c){var d=c[b];k.isObject(d)?a=f.addViewParams(a,b,d):b&&null!=d&&(a=a+"\x26"+b+"\x3d"+c[b])}return a},addViewParams:function(a,c,b){"#"!==a.charAt(0)&&(a="#"+a);var d=a.indexOf(c);if(0<d&&("#"==a.charAt(d-1)||"+"==a.charAt(d-1))&&("\x26"==a.charAt(d+c.length)||"+"==a.charAt(d+c.length)||
 "-"==a.charAt(d+c.length))){var e=a.substring(d-1,d+c.length+1);b=f.getParamString(b);c=a.charAt(d-1)+"("+c+b+")"+a.charAt(d+c.length);a=a.replace(e,c)}return a},getParamString:function(a){var c="",b;for(b in a){var d=a[b];b&&null!=d&&(c=c+"\x26"+b+"\x3d"+a[b])}return c},getTarget:function(a,c){for(c||(c="");0<a.indexOf("(");){var b=a.indexOf("("),d=a.indexOf(")"),b=a.substring(b,d+1),d=b.substring(1,b.indexOf("\x26"));a=a.replace(b,d)}return((a&&"#"==a.charAt(0)?a.substr(1):a)||c).split("\x26")[0]}};
 return f});
-//@ sourceMappingURL=hash.js.map
+//# sourceMappingURL=hash.js.map

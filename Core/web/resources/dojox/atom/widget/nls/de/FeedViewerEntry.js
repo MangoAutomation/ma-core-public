@@ -1,3 +1,3 @@
 //>>built
 define("dojox/atom/widget/nls/de/FeedViewerEntry",{deleteButton:"[L\u00f6schen]"});
-//@ sourceMappingURL=FeedViewerEntry.js.map
+//# sourceMappingURL=FeedViewerEntry.js.map
