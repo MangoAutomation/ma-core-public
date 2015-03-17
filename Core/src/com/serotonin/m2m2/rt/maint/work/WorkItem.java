@@ -28,5 +28,17 @@ public interface WorkItem {
 
     void execute();
 
+    /**
+     * Get our priority level
+     * @return
+     * 
+     */
     int getPriority();
+    
+    /**
+     * Return a one line useful description of what we are doing
+     * @return
+     */
+    public String getDescription();
+    
 }

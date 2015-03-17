@@ -237,5 +237,13 @@ public class BackupWorkItem implements WorkItem {
         	}
         }//end run
     }// end backup settings task
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+	 */
+	@Override
+	public String getDescription() {
+		return "Backing up system configuration to: " + this.backupLocation;
+	}
 	
 }

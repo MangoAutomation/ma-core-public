@@ -31,7 +31,7 @@ public class BackgroundProcessing implements ILifecycle {
     private ThreadPoolExecutor lowPriorityService;
 
     public void addWorkItem(final WorkItem item) {
-        Runnable runnable = new Runnable() {
+        Runnable runnable = new WorkItemRunnable() {
             @Override
             public void run() {
                 try {
@@ -49,8 +49,18 @@ public class BackgroundProcessing implements ILifecycle {
 
             @Override
             public String toString() {
-                return item.toString();
+                return item.getClass().getCanonicalName();
             }
+
+			@Override
+			public Class<?> getWorkItemClass() {
+				return item.getClass();
+			}
+
+			@Override
+			public String getDescription() {
+				return item.getDescription();
+			}
         };
 
         if (item.getPriority() == WorkItem.PRIORITY_HIGH)
@@ -78,7 +88,7 @@ public class BackgroundProcessing implements ILifecycle {
         Iterator<Runnable> iter = e.getQueue().iterator();
         while (iter.hasNext()) {
             Runnable r = iter.next();
-            String s = r.getClass().getName();
+            String s = r.toString();
             Integer count = classCounts.get(s);
             if (count == null)
                 count = 0;
@@ -138,5 +148,13 @@ public class BackgroundProcessing implements ILifecycle {
         catch (InterruptedException e) {
             log.info("", e);
         }
+    }
+    
+    abstract class WorkItemRunnable implements Runnable{
+
+    	public abstract Class<?> getWorkItemClass();
+    	
+    	public abstract String getDescription();
+    	
     }
 }

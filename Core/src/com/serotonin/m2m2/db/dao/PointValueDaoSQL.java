@@ -1039,6 +1039,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         public int getPriority() {
             return WorkItem.PRIORITY_HIGH;
         }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+		 */
+		@Override
+		public String getDescription() {
+			return "Batch Write Behind, size: " + ENTRIES.size(); 
+		}
     }
 
     //
@@ -1249,6 +1257,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         public int getPriority() {
             return WorkItem.PRIORITY_HIGH;
         }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+		 */
+		@Override
+		public String getDescription() {
+			return "Batch Update Behind, size: " + ENTRIES.size();
+		}
     }
 
 }
