@@ -509,18 +509,20 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate) {
         DataPointListener l = Common.runtimeManager.getDataPointListeners(vo.getId());
         if (l != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(l, oldValue, newValue, set, backdate));
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, set, backdate));
     }
 
     class EventNotifyWorkItem implements WorkItem {
+    	private final String sourceXid;
         private final DataPointListener listener;
         private final PointValueTime oldValue;
         private final PointValueTime newValue;
         private final boolean set;
         private final boolean backdate;
 
-        EventNotifyWorkItem(DataPointListener listener, PointValueTime oldValue, PointValueTime newValue, boolean set,
+        EventNotifyWorkItem(String xid, DataPointListener listener, PointValueTime oldValue, PointValueTime newValue, boolean set,
                 boolean backdate) {
+        	this.sourceXid = xid;
             this.listener = listener;
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -556,7 +558,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 		 */
 		@Override
 		public String getDescription() {
-			return "Event notify: " + listener.getClass().getCanonicalName();
+			return "Point with xid: " + sourceXid + " changed, telling: " + listener.getClass().getCanonicalName();
 		}
     }
 

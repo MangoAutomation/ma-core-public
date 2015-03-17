@@ -133,10 +133,10 @@ public class BackgroundProcessing implements ILifecycle {
     @Override
     public void initialize() {
         mediumPriorityService = new ThreadPoolExecutor(3, 30, 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>());
+                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
         mediumPriorityService.allowCoreThreadTimeOut(true);
         lowPriorityService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>());
+                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low"));
     }
 
     @Override
