@@ -27,7 +27,7 @@ public class EmailWorkItem implements WorkItem {
 
     @Override
     public int getPriority() {
-        return WorkItem.PRIORITY_MEDIUM;
+        return WorkItem.PRIORITY_LOW; //Changed from medium to low as it isn't as important as Data Point Listener callbacks
     }
 
     public static void queueEmail(String toAddr, MangoEmailContent content) throws AddressException {
