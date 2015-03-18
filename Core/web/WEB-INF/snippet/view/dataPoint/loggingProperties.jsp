@@ -102,6 +102,7 @@
 	function disableLoggingProperties(dataTypeId){
 		setDisabled('loggingType', true);
 		setDisabled('intervalLoggingPeriod', true);
+		setDisabled('intervalLoggingPeriodType', true);
 		setDisabled('intervalLoggingType', true);
 		setDisabled('overrideIntervalLoggingSamples', true);
 		setDisabled('intervalLoggingSampleWindowSize', true);
@@ -116,7 +117,8 @@
 	
 	function enableLoggingProperties(dataTypeId){
 		setDisabled('loggingType', false);
-		setDisabled('intervalLoggingPeriod', false);
+		setDisabled('intervalLoggingPeriod', false);	
+		setDisabled('intervalLoggingPeriodType', false);
 		setDisabled('intervalLoggingType', false);
 		setDisabled('overrideIntervalLoggingSamples', false);
 		setDisabled('intervalLoggingSampleWindowSize', false);
