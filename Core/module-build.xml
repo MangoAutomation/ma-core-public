@@ -65,7 +65,10 @@
 
     <target name="clean" description="Clean the target area">
         <echo message="Cleaning ${core.target}/web/modules/${name}" />
-        <delete dir="${module.target}" />
+        <delete dir="${module.target}/lib" />
+        <delete dir="${module.target}/module-classes" />
+        <delete dir="${module.target}/work" />
+        <delete dir="${module.target}/work-temp" />
         <delete dir="${core.target}/web/modules/${name}" />
     </target>
 
@@ -341,6 +344,44 @@
             </fileset>
         </jar>
     </target>
+	
+	<target name="zip-maven" depends="jsp-compile" description="Creates a zip file from the maven installed jar">
+	    <delete file="${module.target}/release/${fullName}.zip" />
+	    <zip destfile="${module.target}/release/${fullName}.zip">
+	    	<fileset dir="">
+                <include name="module.properties" />
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+            	<include name="lib/**/*.jar" />
+            	<include name="lib/**/*.so" />
+            	<include name="dox/**/*" />
+            	<include name="web/**/*" />
+            	<include name="classes/**/*" />
+            	<include name="resources/**/*" />
+            </fileset>
+	    	<fileset dir="${module.target}">
+                <include name="work/jsp/**/*" />
+                <include name="src/**/*" />
+                <include name="bin/**/*" />
+	    	</fileset>
+	    	<mappedresources>
+                <fileset dir="${maven-pom.build.directory}">
+                    <include name="${maven-pom.build.finalName}.jar" />
+                </fileset>
+	    		<chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*.jar" to="lib/*.jar" />
+                </chainedmapper>
+	        </mappedresources>
+            <mappedresources>
+                <fileset refid="maven-deps-runtime" />
+                <chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*.jar" to="lib/*.jar" />
+                </chainedmapper>
+            </mappedresources>
+	    </zip>
+	</target>
 
     <target name="zip"
             depends="jar"
