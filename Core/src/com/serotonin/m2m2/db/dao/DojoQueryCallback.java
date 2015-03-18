@@ -37,7 +37,10 @@ public class DojoQueryCallback<T> implements MappedRowCallback<T>{
 		resultCount++; //Increment our count
 		if(keepResults) //Keep if we are supposed to
 			this.results.add(row);
+		this.processRow(row, rowNum);
 	}
+	
+	public void processRow(T row, int rowNum){ } //Override as desired 
 
 	public boolean isKeepResults(){
 		return this.keepResults;

@@ -204,6 +204,26 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         }
     }
     
+    protected String applyLimit(String sql, List<Object> args, Integer limit) {
+        if (limit == null) {
+            return sql;
+        }
+        
+        switch (Common.databaseProxy.getType()) {
+        case MYSQL:
+        case POSTGRES:
+        case DERBY:
+        case MSSQL:
+        case H2:
+            args.add(limit);
+            return sql + " LIMIT ? ";
+        default:
+        	LOG.warn("No case for adding limit to database of type: " + Common.databaseProxy.getType());
+            return sql;
+        }
+    }
+    
+    
     /**
      * TODO This needs to be reworked to use the args list
      * to avoid SQL Injection Attacks
@@ -232,6 +252,159 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                    String tempSql = (i == 0) ? " WHERE " : (or ? " OR " : " AND ");
 	                    
 	                    String condition = query.get(prop);
+	                    if (condition.startsWith("RegExp:")) {
+	                        condition = condition.substring(7, condition.length());
+	                        // simple RegExp handling
+	                        if (condition.startsWith("^") && condition.endsWith("$")) {
+	                            condition = condition.substring(1, condition.length() - 1);
+	                            condition = condition.replace(".*.*", "%");
+	                            condition = condition.replace(".*", "%");
+	                            //Derby doesn't handle LIKE for anything but varchars
+	                            switch (Common.databaseProxy.getType()) {
+	                            case MYSQL:
+	                            case POSTGRES:
+	                            case MSSQL:
+	                            case H2:
+		                            if(mapped)
+		                            	tempSql += "lower(" + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
+		                            else
+		                            	tempSql += "lower(" + this.tablePrefix  + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
+		                            break;
+	                            case DERBY:
+		                            if(mapped)
+		                            	tempSql += "(CHAR(" + dbProp + ") LIKE '" + condition + "')";
+		                            else
+		                            	tempSql += "(CHAR(" + this.tablePrefix + dbProp + ") LIKE '" + condition + "')";
+	                            	break;
+	                            default:
+	                            	LOG.warn("No case for converting regex expressing for database of type: " + Common.databaseProxy.getType());
+
+	                            }
+	                        }
+	                        else {
+	                            // all other cases, add condition which will ensure no results are returned
+	                            tempSql += this.tablePrefix + "id = '-1'";
+	                        }
+	                    }else if(condition.startsWith("Int:")){
+	                    	//Parse the value as Int:operatorvalue - Int:>10000 OR Int:>=
+	                    	int endAt = 5;
+	                    	if(condition.charAt(5) == '=')
+	                    		endAt = 6;
+	                    	String value = condition.substring(endAt,condition.length());
+	                    	String compare = condition.substring(4, endAt);
+	                    	if(mapped)
+	                    		tempSql += dbProp + " " + compare + " " + value;
+	                    	else
+	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + value;
+	                    }else if(condition.startsWith("Long:")){
+	                    	//Parse the value as Long:operatorvalue - Long:>10000
+	                    	String ms = condition.substring(6,condition.length());
+	                    	String compare = condition.substring(5, 6);
+	                    	if(mapped)
+	                    		tempSql += dbProp + " " + compare + " " + ms;
+	                    	else
+	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + ms;
+	                    }else if(condition.startsWith("LongRange:")){
+	                    	//Parse the value as LongRange:>startValue:<EndValue
+	                    	String[] parts = condition.split(":");
+	                    	String startCompare = parts[1].substring(0,1);
+	                    	String startMs = parts[1].substring(1,parts[1].length());
+	                    	String endCompare = parts[2].substring(0,1);
+	                    	String endMs = parts[2].substring(1,parts[2].length());	                    	
+	                    	if(mapped)
+	                    		tempSql += dbProp + startCompare + startMs + " AND " + dbProp + endCompare + endMs;
+	                    	else
+	                       		tempSql += this.tablePrefix + dbProp + startCompare + startMs + " AND " + this.tablePrefix + dbProp + endCompare + endMs;
+	       	                    	
+	                    }else if(condition.startsWith("Duration:")){
+	                    	//Parse the value as Duration:operatorvalue - Duration:>1:00:00
+	                    	String durationString = condition.substring(10,condition.length());
+	                    	String compare = condition.substring(9, 10);
+	                    	Long longValue = DeltamationCommon.unformatDuration(durationString);
+	                    	if(mapped)
+	                    		tempSql += dbProp + " " + compare + " " + longValue;
+	                    	else
+	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + longValue;
+	                    	
+	                    }else if(condition.startsWith("BooleanIs:")){
+	                    	//Parse the value as BooleanIs:value
+	                    	String booleanString = condition.substring(10,condition.length());
+	                    	//Boolean value = Boolean.parseBoolean(booleanString);
+	                    	if(mapped)
+	                    		tempSql += dbProp + " IS " + booleanString;
+	                    	else
+	                    		tempSql += this.tablePrefix + dbProp + " = " + booleanString;
+	                    	
+	                    }else if(condition.startsWith("NullCheck:")){
+	                    	//Parse the value as NullCheck:true or NullCheck:false
+	                    	String checkForString = condition.substring(10,condition.length());
+	                    	Boolean checkFor = Boolean.parseBoolean(checkForString);
+	                    	if(checkFor){
+		                    	if(mapped)
+		                    		tempSql += dbProp + " IS NULL";
+		                    	else
+		                    		tempSql += this.tablePrefix + dbProp + " IS NULL";
+	                    	}else{
+		                    	if(mapped)
+		                    		tempSql += dbProp + " IS NOT NULL";
+		                    	else
+		                    		tempSql += this.tablePrefix + dbProp + " IS NOT NULL";
+	                    	}
+	                    }
+	                    else {
+	                        //if (condition.isEmpty()) // occurs when empty array is set in query
+	                        //    continue;
+	                        
+	                        String[] parts = condition.split(",");
+	                        String qMarks = "";
+	                        for (int j = 0; j < parts.length; j++) {
+	                            args.add(parts[j]);
+	                            qMarks += j == 0 ? "?" : ",?";
+	                        }
+	                        // TODO not sure if IN will work with string values
+	                        if(mapped)
+	                        	tempSql += dbProp + " IN (" + qMarks + ")";
+	                        else
+	                        	tempSql += this.tablePrefix + dbProp + " IN (" + qMarks + ")";
+	                    }
+	                    sql += tempSql;
+	                    i++;
+	                }
+                }//end if in filter map
+            }
+        }
+        return sql;
+    }
+    
+    /**
+     * TODO This needs to be reworked to use the args list
+     * to avoid SQL Injection Attacks
+     * @param sql
+     * @param args
+     * @param query
+     * @param or
+     * @return
+     */
+    protected String applyConditions(String sql, List<Object> args, List<QueryParameter> query, boolean or) {
+        if (query != null && !query.isEmpty()) {
+            int i = 0;
+            
+            for (QueryParameter parameter : query) {
+            	String prop = parameter.getProperty();
+                boolean mapped = false;
+                String dbProp = prop;
+                //Don't allow filtering on properties with a filter
+                //this will be done after the query
+                if(!filterMap.containsKey(prop)){ 
+	                if (propertiesMap.containsKey(prop)) {
+	                    dbProp = propertiesMap.get(prop);
+	                    mapped = true;
+	                }
+	                
+	                if (mapped || properties.contains(prop)) {
+	                    String tempSql = (i == 0) ? " WHERE " : (or ? " OR " : " AND ");
+	                    
+	                    String condition = parameter.getAttribute();
 	                    if (condition.startsWith("RegExp:")) {
 	                        condition = condition.substring(7, condition.length());
 	                        // simple RegExp handling

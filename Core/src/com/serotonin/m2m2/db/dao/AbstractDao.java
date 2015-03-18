@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -467,4 +468,37 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         dojoQuery(SELECT_ALL, COUNT, query, sort, offset, limit, or, onResultCallback, null);
     }
 
+    /**
+     * Stream the results from a query
+     * @param query
+     * @param sort
+     * @param offset
+     * @param limit
+     * @param or
+     * @param callback
+     */
+    public void streamQuery(List<QueryParameter> query, List<SortOption> sort, Integer offset, Integer limit,
+            boolean or, MappedRowCallback<T> callback){
+    	
+        List<Object> selectArgs = new ArrayList<Object>();
+      
+        String conditions = applyConditions("", selectArgs, query, or);
+        String selectSql  = SELECT_ALL + conditions;
+        
+        //Apply the sorts
+        selectSql = applySort(selectSql, sort, selectArgs);
+        
+        //Apply the Range or Limit
+        if(offset != null)
+        	selectSql = applyRange(selectSql, selectArgs, offset, limit);
+        else
+        	selectSql = applyLimit(selectSql, selectArgs, limit);
+        
+        //Report the query in the log
+        if((LOG !=null)&&(LOG.isDebugEnabled())){
+        	LOG.debug("Dojo Query: " + selectSql + " \nArgs: " + selectArgs.toString());
+        }
+
+        query(selectSql, selectArgs.toArray(), getRowMapper(), callback);
+    }
 }
