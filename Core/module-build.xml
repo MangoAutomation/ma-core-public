@@ -343,15 +343,16 @@
         </jar>
     </target>
 	
-	<target name="zip-maven" depends="jsp-compile" description="Creates a zip file from the maven installed jar">
+	<target name="zip-maven" depends="jsp-compile" description="Creates a zip file from the maven packaged jar">
 		<if><available file="dependency-reduced-pom.xml" type="file" />
 			<then>
 				<mvn:pom file="dependency-reduced-pom.xml" id="reduced-pom" />
 				<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="reduced-pom" useScope="runtime" />
 			</then>
 		</if>
-	    <delete file="${module.target}/release/${fullName}.zip" />
-	    <zip destfile="${module.target}/release/${fullName}.zip">
+		<property name="moduleZip" value="${module.target}/release/${fullName}.zip" />
+	    <delete file="${moduleZip}" />
+	    <zip destfile="${moduleZip}">
 	    	<fileset dir="">
                 <include name="module.properties" />
                 <include name="RELEASE-NOTES" />
@@ -385,6 +386,11 @@
                 </chainedmapper>
             </mappedresources>
 	    </zip>
+	</target>
+	
+	<target name="deploy-maven" depends="zip-maven" description="Deploys the zipped module to the core">
+		<copy todir="${module.deploy.paths}" preservelastmodified="true" file="${moduleZip}" />
+		<delete dir="${module.core}" />
 	</target>
 
     <target name="zip"
