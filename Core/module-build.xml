@@ -24,9 +24,7 @@
              classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
 
     <!-- Define the maven included deps (if any) -->
-    <available property="pom.exists" file="pom.xml" type="file" />
-    <if>
-        <isset property="pom.exists" />
+    <if><available file="pom.xml" type="file" />
         <then>
             <mvn:pom file="pom.xml" id="maven-pom" />
             <mvn:dependencies filesetId="maven-deps"
@@ -346,6 +344,12 @@
     </target>
 	
 	<target name="zip-maven" depends="jsp-compile" description="Creates a zip file from the maven installed jar">
+		<if><available file="dependency-reduced-pom.xml" type="file" />
+			<then>
+				<mvn:pom file="dependency-reduced-pom.xml" id="reduced-pom" />
+				<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="reduced-pom" useScope="runtime" />
+			</then>
+		</if>
 	    <delete file="${module.target}/release/${fullName}.zip" />
 	    <zip destfile="${module.target}/release/${fullName}.zip">
 	    	<fileset dir="">
