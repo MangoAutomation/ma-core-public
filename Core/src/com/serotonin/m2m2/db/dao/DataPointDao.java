@@ -530,7 +530,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     private void setPointComments(DataPointVO dp) {
         dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, new UserCommentRowMapper()));
     }
-
+    
+    
     /**
      * Get the
      * 

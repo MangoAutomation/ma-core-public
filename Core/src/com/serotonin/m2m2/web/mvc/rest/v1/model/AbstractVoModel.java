@@ -31,7 +31,7 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
  */
 @CSVEntity
 @JsonPropertyOrder({"xid", "name"})
-public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<AbstractVO<T>>{
+public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractRestModel<T>{
 	
 	//TODO Make the JSON Views work, it currently does nothing
 	@ApiModelProperty(value = "Messages for validation of data", required = false)
@@ -42,7 +42,7 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 	/**
 	 * @param data
 	 */
-	public AbstractVoModel(AbstractVO<T> data) {
+	public AbstractVoModel(T data) {
 		super(data);
 		this.messages = new ArrayList<RestValidationMessage>();
 

@@ -48,6 +48,13 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     protected int[] updateStatementPropertyTypes; //Required for Derby LOBs
     protected int[] insertStatementPropertyTypes; //Required for Derby LOBs
 
+    /**
+     * 
+     * @param typeName - Audit Event Type
+     * @param tablePrefix - Table prefix for use in Joins
+     * @param extraProperties - Properties from other tables
+     * @param extraSQL - Any additional query pieces
+     */
     protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
         super(tablePrefix);
         this.typeName = typeName;

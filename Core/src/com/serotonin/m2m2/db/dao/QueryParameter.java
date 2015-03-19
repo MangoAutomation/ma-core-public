@@ -10,22 +10,14 @@ package com.serotonin.m2m2.db.dao;
  */
 public class QueryParameter {
 	
-	private String property;
 	private String attribute;
+	private String condition;
 	
 	public QueryParameter() { }
 	
-	public QueryParameter(String property, String condition){
-		this.property = property;
-		this.attribute = condition;
-	}
-
-	public String getProperty() {
-		return property;
-	}
-
-	public void setProperty(String property) {
-		this.property = property;
+	public QueryParameter(String attribute, String condition){
+		this.attribute = attribute;
+		this.condition = condition;
 	}
 
 	public String getAttribute() {
@@ -35,6 +27,15 @@ public class QueryParameter {
 	public void getAttribute(String attribute) {
 		this.attribute = attribute;
 	}
+
+	public String getCondition() {
+		return condition;
+	}
+
+	public void setCondition(String condition) {
+		this.condition = condition;
+	}
+	
 	
 	
 }

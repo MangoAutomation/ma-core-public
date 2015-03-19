@@ -390,7 +390,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             int i = 0;
             
             for (QueryParameter parameter : query) {
-            	String prop = parameter.getProperty();
+            	String prop = parameter.getAttribute();
                 boolean mapped = false;
                 String dbProp = prop;
                 //Don't allow filtering on properties with a filter
@@ -404,7 +404,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                if (mapped || properties.contains(prop)) {
 	                    String tempSql = (i == 0) ? " WHERE " : (or ? " OR " : " AND ");
 	                    
-	                    String condition = parameter.getAttribute();
+	                    String condition = parameter.getCondition();
 	                    if (condition.startsWith("RegExp:")) {
 	                        condition = condition.substring(7, condition.length());
 	                        // simple RegExp handling

@@ -17,6 +17,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
@@ -35,7 +36,16 @@ public class Permissions {
         int DATA_SOURCE = 3;
         int ADMIN = 4;
     }
-
+    
+    public static final ExportCodes ACCESS_TYPE_CODES = new ExportCodes();
+    static{
+    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.NONE, "NONE");
+    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.READ, "READ");
+    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.SET, "SET");
+    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.DATA_SOURCE, "DATA_SOURCE");
+    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.ADMIN, "ADMIN");
+    }
+    
     private Permissions() {
         // no op
     }

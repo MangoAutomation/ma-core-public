@@ -15,6 +15,7 @@ public class SchemaDefinition {
 	public static final String DATAPOINTS_TABLE = "dataPoints";
 	public static final String EVENTS_TABLE = "events";
 	public static final String TEMPLATES_TABLE = "templates";
+	public static final String USER_COMMENTS_TABLE = "userComments";
 	
 	
 	
