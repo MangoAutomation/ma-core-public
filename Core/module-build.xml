@@ -13,6 +13,7 @@
     <property name="fullName" value="m2m2-${name}-${version}" />
     <property file="${coreHome}/module-common.properties" />
     <property name="module.target" value="target" />
+	<property name="moduleZip" value="${module.target}/release/${fullName}.zip" />
     <property name="core.target" value="${coreHome}" />
     <property name="module.deploy.paths" value="${core.target}/web/modules" />
     <property name="zip.paths" value="${core.target}/ma-modules.zip" />
@@ -73,9 +74,7 @@
     <target name="compile" description="Compile main source tree java files">
         <mkdir dir="${module.target}/module-classes" />
 
-        <available property="lib.exists" file="lib" type="dir" />
-        <if>
-            <isset property="lib.exists" />
+        <if><available file="lib" type="dir" />
             <then>
                 <!-- could copy the libs to ${module.target}/lib and then zip from that location -->
             </then>
@@ -83,17 +82,11 @@
                 <mkdir dir="lib" />
             </else>
         </if>
-
-        <available property="external-lib.exists"
-                   file="external-lib"
-                   type="dir" />
-        <if>
-            <isset property="external-lib.exists" />
+        
+        <if><not><available file="external-lib" type="dir" /></not>
             <then>
+            	<mkdir dir="external-lib" />
             </then>
-            <else>
-                <mkdir dir="external-lib" />
-            </else>
         </if>
         <echo message="Building with Java ${ant.java.version}." />
         <javac destdir="${module.target}/module-classes"
@@ -113,17 +106,10 @@
     <target name="jsp-compile"
             depends="compile"
             description="Conditionally Compile the JSPs">
-        <available property="web.exists" file="web" type="dir" />
-        <if>
-            <isset property="web.exists" />
+        <if><available file="web" type="dir" />
             <then>
-                <available property="work.exists"
-                           file="${core.target}/work/jsp"
-                           type="dir" />
-                <if>
-                    <isset property="work.exists" />
+                <if><available file="${core.target}/work/jsp" type="dir" />
                     <then>
-
                         <taskdef name="jasper2"
                                  classname="org.apache.jasper.JspC">
                             <classpath>
@@ -207,11 +193,8 @@
                                 <!-- Copy the compiled stuff back to the module -->
                                 <property name="pkg"
                                           value="${module.target}/work-tmp/jsp/org/apache/jsp/modules/${name}" />
-                                <available property="pkg.exists"
-                                           file="${pkg}"
-                                           type="dir" />
-                                <if>
-                                    <isset property="pkg.exists" />
+                                
+                                <if><available file="${pkg}" type="dir" />
                                     <then>
                                         <copy todir="${module.target}/module-classes"
                                               preservelastmodified="true">
@@ -350,7 +333,6 @@
 				<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="reduced-pom" useScope="runtime" />
 			</then>
 		</if>
-		<property name="moduleZip" value="${module.target}/release/${fullName}.zip" />
 	    <delete file="${moduleZip}" />
 	    <zip destfile="${moduleZip}">
 	    	<fileset dir="">
@@ -393,13 +375,8 @@
 		<delete dir="${module.core}" />
 	</target>
 
-    <target name="zip"
-            depends="jar"
-            description="Create a Zip file of the Module">
-
-        <available property="scripts.exists" file="scripts" type="dir" />
-        <if>
-            <isset property="scripts.exists" />
+    <target name="zip" depends="jar" description="Create a Zip file of the Module">
+        <if><available  file="scripts" type="dir" />
             <then>
                 <copy todir="${module.target}/bin" preservelastmodified="true">
                     <fileset dir="scripts">
@@ -409,44 +386,25 @@
             </then>
         </if>
 
-        <delete file="${module.target}/release/${fullName}.zip" />
-        <zip destfile="${module.target}/release/${fullName}.zip">
+        <delete file="${moduleZip}" />
+        <zip destfile="${moduleZip}">
             <fileset dir="">
-                <include name="module.properties" />
-                <include name="RELEASE-NOTES" />
-                <include name="licenseTypes.xml" />
-            </fileset>
-            <fileset dir="${module.target}">
-                <include name="lib/${fullName}.jar" />
-            </fileset>
-            <fileset dir="">
-                <include name="lib/**/*.jar" />
-            </fileset>
-            <fileset dir="">
-                <include name="lib/**/*.so" />
-            </fileset>
-            <fileset dir="">
-                <include name="dox/**/*" />
-            </fileset>
-            <fileset dir="">
-                <include name="web/**/*" />
-            </fileset>
-            <fileset dir="">
-                <include name="classes/**/*" />
-            </fileset>
-            <fileset dir="">
-                <include name="resources/**/*" />
-            </fileset>
-            <fileset dir="${module.target}">
-                <include name="work/jsp/**/*" />
-            </fileset>
-            <fileset dir="${module.target}">
-                <include name="src/**/*" />
-            </fileset>
-            <fileset dir="${module.target}">
-                <include name="bin/**/*" />
-            </fileset>
-
+                 <include name="module.properties" />
+                 <include name="RELEASE-NOTES" />
+                 <include name="licenseTypes.xml" />
+                 <include name="lib/**/*.jar" />
+                 <include name="lib/**/*.so" />
+                 <include name="dox/**/*" />
+                 <include name="web/**/*" />
+                 <include name="classes/**/*" />
+                 <include name="resources/**/*" />
+             </fileset>
+             <fileset dir="${module.target}">
+                 <include name="lib/${fullName}.jar" />
+                 <include name="work/jsp/**/*" />
+                 <include name="src/**/*" />
+                 <include name="bin/**/*" />
+             </fileset>
             <mappedresources>
                 <fileset refid="maven-deps-runtime" />
                 <chainedmapper>
