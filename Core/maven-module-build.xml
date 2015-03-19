@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+
+<!--
+  NOTE: This module build script expects the property "coreHome" to be set and pointing - either absolutely or 
+  relatively - to the directory of your core project. In Eclipse this can be done by going to 
+  Window -> Preferences -> Any -> Runtime -> Properties and adding a coreHome property.
+  
+ -->
+<project name="MA - Module build" basedir="." xmlns:mvn="antlib:org.apache.maven.artifact.ant">
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
+    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+             uri="antlib:org.apache.maven.artifact.ant"
+             classpath="${coreHome}/lib-opt/maven-ant-tasks-2.1.3.jar" />
+	
+	<mvn:pom file="pom.xml" id="maven-pom" />
+	<mvn:dependencies filesetId="maven-deps" type="jar" pomRefId="maven-pom" />
+	<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="maven-pom" useScope="runtime" />
+	
+    <property name="buildDir" value="${maven-pom.build.directory}" />
+    <property name="name" value="${maven-pom.artifactId}" />
+    <property name="version" value="${maven-pom.version}" />
+    <property name="fullName" value="m2m2-${name}-${version}" />
+	<property name="moduleZip" value="${buildDir}/${fullName}.zip" />
+    <property name="core.target" value="${coreHome}" />
+    <property name="module.deploy.paths" value="${core.target}/web/modules" />
+    <property name="zip.paths" value="${core.target}/ma-modules.zip" />
+
+    <path id="module-master-classpath">
+        <fileset refid="maven-deps" />
+        <pathelement path="${buildDir}/classes" />
+    </path>
+    
+    <target name="clean" description="Clean the target area">
+        <echo message="Cleaning ${core.target}/web/modules/${name}" />
+        <delete dir="${core.target}/web/modules/${name}" />
+    </target>
+
+    <target name="jsp-compile" depends="clean" description="Compile the JSPs">
+        <if><and>
+            	<available file="web" type="dir" />
+            	<available file="${core.target}/work/jsp" type="dir" />
+        	</and>
+            <then>
+                <taskdef name="jasper2" classname="org.apache.jasper.JspC">
+                    <classpath>
+                        <path refid="module-master-classpath" />
+                    </classpath>
+                </taskdef>
+                <property name="module.core" value="${core.target}/web/modules/${name}" />
+
+                <!-- Copy the web files to core dirs -->
+                <!-- MOVED TO DEPLOY TARGET <delete dir="${module.core}" /> -->
+                
+                <copy todir="${module.core}/web" preservelastmodified="true">
+                    <fileset dir="web">
+                        <include name="**/*.jsp" />
+                        <include name="**/*.jspf" />
+                        <include name="**/*.tag" />
+                        <include name="**/*.tagf" />
+                        <include name="**/*.tld" />
+                    </fileset>
+                </copy>
+
+                <!-- Check if there is a tags lib -->
+                <if>
+                    <isset property="tagdir" />
+                    <then>
+                        <!-- Move the tag dir to under the WEB-INF dir -->
+                        <move todir="${core.target}/web/WEB-INF/tags/${name}">
+                            <fileset dir="${module.core}/${tagdir}" />
+                        </move>
+                    </then>
+                </if>
+
+                <!-- Get the list of files to compile -->
+                <fileset id="jsps.fs" dir="${core.target}/web">
+                    <include name="modules/${name}/**/*.jsp"/>
+                    <include name="modules/${name}/**/*.jspf"/>
+                </fileset>
+                <property name="canonical" location="${coreHome}/target/web" />
+                <!-- make it appear to Jasper that the files are in the web folder -->
+                <pathconvert property="jsps" pathsep="," refid="jsps.fs" setonempty="false">
+                    <map from="${canonical}" to="." />
+                </pathconvert>
+
+                <!-- Compile the JSPs IF THERE ARE ANY-->
+                <if><isset property="jsps" />
+                    <then>
+                        <mkdir dir="${buildDir}/work-tmp/jsp" />
+                        <mkdir dir="${buildDir}/work-tmp/jsp-src" />
+                        <echo message="${jsps}" />
+                        <jasper2 uriroot="${core.target}/web"
+                                 outputDir="${buildDir}/work-tmp/jsp-src"
+                                 webXmlFragment="${buildDir}/web/WEB-INF/web-fragment.xml"
+                                 verbose="1"
+                                 jspFiles="${jsps}">
+                        </jasper2>
+                        <javac destdir="${buildDir}/work-tmp/jsp/"
+                               debug="true"
+                               debuglevel="lines,vars,source"
+                               deprecation="false"
+                               optimize="true"
+                               failonerror="true"
+                               includeantruntime="false"
+                               source="1.7"
+                               target="1.7">
+                            <src path="${buildDir}/work-tmp/jsp-src" />
+                            <classpath>
+                                <path refid="module-master-classpath" />
+                            </classpath>
+                        </javac>
+                        <!-- Copy the compiled stuff back to the module -->
+                        <property name="pkg"
+                                  value="${buildDir}/work-tmp/jsp/org/apache/jsp/modules/${name}" />
+                        
+                        <if><available file="${pkg}" type="dir" />
+                            <then>
+                                <copy todir="${buildDir}/work"
+                                      preservelastmodified="true">
+                                    <fileset dir="${buildDir}/work-tmp/">
+                                        <include name="jsp/org/apache/jsp/modules/${name}/**/*" />
+                                    </fileset>
+                                </copy>
+                            </then>
+                        </if>
+                    </then>
+                    <else>
+                        <echo message="No JSP Files Compiled For this Module!" />
+                    </else>
+                </if>
+
+                <if>
+                    <isset property="tagdir" />
+                    <then>
+                        <!-- Copy the compiled tag dir back to the module -->
+                        <echo message="Copying Tags to ${buildDir}/${tagpkg}" />
+                        <copy todir="${buildDir}/module-classes/org/apache/jsp/tag/web/${name}"
+                              preservelastmodified="true">
+                            <fileset dir="${buildDir}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
+                                <include name="**/*" />
+                            </fileset>
+                        </copy>
+                        <property name="tagpkg"
+                                  value="work/jsp/org/apache/jsp/tag/web/${name}" />
+                        <copy todir="${buildDir}/${tagpkg}"
+                              preservelastmodified="true">
+                            <fileset dir="${buildDir}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
+                                <include name="**/*" />
+                            </fileset>
+                        </copy>
+                    </then>
+                </if>
+
+                <!-- Clean out the directories to leave the core unchanged 
+                  MOVED TO DEPLOY TARGET
+                <delete dir="${module.core}" /> -->
+                <if>
+                    <or>
+                        <isset property="jsps" />
+                        <isset property="tagdir" />
+                    </or>
+                    <then>
+                        <echo message="Deleting Tag work directory for module"/>
+                        <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
+                        <echo message="Deleting JSP work directory for module"/>
+                        <delete dir="${core.target}/work/jsp/org/apache/jsp/modules/${name}" />                              
+                    </then>
+                </if>
+            </then>
+        </if>
+    </target>
+
+	<target name="zip" depends="jsp-compile" description="Creates a zip file from the maven packaged jar">
+		<if><available file="dependency-reduced-pom.xml" type="file" />
+			<then>
+				<mvn:pom file="dependency-reduced-pom.xml" id="reduced-pom" />
+				<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="reduced-pom" useScope="runtime" />
+			</then>
+		</if>
+	    <delete file="${moduleZip}" />
+	    <zip destfile="${moduleZip}">
+	    	<fileset dir="">
+                <include name="RELEASE-NOTES" />
+                <include name="licenseTypes.xml" />
+            	<include name="lib/**/*.jar" />
+            	<include name="lib/**/*.so" />
+            	<include name="dox/**/*" />
+            	<include name="web/**/*" />
+            	<include name="classes/**/*" />
+            	<include name="resources/**/*" />
+            </fileset>
+	    	<fileset dir="${buildDir}">
+                <include name="work/jsp/**/*" />
+                <include name="src/**/*" />
+                <include name="bin/**/*" />
+	    	</fileset>
+	        <fileset dir="${buildDir}/classes">
+                <include name="module.properties" />
+            </fileset>
+	    	<mappedresources>
+                <fileset dir="${buildDir}">
+                    <include name="${maven-pom.build.finalName}.jar" />
+                </fileset>
+	    		<chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*.jar" to="lib/*.jar" />
+                </chainedmapper>
+	        </mappedresources>
+            <mappedresources>
+                <fileset refid="maven-deps-runtime" />
+                <chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*.jar" to="lib/*.jar" />
+                </chainedmapper>
+            </mappedresources>
+	    </zip>
+	</target>
+	
+	<target name="deploy" depends="zip" description="Deploys the zipped module to the core">
+		<copy todir="${module.deploy.paths}" preservelastmodified="true" file="${moduleZip}" />
+		<delete dir="${module.core}" />
+	</target>
+
+    <target name="copy-web"
+            depends="jsp-compile"
+            description="Copy the web dir to the core - useful when developing, the module must be installed in the core already">
+                
+        <copy todir="${core.target}/web/modules/${name}/web"
+              preservelastmodified="true">
+            <fileset dir="web">
+                <include name="**/*" />
+            </fileset>
+        </copy>
+        <!-- Copy the compiled tags into the core -->
+        <if>
+            <isset property="tagdir" />
+            <then>
+                <property name="cw-tagpkg"
+                          value="work/jsp/org/apache/jsp/tag/web/${name}" />
+
+                <echo message="Copying Tag Classes to ${core.target}/${cw-tagpkg}" />
+                <copy todir="${core.target}/web/WEB-INF/tags/${name}"
+                      preservelastmodified="true">
+                    <fileset dir="${buildDir}/${cw-tagpkg}">
+                        <include name="**/*" />
+                    </fileset>
+                </copy>
+            	<echo message="Copying Tags to ${core.target}/${cw-tagpkg}" />
+                <copy todir="${core.target}/web/WEB-INF/tags/${name}"
+                      preservelastmodified="true">
+                	<fileset dir="${module.core}/${tagdir}">
+                        <include name="**/*" />
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+        <!-- Copy the compiled jsps into the core -->
+<!--        <if>
+           <available file="${buildDir}/work/jsp/org/apache/jsp/modules/${name}" type="dir"/>
+           <then>
+            <property name="cw-pkg"
+                      value="work/jsp/org/apache/jsp/modules/${name}" />
+            <echo message="Copying JSPs to ${core.target}/${cw-pkg}" />
+            <copy todir="${core.target}/${cw-pkg}" preservelastmodified="true">
+                <fileset dir="${buildDir}/${cw-pkg}">
+                    <include name="**/*" />
+                </fileset>
+            </copy>
+            </then>
+            <else>
+                <echo message="No JSPs copied into core work directory."/>
+            </else>
+        </if> -->
+    </target>
+</project>

@@ -1,0 +1,38 @@
+<assembly
+  xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>module-zip</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>RELEASE-NOTES</include>
+        <include>licenseTypes.xml</include>
+        <include>web/**</include>
+        <include>dox/**</include>
+        <include>classes/**</include>
+        <include>resources/**</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>${project.build.finalName}.jar</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <files>
+    <file>
+      <source>${project.build.directory}/classes/META-INF/module.properties</source>
+      <outputDirectory></outputDirectory>
+      <destName>module.properties</destName>
+    </file>
+  </files>
+</assembly>

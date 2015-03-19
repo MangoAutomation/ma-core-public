@@ -1,10 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
  <modelVersion>4.0.0</modelVersion>
- <groupId>com.infiniteautomation</groupId>
  <artifactId>mango</artifactId>
  <!-- When changing version ensure you change Common.java as well. -->
- <version>2.5.3</version>
  <name>Mango Core</name>
  <properties>
   <!-- previous jetty version: 7.4.5.v20110725 9.2.0.v20140526 -->
@@ -13,8 +11,6 @@
    for websockets support -->
   <springVersion>4.0.5.RELEASE</springVersion>
  </properties>
-
-
  <repositories>
   <repository>
    <id>mango-core</id>
@@ -41,16 +37,6 @@
     </excludes>
    </testResource>
   </testResources>
-  <plugins>
-   <plugin>
-    <artifactId>maven-compiler-plugin</artifactId>
-    <version>3.2</version>
-    <configuration>
-     <source>1.7</source>
-     <target>1.7</target>
-    </configuration>
-   </plugin>
-  </plugins>
  </build>
  <dependencies>
   <dependency>
@@ -418,4 +404,11 @@
     <scope>test</scope>
 </dependency>
  </dependencies>
+ <parent>
+   <artifactId>mango-parent</artifactId>
+   <groupId>com.infiniteautomation.mango</groupId>
+   <version>2.5.3</version>
+    <relativePath>../pom.xml</relativePath>
+ </parent>
+ <groupId>com.infiniteautomation</groupId>
 </project>

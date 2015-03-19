@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.infiniteautomation.mango</groupId>
+    <artifactId>mango-parent</artifactId>
+    <version>2.5.3</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>modules-parent</artifactId>
+  <packaging>pom</packaging>
+  <name>Mango Modules</name>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>META-INF/module.properties</include>
+        </includes>
+      </resource>
+    </resources>
+    <pluginManagement>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>module-zip</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptorRefs>
+                    <descriptorRef>moduleZipAssembly</descriptorRef>
+                  </descriptorRefs>
+                  <finalName>m2m2-${project.artifactId}-${noSnapshotVer}</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+    </pluginManagement>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>com.infiniteautomation</groupId>
+      <artifactId>mango</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

@@ -325,55 +325,6 @@
             </fileset>
         </jar>
     </target>
-	
-	<target name="zip-maven" depends="jsp-compile" description="Creates a zip file from the maven packaged jar">
-		<if><available file="dependency-reduced-pom.xml" type="file" />
-			<then>
-				<mvn:pom file="dependency-reduced-pom.xml" id="reduced-pom" />
-				<mvn:dependencies filesetId="maven-deps-runtime" type="jar" pomRefId="reduced-pom" useScope="runtime" />
-			</then>
-		</if>
-	    <delete file="${moduleZip}" />
-	    <zip destfile="${moduleZip}">
-	    	<fileset dir="">
-                <include name="module.properties" />
-                <include name="RELEASE-NOTES" />
-                <include name="licenseTypes.xml" />
-            	<include name="lib/**/*.jar" />
-            	<include name="lib/**/*.so" />
-            	<include name="dox/**/*" />
-            	<include name="web/**/*" />
-            	<include name="classes/**/*" />
-            	<include name="resources/**/*" />
-            </fileset>
-	    	<fileset dir="${module.target}">
-                <include name="work/jsp/**/*" />
-                <include name="src/**/*" />
-                <include name="bin/**/*" />
-	    	</fileset>
-	    	<mappedresources>
-                <fileset dir="${maven-pom.build.directory}">
-                    <include name="${maven-pom.build.finalName}.jar" />
-                </fileset>
-	    		<chainedmapper>
-                    <flattenmapper />
-                    <globmapper from="*.jar" to="lib/*.jar" />
-                </chainedmapper>
-	        </mappedresources>
-            <mappedresources>
-                <fileset refid="maven-deps-runtime" />
-                <chainedmapper>
-                    <flattenmapper />
-                    <globmapper from="*.jar" to="lib/*.jar" />
-                </chainedmapper>
-            </mappedresources>
-	    </zip>
-	</target>
-	
-	<target name="deploy-maven" depends="zip-maven" description="Deploys the zipped module to the core">
-		<copy todir="${module.deploy.paths}" preservelastmodified="true" file="${moduleZip}" />
-		<delete dir="${module.core}" />
-	</target>
 
     <target name="zip" depends="jar" description="Create a Zip file of the Module">
         <if><available  file="scripts" type="dir" />
