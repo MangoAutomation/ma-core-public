@@ -11,7 +11,9 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.util.ExportCodes;
 
 
@@ -78,10 +80,11 @@ public class QueryComparison {
 	public void setComparisonType(int comparisonType) {
 		this.comparisonType = comparisonType;
 	}
-	
+	@JsonGetter("comparisonType")
 	public String getComparison(){
 		return COMPARISON_TYPE_CODES.getCode(this.comparisonType);
 	}
+	@JsonSetter("comparisonType")
 	public void setComparison(String comparisonCode){
 		this.comparisonType = COMPARISON_TYPE_CODES.getId(comparisonCode);
 	}
@@ -120,8 +123,56 @@ public class QueryComparison {
 	 * @return
 	 */
 	private String generateCharSql(StringBuilder sql, String column) {
-		// TODO Auto-generated method stub
-		return null;
+		String bool = "N";
+		if(condition.equalsIgnoreCase("true")){
+			bool = "Y";
+		}
+		switch(comparisonType){
+			case GREATER_THAN:
+				sql.append(column);
+				sql.append(">");
+				sql.append("'");
+				sql.append(bool);
+				sql.append("'");
+			break;
+			case GREATER_THAN_EQUAL_TO:
+				sql.append(column);
+				sql.append(">=");
+				sql.append("'");
+				sql.append(bool);
+				sql.append("'");
+			break;
+			case LESS_THAN:
+				sql.append(column);
+				sql.append("<");
+				sql.append("'");
+				sql.append(bool);
+				sql.append("'");
+			break;
+			case LESS_THAN_EQUAL_TO:
+				sql.append(column);
+				sql.append("<=");
+				sql.append("'");
+				sql.append(bool);
+				sql.append("'");
+			break;
+	    	case EQUAL_TO:
+				sql.append(column);
+				sql.append("=");
+				sql.append("'");
+				sql.append(bool);
+				sql.append("'");
+			break;
+	    	case NOT_EQUAL_TO:
+				sql.append(column);
+				sql.append("!=");
+				sql.append("'");
+				sql.append(bool);
+				sql.append("'");
+			break;
+			default:
+		}
+		return sql.toString();
 	}
 
 	/**
@@ -130,8 +181,41 @@ public class QueryComparison {
 	 * @return
 	 */
 	private String generateBooleanSql(StringBuilder sql, String column) {
-		// TODO Auto-generated method stub
-		return null;
+		switch(comparisonType){
+		case GREATER_THAN:
+			sql.append(column);
+			sql.append(">");
+			sql.append(condition);
+		break;
+		case GREATER_THAN_EQUAL_TO:
+			sql.append(column);
+			sql.append(">=");
+			sql.append(condition);
+		break;
+		case LESS_THAN:
+			sql.append(column);
+			sql.append("<");
+			sql.append(condition);
+		break;
+		case LESS_THAN_EQUAL_TO:
+			sql.append(column);
+			sql.append("<=");
+			sql.append(condition);
+		break;
+    	case EQUAL_TO:
+			sql.append(column);
+			sql.append("=");
+			sql.append(condition);
+		break;
+    	case NOT_EQUAL_TO:
+			sql.append(column);
+			sql.append("!=");
+			sql.append(condition);
+		break;
+		default:
+	}
+    
+    return sql.toString();
 	}
 
 	/**
@@ -140,8 +224,52 @@ public class QueryComparison {
 	 * @return
 	 */
 	private String generateStringSql(StringBuilder sql, String column) {
-		// TODO Auto-generated method stub
-		return null;
+		switch(comparisonType){
+			case GREATER_THAN:
+				sql.append(column);
+				sql.append(">");
+				sql.append("'");
+				sql.append(condition);
+				sql.append("'");
+			break;
+			case GREATER_THAN_EQUAL_TO:
+				sql.append(column);
+				sql.append(">=");
+				sql.append("'");
+				sql.append(condition);
+				sql.append("'");
+			break;
+			case LESS_THAN:
+				sql.append(column);
+				sql.append("<");
+				sql.append("'");
+				sql.append(condition);
+				sql.append("'");
+			break;
+			case LESS_THAN_EQUAL_TO:
+				sql.append(column);
+				sql.append("<=");
+				sql.append("'");
+				sql.append(condition);
+				sql.append("'");
+			break;
+	    	case EQUAL_TO:
+				sql.append(column);
+				sql.append("=");
+				sql.append("'");
+				sql.append(condition);
+				sql.append("'");
+			break;
+	    	case NOT_EQUAL_TO:
+				sql.append(column);
+				sql.append("!=");
+				sql.append("'");
+				sql.append(condition);
+				sql.append("'");
+			break;
+			default:
+		}
+		return sql.toString();
 	}
 
 	/**
@@ -205,38 +333,38 @@ public class QueryComparison {
 
 	protected String generateIntegerSql(StringBuilder sql, String column){
 		switch(comparisonType){
-		case GREATER_THAN:
-			sql.append(column);
-			sql.append(">");
-			sql.append(condition);
-		break;
-		case GREATER_THAN_EQUAL_TO:
-			sql.append(column);
-			sql.append(">=");
-			sql.append(condition);
-		break;
-		case LESS_THAN:
-			sql.append(column);
-			sql.append("<");
-			sql.append(condition);
-		break;
-		case LESS_THAN_EQUAL_TO:
-			sql.append(column);
-			sql.append("<=");
-			sql.append(condition);
-		break;
-    	case EQUAL_TO:
-			sql.append(column);
-			sql.append("=");
-			sql.append(condition);
-		break;
-    	case NOT_EQUAL_TO:
-			sql.append(column);
-			sql.append("!=");
-			sql.append(condition);
-		break;
-		default:
-	}
+			case GREATER_THAN:
+				sql.append(column);
+				sql.append(">");
+				sql.append(condition);
+			break;
+			case GREATER_THAN_EQUAL_TO:
+				sql.append(column);
+				sql.append(">=");
+				sql.append(condition);
+			break;
+			case LESS_THAN:
+				sql.append(column);
+				sql.append("<");
+				sql.append(condition);
+			break;
+			case LESS_THAN_EQUAL_TO:
+				sql.append(column);
+				sql.append("<=");
+				sql.append(condition);
+			break;
+	    	case EQUAL_TO:
+				sql.append(column);
+				sql.append("=");
+				sql.append(condition);
+			break;
+	    	case NOT_EQUAL_TO:
+				sql.append(column);
+				sql.append("!=");
+				sql.append(condition);
+			break;
+			default:
+		}
         
         return sql.toString();
 	}
