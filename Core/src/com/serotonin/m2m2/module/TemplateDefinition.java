@@ -43,6 +43,6 @@ abstract public class TemplateDefinition extends ModuleElementDefinition{
      */
     @Override
     public void uninstall() {
-        TemplateDao.instance.deletTemplateType(getTemplateTypeName());
+        TemplateDao.instance.deleteTemplateType(getTemplateTypeName());
     }
 }

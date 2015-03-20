@@ -7,13 +7,13 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.List;
 import java.util.Map;
 
+import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.ResultSetCounter;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
-import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.EventTypeDefinition;

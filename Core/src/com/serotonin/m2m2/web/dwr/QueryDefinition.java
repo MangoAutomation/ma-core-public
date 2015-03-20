@@ -7,7 +7,7 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.List;
 import java.util.Map;
 
-import com.serotonin.m2m2.db.dao.SortOption;
+import com.infiniteautomation.mango.db.query.SortOption;
 
 /**
  * @author Terry Packer

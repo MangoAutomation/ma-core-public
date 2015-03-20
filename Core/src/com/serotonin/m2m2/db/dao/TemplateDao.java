@@ -8,8 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,33 +81,10 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 		throw new ShouldNeverHappenException("Unable to create generic template, a type is required");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
-	 */
-	@Override
-	protected List<String> getProperties() {
-		return Arrays.asList(
-				"id", 
-				"xid",
-				"name",
-				"templateType",
-				"readPermission",
-				"setPermission",
-				"data");
-	}
 
-   @Override
-    protected List<Integer> getPropertyTypes() {
-        return Arrays.asList(
-        		//Leaving out the ID
-        		Types.VARCHAR,
-        		Types.VARCHAR,
-        		Types.VARCHAR,
-        		Types.VARCHAR,
-        		Types.VARCHAR,
-        		Types.BINARY
-        	);
-   }
+   
+   
+   
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
@@ -218,10 +195,28 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 	/**
 	 * @param templateTypeName
 	 */
-	public void deletTemplateType(String templateTypeName) {
+	public void deleteTemplateType(String templateTypeName) {
 		//TODO Need to delete the templates of this type from the table
 		// should be done after all other references are fixed
 		throw new ShouldNeverHappenException("Unimplemented!");
 		
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+	 */
+	@Override
+	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+		map.put("id", Types.INTEGER); 
+		map.put("xid", Types.VARCHAR);
+		map.put("name", Types.VARCHAR);
+		map.put("templateType", Types.VARCHAR);
+		map.put("readPermission", Types.VARCHAR);
+		map.put("setPermission", Types.VARCHAR);
+		map.put("data", Types.BINARY);
+		
+		return map;
+	}
+
 }

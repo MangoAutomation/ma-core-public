@@ -6,9 +6,9 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.sql.Types;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.logging.LogFactory;
@@ -154,23 +154,6 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 
 
 	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
-	 */	//select uc.userId, u.username, uc.ts, uc.commentText "
-    //+ "from userComments uc left join users u on uc.userId = u.id 
-
-	@Override
-	protected List<String> getProperties() {
-		return Arrays.asList(
-				"userId",
-				"ts",
-				"commentText",
-				"commentType",
-				"typeKey"
-				);
-	}
-
-
-	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
 	 */
 	@Override
@@ -190,4 +173,18 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 		return new UserCommentVORowMapper();
 	}
 
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+	 */
+	@Override
+	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+		map.put("userId", Types.INTEGER);
+		map.put("ts", Types.BIGINT);
+		map.put("commentText", Types.VARCHAR);
+		map.put("commentType", Types.INTEGER);
+		map.put("typeKey", Types.INTEGER);
+		return map;
+	}
 }

@@ -17,10 +17,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
+import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
-import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;

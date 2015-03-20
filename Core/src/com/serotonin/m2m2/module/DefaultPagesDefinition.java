@@ -111,7 +111,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * 
      * @return the URI of the login page to use, or null.
      */
-    @SuppressWarnings("unused")
     public String getLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
         return null;
     }
@@ -123,7 +122,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * 
      * @return the URI of the page to use following the first login, or null.
      */
-    @SuppressWarnings("unused")
     public String getFirstLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
         return null;
     }
@@ -137,7 +135,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      *            the user who has just logged in.
      * @return the URI of the page to use following the user's first login, or null.
      */
-    @SuppressWarnings("unused")
     public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }
@@ -150,7 +147,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * 
      * @return the URI of the default logged in page to use, or null.
      */
-    @SuppressWarnings("unused")
     public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }
@@ -163,7 +159,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * 
      * @return the URI of the default logged in page to use, or null.
      */
-    @SuppressWarnings("unused")
     public String getLoggedInPageUriPreHome(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }
@@ -175,7 +170,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * 
      * @return the URI of the default logged in page to use, or null.
      */
-    @SuppressWarnings("unused")
     public String getLoggedInPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }

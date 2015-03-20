@@ -3,7 +3,7 @@
  * @author Jared Wiltshire
  */
 
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.db.query;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.

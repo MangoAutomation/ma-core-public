@@ -10,9 +10,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 
+import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
-import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 

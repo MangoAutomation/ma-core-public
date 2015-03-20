@@ -11,10 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -145,7 +145,10 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Update a data source by calling Super.save(vo)
+     * @param vo
+     */
     private void updateDataSource(final DataSourceVO<?> vo) {
         super.save(vo);
         //DataSourceVO<?> old = getDataSource(vo.getId());
@@ -358,24 +361,20 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         throw new ShouldNeverHappenException("Unable to create generic data source, must supply a type");
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
-     */
-    @Override
-    protected List<String> getProperties() {
-        return Arrays.asList("id", "xid", "name", "dataSourceType", "data", "editPermission");
-    }
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+	 */
     @Override
-    protected Integer getIndexType() {
-        return Types.INTEGER;
-    }
-
-    @Override
-    protected List<Integer> getPropertyTypes() {
-        return Arrays.asList(Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR);
+    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+    	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+    	map.put("id", Types.INTEGER);
+    	map.put("xid", Types.VARCHAR);
+    	map.put("name", Types.VARCHAR);
+    	map.put("dataSourceType", Types.VARCHAR);
+    	map.put("data", Types.BINARY);
+    	map.put("editPermission", Types.VARCHAR);
+    	return map;
     }
 
     @Override

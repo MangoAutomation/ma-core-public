@@ -6,12 +6,16 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.infiniteautomation.mango.db.query.QueryComparison;
+import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -67,12 +71,13 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         String insert = "INSERT INTO " + tableName + " (";
         String insertValues = "";
         String update = "UPDATE " + tableName + " SET ";
-
+        
+        Set<String> properties = this.propertyTypeMap.keySet();
         // don't the first property - "id", in the insert statements
-        for (int i = 0; i < properties.size(); i++) {
-            String prop = properties.get(i);
+        int i=0;
+        for (String prop : properties) {
 
-            String selectPrefix = (i == 0) ? this.tablePrefix : "," + this.tablePrefix;
+        	String selectPrefix = (i == 0) ? this.tablePrefix : "," + this.tablePrefix;
             selectAll += selectPrefix + prop;
 
             String insertPrefix = (i == 1) ? "" : ",";
@@ -81,6 +86,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
                 insertValues += insertPrefix + "?";
                 update += insertPrefix + prop + "=?";
             }
+            i++;
         }
 
         for (String prop : extraProperties) {
@@ -141,23 +147,38 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
                 COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix;
         }
 
-        //Create the Update Properties
-        if (this.getPropertyTypes() != null) {
-            this.updateStatementPropertyTypes = new int[this.propertyTypes.size() + 1];
-            this.insertStatementPropertyTypes = new int[this.propertyTypes.size()];
+        //Create the Update and Insert property types lists
+        if((getPkColumnName() != null)&&(this.propertyTypeMap.get(getPkColumnName()) != null)){
+        	this.updateStatementPropertyTypes = new int[this.propertyTypeMap.size()];
+        	this.insertStatementPropertyTypes = new int[this.propertyTypeMap.size()-1];
+        }else{
+        	this.updateStatementPropertyTypes = new int[this.propertyTypeMap.size()];
+        	this.insertStatementPropertyTypes = new int[this.propertyTypeMap.size()];
+        }
+        
 
-            int i = 0;
-            for (i = 0; i < this.propertyTypes.size(); i++) {
-                this.updateStatementPropertyTypes[i] = this.propertyTypes.get(i);
-                this.insertStatementPropertyTypes[i] = this.propertyTypes.get(i);
-            }
-
-            this.updateStatementPropertyTypes[i] = getIndexType();
+        Iterator<String> it = this.propertyTypeMap.keySet().iterator();
+        int j=0;
+        while(it.hasNext()){
+        	String property = it.next();
+        	if(!property.equals(getPkColumnName())){
+	        	Integer type = this.propertyTypeMap.get(property);
+	        	this.updateStatementPropertyTypes[j] = type;
+	        	this.insertStatementPropertyTypes[j] = type;
+	        	j++;
+        	}
+        }
+        
+        if((getPkColumnName() != null)&&(this.propertyTypeMap.get(getPkColumnName()) != null)){
+       		this.updateStatementPropertyTypes[j] =  this.propertyTypeMap.get(getPkColumnName());
         }
 
     }
 
-    //TODO Make this call the other constructor
+    /**
+     * 
+     * @param typeName - Audit Event Type Name
+     */
     protected AbstractDao(String typeName) {
         this(typeName, null, new String[0], null);
     }
@@ -270,7 +291,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @return vo if found, otherwise null
      */
     public T getByXid(String xid) {
-        if (!getProperties().contains("xid") || xid == null) {
+        if (!this.propertyTypeMap.keySet().contains("xid") || xid == null) {
             return null;
         }
 
@@ -484,13 +505,15 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param or
      * @param callback
      */
-    public void streamQuery(List<QueryParameter> query, List<SortOption> sort, Integer offset, Integer limit,
-            boolean or, MappedRowCallback<T> callback){
+    public void streamQuery(List<QueryComparison> orComparisons,
+    		List<QueryComparison> andComparisons, 
+    		List<SortOption> sort, 
+    		Integer offset, Integer limit,
+            MappedRowCallback<T> callback){
     	
         List<Object> selectArgs = new ArrayList<Object>();
       
-        String conditions = applyConditions("", selectArgs, query, or);
-        String selectSql  = SELECT_ALL + conditions;
+        String selectSql = applyConditions(SELECT_ALL, selectArgs, orComparisons, andComparisons);
         
         //Apply the sorts
         selectSql = applySort(selectSql, sort, selectArgs);

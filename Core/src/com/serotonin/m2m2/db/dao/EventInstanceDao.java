@@ -6,10 +6,11 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.sql.Types;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -87,41 +88,40 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		return new EventInstanceVO();
 	}
 
+
 	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
 	 */
 	@Override
-	protected List<String> getProperties() {
+	protected LinkedHashMap<String,Integer> getPropertyTypeMap(){
+		LinkedHashMap<String,Integer> map = new LinkedHashMap<String,Integer>();
+		map.put("id", Types.INTEGER);
+		map.put("typeName", Types.VARCHAR);
+		map.put("subtypeName", Types.VARCHAR);
+		map.put("typeRef1", Types.INTEGER);
+		map.put("typeRef2", Types.INTEGER);
+		map.put("activeTs", Types.BIGINT);
+		map.put("rtnApplicable", Types.CHAR);
+		map.put("rtnTs", Types.BIGINT);
+		map.put("rtnCause", Types.INTEGER);
+		map.put("alarmLevel", Types.INTEGER);
+		map.put("message", Types.LONGVARCHAR);
+		map.put("ackTs", Types.BIGINT);
+		map.put("ackUserId", Types.INTEGER);
+		map.put("alternateAckSource", Types.LONGVARCHAR);
 		
-		return Arrays.asList(
-				"id",
-				"typeName",
-				"subtypeName",
-				"typeRef1",
-				"typeRef2",
-				"activeTs",
-				"rtnApplicable",
-				"rtnTs",
-				"rtnCause",
-				"alarmLevel",
-				"message",
-				"ackTs",
-				"ackUserId",
-				"alternateAckSource"
-		);
-		
-		
+		return map;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
 	 */
 	@Override
 	protected Map<String, String> getPropertiesMap() {
 		Map<String,String> map = new HashMap<String,String>();
-		map.put("activeTimestamp", "evt.activeTs");
-		map.put("activeTimestampString", "evt.activeTs");
-		map.put("rtnTimestampString", "evt.rtnTs");
+		map.put("activeTimestamp", "activeTs");
+		map.put("activeTimestampString", "activeTs");
+		map.put("rtnTimestampString", "rtnTs");
 		
         /*
          * IF(evt.rtnTs=null,
@@ -148,10 +148,10 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 			default:
 				throw new ShouldNeverHappenException("Unsupported database for Alarms.");
 		}	
-		map.put("messageString", "evt.message");
-		map.put("rtnTimestampString", "evt.rtnTs");
-		map.put("userNotified", "ue.silenced");
-		map.put("acknowledged", "evt.ackTs");
+		map.put("messageString", "message");
+		map.put("rtnTimestampString", "rtnTs");
+		map.put("userNotified", "silenced");
+		map.put("acknowledged", "ackTs");
 		map.put("userId", "ue.userId"); //Mapping for user 
 		return map;
 	}

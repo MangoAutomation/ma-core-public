@@ -9,12 +9,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -831,51 +831,38 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         return new DataPointVO();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getProperties()
-     */
-    @Override
-    protected List<String> getProperties() {
-        return Arrays.asList("id", "data", "xid", "dataSourceId", "name", "deviceName", "enabled", "pointFolderId",
-                "loggingType", "intervalLoggingPeriodType", "intervalLoggingPeriod", "intervalLoggingType",
-                "tolerance", "purgeOverride", "purgeType", "purgePeriod", "defaultCacheSize", "discardExtremeValues",
-                "engineeringUnits", "readPermission", "setPermission", "templateId");
-    }
 
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+	 */
     @Override
-    protected Integer getIndexType() {
-        return Types.INTEGER;
-    }
+    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+    	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+		map.put("id", Types.INTEGER);
+		map.put("data", Types.BINARY); //Locator
+		map.put("xid", Types.VARCHAR); //Xid
+		map.put("dataSourceId",Types.INTEGER); //Dsid
+		map.put("name", Types.VARCHAR); //Name
+		map.put("deviceName", Types.VARCHAR); //Device Name
+        map.put("enabled", Types.CHAR); //Enabled
+        map.put("pointFolderId", Types.INTEGER); //Point Folder Id
+        map.put("loggingType", Types.INTEGER); //Logging Type
+        map.put("intervalLoggingPeriodType", Types.INTEGER); //Interval Logging Period Type
+        map.put("intervalLoggingPeriod", Types.INTEGER); //Interval Logging Period
+        map.put("intervalLoggingType", Types.INTEGER); //Interval Logging Type
+        map.put("tolerance", Types.DOUBLE); //Tolerance
+        map.put("purgeOverride", Types.CHAR); //Purge Override
+        map.put("purgeType", Types.INTEGER); //Purge Type
+        map.put("purgePeriod", Types.INTEGER); //Purge Period
+        map.put("defaultCacheSize", Types.INTEGER); //Default Cache Size
+        map.put("discardExtremeValues", Types.CHAR); //Discard Extremem Values
+        map.put("engineeringUnits", Types.INTEGER); //get Engineering Units
+        map.put("readPermission", Types.VARCHAR); // Read permission
+        map.put("setPermission", Types.VARCHAR); // Set permission
+        map.put("templateId", Types.INTEGER); //Template ID FK
 
-    /**
-     * TODO make this a map to sync with voToObjectArray
-     */
-    @Override
-    protected List<Integer> getPropertyTypes() {
-        return Arrays.asList(Types.BINARY, //Locator
-                Types.VARCHAR, //Xid
-                Types.INTEGER, //Dsid
-                Types.VARCHAR, //Name
-                Types.VARCHAR, //Device Name
-                Types.CHAR, //Enabled
-                Types.INTEGER, //Point Folder Id
-                Types.INTEGER, //Logging Type
-                Types.INTEGER, //Interval Logging Period Type
-                Types.INTEGER, //Interval Logging Period
-                Types.INTEGER, //Interval Logging Type
-                Types.DOUBLE, //Tolerance
-                Types.CHAR, //Purge Override
-                Types.INTEGER, //Purge Type
-                Types.INTEGER, //Purge Period
-                Types.INTEGER, //Default Cache Size
-                Types.CHAR, //Discard Extremem Values
-                Types.INTEGER, //get Engineering Units
-                Types.VARCHAR, // Read permission
-                Types.VARCHAR, // Set permission
-                Types.INTEGER //Template ID FK
-                );
+        return map;
     }
 
     @Override

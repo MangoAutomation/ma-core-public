@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
@@ -19,7 +20,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
-import com.serotonin.m2m2.db.dao.SortOption;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
