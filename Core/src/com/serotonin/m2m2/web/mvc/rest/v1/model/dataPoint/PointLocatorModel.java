@@ -7,7 +7,6 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
@@ -17,10 +16,10 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  * @author Terry Packer
  *
  */
-@JsonEntity
 @CSVEntity(derived=true)
 public abstract class PointLocatorModel<T extends PointLocatorVO> extends AbstractRestModel<PointLocatorVO>{
 
+	//TODO This can probably be removed
 	@JsonIgnore
 	protected T data;
 	
