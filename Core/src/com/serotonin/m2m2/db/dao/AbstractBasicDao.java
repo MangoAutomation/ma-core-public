@@ -37,6 +37,11 @@ import com.serotonin.m2m2.DeltamationCommon;
 public abstract class AbstractBasicDao<T> extends BaseDao {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
     
+    public static final String WHERE = " WHERE ";
+    public static final String OR = " OR ";
+    public static final String AND = " AND ";
+    public static final String LIMIT = " LIMIT ";
+    
     //Map UI or Model member names to the Database Column Names they will get translated when the query is generated
     protected final Map<String, String> propertiesMap = getPropertiesMap();
     //Map of Database Column Names to Column SQL Type
@@ -56,27 +61,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     public AbstractBasicDao(){
     	tablePrefix = "";
     }
-
-//    /**
-//     * 
-//     * Required for Derby Tables that have BLOB Types
-//     * because auto-detection doesn't work.
-//     * 
-//     * Set all properties except the Index in same order as properties array
-//     * 
-//     * If using a table with LOB types this must be overridden
-//     * 
-//	 * @return
-//	 */
-//	protected List<Integer> getPropertyTypes() {
-//		return null;
-//	}
-
-//
-//    protected Integer getIndexType() {
-//        return Types.INTEGER;
-//    }
-//    
+  
     /**
      * Override as necessary
      * Can be null if no Pk Exists
@@ -99,17 +84,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	else
     		this.tablePrefix = "";
     }
-    
-//    /**
-//     * Gets a list of properties/db column names for the Dao object
-//     * First property should always be "id"
-//     * 
-//     * TODO can this be implemented automatically by using
-//     * BeanInfo info = Introspector.getBeanInfo(MachineVO.class);
-//     * 
-//     * @return list of properties
-//     */
-//    protected abstract List<String> getProperties();
 
     /**
      * Override to add a mapping for properties that are not 
@@ -267,7 +241,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                }
 	                
 	                if (mapped || properties.contains(prop)) {
-	                    String tempSql = (i == 0) ? " WHERE " : (or ? " OR " : " AND ");
+	                    String tempSql = (i == 0) ? WHERE : (or ? OR : AND);
 	                    
 	                    String condition = query.get(prop);
 	                    if (condition.startsWith("RegExp:")) {
@@ -394,19 +368,18 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         return sql;
     }
     
+
     /**
-     * TODO This needs to be reworked to use the args list
-     * to avoid SQL Injection Attacks
-     * @param sql
+     * TODO Add arguments to args instead of directly into Query String
      * @param args
-     * @param query
-     * @param or
+     * @param orComparisons
+     * @param andComparisons
      * @return
      */
-    protected String applyConditions(String sql, List<Object> args, List<QueryComparison> orComparisons, List<QueryComparison> andComparisons) {
-        
+    protected String generateWhere(List<Object> args, List<QueryComparison> orComparisons, List<QueryComparison> andComparisons) {
+        String sql = new String();
     	if((orComparisons.size() > 0) || (andComparisons.size() > 0)){
-    		sql += " WHERE ";
+    		sql += WHERE;
     	}else{
     		return sql;
     	}
@@ -430,7 +403,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
                 
                 if (mapped || properties.contains(dbProp)) {
                     if( i > 0)
-                    	sql += " OR ";
+                    	sql += OR;
                     int sqlType = this.propertyTypeMap.get(dbProp);
                     if(mapped)
                     	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
@@ -457,7 +430,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
                 
                 if (mapped || properties.contains(dbProp)) {
                     if( i > 0)
-                    	sql += " AND ";
+                    	sql += AND;
                     int sqlType = this.propertyTypeMap.get(dbProp);
                     if(mapped)
                     	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
@@ -470,6 +443,13 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         return sql;
     }
     
+    /**
+     * Apply The Sort to the Query
+     * @param sql
+     * @param sort
+     * @param selectArgs
+     * @return
+     */
     protected String applySort(String sql, List<SortOption> sort, List<Object> selectArgs) {
         // always sort so that the offset/limit work as intended
         if (sort == null)

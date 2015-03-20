@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.infiniteautomation.mango.db.query.StreamableQuery;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -496,24 +498,35 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         dojoQuery(SELECT_ALL, COUNT, query, sort, offset, limit, or, onResultCallback, null);
     }
 
+    
     /**
-     * Stream the results from a query
-     * @param query
+     * Create a Streamable Query Object
+     * @param orComparisons
+     * @param andComparisons
      * @param sort
      * @param offset
      * @param limit
-     * @param or
-     * @param callback
+     * @param selectCallback
+     * @param countCallback
+     * @return
      */
-    public void streamQuery(List<QueryComparison> orComparisons,
+    public StreamableQuery<T> createQuery(List<QueryComparison> orComparisons,
     		List<QueryComparison> andComparisons, 
     		List<SortOption> sort, 
     		Integer offset, Integer limit,
-            MappedRowCallback<T> callback){
+    		MappedRowCallback<T> selectCallback,
+            MappedRowCallback<Long> countCallback){
     	
         List<Object> selectArgs = new ArrayList<Object>();
-      
-        String selectSql = applyConditions(SELECT_ALL, selectArgs, orComparisons, andComparisons);
+        List<Object> countArgs = new ArrayList<Object>();
+        
+        String whereClause = generateWhere(selectArgs, orComparisons, andComparisons);
+        String selectSql = SELECT_ALL + whereClause;
+        String countSql = null;
+        if(countCallback != null){
+        	countSql = COUNT + whereClause;
+        	countArgs.addAll(selectArgs);
+        }
         
         //Apply the sorts
         selectSql = applySort(selectSql, sort, selectArgs);
@@ -523,12 +536,10 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         	selectSql = applyRange(selectSql, selectArgs, offset, limit);
         else
         	selectSql = applyLimit(selectSql, selectArgs, limit);
-        
-        //Report the query in the log
-        if((LOG !=null)&&(LOG.isDebugEnabled())){
-        	LOG.debug("Dojo Query: " + selectSql + " \nArgs: " + selectArgs.toString());
-        }
 
-        query(selectSql, selectArgs.toArray(), getRowMapper(), callback);
+        return new StreamableQuery<T>(this, selectSql, selectCallback, selectArgs, countSql, countCallback, countArgs);
+        
+    	
     }
+ 
 }
