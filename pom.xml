@@ -13,7 +13,7 @@
  </properties>
  <organization>
    <name>Infinite Automation</name>
-   <url>http://www.infiniteautomation.com.au/</url>
+   <url>http://www.infiniteautomation.com/</url>
  </organization>
  <modules>
    <module>Assembly Descriptors</module>
