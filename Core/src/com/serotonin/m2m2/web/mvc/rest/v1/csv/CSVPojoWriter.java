@@ -19,7 +19,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 public class CSVPojoWriter<T> implements Closeable {
 
    private final CSVWriter writer;
-   private final CSVPojoHandler<T> pojoHandler;
+   private final CSVPojoHandler pojoHandler;
    private String[] headers;
    private boolean hasPrintedHeaders = false;
 
@@ -31,7 +31,7 @@ public class CSVPojoWriter<T> implements Closeable {
     */
    public CSVPojoWriter(CSVWriter writer) {
       this.writer = writer;
-      this.pojoHandler = new CSVPojoHandler<T>();      
+      this.pojoHandler = new CSVPojoHandler();      
    }
 
    /**
@@ -61,7 +61,7 @@ public class CSVPojoWriter<T> implements Closeable {
     * @param pojo The pojo to write
  * @throws NoSupportingModelException 
     */
-   public void writeNext(T pojo) throws NoSupportingModelException {
+   public void writeNext(Object pojo) throws NoSupportingModelException {
 	  if(!pojoHandler.isInitialized() && pojo != null){
 		  pojoHandler.initialize(pojo);
 		  this.headers = pojoHandler.getHeaders().toArray(new String[0]);
@@ -100,5 +100,9 @@ public class CSVPojoWriter<T> implements Closeable {
 	         writeNext(pojo);
 	      }
 	   }
+   }
+   
+   public CSVWriter getWriter(){
+	   return this.writer;
    }
 }

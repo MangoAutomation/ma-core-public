@@ -13,10 +13,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.ss.formula.functions.T;
+
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.NoSupportingModelException;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
  * Class that handles the mapping between Pojo classes their children and CSV
@@ -25,11 +28,11 @@ import com.serotonin.m2m2.web.mvc.rest.v1.exception.NoSupportingModelException;
  * Based on work done by Staffan Friberg
  * @author Terry Packer
  */
-class CSVPojoHandler<T> {
+class CSVPojoHandler {
 
 	// Pojo Class
-	private Class<T> clazz;
-	private T instance;
+	private Class<?> clazz;
+	private Object instance;
 	private ModelDefinition definition;
 	// Mapping of headers to Fields and PropertyEditors
 	private final Map<String, CSVDataHandler> mapping;
@@ -54,9 +57,9 @@ class CSVPojoHandler<T> {
 		return definition != null;
 	}
 	
-	public void initialize(T instance) throws NoSupportingModelException{
+	public void initialize(Object instance) throws NoSupportingModelException{
 		this.instance = instance;
-		this.clazz = (Class<T>) instance.getClass();
+		this.clazz = instance.getClass();
 		//TODO Need to Create a Registry in the ModuleRegsitry to create new models for Types...
 		this.definition = findModelDefinition(this.clazz);
 		
@@ -67,8 +70,8 @@ class CSVPojoHandler<T> {
 		buildMapping(instance);
 	}
 	
-	public void initialize(String[] line, T instance) throws ModelNotFoundException, NoSupportingModelException{
-		this.clazz = (Class<T>) instance.getClass();
+	public void initialize(String[] line, Object instance) throws ModelNotFoundException, NoSupportingModelException{
+		this.clazz = instance.getClass();
 		this.definition = findModelDefinition(this.clazz);
 		
 		if (clazz.getAnnotation(CSVEntity.class) == null) {
@@ -82,7 +85,7 @@ class CSVPojoHandler<T> {
 	 * @return
 	 * @throws NoSupportingModelException 
 	 */
-	public ModelDefinition findModelDefinition(Class<T> clazz) throws NoSupportingModelException {
+	public ModelDefinition findModelDefinition(Class<?> clazz) throws NoSupportingModelException {
 		List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
 		for(ModelDefinition definition : definitions){
 			if(definition.supportsClass(clazz))
@@ -141,7 +144,7 @@ class CSVPojoHandler<T> {
 //		return headers;
 	}
 
-	public void setupModelDefinition(Class<T> clazz) throws NoSupportingModelException{
+	public void setupModelDefinition(Class<?> clazz) throws NoSupportingModelException{
 		this.clazz = clazz;
 		this.definition = findModelDefinition(this.clazz);
 	}
@@ -150,8 +153,8 @@ class CSVPojoHandler<T> {
 	 *
 	 * @return The new Pojo object
 	 */
-	public T newInstance() {
-		return (T) definition.createModel();
+	public AbstractRestModel<?> newInstance() {
+		return definition.createModel();
 	}
 	
 	/**
@@ -164,8 +167,7 @@ class CSVPojoHandler<T> {
 	 * @param text
 	 *            The String representation of the value to set
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public boolean setField(T pojo, String header, String text) {
+	public boolean setField(Object pojo, String header, String text) {
 		if (text.length() > 0) {
 			// If text is empty use default value in pojo which is set by the
 			// user
@@ -219,8 +221,7 @@ class CSVPojoHandler<T> {
 	 *            The header to find
 	 * @return The String representing the value in the pojo
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public String getField(T pojo, String header) {
+	public String getField(Object pojo, String header) {
 		if (pojo == null) {
 			// If a pojo is null we should just return empty strings for the
 			// field
@@ -254,7 +255,6 @@ class CSVPojoHandler<T> {
 	}
 
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void buildMapping(String[] line) throws ModelNotFoundException, NoSupportingModelException {
 		for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
 			if (c.getAnnotation(CSVEntity.class) != null) {
@@ -439,8 +439,7 @@ class CSVPojoHandler<T> {
 	 *            The pojo class
 	 * @throws NoSupportingModelException 
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void buildMapping(T instance) throws NoSupportingModelException {
+	private void buildMapping(Object instance) throws NoSupportingModelException {
 		for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
 			if (c.getAnnotation(CSVEntity.class) != null) {
 				for (Field field : c.getDeclaredFields()) {
@@ -615,7 +614,7 @@ class CSVPojoHandler<T> {
 
 		private final Field field;
 
-		public PojoChildField(String header, Integer order, Field field, CSVPojoHandler<?> pojoHandler, CSVEntity csvEntityAnnotation) {
+		public PojoChildField(String header, Integer order, Field field, CSVPojoHandler pojoHandler, CSVEntity csvEntityAnnotation) {
 			super(header, order, pojoHandler, csvEntityAnnotation);
 			this.field = field;
 		}
@@ -689,7 +688,7 @@ class CSVPojoHandler<T> {
 		private final Method getter;
 		private final Method setter;
 
-		public PojoChildMethod(String header, Integer order, Method getter, Method setter, CSVPojoHandler<?> pojoHandler, CSVEntity csvEntityAnnotation) {
+		public PojoChildMethod(String header, Integer order, Method getter, Method setter, CSVPojoHandler pojoHandler, CSVEntity csvEntityAnnotation) {
 			super(header, order, pojoHandler, csvEntityAnnotation);
 			this.getter = getter;
 			this.setter = setter;
@@ -776,12 +775,12 @@ class CSVPojoHandler<T> {
 	private abstract static class PojoChild implements Comparable<PojoChild> {
 
 		private final String header;
-		private final CSVPojoHandler<?> pojoHandler;
+		private final CSVPojoHandler pojoHandler;
 		private final Integer order;
 		private final CSVEntity csvEntityAnnotation;
 		
 
-		public PojoChild(String header, Integer order, CSVPojoHandler<?> pojoHandler, CSVEntity csvEntityAnnotation) {
+		public PojoChild(String header, Integer order, CSVPojoHandler pojoHandler, CSVEntity csvEntityAnnotation) {
 			this.header = header;
 			this.order = order;
 			this.pojoHandler = pojoHandler;
@@ -794,7 +793,7 @@ class CSVPojoHandler<T> {
 		public Integer getOrder(){
 			return this.order;
 		}
-		public CSVPojoHandler<?> getPojoHandler() {
+		public CSVPojoHandler getPojoHandler() {
 			return pojoHandler;
 		}
 		public CSVEntity getCsvEntityAnnotation(){

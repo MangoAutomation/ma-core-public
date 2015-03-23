@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
+import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JUnitModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
@@ -107,6 +108,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(converter);
 		converters.add(new CsvMessageConverter());
 		converters.add(new CsvRowMessageConverter());
+		converters.add(new CsvQueryArrayStreamMessageConverter());
 
 	}
 

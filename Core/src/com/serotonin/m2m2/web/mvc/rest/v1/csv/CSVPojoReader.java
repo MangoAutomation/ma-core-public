@@ -26,7 +26,7 @@ public class CSVPojoReader<T> implements Closeable {
 
 	private CSVReader reader;
 	private String[] headers;
-	private CSVPojoHandler<T> pojoHandler;
+	private CSVPojoHandler pojoHandler;
 
 	/**
 	 * Constructs CSVPojoReader using a comma for the separator.
@@ -38,7 +38,7 @@ public class CSVPojoReader<T> implements Closeable {
 	 */
 	public CSVPojoReader(CSVReader reader) {
 		this.reader = reader;
-		pojoHandler = new CSVPojoHandler<T>();
+		pojoHandler = new CSVPojoHandler();
 	}
 
 	/**
@@ -87,10 +87,10 @@ public class CSVPojoReader<T> implements Closeable {
 				if (definition == null)
 					throw new ModelNotFoundException(typeName);
 				else
-					pojoHandler.initialize(line, (T) definition.createModel());
+					pojoHandler.initialize(line, definition.createModel());
 			}
 
-			pojo = pojoHandler.newInstance();
+			pojo = (T)pojoHandler.newInstance();
 			for (int i = 1; i < headers.length; i++) {
 				pojoHandler.setField(pojo, headers[i], line[i].trim());
 			}
