@@ -140,18 +140,18 @@ public class Translations {
         return t;
     }
     
-    public Map<String, Map<String, String>> translations() {
-        return translations(null);
+    public Map<String, Map<String, String>> asMap() {
+        return asMap(null);
     }
     
-    public Map<String, Map<String, String>> translations(String namespace) {
+    public Map<String, Map<String, String>> asMap(String namespace) {
         Map<String, Map<String, String>> map;
         
         if (parent == null) {
             map = new HashMap<String, Map<String, String>>();
         }
         else {
-            map = parent.translations(namespace);
+            map = parent.asMap(namespace);
         }
         
         Map<String, String> translations;
