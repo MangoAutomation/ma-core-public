@@ -36,8 +36,9 @@
   <jsp:body>
     <script type="text/javascript">
       var permissionUI = new PermissionUI(MiscDwr);
+      var mangoApiExists = false;
       <m2m2:moduleExists name="mangoApi">
-      var mangoApiExists = true;
+      mangoApiExists = true;
       </m2m2:moduleExists>
     </script>
     <%--Create a javascript flag to indicate that we have the REST API available --%>
