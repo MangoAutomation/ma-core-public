@@ -36,7 +36,6 @@ var config = {
         'es5-shim': 'es5-shim.min',
         'jstz': 'jstz-1.0.4.min',
         'jquery.mousewheel': 'jquery.mousewheel.min',
-        // for whatever reason this works but the AMD version doesn't
         'jquery.select2': 'select2/js/select2.full.min'
     },
     shim: {
