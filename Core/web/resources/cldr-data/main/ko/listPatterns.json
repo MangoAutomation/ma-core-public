@@ -1,0 +1,42 @@
+{
+  "main": {
+    "ko": {
+      "identity": {
+        "version": {
+          "_cldrVersion": "26",
+          "_number": "$Revision: 10931 $"
+        },
+        "generation": {
+          "_date": "$Date: 2014-09-03 21:52:43 -0500 (Wed, 03 Sep 2014) $"
+        },
+        "language": "ko"
+      },
+      "listPatterns": {
+        "listPattern-type-standard": {
+          "start": "{0}, {1}",
+          "middle": "{0}, {1}",
+          "end": "{0} 및 {1}",
+          "2": "{0} 및 {1}"
+        },
+        "listPattern-type-unit": {
+          "start": "{0} {1}",
+          "middle": "{0} {1}",
+          "end": "{0} {1}",
+          "2": "{0} {1}"
+        },
+        "listPattern-type-unit-narrow": {
+          "start": "{0} {1}",
+          "middle": "{0} {1}",
+          "end": "{0} {1}",
+          "2": "{0} {1}"
+        },
+        "listPattern-type-unit-short": {
+          "start": "{0} {1}",
+          "middle": "{0} {1}",
+          "end": "{0} {1}",
+          "2": "{0} {1}"
+        }
+      }
+    }
+  }
+}

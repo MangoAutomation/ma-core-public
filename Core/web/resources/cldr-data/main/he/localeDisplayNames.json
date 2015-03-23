@@ -1,0 +1,271 @@
+{
+  "main": {
+    "he": {
+      "identity": {
+        "version": {
+          "_cldrVersion": "26",
+          "_number": "$Revision: 10809 $"
+        },
+        "generation": {
+          "_date": "$Date: 2014-08-14 15:10:07 -0500 (Thu, 14 Aug 2014) $"
+        },
+        "language": "he"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}:‏ {1}"
+        },
+        "keys": {
+          "calendar": "לוח שנה",
+          "colAlternate": "התעלם מסמלים במיון",
+          "colBackwards": "מיון לפי הטעמות בסדר הפוך",
+          "colCaseFirst": "סידור לפי אותיות רישיות/קטנות",
+          "colCaseLevel": "מיון תלוי רישיות",
+          "colHiraganaQuaternary": "מיון קאנה",
+          "colNormalization": "מיון מנורמל",
+          "colNumeric": "מיון לפי מספרים",
+          "colStrength": "עוצמת המיון",
+          "collation": "סדר מיון",
+          "currency": "מטבע",
+          "numbers": "מספרים",
+          "timezone": "אזור זמן",
+          "va": "משתנה אזור",
+          "variableTop": "מיין כסמלים",
+          "x": "שימוש פרטי"
+        },
+        "types": {
+          "numbers": {
+            "arab": "ספרות הינדיות",
+            "arabext": "ספרות הינדיות מורחבות",
+            "armn": "ספרות ארמניות",
+            "armnlow": "ספרות ארמניות קטנות",
+            "bali": "bali",
+            "beng": "ספרות בנגליות"
+          },
+          "collation": {
+            "big5han": "מיון סינית מסורתית"
+          },
+          "numbers": {
+            "brah": "brah"
+          },
+          "calendar": {
+            "buddhist": "לוח שנה בודהיסטי"
+          },
+          "numbers": {
+            "cakm": "cakm",
+            "cham": "cham"
+          },
+          "calendar": {
+            "chinese": "לוח שנה סיני",
+            "coptic": "לוח שנה קופטי",
+            "dangi": "לוח שנה קוריאני"
+          },
+          "numbers": {
+            "deva": "ספרות של דוונגארי"
+          },
+          "collation": {
+            "dictionary": "סדר מיון במילון",
+            "ducet": "סדר מיון Unicode המוגדר כברירת מחדל",
+            "eor": "eor"
+          },
+          "numbers": {
+            "ethi": "ספרות אתיופיות"
+          },
+          "calendar": {
+            "ethiopic": "לוח שנה אתיופי",
+            "ethiopic-amete-alem": "לוח השנה אמטה אלם האתיופי"
+          },
+          "numbers": {
+            "finance": "ספרות פיננסיות",
+            "fullwide": "ספרות ברוחב מלא"
+          },
+          "collation": {
+            "gb2312han": "מיון סינית מודרנית"
+          },
+          "numbers": {
+            "geor": "ספרות גאורגיות"
+          },
+          "calendar": {
+            "gregorian": "לוח שנה גרגוריאני"
+          },
+          "numbers": {
+            "grek": "ספרות יווניות",
+            "greklow": "ספרות יווניות קטנות",
+            "gujr": "ספרות גוג׳רטיות",
+            "guru": "ספרות גורמוקיות",
+            "hanidec": "ספרות סיניות עשרוניות",
+            "hans": "ספרות סיניות מפושטות",
+            "hansfin": "ספרות פיננסיות סיניות מפושטות",
+            "hant": "ספרות סיניות מסורתיות",
+            "hantfin": "ספרות פיננסיות סיניות מסורתיות",
+            "hebr": "ספרות עבריות"
+          },
+          "calendar": {
+            "hebrew": "לוח שנה עברי"
+          },
+          "colStrength": {
+            "identical": "מיין הכל"
+          },
+          "calendar": {
+            "indian": "לוח השנה ההודי הלאומי",
+            "islamic": "לוח שנה מוסלמי",
+            "islamic-civil": "לוח שנה מוסלמי-אזרחי",
+            "islamic-rgsa": "islamic-rgsa",
+            "islamic-tbla": "לוח שנה מוסלמי-אסטרולוגי",
+            "islamic-umalqura": "islamic-umalqura",
+            "iso8601": "לוח שנה ISO-8601",
+            "japanese": "לוח שנה יפני"
+          },
+          "numbers": {
+            "java": "java",
+            "jpan": "ספרות יפניות",
+            "jpanfin": "ספרות פיננסיות יפניות",
+            "kali": "kali",
+            "khmr": "ספרות חמריות",
+            "knda": "ספרות של קנאדה",
+            "lana": "lana",
+            "lanatham": "lanatham",
+            "laoo": "ספרות של לאוס",
+            "latn": "ספרות מערביות",
+            "lepc": "lepc",
+            "limb": "limb"
+          },
+          "colCaseFirst": {
+            "lower": "מיין תחילה לפי אותיות קטנות"
+          },
+          "numbers": {
+            "mlym": "ספרות של מליאלאם",
+            "mong": "ספרות מונגוליות",
+            "mtei": "mtei",
+            "mymr": "ספרות של מיאנמר",
+            "mymrshan": "mymrshan",
+            "native": "ספרות מקומיות",
+            "nkoo": "nkoo"
+          },
+          "colBackwards": {
+            "no": "מיין הטעמות בצורה רגילה"
+          },
+          "colCaseFirst": {
+            "no": "מיין לפי סדר רישיות רגיל"
+          },
+          "colCaseLevel": {
+            "no": "מיין באופן שאינו תלוי רישיות"
+          },
+          "colHiraganaQuaternary": {
+            "no": "מיין קאנה בנפרד"
+          },
+          "colNormalization": {
+            "no": "מיין ללא נורמליזציה"
+          },
+          "colNumeric": {
+            "no": "מיין ספרות בנפרד"
+          },
+          "colAlternate": {
+            "non-ignorable": "מיין סמלים"
+          },
+          "numbers": {
+            "olck": "olck",
+            "orya": "ספרות אוריה",
+            "osma": "osma"
+          },
+          "calendar": {
+            "persian": "לוח שנה פרסי"
+          },
+          "collation": {
+            "phonebook": "מיון ספר טלפונים",
+            "phonetic": "סדר מיון פונטי",
+            "pinyin": "מיון פיניין"
+          },
+          "colStrength": {
+            "primary": "מיין תוך התעלמות מהטעמות",
+            "quaternary": "מיין לפי הטעמות/רישיות/רוחב/קאנה"
+          },
+          "collation": {
+            "reformed": "סדר מיון מתוקן"
+          },
+          "calendar": {
+            "roc": "לוח השנה הסיני Minguo"
+          },
+          "numbers": {
+            "roman": "ספרות רומיות",
+            "romanlow": "ספרות רומיות קטנות",
+            "saur": "saur"
+          },
+          "collation": {
+            "search": "חיפוש כללי",
+            "searchjl": "חפש לפי העיצור הראשון באותיות הנגול"
+          },
+          "colStrength": {
+            "secondary": "מיין לפי הטעמות"
+          },
+          "colAlternate": {
+            "shifted": "מיין תוך התעלמות מסמלים"
+          },
+          "numbers": {
+            "shrd": "shrd",
+            "sora": "sora"
+          },
+          "collation": {
+            "standard": "סדר מיון רגיל",
+            "stroke": "סדר מיון לפי ספירת תווים"
+          },
+          "numbers": {
+            "sund": "sund",
+            "takr": "takr",
+            "talu": "talu",
+            "taml": "ספרות טמיליות מסורתיות",
+            "tamldec": "ספרות טמיליות",
+            "telu": "ספרות טלוגו"
+          },
+          "colStrength": {
+            "tertiary": "מיין הטעמות/רישיות/רוחב"
+          },
+          "numbers": {
+            "thai": "ספרות תאיות",
+            "tibt": "ספרות טיבטיות"
+          },
+          "collation": {
+            "traditional": "מיון מסורתי"
+          },
+          "numbers": {
+            "traditional": "ספרות מסורתיות"
+          },
+          "collation": {
+            "unihan": "סדר מיון לפי ספירת תווים Radical-Stroke"
+          },
+          "colCaseFirst": {
+            "upper": "מיין תחילה לפי אותיות רישיות"
+          },
+          "numbers": {
+            "vaii": "ספרות ואי"
+          },
+          "colBackwards": {
+            "yes": "מיין לפי הטעמות בסדר הפוך"
+          },
+          "colCaseLevel": {
+            "yes": "מיין באופן תלוי רישיות"
+          },
+          "colHiraganaQuaternary": {
+            "yes": "מיין קאנה אחרת"
+          },
+          "colNormalization": {
+            "yes": "מיין לפי Unicode מנורמל"
+          },
+          "colNumeric": {
+            "yes": "מיין ספרות לפי סדר מספרי"
+          },
+          "collation": {
+            "zhuyin": "zhuyin"
+          }
+        },
+        "codePatterns": {
+          "language": "שפה:‏ {0}",
+          "script": "כתב: {0}",
+          "territory": "אזור: {0}"
+        }
+      }
+    }
+  }
+}

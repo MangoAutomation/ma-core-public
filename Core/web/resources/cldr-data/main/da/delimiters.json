@@ -1,0 +1,22 @@
+{
+  "main": {
+    "da": {
+      "identity": {
+        "version": {
+          "_cldrVersion": "26",
+          "_number": "$Revision: 10962 $"
+        },
+        "generation": {
+          "_date": "$Date: 2014-09-10 11:30:49 -0500 (Wed, 10 Sep 2014) $"
+        },
+        "language": "da"
+      },
+      "delimiters": {
+        "quotationStart": "“",
+        "quotationEnd": "”",
+        "alternateQuotationStart": "‘",
+        "alternateQuotationEnd": "’"
+      }
+    }
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "main": {
+    "fi": {
+      "identity": {
+        "version": {
+          "_cldrVersion": "26",
+          "_number": "$Revision: 10809 $"
+        },
+        "generation": {
+          "_date": "$Date: 2014-08-14 15:10:07 -0500 (Thu, 14 Aug 2014) $"
+        },
+        "language": "fi"
+      },
+      "localeDisplayNames": {
+        "localeDisplayPattern": {
+          "localePattern": "{0} ({1})",
+          "localeSeparator": "{0}, {1}",
+          "localeKeyTypePattern": "{0}: {1}"
+        },
+        "keys": {
+          "calendar": "kalenteri",
+          "colAlternate": "symbolien lajittelu",
+          "colBackwards": "painomerkkien lajittelu",
+          "colCaseFirst": "isojen ja pienten kirjainten järjestys",
+          "colCaseLevel": "aakkoslajien lajittelu",
+          "colHiraganaQuaternary": "kana-merkkien lajittelu",
+          "colNormalization": "lajittelun normalisointi",
+          "colNumeric": "numeroiden lajittelu",
+          "colStrength": "lajittelun taso",
+          "collation": "lajittelujärjestys",
+          "currency": "valuutta",
+          "numbers": "numerot",
+          "timezone": "aikavyöhyke",
+          "va": "maavalinnan muunnelma",
+          "variableTop": "lajittelu symboleina",
+          "x": "yksityiskäyttö"
+        },
+        "types": {
+          "numbers": {
+            "arab": "arabialaiset numerot",
+            "arabext": "laajennetut arabialaiset numerot",
+            "armn": "armenialaiset numerot",
+            "armnlow": "armenialaiset piennumerot",
+            "bali": "balilaiset numerot",
+            "beng": "bengalilaiset numerot"
+          },
+          "collation": {
+            "big5han": "perinteinen kiinalainen järjestys Big5"
+          },
+          "numbers": {
+            "brah": "brahmilaiset numerot"
+          },
+          "calendar": {
+            "buddhist": "buddhalainen kalenteri"
+          },
+          "numbers": {
+            "cakm": "chakmalaiset numerot",
+            "cham": "cham-numerot"
+          },
+          "calendar": {
+            "chinese": "kiinalainen kalenteri",
+            "coptic": "koptilainen kalenteri",
+            "dangi": "dangilainen kalenteri"
+          },
+          "numbers": {
+            "deva": "devanagarinumerot"
+          },
+          "collation": {
+            "dictionary": "sanakirjajärjestys",
+            "ducet": "Unicoden oletusjärjestys",
+            "eor": "yleiseurooppalainen lajittelujärjestys"
+          },
+          "numbers": {
+            "ethi": "etiopialaiset numerot"
+          },
+          "calendar": {
+            "ethiopic": "etiopialainen kalenteri",
+            "ethiopic-amete-alem": "etiopialainen amete alem -kalenteri"
+          },
+          "numbers": {
+            "finance": "talousnumerot",
+            "fullwide": "ideografin levyiset numerot"
+          },
+          "collation": {
+            "gb2312han": "yksinkertaistettu kiinalainen järjestys GB2312"
+          },
+          "numbers": {
+            "geor": "georgialaiset numerot"
+          },
+          "calendar": {
+            "gregorian": "gregoriaaninen kalenteri"
+          },
+          "numbers": {
+            "grek": "kreikkalaiset numerot",
+            "greklow": "kreikkalaiset piennumerot",
+            "gujr": "gudžaratilaiset numerot",
+            "guru": "gurmukhilaiset numerot",
+            "hanidec": "kiinalaiset desimaalinumerot",
+            "hans": "yksinkertaistetut kiinalaiset numerot",
+            "hansfin": "yksinkertaistetut kiinalaiset talousnumerot",
+            "hant": "perinteiset kiinalaiset numerot",
+            "hantfin": "perinteiset kiinalaiset talousnumerot",
+            "hebr": "heprealaiset numerot"
+          },
+          "calendar": {
+            "hebrew": "juutalainen kalenteri"
+          },
+          "colStrength": {
+            "identical": "kaikkien merkkien lajittelu"
+          },
+          "calendar": {
+            "indian": "intialainen kalenteri",
+            "islamic": "islamilainen kalenteri",
+            "islamic-civil": "islamilainen siviilikalenteri, perjantai-epookki",
+            "islamic-rgsa": "islamilainen saudiarabialainen kalenteri",
+            "islamic-tbla": "islamilainen matemaattinen kalenteri, torstai-epookki",
+            "islamic-umalqura": "islamilainen Umm al-Qura -kalenteri",
+            "iso8601": "ISO 8601 -kalenteri",
+            "japanese": "japanilainen kalenteri"
+          },
+          "numbers": {
+            "java": "jaavalaiset numerot",
+            "jpan": "japanilaiset numerot",
+            "jpanfin": "japanilaiset talousnumerot",
+            "kali": "kayah li -numerot",
+            "khmr": "khmeriläiset numerot",
+            "knda": "kannadalaiset numerot",
+            "lana": "taithamin hora-numerot",
+            "lanatham": "taithamin tham-numerot",
+            "laoo": "laolaiset numerot",
+            "latn": "länsimaiset numerot",
+            "lepc": "lepchanumerot",
+            "limb": "limbunumerot"
+          },
+          "colCaseFirst": {
+            "lower": "pienet kirjaimet edeltävät isoja"
+          },
+          "numbers": {
+            "mlym": "malajalamilaiset numerot",
+            "mong": "mongolialaiset numerot",
+            "mtei": "meetei mayek -numerot",
+            "mymr": "burmalaiset numerot",
+            "mymrshan": "myanmarin shan-numerot",
+            "native": "kielen omat numerot",
+            "nkoo": "n’ko-numerot"
+          },
+          "colBackwards": {
+            "no": "painomerkkien normaali lajittelu"
+          },
+          "colCaseFirst": {
+            "no": "isojen ja pienten kirjainten normaalijärjestys"
+          },
+          "colCaseLevel": {
+            "no": "isojen ja pienten kirjainten lajittelu yhdessä"
+          },
+          "colHiraganaQuaternary": {
+            "no": "kana-merkkien lajittelu erillisinä"
+          },
+          "colNormalization": {
+            "no": "lajittelu ilman normalisoinrtia"
+          },
+          "colNumeric": {
+            "no": "numero-numerolta lajittelu"
+          },
+          "colAlternate": {
+            "non-ignorable": "symbolit huomioiva lajittelu"
+          },
+          "numbers": {
+            "olck": "ol chiki -numerot",
+            "orya": "orijalaiset numerot",
+            "osma": "osmanjalaiset numerot"
+          },
+          "calendar": {
+            "persian": "persialainen kalenteri"
+          },
+          "collation": {
+            "phonebook": "puhelinluettelojärjestys",
+            "phonetic": "äänteellinen järjestys",
+            "pinyin": "pinyin-järjestys"
+          },
+          "colStrength": {
+            "primary": "vain peruskirjainten lajittelu",
+            "quaternary": "painomerkit ja aakkoslajit tai merkkileveydet ja kana-merkit huomioiva lajittelu"
+          },
+          "collation": {
+            "reformed": "uudistettu järjestys"
+          },
+          "calendar": {
+            "roc": "Kiinan tasavallan kalenteri"
+          },
+          "numbers": {
+            "roman": "roomalaiset numerot",
+            "romanlow": "roomalaiset piennumerot",
+            "saur": "saurashtra-numerot"
+          },
+          "collation": {
+            "search": "yleishakujärjestys",
+            "searchjl": "haku hangul-alkukonsonantin mukaan"
+          },
+          "colStrength": {
+            "secondary": "painomerkit huomioiva lajittelu"
+          },
+          "colAlternate": {
+            "shifted": "symbolit ohittava lajittelu"
+          },
+          "numbers": {
+            "shrd": "šarida-numerot",
+            "sora": "sora sompeng -numerot"
+          },
+          "collation": {
+            "standard": "normaalijärjestys",
+            "stroke": "piirtojärjestys"
+          },
+          "numbers": {
+            "sund": "sundalaiset numerot",
+            "takr": "takri-numerot",
+            "talu": "uudet tai lue -numerot",
+            "taml": "perinteiset tamilinumerot",
+            "tamldec": "tamilinumerot",
+            "telu": "telugulaiset numerot"
+          },
+          "colStrength": {
+            "tertiary": "painomerkit ja aakkoslajit tai merkkileveydet huomioiva lajittelu"
+          },
+          "numbers": {
+            "thai": "thainumerot",
+            "tibt": "tiibetiläiset numerot"
+          },
+          "collation": {
+            "traditional": "perinteinen järjestys"
+          },
+          "numbers": {
+            "traditional": "perinteiset numerot"
+          },
+          "collation": {
+            "unihan": "radikaali- ja piirtojärjestys"
+          },
+          "colCaseFirst": {
+            "upper": "isot kirjaimet edeltävät pieniä"
+          },
+          "numbers": {
+            "vaii": "vai-numerot"
+          },
+          "colBackwards": {
+            "yes": "painomerkkien käänteinen lajittelu"
+          },
+          "colCaseLevel": {
+            "yes": "isojen ja pienten kirjainten lajittelu erikseen"
+          },
+          "colHiraganaQuaternary": {
+            "yes": "kana-merkkien lajittelu tyypin mukaan"
+          },
+          "colNormalization": {
+            "yes": "lajittelu Unicode-normalisoituna"
+          },
+          "colNumeric": {
+            "yes": "numeroden lajittelu lukuina"
+          },
+          "collation": {
+            "zhuyin": "zhuyin-järjestys"
+          }
+        },
+        "codePatterns": {
+          "language": "kieli: {0}",
+          "script": "kirjoitusjärjestelmä: {0}",
+          "territory": "alue: {0}"
+        }
+      }
+    }
+  }
+}
