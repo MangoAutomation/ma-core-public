@@ -59,6 +59,7 @@ public class Translations {
     private final String name;
     private final Translations parent;
     private final Map<String, String> pairs = new HashMap<String, String>();
+    private final Map<String, Map<String, String>> namespaces = new HashMap<String, Map<String, String>>();
 
     private Translations(Locale locale) throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -96,7 +97,16 @@ public class Translations {
 
             for (Object keyo : props.keySet()) {
                 String key = (String) keyo;
-                pairs.put(key, props.getProperty(key));
+                String translation = props.getProperty(key);
+                String namespace = StringUtils.substringBefore(key, ".");
+                Map<String, String> namespacedTranslations = namespaces.get(namespace);
+                if (namespacedTranslations == null) {
+                    namespacedTranslations = new HashMap<String, String>();
+                    namespaces.put(namespace, namespacedTranslations);
+                }
+                
+                pairs.put(key, translation);
+                namespacedTranslations.put(key, translation);
             }
         }
 
@@ -128,5 +138,49 @@ public class Translations {
         if (t == null && parent != null)
             t = parent.translateImpl(key);
         return t;
+    }
+    
+    public Map<String, Map<String, String>> translations() {
+        return translations(null);
+    }
+    
+    public Map<String, Map<String, String>> translations(String namespace) {
+        Map<String, Map<String, String>> map;
+        
+        if (parent == null) {
+            map = new HashMap<String, Map<String, String>>();
+        }
+        else {
+            map = parent.translations(namespace);
+        }
+        
+        Map<String, String> translations;
+        if (namespace == null) {
+            translations = pairs;
+        }
+        else {
+            translations = namespaces.get(namespace);
+        }
+        
+        if (translations == null) {
+            translations = new HashMap<String, String>();
+        }
+        
+        map.put(languageTag(), translations);
+        
+        return map;
+    }
+    
+    private String languageTag() {
+        if (name.equals(BASE_NAME))
+            return "root";
+        
+        String language;
+        if (name.startsWith(BASE_NAME + "_"))
+            language = StringUtils.substringAfter(name, BASE_NAME + "_");
+        else
+            language = name;
+        
+        return language.replace("_", "-");
     }
 }
