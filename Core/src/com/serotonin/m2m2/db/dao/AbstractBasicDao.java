@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 
@@ -43,7 +44,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     public static final String LIMIT = " LIMIT ";
     
     //Map UI or Model member names to the Database Column Names they will get translated when the query is generated
-    protected final Map<String, String> propertiesMap = getPropertiesMap();
+    protected final Map<String, IntStringPair> propertiesMap = getPropertiesMap();
+    
     //Map of Database Column Names to Column SQL Type
     protected final LinkedHashMap<String, Integer> propertyTypeMap = getPropertyTypeMap();
     
@@ -112,6 +114,14 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	 * Both the properties and the type maps must be setup
 	 * @return
 	 */
+	protected HashMap<String,Integer> getMappedPropertyTypeMap(){
+		return new HashMap<String,Integer>();
+	}
+	
+	/**
+	 * Both the properties and the type maps must be setup
+	 * @return
+	 */
 	protected LinkedHashMap<String,Integer> getPropertyTypeMap(){
 		return new LinkedHashMap<String,Integer>();
 	}
@@ -126,7 +136,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * e.g. dateFormatted -> timestamp
      * @return map of properties
      */
-    protected abstract Map<String, String> getPropertiesMap();
+    protected abstract Map<String, IntStringPair> getPropertiesMap();
     
     /**
      * Gets the row mapper for converting the retrieved database
@@ -236,7 +246,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
                 //this will be done after the query
                 if(!filterMap.containsKey(prop)){ 
 	                if (propertiesMap.containsKey(prop)) {
-	                    dbProp = propertiesMap.get(prop);
+	                	IntStringPair pair = propertiesMap.get(prop);
+	                	dbProp = pair.getValue();
 	                    mapped = true;
 	                }
 	                
@@ -257,10 +268,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                            case POSTGRES:
 	                            case MSSQL:
 	                            case H2:
-		                            if(mapped)
-		                            	tempSql += "lower(" + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
-		                            else
-		                            	tempSql += "lower(" + this.tablePrefix  + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
+	                            	tempSql += "lower(" + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
 		                            break;
 	                            case DERBY:
 		                            if(mapped)
@@ -395,16 +403,20 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             //Don't allow filtering on properties with a filter
             //this will be done after the query
             if(!filterMap.containsKey(prop)){ 
-                
+            	int sqlType;
             	if (propertiesMap.containsKey(prop)) {
-                    dbProp = propertiesMap.get(prop);
-                    mapped = true;
+            		IntStringPair pair = propertiesMap.get(prop);
+            		dbProp = pair.getValue();
+                    sqlType = pair.getKey();
+            		mapped = true;
+                }else{
+                	sqlType = this.propertyTypeMap.get(dbProp);
                 }
                 
                 if (mapped || properties.contains(dbProp)) {
                     if( i > 0)
                     	sql += OR;
-                    int sqlType = this.propertyTypeMap.get(dbProp);
+                   
                     if(mapped)
                     	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
                     else
@@ -422,20 +434,23 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             //Don't allow filtering on properties with a filter
             //this will be done after the query
             if(!filterMap.containsKey(prop)){ 
-                
+            	int sqlType;
             	if (propertiesMap.containsKey(prop)) {
-                    dbProp = propertiesMap.get(prop);
+                    IntStringPair pair = propertiesMap.get(prop);
+                    dbProp = pair.getValue();
+                    sqlType = pair.getKey();
                     mapped = true;
+                }else{
+                	sqlType = this.propertyTypeMap.get(prop);
                 }
                 
                 if (mapped || properties.contains(dbProp)) {
                     if( i > 0)
                     	sql += AND;
-                    int sqlType = this.propertyTypeMap.get(dbProp);
                     if(mapped)
-                    	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
-                    else
                     	sql += parameter.generateSql(sqlType, dbProp, "");
+                    else
+                    	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
                     i++;
                 }
             }//end if in filter map
@@ -464,7 +479,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             boolean mapped = false;
             if(!comparatorMap.containsKey(prop)){ //Don't allow sorting on values that have a comparator
 	            if (propertiesMap.containsKey(prop)) {
-	                prop = propertiesMap.get(prop);
+	            	IntStringPair pair = propertiesMap.get(prop);
+	            	prop = pair.getValue();
 	                PropertyArguments args = propertyArgumentsMap.get(option.getAttribute());
 	                if(args != null){
 	                	Collections.addAll(selectArgs, args.getArguments());

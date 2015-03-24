@@ -15,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
@@ -157,10 +158,10 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
 	 */
 	@Override
-	protected Map<String, String> getPropertiesMap() {
-		Map<String,String> map = new HashMap<String,String>();
-		map.put("username", "u.username");
-		map.put("referenceId", "typeKey");
+	protected Map<String, IntStringPair> getPropertiesMap() {
+		Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
+		map.put("username", new IntStringPair(Types.VARCHAR, "u.username"));
+		map.put("referenceId", new IntStringPair(Types.INTEGER, "typeKey"));
 		return map;
 	}
 

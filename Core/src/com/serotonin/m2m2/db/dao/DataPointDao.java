@@ -31,6 +31,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
@@ -951,12 +952,12 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
      */
     @Override
-    protected Map<String, String> getPropertiesMap() {
-        HashMap<String, String> map = new HashMap<>();
-        map.put("dataSourceName", "ds.name");
-        map.put("dataSourceTypeName", "ds.dataSourceType");
-        map.put("dataSourceXid", "ds.xid");
-        map.put("templateName", "template.name");
+    protected Map<String, IntStringPair> getPropertiesMap() {
+        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
+        map.put("dataSourceName", new IntStringPair(Types.VARCHAR, "ds.name"));
+        map.put("dataSourceTypeName", new IntStringPair(Types.VARCHAR, "ds.dataSourceType"));
+        map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
+        map.put("templateName", new IntStringPair(Types.VARCHAR, "template.name"));
         return map;
     }
 

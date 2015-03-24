@@ -29,6 +29,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -444,7 +445,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
      */
     @Override
-    protected Map<String, String> getPropertiesMap() {
+    protected Map<String, IntStringPair> getPropertiesMap() {
         return new HashMap<>();
     }
 

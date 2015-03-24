@@ -16,6 +16,7 @@ import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
@@ -90,7 +91,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
 	 */
 	@Override
-	protected Map<String, String> getPropertiesMap() {
+	protected Map<String, IntStringPair> getPropertiesMap() {
 		return new HashMap<>();
 	}
 

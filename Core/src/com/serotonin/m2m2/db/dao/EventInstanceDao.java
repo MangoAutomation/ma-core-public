@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -117,11 +118,11 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
 	 */
 	@Override
-	protected Map<String, String> getPropertiesMap() {
-		Map<String,String> map = new HashMap<String,String>();
-		map.put("activeTimestamp", "activeTs");
-		map.put("activeTimestampString", "activeTs");
-		map.put("rtnTimestampString", "rtnTs");
+	protected Map<String, IntStringPair> getPropertiesMap() {
+		Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
+		map.put("activeTimestamp", new IntStringPair(Types.BIGINT, "activeTs"));
+		map.put("activeTimestampString", new IntStringPair(Types.BIGINT, "activeTs"));
+		map.put("rtnTimestampString", new IntStringPair(Types.BIGINT, "rtnTs"));
 		
         /*
          * IF(evt.rtnTs=null,
@@ -136,26 +137,27 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		switch(Common.databaseProxy.getType()){
 			case MYSQL:
 			case MSSQL:
-				map.put("totalTimeString", "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))");
+				map.put("totalTimeString", new IntStringPair(Types.BIGINT, "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))"));
 			break;
 			
 			case H2:
 			case DERBY:
-				map.put("totalTimeString",   "CASE WHEN evt.rtnTs IS NULL THEN "
+				map.put("totalTimeString", new IntStringPair(Types.BIGINT, "CASE WHEN evt.rtnTs IS NULL THEN "
 	                    + "CASE WHEN evt.rtnApplicable='Y' THEN (? - evt.activeTs) ELSE -1 END "
-	                    + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END");
+	                    + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END"));
 			break;
 			default:
 				throw new ShouldNeverHappenException("Unsupported database for Alarms.");
 		}	
-		map.put("messageString", "message");
-		map.put("rtnTimestampString", "rtnTs");
-		map.put("userNotified", "silenced");
-		map.put("acknowledged", "ackTs");
-		map.put("userId", "ue.userId"); //Mapping for user 
+		map.put("messageString", new IntStringPair(Types.VARCHAR, "message"));
+		map.put("rtnTimestampString", new IntStringPair(Types.BIGINT, "rtnTs"));
+		map.put("userNotified", new IntStringPair(Types.CHAR, "silenced"));
+		map.put("acknowledged", new IntStringPair(Types.BIGINT, "ackTs"));
+		map.put("userId", new IntStringPair(Types.INTEGER, "ue.userId")); //Mapping for user 
 		return map;
 	}
 
+	@Override
 	protected Map<String, PropertyArguments> getPropertyArgumentsMap(){
 		Map<String,PropertyArguments> map = new HashMap<String,PropertyArguments>();
 		map.put("totalTimeString", new PropertyArguments(){
