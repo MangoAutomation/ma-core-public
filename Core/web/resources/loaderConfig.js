@@ -21,6 +21,8 @@ var config = {
     baseUrl : '/resources',
     paths: {
         'mango': '/mango-javascript/v1',
+        'mango-1.0': '/modules/dashboards/web/js/mango/v1',
+        'mango-1.1': '/modules/dashboards/web/js/mango-1.1',
         'mango/mobile': '/resources/mango/mobile',
         'jquery': 'jquery/jquery-1.11.2.min',
         'amcharts'          : 'amcharts/amcharts',
@@ -86,7 +88,7 @@ var config = {
         }
     },
     map: {
-        'mango/GridDisplay': {
+        'mango-1.1/GridDisplay': {
             'dgrid': 'dgrid-0.4'
         }
     }
