@@ -26,5 +26,5 @@ public interface QueryDataPageStream<T> extends QueryArrayStream<T>{
 	 */
 	public void streamCount(JsonGenerator jgen) throws IOException;
 	
-	public void streamCount(CSVPojoWriter<T> writer) throws IOException;
+	public void streamCount(CSVPojoWriter<Long> writer) throws IOException;
 }

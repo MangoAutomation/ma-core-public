@@ -134,7 +134,7 @@ public class RestProcessResult<T> {
 					this.addMessagesToHeaders(headers),
 					this.highestStatus);
 	}
-
+	
 	/**
 	 * Create a response entity containing one object
 	 * and a specific content type
