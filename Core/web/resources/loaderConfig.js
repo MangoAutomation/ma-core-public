@@ -88,7 +88,7 @@ var config = {
         }
     },
     map: {
-        'mango-1.1/GridDisplay': {
+        '*': {
             'dgrid': 'dgrid-0.4'
         }
     }
