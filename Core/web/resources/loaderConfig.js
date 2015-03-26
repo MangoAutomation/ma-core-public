@@ -25,7 +25,6 @@ var config = {
         'mango-1.1': '/modules/dashboards/web/js/mango-1.1',
         'mango/mobile': '/resources/mango/mobile',
         'jquery': 'jquery/jquery-1.11.2.min',
-        'amcharts'          : 'amcharts/amcharts',
         'amcharts.funnel'   : 'amcharts/funnel',
         'amcharts.gauge'    : 'amcharts/gauge',
         'amcharts.pie'      : 'amcharts/pie',
@@ -45,46 +44,56 @@ var config = {
             "deps" : ['jquery']
         },
         'amcharts.funnel'   : {
-            deps: ['amcharts'],
+            deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts.gauge'    : {
-            deps: ['amcharts'],
+            deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts.pie'      : {
-            deps: ['amcharts'],
+            deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts.radar'    : {
-            deps: ['amcharts'],
+            deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts.serial'   : {
-            deps: ['amcharts'],
+            deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts.xy'       : {
-            deps: ['amcharts'],
+            deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
+        },
+        'amcharts/exporting/amexport': {
+            deps: ['amcharts/amcharts'],
+            exports: 'AmCharts'
+        },
+        'amcharts/exporting/filesaver': {
+            deps: ['amcharts/amcharts']
+        },
+        'amcharts/exporting/jspdf.plugin.addimage': {
+            deps: ['amcharts/exporting/jspdf']
         }
     },
     map: {
