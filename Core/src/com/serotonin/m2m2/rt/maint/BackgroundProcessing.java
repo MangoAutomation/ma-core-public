@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
 import com.serotonin.timer.TimerTask;
@@ -112,13 +113,90 @@ public class BackgroundProcessing implements ILifecycle {
     	return list;
     }
 
+    
     public List<WorkItemModel> getMediumPriorityServiceQueueItems(){
     	return getQueueItems(mediumPriorityService, "MEDIUM");
     	
     }
+ 
+    /**
+     * Set the Core Pool Size, in the medium priority queue this 
+     * results in the maximum number of threads that will be run 
+     * due to the way the pool is setup.
+     * @param corePoolSize
+     */
+    public void setMediumPriorityServiceCorePoolSize(int corePoolSize){
+    	if(corePoolSize > 0) //Default is 3
+    		this.mediumPriorityService.setCorePoolSize(corePoolSize);
+    }
+
+    /**
+     * Doesn't have any effect in the current configuration of the medium priority
+     * queue
+     * @param maximumPoolSize
+     */
+    public void setMediumPriorityServiceMaximumPoolSize(int maximumPoolSize){
+    	if(maximumPoolSize >= this.mediumPriorityService.getCorePoolSize()) //Default
+    		this.mediumPriorityService.setMaximumPoolSize(maximumPoolSize);
+    }
+
+    
+    public int getMediumPriorityServiceCorePoolSize(){
+    	return this.mediumPriorityService.getCorePoolSize();
+    }
+    
+    public int getMediumPriorityServiceMaximumPoolSize(){
+    	return this.mediumPriorityService.getMaximumPoolSize();
+    }
+    
+    public int getMediumPriorityServiceActiveCount(){
+    	return this.mediumPriorityService.getActiveCount();
+    }
+    
+    public int getMediumPriorityServiceLargestPoolSize(){
+    	return this.mediumPriorityService.getLargestPoolSize();
+    }    
+    
     public List<WorkItemModel> getLowPriorityServiceQueueItems(){
     	return getQueueItems(lowPriorityService, "LOW");
     }
+    
+    /**
+     * Set the Core Pool Size, in the medium priority queue this 
+     * results in the maximum number of threads that will be run 
+     * due to the way the pool is setup.
+     * @param corePoolSize
+     */
+    public void setLowPriorityServiceCorePoolSize(int corePoolSize){
+    	if(corePoolSize > 0) //Default is 1
+    		this.lowPriorityService.setCorePoolSize(corePoolSize);
+    }
+
+    /**
+     * Doesn't have any effect in the current configuration of the medium priority
+     * queue
+     * @param maximumPoolSize
+     */
+    public void setLowPriorityServiceMaximumPoolSize(int maximumPoolSize){
+    	if(maximumPoolSize >= this.lowPriorityService.getCorePoolSize()) //Default
+    		this.lowPriorityService.setMaximumPoolSize(maximumPoolSize);
+    }
+    
+    public int getLowPriorityServiceCorePoolSize(){
+    	return this.lowPriorityService.getCorePoolSize();
+    }
+    
+    public int getLowPriorityServiceMaximumPoolSize(){
+    	return this.lowPriorityService.getMaximumPoolSize();
+    }
+    
+    public int getLowPriorityServiceActiveCount(){
+    	return this.lowPriorityService.getActiveCount();
+    }
+    
+    public int getLowPriorityServiceLargestPoolSize(){
+    	return this.lowPriorityService.getLargestPoolSize();
+    }  
     
     private List<WorkItemModel> getQueueItems(ThreadPoolExecutor e, String priority){
     	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
@@ -132,10 +210,16 @@ public class BackgroundProcessing implements ILifecycle {
     }
     @Override
     public void initialize() {
-        mediumPriorityService = new ThreadPoolExecutor(3, 30, 60L, TimeUnit.SECONDS,
+    	//Pull our settings from the System Settings
+    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, 3);
+    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, 30);
+        mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
         mediumPriorityService.allowCoreThreadTimeOut(true);
-        lowPriorityService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+        
+    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, 3);
+    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, 30);
+        lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low"));
     }
 
