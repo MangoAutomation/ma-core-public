@@ -8,4 +8,5 @@
   <#include "include/eventData.ftl">
   <#include "include/eventMessage.ftl">
 </table>
+<#include "include/systemInfo.ftl">
 <#include "include/eventFooter.ftl">

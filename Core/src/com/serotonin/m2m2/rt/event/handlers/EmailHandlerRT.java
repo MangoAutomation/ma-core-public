@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.event.handlers;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailInline;
 
@@ -127,15 +129,15 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
-        sendEmail(evt, NotificationType.ACTIVE, addresses, null);
+        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getAlias());
+        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
-            String alias) {
+            String alias, boolean includeSystemInfo) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
                     SystemEventType.TYPE_EMAIL_SEND_FAILURE)) {
@@ -154,49 +156,6 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
     	   alias = StringEscapeUtils.unescapeHtml4(alias);
            //Since we have <br/> in the code and that isn't proper HTML we need to remove it by hand
            alias = alias.replace("<br/>", "\n");
-    	   
-//	       if(evt.getEventType() instanceof DataPointEventType){
-//	    	   DataPointEventType type = (DataPointEventType) evt.getEventType();
-//	    	   PointEventDetectorVO vo = DataPointDao.instance.getEventDetector(type.getPointEventDetectorId());
-//	    	   //With this DetectorVO we can get all the nice info on this event
-//	    	   if(vo != null)
-//	    		   alias = vo.getDescription().translate(translations);
-//	    	   else
-//	    		   alias = Common.translate("eventHandlers.pointEventDetector");
-//	       }else if(evt.getEventType() instanceof DataSourceEventType){
-//	    	   DataSourceEventType type = (DataSourceEventType) evt.getEventType();
-//	    	   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getDataSourceId());
-//	    	   EventTypeVO evtVO = vo.getEventType(type.getDataSourceEventTypeId());
-//	    	   if(evtVO!=null)
-//	    		   alias = evtVO.getDescription().translate(translations);
-//	    	   else
-//	    		   alias = Common.translate("eventHandlers.dataSourceEvents");
-//	       }else if(evt.getEventType() instanceof SystemEventType){
-//	    	   SystemEventType type = (SystemEventType) evt.getEventType();
-//	    	   alias = Common.translate("eventHandlers.systemEvents");
-//	       }else if(evt.getEventType() instanceof PublisherEventType){
-//	    	   PublisherEventType type = (PublisherEventType)evt.getEventType();
-//	    	   alias = Common.translate("eventHandlers.publisherEvents");
-//	    	   
-//	       }else if(evt.getEventType() instanceof AuditEventType){
-//	    	   AuditEventType type = (AuditEventType)evt.getEventType();	    	   
-//	    	   if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_SOURCE)){
-//	    		   DataSourceVO<?> vo = Common.runtimeManager.getDataSource(type.getReferenceId1());
-//	    		   if(vo != null)
-//	    			   alias = vo.getName();
-//	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_DATA_POINT)){
-//	    		   DataPointRT rt = Common.runtimeManager.getDataPoint(type.getReferenceId1());
-//	    		   if(rt != null){
-//	    			   alias = rt.getVO().getName();
-//	    		   }
-//	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_EVENT_HANDLER)){
-//	    		   alias = Common.translate("eventHandlers.auditEvents");
-//	    	   }else if(type.getAuditEventType().equals(AuditEventType.TYPE_POINT_EVENT_DETECTOR)){
-//	    		   alias = Common.translate("eventHandlers.auditEvents");
-//	    	   }
-//	    	   else
-//	    		   alias = Common.translate("eventHandlers.auditEvents");
-//	       }
        }//end if alias was blank
        
         // Determine the subject to use.
@@ -234,6 +193,15 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
                 model.putAll(evt.getContext());
             model.put("img", inlineImages);
             model.put("instanceDescription", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+            if(includeSystemInfo){
+            	//Get the Work Items
+            	List<WorkItemModel> highPriorityWorkItems = Common.backgroundProcessing.getHighPriorityServiceItems();
+            	model.put("highPriorityWorkItems", highPriorityWorkItems);
+            	List<WorkItemModel> mediumPriorityWorkItems = Common.backgroundProcessing.getMediumPriorityServiceQueueItems();
+            	model.put("mediumPriorityWorkItems", mediumPriorityWorkItems);
+            	List<WorkItemModel> lowPriorityWorkItems = Common.backgroundProcessing.getLowPriorityServiceQueueItems();
+            	model.put("lowPriorityWorkItems", lowPriorityWorkItems);
+            }
 
             MangoEmailContent content = new MangoEmailContent(notificationType.getFile(), model, translations, subject,
                     Common.UTF8);

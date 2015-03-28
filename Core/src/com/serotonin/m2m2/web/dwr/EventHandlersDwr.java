@@ -237,7 +237,7 @@ public class EventHandlersDwr extends BaseDwr {
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled,
             List<RecipientListEntryBean> activeRecipients, boolean sendEscalation, int escalationDelayType,
             int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
-            boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients) {
+            boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo) {
         EventHandlerVO handler = new EventHandlerVO();
         handler.setHandlerType(EventHandlerVO.TYPE_EMAIL);
         handler.setActiveRecipients(activeRecipients);
@@ -248,6 +248,7 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setSendInactive(sendInactive);
         handler.setInactiveOverride(inactiveOverride);
         handler.setInactiveRecipients(inactiveRecipients);
+        handler.setIncludeSystemInfo(includeSystemInfo);
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 

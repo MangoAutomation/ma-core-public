@@ -6,5 +6,6 @@ ${instanceDescription} - <@fmt key="ftl.eventActive"/>
 
 <#include "include/eventData.ftl">
 <#include "include/eventMessage.ftl">
+<#include "include/systemInfo.ftl">
 
 <#include "include/footer.ftl">

@@ -578,10 +578,11 @@
             var emailList = emailRecipients.createRecipientArray();
             var escalList = escalRecipients.createRecipientArray();
             var inactiveList = inactiveRecipients.createRecipientArray();
+            var includeSystemInfo = $get("includeSystemInfo");
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("sendEscalation"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
-                    $get("inactiveOverride"), inactiveList, saveEventHandlerCB);
+                    $get("inactiveOverride"), inactiveList, includeSystemInfo, saveEventHandlerCB);
         }
         else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
@@ -772,7 +773,10 @@
             <tbody id="emailRecipients"></tbody>
             
             <tr><td class="horzSeparator" colspan="2"></td></tr>
-            
+            <tr>
+              <td class="formLabelRequired"><fmt:message key="eventHandlers.includeSystemInfo"/></td>
+              <td class="formField"><input id="includeSystemInfo" type="checkbox" /></td>
+            </tr>            
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.escal"/></td>
               <td class="formField"><input id="sendEscalation" type="checkbox" onclick="sendEscalationChanged()"/></td>
@@ -801,6 +805,7 @@
             </tr>
               
             <tbody id="inactiveRecipients"></tbody>
+            
           </table>
           
           <table id="handler<c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>" style="display:none" width="100%">

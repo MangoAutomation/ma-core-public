@@ -107,6 +107,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
     private boolean sendInactive;
     private boolean inactiveOverride;
     private List<RecipientListEntryBean> inactiveRecipients;
+    private boolean includeSystemInfo; //Include Work Items and Service Thread Pool Data
 
     // Process handler fields.
     private String activeProcessCommand;
@@ -317,6 +318,13 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
         this.inactiveRecipients = inactiveRecipients;
     }
 
+    public boolean isIncludeSystemInfo(){
+    	return this.includeSystemInfo;
+    }
+    public void setIncludeSystemInfo(boolean includeSystemInfo){
+    	this.includeSystemInfo = includeSystemInfo;
+    }
+    
     public String getActiveProcessCommand() {
         return activeProcessCommand;
     }
@@ -458,6 +466,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
         AuditEventType.addPropertyMessage(list, "eventHandlers.alias", alias);
         AuditEventType.addPropertyMessage(list, "eventHandlers.type", getTypeMessage(handlerType));
         AuditEventType.addPropertyMessage(list, "common.disabled", disabled);
+        
         if (handlerType == TYPE_SET_POINT) {
             AuditEventType.addPropertyMessage(list, "eventHandlers.target",
                     dataPointDao.getExtendedPointName(targetPointId));
@@ -493,6 +502,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                     AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveRecipients",
                             createRecipientMessage(inactiveRecipients));
             }
+            AuditEventType.addPropertyMessage(list, "eventHandlers.includeSystemInfo", includeSystemInfo);
         }
         else if (handlerType == TYPE_PROCESS) {
             AuditEventType.addPropertyMessage(list, "eventHandlers.activeCommand", activeProcessCommand);
@@ -543,6 +553,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                     inactiveOverride);
             AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveRecipients",
                     createRecipientMessage(from.inactiveRecipients), createRecipientMessage(inactiveRecipients));
+            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includeSystemInfo", from.includeSystemInfo, includeSystemInfo);
         }
         else if (handlerType == TYPE_PROCESS) {
             AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeCommand",
@@ -581,7 +592,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 2;
+    private static final int version = 3;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -605,6 +616,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             out.writeBoolean(sendInactive);
             out.writeBoolean(inactiveOverride);
             out.writeObject(inactiveRecipients);
+            out.writeBoolean(includeSystemInfo);
         }
         else if (handlerType == TYPE_PROCESS) {
             SerializationHelper.writeSafeUTF(out, activeProcessCommand);
@@ -677,6 +689,36 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                 inactiveProcessTimeout = in.readInt();
             }
         }
+        else if (ver == 3) {
+            handlerType = in.readInt();
+            disabled = in.readBoolean();
+            if (handlerType == TYPE_SET_POINT) {
+                targetPointId = in.readInt();
+                activeAction = in.readInt();
+                activeValueToSet = SerializationHelper.readSafeUTF(in);
+                activePointId = in.readInt();
+                inactiveAction = in.readInt();
+                inactiveValueToSet = SerializationHelper.readSafeUTF(in);
+                inactivePointId = in.readInt();
+            }
+            else if (handlerType == TYPE_EMAIL) {
+                activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                sendEscalation = in.readBoolean();
+                escalationDelayType = in.readInt();
+                escalationDelay = in.readInt();
+                escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                sendInactive = in.readBoolean();
+                inactiveOverride = in.readBoolean();
+                inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                includeSystemInfo = in.readBoolean();
+            }
+            else if (handlerType == TYPE_PROCESS) {
+                activeProcessCommand = SerializationHelper.readSafeUTF(in);
+                activeProcessTimeout = in.readInt();
+                inactiveProcessCommand = SerializationHelper.readSafeUTF(in);
+                inactiveProcessTimeout = in.readInt();
+            }
+        }
     }
 
     @Override
@@ -726,6 +768,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                 if (inactiveOverride)
                     writer.writeEntry("inactiveRecipients", inactiveRecipients);
             }
+            writer.writeEntry("includeSystemInformation", includeSystemInfo);
         }
         else if (handlerType == TYPE_PROCESS) {
             writer.writeEntry("activeProcessCommand", activeProcessCommand);
@@ -849,6 +892,10 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                         inactiveRecipients = (List<RecipientListEntryBean>) reader.read(recipType,
                                 jsonInactiveRecipients);
                 }
+            }
+            b = jsonObject.getBoolean("includeSystemInformation");
+            if(b != null){
+            	includeSystemInfo = b;
             }
         }
         else if (handlerType == TYPE_PROCESS) {

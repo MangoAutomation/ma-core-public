@@ -12,5 +12,8 @@ ${evt.prettyRtnTimestamp} <@fmt key="ftl.eventInactive"/>: <@fmt message=evt.rtn
 <#include "include/eventData.ftl">
 
 *******************************************************
+<#include "include/systemInfo.ftl">
+
+*******************************************************
 
 <#include "include/footer.ftl">
