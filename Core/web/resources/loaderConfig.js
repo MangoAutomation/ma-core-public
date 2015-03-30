@@ -37,7 +37,8 @@ var config = {
         'es5-shim': 'es5-shim.min',
         'jstz': 'jstz-1.0.4.min',
         'jquery.mousewheel': 'jquery.mousewheel.min',
-        'jquery.select2': 'select2/js/select2.full.min'
+        'jquery.select2': 'select2/js/select2.full.min',
+        'jquery.notify': 'notify-combined.min',
     },
     shim: {
         "bootstrap" : {
@@ -94,7 +95,10 @@ var config = {
         },
         'amcharts/exporting/jspdf.plugin.addimage': {
             deps: ['amcharts/exporting/jspdf']
-        }
+        },
+        'jquery.mousewheel': {"deps" : ['jquery']},
+        'jquery.select2': {"deps" : ['jquery']},
+        'jquery.notify': {"deps" : ['jquery']}
     },
     map: {
         '*': {
