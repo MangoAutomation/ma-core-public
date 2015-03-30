@@ -369,4 +369,16 @@ public class QueryComparison {
         return sql.toString();
 	}
 	
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append(this.attribute);
+		builder.append(" ");
+
+		builder.append(COMPARISON_TYPE_CODES.getCode(this.comparisonType));
+		builder.append(" ");
+
+		builder.append(this.condition);
+		return builder.toString();
+	}
 }
