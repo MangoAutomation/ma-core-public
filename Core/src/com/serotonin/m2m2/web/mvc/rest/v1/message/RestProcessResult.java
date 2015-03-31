@@ -185,7 +185,7 @@ public class RestProcessResult<T> {
 	 * @return
 	 */
 	public boolean isOk() {
-		return this.highestStatus == HttpStatus.OK;
+		return this.highestStatus.is2xxSuccessful();
 	}
 
 	/**
