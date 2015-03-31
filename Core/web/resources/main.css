@@ -109,11 +109,14 @@ p, h1, h2, h3, h4, h5, h6 {
 }
 
 header {
-    margin: 0.5em;
+    margin: 5px;
+    position: relative;
 }
 
 .instance-description {
-    float: right;
+    position: absolute;
+    bottom: 0;
+    right: 0;
     font-size: 1.2em;
     font-weight: bold;
 }
@@ -121,7 +124,7 @@ header {
 nav {
     background-color: #F0F0F0;
     margin: 0.5em 0;
-    padding: 0.5em;
+    padding: 5px;
 }
 
 nav .user-nav {
@@ -129,13 +132,13 @@ nav .user-nav {
 }
 
 .content {
-    margin: 0.5em;
+    margin: 5px;
 }
 
 footer {
     text-align: center;
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
+    margin-top: 15px;
+    margin-bottom: 5px;
 }
 
 /* ==========================================================================
