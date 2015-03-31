@@ -21,10 +21,12 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -39,6 +41,7 @@ public class EventManager implements ILifecycle {
 																	// minutes.
 
 	private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<EventManagerListenerDefinition>();
+	private final List<UserEventListener> userEventListeners = new CopyOnWriteArrayList<UserEventListener>();
 	private final List<EventInstance> activeEvents = new CopyOnWriteArrayList<EventInstance>();
 	private final List<EventInstance> recentEvents = new ArrayList<EventInstance>();
 	private EventDao eventDao;
@@ -95,8 +98,9 @@ public class EventManager implements ILifecycle {
 
 		// Get id from database by inserting event immediately.
 		//Check to see if we are Not Logging these
-		if(alarmLevel != AlarmLevels.DO_NOT_LOG)
+		if(alarmLevel != AlarmLevels.DO_NOT_LOG){
 			eventDao.saveEvent(evt);
+		}
 
 		// Create user alarm records for all applicable users
 		List<Integer> eventUserIds = new ArrayList<Integer>();
@@ -113,7 +117,16 @@ public class EventManager implements ILifecycle {
 				if (evt.isAlarm() && user.getReceiveAlarmEmails() > 0
 						&& alarmLevel >= user.getReceiveAlarmEmails())
 					emailUsers.add(user.getEmail());
+			
+				//Notify All User Event Listeners of the new event
+				for(UserEventListener l : this.userEventListeners){
+					if(l.getUserId() == user.getId()){
+						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false));
+					}
+				}
+			
 			}
+			
 		}
 
 		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)) {
@@ -210,6 +223,27 @@ public class EventManager implements ILifecycle {
 	public void returnToNormal(EventType type, long time, int cause) {
 		EventInstance evt = remove(type);
 
+		if(this.userEventListeners.size() > 0){
+			for (User user : userDao.getActiveUsers()) {
+				// Do not create an event for this user if the event type says the
+				// user should be skipped.
+				if (type.excludeUser(user))
+					continue;
+	
+				if (Permissions.hasEventTypePermission(user, type)) {
+					//Notify All User Event Listeners of the new event
+					for(UserEventListener l : this.userEventListeners){
+						if(l.getUserId() == user.getId()){
+							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false));
+
+						}
+					}
+				
+				}
+				
+			}
+		}
+		
 		// Loop in case of multiples
 		while (evt != null) {
 			resetHighestAlarmLevel(time);
@@ -235,6 +269,26 @@ public class EventManager implements ILifecycle {
 		evt.returnToNormal(time, inactiveCause);
 		eventDao.saveEvent(evt);
 
+		if(this.userEventListeners.size() > 0){
+			for (User user : userDao.getActiveUsers()) {
+				// Do not create an event for this user if the event type says the
+				// user should be skipped.
+				if (evt.getEventType().excludeUser(user))
+					continue;
+	
+				if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+					//Notify All User Event Listeners of the new event
+					for(UserEventListener l : this.userEventListeners){
+						if(l.getUserId() == user.getId()){
+							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true));
+						}
+					}
+				
+				}
+				
+			}
+		}
+		
 		// Call inactiveEvent handlers.
 		handleInactiveEvent(evt);
 	}
@@ -368,6 +422,12 @@ public class EventManager implements ILifecycle {
 	public void removeListener(EventManagerListenerDefinition l) {
 		listeners.remove(l);
 	}
+	public void addUserEventListener(UserEventListener l){
+		userEventListeners.add(l);
+	}
+	public void removeUserEventListener(UserEventListener l){
+		userEventListeners.remove(l);
+	}
 
 	//
 	//
@@ -457,4 +517,56 @@ public class EventManager implements ILifecycle {
 				h.eventInactive(evt);
 		}
 	}
+	
+	
+    class EventNotifyWorkItem implements WorkItem {
+
+    	private final User user;
+    	private final UserEventListener listener;
+    	private final EventInstance event;
+    	private final boolean raised;
+    	private final boolean returnToNormal;
+    	private final boolean deactivated;
+
+        EventNotifyWorkItem(User user, UserEventListener listener, EventInstance event, boolean raised, boolean returnToNormal, boolean deactivated) {
+        	this.user = user;
+            this.listener = listener;
+            this.event = event;
+            this.raised = raised;
+            this.returnToNormal = returnToNormal;
+            this.deactivated = deactivated;
+            
+        }
+
+        @Override
+        public void execute() {
+        	
+        	if(raised)
+        		listener.raised(event);
+        	else if(returnToNormal)
+        		listener.returnToNormal(event);
+        	else if(deactivated)
+        		listener.deactivated(event);
+        }
+
+        @Override
+        public int getPriority() {
+            return WorkItem.PRIORITY_LOW;
+        }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+		 */
+		@Override
+		public String getDescription() {
+			String type = "";
+			if(raised)
+				type = "raised";
+			else if(deactivated)
+				type = "deactivated";
+			else if(returnToNormal)
+				type = "return to normal";
+			return "Event " + type + " Notification for user: " + user.getUsername() ;
+		}
+    }
 }
