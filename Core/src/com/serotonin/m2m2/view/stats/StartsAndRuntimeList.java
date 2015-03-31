@@ -30,6 +30,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private DataValue lastValue;
     private Long lastTime;
     private final List<StartsAndRuntime> data = new ArrayList<StartsAndRuntime>();
+    private int count;
 
     // State values.
     private DataValue latestValue;
@@ -69,6 +70,8 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     public void addValueTime(DataValue value, long time) {
         if (value == null)
             return;
+
+        count++;
 
         if (firstValue == null) {
             firstValue = value;
@@ -145,6 +148,10 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         return lastTime;
     }
 
+    public int getCount(){
+    	return count;
+    }
+    
     public Map<Object, StartsAndRuntime> getStartsAndRuntime() {
         Map<Object, StartsAndRuntime> result = new HashMap<Object, StartsAndRuntime>();
         for (StartsAndRuntime sar : data)

@@ -162,6 +162,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 		Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
 		map.put("username", new IntStringPair(Types.VARCHAR, "u.username"));
 		map.put("referenceId", new IntStringPair(Types.INTEGER, "typeKey"));
+		map.put("timestamp", new IntStringPair(Types.BIGINT, "ts"));
 		return map;
 	}
 
