@@ -25,6 +25,7 @@ var config = {
         'mango-1.1': '/modules/dashboards/web/js/mango-1.1',
         'mango/mobile': '/resources/mango/mobile',
         'jquery': 'jquery/jquery-1.11.2.min',
+        'jquery-ui/jquery-ui': 'jquery-ui/jquery-ui.min',
         'amcharts.funnel'   : 'amcharts/funnel',
         'amcharts.gauge'    : 'amcharts/gauge',
         'amcharts.pie'      : 'amcharts/pie',
@@ -98,7 +99,8 @@ var config = {
         },
         'jquery.mousewheel': {"deps" : ['jquery']},
         'jquery.select2': {"deps" : ['jquery']},
-        'jquery.notify': {"deps" : ['jquery']}
+        'jquery.notify': {"deps" : ['jquery']},
+        'jquery-ui/jquery-ui': {"deps" : ['jquery']}
     },
     map: {
         '*': {
