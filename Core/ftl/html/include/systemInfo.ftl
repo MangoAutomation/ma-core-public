@@ -41,3 +41,16 @@
 	</#if>	
 </table>
 </#if>
+<#if threadList??>
+<table border="1" style="width:100%">
+	<caption><b>Thread List</b></caption>
+	<tr><th>Name</th><th>State</th><th>CPU Time (ms)</th><th>Blocked Time (ms)</th><th>Wait Time (ms)</th><th>Lock Owner Name</th><th>Lock Name</th><th>Is Suspended</th><th>Is In Native</th></tr>
+	<#if threadList?has_content>
+	<#list threadList as item>
+		<tr><td>${item.threadName}</td><td>${item.threadState}</td><td>${item.cpuTime}</td><td>${item.blockedTime}</td><td>${item.waitTime}</td><td>${item.lockOwnerName}</td><td>${item.lockName}</td><td>${item.suspended?string("yes","no")}</td><td>${item.inNative?string("yes","no")}</td></tr>
+	</#list>
+	<#else>
+	<tr><td colspan="8">No Items</td>
+	</#if>	
+</table>
+</#if>

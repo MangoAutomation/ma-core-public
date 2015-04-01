@@ -40,3 +40,14 @@ ${item.classname} --- ${item.description}
 No Items
 </#if>
 </#if>
+<#if threadList??>
+    ** Thread List**
+	Name --- State --- CPU Time (ms) --- Blocked Time (ms) --- Wait Time (ms) --- Lock Owner Name --- Lock Name --- Is Suspended --- Is In Native
+	<#if threadList?has_content>
+	<#list threadList as item>
+	${item.threadName} --- ${item.threadState} --- ${item.cpuTime} --- ${item.blockedTime} --- ${item.waitTime} --- ${item.lockOwnerName} --- ${item.lockName} --- ${item.suspended?string("yes","no")} --- ${item.inNative?string("yes","no")}
+	</#list>
+	<#else>
+	No Items
+	</#if>	
+</#if>

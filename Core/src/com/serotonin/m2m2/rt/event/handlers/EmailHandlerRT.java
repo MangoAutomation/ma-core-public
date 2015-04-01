@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -201,6 +205,7 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
             	model.put("mediumPriorityWorkItems", mediumPriorityWorkItems);
             	List<WorkItemModel> lowPriorityWorkItems = Common.backgroundProcessing.getLowPriorityServiceQueueItems();
             	model.put("lowPriorityWorkItems", lowPriorityWorkItems);
+            	model.put("threadList", getThreadsList());
             }
 
             MangoEmailContent content = new MangoEmailContent(notificationType.getFile(), model, translations, subject,
@@ -215,4 +220,41 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
             LOG.error("", e);
         }
     }
+    
+    private static List<Map<String,Object>> getThreadsList(){
+    	List<Map<String,Object>> models = new ArrayList<Map<String,Object>>();
+    	List<ThreadInfo> infos = Common.backgroundProcessing.getThreadsList(10);
+    	ThreadMXBean tmxb = ManagementFactory.getThreadMXBean();
+    	
+    	for(ThreadInfo info : infos){
+    		Map<String,Object> model = new HashMap<String,Object>();
+    		model.put("threadName", info.getThreadName());
+    		model.put("threadState", info.getThreadState().name());
+    		model.put("cpuTime", tmxb.getThreadCpuTime(info.getThreadId()));
+    		if(info.getBlockedTime() < 0)
+    			model.put("blockedTime", "n/a");
+    		else
+    			model.put("blockedTime", info.getBlockedTime());
+    		if(info.getWaitedTime() < 0)
+    			model.put("waitTime","n/a");
+    		else
+    			model.put("waitTime",info.getWaitedTime());
+    		String name = info.getLockName();
+    		if(name != null)
+    			model.put("lockName", name);
+    		else
+    			model.put("lockName", "none");
+    		name = info.getLockOwnerName();
+    		if(name != null)
+    			model.put("lockOwnerName", name);
+    		else
+    			model.put("lockOwnerName", "none");
+    		model.put("suspended", info.isSuspended());
+    		model.put("inNative", info.isInNative());
+    		models.add(model);
+    	}
+    	return models;
+    }
+
+    
 }

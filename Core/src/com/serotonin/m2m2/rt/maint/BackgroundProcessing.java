@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.rt.maint;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -264,6 +267,27 @@ public class BackgroundProcessing implements ILifecycle {
         catch (InterruptedException e) {
             log.info("", e);
         }
+    }
+    
+    /**
+     * Util to get the Current Thread Information
+     * @param stackDepth - Depth to trace the stack
+     * @return
+     */
+    public List<ThreadInfo> getThreadsList(int stackDepth){
+    	
+        // All of the last thread ids. Ids are removed from this set as they are processed. If ids remain,
+        // it means the thread is gone and should be removed from the map.
+
+        ThreadMXBean tmxb = ManagementFactory.getThreadMXBean();
+        ThreadInfo[] threads = tmxb.getThreadInfo(tmxb.getAllThreadIds(), Integer.MAX_VALUE);
+        List<ThreadInfo> infos = new ArrayList<ThreadInfo>();
+        for (ThreadInfo thread : threads) {
+            if (thread == null)
+                continue;
+            infos.add(thread);
+        }
+		return infos;
     }
     
     /**
