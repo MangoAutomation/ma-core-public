@@ -41,7 +41,6 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
-import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.dwr.EventsDwr;
 import com.serotonin.util.SerializationHelper;
@@ -146,6 +145,10 @@ public class EventDao extends BaseDao {
         return results;
     }
 
+    public EventInstance get(int eventId){
+    	return queryForObject(BASIC_EVENT_SELECT + " where e.id = ?", new Object[]{ eventId }, new EventInstanceRowMapper());
+    }
+    
     private static final String EVENT_SELECT_WITH_USER_DATA = //
     "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
             + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //

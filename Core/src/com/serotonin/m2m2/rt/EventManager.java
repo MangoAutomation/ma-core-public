@@ -121,7 +121,7 @@ public class EventManager implements ILifecycle {
 				//Notify All User Event Listeners of the new event
 				for(UserEventListener l : this.userEventListeners){
 					if(l.getUserId() == user.getId()){
-						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false));
+						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
 					}
 				}
 			
@@ -144,7 +144,7 @@ public class EventManager implements ILifecycle {
 		}
 
 		if ((autoAckMessage != null)&&(alarmLevel != AlarmLevels.DO_NOT_LOG))
-			eventDao.ackEvent(evt.getId(), time, 0, autoAckMessage);
+			this.acknowledgeEvent(evt, time, 0, autoAckMessage);
 		else {
 			if (evt.isRtnApplicable()) {
 				if (alarmLevel > highestActiveAlarmLevel) {
@@ -222,30 +222,31 @@ public class EventManager implements ILifecycle {
 
 	public void returnToNormal(EventType type, long time, int cause) {
 		EventInstance evt = remove(type);
-
-		if(this.userEventListeners.size() > 0){
-			for (User user : userDao.getActiveUsers()) {
-				// Do not create an event for this user if the event type says the
-				// user should be skipped.
-				if (type.excludeUser(user))
-					continue;
-	
-				if (Permissions.hasEventTypePermission(user, type)) {
-					//Notify All User Event Listeners of the new event
-					for(UserEventListener l : this.userEventListeners){
-						if(l.getUserId() == user.getId()){
-							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false));
-
-						}
-					}
-				
-				}
-				
-			}
-		}
 		
 		// Loop in case of multiples
 		while (evt != null) {
+			
+			if(this.userEventListeners.size() > 0){
+				for (User user : userDao.getActiveUsers()) {
+					// Do not create an event for this user if the event type says the
+					// user should be skipped.
+					if (type.excludeUser(user))
+						continue;
+		
+					if (Permissions.hasEventTypePermission(user, type)) {
+						//Notify All User Event Listeners of the new event
+						for(UserEventListener l : this.userEventListeners){
+							if(l.getUserId() == user.getId()){
+								Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
+
+							}
+						}
+					
+					}
+					
+				}
+			}
+			
 			resetHighestAlarmLevel(time);
 
 			evt.returnToNormal(time, cause);
@@ -280,7 +281,7 @@ public class EventManager implements ILifecycle {
 					//Notify All User Event Listeners of the new event
 					for(UserEventListener l : this.userEventListeners){
 						if(l.getUserId() == user.getId()){
-							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true));
+							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true, false));
 						}
 					}
 				
@@ -291,6 +292,41 @@ public class EventManager implements ILifecycle {
 		
 		// Call inactiveEvent handlers.
 		handleInactiveEvent(evt);
+	}
+	
+	/**
+	 * Added to allow Acknowledge Events to be fired
+	 * @param evt
+	 * @param time
+	 * @param userId
+	 * @param alternateAckSource
+	 */
+	public void acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource){
+		eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
+		//Fill in the info if someone on the other end wants it
+		evt.setAcknowledgedByUserId(userId);
+		evt.setAcknowledgedTimestamp(time);
+		evt.setAlternateAckSource(alternateAckSource);
+		
+		if(this.userEventListeners.size() > 0){
+			User user = userDao.getUser(userId);
+			if(user.isDisabled())
+				return;
+			// Do not create an event for this user if the event type says the
+			// user should be skipped.
+			if (evt.getEventType().excludeUser(user))
+				return;
+	
+			if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+				//Notify All User Event Listeners of the new event
+				for(UserEventListener l : this.userEventListeners){
+					if(l.getUserId() == user.getId()){
+						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, false, true));
+					}
+				}
+			
+			}
+		}
 	}
 
 	public long getLastAlarmTimestamp() {
@@ -527,14 +563,17 @@ public class EventManager implements ILifecycle {
     	private final boolean raised;
     	private final boolean returnToNormal;
     	private final boolean deactivated;
+    	private final boolean acknowledged;
 
-        EventNotifyWorkItem(User user, UserEventListener listener, EventInstance event, boolean raised, boolean returnToNormal, boolean deactivated) {
+        EventNotifyWorkItem(User user, UserEventListener listener, EventInstance event, boolean raised, 
+        		boolean returnToNormal, boolean deactivated, boolean acknowledged) {
         	this.user = user;
             this.listener = listener;
             this.event = event;
             this.raised = raised;
             this.returnToNormal = returnToNormal;
             this.deactivated = deactivated;
+            this.acknowledged = acknowledged;
             
         }
 
@@ -547,6 +586,8 @@ public class EventManager implements ILifecycle {
         		listener.returnToNormal(event);
         	else if(deactivated)
         		listener.deactivated(event);
+        	else if(acknowledged)
+        		listener.acknowledged(event);
         }
 
         @Override

@@ -34,4 +34,10 @@ public interface UserEventListener {
 	 */
 	void deactivated(EventInstance evt);
 
+	/**
+	 * Event acknowledged
+	 * @param event
+	 */
+	void acknowledged(EventInstance evt);
+
 }

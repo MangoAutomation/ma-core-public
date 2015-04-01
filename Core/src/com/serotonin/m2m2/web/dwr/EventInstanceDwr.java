@@ -19,6 +19,7 @@ import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -138,7 +139,6 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         
         final User user = Common.getUser();
         if (user != null) {        
-        	final EventDao eventDao = new EventDao();
         	final long now = System.currentTimeMillis();
         	final ResultSetCounter counter = new ResultSetCounter();
         	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
@@ -147,8 +147,15 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
             	@Override
                 public void row(EventInstanceVO vo, int rowIndex) {
             		if(!vo.isAcknowledged()){
-            			//If not acknowledged, then do it
-	            		eventDao.ackEvent(vo.getId(), now, user.getId(), null);
+            			//TODO This is a hack until we redo the Events Page to better work 
+            			// with the Events Manager
+            			EventInstance evt = new EventInstance(vo.getEventType(), 
+            					vo.getActiveTimestamp(),
+            					vo.isRtnApplicable(),
+            					vo.getAlarmLevel(),
+            					vo.getMessage(),
+            					vo.getContext());
+            			Common.eventManager.acknowledgeEvent(evt, now, user.getId(), null);
 	            		counter.increment();
             		}
             		
