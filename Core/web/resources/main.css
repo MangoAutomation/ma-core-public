@@ -121,6 +121,24 @@ header {
     font-weight: bold;
 }
 
+header .event-summary {
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+header .event-summary a {
+    text-decoration: none;
+}
+
+.event-summary .acknowledge {
+    margin-left: 3px;
+}
+
+.event-summary a img {
+    margin-right: 3px;
+}
+
 nav {
     background-color: #F0F0F0;
     margin: 0.5em 0;
