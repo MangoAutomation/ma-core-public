@@ -127,6 +127,7 @@ public class CompiledScriptExecutor {
         
         //Add in Additional Time/Date Utility Object with Engine Scope
         engineScope.put("DateTimeUtility", new DateTimeUtility());
+        engineScope.put("RuntimeManager", new RuntimeManagerScriptUtility());
 
         // Execute.
         Object result;
