@@ -3,6 +3,7 @@
     http://infiniteautomation.com/
     @author Jared Wiltshire
 --%><!doctype html>
+<%@tag import="com.serotonin.m2m2.Common"%>
 <%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@attribute name="styles" fragment="true" %>
 <%@attribute name="scripts" fragment="true" %>
@@ -29,7 +30,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
-        <!-- Place favicon.ico in the root directory -->
+
+        <tag:versionedIcon href="<%= Common.applicationFavicon %>"/>
+        <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
 
         <link rel="stylesheet" href="/resources/normalize.css">
         <link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">

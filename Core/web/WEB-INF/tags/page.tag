@@ -26,7 +26,9 @@
 <c:choose>
     <c:when test="${empty showToolbar}"><c:set var="showToolbar">${param.showToolbar}</c:set></c:when>
 </c:choose>
-
+<c:choose>
+    <c:when test="${empty showFooter}"><c:set var="showFooter">${param.showFooter}</c:set></c:when>
+</c:choose>
 <html>
 <head>
   <title><c:choose>
@@ -126,7 +128,7 @@
     <div id="mainContent" style="padding:5px; ">
         <jsp:doBody/>
     </div>
-    <c:if test="${empty param.showFooter || param.showFooter == true}">
+    <c:if test="${empty showFooter || showFooter == true}">
     <div id="footerArea" style="float:left; width:100%; height:60px;">
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>

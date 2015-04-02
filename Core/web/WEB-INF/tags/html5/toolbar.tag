@@ -16,34 +16,34 @@
     <c:if test="${sessionUser.dataSourcePermission}">
       <img src="/images/menu_separator.png"/>
       <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.DATA_SOURCE) %>" var="mi">
-        <m2m2:menuItem def="${mi}"/>
+        <m2m2:html5menuItem def="${mi}"/>
       </c:forEach>
     </c:if>
     
     <img src="/images/menu_separator.png"/>
-    <m2m2:menuItem id="usersMi" href="/users.shtm" png="user" key="header.users"/>
+    <m2m2:html5menuItem id="usersMi" href="/users.shtm" png="user" key="header.users"/>
     
     <c:if test="${sessionUser.admin}">
       <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ADMINISTRATOR) %>" var="mi">
-        <m2m2:menuItem def="${mi}"/>
+        <m2m2:html5menuItem def="${mi}"/>
       </c:forEach>
     </c:if>
     
     <img src="/images/menu_separator.png"/>
     <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ANONYMOUS) %>" var="mi">
-      <m2m2:menuItem def="${mi}"/>
+      <m2m2:html5menuItem def="${mi}"/>
     </c:forEach>
   </c:if>
   <c:if test="${empty sessionUser}">
-    <m2m2:menuItem id="loginMi" href="/login.htm" png="control_play_blue" key="header.login"/>
+    <m2m2:html5menuItem id="loginMi" href="/login.htm" png="control_play_blue" key="header.login"/>
     <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ANONYMOUS) %>" var="mi">
-      <m2m2:menuItem def="${mi}"/>
+      <m2m2:html5menuItem def="${mi}"/>
     </c:forEach>
   </c:if>
   <c:if test="${!empty sessionUser}">
     <div class="user-nav">
       <span class="username"><fmt:message key="header.user"/>: <strong>${sessionUser.username}</strong></span>
-      <m2m2:menuItem id="logoutMi" href="/logout.htm" png="control-power" key="header.logout"/>
+      <m2m2:html5menuItem id="logoutMi" href="/logout.htm" png="control-power" key="header.logout"/>
     </div>
   </c:if>
 </nav>
