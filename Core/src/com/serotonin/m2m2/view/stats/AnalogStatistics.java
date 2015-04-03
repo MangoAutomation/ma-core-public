@@ -29,6 +29,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Double lastValue;
     private Long lastTime;
     private int count;
+    private Double delta;
 
     // State values used for calculating weighted average.
     private Double latestValue;
@@ -101,10 +102,19 @@ public class AnalogStatistics implements StatisticsGenerator {
     }
 
     public void done(Double endValue) {
-        if (endValue != null)
+        if (endValue != null){
             // There is an end value, so add the weighted latest value to the average, using the period end for
             // duration calculation.
             updateAverage(endValue, periodEnd);
+            if(firstValue == null)
+            	delta = endValue;
+            else
+            	delta = endValue - firstValue;
+        }else{
+        	if((firstValue != null) && (lastValue != null)){
+        		delta = lastValue - firstValue;
+        	}
+        }
 
         if (average != null) {
             integral = average / 1000; // integrate over seconds not msecs
@@ -197,11 +207,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     }
 
     public Double getDelta(){
-    	if((firstValue != null) && (lastValue!=null)){
-    		return lastValue - firstValue;
-    	}else{
-    		return null;
-    	}
+    	return this.delta;
     }
     
     public String getHelp() {
