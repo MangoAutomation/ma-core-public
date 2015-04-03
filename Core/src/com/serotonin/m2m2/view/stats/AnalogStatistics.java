@@ -30,7 +30,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Long lastTime;
     private int count;
 
-    // State values. Used for calculating weighted average.
+    // State values used for calculating weighted average.
     private Double latestValue;
     private long latestTime;
     private long totalDuration;
@@ -52,12 +52,12 @@ public class AnalogStatistics implements StatisticsGenerator {
     public AnalogStatistics(long periodStart, long periodEnd, Double startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-
         if (startValue != null) {
             minimumValue = maximumValue = latestValue = startValue;
             minimumTime = maximumTime = latestTime = periodStart;
         }
     }
+   
 
     @Override
     public void addValueTime(IValueTime vt) {
@@ -196,6 +196,14 @@ public class AnalogStatistics implements StatisticsGenerator {
         return count;
     }
 
+    public Double getDelta(){
+    	if((firstValue != null) && (lastValue!=null)){
+    		return lastValue - firstValue;
+    	}else{
+    		return null;
+    	}
+    }
+    
     public String getHelp() {
         return toString();
     }
