@@ -102,15 +102,20 @@ public class AnalogStatistics implements StatisticsGenerator {
     }
 
     public void done(Double endValue) {
+    	
         if (endValue != null){
             // There is an end value, so add the weighted latest value to the average, using the period end for
             // duration calculation.
             updateAverage(endValue, periodEnd);
+
             if(firstValue == null)
             	delta = endValue;
             else
             	delta = endValue - firstValue;
         }else{
+            //Even without an end value we need to flush the latest value
+        	// into the average for the rest of the period.
+        	updateAverage(0d, periodEnd);
         	if((firstValue != null) && (lastValue != null)){
         		delta = lastValue - firstValue;
         	}
@@ -124,7 +129,8 @@ public class AnalogStatistics implements StatisticsGenerator {
             // Special case: if there was no start value and no end value, and only one value in the data set, we will
             // have a latest value, and a duration of zero. For this value we set the average equal to that value.
             average = lastValue;
-            integral = 0.0;
+            //Nothing to integrate
+           integral = 0D;
         }
     }
 
@@ -216,9 +222,20 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     @Override
     public String toString() {
-        return "{minimumValue: " + minimumValue + ", minimumTime=" + minimumTime + ", maximumValue: " + maximumValue
-                + ", maximumTime=" + maximumTime + ", average: " + average + ", sum: " + sum + ", count: " + count
-                + ", firstValue: " + firstValue + ", firstTime: " + firstTime + ", lastValue: " + lastValue
-                + ", lastTime: " + lastTime + ", periodStart: " + periodStart + ", periodEnd: " + periodEnd + "}";
+        return "{minimumValue: " + minimumValue
+        		+ ", minimumTime=" + minimumTime 
+        		+ ", maximumValue: " + maximumValue
+                + ", maximumTime=" + maximumTime
+                + ", average: " + average
+                + ", sum: " + sum
+                + ", count: " + count
+                + ", delta: " + delta
+                + ", integral: " + integral
+                + ", firstValue: " + firstValue
+                + ", firstTime: " + firstTime
+                + ", lastValue: " + lastValue
+                + ", lastTime: " + lastTime 
+                + ", periodStartTime: " + periodStart
+                + ", periodEndTime: " + periodEnd + "}";
     }
 }
