@@ -108,6 +108,10 @@ public class AnalogStatisticsWrapper {
         return statistics.getCount();
     }
 
+    public double getDelta(){
+    	return statistics.getDelta();
+    }
+    
     public String getHelp() {
         return statistics.toString();
     }

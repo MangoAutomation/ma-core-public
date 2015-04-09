@@ -37,6 +37,11 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
 abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractActionVO<DataSourceVO<?>> {
     public static final String XID_PREFIX = "DS_";
 
+    //TODO This will be changed to asModel
+    /**
+     * Return the Model Representation of the Data Source
+     * @return
+     */
     abstract public AbstractDataSourceModel<T> getModel();
 
     abstract public TranslatableMessage getConnectionDescription();

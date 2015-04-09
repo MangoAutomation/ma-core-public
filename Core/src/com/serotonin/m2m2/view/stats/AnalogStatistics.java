@@ -29,7 +29,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Double lastValue;
     private Long lastTime;
     private int count;
-    private Double delta;
+    private double delta;
 
     // State values used for calculating weighted average.
     private Double latestValue;
@@ -87,7 +87,13 @@ public class AnalogStatistics implements StatisticsGenerator {
             maximumValue = doubleValue;
             maximumTime = time;
         }
-
+        
+        if(latestValue != null){
+            delta += (doubleValue - latestValue);
+        }else{
+        	delta = doubleValue;
+        }
+        
         updateAverage(doubleValue, time);
 
         sum += value.getDoubleValue();
@@ -103,26 +109,24 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     public void done(Double endValue) {
     	
-        if (endValue != null){
-            // There is an end value, so add the weighted latest value to the average, using the period end for
+    	if (endValue != null){
+            // There is an end value (after the period), so add the weighted latest value to the average, using the period end for
             // duration calculation.
             updateAverage(endValue, periodEnd);
-
-            if(firstValue == null)
-            	delta = endValue;
-            else
-            	delta = endValue - firstValue;
+            
+            //TODO Interpolate the latestValue to endValue and add that to the delta
         }else{
             //Even without an end value we need to flush the latest value
         	// into the average for the rest of the period.
-        	updateAverage(0d, periodEnd);
-        	if((firstValue != null) && (lastValue != null)){
-        		delta = lastValue - firstValue;
-        	}
+        	// We use latestValue so it doesn't effect the delta
+        	if(latestValue != null)
+        		updateAverage(latestValue, periodEnd);
         }
-
+        
+        //Average will not be null when we have at least one value in period AND an end value
+        // OR more than 1 value in the period
         if (average != null) {
-            integral = average / 1000; // integrate over seconds not msecs
+            integral = average / 1000D; // integrate over seconds not msecs
             average /= totalDuration;
         }
         else {
@@ -212,7 +216,7 @@ public class AnalogStatistics implements StatisticsGenerator {
         return count;
     }
 
-    public Double getDelta(){
+    public double getDelta(){
     	return this.delta;
     }
     

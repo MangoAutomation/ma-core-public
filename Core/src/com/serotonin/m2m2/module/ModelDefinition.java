@@ -23,7 +23,7 @@ public abstract class ModelDefinition extends ModuleElementDefinition{
 
     /**
      * An internal identifier for this type of model. Must be unique within an MA instance, and is recommended
-     * to have the form "&lt;moduleName&gt;.&lt;modelName&gt;" so as to be unique across all modules.
+     * to have the form "&lt;moduleType&gt;.&lt;modelName&gt;" so as to be unique across all modules.
      * 
      * @return the model type name.
      */
@@ -37,6 +37,11 @@ public abstract class ModelDefinition extends ModuleElementDefinition{
      */
     abstract public AbstractRestModel<?> createModel();
     
+    /**
+     * Define what class(s) does this model support being created from.
+     * @param clazz
+     * @return - true if this model supports this class
+     */
     abstract public boolean supportsClass(Class<?> clazz);
 
 }

@@ -40,6 +40,77 @@ public class AnalogStatisticsTest {
     	return values;
 	}
 	
+	@Test
+	public void testDeltaMidpoint(){
+    	long periodStart = 0;
+    	long periodEnd = 1000;
+    	Double startValue = 0D;
+    	Double endValue = 100D;
+		
+    	List<PointValueTime> values = getMidpointData();
+    	AnalogStatistics s;
+    	
+    	//Test no values at all
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, new ArrayList<IValueTime>(), (Double)null);
+    	assertEquals(0D, s.getDelta(), 0.001D);
+
+    	//Test only start value
+    	s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>(), (Double)null);
+    	assertEquals(0D, s.getDelta(), 0.001D);
+
+    	//Test only end value
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, new ArrayList<IValueTime>(), endValue);
+    	assertEquals(0D, s.getDelta(), 0.001D);
+    	
+    	//Test no start/end
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, values , (Double)null);
+    	assertEquals(200D, s.getDelta(), 0.001D);
+    	
+    	//Test no end
+    	s = new AnalogStatistics(periodStart, periodEnd, startValue, values, (Double)null);
+    	assertEquals(200D, s.getDelta(), 0.001D);
+
+    	//Test no start.
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, values, endValue);
+    	assertEquals(200D, s.getDelta(), 0.001D);
+
+    	//Test Have all 0 for 500 counts, 200 for 500 counts
+    	s = new AnalogStatistics(periodStart, periodEnd, startValue, values, endValue);
+    	assertEquals(200D, s.getDelta(), 0.001D);
+
+    	//Run Tests again with different start/ends
+    	startValue = 50D;
+    	endValue = 200D;
+    	
+    	//Test no values at all
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, new ArrayList<IValueTime>(), (Double)null);
+    	assertEquals(0D, s.getDelta(), 0.001D);
+
+    	//Test only start value
+    	s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>(), (Double)null);
+    	assertEquals(0D, s.getDelta(), 0.001D);
+
+    	//Test only end value
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, new ArrayList<IValueTime>(), endValue);
+    	assertEquals(0D, s.getDelta(), 0.001D);
+    	
+    	//Test no start/end
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, values , (Double)null);
+    	assertEquals(200D, s.getDelta(), 0.001D);
+    	
+    	//Test no end
+    	s = new AnalogStatistics(periodStart, periodEnd, startValue, values, (Double)null);
+    	assertEquals(150D, s.getDelta(), 0.001D);
+
+    	//Test no start
+    	s = new AnalogStatistics(periodStart, periodEnd, (Double)null, values, endValue);
+    	assertEquals(200D, s.getDelta(), 0.001D);
+
+    	//Test Have all
+    	s = new AnalogStatistics(periodStart, periodEnd, startValue, values, endValue);
+    	assertEquals(150D, s.getDelta(), 0.001D);
+	}
+	
 	/**
 	 * Test the average statistic using the Midpoint data set
 	 */
