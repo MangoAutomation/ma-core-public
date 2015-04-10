@@ -48,7 +48,18 @@ public class WorkItemMonitor extends TimerTask {
             "internal.monitor.DB_ACTIVE_CONNECTIONS");
     private final IntegerMonitor dbIdleConnections = new IntegerMonitor(DB_IDLE_CONNECTIONS_MONITOR_ID,
             "internal.monitor.DB_IDLE_CONNECTIONS");
+    
+    private final IntegerMonitor javaFreeMemory = new IntegerMonitor("java.lang.Runtime.freeMemory",
+            "internal.monitor.JAVA_FREE_MEMORY");
+    private final IntegerMonitor javaHeapMemory = new IntegerMonitor("java.lang.Runtime.totalMemory",
+            "internal.monitor.JAVA_HEAP_MEMORY");
+    private final IntegerMonitor javaMaxMemory = new IntegerMonitor("java.lang.Runtime.maxMemory",
+            "internal.monitor.JAVA_MAX_MEMORY");
+    private final IntegerMonitor javaAvailableProcessors = new IntegerMonitor("java.lang.Runtime.availableProcessors",
+            "internal.monitor.JAVA_PROCESSORS");
 
+    private final int mb = 1024*1024;
+    
     private WorkItemMonitor() {
         super(new FixedRateTrigger(TIMEOUT, TIMEOUT));
 
@@ -59,6 +70,15 @@ public class WorkItemMonitor extends TimerTask {
         Common.MONITORED_VALUES.addIfMissingStatMonitor(threadCount);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(dbActiveConnections);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(dbIdleConnections);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(javaFreeMemory);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(javaHeapMemory);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(javaMaxMemory);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(javaAvailableProcessors);
+
+        
+        //Set the available processors, we don't need to poll this
+        javaAvailableProcessors.setValue(Runtime.getRuntime().availableProcessors());
+                
     }
 
     @Override
@@ -88,5 +108,11 @@ public class WorkItemMonitor extends TimerTask {
 
         dbActiveConnections.setValue(Common.databaseProxy.getActiveConnections());
         dbIdleConnections.setValue(Common.databaseProxy.getIdleConnections());
+        
+        //In MB
+        javaFreeMemory.setValue((int)(Runtime.getRuntime().freeMemory()/mb));
+        javaHeapMemory.setValue((int)(Runtime.getRuntime().totalMemory()/mb));
+        javaMaxMemory.setValue((int)(Runtime.getRuntime().maxMemory()/mb));
+        
     }
 }
