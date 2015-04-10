@@ -50,13 +50,13 @@ public class WorkItemMonitor extends TimerTask {
             "internal.monitor.DB_IDLE_CONNECTIONS");
     
     private final IntegerMonitor javaFreeMemory = new IntegerMonitor("java.lang.Runtime.freeMemory",
-            "internal.monitor.JAVA_FREE_MEMORY");
+            "java.monitor.JAVA_FREE_MEMORY");
     private final IntegerMonitor javaHeapMemory = new IntegerMonitor("java.lang.Runtime.totalMemory",
-            "internal.monitor.JAVA_HEAP_MEMORY");
+            "java.monitor.JAVA_HEAP_MEMORY");
     private final IntegerMonitor javaMaxMemory = new IntegerMonitor("java.lang.Runtime.maxMemory",
-            "internal.monitor.JAVA_MAX_MEMORY");
+            "java.monitor.JAVA_MAX_MEMORY");
     private final IntegerMonitor javaAvailableProcessors = new IntegerMonitor("java.lang.Runtime.availableProcessors",
-            "internal.monitor.JAVA_PROCESSORS");
+            "java.monitor.JAVA_PROCESSORS");
 
     private final int mb = 1024*1024;
     
