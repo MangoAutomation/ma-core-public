@@ -121,6 +121,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PERMISSION_DATASOURCE = "permissionDatasource";
     
     //Background Processing
+    public static final String HIGH_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
+    public static final String HIGH_PRI_MAX_POOL_SIZE = "mediumPriorityThreadMaximumPoolSize";
+    
     public static final String MED_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
     public static final String MED_PRI_MAX_POOL_SIZE = "mediumPriorityThreadMaximumPoolSize";
     
@@ -357,6 +360,8 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(DATABASE_BACKUP_HOUR, 0);
         DEFAULT_VALUES.put(DATABASE_BACKUP_MINUTE, 5);
         
+        DEFAULT_VALUES.put(HIGH_PRI_CORE_POOL_SIZE, 0);   
+        DEFAULT_VALUES.put(HIGH_PRI_MAX_POOL_SIZE, 100);   
         DEFAULT_VALUES.put(MED_PRI_CORE_POOL_SIZE, 3);   
         DEFAULT_VALUES.put(MED_PRI_MAX_POOL_SIZE, 30);   
         DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);   

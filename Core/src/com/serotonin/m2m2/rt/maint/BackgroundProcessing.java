@@ -83,6 +83,21 @@ public class BackgroundProcessing implements ILifecycle {
         return mediumPriorityService.getQueue().size();
     }
 
+    public Map<String, Integer> getHighPriorityServiceQueueClassCounts() {
+    	Iterator<TimerTask> iter = Common.timer.getTasks().iterator();
+    	Map<String, Integer> classCounts = new HashMap<>();
+    	while(iter.hasNext()){
+    		TimerTask task = iter.next();
+    		String s = task.getClass().getCanonicalName();
+    		Integer count = classCounts.get(s);
+            if (count == null)
+                count = 0;
+            count++;
+            classCounts.put(s, count);
+    	}
+    	return classCounts;
+    }
+    
     public Map<String, Integer> getMediumPriorityServiceQueueClassCounts() {
         return getClassCounts(mediumPriorityService);
     }
@@ -213,9 +228,17 @@ public class BackgroundProcessing implements ILifecycle {
     }
     @Override
     public void initialize() {
+    	
+    	//Adjust the RealTime timer pool now
+    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, 0);
+    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, 100);
+    	ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
+    	executor.setCorePoolSize(corePoolSize);
+    	executor.setMaximumPoolSize(maxPoolSize);
+    	
     	//Pull our settings from the System Settings
-    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, 3);
-    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, 30);
+    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, 3);
+    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, 30);
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
         mediumPriorityService.allowCoreThreadTimeOut(true);
