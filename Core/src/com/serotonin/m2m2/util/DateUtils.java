@@ -66,9 +66,7 @@ public class DateUtils {
                 time = time.minusHours(time.getHourOfDay() % periods);
         }
         else if (periodType == TimePeriods.DAYS) {
-            time = time.minus(time.getMillisOfDay());
-            if (periods > 1)
-                time = time.minusDays(time.getDayOfYear() % periods);
+        	time = time.minusDays(periods-1).withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.WEEKS) {
             time = time.minus(time.getMillisOfDay());
@@ -77,10 +75,7 @@ public class DateUtils {
                 time = time.minusWeeks(time.getWeekOfWeekyear() % periods);
         }
         else if (periodType == TimePeriods.MONTHS) {
-            time = time.minus(time.getMillisOfDay());
-            time = time.minus(Common.getPeriod(TimePeriods.DAYS, time.getDayOfMonth() - 1));
-            if (periods > 1)
-                time = time.minusMonths(time.getMonthOfYear() % periods);
+        	time = time.minusMonths(periods-1).withDayOfMonth(1).withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.YEARS) {
             time = time.minus(time.getMillisOfDay());

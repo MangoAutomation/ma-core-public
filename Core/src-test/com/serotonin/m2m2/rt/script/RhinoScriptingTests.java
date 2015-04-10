@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,7 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.test.data.RhinoScriptTestData;
 
 /**
  * @author Terry Packer
@@ -51,7 +50,7 @@ public class RhinoScriptingTests {
 			PointValueTime pvt = CompiledScriptExecutor.execute(s,
 					context, System.currentTimeMillis(),
 					DataTypes.NUMERIC, -1);
-			
+			assertNotNull(pvt);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
