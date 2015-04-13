@@ -227,9 +227,9 @@ public class AnalogStatistics implements StatisticsGenerator {
     @Override
     public String toString() {
         return "{minimumValue: " + minimumValue
-        		+ ", minimumTime=" + minimumTime 
+        		+ ", minimumTime: " + minimumTime 
         		+ ", maximumValue: " + maximumValue
-                + ", maximumTime=" + maximumTime
+                + ", maximumTime: " + maximumTime
                 + ", average: " + average
                 + ", sum: " + sum
                 + ", count: " + count

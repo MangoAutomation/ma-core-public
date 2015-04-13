@@ -14,8 +14,9 @@ if [ -z "$MA_HOME" ]; then
     exit 1
 fi
 
-# Delete a pid file if it exists
-rm "$MA_HOME"/bin/ma.pid >/dev/null 2>/dev/null
+# Delete a pid file if it exists, no longer doing this as we don't allow 2 mango's to start at same time
+# from same MA_HOME, let the ma-start handle this as required
+#rm "$MA_HOME"/bin/ma.pid >/dev/null 2>/dev/null
 
 # Determine the Java home
 if [ -z "$JAVA_HOME" ]; then

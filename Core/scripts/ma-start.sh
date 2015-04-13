@@ -16,6 +16,7 @@ fi
 # This will ensure that the logs are written to the correct directories.
 cd "$MA_HOME"
 
+
 LOOP_EXIT=false
 while [ $LOOP_EXIT = false ]; do
     # Check for core upgrade
@@ -65,7 +66,14 @@ while [ $LOOP_EXIT = false ]; do
     # Make sure there are no explicit stop or termination flag files
     rm -f "$MA_HOME"/STOP
     rm -f "$MA_HOME"/TERMINATED
-    
+
+    if [ -r "$MA_HOME"/bin/ma.pid ]; then
+        PID=$(cat "$MA_HOME"/bin/ma.pid)
+        echo `date` ma-start: MA already running with Process ID: $PID >> "$MA_HOME"/logs/ma-script.log
+        echo "MA already running with Process ID: " $PID
+        break;
+    fi
+
     echo `date` 'ma-start: starting MA' >> $MA_HOME/logs/ma-script.log
     $EXECJAVA $JPDA $JAVAOPTS -server -cp "$MA_CP" \
         "-Dma.home=$MA_HOME" \
@@ -73,8 +81,8 @@ while [ $LOOP_EXIT = false ]; do
         com.serotonin.m2m2.Main &
     
     PID=$!
-    echo `date` ma-start: MA started with PID $PID >> "$MA_HOME"/logs/ma-script.log
-    echo "Started Mango with ProcessID: " $PID
+    echo `date` ma-start: MA started with Process ID $PID >> "$MA_HOME"/logs/ma-script.log
+    echo "ma-start: MA started with Process ID: " $PID
     echo $PID > "$MA_HOME"/bin/ma.pid
 	until !(ps $PID > /dev/null) do
         # Check for a termination flag file. If found, kill the process.
@@ -86,28 +94,35 @@ while [ $LOOP_EXIT = false ]; do
         fi
     done
     rm "$MA_HOME"/bin/ma.pid
-    
-    # Commented this section out because MA should always restart unless explicitly stopped.
-    #if [ ! -r "$MA_HOME"/RESTART ]; then
-    #    echo `date` 'ma-start: no restart flag found. Exiting restart loop' >> "$MA_HOME"/logs/ma-script.log
-    #    LOOP_EXIT=true
-    #fi
-    
-    # Run enabled restart extensions
-    if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
-    	echo `date` 'ma-start: running restart extentions' >> "$MA_HOME"/logs/ma-script.log
-    	for f in "$MA_HOME"/bin/ext-enabled/*.sh
-    	do
-        	source $f restart
-    	done
-    fi
-    
+
     # Check if MA was explicitly stopped by the stop script.
     if [ -r "$MA_HOME"/STOP ]; then
+    	echo ma-start: MA explicitly stopped.
     	echo `date` 'ma-start: MA explicitly stopped. Exiting restart loop' >> "$MA_HOME"/logs/ma-script.log
         rm "$MA_HOME"/STOP
         LOOP_EXIT=true
+        break;
     fi
-done
+    
+    #Should we restart?
+    if [ ! -r "$MA_HOME"/RESTART ]; then
+        echo ma-start: no restart flag found, not restarting MA
+        echo `date` 'ma-start: no restart flag found, not restarting MA' >> "$MA_HOME"/logs/ma-script.log
+        LOOP_EXIT=true
+        break;
+    fi
+    
+    # Run enabled restart extensions
+    if [ -r "$MA_HOME"/RESTART ]; then
+        if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+            echo `date` 'ma-start: running restart extentions' >> "$MA_HOME"/logs/ma-script.log
+            for f in "$MA_HOME"/bin/ext-enabled/*.sh
+            do
+                source $f restart
+            done
+        fi
+    fi
 
-echo `date` ma-start: done >> "$MA_HOME"/logs/ma-script.log
+done
+echo ma-start: MA done
+echo `date` ma-start: MA done >> "$MA_HOME"/logs/ma-script.log
