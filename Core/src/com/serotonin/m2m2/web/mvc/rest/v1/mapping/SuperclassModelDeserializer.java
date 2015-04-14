@@ -47,7 +47,7 @@ public class SuperclassModelDeserializer extends StdDeserializer<SuperclassModel
 		ObjectMapper mapper = (ObjectMapper) jp.getCodec();  
 		JsonNode tree = jp.readValueAsTree();
 	    ModelDefinition definition = findModelDefinition(tree.get("type").asText());
-	    return (SuperclassModel<?>) mapper.treeToValue(tree, definition.createModel().getClass());
+	    return (SuperclassModel<?>) mapper.treeToValue(tree, definition.getModelClass());
 	}
 
 	/**

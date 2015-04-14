@@ -43,5 +43,11 @@ public abstract class ModelDefinition extends ModuleElementDefinition{
      * @return - true if this model supports this class
      */
     abstract public boolean supportsClass(Class<?> clazz);
+    
+    /**
+     * Return the model class
+     * @return
+     */
+    abstract public Class<? extends AbstractRestModel<?>> getModelClass();
 
 }

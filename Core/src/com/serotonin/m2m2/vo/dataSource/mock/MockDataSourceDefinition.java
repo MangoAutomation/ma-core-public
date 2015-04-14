@@ -6,6 +6,8 @@ package com.serotonin.m2m2.vo.dataSource.mock;
 
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.MockDataSourceModel;
 
 /**
  * @author Terry Packer
@@ -51,6 +53,14 @@ public class MockDataSourceDefinition extends DataSourceDefinition{
 	@Override
 	public Class<?> getDwrClass() {
 		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.DataSourceDefinition#getModelClass()
+	 */
+	@Override
+	public Class<? extends AbstractDataSourceModel<?>> getModelClass() {
+		return MockDataSourceModel.class;
 	}
 
 }

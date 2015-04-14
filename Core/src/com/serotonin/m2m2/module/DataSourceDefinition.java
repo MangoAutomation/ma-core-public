@@ -12,6 +12,7 @@ import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.web.dwr.DataSourceEditDwr;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
 
 /**
  * A data source is the means by which MA gets values into a data point, and writes set point values back to source
@@ -141,4 +142,9 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
     public String getStatusPagePath() {
         return null;
     }
+
+	/**
+	 * @return
+	 */
+	public abstract Class<? extends AbstractDataSourceModel<?>> getModelClass();
 }

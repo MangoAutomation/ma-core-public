@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
@@ -17,25 +16,19 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  *
  */
 @CSVEntity(derived=true)
-public abstract class PointLocatorModel<T extends PointLocatorVO> extends AbstractRestModel<PointLocatorVO>{
-
-	//TODO This can probably be removed
-	@JsonIgnore
-	protected T data;
+public abstract class PointLocatorModel<T extends PointLocatorVO> extends AbstractRestModel<T>{
 	
 	/**
 	 * @param data
 	 */
-	@SuppressWarnings("unchecked")
-	public PointLocatorModel(PointLocatorVO data) {
+	public PointLocatorModel(T data) {
 		super(data);
-		this.data = (T)data;
 	}
 
-    @JsonGetter("type")
+    @JsonGetter("modelType")
     public abstract String getTypeName();
    
-    @JsonSetter("type")
+    @JsonSetter("modelType")
     public void setTypeName(String typeName){ }
     
     
@@ -63,10 +56,4 @@ public abstract class PointLocatorModel<T extends PointLocatorVO> extends Abstra
     public boolean isRelinquishable(){
     	return this.data.isRelinquishable();
     }
-    
-    @Override
-    public T getData(){
-    	return data;
-    }
-    
 }

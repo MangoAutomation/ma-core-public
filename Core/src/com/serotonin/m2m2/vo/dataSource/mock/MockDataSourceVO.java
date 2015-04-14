@@ -60,7 +60,7 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     }
     
     @Override
-    public AbstractDataSourceModel<MockDataSourceVO> getModel(){
+    public AbstractDataSourceModel<MockDataSourceVO> asModel(){
     	return new MockDataSourceModel(this);
     }
     

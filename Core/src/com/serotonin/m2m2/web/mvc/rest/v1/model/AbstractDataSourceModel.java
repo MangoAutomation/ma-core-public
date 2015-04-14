@@ -11,9 +11,9 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -27,16 +27,15 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  *
  */
 @JsonPropertyOrder({"xid", "name", "enabled"})
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
 public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractActionVoModel<DataSourceVO<?>>{
 	
-	protected DataSourceVO<T> data;
+	protected T data;
 	
 	
 	/**
 	 * @param data
 	 */
-	public AbstractDataSourceModel(DataSourceVO<T> data) {
+	public AbstractDataSourceModel(T data) {
 		super(data);
 		this.data = data;
 	}
@@ -106,7 +105,12 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 	}
 	
 	@JsonIgnore
-	public DataSourceVO<T> getData(){
+	public T getData(){
 		return this.data;
+	}
+
+	@JsonIgnore
+	public void setDefinition(DataSourceDefinition dataSourceDefinition) {
+		this.data.setDefinition(dataSourceDefinition);
 	}
 }

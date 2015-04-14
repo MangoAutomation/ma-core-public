@@ -13,17 +13,18 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
 
 
 /**
  * @author Terry Packer
  *
  */
-public class PointLocatorModelDeserializer extends StdDeserializer<PointLocatorModel<?>>{
+public class DataSourceModelDeserializer extends StdDeserializer<AbstractDataSourceModel<?>>{
 
 	/**
 	 * 
@@ -34,21 +35,28 @@ public class PointLocatorModelDeserializer extends StdDeserializer<PointLocatorM
 	/**
 	 * 
 	 */
-	protected PointLocatorModelDeserializer() {
-		super(PointLocatorModel.class);
+	protected DataSourceModelDeserializer() {
+		super(AbstractDataSourceModel.class);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.fasterxml.jackson.databind.JsonDeserializer#deserialize(com.fasterxml.jackson.core.JsonParser, com.fasterxml.jackson.databind.DeserializationContext)
 	 */
 	@Override
-	public PointLocatorModel<?> deserialize(JsonParser jp,
+	public AbstractDataSourceModel<?> deserialize(JsonParser jp,
 			DeserializationContext ctxt) throws IOException,
 			JsonProcessingException {
 		ObjectMapper mapper = (ObjectMapper) jp.getCodec();  
 		JsonNode tree = jp.readValueAsTree();
-	    ModelDefinition definition = findModelDefinition(tree.get("modelType").asText());
-	    return (PointLocatorModel<?>) mapper.treeToValue(tree, definition.getModelClass());
+		
+		String typeName = tree.get("modelType").asText();
+		DataSourceDefinition definition = ModuleRegistry.getDataSourceDefinition(typeName);
+		if(definition == null)
+			throw new ModelNotFoundException(typeName);
+
+		AbstractDataSourceModel<?> model = (AbstractDataSourceModel<?>) mapper.treeToValue(tree, definition.getModelClass());
+		model.setDefinition(definition); //Set the definition here
+	    return model;
 	}
 
 	/**
