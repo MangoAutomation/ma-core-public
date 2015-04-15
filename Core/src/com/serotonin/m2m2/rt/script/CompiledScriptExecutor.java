@@ -93,6 +93,14 @@ public class CompiledScriptExecutor {
 
         // Create the wrapper object context.
         ScriptEngine engine = script.getEngine();
+        
+        //Add the global scripts
+        try {
+			ScriptUtils.executeGlobalScripts(engine);
+		} catch (ScriptError e) {
+			throw new ScriptException(e);
+		}
+        
         ScriptUtils.wrapperContext(engine, new WrapperContext(runtime));
         Bindings engineScope = engine.createBindings(); //new SimpleBindings();
 

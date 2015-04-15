@@ -155,6 +155,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
             					vo.getAlarmLevel(),
             					vo.getMessage(),
             					vo.getContext());
+            			evt.setId(vo.getId());
             			Common.eventManager.acknowledgeEvent(evt, now, user.getId(), null);
 	            		counter.increment();
             		}
