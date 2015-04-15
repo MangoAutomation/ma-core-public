@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.rt.script;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,25 +15,16 @@ import java.util.Set;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.script.SimpleBindings;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
-import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
-import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 
 /**
  * @author Matthew Lohbihler
@@ -90,12 +82,13 @@ public class CompiledScriptExecutor {
      * @param runtime
      * @param dataTypeId
      * @param timestamp
-     * @return
+     * @param scriptWriter - PrintWriter to output print and println
+     * @return - Script output as PVT
      * @throws ScriptException
      * @throws ResultTypeException
      */
     public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
-           Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp) throws ScriptException, ResultTypeException {
+           Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, PrintWriter scriptWriter) throws ScriptException, ResultTypeException {
         ensureInit();
 
         // Create the wrapper object context.
@@ -112,23 +105,14 @@ public class CompiledScriptExecutor {
         // Put the context variables into the engine with engine scope.
         for (String varName : context.keySet()) {
             IDataPointValueSource point = context.get(varName);
-            int dt = point.getDataTypeId();
-            if (dt == DataTypes.BINARY)
-                engineScope.put(varName, new BinaryPointWrapper(point, engine, null));
-            else if (dt == DataTypes.MULTISTATE)
-                engineScope.put(varName, new MultistatePointWrapper(point, engine, null));
-            else if (dt == DataTypes.NUMERIC)
-                engineScope.put(varName, new NumericPointWrapper(point, engine, null));
-            else if (dt == DataTypes.ALPHANUMERIC)
-                engineScope.put(varName, new AlphanumericPointWrapper(point, engine, null));
-            else
-                throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
+            engineScope.put(varName, ScriptUtils.wrapPoint(engine, point));
+         }
+        
+        //Set the print writer if necessary
+        if(scriptWriter != null){
+        	engine.getContext().setWriter(scriptWriter);
         }
         
-        //Add in Additional Time/Date Utility Object with Engine Scope
-        engineScope.put("DateTimeUtility", new DateTimeUtility());
-        engineScope.put("RuntimeManager", new RuntimeManagerScriptUtility());
-
         // Execute.
         Object result;
         try {
@@ -152,48 +136,7 @@ public class CompiledScriptExecutor {
             // }
         }
 
-        DataValue value;
-        if (result == null) {
-            if (dataTypeId == DataTypes.BINARY)
-                value = new BinaryValue(false);
-            else if (dataTypeId == DataTypes.MULTISTATE)
-                value = new MultistateValue(0);
-            else if (dataTypeId == DataTypes.NUMERIC)
-                value = new NumericValue(0);
-            else if (dataTypeId == DataTypes.ALPHANUMERIC)
-                value = new AlphanumericValue("");
-            else
-                value = null;
-        }
-        else if (result instanceof AbstractPointWrapper)
-            value = ((AbstractPointWrapper) result).getValueImpl();
-
-        // See if the type matches.
-        else if (dataTypeId == DataTypes.BINARY && result instanceof BinaryValue)
-            value = (BinaryValue) result;
-        else if (dataTypeId == DataTypes.BINARY && result instanceof Boolean)
-            value = new BinaryValue((Boolean) result);
-
-        else if (dataTypeId == DataTypes.MULTISTATE && result instanceof MultistateValue)
-            value = (MultistateValue) result;
-        else if (dataTypeId == DataTypes.MULTISTATE && result instanceof Number)
-            value = new MultistateValue(((Number) result).intValue());
-
-        else if (dataTypeId == DataTypes.NUMERIC && result instanceof NumericValue)
-            value = (NumericValue) result;
-        else if (dataTypeId == DataTypes.NUMERIC && result instanceof Number)
-            value = new NumericValue(((Number) result).doubleValue());
-
-        else if (dataTypeId == DataTypes.ALPHANUMERIC && result instanceof AlphanumericValue)
-            value = (AlphanumericValue) result;
-        else if (dataTypeId == DataTypes.ALPHANUMERIC && result instanceof String)
-            value = new AlphanumericValue((String) result);
-
-        else
-            // If not, ditch it.
-            throw new ResultTypeException(new TranslatableMessage("event.script.convertError", result,
-                    DataTypes.getDataTypeMessage(dataTypeId)));
-
+        DataValue value = ScriptUtils.coerce(result, dataTypeId);
         return new PointValueTime(value, timestamp);
     }
     
@@ -212,8 +155,7 @@ public class CompiledScriptExecutor {
      */
     public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
             long runtime, int dataTypeId, long timestamp) throws ScriptException, ResultTypeException {
-        
-    	return execute(script, context, null, runtime, dataTypeId, timestamp);
+    	return execute(script, context, null, runtime, dataTypeId, timestamp, null);
     }
 
     public static ScriptException prettyScriptMessage(ScriptException e) {
@@ -232,29 +174,20 @@ public class CompiledScriptExecutor {
         return new ScriptException(message, e.getFileName(), e.getLineNumber(), e.getColumnNumber());
     }
 
+    /**
+     * Ensure the Engine is Ready
+     * @throws ScriptException
+     */
     private static void ensureInit() throws ScriptException {
         if (ENGINE == null) {
             // Create the script engine.
-            ScriptEngineManager manager;
             try {
-                manager = new ScriptEngineManager();
+            	ENGINE = ScriptUtils.newEngine();
+            	ScriptUtils.prepareEngine(ENGINE);
             }
             catch (Exception e) {
                 throw new ScriptException(e);
             }
-            ENGINE = manager.getEngineByName("js");
-
-            Bindings globalBindings = new SimpleBindings();
-            // Add constants to the context.
-            globalBindings.put("SECOND", Common.TimePeriods.SECONDS);
-            globalBindings.put("MINUTE", Common.TimePeriods.MINUTES);
-            globalBindings.put("HOUR", Common.TimePeriods.HOURS);
-            globalBindings.put("DAY", Common.TimePeriods.DAYS);
-            globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
-            globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
-            globalBindings.put("YEAR", Common.TimePeriods.YEARS);
-
-            ENGINE.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
         }
     }
 }

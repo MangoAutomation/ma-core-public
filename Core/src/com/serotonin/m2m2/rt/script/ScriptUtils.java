@@ -4,12 +4,14 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -91,15 +93,27 @@ public class ScriptUtils {
         execute(engine, getGlobalFunctions(), null);
     }
 
+    /**
+     * Prepare the Engine by adding all Global Bindings
+     * @param engine
+     */
     public static void prepareEngine(ScriptEngine engine) {
-        engine.put("SECOND", Common.TimePeriods.SECONDS);
-        engine.put("MINUTE", Common.TimePeriods.MINUTES);
-        engine.put("HOUR", Common.TimePeriods.HOURS);
-        engine.put("DAY", Common.TimePeriods.DAYS);
-        engine.put("WEEK", Common.TimePeriods.WEEKS);
-        engine.put("MONTH", Common.TimePeriods.MONTHS);
-        engine.put("YEAR", Common.TimePeriods.YEARS);
-        engine.put(POINTS_CONTEXT_KEY, new ArrayList<String>());
+        Bindings globalBindings = new SimpleBindings();
+        // Add constants to the context.
+        globalBindings.put("SECOND", Common.TimePeriods.SECONDS);
+        globalBindings.put("MINUTE", Common.TimePeriods.MINUTES);
+        globalBindings.put("HOUR", Common.TimePeriods.HOURS);
+        globalBindings.put("DAY", Common.TimePeriods.DAYS);
+        globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
+        globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
+        globalBindings.put("YEAR", Common.TimePeriods.YEARS);
+        globalBindings.put(POINTS_CONTEXT_KEY, new ArrayList<String>());
+        
+        //Add in Additional Utilities with Global Scope
+        globalBindings.put("DateTimeUtility", new DateTimeUtility());
+        globalBindings.put("RuntimeManager", new RuntimeManagerScriptUtility());
+        
+        engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {
@@ -126,6 +140,10 @@ public class ScriptUtils {
 
     public static DataValue coerce(Object input, int toDataTypeId) throws ResultTypeException {
         DataValue value;
+        
+        if(input instanceof DataValue)
+        	return (DataValue)input;
+        
         if (input == null) {
             if (toDataTypeId == DataTypes.BINARY)
                 value = new BinaryValue(false);
@@ -163,6 +181,8 @@ public class ScriptUtils {
         else if (toDataTypeId == DataTypes.NUMERIC) {
             if (input instanceof Number)
                 value = new NumericValue(((Number) input).doubleValue());
+            else if (input instanceof NumericValue)
+                value = (NumericValue) input;
             else if (input instanceof String) {
                 try {
                     value = new NumericValue(Double.parseDouble((String) input));
