@@ -85,4 +85,18 @@ public class DateTimeUtility {
 		
 	}
 	
+	public String getHelp(){
+		return toString();
+	}
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append("{ ");
+		builder.append("offset(timezoneId, timestamp): UTC offset millis, \n");
+		builder.append("timezone(): ").append(getTimezone()).append(", \n");
+		builder.append("utcOffset(timestamp): UTC offset millis, \n");
+		builder.append("parseDate(format, dateString, timezoneId): timestamp, \n");
+		builder.append("formatDate(format, timestamp, timezoneId): dateString, \n");
+		builder.append(" }");
+		return builder.toString();
+	}
 }

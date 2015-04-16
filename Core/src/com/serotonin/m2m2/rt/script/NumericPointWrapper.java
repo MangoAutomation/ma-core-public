@@ -29,12 +29,6 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         return value.getDoubleValue();
     }
 
-    @Override
-    public String toString() {
-        return "{value=" + getValue() + ", ago(periodType, count), past(periodType, count), prev(periodType, count), "
-                + "previous(periodType, count), last(limit), lastValue(index), getStats(from, to)}";
-    }
-
     public double ago(int periodType) {
         return ago(periodType, 1);
     }
@@ -83,4 +77,18 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
         return wrapper;
     }
+    
+    @Override
+	protected void helpImpl(StringBuilder builder) {
+		builder.append("ago(periodType): double,\n ");		
+    	builder.append("ago(periodType, periods): double,\n ");
+    	builder.append("past(periodType): AnalogStatisticsWrapper,\n ");	
+    	builder.append("past(periodType, periods): AnalogStatisticsWrapper,\n ");	
+    	builder.append("prev(periodType): AnalogStatisticsWrapper,\n ");	
+    	builder.append("prev(periodType, periods): AnalogStatisticsWrapper,\n ");	
+    	builder.append("previous(periodType): AnalogStatisticsWrapper,\n ");	
+    	builder.append("previous(periodType, periods): AnalogStatisticsWrapper,\n ");	
+    	builder.append("stats(from, to): AnalogStatisticsWrapper,\n ");	
+    }
+    
 }

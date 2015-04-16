@@ -26,12 +26,6 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
         return value.getBooleanValue();
     }
 
-    @Override
-    public String toString() {
-        return "{value=" + getValue() + ", ago(periodType, count), past(periodType, count), prev(periodType, count), "
-                + "previous(periodType, count), last(limit), lastValue(index)}";
-    }
-
     public boolean ago(int periodType) {
         return ago(periodType, 1);
     }
@@ -43,4 +37,14 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
             return false;
         return pvt.getBooleanValue();
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.script.AbstractPointWrapper#helpImpl(java.lang.StringBuilder)
+	 */
+	@Override
+	protected void helpImpl(StringBuilder builder) {
+		builder.append("ago(periodType): boolean,\n ");		
+    	builder.append("ago(periodType, periods): boolean,\n ");
+    	super.helpImpl(builder);
+	}
 }

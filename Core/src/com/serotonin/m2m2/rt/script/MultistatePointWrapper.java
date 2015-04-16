@@ -26,12 +26,6 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
         return value.getIntegerValue();
     }
 
-    @Override
-    public String toString() {
-        return "{value=" + getValue() + ", ago(periodType, count), past(periodType, count), prev(periodType, count), "
-                + "previous(periodType, count), last(limit), lastValue(index)}";
-    }
-
     public int ago(int periodType) {
         return ago(periodType, 1);
     }
@@ -43,4 +37,14 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
             return 0;
         return pvt.getIntegerValue();
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.script.AbstractPointWrapper#helpImpl(java.lang.StringBuilder)
+	 */
+	@Override
+	protected void helpImpl(StringBuilder builder) {
+		builder.append("ago(periodType): int,\n ");		
+    	builder.append("ago(periodType, periods): int,\n ");
+    	super.helpImpl(builder);
+	}
 }

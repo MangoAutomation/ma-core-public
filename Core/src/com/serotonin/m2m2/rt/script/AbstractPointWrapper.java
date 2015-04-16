@@ -106,10 +106,6 @@ abstract public class AbstractPointWrapper {
         return gc;
     }
 
-    public String getHelp() {
-        return toString();
-    }
-
     public void set(Object value) {
         set(value, getContext().getRuntime());
     }
@@ -167,5 +163,47 @@ abstract public class AbstractPointWrapper {
      */
     public PointValueTime pointValueAt(long timestamp){
     	return point.getPointValueAt(timestamp);
+    }
+    
+    /**
+     * Append method descriptions
+     * The { and } for the object will be added afterwards.
+     * @param builder
+     */
+    protected abstract void helpImpl(StringBuilder builder);
+    
+    public String getHelp(){
+    	return toString();
+    }
+    
+    public String toString(){
+    	StringBuilder builder = new StringBuilder();
+
+    	builder.append("value: ").append(getValueImpl()).append(",\n ");
+    	builder.append("time: ").append(getTime()).append(",\n ");
+    	builder.append("millis: ").append(getValueImpl()).append(",\n ");
+    	builder.append("second: ").append(getSecond()).append(",\n ");
+    	builder.append("minute: ").append(getMinute()).append(",\n ");
+    	builder.append("hour: ").append(getHour()).append(",\n ");
+    	builder.append("day: ").append(getDay()).append(",\n ");
+    	builder.append("dayOfWeek: ").append(getDayOfWeek()).append(",\n ");
+    	builder.append("dayOfYear: ").append(getDayOfYear()).append(",\n ");
+    	builder.append("month: ").append(getMonth()).append(",\n ");
+    	builder.append("year: ").append(getYear()).append(",\n ");
+    	builder.append("last(count): ").append("PointValueTime[count]").append(",\n ");
+    	builder.append("lastValue: ").append(lastValue()).append(",\n ");
+    	builder.append("lastValue(count): ").append("PointValueTime").append(",\n ");
+    	builder.append("set(value): ").append(",\n ");
+    	builder.append("set(value, timestamp): ").append(",\n ");
+    	builder.append("pointValuesBetween(timestamp, timestamp): PointValueTime[],\n ");
+    	builder.append("pointValuesSince(timestamp): PointValueTime[],\n ");
+    	builder.append("pointValuesBefore(timestamp): PointValueTime[],\n ");
+    	builder.append("pointValuesAfter(timestamp): PointValueTime[],\n ");
+    	builder.append("pointValueAt(timestamp): PointValueTime,\n ");
+
+    	this.helpImpl(builder);
+    	
+    	builder.append(" }");
+    	return builder.toString();
     }
 }

@@ -139,4 +139,19 @@ public class RuntimeManagerScriptUtility {
 			return OPERATION_NO_CHANGE;
 	}
 	
+	public String getHelp(){
+		return toString();
+	}
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append("{ ");
+		builder.append("dataSourceEnabled(xid): boolean, \n");
+		builder.append("enableDataSource(xid): -1 0 1, \n");
+		builder.append("disableDataSource(xid): -1 0 1, \n");
+		builder.append("dataPointEnabled(xid): boolean, \n");
+		builder.append("enableDataPoint(xid): -1 0 1, \n");
+		builder.append("disableDataPoint(xid): -1 0 1, \n");
+		builder.append(" }");
+		return builder.toString();
+	}
 }

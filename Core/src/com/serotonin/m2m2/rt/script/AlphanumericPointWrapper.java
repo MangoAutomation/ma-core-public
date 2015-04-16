@@ -18,6 +18,7 @@ import com.serotonin.m2m2.view.stats.ValueChangeCounter;
  * @author Matthew Lohbihler
  */
 public class AlphanumericPointWrapper extends AbstractPointWrapper {
+	
     public AlphanumericPointWrapper(IDataPointValueSource point, ScriptEngine engine, PointValueSetter setter) {
         super(point, engine, setter);
     }
@@ -27,11 +28,6 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
         if (value == null)
             return "";
         return value.getStringValue();
-    }
-
-    @Override
-    public String toString() {
-        return "{value=" + getValue() + ", ago(periodType, count), last(limit), lastValue(index)}";
     }
 
     public String ago(int periodType) {
@@ -81,4 +77,21 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
         ValueChangeCounterWrapper wrapper = new ValueChangeCounterWrapper(stats);
         return wrapper;
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.script.AbstractPointWrapper#helpImpl(java.lang.StringBuilder)
+	 */
+	@Override
+	protected void helpImpl(StringBuilder builder) {
+    	builder.append("ago(periodType): String,\n ");
+    	builder.append("ago(periodType, periods): String,\n ");
+    	builder.append("prev(periodType): String,\n ");
+    	builder.append("prev(periodType, periods): String,\n ");
+    	builder.append("prev(periodType): String,\n ");
+    	builder.append("previous(periodType, periods): String,\n ");
+    	builder.append("previous(periodType): String,\n ");
+    	builder.append("stats(from, to): ValueChangeCounter,\n ");
+	}
+    
+    
 }

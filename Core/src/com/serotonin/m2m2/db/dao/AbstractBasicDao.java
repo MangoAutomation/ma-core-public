@@ -418,9 +418,9 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
                     	sql += OR;
                    
                     if(mapped)
-                    	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
-                    else
                     	sql += parameter.generateSql(sqlType, dbProp, "");
+                    else
+                    	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
                     i++;
                 }
             }//end if in filter map

@@ -57,4 +57,15 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
         StartsAndRuntimeListWrapper wrapper = new StartsAndRuntimeListWrapper(stats);
         return wrapper;
     }
+    
+    @Override
+	protected void helpImpl(StringBuilder builder) {
+    	builder.append("past(periodType): StartsAndRuntimeList,\n ");	
+    	builder.append("past(periodType, periods): StartsAndRuntimeList,\n ");	
+    	builder.append("prev(periodType): StartsAndRuntimeList,\n ");	
+    	builder.append("prev(periodType, periods): StartsAndRuntimeList,\n ");	
+    	builder.append("previous(periodType): StartsAndRuntimeList,\n ");	
+    	builder.append("previous(periodType, periods): StartsAndRuntimeList,\n ");	
+    	builder.append("stats(from, to): StartsAndRuntimeList,\n ");	
+    }
 }
