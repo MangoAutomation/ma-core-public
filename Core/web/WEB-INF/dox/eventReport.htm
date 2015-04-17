@@ -1,23 +1,31 @@
 <!--
-    Copyright (C) 2013 Infinite Automation. All rights reserved.
-    @author Terry Packer
+    Copyright (C) 2015 Infinite Automation. All rights reserved.
+    @author Terry Packer, Joel Haggar
 -->
 <h1>Alarm Report</h1>
-This view provides a way to investigate all alarms and events in the system.  
-The initial filters show <b>All</b> alarms with level greater than or equal to <b>Information</b>.  This provides the viewer with a quick glance at what is currently happening in the system.
-
-Above the report table there are filters to select and date range to report over.  Also there is a link to acknowledge all alarms currently in the table.  The report is exportable into Excel format for further analysis.  The export will represent all records matching the current filtering and ordering.  
-
-The table itself will load the first group of records that match the selected criteria, as the user scrolls down more records will be returned to fill the table.  There may be a slight delay when working with large data sets, this is normal but should not last for more than a few seconds.  When all the records have been viewed the user cannot scroll down anymore.
-
-The bottom of the table show the total amount of records that match the given criteria and will eventually be shown by scrolling through them.
-
-All columns are sortable by clicking the <b>sort</b> link at the top right of each column.  This re-orders the entire table according to that column.  Click once for ascending sort and then again to toggle between descending and ascending.
-
-The <b>Id</b> column is filterable on any number that matches the id.  Typing in 3 will match 3, 13, 23 ... 113 ...  An id is a unique number given to every event.
-The <b>Alarm Level</b> column is filterable by selecting the level of alarm and above the user would like to see.
-The <b>Time</b> column represents the start time of the event.
-The <b>Message</b> column represents the alarm message and also provides the ability to add and view comments for the alarm.  Note that when filtering a large dataset on message content there may be some descrepency in the total result count and the amount of records that actually match the content.  It should also be noted that the filter does not search the comments, only the message text.
-The <b>Status</b> column represents the current status of the alarm.  The possible states are: All, Active, Returned To Normal and No RTN (Will never Return to Normal).  Note that when an alarm returns to normal the time at which it happened will be shown.
-The <b>Duration</b> column represents the total time between the alarm start and when it Returned To Normal.  If the alarm is still active this time represents the alarm start until now.
-The <b>Acknowledged</b> column represents if an alarm has been acknowleged or not.  Additional information such as silenced or unsilenced and links to pertinent areas of the application are shown in this column.
+<p>This view provides a way to investigate all alarms and events in the system.  
+</p>
+<p>The initial filters show <b>All</b> alarms with level greater than or equal to <b>Information</b>.  This provides the viewer with a quick glance at what is currently happening in the system.
+</p>
+<p>Above the report table there are filters to select and date range to report over.  Also there is a link to acknowledge all alarms currently in the table.  The report is exportable into Excel format for further analysis.  The export will represent all records matching the current filtering and ordering.  
+</p>
+<p>The table itself will load the first group of records that match the selected criteria, as the user scrolls down more records will be returned to fill the table.  There may be a slight delay when working with large data sets, this is normal but should not last for more than a few seconds.  When all the records have been viewed the user cannot scroll down anymore.
+</p>
+<p>The bottom of the table show the total amount of records that match the given criteria and will eventually be shown by scrolling through them.
+</p>
+<p>All columns are sortable by clicking the <b>sort</b> link at the top right of each column.  This re-orders the entire table according to that column.  Click once for ascending sort and then again to toggle between descending and ascending.
+</p>
+<p>The <b>Id</b> column is filterable on any number that matches the id.  Typing in 3 will match 3, 13, 23 ... 113 ...  An id is a unique number given to every event.
+</p>
+<p>The <b>Alarm Level</b> column is filterable by selecting the level of alarm and above the user would like to see.
+</p>
+<p>The <b>Time</b> column represents the start time of the event.
+</p>
+<p>The <b>Message</b> column represents the alarm message and also provides the ability to add and view comments for the alarm.  Note that when filtering a large dataset on message content there may be some discrepancy in the total result count and the amount of records that actually match the content.  It should also be noted that the filter does not search the comments, only the message text.
+</p>
+<p>The <b>Status</b> column represents the current status of the alarm.  The possible states are: All, Active, Returned To Normal and No RTN (Will never Return to Normal).  Note that when an alarm returns to normal the time at which it happened will be shown.
+</p>
+<p>The <b>Duration</b> column represents the total time between the alarm start and when it Returned To Normal.  If the alarm is still active this time represents the alarm start until now.
+</p>
+<p>The <b>Acknowledged</b> column represents if an alarm has been acknowledged or not.  Additional information such as silenced or unsilenced and links to pertinent areas of the application are shown in this column.
+</p>
