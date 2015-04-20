@@ -20,4 +20,12 @@ public @interface DwrPermission {
     boolean user() default false;
 
     boolean anonymous() default false;
+    
+    /**
+     * Custom Permissions to check to 
+     * see if the user has access to 
+     * a resource via the system setting
+     * @return
+     */
+    String custom() default "";
 }

@@ -1,10 +1,15 @@
 package com.serotonin.m2m2.module;
 
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
 abstract public class UriMappingDefinition extends ModuleElementDefinition {
     public enum Permission {
-        ANONYMOUS, USER, DATA_SOURCE, ADMINISTRATOR;
+        ANONYMOUS, //Anyone
+        USER, //Mango User
+        DATA_SOURCE, //Can edit data sources
+        ADMINISTRATOR, //Can do all
+        CUSTOM; //Module defined special access
     }
 
     /**
@@ -38,4 +43,14 @@ abstract public class UriMappingDefinition extends ModuleElementDefinition {
      * @return the path to the JSP file.
      */
     abstract public String getJspPath();
+
+	/**
+	 * Override as needed when using CUSTOM permissions type
+	 * 
+	 * @param user
+	 * @return
+	 */
+	public boolean hasCustomPermission(User user) {
+		return false;
+	}
 }

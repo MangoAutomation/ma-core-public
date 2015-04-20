@@ -10,8 +10,10 @@ import org.directwebremoting.AjaxFilter;
 import org.directwebremoting.AjaxFilterChain;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Matthew Lohbihler
@@ -31,6 +33,11 @@ public class DwrPermissionFilter implements AjaxFilter {
                 // Not logged in.
                 throw new PermissionException("Method " + method.getName() + " does not allow anonymous access", null);
 
+            if(!permission.custom().isEmpty()){
+            	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(permission.custom())))
+            		throw new PermissionException("Method " + method.getName() + " requires " + permission.custom() + " access", user);
+            }
+            
             if (!user.isAdmin() && permission.admin())
                 throw new PermissionException("Method " + method.getName() + " requires admin access", user);
         }

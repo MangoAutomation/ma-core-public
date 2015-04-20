@@ -268,7 +268,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	                            case POSTGRES:
 	                            case MSSQL:
 	                            case H2:
-	                            	tempSql += "lower(" + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
+	                            	if(mapped)
+	                            		tempSql += "lower(" + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
+	                            	else
+	                            		tempSql += "lower(" + this.tablePrefix + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
 		                            break;
 	                            case DERBY:
 		                            if(mapped)

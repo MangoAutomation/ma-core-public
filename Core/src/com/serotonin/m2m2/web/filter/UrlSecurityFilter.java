@@ -62,6 +62,9 @@ public class UrlSecurityFilter implements Filter {
                 		allowed = false;
                 	}
                 break;
+                case CUSTOM:
+                	allowed = uriDef.hasCustomPermission(user);
+                break;
                 case ANONYMOUS:
                 break;
                 }
