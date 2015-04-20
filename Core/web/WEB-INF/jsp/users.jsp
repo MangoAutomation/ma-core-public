@@ -354,7 +354,7 @@
                 <td class="formLabelRequired"><fmt:message key="users.permissions"/></td>
                 <td class="formField">
                   <input id="permissions" type="text" class="formLong"/>
-                  <tag:img png="bullet_down" onclick="openPermissionList()"/>
+                  <tag:img png="bullet_down" title="users.permissions" onclick="openPermissionList()"/>
                 </td>
               </tr>
             </tbody>
