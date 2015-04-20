@@ -375,7 +375,7 @@ dataSources = new StoreView({
 	   	 if(dsXid === null){
 	   		 return;
 	   	 }
-	   	 window.open("/rest/v1/dataPoints/dataSource/" + dsXid + ".csv", '_self');
+	   	 window.open("/rest/v1/data-points/data-source/" + dsXid + ".csv", '_self');
 	   	 return;
     }
     
