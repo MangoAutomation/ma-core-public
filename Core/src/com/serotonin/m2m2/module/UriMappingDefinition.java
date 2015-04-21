@@ -1,6 +1,7 @@
 package com.serotonin.m2m2.module;
 
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
 abstract public class UriMappingDefinition extends ModuleElementDefinition {
@@ -50,7 +51,7 @@ abstract public class UriMappingDefinition extends ModuleElementDefinition {
 	 * @param user
 	 * @return
 	 */
-	public boolean hasCustomPermission(User user) {
+	public boolean hasCustomPermission(User user) throws PermissionException{
 		return false;
 	}
 }

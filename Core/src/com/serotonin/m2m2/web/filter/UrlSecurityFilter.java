@@ -20,6 +20,7 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.UriMappingDefinition;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 
 public class UrlSecurityFilter implements Filter {
     private static final Log LOG = LogFactory.getLog(UrlSecurityFilter.class);
@@ -63,7 +64,11 @@ public class UrlSecurityFilter implements Filter {
                 	}
                 break;
                 case CUSTOM:
-                	allowed = uriDef.hasCustomPermission(user);
+                	try{
+                		allowed = uriDef.hasCustomPermission(user);
+                	}catch(PermissionException e){
+                		allowed = false;
+                	}
                 break;
                 case ANONYMOUS:
                 break;
