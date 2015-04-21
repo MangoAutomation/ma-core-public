@@ -132,4 +132,7 @@
   <item id="systemPermissions" key="dox.systemPermissions" filename="systemPermissions.htm">
     <relation id="userAdministration"/>
   </item>
+  
+  <item id="mangoJavaScript" key="dox.mangoJavaScript" filename="mangoJavaScript.htm">
+  </item>
 </doxManifest>
