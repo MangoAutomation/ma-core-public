@@ -20,10 +20,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.NotImplementedException;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
+import com.serotonin.m2m2.module.definitions.EventsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 import com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController;
@@ -232,11 +237,6 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (TEMPLATE_DEFINITIONS == null) {
                     Map<String, TemplateDefinition> map = new HashMap<String, TemplateDefinition>();
-                    //Add in the Core Types
-                    //NOTE: THIS MODEL IS NOT AVAILABLE IF YOU USE getDefinitions()
-                    //TODO Probably should make this a Module at some point
-                    DataPointPropertiesTemplateDefinition dppDef = new DataPointPropertiesTemplateDefinition();
-                    map.put(dppDef.getTemplateTypeName(), dppDef);
                     for (Module module : MODULES.values()) {
                         for (TemplateDefinition def : module.getDefinitions(TemplateDefinition.class))
                             map.put(def.getTemplateTypeName(), def);
@@ -400,11 +400,17 @@ public class ModuleRegistry {
                 return "/unauthorized.htm";
             }
         });
-
+        
+        //Add in the Core Templates
+        preDefaults.add(new DataPointPropertiesTemplateDefinition());
+        
+        preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
-                "/data_point_details.shtm"));
+                "/data_point_details.shtm", LegacyPointDetailsViewPermissionDefinition.PERMISSION));
+        
+        preDefaults.add(new EventsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("eventsMi", Visibility.USER, "header.alarms", "flag_white",
-                "/events.shtm"));
+                "/events.shtm", EventsViewPermissionDefinition.PERMISSION));
 
         preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
                 "cog", "/event_handlers.shtm"));
@@ -425,11 +431,11 @@ public class ModuleRegistry {
         preDefaults.add(createMenuItemDefinition("emportMi", Visibility.ADMINISTRATOR, "header.emport", "emport",
                 "/emport.shtm"));
 
-        preDefaults.add(createUriMappingDefinition(Permission.USER, "/data_point_details.shtm",
-                new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.CUSTOM, "/data_point_details.shtm",
+                new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp", LegacyPointDetailsViewPermissionDefinition.PERMISSION));
         
         //Mappings for Event Report and Legacy Alarms Page
-        preDefaults.add(createUriMappingDefinition(Permission.USER, "/events.shtm", null, "/WEB-INF/jsp/eventsReport.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.CUSTOM, "/events.shtm", null, "/WEB-INF/jsp/eventsReport.jsp", EventsViewPermissionDefinition.PERMISSION));
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/pending_alarms.shtm", null, "/WEB-INF/jsp/events.jsp"));
         
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/event_handlers.shtm", null,
@@ -448,10 +454,7 @@ public class ModuleRegistry {
                 "/WEB-INF/jsp/modules.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
                 "/WEB-INF/jsp/emport.jsp"));        
-        
-        //Demo for Rest API
-        preDefaults.add(createUriMappingDefinition(Permission.USER, "/rest.shtm", null, "/WEB-INF/jsp/rest.jsp"));
-        
+                
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
                 "none.jsp"));
@@ -460,11 +463,6 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
 
-        /* Startup/Shutdown Mappings */
-        //Defined in springDispatcher servlet for now
-        //preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/startup.htm", null, "/WEB-INF/jsp/starting.jsp"));
-        //preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", null, "/WEB-INF/jsp/shutdown.jsp"));
-        
         preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
     }
 
@@ -476,6 +474,56 @@ public class ModuleRegistry {
                 return visibility;
             }
 
+            @Override
+            public String getId(HttpServletRequest request, HttpServletResponse response) {
+                return id;
+            }
+
+            @Override
+            public String getTextKey(HttpServletRequest request, HttpServletResponse response) {
+                return textKey;
+            }
+
+            @Override
+            public String getImagePath(HttpServletRequest request, HttpServletResponse response) {
+                return "/images/" + png + ".png";
+            }
+
+            @Override
+            public String getImage(HttpServletRequest request, HttpServletResponse response) {
+                throw new NotImplementedException();
+            }
+
+            @Override
+            public String getHref(HttpServletRequest request, HttpServletResponse response) {
+                return href;
+            }
+        };
+    }
+  
+    /**
+     * Create with custom level permissions
+     * @param id
+     * @param visibility
+     * @param textKey
+     * @param png
+     * @param href
+     * @param permission
+     * @return
+     */
+    static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
+            final String textKey, final String png, final String href, final String permission) {
+        return new MenuItemDefinition() {
+            @Override
+            public Visibility getVisibility() {
+                return visibility;
+            }
+            
+            @Override
+            public boolean isVisible(HttpServletRequest request, HttpServletResponse response) {
+            	return Permissions.hasPermission(Common.getUser(request), SystemSettingsDao.getValue(permission));
+            }
+            
             @Override
             public String getId(HttpServletRequest request, HttpServletResponse response) {
                 return id;
@@ -528,4 +576,42 @@ public class ModuleRegistry {
         };
     }
 
+    /**
+     * Create with custom permission level
+     * @param level
+     * @param path
+     * @param handler
+     * @param jspPath
+     * @param permission
+     * @return
+     */
+    static UriMappingDefinition createUriMappingDefinition(final Permission level, final String path,
+            final UrlHandler handler, final String jspPath, final String permission) {
+        return new UriMappingDefinition() {
+            @Override
+            public Permission getPermission() {
+                return level;
+            }
+
+            @Override
+            public boolean hasCustomPermission(User user){
+            	return Permissions.hasPermission(user, SystemSettingsDao.getValue(permission));
+            }
+            
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public UrlHandler getHandler() {
+                return handler;
+            }
+
+            @Override
+            public String getJspPath() {
+                return jspPath;
+            }
+        };
+    }
 }
