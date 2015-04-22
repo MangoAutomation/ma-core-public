@@ -14,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.ExportCodes;
 
 
@@ -30,7 +32,7 @@ public class QueryComparison {
 	public static final int GREATER_THAN = 5;
 	public static final int GREATER_THAN_EQUAL_TO = 6;
 	public static final int IN = 7;
-	public static final int MATCH = 8;
+	public static final int LIKE = 8;
 	public static final int CONTAINS = 9;
 	
 	public static final ExportCodes COMPARISON_TYPE_CODES = new ExportCodes();
@@ -42,7 +44,7 @@ public class QueryComparison {
 		COMPARISON_TYPE_CODES.addElement(GREATER_THAN, "GREATER_THAN");
 		COMPARISON_TYPE_CODES.addElement(GREATER_THAN_EQUAL_TO, "GREATER_THAN_EQUAL_TO");
 		COMPARISON_TYPE_CODES.addElement(IN, "IN");
-		COMPARISON_TYPE_CODES.addElement(MATCH, "MATCH");
+		COMPARISON_TYPE_CODES.addElement(LIKE, "LIKE");
 		COMPARISON_TYPE_CODES.addElement(CONTAINS, "CONTAINS");
 	}
 	
@@ -156,6 +158,7 @@ public class QueryComparison {
 				sql.append(bool);
 				sql.append("'");
 			break;
+			case LIKE:
 	    	case EQUAL_TO:
 				sql.append(column);
 				sql.append("=");
@@ -202,6 +205,7 @@ public class QueryComparison {
 			sql.append("<=");
 			sql.append(condition);
 		break;
+		case LIKE:
     	case EQUAL_TO:
 			sql.append(column);
 			sql.append("=");
@@ -267,6 +271,30 @@ public class QueryComparison {
 				sql.append(condition);
 				sql.append("'");
 			break;
+	    	case LIKE:
+                switch (Common.databaseProxy.getType()) {
+                case MYSQL:
+                case POSTGRES:
+                case MSSQL:
+                case H2:
+                	sql.append("lower(");
+                	sql.append(column);
+                	sql.append(") LIKE '");
+                	sql.append(condition.toLowerCase());
+                	sql.append("'");
+                break;
+                case DERBY:
+                	sql.append("(CHAR(");
+                	sql.append(column);
+                	sql.append(") LIKE '");
+                	sql.append(condition.toLowerCase());
+                	sql.append("'");
+                break;
+                default:
+                	throw new ShouldNeverHappenException("No case for converting regex expressing for database of type: " + Common.databaseProxy.getType());
+                }
+
+	    	break;
 			default:
 		}
 		return sql.toString();
@@ -316,6 +344,7 @@ public class QueryComparison {
 				sql.append("<=");
 				sql.append(bigIntString);
 			break;
+			case LIKE:
 	    	case EQUAL_TO:
 				sql.append(column);
 				sql.append("=");
@@ -353,6 +382,7 @@ public class QueryComparison {
 				sql.append("<=");
 				sql.append(condition);
 			break;
+			case LIKE:
 	    	case EQUAL_TO:
 				sql.append(column);
 				sql.append("=");
