@@ -38,7 +38,7 @@ public class DwrPermissionFilter implements AjaxFilter {
             		throw new PermissionException("Method " + method.getName() + " requires " + permission.custom() + " access", user);
             }
             
-            if (!user.isAdmin() && permission.admin())
+            if (!Permissions.hasAdmin(user) && permission.admin())
                 throw new PermissionException("Method " + method.getName() + " requires admin access", user);
         }
 

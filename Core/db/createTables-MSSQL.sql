@@ -32,7 +32,6 @@ create table users (
   password nvarchar(30) not null,
   email nvarchar(255) not null,
   phone nvarchar(40),
-  admin char(1) not null,
   disabled char(1) not null,
   lastLogin bigint,
   homeUrl nvarchar(255),

@@ -33,7 +33,6 @@ CREATE TABLE users (
   password varchar(30) NOT NULL,
   email varchar(255) NOT NULL,
   phone varchar(40),
-  admin character(1) NOT NULL,
   disabled character(1) NOT NULL,
   lastLogin bigint,
   homeUrl varchar(255),

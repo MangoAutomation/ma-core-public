@@ -4,6 +4,7 @@
 --%>
 <%@page import="com.serotonin.m2m2.db.DatabaseProxy"%>
 <%@page import="com.serotonin.m2m2.module.SystemSettingsDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition" %>
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.db.dao.SystemSettingsDao"%>
 <%@page import="com.serotonin.m2m2.Common"%>
@@ -660,6 +661,10 @@
   
   <tag:labelledSection labelKey="systemSettings.systemPermissions" closed="true">
     <table>
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.permissions.superadmin"/></td>
+        <td class="formField"><input type="text" value="<c:out value="<%= SuperadminPermissionDefinition.GROUP_NAME %>"/>" disabled="disabled"></input></td>
+      </tr>
       <tr>
         <td class="formLabel"><fmt:message key="systemSettings.permissions.datasourceManagement"/></td>
         <td class="formField">

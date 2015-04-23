@@ -114,6 +114,22 @@ public class Module {
     }
 
     /**
+     * Called after post database state but only on the first time a module is run.
+     */
+    public void install(){
+        for (ModuleElementDefinition df : definitions)
+            df.install();
+    }
+    
+    /**
+     * Called after post database state but only when a module is being upgraded.
+     */
+    public void upgrade(){
+        for (ModuleElementDefinition df : definitions)
+            df.upgrade();
+    }
+    
+    /**
      * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
      * available. Should not be used by client code.
      */
@@ -129,22 +145,6 @@ public class Module {
     public void preTerminate() {
         for (ModuleElementDefinition df : definitions)
             df.preTerminate();
-    }
-
-    /**
-     * Called at post initialize state but only on the first time a module is run.
-     */
-    public void install(){
-        for (ModuleElementDefinition df : definitions)
-            df.install();
-    }
-    
-    /**
-     * Called at post initialize state but only when a module is being upgraded.
-     */
-    public void upgrade(){
-        for (ModuleElementDefinition df : definitions)
-            df.upgrade();
     }
     
     /**

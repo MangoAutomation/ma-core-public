@@ -97,7 +97,7 @@
         setUserMessage();
         if (adminUser)
             UsersDwr.saveUserAdmin(editingUserId, $get("username"), $get("password"), $get("email"), $get("phone"), 
-                    $get("administrator"), $get("disabled"), $get("receiveAlarmEmails"), $get("receiveOwnAuditEvents"),
+                    $get("disabled"), $get("receiveAlarmEmails"), $get("receiveOwnAuditEvents"),
                     $get("timezone"), $get("permissions"), saveUserCB);
         else
             UsersDwr.saveUser(editingUserId, $get("password"), $get("email"), $get("phone"),
@@ -152,6 +152,7 @@
     function updateUser(user) {
         $("u"+ user.id +"Username").innerHTML = user.username;
         setUserImg(user.admin, user.disabled, $("u"+ user.id +"Img"));
+        $set("administrator", user.admin);
     }
     
     function updateUserImg() {
@@ -331,7 +332,7 @@
             </tr>
             <tr id="administrationRow" style="display:none;">
               <td class="formLabelRequired"><fmt:message key="common.administrator"/></td>
-              <td class="formField"><input id="administrator" type="checkbox" onclick="updateUserImg();"/></td>
+              <td class="formField"><input id="administrator" type="checkbox" onclick="updateUserImg();" disabled="disabled"/></td>
             </tr>
             <tr id="disabledRow" style="display:none;">
               <td class="formLabelRequired"><fmt:message key="common.disabled"/></td>

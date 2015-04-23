@@ -19,6 +19,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -41,8 +42,6 @@ public class User implements SetPointSource, HttpSessionBindingListener /* , Jso
     private String email;
     @JsonProperty
     private String phone;
-    @JsonProperty
-    private boolean admin;
     @JsonProperty
     private boolean disabled;
     @JsonProperty
@@ -187,11 +186,7 @@ public class User implements SetPointSource, HttpSessionBindingListener /* , Jso
 
     // Properties
     public boolean isAdmin() {
-        return admin;
-    }
-
-    public void setAdmin(boolean admin) {
-        this.admin = admin;
+    	return Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
     }
 
     public String getEmail() {
@@ -403,7 +398,7 @@ public class User implements SetPointSource, HttpSessionBindingListener /* , Jso
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + ", phone="
-                + phone + ", admin=" + admin + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
+                + phone + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
                 + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails + ", receiveOwnAuditEvents="
                 + receiveOwnAuditEvents + ", timezone=" + timezone + ", permissions=" + permissions + "]";
     }

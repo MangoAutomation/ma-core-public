@@ -72,6 +72,7 @@ public class Upgrade9 extends DBUpgrade {
         	def.install();
         }
         
+        
         // Goodbye permission tables.
         scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), dropScript);
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropScript);
@@ -102,6 +103,8 @@ public class Upgrade9 extends DBUpgrade {
             "ALTER TABLE dataPoints ADD COLUMN readPermission NVARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN setPermission NVARCHAR(255);", //
             "UPDATE users SET permissions = CONCAT(username, ',user');",
+            "UPDATE users SET permissions = CONCAT(permissions, ',superadmin') WHERE admin = 'Y';",
+            "ALTER TABLE users DROP COLUMN admin;"
     };
 
     private final String[] mysqlScript = { //
@@ -110,6 +113,8 @@ public class Upgrade9 extends DBUpgrade {
             "ALTER TABLE dataPoints ADD COLUMN readPermission VARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN setPermission VARCHAR(255);", //
             "UPDATE users SET permissions = CONCAT(username, ',user');",
+            "UPDATE users SET permissions = CONCAT(permissions, ',superadmin') WHERE admin = 'Y';",
+            "ALTER TABLE users DROP COLUMN admin;"
     };
 
     private final String[] derbyScript = { //
@@ -117,7 +122,9 @@ public class Upgrade9 extends DBUpgrade {
             "ALTER TABLE dataSources ADD COLUMN editPermission NVARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN readPermission NVARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN setPermission NVARCHAR(255);", //
-            "UPDATE users SET permissions = username || ',user';",
+            "UPDATE users SET permissions = username || ',user';", //Give all users thier own group
+            "UPDATE users SET permissions = permissions || ',superadmin' WHERE admin = 'Y';", //Add superadmin to admin users
+            "ALTER TABLE users DROP COLUMN admin;"
     };
     
     private final String[] dropScript = { //

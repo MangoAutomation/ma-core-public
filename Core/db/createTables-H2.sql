@@ -34,7 +34,6 @@ CREATE TABLE users (
   password varchar(30) NOT NULL,
   email varchar(255),
   phone varchar(40),
-  admin char(1) NOT NULL,
   disabled char(1) NOT NULL,
   lastLogin bigint,
   homeUrl varchar(255),

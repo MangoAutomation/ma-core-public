@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * Used for overriding the default MA pages.
@@ -21,7 +22,7 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
             uri = getLoginUri(request, response);
         else {
             // If this is the first login to the instance by an admin...
-            if (user.isAdmin() && SystemSettingsDao.getBooleanValue(SystemSettingsDao.NEW_INSTANCE, false)) {
+            if (Permissions.hasAdmin(user) && SystemSettingsDao.getBooleanValue(SystemSettingsDao.NEW_INSTANCE, false)) {
                 // Remove the flag
                 new SystemSettingsDao().removeValue(SystemSettingsDao.NEW_INSTANCE);
 

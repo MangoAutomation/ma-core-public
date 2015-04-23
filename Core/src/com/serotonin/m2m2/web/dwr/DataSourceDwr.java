@@ -93,7 +93,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
                 vo.setId(Common.NEW_ID);
                 vo.setXid(new DataSourceDao().generateUniqueXid());
                 User user = Common.getUser();
-                if (!user.isAdmin())
+                if (!Permissions.hasAdmin(user))
                     // Default the permissions of the data source to that of the user so that 
                     // the user can access the thing.
                     vo.setEditPermission(Common.getUser().getPermissions());

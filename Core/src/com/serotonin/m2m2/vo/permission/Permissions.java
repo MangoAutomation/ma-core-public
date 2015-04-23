@@ -16,6 +16,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -83,7 +84,7 @@ public class Permissions {
 
     public static boolean hasAdmin(User user) throws PermissionException {
         ensureValidUser(user);
-        return user.isAdmin();
+        return permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions());
     }
 
     public static void ensureAdmin() throws PermissionException {
@@ -118,7 +119,7 @@ public class Permissions {
 
     public static boolean hasDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
         ensureValidUser(user);
-        if (user.isAdmin())
+        if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
             return true;
         return permissionContains(ds.getEditPermission(), user.getPermissions());
     }
@@ -166,7 +167,7 @@ public class Permissions {
     public static int getDataPointAccessType(User user, IDataPoint point) {
         if (user == null || user.isDisabled())
             return DataPointAccessTypes.NONE;
-        if (user.isAdmin())
+        if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
             return DataPointAccessTypes.ADMIN;
 
         String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
@@ -252,7 +253,7 @@ public class Permissions {
     public static PermissionDetails getPermissionDetails(String query, User user) {
         PermissionDetails d = new PermissionDetails(user.getUsername());
 
-        d.setAdmin(user.isAdmin());
+        d.setAdmin(permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()));
 
         if (!StringUtils.isEmpty(user.getPermissions())) {
             for (String s : user.getPermissions().split(",")) {

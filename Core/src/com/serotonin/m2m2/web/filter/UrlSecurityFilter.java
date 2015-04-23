@@ -21,6 +21,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.UriMappingDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class UrlSecurityFilter implements Filter {
     private static final Log LOG = LogFactory.getLog(UrlSecurityFilter.class);
@@ -51,7 +52,7 @@ public class UrlSecurityFilter implements Filter {
                 
                 switch (uriDef.getPermission()) {
                 case ADMINISTRATOR:
-                    if ((user==null)||(!user.isAdmin()))
+                    if ((user==null)||(!Permissions.hasAdmin(user)))
                         allowed = false;
                     break;
                 case DATA_SOURCE:

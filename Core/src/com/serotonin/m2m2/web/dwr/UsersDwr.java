@@ -98,7 +98,7 @@ public class UsersDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public ProcessResult saveUserAdmin(int id, String username, String password, String email, String phone,
-            boolean admin, boolean disabled, int receiveAlarmEmails, boolean receiveOwnAuditEvents, String timezone,
+            boolean disabled, int receiveAlarmEmails, boolean receiveOwnAuditEvents, String timezone,
             String permissions) {
         // Validate the given information. If there is a problem, return an appropriate error message.
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
@@ -115,16 +115,19 @@ public class UsersDwr extends BaseDwr {
             user.setPassword(Common.encrypt(password));
         user.setEmail(email);
         user.setPhone(phone);
-        user.setAdmin(admin);
+        
         user.setDisabled(disabled);
         user.setReceiveAlarmEmails(receiveAlarmEmails);
         user.setReceiveOwnAuditEvents(receiveOwnAuditEvents);
         user.setTimezone(timezone);
         user.setPermissions(permissions);
-
+        
         ProcessResult response = new ProcessResult();
         user.validate(response);
 
+        boolean admin = Permissions.hasAdmin(user);
+        
+        
         // Check if the username is unique.
         User dupUser = userDao.getUser(username);
         if (id == Common.NEW_ID && dupUser != null)
@@ -263,7 +266,7 @@ public class UsersDwr extends BaseDwr {
         newUser.setUsername("Copy of " + existing.getUsername());
 
         newUser.setEmail(existing.getEmail());
-        newUser.setAdmin(existing.isAdmin());
+        //newUser.setAdmin(existing.isAdmin());
         newUser.setPhone(existing.getPhone());
         newUser.setDisabled(existing.isDisabled());
         newUser.setReceiveAlarmEmails(existing.getReceiveAlarmEmails());

@@ -38,6 +38,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
@@ -142,7 +143,7 @@ abstract public class DatabaseProxy {
                     user.setPassword(Common.encrypt("admin"));
                     user.setEmail("admin@yourMangoDomain.com");
                     user.setPhone("");
-                    user.setAdmin(true);
+                    user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
                     user.setDisabled(false);
                     new UserDao().saveUser(user);
 

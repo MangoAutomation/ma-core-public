@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.infiniteautomation.mango.db.query.QueryComparison;
+import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.Translations;
@@ -92,6 +94,64 @@ public class RealTimeDataPointValueCache {
 		return null;
 	}
 	
+	/**
+	 * Query a User's cache of points 
+	 * 
+	 * properties that are queryable:
+	 * deviceName
+	 * pointName
+	 * pointValue
+	 * unit
+	 * renderedValue
+	 * timestamp
+	 * pointType
+	 * status
+	 * path
+	 * xid
+	 * 
+	 * 
+	 * 
+	 * @param andComparisons
+	 * @param orComparisons
+	 * @param sort
+	 * @param user
+	 * @return
+	 */
+	public List<RealTimeDataPointValue> query(List<QueryComparison> andComparisons, List<QueryComparison> orComparisons, List<SortOption> sort, User user){
+		List<RealTimeDataPointValue> results = new ArrayList<RealTimeDataPointValue>();
+		
+		List<RealTimeDataPointValue> cache = getCache(user);
+		boolean keep = false;
+		for(RealTimeDataPointValue rtdpv : cache){
+			
+			//All must be true to keep
+			for(QueryComparison comparison : andComparisons){
+				switch(comparison.getComparisonType()){
+				case QueryComparison.CONTAINS:
+				case QueryComparison.EQUAL_TO:
+				case QueryComparison.GREATER_THAN:
+				case QueryComparison.GREATER_THAN_EQUAL_TO:
+				case QueryComparison.IN:
+				case QueryComparison.LESS_THAN:
+				case QueryComparison.LESS_THAN_EQUAL_TO:
+				case QueryComparison.LIKE:
+				}
+			}
+			
+			//Only one must be true to keep
+			for(QueryComparison comparison : orComparisons){
+				
+			}
+			
+			
+			if(keep)
+				results.add(rtdpv);
+		}
+		
+		//TODO Sort list
+		
+		return results;
+	}
 	
 	/**
 	 * 
