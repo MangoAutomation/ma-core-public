@@ -132,6 +132,22 @@ public class Module {
     }
 
     /**
+     * Called at post initialize state but only on the first time a module is run.
+     */
+    public void install(){
+        for (ModuleElementDefinition df : definitions)
+            df.install();
+    }
+    
+    /**
+     * Called at post initialize state but only when a module is being upgraded.
+     */
+    public void upgrade(){
+        for (ModuleElementDefinition df : definitions)
+            df.upgrade();
+    }
+    
+    /**
      * Called upon shutdown after the runtime, but before the event manager, has been terminated. Only called on modules
      * that have been marked for deletion. Should not be used by client code.
      */

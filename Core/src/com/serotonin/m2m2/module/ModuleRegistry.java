@@ -26,6 +26,7 @@ import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
 import com.serotonin.m2m2.module.definitions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.LegacyPointDetailsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -237,9 +238,15 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (TEMPLATE_DEFINITIONS == null) {
                     Map<String, TemplateDefinition> map = new HashMap<String, TemplateDefinition>();
+                    for(TemplateDefinition def : Module.getDefinitions(preDefaults, TemplateDefinition.class)){
+                    	map.put(def.getTemplateTypeName(), def);
+                    }
                     for (Module module : MODULES.values()) {
                         for (TemplateDefinition def : module.getDefinitions(TemplateDefinition.class))
                             map.put(def.getTemplateTypeName(), def);
+                    }
+                    for(TemplateDefinition def : Module.getDefinitions(postDefaults, TemplateDefinition.class)){
+                    	map.put(def.getTemplateTypeName(), def);
                     }
                     TEMPLATE_DEFINITIONS = map;
                 }
@@ -271,15 +278,15 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (MODEL_DEFINITIONS == null) {
                     Map<String, ModelDefinition> map = new HashMap<String, ModelDefinition>();
-                    //Add in the Core Types
-                    //NOTE: THIS MODEL IS NOT AVAILABLE IF YOU USE getDefinitions()
-                    //TODO Probably should make this a Module at some point
-                    RestErrorModelDefinition remD = new RestErrorModelDefinition();
-                    map.put(remD.getModelTypeName(), remD);
-
+                    for(ModelDefinition def : Module.getDefinitions(preDefaults, ModelDefinition.class)){
+                    	map.put(def.getModelTypeName(), def);
+                    }
                     for (Module module : MODULES.values()) {
                         for (ModelDefinition def : module.getDefinitions(ModelDefinition.class))
                             map.put(def.getModelTypeName(), def);
+                    }
+                    for(ModelDefinition def : Module.getDefinitions(postDefaults, ModelDefinition.class)){
+                    	map.put(def.getModelTypeName(), def);
                     }
                     MODEL_DEFINITIONS = map;
                 }
@@ -401,6 +408,9 @@ public class ModuleRegistry {
             }
         });
         
+        //Add in core Models
+        preDefaults.add(new RestErrorModelDefinition());
+
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());
         
@@ -412,7 +422,11 @@ public class ModuleRegistry {
         preDefaults.add(createMenuItemDefinition("eventsMi", Visibility.USER, "header.alarms", "flag_white",
                 "/events.shtm", EventsViewPermissionDefinition.PERMISSION));
 
-        preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
+        preDefaults.add(new UsersViewPermissionDefinition());
+        preDefaults.add(createMenuItemDefinition("usersMi", Visibility.USER, "header.users", "user",
+                "/users.shtm", UsersViewPermissionDefinition.PERMISSION));
+
+         preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
                 "cog", "/event_handlers.shtm"));
         
         preDefaults.add(createMenuItemDefinition("dataSourcesMi", Visibility.DATA_SOURCE, "header.dataSources",

@@ -13,15 +13,16 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  * @author Terry Packer
  *
  */
-public class LegacyPointDetailsViewPermissionDefinition extends PermissionDefinition{
-	public static final String PERMISSION = "legacypointdetails.view";
+public class UsersViewPermissionDefinition  extends PermissionDefinition{
+	
+	public static final String PERMISSION = "users.view";
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.PermissionDefinition#getPermissionKey()
 	 */
 	@Override
 	public String getPermissionKey() {
-		return "legacypointdetails.permission.view";
+		return "users.permissions.view";
 	}
 
 	/* (non-Javadoc)

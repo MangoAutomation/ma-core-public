@@ -10,6 +10,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 
 public class Upgrade9 extends DBUpgrade {
     private static final Log LOG = LogFactory.getLog(Upgrade9.class);
@@ -18,14 +20,11 @@ public class Upgrade9 extends DBUpgrade {
     public void upgrade() throws Exception {
         // Run the script.
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), mysqlScript);
+        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), mysqlScript);
         runScript(scripts);
-
-        // Create a group for each user.
-        ejt.update("UPDATE users SET permissions=username");
 
         // Convert existing permissions data.
         // First the data source data
@@ -68,6 +67,11 @@ public class Upgrade9 extends DBUpgrade {
         for (Map.Entry<Integer, String> e : dpSetPermission.entrySet())
             ejt.update("UPDATE dataPoints SET setPermission=? WHERE id=?", e.getValue(), e.getKey());
 
+        //One Time Install of permissions for PermissionsDefinitions to ensure default permissions are in
+        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
+        	def.install();
+        }
+        
         // Goodbye permission tables.
         scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), dropScript);
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropScript);
@@ -91,22 +95,33 @@ public class Upgrade9 extends DBUpgrade {
         return "10";
     }
 
+    //UPDATE users SET permissions = CONCAT(username, ',user')
     private final String[] mssqlScript = { //
-    "ALTER TABLE users ADD COLUMN permissions NVARCHAR(255);", //
+    		"ALTER TABLE users ADD COLUMN permissions NVARCHAR(255);", //
             "ALTER TABLE dataSources ADD COLUMN editPermission NVARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN readPermission NVARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN setPermission NVARCHAR(255);", //
+            "UPDATE users SET permissions = CONCAT(username, ',user');",
     };
 
     private final String[] mysqlScript = { //
-    "ALTER TABLE users ADD COLUMN permissions VARCHAR(255);", //
+    		"ALTER TABLE users ADD COLUMN permissions VARCHAR(255);", //
             "ALTER TABLE dataSources ADD COLUMN editPermission VARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN readPermission VARCHAR(255);", //
             "ALTER TABLE dataPoints ADD COLUMN setPermission VARCHAR(255);", //
+            "UPDATE users SET permissions = CONCAT(username, ',user');",
     };
 
+    private final String[] derbyScript = { //
+    		"ALTER TABLE users ADD COLUMN permissions NVARCHAR(255);", //
+            "ALTER TABLE dataSources ADD COLUMN editPermission NVARCHAR(255);", //
+            "ALTER TABLE dataPoints ADD COLUMN readPermission NVARCHAR(255);", //
+            "ALTER TABLE dataPoints ADD COLUMN setPermission NVARCHAR(255);", //
+            "UPDATE users SET permissions = username || ',user';",
+    };
+    
     private final String[] dropScript = { //
-    "DROP TABLE dataSourceUsers;", //
+    		"DROP TABLE dataSourceUsers;", //
             "DROP TABLE dataPointUsers;", //
     };
 }

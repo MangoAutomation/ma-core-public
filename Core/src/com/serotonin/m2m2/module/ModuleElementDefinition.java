@@ -65,6 +65,20 @@ abstract public class ModuleElementDefinition {
     }
 
     /**
+     * This method is run after post initialize and only the first time a module is installed.
+     */
+    public void install(){
+    	
+    }
+    
+    /**
+     * This method is run after post initialize and only during a module upgrade.
+     */
+    public void upgrade(){
+    	
+    }
+    
+    /**
      * This method is run once at shutdown if the owning module has been marked for deletion. This provides the
      * definition class an opportunity to perform any necessary cleanup, such as dropping database tables, removing
      * files, etc.

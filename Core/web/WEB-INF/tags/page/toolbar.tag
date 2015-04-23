@@ -17,26 +17,35 @@
           </c:forEach>
                 
           <c:if test="${sessionUser.dataSourcePermission}">
+            <c:set var="dataSourceItems" value="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.DATA_SOURCE) %>" />
+            <c:if test="${!empty dataSourceItems}">
+              <img src="/images/menu_separator.png"/>
+              <c:forEach items="${dataSourceItems}" var="mi">
+                <m2m2:menuItem def="${mi}"/>
+              </c:forEach>
+            </c:if>
+          </c:if>
+
+            
+          <c:if test="${sessionUser.admin}">         
+            <c:set var="adminItems" value="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ADMINISTRATOR) %>" />
+            <c:if test="${!empty adminItems}">
+              <img src="/images/menu_separator.png"/> 
+              <c:forEach items="${adminItems}" var="mi">
+                <m2m2:menuItem def="${mi}"/>
+              </c:forEach>
+            </c:if>
+          </c:if>
+
+          <c:set var="anonItems" value="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ANONYMOUS) %>" />
+          <c:if test="${!empty anonItems }">
             <img src="/images/menu_separator.png"/>
-            <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.DATA_SOURCE) %>" var="mi">
+            <c:forEach items="${anonItems}" var="mi">
               <m2m2:menuItem def="${mi}"/>
             </c:forEach>
           </c:if>
-          
-          <img src="/images/menu_separator.png"/>
-          <m2m2:menuItem id="usersMi" href="/users.shtm" png="user" key="header.users"/>
-          
-          <c:if test="${sessionUser.admin}">
-            <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ADMINISTRATOR) %>" var="mi">
-              <m2m2:menuItem def="${mi}"/>
-            </c:forEach>
-          </c:if>
-          
-          <img src="/images/menu_separator.png"/>
-          <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ANONYMOUS) %>" var="mi">
-            <m2m2:menuItem def="${mi}"/>
-          </c:forEach>
         </c:if>
+        
         <c:if test="${empty sessionUser}">
           <m2m2:menuItem id="loginMi" href="/login.htm" png="control_play_blue" key="header.login"/>
           <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.ANONYMOUS) %>" var="mi">

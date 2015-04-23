@@ -102,10 +102,10 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
     private static final int version = 1;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-    	
+    	out.writeInt(version);
     }
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-//        int ver = in.readInt();
+    	in.readInt();
 //
 //        // Switch on the version of the class so that version changes can be
 //        // elegantly handled.
