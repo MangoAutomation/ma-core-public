@@ -5,6 +5,7 @@
 
 package com.infiniteautomation.mango.db.query;
 
+
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
  * @author Jared Wiltshire
@@ -42,4 +43,5 @@ public class SortOption {
     public void setDesc(boolean desc) {
         this.desc = desc;
     }
+    
 }

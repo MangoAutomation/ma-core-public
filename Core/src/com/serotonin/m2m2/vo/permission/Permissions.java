@@ -217,6 +217,19 @@ public class Permissions {
             return true;
         return permissionContains(query, user.getPermissions());
     }
+    
+    /**
+     * Utility to check for a user permission in a list of permissions
+     * that ensures Super Admin access to everything
+     * @param userPermissions
+     * @param query
+     * @return
+     */
+    public static boolean hasPermission(String userPermissions, String query){
+    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, userPermissions))
+            return true;
+        return permissionContains(query, userPermissions);
+    }
 
     /**
      * Checks if the given query matches the given group list. Each is a comma-delimited list of tags, where if any

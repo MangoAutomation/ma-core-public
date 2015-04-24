@@ -4,11 +4,13 @@
  */
 package com.infiniteautomation.mango.db.query;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
@@ -397,6 +399,174 @@ public class QueryComparison {
 		}
         
         return sql.toString();
+	}
+	
+	/**
+	 * Apply this condition to an object that contains the 
+	 * attribute to apply against.  
+	 * 
+	 * This method uses reflection to extract the value and then
+	 * apply the condition.
+	 * 
+	 * @param instance
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 * @throws NoSuchFieldException
+	 * @throws SecurityException
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 */
+	public boolean apply(Object instance) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException, InvocationTargetException, NoSuchMethodException{
+		Object value = PropertyUtils.getProperty(instance, attribute);
+		return this.compare(value);
+	}
+	
+	/**
+	 * Compare the value by first determining its type
+	 * @param value
+	 * @return
+	 */
+	public boolean compare(Object value){
+		if(value instanceof Integer){
+			return compareInteger((Integer)value);
+		}else if(value instanceof Double){
+			return compareDouble((Double)value);
+		}else if(value instanceof Long){
+			return compareLong((Long)value);
+		}else if(value instanceof String){
+			return compareString((String)value);
+		}else if(value instanceof Boolean){
+			return compareBoolean((Boolean)value);
+		}else{
+			throw new ShouldNeverHappenException("Unsupported class type: " + value.getClass().getCanonicalName());
+		}
+	}
+	
+	public boolean compareInteger(Integer value){
+		try{
+			Integer thisValue = Integer.parseInt(condition);
+			switch(comparisonType){
+				case GREATER_THAN:
+					return thisValue > value;
+				case GREATER_THAN_EQUAL_TO:
+					return thisValue >= value;
+				case LESS_THAN:
+					return thisValue < value;
+				case LESS_THAN_EQUAL_TO:
+					return thisValue <= value;
+				case LIKE:
+		    	case EQUAL_TO:
+					return thisValue == value;
+		    	case NOT_EQUAL_TO:
+					return thisValue != value;
+				default:
+					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
+			}
+		}catch(NumberFormatException e){
+			//Munchy munch
+			return false;
+		}
+	}
+
+	public boolean compareDouble(Double value){
+		try{
+			Double thisValue = Double.parseDouble(condition);
+			switch(comparisonType){
+				case GREATER_THAN:
+					return thisValue > value;
+				case GREATER_THAN_EQUAL_TO:
+					return thisValue >= value;
+				case LESS_THAN:
+					return thisValue < value;
+				case LESS_THAN_EQUAL_TO:
+					return thisValue <= value;
+				case LIKE:
+		    	case EQUAL_TO:
+					return thisValue == value;
+		    	case NOT_EQUAL_TO:
+					return thisValue != value;
+				default:
+					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
+			}
+		}catch(NumberFormatException e){
+			//Munchy munch
+			return false;
+		}
+	}
+	
+	public boolean compareLong(Long value){
+		try{
+			Long thisValue = Long.parseLong(condition);
+			switch(comparisonType){
+				case GREATER_THAN:
+					return thisValue > value;
+				case GREATER_THAN_EQUAL_TO:
+					return thisValue >= value;
+				case LESS_THAN:
+					return thisValue < value;
+				case LESS_THAN_EQUAL_TO:
+					return thisValue <= value;
+				case LIKE:
+		    	case EQUAL_TO:
+					return thisValue == value;
+		    	case NOT_EQUAL_TO:
+					return thisValue != value;
+				default:
+					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
+			}
+		}catch(NumberFormatException e){
+			//Munchy munch
+			return false;
+		}
+	}
+	
+	public boolean compareString(String value){
+		switch(comparisonType){
+			case GREATER_THAN:
+				return condition.compareTo(value) > 0;
+			case GREATER_THAN_EQUAL_TO:
+				return condition.compareTo(value) >= 0;
+			case LESS_THAN:
+				return condition.compareTo(value) < 0;
+			case LESS_THAN_EQUAL_TO:
+				return condition.compareTo(value) <= 0;
+			case LIKE:
+				//Create regex by simply replacing % by .*
+				String regex = condition.replace("%", ".*");
+				return condition.matches(regex);
+	    	case EQUAL_TO:
+	    		return condition.equals(value);
+	    	case NOT_EQUAL_TO:
+	    		return !condition.equals(value);
+			default:
+				throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
+		}
+	}
+	public boolean compareBoolean(Boolean value){
+		try{
+			Boolean thisValue = Boolean.parseBoolean(condition);
+			switch(comparisonType){
+				case GREATER_THAN:
+					return thisValue.compareTo(value) > 0;
+				case GREATER_THAN_EQUAL_TO:
+					return thisValue.compareTo(value) >= 0;
+				case LESS_THAN:
+					return thisValue.compareTo(value) < 0;
+				case LESS_THAN_EQUAL_TO:
+					return thisValue.compareTo(value) <= 0;
+				case LIKE:
+		    	case EQUAL_TO:
+					return thisValue == value;
+		    	case NOT_EQUAL_TO:
+					return thisValue != value;
+				default:
+					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
+			}
+		}catch(NumberFormatException e){
+			//Munchy munch
+			return false;
+		}
 	}
 	
 	public String toString(){

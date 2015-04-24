@@ -78,7 +78,11 @@ public class PointHierarchy {
     }
 
     public List<String> getPath(int pointId) {
-        List<PointFolder> path = getFolderPath(pointId);
+       return getPath(pointId, this.root);
+    }
+
+    public static List<String> getPath(int pointId, PointFolder root) {
+        List<PointFolder> path = getFolderPath(pointId, root);
 
         List<String> result = new ArrayList<String>();
         // Skip the root.
@@ -87,8 +91,8 @@ public class PointHierarchy {
 
         return result;
     }
-
-    public List<PointFolder> getFolderPath(int pointId) {
+    
+    public static List<PointFolder> getFolderPath(int pointId, PointFolder root) {
         List<PointFolder> path = new ArrayList<PointFolder>();
         root.findPoint(path, pointId);
         if (path.isEmpty())

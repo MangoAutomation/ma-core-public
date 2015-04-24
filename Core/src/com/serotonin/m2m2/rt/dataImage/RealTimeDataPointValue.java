@@ -63,19 +63,19 @@ public class RealTimeDataPointValue implements JsonSerializable{
 	 * Get the rendered value
 	 * @return
 	 */
-	public String getRenderedPointValue(){
+	public String getRenderedValue(){
 		PointValueTime myValue = this.getRealTimeValue();
 		if(myValue != null)
-			return this.rt.getVO().getTextRenderer().getText(myValue, TextRenderer.HINT_RAW);
+			return this.rt.getVO().getTextRenderer().getText(myValue, TextRenderer.HINT_FULL);
 		else
 			return "";
 	}
-	
+
 	/**
 	 * Return the object value
 	 * @return
 	 */
-	public Object getPointValue(){
+	public Object getValue(){
 		PointValueTime myValue = this.getRealTimeValue();
 		if(myValue != null)
 			return myValue.getValue().getObjectValue();
@@ -100,10 +100,6 @@ public class RealTimeDataPointValue implements JsonSerializable{
         else
             unit = UnitUtil.formatLocal(this.rt.getVO().getUnit());
         return unit;
-	}
-
-	public String getRenderedValue(){
-		return this.rt.getVO().getTextRenderer().getText(this.getRealTimeValue(), TextRenderer.HINT_FULL);
 	}
 	
 	public long getTimestamp(){
@@ -136,6 +132,13 @@ public class RealTimeDataPointValue implements JsonSerializable{
 		return this.rt.getPointValue();
 	}
 
+	public String getReadPermission(){
+		return this.rt.getVO().getReadPermission();
+	}
+	public String getSetPermission(){
+		return this.rt.getVO().getSetPermission();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
 	 */
@@ -152,8 +155,8 @@ public class RealTimeDataPointValue implements JsonSerializable{
 	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
 		writer.writeEntry("deviceName", this.getDeviceName());
 		writer.writeEntry("name", this.getPointName());
-		writer.writeEntry("renderedValue", this.getRenderedPointValue());
-		writer.writeEntry("value", this.getPointValue());
+		writer.writeEntry("renderedValue", this.getRenderedValue());
+		writer.writeEntry("value", this.getValue());
 		writer.writeEntry("unit", this.getUnit());
 		writer.writeEntry("timestamp", this.getTimestamp());
 		writer.writeEntry("status", this.getStatus());
