@@ -8,6 +8,8 @@ import com.serotonin.m2m2.util.ExportCodes;
 
 public class ScriptLog {
 	
+	public static String CONTEXT_KEY = "LOG";
+	
     public interface LogLevel {
         int TRACE = 1;
         int DEBUG = 2;

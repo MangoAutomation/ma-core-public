@@ -111,9 +111,18 @@ public class ScriptUtils {
         
         //Add in Additional Utilities with Global Scope
         globalBindings.put("DateTimeUtility", new DateTimeUtility());
-        globalBindings.put("RuntimeManager", new RuntimeManagerScriptUtility());
         
         engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
+    }
+    
+    /**
+     * Add all Utilities that require permissions 
+     * @param permissions
+     */
+    public static void prepareUtilities(ScriptPermissions permissions, Bindings engineScope){
+    	engineScope.put("RuntimeManager", new RuntimeManagerScriptUtility(permissions));
+    	
+    	
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {
@@ -138,6 +147,13 @@ public class ScriptUtils {
         throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
     }
 
+    /**
+     * Coerce an object into a DataValue
+     * @param input
+     * @param toDataTypeId
+     * @return
+     * @throws ResultTypeException
+     */
     public static DataValue coerce(Object input, int toDataTypeId) throws ResultTypeException {
         DataValue value;
         

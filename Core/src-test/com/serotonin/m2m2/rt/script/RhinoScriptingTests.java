@@ -7,6 +7,8 @@ package com.serotonin.m2m2.rt.script;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -46,10 +48,20 @@ public class RhinoScriptingTests {
 			
 			context.put(p1.getVariableName(), p1Rt);
 			
+			ScriptPermissions permissions = new ScriptPermissions();
+			permissions.setCustomPermissions("superadmin");
+			permissions.setDataSourcePermissions("superadmin");
+			permissions.setDataPointReadPermissions("superadmin");
+			permissions.setDataPointSetPermissions("superadmin");
+			
+			final StringWriter scriptOut = new StringWriter();
+            final PrintWriter scriptWriter = new PrintWriter(scriptOut);
+            ScriptLog scriptLog = new ScriptLog(scriptWriter, ScriptLog.LogLevel.TRACE);
+			
 			CompiledScript s = CompiledScriptExecutor.compile(script);
 			PointValueTime pvt = CompiledScriptExecutor.execute(s,
-					context, System.currentTimeMillis(),
-					DataTypes.NUMERIC, -1);
+					context, null, System.currentTimeMillis(),
+					DataTypes.NUMERIC, -1, permissions, scriptWriter, scriptLog);
 			assertNotNull(pvt);
 		} catch (Exception e) {
 			e.printStackTrace();

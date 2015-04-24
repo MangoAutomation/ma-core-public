@@ -135,6 +135,16 @@ public class Permissions {
         return hasPermission(user, p);
     }
 
+    public static boolean hasDataSourcePermission(String userPermissions, DataSourceVO<?> ds){
+    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, userPermissions))
+            return true;
+        if(permissionContains(ds.getEditPermission(), userPermissions))
+        	return true;
+        else
+        	throw new PermissionException("No permission to data source with xid: " + ds.getXid() , null);
+    }
+    
+    
     //
     //
     // Data point access
@@ -145,11 +155,23 @@ public class Permissions {
     }
 
     public static boolean hasDataPointReadPermission(User user, IDataPoint point) throws PermissionException {
+    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
+            return true;
         if (hasPermission(user, point.getReadPermission()))
             return true;
         return hasDataPointSetPermission(user, point);
     }
 
+    public static boolean hasDataPointReadPermission(String userPermissions, IDataPoint point){
+    	if(hasPermission(point.getReadPermission(), userPermissions))
+    		return true;
+    	String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
+    	if (permissionContains(dsPermission, userPermissions))
+            return true;
+        else
+        	throw new PermissionException("No read permission to data point with xid: " + point.getXid() , null);
+    }
+    
     public static void ensureDataPointSetPermission(User user, DataPointVO point) throws PermissionException {
         if (!point.getPointLocator().isSettable())
             throw new ShouldNeverHappenException("Point is not settable");
@@ -158,12 +180,30 @@ public class Permissions {
     }
 
     public static boolean hasDataPointSetPermission(User user, IDataPoint point) throws PermissionException {
+    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
+            return true;
         if (hasPermission(user, point.getSetPermission()))
             return true;
         String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
         return hasPermission(user, dsPermission);
     }
 
+    /**
+     * Returns true or Exception
+     * @param userPermissions
+     * @param point
+     * @return
+     */
+    public static boolean hasDataPointSetPermission(String userPermissions, IDataPoint point){
+        if(hasPermission(point.getSetPermission(), userPermissions))
+        	return true;
+    	String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
+    	if (permissionContains(dsPermission, userPermissions))
+            return true;
+        else
+        	throw new PermissionException("No set permission to data point with xid: " + point.getXid() , null);
+    }
+    
     public static int getDataPointAccessType(User user, IDataPoint point) {
         if (user == null || user.isDisabled())
             return DataPointAccessTypes.NONE;
@@ -221,11 +261,11 @@ public class Permissions {
     /**
      * Utility to check for a user permission in a list of permissions
      * that ensures Super Admin access to everything
-     * @param userPermissions
      * @param query
+     * @param userPermissions
      * @return
      */
-    public static boolean hasPermission(String userPermissions, String query){
+    public static boolean hasPermission(String query, String userPermissions){
     	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, userPermissions))
             return true;
         return permissionContains(query, userPermissions);
@@ -302,4 +342,39 @@ public class Permissions {
 
         return set;
     }
+
+	/**
+	 * Find any permissions that are not granted
+	 * 
+	 * @param permissions - Permissions of the item
+	 * @param userPermissions - Granted permissions
+	 * @return
+	 */
+	public static Set<String> findInvalidPermissions(
+			String permissions, String userPermissions) {
+		Set<String> notGranted = new HashSet<String>();
+		Set<String> itemPermissions = explodePermissionGroups(permissions);
+		Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
+		for(String itemPermission : itemPermissions){
+			if(!grantedPermissions.contains(itemPermission))
+				notGranted.add(itemPermission);
+		}
+		return notGranted;
+	}
+	
+	/**
+	 * Create a comma separated list from a set of permission groups
+	 * @param groups
+	 * @return
+	 */
+	public static String implodePermissionGroups(Set<String> groups){
+		String groupsList = new String();
+		for(String p : groups){
+			if(groupsList.isEmpty())
+				groupsList += p;
+			else
+				groupsList += ("," + p);
+		}
+		return groupsList;
+	}
 }

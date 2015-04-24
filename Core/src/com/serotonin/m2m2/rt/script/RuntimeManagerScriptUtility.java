@@ -12,6 +12,8 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -25,13 +27,22 @@ public class RuntimeManagerScriptUtility {
 	private static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
 	private static final int OPERATION_SUCCESSFUL = 1; //Operation worked
 	
+	private ScriptPermissions permissions;
+	public RuntimeManagerScriptUtility(ScriptPermissions permissions){
+		this.permissions = permissions;
+	}
+	
 	/**
 	 * Is a data source enabled?
 	 * @param xid
 	 * @return true if it is, false if it is not
 	 */
 	public boolean isDataSourceEnabled(String xid){
+		
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+		//This will throw an exception if there is no permission
+		Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo);
+		
 		if(vo == null)
 			return false;
 		else
@@ -48,14 +59,15 @@ public class RuntimeManagerScriptUtility {
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-				vo.setEnabled(true);
-				try{
-					Common.runtimeManager.saveDataSource(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
+			Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo);
+			vo.setEnabled(true);
+			try{
+				Common.runtimeManager.saveDataSource(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -70,14 +82,15 @@ public class RuntimeManagerScriptUtility {
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-				vo.setEnabled(false);
-				try{
-					Common.runtimeManager.saveDataSource(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
+			Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo);
+			vo.setEnabled(false);
+			try{
+				Common.runtimeManager.saveDataSource(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -89,6 +102,11 @@ public class RuntimeManagerScriptUtility {
 	 */
 	public boolean isDataPointEnabled(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		try{
+			Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo);
+		}catch(PermissionException e){
+			Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), vo);
+		}
 		if(vo == null)
 			return false;
 		else
@@ -105,14 +123,15 @@ public class RuntimeManagerScriptUtility {
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-				vo.setEnabled(true);
-				try{
-					Common.runtimeManager.saveDataPoint(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
+			Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo);
+			vo.setEnabled(true);
+			try{
+				Common.runtimeManager.saveDataPoint(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -127,14 +146,15 @@ public class RuntimeManagerScriptUtility {
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-				vo.setEnabled(false);
-				try{
-					Common.runtimeManager.saveDataPoint(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
+			Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo);
+			vo.setEnabled(false);
+			try{
+				Common.runtimeManager.saveDataPoint(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}

@@ -134,5 +134,10 @@
   </item>
   
   <item id="mangoJavaScript" key="dox.mangoJavaScript" filename="mangoJavaScript.htm">
+  	<relation id="scriptPermissions"/>
   </item>
+  <item id="scriptPermissions" key="scripting.permission" filename="scriptPermissions.htm">
+  	<relation id="mangoJavaScript"/>
+  </item>
+  
 </doxManifest>

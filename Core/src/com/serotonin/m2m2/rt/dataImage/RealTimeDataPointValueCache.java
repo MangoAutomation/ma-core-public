@@ -107,7 +107,7 @@ public class RealTimeDataPointValueCache {
 		
 		boolean keep = true;
 		for(RealTimeDataPointValue rtdpv : this.realTimeData){
-			if(!Permissions.hasPermission(permissions, rtdpv.getReadPermission()))
+			if(!Permissions.hasPermission(rtdpv.getReadPermission(), permissions))
 				continue; //Only query those points we can keep
 			
 			//All must be true to keep
