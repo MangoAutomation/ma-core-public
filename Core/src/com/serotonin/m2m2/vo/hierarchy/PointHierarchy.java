@@ -81,6 +81,10 @@ public class PointHierarchy {
        return getPath(pointId, this.root);
     }
 
+    public List<PointFolder> getFolderPath(int pointId){
+    	return getFolderPath(pointId, this.root);
+    }
+    
     public static List<String> getPath(int pointId, PointFolder root) {
         List<PointFolder> path = getFolderPath(pointId, root);
 
