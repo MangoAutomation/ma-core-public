@@ -178,7 +178,7 @@ abstract public class AbstractPointWrapper {
     
     public String toString(){
     	StringBuilder builder = new StringBuilder();
-
+    	builder.append("{\n");
     	builder.append("value: ").append(getValueImpl()).append(",\n ");
     	builder.append("time: ").append(getTime()).append(",\n ");
     	builder.append("millis: ").append(getValueImpl()).append(",\n ");
@@ -203,7 +203,7 @@ abstract public class AbstractPointWrapper {
 
     	this.helpImpl(builder);
     	
-    	builder.append(" }");
+    	builder.append(" }\n");
     	return builder.toString();
     }
 }

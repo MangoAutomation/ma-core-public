@@ -15,9 +15,10 @@ import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.infiniteautomation.mango.db.query.StreamableQuery;
+import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -499,6 +500,32 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     }
 
     
+    
+    public BaseSqlQuery<T> createQuery(List<QueryComparison> orComparisons,
+    		List<QueryComparison> andComparisons, 
+    		List<SortOption> sort, 
+    		Integer offset, Integer limit){
+    	
+        List<Object> selectArgs = new ArrayList<Object>();
+        List<Object> countArgs = new ArrayList<Object>();
+        
+        String whereClause = generateWhere(selectArgs, orComparisons, andComparisons);
+        String selectSql = SELECT_ALL + whereClause;
+        String countSql = COUNT + whereClause;
+        countArgs.addAll(selectArgs);
+        
+        //Apply the sorts
+        selectSql = applySort(selectSql, sort, selectArgs);
+        
+        //Apply the Range or Limit
+        if(offset != null)
+        	selectSql = applyRange(selectSql, selectArgs, offset, limit);
+        else
+        	selectSql = applyLimit(selectSql, selectArgs, limit);
+
+    	return new BaseSqlQuery<T>(this, selectSql, selectArgs, countSql, countArgs);
+    }
+    
     /**
      * Create a Streamable Query Object
      * @param orComparisons
@@ -510,7 +537,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param countCallback
      * @return
      */
-    public StreamableQuery<T> createQuery(List<QueryComparison> orComparisons,
+    public StreamableSqlQuery<T> createQuery(List<QueryComparison> orComparisons,
     		List<QueryComparison> andComparisons, 
     		List<SortOption> sort, 
     		Integer offset, Integer limit,
@@ -537,7 +564,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         else
         	selectSql = applyLimit(selectSql, selectArgs, limit);
 
-        return new StreamableQuery<T>(this, selectSql, selectCallback, selectArgs, countSql, countCallback, countArgs);
+        return new StreamableSqlQuery<T>(this, selectSql, selectCallback, selectArgs, countSql, countCallback, countArgs);
         
     	
     }

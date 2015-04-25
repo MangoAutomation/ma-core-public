@@ -166,9 +166,9 @@ public class ScriptExecutor {
         Bindings engineScope = engine.createBindings(); //new SimpleBindings();
 
         //Add Permissions Required Utilities
-        if(permissions != null){
-        	ScriptUtils.prepareUtilities(permissions, engineScope);
-        }
+        //TODO Bubble PointValueSetter back up to top
+        if(permissions != null)
+        	ScriptUtils.prepareUtilities(permissions, engine, engineScope, null);
         
         if(additionalContext != null){
         	Set<Entry<String,Object>> entries = additionalContext.entrySet();

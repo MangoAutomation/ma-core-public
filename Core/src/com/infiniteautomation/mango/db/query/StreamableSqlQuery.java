@@ -18,18 +18,12 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public class StreamableQuery<VO extends AbstractVO<VO>> {
+public class StreamableSqlQuery<VO extends AbstractVO<VO>> extends BaseSqlQuery<VO>{
 	
-	private static final Log LOG = LogFactory.getLog(StreamableQuery.class);
+	private static final Log LOG = LogFactory.getLog(StreamableSqlQuery.class);
 	
-	AbstractDao<VO> dao;
-	String selectSql;
-	MappedRowCallback<VO> selectCallback;
-	List<Object> selectArgs;
-	
-	String countSql;
-	MappedRowCallback<Long> countCallback;
-	List<Object> countArgs;
+	protected MappedRowCallback<VO> selectCallback;
+	protected MappedRowCallback<Long> countCallback;
 	
 	
 
@@ -41,19 +35,13 @@ public class StreamableQuery<VO extends AbstractVO<VO>> {
 	 * @param countCallback
 	 * @param selectArgs
 	 */
-	public StreamableQuery(AbstractDao<VO> dao, 
+	public StreamableSqlQuery(AbstractDao<VO> dao, 
 			String selectSql, MappedRowCallback<VO> selectCallback, List<Object> selectArgs,
 			String countSql, MappedRowCallback<Long> countCallback, List<Object> countArgs) {
-		super();
-		this.dao = dao;
+		super(dao, selectSql, selectArgs, countSql, countArgs);
 		
-		this.selectSql = selectSql;
 		this.selectCallback = selectCallback;
-		this.selectArgs = selectArgs;
-		
-		this.countSql = countSql;
 		this.countCallback = countCallback;
-		this.countArgs = countArgs;
 	}
 
 	/**
@@ -66,7 +54,7 @@ public class StreamableQuery<VO extends AbstractVO<VO>> {
         }
 		this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper(), selectCallback);
 	}
-
+	
 	/**
 	 * Execute the Count if there is one
 	 */
@@ -75,10 +63,9 @@ public class StreamableQuery<VO extends AbstractVO<VO>> {
 			return;
         //Report the query in the log
         if(LOG.isDebugEnabled()){
-        	LOG.debug("Count: " + countSql + " \nArgs: " + selectArgs.toString());
+        	LOG.debug("Count: " + countSql + " \nArgs: " + countArgs.toString());
         }
  
 		this.dao.query(countSql, countArgs.toArray(), ParameterizedSingleColumnRowMapper.newInstance(Long.class), countCallback);
-		
 	}
 }

@@ -18,6 +18,9 @@ import org.joda.time.format.DateTimeFormatter;
  */
 public class DateTimeUtility {
 
+	
+	public static final String CONTEXT_KEY = "DateTimeUtility";
+
 	/**
 	 * Using a timezoneId such as Europe/Rome
 	 * return the Milliseconds Offset for UTC for the given timestamp
@@ -96,7 +99,7 @@ public class DateTimeUtility {
 		builder.append("utcOffset(timestamp): UTC offset millis, \n");
 		builder.append("parseDate(format, dateString, timezoneId): timestamp, \n");
 		builder.append("formatDate(format, timestamp, timezoneId): dateString, \n");
-		builder.append(" }");
+		builder.append(" }\n");
 		return builder.toString();
 	}
 }

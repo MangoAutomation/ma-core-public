@@ -110,19 +110,23 @@ public class ScriptUtils {
         globalBindings.put(POINTS_CONTEXT_KEY, new ArrayList<String>());
         
         //Add in Additional Utilities with Global Scope
-        globalBindings.put("DateTimeUtility", new DateTimeUtility());
+        globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
+        globalBindings.put(UnitUtility.CONTEXT_KEY, new UnitUtility());
         
         engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
     }
     
+
     /**
      * Add all Utilities that require permissions 
      * @param permissions
+     * @param engine
+     * @param engineScope
      */
-    public static void prepareUtilities(ScriptPermissions permissions, Bindings engineScope){
+    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, PointValueSetter setter){
     	engineScope.put("RuntimeManager", new RuntimeManagerScriptUtility(permissions));
-    	
-    	
+    	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
+    	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {
