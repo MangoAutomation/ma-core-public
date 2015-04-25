@@ -98,7 +98,7 @@ public class DateUtilsTest {
 			count--;
 		}
 	}
-	@Test
+	//@Test
 	public void testPreviousDays(){
 		int count = 780;
 		while(count > 0){
@@ -149,9 +149,11 @@ public class DateUtilsTest {
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
 				
+				
 				assertEquals(start.getMillis(), from);
-		
 				assertEquals(end.getMillis(), to);
+		
+
 				
 				
 				//Step along

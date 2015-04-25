@@ -69,10 +69,10 @@ public class DateUtils {
         	time = time.minusDays(periods-1).withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.WEEKS) {
-            time = time.minus(time.getMillisOfDay());
-            time = time.minus(Common.getPeriod(TimePeriods.DAYS, time.getDayOfWeek() - 1));
             if (periods > 1)
                 time = time.minusWeeks(time.getWeekOfWeekyear() % periods);
+            time = time.minus(Common.getPeriod(TimePeriods.DAYS, time.getDayOfWeek() - 1));
+        	time = time.minus(time.getMillisOfDay());
         }
         else if (periodType == TimePeriods.MONTHS) {
         	time = time.minusMonths(periods-1).withDayOfMonth(1).withTimeAtStartOfDay();
