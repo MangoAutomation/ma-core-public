@@ -31,15 +31,13 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 	
 	protected T data;
 	
-	
 	/**
 	 * @param data
 	 */
 	public AbstractDataSourceModel(T data) {
 		super(data);
-		this.data = data;
 	}
-
+	
 	@JsonGetter(value="alarmLevels")
 	public Map<String,String> getAlarmLevels(){
 		ExportCodes eventCodes = this.data.getEventCodes();
@@ -109,6 +107,14 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 		return this.data;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractVoModel#getModelType()
+	 */
+	@Override
+	public String getModelType() {
+		return this.data.getDefinition().getDataSourceTypeName();
+	}
+	
 	@JsonIgnore
 	public void setDefinition(DataSourceDefinition dataSourceDefinition) {
 		this.data.setDefinition(dataSourceDefinition);

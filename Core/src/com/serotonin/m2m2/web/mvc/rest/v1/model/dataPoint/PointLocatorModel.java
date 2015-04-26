@@ -54,10 +54,6 @@ public abstract class PointLocatorModel<T extends PointLocatorVO> extends Abstra
 	@CSVColumnSetter(order=11, header="settable")
 	public void setSettable(boolean settable) { } //No Op
 	
-    /**
-     * TODO add this to the CSV columns, will require re-coding all the CSV headers in the models
-     * Supplemental to being settable, can the set value be relinquished?
-     */
 	@CSVColumnGetter(order=12, header="relinquishable")
     @JsonGetter("relinquishable")
     public boolean isRelinquishable(){

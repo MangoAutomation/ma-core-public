@@ -19,7 +19,7 @@
 	        $set("alternateMessage", "<fmt:message key="emport.importProgress"/>");
 			
 	        var emportData = $get("emportData");
-	        xhr("/rest/v1/dataPoints.json", {
+	        xhr("/rest/v1/data-points.json", {
 					method: "PUT",
 	        		data: emportData,
 	        		headers: {
