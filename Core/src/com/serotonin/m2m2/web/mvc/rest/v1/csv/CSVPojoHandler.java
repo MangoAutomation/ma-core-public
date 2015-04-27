@@ -347,77 +347,79 @@ class CSVPojoHandler {
 					CSVColumnMethodAnnotations method = methodMap.get(order);
 					CSVColumnGetter csvColumnGetter = method.getGetterAnnotation();
 					CSVColumnSetter csvColumnSetter = method.getSetterAnnotation();
-					// Check that the field show be used (not transient and not hidden)
-					//Getter First
-					if (!Modifier.isTransient(method.getGetter().getModifiers())
-							&& (csvColumnGetter == null || !csvColumnGetter
-									.hidden())) {
-						PropertyEditor editor;
-						try {
-							// Try to determine PropertyEditor for field
-							editor = (csvColumnGetter == null || csvColumnGetter
-									.editor() == CSVPropertyEditor.class) ? PropertyEditorManager
-									.findEditor(method.getGetter().getReturnType())
-									: csvColumnGetter.editor().newInstance();
-						} catch (InstantiationException ex) {
-							throw new InstantiationError(
-									ex.getLocalizedMessage());
-						} catch (IllegalAccessException ex) {
-							throw new IllegalAccessError(
-									ex.getLocalizedMessage());
-						}
-						if (editor != null) {
-							String header = (csvColumnGetter != null && csvColumnGetter
-									.header().length() > 0) ? csvColumnGetter
-									.header() : method.getGetter().getName();
-							CSVMethodHandler handler = new CSVMethodHandler(csvColumnGetter.order(), header, method.getGetter(), method.getSetter(), editor);
-							handlers.add(handler);
-							mapping.put(header, handler);
-						} else {
-							// If no default or specified editor available check
-							// if this is CSVEntity child class
-							CSVEntity csvEntity = method.getGetter().getReturnType().getAnnotation(CSVEntity.class);
-							if (csvEntity != null) {
-								CSVPojoHandler handler = new CSVPojoHandler();
-								PojoChildMethod child = new PojoChildMethod(csvColumnGetter.header(), order, method.getGetter(), method.getSetter(), handler, csvEntity);
-								children.add(child);
-								
-								//Check Runtime Type for return value
-								if(csvEntity.derived()){
-									ModelDefinition definition = null;
-									if(line.length > method.getGetterAnnotation().order())
-										definition = this.findModelDefinition(line[method.getGetterAnnotation().order()]);
-									if(definition != null){
-										handler.initialize(line, definition.createModel());
-										editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
-										CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
-										handlers.add(methodHandler);
-										mapping.put(csvColumnGetter.header(), methodHandler);
-									}
-								}else{
-									if(!csvEntity.typeName().equals("")){
-										ModelDefinition definition = this.findModelDefinition(csvEntity.typeName());
-										handler.initialize(line, definition.createModel());
-										editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
-										CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
-										handlers.add(methodHandler);
-										mapping.put(csvColumnGetter.header(), methodHandler);
-
-									}
-								}
-
+					if(csvColumnGetter != null){
+						// Check that the field should be used (not transient and not hidden)
+						//Getter First
+						if (!Modifier.isTransient(method.getGetter().getModifiers())
+								&& (csvColumnGetter == null || !csvColumnGetter
+										.hidden())) {
+							PropertyEditor editor;
+							try {
+								// Try to determine PropertyEditor for field
+								editor = (csvColumnGetter == null || csvColumnGetter
+										.editor() == CSVPropertyEditor.class) ? PropertyEditorManager
+										.findEditor(method.getGetter().getReturnType())
+										: csvColumnGetter.editor().newInstance();
+							} catch (InstantiationException ex) {
+								throw new InstantiationError(
+										ex.getLocalizedMessage());
+							} catch (IllegalAccessException ex) {
+								throw new IllegalAccessError(
+										ex.getLocalizedMessage());
+							}
+							if (editor != null) {
+								String header = (csvColumnGetter != null && csvColumnGetter
+										.header().length() > 0) ? csvColumnGetter
+										.header() : method.getGetter().getName();
+								CSVMethodHandler handler = new CSVMethodHandler(csvColumnGetter.order(), header, method.getGetter(), method.getSetter(), editor);
+								handlers.add(handler);
+								mapping.put(header, handler);
 							} else {
-								throw new IllegalArgumentException(
-										"The method: "
-												+ c.getName()
-												+ "."
-												+ method.getGetter().getName()
-												+ " of type: "
-												+ method.getGetter().getReturnType().getName()
-												+ " is not a CSVEntity or has no PropertyEditor available.");
+								// If no default or specified editor available check
+								// if this is CSVEntity child class
+								CSVEntity csvEntity = method.getGetter().getReturnType().getAnnotation(CSVEntity.class);
+								if (csvEntity != null) {
+									CSVPojoHandler handler = new CSVPojoHandler();
+									PojoChildMethod child = new PojoChildMethod(csvColumnGetter.header(), order, method.getGetter(), method.getSetter(), handler, csvEntity);
+									children.add(child);
+									
+									//Check Runtime Type for return value
+									if(csvEntity.derived()){
+										ModelDefinition definition = null;
+										if(line.length > method.getGetterAnnotation().order())
+											definition = this.findModelDefinition(line[method.getGetterAnnotation().order()]);
+										if(definition != null){
+											handler.initialize(line, definition.createModel());
+											editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
+											CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
+											handlers.add(methodHandler);
+											mapping.put(csvColumnGetter.header(), methodHandler);
+										}
+									}else{
+										if(!csvEntity.typeName().equals("")){
+											ModelDefinition definition = this.findModelDefinition(csvEntity.typeName());
+											handler.initialize(line, definition.createModel());
+											editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
+											CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
+											handlers.add(methodHandler);
+											mapping.put(csvColumnGetter.header(), methodHandler);
+	
+										}
+									}
+	
+								} else {
+									throw new IllegalArgumentException(
+											"The method: "
+													+ c.getName()
+													+ "."
+													+ method.getGetter().getName()
+													+ " of type: "
+													+ method.getGetter().getReturnType().getName()
+													+ " is not a CSVEntity or has no PropertyEditor available.");
+								}
 							}
 						}
-					}
+					} //End if getter != null
 				}
 			}
 		}
@@ -540,66 +542,70 @@ class CSVPojoHandler {
 					CSVColumnMethodAnnotations method = methodMap.get(order);
 					CSVColumnGetter csvColumnGetter = method.getGetterAnnotation();
 					CSVColumnSetter csvColumnSetter = method.getSetterAnnotation();
-					// Check that the field show be used (not transient and not hidden)
-					//Getter First
-					if (!Modifier.isTransient(method.getGetter().getModifiers())
-							&& (csvColumnGetter == null || !csvColumnGetter
-									.hidden())) {
-						PropertyEditor editor;
-						try {
-							// Try to determine PropertyEditor for field
-							editor = (csvColumnGetter == null || csvColumnGetter
-									.editor() == CSVPropertyEditor.class) ? PropertyEditorManager
-									.findEditor(method.getGetter().getReturnType())
-									: csvColumnGetter.editor().newInstance();
-						} catch (InstantiationException ex) {
-							throw new InstantiationError(
-									ex.getLocalizedMessage());
-						} catch (IllegalAccessException ex) {
-							throw new IllegalAccessError(
-									ex.getLocalizedMessage());
-						}
-						if (editor != null) {
-							String header = (csvColumnGetter != null && csvColumnGetter
-									.header().length() > 0) ? csvColumnGetter
-									.header() : method.getGetter().getName();
-							CSVMethodHandler handler = new CSVMethodHandler(csvColumnGetter.order(), header, method.getGetter(), method.getSetter(), editor);
-							handlers.add(handler);
-							mapping.put(header, handler);
-						} else {
-							// If no default or specified editor available check
-							// if this is CSVEntity child class
-							CSVEntity csvEntity = method.getGetter().getReturnType().getAnnotation(CSVEntity.class);
-							if (csvEntity != null) {
-								CSVPojoHandler handler = new CSVPojoHandler();
-								PojoChildMethod child = new PojoChildMethod(csvColumnGetter.header(), order, method.getGetter(), method.getSetter(), handler, csvEntity);
-								Object value = child.getValue(instance);
-								if(value != null){
-									//We can't do anything with a null object anyway
-									handler.initialize(value);
-									children.add(child);
-									//Check Runtime Type for return value
-									csvEntity = value.getClass().getAnnotation(CSVEntity.class);
-									if(!csvEntity.typeName().equals("")){
-										editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
-										CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
-										handlers.add(methodHandler);
-										mapping.put(csvColumnGetter.header(), methodHandler);
-									}
-								}
-
+					
+					//Ensure we have a getter to use
+					if(csvColumnGetter != null){
+						// Check that the field should be used (not transient and not hidden)
+						//Getter First
+						if (!Modifier.isTransient(method.getGetter().getModifiers())
+								&& (csvColumnGetter == null || !csvColumnGetter
+										.hidden())) {
+							PropertyEditor editor;
+							try {
+								// Try to determine PropertyEditor for field
+								editor = (csvColumnGetter == null || csvColumnGetter
+										.editor() == CSVPropertyEditor.class) ? PropertyEditorManager
+										.findEditor(method.getGetter().getReturnType())
+										: csvColumnGetter.editor().newInstance();
+							} catch (InstantiationException ex) {
+								throw new InstantiationError(
+										ex.getLocalizedMessage());
+							} catch (IllegalAccessException ex) {
+								throw new IllegalAccessError(
+										ex.getLocalizedMessage());
+							}
+							if (editor != null) {
+								String header = (csvColumnGetter != null && csvColumnGetter
+										.header().length() > 0) ? csvColumnGetter
+										.header() : method.getGetter().getName();
+								CSVMethodHandler handler = new CSVMethodHandler(csvColumnGetter.order(), header, method.getGetter(), method.getSetter(), editor);
+								handlers.add(handler);
+								mapping.put(header, handler);
 							} else {
-								throw new IllegalArgumentException(
-										"The method: "
-												+ c.getName()
-												+ "."
-												+ method.getGetter().getName()
-												+ " of type: "
-												+ method.getGetter().getReturnType().getName()
-												+ " is not a CSVEntity or has no PropertyEditor available.");
+								// If no default or specified editor available check
+								// if this is CSVEntity child class
+								CSVEntity csvEntity = method.getGetter().getReturnType().getAnnotation(CSVEntity.class);
+								if (csvEntity != null) {
+									CSVPojoHandler handler = new CSVPojoHandler();
+									PojoChildMethod child = new PojoChildMethod(csvColumnGetter.header(), order, method.getGetter(), method.getSetter(), handler, csvEntity);
+									Object value = child.getValue(instance);
+									if(value != null){
+										//We can't do anything with a null object anyway
+										handler.initialize(value);
+										children.add(child);
+										//Check Runtime Type for return value
+										csvEntity = value.getClass().getAnnotation(CSVEntity.class);
+										if(!csvEntity.typeName().equals("")){
+											editor = new CsvEntityAnnotationPropertyEditor(csvEntity.typeName());
+											CSVMethodHandler methodHandler = new CSVMethodHandler(csvColumnGetter.order(), csvColumnGetter.header(), method.getGetter(), method.getSetter(), editor);
+											handlers.add(methodHandler);
+											mapping.put(csvColumnGetter.header(), methodHandler);
+										}
+									}
+	
+								} else {
+									throw new IllegalArgumentException(
+											"The method: "
+													+ c.getName()
+													+ "."
+													+ method.getGetter().getName()
+													+ " of type: "
+													+ method.getGetter().getReturnType().getName()
+													+ " is not a CSVEntity or has no PropertyEditor available.");
+								}
 							}
 						}
-					}
+					} //End if getter != null
 				}
 			}
 		}

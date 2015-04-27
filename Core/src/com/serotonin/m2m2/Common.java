@@ -34,6 +34,8 @@ import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
@@ -261,9 +263,12 @@ public class Common {
         if (webContext == null) {
             // If there is no web context, check if there is a background context
             BackgroundContext backgroundContext = BackgroundContext.get();
-            if (backgroundContext == null)
-                return null;
-            return backgroundContext.getUser();
+            if (backgroundContext == null){
+                ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+                return (User)attr.getRequest().getSession(true).getAttribute(SESSION_USER); // true == allow create
+
+            }else
+            	return backgroundContext.getUser();
         }
         return getUser(webContext.getHttpServletRequest());
     }

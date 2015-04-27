@@ -62,9 +62,7 @@
             			}
         			}
     				showImportMessages(messages);
-	        	}, function(evt){
-	        		alert('Event ' + evt)
-	        	});
+	        	}, function(evt){ });
 	        
 	        //When done
 	        setDisabled("importBtn", false);
