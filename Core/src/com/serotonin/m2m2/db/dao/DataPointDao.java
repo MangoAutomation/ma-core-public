@@ -412,7 +412,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 new Object[] { dataPointId, xid, excludeId }, 0) == 0;
     }
 
-    private void setEventDetectors(DataPointVO dp) {
+    public void setEventDetectors(DataPointVO dp) {
         dp.setEventDetectors(getEventDetectors(dp));
     }
 
