@@ -14,7 +14,7 @@
 <jsp:attribute name="scripts">
     <script type="text/javascript" src="/modules/dataPointDetailsView/web/js/dataPointDetails.js"></script>
 </jsp:attribute>
-<tag:scriptPermissions></tag:scriptPermissions>
 <jsp:body>
+  <tag:scriptPermissions></tag:scriptPermissions>
 </jsp:body>
 </tag:html5>
