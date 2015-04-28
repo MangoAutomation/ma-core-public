@@ -84,12 +84,14 @@ public class PointValueFacade {
     public List<PointValueTime> getPointValues(long since, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> list = getPointValues(since);
         
-        if (insertInitial && !list.isEmpty()) {
+        if (insertInitial) {
             PointValueTime prevValue = getPointValueBefore(since);
             
-            // don't insert the initial value if it already exists
-            if (prevValue != null && list.get(0).getTime() != since) {
-                list.add(0, new PointValueTime(prevValue.getValue(), since));
+            if (prevValue != null) {
+                // don't insert the initial value if it already exists
+                if (list.isEmpty() || list.get(0).getTime() != since) {
+                    list.add(0, new PointValueTime(prevValue.getValue(), since));
+                }
             }
         }
         
@@ -128,12 +130,14 @@ public class PointValueFacade {
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> list = getPointValuesBetween(from, to);
         
-        if (insertInitial && !list.isEmpty()) {
+        if (insertInitial) {
             PointValueTime prevValue = getPointValueBefore(from);
             
-            // don't insert the initial value if it already exists
-            if (prevValue != null && list.get(0).getTime() != from) {
-                list.add(0, new PointValueTime(prevValue.getValue(), from));
+            if (prevValue != null) {
+                // don't insert the initial value if it already exists
+                if (list.isEmpty() || list.get(0).getTime() != from) {
+                    list.add(0, new PointValueTime(prevValue.getValue(), from));
+                }
             }
         }
         
