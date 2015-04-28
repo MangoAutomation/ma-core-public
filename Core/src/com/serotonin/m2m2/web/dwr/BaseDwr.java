@@ -676,12 +676,16 @@ abstract public class BaseDwr {
     @DwrPermission(user = true)
     public List<PermissionDetails> getUserPermissionInfo(String query) {
         List<PermissionDetails> ds = new ArrayList<>();
-        for (User user : new UserDao().getActiveUsers())
-            ds.add(Permissions.getPermissionDetails(query, user));
+        User currentUser = Common.getUser();
+        for (User user : new UserDao().getActiveUsers()){
+        	PermissionDetails deets = Permissions.getPermissionDetails(currentUser, query, user);
+        	if(deets != null)
+        		ds.add(deets);
+        }
         return ds;
     }
-
-    @DwrPermission(user = true)
+    
+    @DwrPermission(admin = true)
     public static Set<String> getAllUserGroups(String exclude) {
         Set<String> result = new TreeSet<>();
 

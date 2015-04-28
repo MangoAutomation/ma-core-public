@@ -16,6 +16,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -330,6 +331,57 @@ public class Permissions {
         return d;
     }
 
+    /**
+     * Provides detailed information on the permission provided to a user for a given query string.
+     * 
+     * Also filters out any permissions that are not part of the limitPermissions
+     * so not all permissions or users are viewable.
+     * 
+     * If the currentUser is an admin then everything is visible
+     *
+     * @param currentUser - user to limit details of view to thier permissions groups
+     * @param query - Any permissions to show as already added in the UI
+     * @param user - User for whom to check permissions
+     * @return Null if no permissions align else the permissions details with only the viewable groups
+     */
+    public static PermissionDetails getPermissionDetails(User currentUser, String query, User user) {
+        PermissionDetails d = new PermissionDetails(user.getUsername());
+
+        d.setAdmin(permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()));
+
+        //Add any matching groups
+        if (!StringUtils.isEmpty(user.getPermissions())) {
+        	if(currentUser.isAdmin()){
+        		//Add all groups
+        		for (String s : user.getPermissions().split(",")) {
+                    if (!StringUtils.isEmpty(s))
+                        d.addGroup(s);
+                }
+        	}else{
+	        	Set<String> matching = findMatchingPermissions(currentUser.getPermissions(), user.getPermissions());
+	        	for(String match : matching){
+	        		d.addGroup(match);
+	        	}
+        	}
+
+            if (!StringUtils.isEmpty(query)) {
+                for (String queryPart : query.split(",")) {
+                    if (StringUtils.isEmpty(queryPart))
+                        continue;
+
+                    for (String groupPart : d.getAllGroups()) {
+                        if (StringUtils.equals(queryPart.trim(), groupPart.trim()))
+                            d.addMatchingGroup(groupPart);
+                    }
+                }
+            }
+        }
+
+        
+        
+        return d;
+    }
+    
     public static Set<String> explodePermissionGroups(String groups) {
         Set<String> set = new HashSet<>();
 
@@ -352,14 +404,38 @@ public class Permissions {
 	 */
 	public static Set<String> findInvalidPermissions(
 			String permissions, String userPermissions) {
+		
 		Set<String> notGranted = new HashSet<String>();
 		Set<String> itemPermissions = explodePermissionGroups(permissions);
 		Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
+		
 		for(String itemPermission : itemPermissions){
 			if(!grantedPermissions.contains(itemPermission))
 				notGranted.add(itemPermission);
 		}
+		
 		return notGranted;
+	}
+	
+	/**
+	 * Find any permissions that are not granted
+	 * 
+	 * @param permissions - Permissions of the item
+	 * @param userPermissions - Granted permissions
+	 * @return
+	 */
+	public static Set<String> findMatchingPermissions(
+			String permissions, String userPermissions) {
+		
+		Set<String> matching = new HashSet<String>();
+		Set<String> itemPermissions = explodePermissionGroups(permissions);
+		Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
+		
+		for(String itemPermission : itemPermissions){
+			if(grantedPermissions.contains(itemPermission))
+				matching.add(itemPermission);
+		}
+		return matching;
 	}
 	
 	/**
@@ -377,4 +453,36 @@ public class Permissions {
 		}
 		return groupsList;
 	}
+	
+	
+	/**
+	 * Validate permissions that are being set on an item.
+	 * 
+	 * Any permissions that the User does not have are invalid unless that user is an admin.
+	 * 
+	 * @param itemPermissions
+	 * @param user
+	 * @param response
+	 * @param contextKey - UI Element ID
+	 */
+	public static void validateAddedPermissions(String itemPermissions, User user, ProcessResult response, String contextKey){
+		
+		if(user == null){
+			response.addContextualMessage(contextKey, "validate.invalidPermission","No User Found");
+			return;
+		}
+		if(!user.isAdmin()){
+			//if permission is empty then don't bother checking
+			if(!itemPermissions.isEmpty()){
+				//Determine if any of the permissions are unavailable to us
+				Set<String> invalid = findInvalidPermissions(itemPermissions, user.getPermissions());
+				if(invalid.size() > 0){
+					String notGranted = implodePermissionGroups(invalid);
+					response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
+				}
+			}
+		}
+		
+	}
+	
 }

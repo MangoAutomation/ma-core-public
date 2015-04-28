@@ -91,18 +91,17 @@ public class ScriptPermissions implements Serializable{
 		}
 			
 		//If superadmin then fine or if not then only allow my groups
-		if(!Permissions.hasPermission(this.dataSourcePermissions, user.getPermissions())){
+		if((!this.dataSourcePermissions.isEmpty())&&(!Permissions.hasPermission(this.dataSourcePermissions, user.getPermissions()))){
 			Set<String> invalid = Permissions.findInvalidPermissions(this.dataSourcePermissions, user.getPermissions());
 			String notGranted = Permissions.implodePermissionGroups(invalid);
 			response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermission", notGranted);
 		}
-
-		if(!Permissions.hasPermission(this.dataPointSetPermissions, user.getPermissions())){
+		if((!this.dataPointSetPermissions.isEmpty())&&(!Permissions.hasPermission(this.dataPointSetPermissions, user.getPermissions()))){
 			Set<String> invalid = Permissions.findInvalidPermissions(this.dataPointSetPermissions, user.getPermissions());
 			String notGranted = Permissions.implodePermissionGroups(invalid);
 			response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermission", notGranted);
 		}
-		if(!Permissions.hasPermission(this.dataPointReadPermissions, user.getPermissions())){
+		if((!this.dataPointReadPermissions.isEmpty())&&(!Permissions.hasPermission(this.dataPointReadPermissions, user.getPermissions()))){
 			Set<String> invalid = Permissions.findInvalidPermissions(this.dataPointReadPermissions, user.getPermissions());
 			String notGranted = Permissions.implodePermissionGroups(invalid);
 			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermission", notGranted);

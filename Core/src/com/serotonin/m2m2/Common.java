@@ -264,8 +264,13 @@ public class Common {
             // If there is no web context, check if there is a background context
             BackgroundContext backgroundContext = BackgroundContext.get();
             if (backgroundContext == null){
-                ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-                return (User)attr.getRequest().getSession(true).getAttribute(SESSION_USER); // true == allow create
+            	//As a last attempt, try Spring
+            	try{
+            		ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+            		return (User)attr.getRequest().getSession(true).getAttribute(SESSION_USER); // true == allow create
+            	}catch(IllegalStateException e){
+            		return null;
+            	}
 
             }else
             	return backgroundContext.getUser();
