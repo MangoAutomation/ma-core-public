@@ -180,16 +180,19 @@ abstract public class AbstractPointWrapper {
     	StringBuilder builder = new StringBuilder();
     	builder.append("{\n");
     	builder.append("value: ").append(getValueImpl()).append(",\n ");
-    	builder.append("time: ").append(getTime()).append(",\n ");
-    	builder.append("millis: ").append(getValueImpl()).append(",\n ");
-    	builder.append("second: ").append(getSecond()).append(",\n ");
-    	builder.append("minute: ").append(getMinute()).append(",\n ");
-    	builder.append("hour: ").append(getHour()).append(",\n ");
-    	builder.append("day: ").append(getDay()).append(",\n ");
-    	builder.append("dayOfWeek: ").append(getDayOfWeek()).append(",\n ");
-    	builder.append("dayOfYear: ").append(getDayOfYear()).append(",\n ");
-    	builder.append("month: ").append(getMonth()).append(",\n ");
-    	builder.append("year: ").append(getYear()).append(",\n ");
+    	long time = getTime();
+    	builder.append("time: ").append(time).append(",\n ");
+    	if(time > 0){
+	    	builder.append("millis: ").append(getMillis()).append(",\n ");
+	    	builder.append("second: ").append(getSecond()).append(",\n ");
+	    	builder.append("minute: ").append(getMinute()).append(",\n ");
+	    	builder.append("hour: ").append(getHour()).append(",\n ");
+	    	builder.append("day: ").append(getDay()).append(",\n ");
+	    	builder.append("dayOfWeek: ").append(getDayOfWeek()).append(",\n ");
+	    	builder.append("dayOfYear: ").append(getDayOfYear()).append(",\n ");
+	    	builder.append("month: ").append(getMonth()).append(",\n ");
+	    	builder.append("year: ").append(getYear()).append(",\n ");
+    	}
     	builder.append("last(count): ").append("PointValueTime[count]").append(",\n ");
     	builder.append("lastValue: ").append(lastValue()).append(",\n ");
     	builder.append("lastValue(count): ").append("PointValueTime").append(",\n ");

@@ -37,8 +37,14 @@ public class CompiledScriptExecutor extends ScriptExecutor{
     	StopWatch stopWatch = new Log4JStopWatch();
 		stopWatch.start();
         script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
-        ensureInit();
-        CompiledScript compiledScript = ((Compilable) ENGINE).compile(script);
+        //TODO Review change 
+//        ensureInit();
+//        CompiledScript compiledScript = ((Compilable) ENGINE).compile(script);
+        
+    	ScriptEngine engine = ScriptUtils.newEngine();
+    	ScriptUtils.prepareEngine(engine);
+    	CompiledScript compiledScript = ((Compilable)engine).compile(script);
+        
         stopWatch.stop("compile(script)");
         return compiledScript;
     }
