@@ -156,4 +156,59 @@ public class PointValueFacade {
             return point.getLatestPointValues(limit);
         return pointValueDao.getLatestPointValues(dataPointId, limit);
     }
+    
+    /**
+	 * return the give value interval List,don't use this at exactly place
+	 * 
+	 * @param since
+	 * @param interval
+	 * @return
+	 */
+	public List<PointValueTime> getPointValues(long since, long interval) {
+		List<PointValueTime> originalValues = getPointValues(since);
+		return InsertIntervalValue(originalValues, since, System.currentTimeMillis(), interval);
+	}
+	
+	private List<PointValueTime> InsertIntervalValue(List<PointValueTime> sources, long from, long to, long interval) {
+		List<Long> PVtimes = new ArrayList<Long>();
+		List<PointValueTime> resultPvt = new ArrayList<PointValueTime>();
+		int originalSize = sources.size();
+
+		// have the value
+		if (originalSize > 0) {
+			for (Long l = from; l <= to; l = l + interval) {
+				PVtimes.add(l);
+			}
+
+			int PvtCursor = PVtimes.size() - 1;
+			for (int ioriginal = originalSize - 1; ioriginal >= 0; ioriginal--) {
+				while (PvtCursor >= 0 && sources.get(ioriginal).getTime() <= PVtimes.get(PvtCursor)) {
+					resultPvt.add(new PointValueTime(sources.get(ioriginal).getValue(), PVtimes.get(PvtCursor)));
+					PvtCursor--;
+				}
+			}
+			return ChangeUpDown(resultPvt);
+		} else {
+			// actually,don't have the value
+			return null;
+		}
+	}
+
+    /**
+	 * Fore and aft switch one list 
+	 * @param resultPvt
+	 * @return
+	 */
+	private <T> List<T> ChangeUpDown(List<T> resultPvt) {
+		if (resultPvt != null && resultPvt.size() > 0) {
+			int isize = resultPvt.size();
+			List<T> resultList = new ArrayList<T>();
+			for (int i = isize - 1; i >= 0; i--) {
+				resultList.add(resultPvt.get(i));
+			}
+			return resultList;
+		} else
+			return null;
+	}
+
 }
