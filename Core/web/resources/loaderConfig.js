@@ -20,9 +20,10 @@ for (var i = scriptTags.length - 1; i >= 0; i--) {
 var config = {
     baseUrl : '/resources',
     paths: {
-        'mango': '/mango-javascript/v1',
+        'mango': '/mango-javascript/',
         'mango-1.0': '/modules/dashboards/web/js/mango/v1',
         'mango-1.1': '/modules/dashboards/web/js/mango-1.1',
+        'mango-2.0': '/mango-javascript/v2',
         'mango/mobile': '/resources/mango/mobile',
         'jquery': 'jquery/jquery-1.11.2.min',
         'jquery-ui/jquery-ui': 'jquery-ui/jquery-ui.min',
