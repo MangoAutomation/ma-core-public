@@ -31,7 +31,7 @@ public abstract class RqlQueryParser {
 		List<QueryComparison> andComparisons = new ArrayList<QueryComparison>();
 		List<SortOption> sorts = new ArrayList<SortOption>();
 		for(String part : parts){
-			System.out.println("part: " + part);
+			//TODO LOG.debug("part: " + part);
 		
 			if(part.startsWith("sort(")){
 				//Sort starts with sort(
@@ -91,10 +91,15 @@ public abstract class RqlQueryParser {
 				}else{
 					//Simple Equals
 					if(part.contains("|")){
-						//Going to use OR
+						//Going to use OR, 
+						// Could be xid=volts|xid=temp or (xid=volts|xid=temp)
+						//TODO this is ok for now but we need to re-work all of this to allow nesting methods
+						part = part.replace("(", "");
+						part = part.replace(")", "");
 						currentComparisons = part.split("\\|");
 						for(String currentComparison : currentComparisons){
 							comparisonParts = currentComparison.split("=");
+							//TODO Allow nesting so we would make a recursive call on the parts here
 							QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.EQUAL_TO, comparisonParts[1]);
 							orComparisons.add(comparison);
 						}

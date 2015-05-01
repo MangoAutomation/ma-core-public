@@ -397,8 +397,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	int i=0;
     	
     	Set<String> properties = this.propertyTypeMap.keySet();
-    	
-        for (QueryComparison parameter : orComparisons) {
+
+    	for (QueryComparison parameter : orComparisons) {
         	String prop = parameter.getAttribute();
             boolean mapped = false;
             String dbProp = prop;

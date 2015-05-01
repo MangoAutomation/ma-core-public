@@ -6,20 +6,24 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
+import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
+import com.infiniteautomation.mango.db.query.TableModel;
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -54,6 +58,8 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
 
     protected int[] updateStatementPropertyTypes; //Required for Derby LOBs
     protected int[] insertStatementPropertyTypes; //Required for Derby LOBs
+    
+    protected TableModel tableModel;
 
     /**
      * 
@@ -69,17 +75,26 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         xidPrefix = getXidPrefix();
 
         // generate SQL statements
-
         String selectAll = "SELECT ";
         String insert = "INSERT INTO " + tableName + " (";
         String insertValues = "";
         String update = "UPDATE " + tableName + " SET ";
-        
+
+        //Map of properties to their QueryAttribute
+		Map<String, QueryAttribute> attributeMap = new HashMap<String, QueryAttribute>();
+
         Set<String> properties = this.propertyTypeMap.keySet();
         // don't the first property - "id", in the insert statements
         int i=0;
         for (String prop : properties) {
-
+        	
+        	//Add this attribute
+        	QueryAttribute attribute = new QueryAttribute();
+        	attribute.setColumnName(this.tablePrefix + prop);
+        	attribute.addAlias(prop);
+        	attribute.setSqlType(this.propertyTypeMap.get(prop));
+        	attributeMap.put(prop, attribute);
+        	
         	String selectPrefix = (i == 0) ? this.tablePrefix : "," + this.tablePrefix;
             selectAll += selectPrefix + prop;
 
@@ -173,8 +188,32 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         }
         
         if((getPkColumnName() != null)&&(this.propertyTypeMap.get(getPkColumnName()) != null)){
-       		this.updateStatementPropertyTypes[j] =  this.propertyTypeMap.get(getPkColumnName());
+        	Integer pkType = this.propertyTypeMap.get(getPkColumnName());
+       		this.updateStatementPropertyTypes[j] =  pkType;
+       		attributeMap.put(getPkColumnName(), new QueryAttribute(getPkColumnName(), "id", new HashSet<String>(), pkType));
         }
+        
+		
+		//Sort the properties 
+		Iterator<String> propertyMapIterator = this.propertiesMap.keySet().iterator();	
+        while(propertyMapIterator.hasNext()){
+        	String propertyName = propertyMapIterator.next();
+        	IntStringPair pair = this.propertiesMap.get(propertyName);
+        	
+        	QueryAttribute attribute = attributeMap.get(pair.getValue());
+        	if(attribute != null){
+        		attribute.addAlias(propertyName);
+        	}else{
+        		QueryAttribute newAttribute = new QueryAttribute();
+        		newAttribute.setColumnName(pair.getValue());
+        		newAttribute.setSqlType(pair.getKey());
+        		newAttribute.addAlias(propertyName);
+        		attributeMap.put(propertyName, newAttribute);
+        	}
+        }
+        
+		//Create the model
+		this.tableModel = new TableModel(this.getTableName(), new ArrayList<QueryAttribute>(attributeMap.values()));
 
     }
 
@@ -568,5 +607,12 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         
     	
     }
+
+	/**
+	 * @return
+	 */
+	public TableModel getTableModel() {
+		return tableModel;
+	}
  
 }
