@@ -46,6 +46,11 @@ abstract public class Importer {
         importers.add(importer);
     }
 
+    protected void addFailureMessage(ProcessMessage message){
+    	success = false;
+        failureMessages.add(message);
+    }
+    
     protected void addFailureMessage(String key, Object... params) {
         success = false;
         failureMessages.add(new ProcessMessage(key, params));
