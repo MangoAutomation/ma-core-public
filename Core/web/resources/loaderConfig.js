@@ -111,6 +111,10 @@ var config = {
 };
 
 if (loader === 'RequireJS') {
+    config.paths.dojo = 'amd/dojo';
+    config.paths.dijit = 'amd/dijit';
+    config.paths.dojox = 'amd/dojox';
+    
     // export require to global scope
     root.require = config;
 }

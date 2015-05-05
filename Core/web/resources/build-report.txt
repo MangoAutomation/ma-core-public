@@ -1,4 +1,4 @@
-Build started: Mon Mar 16 2015 19:27:01 GMT+1100 (EST)
+Build started: Tue May 05 2015 16:17:31 GMT+1000 (AEST)
 Build application version: 1.10.4 (37e1249)
 Messages:
 info(100) Assumed module uses legacy loader API.
@@ -3665,15 +3665,20 @@ info(102) Optimizing module
 	module: dstore/Request
 	module: dstore/Memory
 	module: dstore/Promised
+	module: dstore/LocalDB
 	module: dstore/Store
 	module: dstore/QueryResults
+	module: dstore/db/SQL
+	module: dstore/db/LocalStorage
 	module: dstore/legacy/DstoreAdapter
 	module: dstore/RequestMemory
+	module: dstore/db/has
 	module: dstore/Filter
 	module: dstore/Tree
 	module: dstore/Rest
 	module: dstore/SimpleQuery
 	module: dstore/QueryMethod
+	module: dstore/db/IndexedDB
 	module: dstore/charting/StoreSeries
 	module: dstore/Csv
 	module: dstore/Trackable
@@ -4880,7 +4885,7 @@ info(107) Package Version:
 	package: xstyle; version: 0.3.1
 	package: dojo; version: 1.10.4
 	package: dgrid-0.4; version: 0.4.0
-	package: dstore; version: 1.0.1
+	package: dstore; version: 1.1.0
 	package: put-selector; version: 0.3.6
 warn(216) dojo/has plugin resource could not be resolved during build-time.
 	plugin resource id: dojo-bidi?../bidi/action2d/Tooltip; reference module id: dojox/charting/action2d/Tooltip
@@ -4971,6 +4976,7 @@ warn(224) A plugin dependency was encountered but there was no build-time plugin
 	module: dgrid-0.4/TouchScroll; plugin: xstyle/css
 	module: dgrid-0.4/extensions/ColumnResizer; plugin: xstyle/css
 	module: dgrid-0.4/extensions/DnD; plugin: xstyle/css
+	module: dstore/LocalDB; plugin: dstore/db/has
 Layer Contents:
 dojo/dojo:
 	dojo/_base/declare
@@ -4986,5 +4992,5 @@ dojo/dojo:
 
 Process finished normally
 	errors: 0
-	warnings: 87
-	build time: 131.571 seconds
+	warnings: 88
+	build time: 106.57 seconds

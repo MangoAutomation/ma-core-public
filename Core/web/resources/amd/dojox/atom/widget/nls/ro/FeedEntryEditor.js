@@ -1,0 +1,3 @@
+//>>built
+define({doNew:"[nou]",edit:"[editare]",save:"[salvare]",cancel:"[anulare]"});
+//# sourceMappingURL=FeedEntryEditor.js.map

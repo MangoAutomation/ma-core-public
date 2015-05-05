@@ -1,0 +1,3 @@
+//>>built
+define({CarouselPrevious:"El\u0151z\u0151",CarouselNext:"K\u00f6vetkez\u0151",PageIndicatorLabel:"$0 / $1 oldal"});
+//# sourceMappingURL=messages.js.map
