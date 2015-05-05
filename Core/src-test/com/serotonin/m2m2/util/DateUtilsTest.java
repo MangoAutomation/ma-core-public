@@ -21,7 +21,7 @@ public class DateUtilsTest {
 
 	@Test
 	public void quickTest(){
-		DateTime baseTime = DateTime.parse("2013-02-10T10:34:23.230-07:00");
+		DateTime baseTime = DateTime.parse("2013-02-10T10:34:23.230");
 		
 		int periodType = TimePeriods.MONTHS;
 		int count = 2;
