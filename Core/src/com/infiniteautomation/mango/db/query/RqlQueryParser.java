@@ -16,9 +16,10 @@ import java.util.regex.Pattern;
 public abstract class RqlQueryParser {
 
 	//TODO only works for single sort
-    private static final Pattern SORT_PATTERN = Pattern.compile("sort\\(([\\+-]{1})(.*)\\)");
+    private static final Pattern SORT_PATTERN = Pattern.compile("sort\\(([\\+-])(.+?)(?:,([\\+-])(.+?))*?\\)");
     private static final Pattern LIMIT_PATTERN = Pattern.compile("limit\\((\\d+?)(?:,(\\d+?))?\\)");
-    //private static final Pattern LIKE_PATTERN = Pattern.compile("match\\((?*),(?*)?\\)");
+    private static final Pattern LIKE_PATTERN = Pattern.compile("(?:match|like)\\((.+?),(.+?)\\)");
+    
 	/**
 	 * @param query
 	 * @return
@@ -37,12 +38,14 @@ public abstract class RqlQueryParser {
 				//Sort starts with sort(
 				Matcher matcher = SORT_PATTERN.matcher(part);
 				if(matcher.matches()){
-					//int groupCount = matcher.groupCount();
-					boolean desc = false;
-					if(matcher.group(1).equals("-"))
-						desc = true;
-					SortOption sort = new SortOption(matcher.group(2), desc);
-					sorts.add(sort);
+				    // group(0) is whole match, so can go up to group(matcher.groupCount())
+					for (int i = 1; i <= matcher.groupCount(); i += 2) {
+					    boolean desc = false;
+	                    if(matcher.group(i).equals("-"))
+	                        desc = true;
+	                    SortOption sort = new SortOption(matcher.group(i + 1), desc);
+	                    sorts.add(sort);
+					}
 				}
 			}else if(part.startsWith("limit(")){
 				Matcher matcher = LIMIT_PATTERN.matcher(part);
@@ -57,8 +60,7 @@ public abstract class RqlQueryParser {
 						model.setOffset(Integer.parseInt(offset));
 					}
 				}
-			}else if(part.startsWith("like(")){
-				Pattern LIKE_PATTERN = Pattern.compile("like\\((.*),(.*)?\\)");
+			}else if(part.startsWith("like(") || part.startsWith("match(")){
 				Matcher matcher = LIKE_PATTERN.matcher(part);
 				if(matcher.matches()){
 					String attribute = matcher.group(1);
@@ -70,25 +72,53 @@ public abstract class RqlQueryParser {
 				//Must be Comparison
 				String [] currentComparisons;
 				String[] comparisonParts;
+				QueryComparison comparison;
 				
 				if(part.contains("=gte=")){
 					//Greater than
 					comparisonParts = part.split("=gte=");
-					QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.GREATER_THAN_EQUAL_TO, comparisonParts[1]);
-					andComparisons.add(comparison);
+                    if (comparisonParts.length >= 2) {
+    					comparison = new QueryComparison(comparisonParts[0], QueryComparison.GREATER_THAN_EQUAL_TO, comparisonParts[1]);
+    					andComparisons.add(comparison);
+                    }
 				}else if(part.contains("=gt=")){
 					comparisonParts = part.split("=gt=");
-					QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.GREATER_THAN, comparisonParts[1]);
-					andComparisons.add(comparison);
+                    if (comparisonParts.length >= 2) {
+    					comparison = new QueryComparison(comparisonParts[0], QueryComparison.GREATER_THAN, comparisonParts[1]);
+    					andComparisons.add(comparison);
+                    }
 				}else if(part.contains("=lte=")){
 					comparisonParts = part.split("=lte=");
-					QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.LESS_THAN_EQUAL_TO, comparisonParts[1]);
-					andComparisons.add(comparison);
+                    if (comparisonParts.length >= 2) {
+    					comparison = new QueryComparison(comparisonParts[0], QueryComparison.LESS_THAN_EQUAL_TO, comparisonParts[1]);
+    					andComparisons.add(comparison);
+                    }
 				}else if(part.contains("=lt=")){
 					comparisonParts = part.split("=lt=");
-					QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.LESS_THAN, comparisonParts[1]);
-					andComparisons.add(comparison);
-				}else{
+                    if (comparisonParts.length >= 2) {
+    					comparison = new QueryComparison(comparisonParts[0], QueryComparison.LESS_THAN, comparisonParts[1]);
+    					andComparisons.add(comparison);
+                    }
+				} else if (part.contains("=like=")) {
+				    comparisonParts = part.split("=like=");
+                    if (comparisonParts.length >= 2) {
+                        comparison = new QueryComparison(comparisonParts[0], QueryComparison.LIKE, comparisonParts[1]);
+                        andComparisons.add(comparison);
+                    } else if (comparisonParts.length == 1) {
+                        comparison = new QueryComparison(comparisonParts[0], QueryComparison.LIKE, "");
+                        andComparisons.add(comparison);
+                    }
+				} else if (part.contains("=match=")) {
+				    comparisonParts = part.split("=match=");
+				    if (comparisonParts.length >= 2) {
+                        comparison = new QueryComparison(comparisonParts[0], QueryComparison.LIKE, comparisonParts[1]);
+                        andComparisons.add(comparison);
+                    } else if (comparisonParts.length == 1) {
+                        comparison = new QueryComparison(comparisonParts[0], QueryComparison.LIKE, "");
+                        andComparisons.add(comparison);
+                    }
+				}
+				else{
 					//Simple Equals
 					if(part.contains("|")){
 						//Going to use OR, 
@@ -100,14 +130,14 @@ public abstract class RqlQueryParser {
 						for(String currentComparison : currentComparisons){
 							comparisonParts = currentComparison.split("=");
 							//TODO Allow nesting so we would make a recursive call on the parts here
-							QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.EQUAL_TO, comparisonParts[1]);
+							comparison = new QueryComparison(comparisonParts[0], QueryComparison.EQUAL_TO, comparisonParts[1]);
 							orComparisons.add(comparison);
 						}
 					}else{
 						comparisonParts = part.split("=");
 						if(comparisonParts.length == 2){
 							//Must be simple equals
-							QueryComparison comparison = new QueryComparison(comparisonParts[0], QueryComparison.EQUAL_TO, comparisonParts[1]);
+							comparison = new QueryComparison(comparisonParts[0], QueryComparison.EQUAL_TO, comparisonParts[1]);
 							andComparisons.add(comparison);
 						}
 					}

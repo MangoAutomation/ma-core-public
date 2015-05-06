@@ -282,7 +282,7 @@ public class QueryComparison {
                 	sql.append("lower(");
                 	sql.append(column);
                 	sql.append(") LIKE '");
-                	sql.append(condition.toLowerCase());
+                	sql.append(condition.toLowerCase().replace("*", "%"));
                 	sql.append("'");
                 break;
                 case DERBY:
