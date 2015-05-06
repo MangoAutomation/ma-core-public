@@ -14,9 +14,9 @@ import java.util.regex.Pattern;
  *
  */
 public abstract class RqlQueryParser {
-
-	//TODO only works for single sort
-    private static final Pattern SORT_PATTERN = Pattern.compile("sort\\(([\\+-])(.+?)(?:,([\\+-])(.+?))*?\\)");
+    private static final Pattern SORT_PATTERN = Pattern.compile("sort\\((.+?)\\)");
+    private static final Pattern SORT_FIELD_PATTERN = Pattern.compile("([\\+-])?(.+?)(?:,|$)");
+    
     private static final Pattern LIMIT_PATTERN = Pattern.compile("limit\\((\\d+?)(?:,(\\d+?))?\\)");
     private static final Pattern LIKE_PATTERN = Pattern.compile("(?:match|like)\\((.+?),(.+?)\\)");
     
@@ -38,14 +38,21 @@ public abstract class RqlQueryParser {
 				//Sort starts with sort(
 				Matcher matcher = SORT_PATTERN.matcher(part);
 				if(matcher.matches()){
-				    // group(0) is whole match, so can go up to group(matcher.groupCount())
-					for (int i = 1; i <= matcher.groupCount(); i += 2) {
-					    boolean desc = false;
-	                    if(matcher.group(i).equals("-"))
-	                        desc = true;
-	                    SortOption sort = new SortOption(matcher.group(i + 1), desc);
-	                    sorts.add(sort);
-					}
+				    String fields = matcher.group(1);
+				    matcher = SORT_FIELD_PATTERN.matcher(fields);
+				    
+				    while (matcher.find()) {
+				        String direction = matcher.group(1);
+                        String field = matcher.group(2);
+				        
+				        boolean desc = false;
+				        if (direction != null && direction.equals("-")) {
+                            desc = true;
+				        }
+				        
+				        SortOption sort = new SortOption(field, desc);
+                        sorts.add(sort);
+				    }
 				}
 			}else if(part.startsWith("limit(")){
 				Matcher matcher = LIMIT_PATTERN.matcher(part);
