@@ -12,8 +12,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
@@ -30,7 +28,7 @@ import com.serotonin.m2m2.web.servlet.StatusServlet;
  *
  */
 public class StartupContextHandler extends ResourceHandler{
-    private final Log LOG = LogFactory.getLog(StartupContextHandler.class);
+    //private final Log LOG = LogFactory.getLog(StartupContextHandler.class);
 	private final String STARTUP_PAGE_TEMPLATE = "startupTemplate.htm";
 	private final static int PAGE = 1;
 	private final static int RESOURCE = 2;
@@ -40,8 +38,6 @@ public class StartupContextHandler extends ResourceHandler{
 	private String pageTemplate;
 	
 	public StartupContextHandler() throws IOException{
-//		byte[] fileData = Files.readAllBytes(Paths.get(Common.MA_HOME +  "/" + Constants.DIR_WEB +"/"+ STARTUP_PAGE_TEMPLATE));
-//		pageTemplate = new String(fileData, Common.UTF8_CS);
 		setBaseResource(new OverridingFileResource(Resource.newResource(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB),
                 Resource.newResource(Common.MA_HOME + "/" + Constants.DIR_WEB)));
 		this.statusServlet = new StatusServlet();

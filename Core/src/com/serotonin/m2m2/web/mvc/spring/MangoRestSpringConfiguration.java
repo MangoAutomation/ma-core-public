@@ -20,7 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -35,12 +34,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JUnitModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 
 /**
+ * Scan the rest packages and create a Spring Context for them
+ * Exclude the swagger classes as they is in a separate context.
+ * 
  * @author Terry Packer
  * 
  */
 @Configuration
-@EnableWebMvc
-// Scan for the Rest Controller and Exclude swagger
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
