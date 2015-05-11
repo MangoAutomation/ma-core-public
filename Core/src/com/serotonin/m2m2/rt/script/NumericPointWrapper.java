@@ -41,6 +41,17 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         return pvt.getDoubleValue();
     }
 
+    /**
+     * convenience for calculate seems like kwh p.value-p.ago(HOUR,1)
+     * @param periodType
+     * @param count
+     * @return
+     */
+    public double difvalue(int periodType, int count)
+    {
+    	return getValue()-ago(periodType, count);   	
+    }
+    
     public AnalogStatisticsWrapper past(int periodType) {
         return past(periodType, 1);
     }
