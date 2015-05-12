@@ -25,7 +25,7 @@ public abstract class RqlQueryParser {
 	 * @return
 	 */
 	protected QueryModel parseRQL(String query) {
-
+		
 		String[] parts = query == null ? new String[]{} : query.split("&");
 		QueryModel model = new QueryModel();
 		List<QueryComparison> orComparisons = new ArrayList<QueryComparison>();
