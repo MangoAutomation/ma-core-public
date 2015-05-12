@@ -1,20 +1,6 @@
-/*
- * TinyTSDB - Copyright (C) 2014 Matthew Lohbihler.
- * 
- * This file is part of TinyTSDB.
- * 
- * TinyTSDB is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * TinyTSDB is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with TinyTSDB. If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
+ * @author Matthew Lohbihler.
  */
 package com.serotonin.m2m2.db.dao.nosql;
 
