@@ -27,6 +27,12 @@ import com.serotonin.m2m2.vo.DataPointVO.PlotTypes;
  *
  */
 public class DefaultDataPointPropertiesTemplateFactory {
+	
+	private static final String ALPHANUMERIC_XID = "Alphanumeric_Default";
+	private static final String NUMERIC_XID = "Numeric_Default";
+	private static final String BINARY_XID = "Binary_Default";
+	private static final String MULTISTATE_XID = "Multistate_Default";
+	
 
     /**
 	 * Save the Default Templates
@@ -66,7 +72,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 	
 	protected DataPointPropertiesTemplateVO createDefaultAlphanumericTemplate(){
 		DataPointPropertiesTemplateVO defaultAlphanumericPointTemplate = new DataPointPropertiesTemplateVO();
-		defaultAlphanumericPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
+		defaultAlphanumericPointTemplate.setXid(ALPHANUMERIC_XID);
 		defaultAlphanumericPointTemplate.setName("Alphanumeric");
 		defaultAlphanumericPointTemplate.setDataTypeId(DataTypes.ALPHANUMERIC);
 		defaultAlphanumericPointTemplate.setDefaultTemplate(true);
@@ -85,6 +91,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 	
 	protected DataPointPropertiesTemplateVO createDefaultBinaryTemplate(){
 		DataPointPropertiesTemplateVO defaultBinaryPointTemplate = new DataPointPropertiesTemplateVO();
+		defaultBinaryPointTemplate.setXid(BINARY_XID);
 		defaultBinaryPointTemplate.setName("Binary");
 		defaultBinaryPointTemplate.setDataTypeId(DataTypes.BINARY);
 		defaultBinaryPointTemplate.setDefaultTemplate(true);
@@ -109,6 +116,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 	
 	protected DataPointPropertiesTemplateVO createDefaultMultistateTemplate(){
 		DataPointPropertiesTemplateVO defaultMultistatePointTemplate = new DataPointPropertiesTemplateVO();
+		defaultMultistatePointTemplate.setXid(MULTISTATE_XID);
 		defaultMultistatePointTemplate.setName("Multistate");
 		defaultMultistatePointTemplate.setDataTypeId(DataTypes.MULTISTATE);
 		defaultMultistatePointTemplate.setDefaultTemplate(true);
@@ -128,6 +136,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 	
 	protected DataPointPropertiesTemplateVO createDefaultNumericTemplate(){
 		DataPointPropertiesTemplateVO defaultNumericPointTemplate = new DataPointPropertiesTemplateVO();
+		defaultNumericPointTemplate.setXid(NUMERIC_XID);
 		defaultNumericPointTemplate.setName("Numeric");
 		defaultNumericPointTemplate.setDefaultTemplate(true);
 		defaultNumericPointTemplate.setDataTypeId(DataTypes.NUMERIC);
