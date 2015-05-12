@@ -260,8 +260,8 @@ public class EventManager implements ILifecycle {
 			evt = remove(type);
 		}
 
-		if (log.isDebugEnabled())
-			log.debug("Event returned to normal: type=" + type);
+		if (log.isTraceEnabled())
+			log.trace("Event returned to normal: type=" + type);
 	}
 
 	private void deactivateEvent(EventInstance evt, long time, int inactiveCause) {

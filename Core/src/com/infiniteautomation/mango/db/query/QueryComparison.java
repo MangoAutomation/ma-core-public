@@ -50,6 +50,7 @@ public class QueryComparison {
 		COMPARISON_TYPE_CODES.addElement(CONTAINS, "CONTAINS");
 	}
 	
+	private static final String NULL = "null";
 	
 	private String attribute;
 	private int comparisonType;
@@ -105,18 +106,25 @@ public class QueryComparison {
 			column = tablePrefix + column;
 		}
 		
-		switch(sqlType){
-		case Types.VARCHAR:
-		case Types.LONGVARCHAR:
-			return generateStringSql(sql, column);
-		case Types.BOOLEAN:
-			return generateBooleanSql(sql, column);
-		case Types.CHAR: //Binary
-			return generateCharSql(sql, column);
-		case Types.INTEGER:
-			return generateIntegerSql(sql, column);
-		case Types.BIGINT:
-			return generateBigIntegerSql(sql, column);
+		if(condition.equalsIgnoreCase(NULL)){
+			//Catchall for null comparisons
+			sql.append(column);
+			sql.append(" IS ");
+			sql.append(NULL);
+		}else{
+			switch(sqlType){
+			case Types.VARCHAR:
+			case Types.LONGVARCHAR:
+				return generateStringSql(sql, column);
+			case Types.BOOLEAN:
+				return generateBooleanSql(sql, column);
+			case Types.CHAR: //Binary
+				return generateCharSql(sql, column);
+			case Types.INTEGER:
+				return generateIntegerSql(sql, column);
+			case Types.BIGINT:
+				return generateBigIntegerSql(sql, column);
+			}
 		}
         return sql.toString();
 	}	
@@ -308,8 +316,9 @@ public class QueryComparison {
 	 * @return
 	 */
 	private String generateBigIntegerSql(StringBuilder sql, String column) {
-		//We could either be a Date or a Long
+		//We could either be a Date or a Long or Null
 		String bigIntString;
+
 		try{
 			Long.parseLong(condition);
 			bigIntString = condition;
@@ -324,6 +333,7 @@ public class QueryComparison {
 				return " FAIL! ";
 			}
 		} 
+
 		
 		switch(comparisonType){
 			case GREATER_THAN:
