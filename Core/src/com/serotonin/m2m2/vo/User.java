@@ -56,7 +56,7 @@ public class User implements SetPointSource, HttpSessionBindingListener /* , Jso
     @JsonProperty
     private boolean muted = true;
     @JsonProperty
-    private String permissions;
+    private String permissions = "user"; //Default group
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
