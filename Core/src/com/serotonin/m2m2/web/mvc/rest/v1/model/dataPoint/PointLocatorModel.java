@@ -35,31 +35,31 @@ public abstract class PointLocatorModel<T extends PointLocatorVO> extends Abstra
     
     
 	@JsonGetter("dataType")
-	@CSVColumnGetter(order=10, header="dataType")
+	@CSVColumnGetter(order=15, header="dataType")
 	public String getDataTypeId() {
 	    return DataTypes.CODES.getCode(this.data.getDataTypeId());
 	}
 
 	@JsonSetter("dataType")
-	@CSVColumnSetter(order=10, header="dataTypeId")
+	@CSVColumnSetter(order=15, header="dataType")
 	public void setDataTypeId(String dataType) { } //No Op
 
 	@JsonGetter("settable")
-	@CSVColumnGetter(order=11, header="settable")
+	@CSVColumnGetter(order=16, header="settable")
 	public boolean isSettable() {
 	    return this.data.isSettable();
 	}
 
 	@JsonSetter("settable")
-	@CSVColumnSetter(order=11, header="settable")
+	@CSVColumnSetter(order=16, header="settable")
 	public void setSettable(boolean settable) { } //No Op
 	
-	@CSVColumnGetter(order=12, header="relinquishable")
+	@CSVColumnGetter(order=17, header="relinquishable")
     @JsonGetter("relinquishable")
     public boolean isRelinquishable(){
     	return this.data.isRelinquishable();
     }
-	@CSVColumnSetter(order=12, header="relinquishable")
+	@CSVColumnSetter(order=17, header="relinquishable")
     @JsonGetter("relinquishable")
     public void setRelinquishable(boolean relinquishable){
     	
