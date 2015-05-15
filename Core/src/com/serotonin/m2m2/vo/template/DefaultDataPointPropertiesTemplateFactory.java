@@ -94,7 +94,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultBinaryPointTemplate.setName("Binary");
 		defaultBinaryPointTemplate.setDataTypeId(DataTypes.BINARY);
 		defaultBinaryPointTemplate.setDefaultTemplate(true);
-		defaultBinaryPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
 		defaultBinaryPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
 		defaultBinaryPointTemplate.setChartColour("blue");
 		defaultBinaryPointTemplate.setPlotType(PlotTypes.STEP);
@@ -118,7 +117,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultMultistatePointTemplate.setName("Multistate");
 		defaultMultistatePointTemplate.setDataTypeId(DataTypes.MULTISTATE);
 		defaultMultistatePointTemplate.setDefaultTemplate(true);
-		defaultMultistatePointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
 		defaultMultistatePointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
 		defaultMultistatePointTemplate.setChartColour("green");
 		defaultMultistatePointTemplate.setPlotType(PlotTypes.STEP);
@@ -137,7 +135,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultNumericPointTemplate.setName("Numeric");
 		defaultNumericPointTemplate.setDefaultTemplate(true);
 		defaultNumericPointTemplate.setDataTypeId(DataTypes.NUMERIC);
-		defaultNumericPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
 		defaultNumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
 		defaultNumericPointTemplate.setChartColour("black");
 		defaultNumericPointTemplate.setPlotType(PlotTypes.SPLINE);
