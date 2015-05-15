@@ -66,6 +66,7 @@ public class DBConvert {
         tableNames.add("mailingLists");
         tableNames.add("mailingListInactive");
         tableNames.add("mailingListMembers");
+        tableNames.add("templates");
         tableNames.add("dataSources");
         tableNames.add("dataPoints");
         tableNames.add("pointValues");
