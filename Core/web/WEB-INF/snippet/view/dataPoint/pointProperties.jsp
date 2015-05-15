@@ -174,21 +174,11 @@
 	dataTypeChangedCallbacks.push(resetPointProperties);
 
 	function disablePointProperties(dataTypeId) {
-		unitPicker.set('disabled', true);
-		renderedUnitPicker.set('disabled', true);
-		integralUnitPicker.set('disabled', true);
-		dijit.byId('useRenderedUnit').set('disabled', true);
-		dijit.byId('useIntegralUnit').set('disabled', true);
 		setDisabled('chartColour', true);
 		setDisabled('plotType', true);
 	}
 	
 	function enablePointProperties(dataTypeId) {
-		unitPicker.set('disabled', false);
-		renderedUnitPicker.set('disabled', false);
-		integralUnitPicker.set('disabled', false);
-		dijit.byId('useRenderedUnit').set('disabled', false);
-		dijit.byId('useIntegralUnit').set('disabled', false);
 		setDisabled('chartColour', false);
 		setDisabled('plotType', false);
 		resetPointProperties(dataTypeId);

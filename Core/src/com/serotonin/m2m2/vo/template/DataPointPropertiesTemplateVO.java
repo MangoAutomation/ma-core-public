@@ -9,8 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
-import javax.measure.unit.Unit;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.InvalidArgumentException;
@@ -25,7 +23,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -47,14 +44,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     private int dataTypeId  = DataTypes.NUMERIC;
     
 	/* Point Properties */
-    @JsonProperty
-    private String unit = new String();
-	
-    private boolean useIntegralUnit = false;
-    private String integralUnit = new String();
-    
-    private boolean useRenderedUnit = false;
-	private String renderedUnit = new String();
 	
     @JsonProperty
     private String chartColour;
@@ -126,46 +115,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
 	public void setDataTypeId(int dataTypeId) {
 		this.dataTypeId = dataTypeId;
-	}
-
-	public String getUnit() {
-		return unit;
-	}
-
-	public void setUnit(String unit) {
-		this.unit = unit;
-	}
-
-	public boolean isUseIntegralUnit() {
-		return useIntegralUnit;
-	}
-
-	public void setUseIntegralUnit(boolean useIntegralUnit) {
-		this.useIntegralUnit = useIntegralUnit;
-	}
-
-	public String getIntegralUnit() {
-		return integralUnit;
-	}
-
-	public void setIntegralUnit(String integralUnit) {
-		this.integralUnit = integralUnit;
-	}
-
-	public boolean isUseRenderedUnit() {
-		return useRenderedUnit;
-	}
-
-	public void setUseRenderedUnit(boolean useRenderedUnit) {
-		this.useRenderedUnit = useRenderedUnit;
-	}
-
-	public String getRenderedUnit() {
-		return renderedUnit;
-	}
-
-	public void setRenderedUnit(String renderedUnit) {
-		this.renderedUnit = renderedUnit;
 	}
 
 	public String getChartColour() {
@@ -325,11 +274,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
         
         /* Point Properties */
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.unit", unit);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.useIntegralUnit", useIntegralUnit);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.integralUnit", integralUnit);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.useRenderedUnit", useRenderedUnit);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.renderedUnit", renderedUnit);
         AuditEventType.addPropertyMessage(list, "pointEdit.props.chartColour", chartColour);
         AuditEventType.addExportCodeMessage(list, "pointEdit.plotType", DataPointVO.PLOT_TYPE_CODES, plotType);
 
@@ -372,12 +316,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
         
         /* Point Properties */
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.unit", from.unit,
-                unit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.useIntegralUnit", from.useIntegralUnit, useIntegralUnit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.integralUnit", from.integralUnit, integralUnit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.useRenderedUnit", from.useRenderedUnit, useRenderedUnit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.renderedUnit", from.renderedUnit, renderedUnit);
         AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.chartColour", from.chartColour, chartColour);
         AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.plotType", DataPointVO.PLOT_TYPE_CODES, from.plotType,plotType);
 
@@ -481,51 +419,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         if (plotType != DataPointVO.PlotTypes.STEP && dataTypeId != DataTypes.NUMERIC)
             response.addContextualMessage("plotType", "validate.invalidValue");
 
-        //Validate the unit
-        try {
-            UnitUtil.parseLocal(this.unit);
-        }
-        catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("unit", "validate.unitInvalid", ((IllegalArgumentException) e).getCause()
-                        .getMessage());
-            }
-            else {
-                response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
-            }
-
-        }
-
-        try {
-            if (!validateIntegralUnit()) {
-                response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
-            }
-        }
-        catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("integralUnit", "validate.unitInvalid", ((IllegalArgumentException) e)
-                        .getCause().getMessage());
-            }
-            else {
-                response.addContextualMessage("integralUnit", "validate.unitInvalid", e.getMessage());
-            }
-        }
-
-        try {
-            if (!validateRenderedUnit()) {
-                response.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
-            }
-        }
-        catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("renderedUnit", "validate.unitInvalid", ((IllegalArgumentException) e)
-                        .getCause().getMessage());
-            }
-            else {
-                response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
-            }
-        }
-
         if (overrideIntervalLoggingSamples) {
             if (intervalLoggingSampleWindowSize <= 0) {
                 response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
@@ -533,56 +426,18 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         }
     }
     
-    /**
-     * Validate the Integral Unit
-     * Setting a default if its not enabled
-     * 
-     * @return
-     */
-    public boolean validateIntegralUnit() {
-        if (!useIntegralUnit) {
-            return true;
-        }
 
-        // integral unit should have same dimensions as the default integrated unit
-        if (integralUnit == null)
-            return false;
-        
-        Unit<?> iUnit = UnitUtil.parseLocal(integralUnit);
-        return iUnit.isCompatible(UnitUtil.parseLocal(unit));
-    }
-
-    /**
-     * Validate the Rendered Unit against the unit
-     * @return
-     */
-    public boolean validateRenderedUnit() {
-        if (!useRenderedUnit) {
-            return true;
-        }
-
-        if (renderedUnit == null)
-            return false;
-
-        Unit<?> rUnit = UnitUtil.parseLocal(renderedUnit);
-        return rUnit.isCompatible(UnitUtil.parseLocal(unit));
-    }
     //
     //
     // Serialization
     //
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeBoolean(defaultTemplate);
         out.writeInt(dataTypeId);
         /* Point Properties */
-        SerializationHelper.writeSafeUTF(out, unit);
-        out.writeBoolean(useIntegralUnit);
-        SerializationHelper.writeSafeUTF(out, integralUnit);
-        out.writeBoolean(useRenderedUnit);
-        SerializationHelper.writeSafeUTF(out, renderedUnit);
         SerializationHelper.writeSafeUTF(out, chartColour);
         out.writeInt(plotType);
         /* Logging Properties */
@@ -615,11 +470,11 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	/* Point Properties */
         	defaultTemplate = in.readBoolean();
         	dataTypeId = in.readInt();
-        	unit = SerializationHelper.readSafeUTF(in);
-        	useIntegralUnit = in.readBoolean();
-        	integralUnit = SerializationHelper.readSafeUTF(in);
-        	useRenderedUnit = in.readBoolean();
-        	renderedUnit = SerializationHelper.readSafeUTF(in);
+        	SerializationHelper.readSafeUTF(in); //unit
+        	in.readBoolean(); //useIntegralUnit
+        	SerializationHelper.readSafeUTF(in); //integralUnit
+        	in.readBoolean(); //useRenderedUnit
+        	SerializationHelper.readSafeUTF(in); //renderedUnit
         	chartColour = SerializationHelper.readSafeUTF(in);
         	plotType = in.readInt();
         	/* Logging Properties */
@@ -641,7 +496,33 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
+        }else if (ver == 2) {
+            	/* Point Properties */
+            	defaultTemplate = in.readBoolean();
+            	dataTypeId = in.readInt();
+            	chartColour = SerializationHelper.readSafeUTF(in);
+            	plotType = in.readInt();
+            	/* Logging Properties */
+            	loggingType = in.readInt();
+            	tolerance = in.readDouble();
+            	discardExtremeValues = in.readBoolean();
+            	discardLowLimit = in.readDouble();
+            	discardHighLimit = in.readDouble();
+            	intervalLoggingType = in.readInt();
+            	intervalLoggingPeriodType = in.readInt();
+            	intervalLoggingPeriod = in.readInt();
+            	overrideIntervalLoggingSamples = in.readBoolean();
+            	intervalLoggingSampleWindowSize = in.readInt();
+            	defaultCacheSize = in.readInt();
+            	/* Purge Override Settings */
+            	purgeOverride = in.readBoolean();
+            	purgeType = in.readInt();
+            	purgePeriod = in.readInt();
+            	
+                textRenderer = (TextRenderer) in.readObject();
+                chartRenderer = (ChartRenderer) in.readObject();
         }
+
     }
 
     @Override
@@ -655,12 +536,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         writer.writeEntry("purgeType", Common.TIME_PERIOD_CODES.getCode(purgeType));
         writer.writeEntry("plotType", DataPointVO.PLOT_TYPE_CODES.getCode(plotType));
 
-        writer.writeEntry("unit", unit);
-
-        if (useIntegralUnit)
-            writer.writeEntry("integralUnit", integralUnit);
-        if (useRenderedUnit)
-            writer.writeEntry("renderedUnit", renderedUnit);
     }
 
     @Override
@@ -718,20 +593,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                         Common.TIME_PERIOD_CODES.getCodeList());
         }
 
-        unit = jsonObject.getString("unit");
-
-        integralUnit = jsonObject.getString("integralUnit");
-        if(integralUnit != null)
-        	useIntegralUnit = true;
-        else
-        	useIntegralUnit = false;
-
-        renderedUnit = jsonObject.getString("renderedUnit");
-        if (renderedUnit != null) 
-            useRenderedUnit = true;
-        else
-        	useRenderedUnit = false;
-
         text = jsonObject.getString("plotType");
         if (text != null) {
             plotType = DataPointVO.PLOT_TYPE_CODES.getId(text);
@@ -746,25 +607,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
      * @param vo
      */
 	public void updateDataPointVO(DataPointVO vo){
-		
+
 		/* Point Properties */
-		if(unit == null)
-			vo.setUnit(UnitUtil.parseLocal(new String()));
-		else
-			vo.setUnit(UnitUtil.parseLocal(getUnit()));
-			
-		vo.setUseIntegralUnit(isUseIntegralUnit());
-		if(integralUnit == null)
-			vo.setIntegralUnit(UnitUtil.parseLocal(new String()));
-		else
-			vo.setIntegralUnit(UnitUtil.parseLocal(getIntegralUnit()));
-			
-		vo.setUseRenderedUnit(isUseRenderedUnit());
-		if(renderedUnit == null)
-			vo.setRenderedUnit(UnitUtil.parseLocal(new String()));
-		else
-			vo.setRenderedUnit(UnitUtil.parseLocal(getRenderedUnit()));
-			
 		vo.setChartColour(getChartColour());
 		vo.setPlotType(getPlotType());
 		
@@ -804,11 +648,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		this.setDataTypeId(vo.getPointLocator().getDataTypeId());
 		
 		/* Point Properties */
-		this.setUnit(UnitUtil.formatLocal(vo.getUnit()));
-		this.setUseIntegralUnit(vo.isUseIntegralUnit());
-		this.setIntegralUnit(UnitUtil.formatLocal(vo.getIntegralUnit()));
-		this.setUseRenderedUnit(vo.isUseRenderedUnit());
-		this.setRenderedUnit(UnitUtil.formatLocal(vo.getRenderedUnit()));
 		this.setChartColour(vo.getChartColour());
 		this.setPlotType(vo.getPlotType());
 		

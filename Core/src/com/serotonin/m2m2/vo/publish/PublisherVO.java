@@ -246,7 +246,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
      * Allows the data source to provide custom context data to its own editing page. Can be used for things like lists
      * of comm ports and such. See DataSourceEditController.
      */
-    public void addEditContext(@SuppressWarnings("unused") Map<String, Object> model) {
+    public void addEditContext(Map<String, Object> model) {
         // No op. Override as required.
     }
 

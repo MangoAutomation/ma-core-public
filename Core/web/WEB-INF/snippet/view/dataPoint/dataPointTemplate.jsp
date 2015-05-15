@@ -45,9 +45,9 @@
 <div data-dojo-type="dijit.Dialog" id="newTemplateDialog"
   title="<fmt:message key='template.saveNew'/>" style="width: 300px">
   <div class="dijitDialogPaneContentArea">
-    <label for='templateName'>
-      <fmt:message key="common.name" />  
-    </label><input id='templateName'
+    <label for='templateXid'>
+      <fmt:message key="common.xid" />  
+    </label><input id='templateXid'
       type='text' />
   </div>
   <div class="dijitDialogPaneActionBar">
@@ -80,11 +80,11 @@
       <tbody id="templateChangeAffectsPointsList"></tbody>
     </table>
     </div>
-    <div style="width: 200px; margin: 5px auto">
-      <label for='updateTemplateName'>
-        <fmt:message key="pointEdit.template.templateName" />
+    <div style="width: 300px; margin: 5px auto">
+      <label for='updateTemplateXid'>
+        <fmt:message key="common.xid" />
       </label>
-      <input id='updateTemplateName'type='text' />
+      <input id='updateTemplateXid'type='text' />
     </div>
   </div>
   <div class="dijitDialogPaneActionBar">
@@ -101,12 +101,12 @@
 
 	function showNewTemplateDialog() {
 		dijit.byId('newTemplateDialog').show();
-		$set('templateName',"");
+		$set('templateXid',"");
 	}
 	function showUpdateTemplateDialog() {
 		var template = dataPointTemplatePicker.item;
 		if(template != null)
-			$set('updateTemplateName', template.name);
+			$set('updateTemplateXid', template.xid);
 		dijit.byId('updateTemplateDialog').show();
 	}
 	//Global variables used on the page
@@ -129,7 +129,7 @@
 		//Create the store
 		dataPointTemplatesList = new dojo.store.Memory({
 			idProperty : "id",
-			valueProperty : "name",
+			valueProperty : "xid",
 			data : []
 		});
 
@@ -139,6 +139,8 @@
 					store : dataPointTemplatesList,
 					autoComplete : false,
 					style : "width: 250px;",
+					name: "xid",
+					searchAttr: "xid",
 					queryExpr : "*\${0}*",
 					highlightMatch : "all",
 					required : false,
@@ -352,7 +354,7 @@
 		//Check to see that something is selected
 		if (template != null) {
 			//Set the name
-			template.name = $get('updateTemplateName');
+			template.xid = $get('updateTemplateXid');
 			//Load template info from inputs
 			loadIntoDataPointTemplate(template);
 			//Save the template
@@ -371,6 +373,9 @@
 					hide('updateDataPointTemplateButton');
 					hide('saveNewDataPointTemplateButton');
 					disableDataPointInputs();
+					dataPointTemplatePicker.set('_onChangeActive', false);
+					dataPointTemplatePicker.set('item', template);
+					dataPointTemplatePicker.set('_onChangeActive', true);
 				}
 			});
 		} else {
@@ -394,7 +399,7 @@
 		// then access the module registry and create a new one and return it
 		TemplateDwr.getNewDataPointTemplate(function(response){
 			var template = response.data.vo;
-			template.name = $get('templateName');
+			template.xid = $get('templateXid');
 			//Load the values into the template from the input
 			loadIntoDataPointTemplate(template);
 
@@ -434,10 +439,6 @@
 		template.dataTypeId = dataPointTemplateDataTypeId;
 
 		getPointProperties(template);
-		//Some massaging because our members are slightly different to DataPointVO
-		template.unit = template.unitString;
-		template.renderedUnit = template.renderedUnitString;
-		template.integralUnit = template.integralUnitString;
 
 		getLoggingProperties(template);
 

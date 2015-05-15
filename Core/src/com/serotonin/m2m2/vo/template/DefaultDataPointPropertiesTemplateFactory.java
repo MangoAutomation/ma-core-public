@@ -77,7 +77,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultAlphanumericPointTemplate.setDataTypeId(DataTypes.ALPHANUMERIC);
 		defaultAlphanumericPointTemplate.setDefaultTemplate(true);
 		defaultAlphanumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultAlphanumericPointTemplate.setUnit("");
 		defaultAlphanumericPointTemplate.setChartColour("red");
 		defaultAlphanumericPointTemplate.setPlotType(PlotTypes.STEP);
 		defaultAlphanumericPointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
@@ -97,7 +96,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultBinaryPointTemplate.setDefaultTemplate(true);
 		defaultBinaryPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
 		defaultBinaryPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultBinaryPointTemplate.setUnit("");
 		defaultBinaryPointTemplate.setChartColour("blue");
 		defaultBinaryPointTemplate.setPlotType(PlotTypes.STEP);
 		defaultBinaryPointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
@@ -122,7 +120,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultMultistatePointTemplate.setDefaultTemplate(true);
 		defaultMultistatePointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
 		defaultMultistatePointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultMultistatePointTemplate.setUnit("");
 		defaultMultistatePointTemplate.setChartColour("green");
 		defaultMultistatePointTemplate.setPlotType(PlotTypes.STEP);
 		defaultMultistatePointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
@@ -142,7 +139,6 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultNumericPointTemplate.setDataTypeId(DataTypes.NUMERIC);
 		defaultNumericPointTemplate.setXid(TemplateDao.instance.generateUniqueXid());
 		defaultNumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultNumericPointTemplate.setUnit("");
 		defaultNumericPointTemplate.setChartColour("black");
 		defaultNumericPointTemplate.setPlotType(PlotTypes.SPLINE);
 		defaultNumericPointTemplate.setLoggingType(LoggingTypes.INTERVAL);
