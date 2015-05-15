@@ -26,7 +26,6 @@ import com.serotonin.util.ColorUtils;
  */
 public class SystemSettingsVO implements JsonSerializable{
 	
-	@JsonProperty
 	private String databaseSchemaVersion;
 	@JsonProperty
 	private Boolean newInstance;
@@ -320,6 +319,7 @@ public class SystemSettingsVO implements JsonSerializable{
 	public void jsonRead(JsonReader reader, JsonObject json) throws JsonException {
 		this.emailSmtpPassword = json.getString("emailSmtpPassword");
 		this.httpClientProxyPassword = json.getString("httpClientProxyPassword");
+		
 	}
 
 	/* (non-Javadoc)
@@ -329,6 +329,7 @@ public class SystemSettingsVO implements JsonSerializable{
 	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
 //		writer.writeEntry("emailSmtpPassword", ""); //Intentionally left blank
 //		writer.writeEntry("httpClientProxyPassword", ""); //Intentionally left blank
+		writer.writeEntry("databaseSchemaVersion", databaseSchemaVersion);
 	}
 	
 
