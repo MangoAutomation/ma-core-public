@@ -9,9 +9,10 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.RQLParser;
+
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
-import com.infiniteautomation.mango.db.query.QueryModel;
-import com.infiniteautomation.mango.db.query.RqlQueryParser;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -26,18 +27,20 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public class DataPointQuery extends RqlQueryParser{
+public class DataPointQuery{
 	
 	public static final String CONTEXT_KEY = "DataPointQuery";
 
 	private ScriptPermissions permissions;
 	private ScriptEngine engine;
 	private PointValueSetter setter;
+	private RQLParser parser;
 	
 	public DataPointQuery(ScriptPermissions permissions, ScriptEngine engine, PointValueSetter setter){
 		this.permissions = permissions;
 		this.engine = engine;
 		this.setter = setter;
+		this.parser = new RQLParser();
 	}
 	
 	/**
@@ -46,10 +49,8 @@ public class DataPointQuery extends RqlQueryParser{
 	 * @return
 	 */
 	public List<DataPointWrapper> query(String query){
-		QueryModel model = this.parseRQL(query);
-		
-		BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(model.getOrComparisons(),
-				model.getAndComparisons(), model.getSort(), model.getOffset(), model.getLimit());
+		ASTNode root = parser.parse(query);
+		BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(root);
 		
 		List<DataPointVO> dataPoints = sqlQuery.immediateQuery();
 		

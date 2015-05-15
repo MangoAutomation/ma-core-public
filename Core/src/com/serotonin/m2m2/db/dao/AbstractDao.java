@@ -13,15 +13,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.jazdw.rql.parser.ASTNode;
+
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
-import com.infiniteautomation.mango.db.query.QueryComparison;
+import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
+import com.infiniteautomation.mango.db.query.SQLQueryColumn;
+import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.infiniteautomation.mango.db.query.TableModel;
+import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -539,80 +545,69 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     }
 
     
-    
-    public BaseSqlQuery<T> createQuery(List<QueryComparison> orComparisons,
-    		List<QueryComparison> andComparisons, 
-    		List<SortOption> sort, 
-    		Integer offset, Integer limit){
-    	
-        List<Object> selectArgs = new ArrayList<Object>();
-        List<Object> countArgs = new ArrayList<Object>();
-        
-        String whereClause = generateWhere(selectArgs, orComparisons, andComparisons);
-        String selectSql = SELECT_ALL + whereClause;
-        String countSql = COUNT + whereClause;
-        countArgs.addAll(selectArgs);
-        
-        //Apply the sorts
-        selectSql = applySort(selectSql, sort, selectArgs);
-        
-        //Apply the Range or Limit
-        if(offset != null)
-        	selectSql = applyRange(selectSql, selectArgs, offset, limit);
-        else
-        	selectSql = applyLimit(selectSql, selectArgs, limit);
-
-    	return new BaseSqlQuery<T>(this, selectSql, selectArgs, countSql, countArgs);
-    }
-    
     /**
-     * Create a Streamable Query Object
-     * @param orComparisons
-     * @param andComparisons
-     * @param sort
-     * @param offset
-     * @param limit
-     * @param selectCallback
-     * @param countCallback
+     * 
+     * @param root
      * @return
      */
-    public StreamableSqlQuery<T> createQuery(List<QueryComparison> orComparisons,
-    		List<QueryComparison> andComparisons, 
-    		List<SortOption> sort, 
-    		Integer offset, Integer limit,
-    		MappedRowCallback<T> selectCallback,
-            MappedRowCallback<Long> countCallback){
+    public StreamableSqlQuery<T> createQuery(ASTNode root, MappedRowCallback<T> selectCallback,
+            MappedRowCallback<Long> countCallback, Map<String,String> modelMap, Map<String, SQLColumnQueryAppender> modifiers){
     	
-        List<Object> selectArgs = new ArrayList<Object>();
-        List<Object> countArgs = new ArrayList<Object>();
-        
-        String whereClause = generateWhere(selectArgs, orComparisons, andComparisons);
-        String selectSql = SELECT_ALL + whereClause;
-        String countSql = null;
-        if(countCallback != null){
-        	countSql = COUNT + whereClause;
-        	countArgs.addAll(selectArgs);
-        }
-        
-        //Apply the sorts
-        selectSql = applySort(selectSql, sort, selectArgs);
-        
-        //Apply the Range or Limit
-        if(offset != null)
-        	selectSql = applyRange(selectSql, selectArgs, offset, limit);
-        else
-        	selectSql = applyLimit(selectSql, selectArgs, limit);
-
-        return new StreamableSqlQuery<T>(this, selectSql, selectCallback, selectArgs, countSql, countCallback, countArgs);
-        
+    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT);
+    	root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
     	
+        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
     }
-
+    
+    public BaseSqlQuery<T> createQuery(ASTNode root){
+    	
+    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT);
+    	root.accept(new RQLToSQLSelect<T>(this), statement);
+    	
+    	return new BaseSqlQuery<T>(this, statement);
+    }
+    
+    
 	/**
 	 * @return
 	 */
 	public TableModel getTableModel() {
 		return tableModel;
+	}
+
+	/**
+	 * @param argument
+	 * @return
+	 */
+	public SQLQueryColumn getQueryColumn(String prop) {
+		boolean mapped = false;
+        
+    	Set<String> properties = this.propertyTypeMap.keySet();
+    	String dbCol = prop;
+        //Don't allow filtering on properties with a filter
+        //this will be done after the query
+        if(!filterMap.containsKey(prop)){ 
+        	int sqlType;
+        	if (propertiesMap.containsKey(prop)) {
+        		IntStringPair pair = propertiesMap.get(prop);
+        		dbCol = pair.getValue();
+                sqlType = pair.getKey();
+        		mapped = true;
+            }else{
+            	sqlType = this.propertyTypeMap.get(dbCol);
+            }
+            
+            if (mapped || properties.contains(dbCol)) {
+                if(mapped)
+                	return new SQLQueryColumn(dbCol, sqlType);
+                else
+                	return new SQLQueryColumn(this.tablePrefix + dbCol, sqlType);
+            }
+        }//end if in filter map
+        
+        //TODO Change this to be handled more gracefully
+        //No Column matches...
+        throw new ShouldNeverHappenException("No column found for: " + prop);
 	}
  
 }

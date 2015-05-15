@@ -36,6 +36,23 @@ public class StreamableSqlQuery<VO extends AbstractVO<VO>> extends BaseSqlQuery<
 	 * @param selectArgs
 	 */
 	public StreamableSqlQuery(AbstractDao<VO> dao, 
+			SQLStatement statement, MappedRowCallback<VO> selectCallback, MappedRowCallback<Long> countCallback) {
+		super(dao, statement);
+		
+		this.selectCallback = selectCallback;
+		this.countCallback = countCallback;
+	}
+	
+	
+	/**
+	 * @param dao
+	 * @param selectSql
+	 * @param selectCallback
+	 * @param countSql
+	 * @param countCallback
+	 * @param selectArgs
+	 */
+	public StreamableSqlQuery(AbstractDao<VO> dao, 
 			String selectSql, MappedRowCallback<VO> selectCallback, List<Object> selectArgs,
 			String countSql, MappedRowCallback<Long> countCallback, List<Object> countArgs) {
 		super(dao, selectSql, selectArgs, countSql, countArgs);

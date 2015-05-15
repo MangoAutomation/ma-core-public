@@ -22,7 +22,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -379,87 +378,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         return sql;
     }
     
-
-    /**
-     * TODO Add arguments to args instead of directly into Query String
-     * @param args
-     * @param orComparisons
-     * @param andComparisons
-     * @return
-     */
-    protected String generateWhere(List<Object> args, List<QueryComparison> orComparisons, List<QueryComparison> andComparisons) {
-        String sql = new String();
-    	if((orComparisons.size() > 0) || (andComparisons.size() > 0)){
-    		sql += WHERE;
-    	}else{
-    		return sql;
-    	}
-    	int i=0;
-    	
-    	Set<String> properties = this.propertyTypeMap.keySet();
-
-    	for (QueryComparison parameter : orComparisons) {
-        	String prop = parameter.getAttribute();
-            boolean mapped = false;
-            String dbProp = prop;
-            
-            //Don't allow filtering on properties with a filter
-            //this will be done after the query
-            if(!filterMap.containsKey(prop)){ 
-            	int sqlType;
-            	if (propertiesMap.containsKey(prop)) {
-            		IntStringPair pair = propertiesMap.get(prop);
-            		dbProp = pair.getValue();
-                    sqlType = pair.getKey();
-            		mapped = true;
-                }else{
-                	sqlType = this.propertyTypeMap.get(dbProp);
-                }
-                
-                if (mapped || properties.contains(dbProp)) {
-                    if( i > 0)
-                    	sql += OR;
-                   
-                    if(mapped)
-                    	sql += parameter.generateSql(sqlType, dbProp, "");
-                    else
-                    	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
-                    i++;
-                }
-            }//end if in filter map
-        }    	
-        
-        for (QueryComparison parameter : andComparisons) {
-        	String prop = parameter.getAttribute();
-            boolean mapped = false;
-            String dbProp = prop;
-            
-            //Don't allow filtering on properties with a filter
-            //this will be done after the query
-            if(!filterMap.containsKey(prop)){ 
-            	int sqlType;
-            	if (propertiesMap.containsKey(prop)) {
-                    IntStringPair pair = propertiesMap.get(prop);
-                    dbProp = pair.getValue();
-                    sqlType = pair.getKey();
-                    mapped = true;
-                }else{
-                	sqlType = this.propertyTypeMap.get(prop);
-                }
-                
-                if (mapped || properties.contains(dbProp)) {
-                    if( i > 0)
-                    	sql += AND;
-                    if(mapped)
-                    	sql += parameter.generateSql(sqlType, dbProp, "");
-                    else
-                    	sql += parameter.generateSql(sqlType, dbProp, this.tablePrefix);
-                    i++;
-                }
-            }//end if in filter map
-        }
-        return sql;
-    }
     
     /**
      * Apply The Sort to the Query

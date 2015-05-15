@@ -45,5 +45,4 @@ public class TableModel {
 		this.attributes = attributes;
 	}
 	
-	
 }

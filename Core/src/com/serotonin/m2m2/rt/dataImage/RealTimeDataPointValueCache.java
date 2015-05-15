@@ -6,7 +6,6 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,7 +14,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -101,61 +99,14 @@ public class RealTimeDataPointValueCache {
 	 * @param permissions - String of comma separated permissions used to limit the sort
 	 * @return
 	 */
-	public List<RealTimeDataPointValue> query(List<QueryComparison> andComparisons, List<QueryComparison> orComparisons, 
-			List<SortOption> sorts, Integer limit, String permissions){
+	public List<RealTimeDataPointValue> getUserView(String permissions){
 		List<RealTimeDataPointValue> results = new ArrayList<RealTimeDataPointValue>();
-		
-		boolean keep = true;
+
 		for(RealTimeDataPointValue rtdpv : this.realTimeData){
 			if(!Permissions.hasPermission(rtdpv.getReadPermission(), permissions))
 				continue; //Only query those points we can keep
-			
-			//All must be true to keep
-			for(QueryComparison comparison : andComparisons){
-				try {
-					keep = comparison.apply(rtdpv);
-				} catch (IllegalArgumentException | IllegalAccessException
-						| NoSuchFieldException | NoSuchMethodException | InvocationTargetException | SecurityException e) {
-					LOG.warn("Bad Query attribute", e);
-					keep = false;
-				}
-				if(!keep)
-					break; //We failed to pass our criteria
-			}
-			
-			if(!keep)
-				continue; //We failed so move on to next
-			
-			//Only one must be true to keep
-			if(orComparisons.size() > 0)
-				keep = false;
-			for(QueryComparison comparison : orComparisons){
-				try {
-					keep = comparison.apply(rtdpv);
-				} catch (IllegalArgumentException | IllegalAccessException
-						| NoSuchFieldException | SecurityException | InvocationTargetException | NoSuchMethodException e) {
-					LOG.warn("Bad Query attribute", e);
-					keep = false;
-				}
-			}
-			
-			
-			if(keep)
-				results.add(rtdpv);
-			else
-				keep = true; //reset 
+			results.add(rtdpv);
 		}
-		
-		//Perform the sort
-		for(SortOption sort : sorts){
-			Collections.sort(results, new RealTimeDataComparator(sort));
-		}
-		
-		if(limit!=null){
-			if(results.size() > limit)
-				return results.subList(0, limit);
-		}
-		
 		
 		return results;
 	}

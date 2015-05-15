@@ -38,6 +38,18 @@ public class BaseSqlQuery<VO extends AbstractVO<VO>> {
 		this.countSql = countSql;
 		this.countArgs = countArgs;
 	}
+	
+	public BaseSqlQuery(AbstractDao<VO> dao, 
+			SQLStatement statement){
+		this.dao = dao;
+		
+		this.selectSql = statement.getSelectSql();
+		this.selectArgs = statement.getSelectArgs();
+		
+		this.countSql = statement.getCountSql();
+		this.countArgs = statement.getCountArgs();
+	}
+	
 
 	/**
 	 * Execute the quer
