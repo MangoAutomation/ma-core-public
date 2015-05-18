@@ -67,7 +67,7 @@
         <delete dir="${module.target}/lib" />
         <delete dir="${module.target}/module-classes" />
         <delete dir="${module.target}/work" />
-        <delete dir="${module.target}/work-temp" />
+        <delete dir="${module.target}/work-tmp" />
         <delete dir="${core.target}/web/modules/${name}" />
     </target>
 
