@@ -438,7 +438,9 @@
 		//Set the Data Type ID
 		template.dataTypeId = dataPointTemplateDataTypeId;
 
-		getPointProperties(template);
+		//Not using units anymore getPointProperties(template);
+		template.chartColour = dojo.byId("chartColour").value;
+		template.plotType = dojo.byId("plotType").value;
 
 		getLoggingProperties(template);
 
@@ -458,13 +460,15 @@
 	function loadFromDataPointTemplate(template) {
 
 		//Some massaging because our members are slightly different to DataPointVO
-		template.unitString = template.unit;
-		template.renderedUnitString = template.renderedUnit;
-		template.integralUnitString = template.integralUnit;
 		template.pointLocator = {
 			dataTypeId : template.dataTypeId
 		};
-		setPointProperties(template);
+		
+		//For the point properties (not using units anymore)
+		dojo.byId("chartColour").value = template.chartColour;
+		dojo.byId("plotType").value = template.plotType;
+		
+		
 		setLoggingProperties(template);
 		setTextRenderer(template);
 		setChartRenderer(template);

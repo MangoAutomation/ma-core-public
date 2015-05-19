@@ -206,7 +206,7 @@
         <td class="formLabel"><fmt:message
             key="pointEdit.props.useRenderedUnit" /></td>
         <td class="formField"><input
-          data-dojo-type="dijit/form/CheckBox" id="useRenderedUnit"
+          data-dojo-type="dijit.form.CheckBox" id="useRenderedUnit"
           name="useRenderedUnit" /></td>
       </tr>
       <tr id="renderedUnitSection">
@@ -221,7 +221,7 @@
         <td class="formLabel"><fmt:message
             key="pointEdit.props.useIntegralUnit" /></td>
         <td class="formField"><input
-          data-dojo-type="dijit/form/CheckBox" id="useIntegralUnit"
+          data-dojo-type="dijit.form.CheckBox" id="useIntegralUnit"
           name="useIntegralUnit" /></td>
       </tr>
       <tr id="integralUnitSection">
