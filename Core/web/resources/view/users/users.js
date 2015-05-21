@@ -158,7 +158,7 @@ UsersView.prototype.saveUser = function(){
 	//Get the user info
 	var user = {
 		username: $('#username').val(),
-		password: $('#newPassword').val(),
+		password: $('#password').val(),
 		email: $('#email').val(),
 		phone: $('#phone').val(),
 		disabled: $('#disabled').is(':checked'),
