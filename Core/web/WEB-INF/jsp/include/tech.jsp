@@ -9,4 +9,5 @@
 --%><%@ taglib prefix="m2m2" uri="/WEB-INF/m2m2.tld" %><%--
 --%><%@ taglib prefix="log" uri="http://jakarta.apache.org/taglibs/log-1.0" %><%--
 --%><%@ taglib prefix="sst" uri="http://www.serotoninsoftware.com/tags" %><%--
---%><%@ taglib prefix="tag" tagdir="/WEB-INF/tags" %>
+--%><%@ taglib prefix="tag" tagdir="/WEB-INF/tags" %><%--
+--%><%@ taglib prefix="html5" tagdir="/WEB-INF/tags/html5" %>

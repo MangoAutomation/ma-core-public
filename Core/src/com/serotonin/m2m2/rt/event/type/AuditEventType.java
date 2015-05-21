@@ -41,6 +41,7 @@ public class AuditEventType extends EventType {
     public static final String TYPE_COMPOUND_EVENT_DETECTOR = "COMPOUND_EVENT_DETECTOR";
     public static final String TYPE_TEMPLATE = "TEMPLATE";
     public static final String TYPE_USER_COMMENT = "USER_COMMENT";
+    public static final String TYPE_USER = "USER";
     
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
@@ -52,6 +53,7 @@ public class AuditEventType extends EventType {
         addEventType(TYPE_EVENT_HANDLER, "event.audit.eventHandler");
         addEventType(TYPE_TEMPLATE, "event.audit.template");
         addEventType(TYPE_USER_COMMENT, "event.audit.userComment");
+        addEventType(TYPE_USER, "event.audit.user");
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey());

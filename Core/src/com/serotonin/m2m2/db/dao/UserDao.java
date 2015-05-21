@@ -7,7 +7,9 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,14 +18,29 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.web.taglib.Functions;
 
-public class UserDao extends BaseDao {
-    private static final Log LOG = LogFactory.getLog(UserDao.class);
+public class UserDao extends AbstractBasicDao<User> {
+	
+	public static final UserDao instance = new UserDao();
+	
+    /**
+	 * @param typeName
+	 * @param tablePrefix
+	 * @param extraProperties
+	 * @param extraSQL
+	 */
+	public UserDao() {
+		super(AuditEventType.TYPE_USER, null, new String[0], null);
+	}
+
+	private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final String USER_SELECT = //
     "SELECT id, username, password, email, phone, disabled, homeUrl, " //
@@ -170,4 +187,78 @@ public class UserDao extends BaseDao {
         ejt.update(USER_COMMENT_INSERT, new Object[] { comment.getUserId(), typeId, referenceId, comment.getTs(),
                 comment.getComment() });
     }
+    
+    
+    //Overrides for use in AbstractBasicDao
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
+	 */
+	@Override
+	protected Object[] voToObjectArray(User vo) {
+		return new Object[]{
+				vo.getUsername(),
+				vo.getPassword(),
+				vo.getEmail(),
+				vo.getPhone(),
+				vo.isDisabled(),
+				vo.getHomeUrl(),
+				vo.getLastLogin(),
+				vo.getReceiveAlarmEmails(),
+				vo.isReceiveOwnAuditEvents(),
+				vo.getTimezone(),
+				vo.isMuted(),
+				vo.getPermissions()
+		};
+	}
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
+	 */
+	@Override
+	public RowMapper<User> getRowMapper() {
+		return new UserRowMapper();
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+	 */
+	@Override
+	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+		map.put("id", Types.INTEGER);
+		map.put("username", Types.VARCHAR);
+		map.put("password", Types.VARCHAR);
+		map.put("email", Types.VARCHAR);
+		map.put("phone", Types.VARCHAR);
+		map.put("disabled", Types.CHAR);
+		map.put("homeUrl", Types.VARCHAR);
+		map.put("lastLogin", Types.BIGINT);
+		map.put("receiveAlarmEmails", Types.INTEGER);
+		map.put("receiveOwnAuditEvents", Types.CHAR);
+		map.put("timezone", Types.VARCHAR);
+		map.put("muted", Types.CHAR);
+		map.put("permissions", Types.VARCHAR);
+
+		return map;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
+	 */
+	@Override
+	protected String getTableName() {
+		return "users";
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
+	 */
+	@Override
+	protected Map<String, IntStringPair> getPropertiesMap() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

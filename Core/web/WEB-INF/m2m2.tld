@@ -75,7 +75,16 @@
       <rtexprvalue>true</rtexprvalue>
     </attribute>
   </tag>
-  
+  <tag>
+    <name>moduleDoesNotExist</name>
+    <tag-class>com.serotonin.m2m2.web.taglib.ModuleDoesNotExistTag</tag-class>
+    <body-content>JSP</body-content>
+    <attribute>
+      <name>name</name>
+      <required>true</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag>
   <tag>
     <name>menuItem</name>
     <tag-class>com.serotonin.m2m2.web.taglib.MenuItemTag</tag-class>

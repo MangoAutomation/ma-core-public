@@ -9,17 +9,16 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
 /**
  * @author Terry Packer
  *
  */
-public class BaseSqlQuery<VO extends AbstractVO<VO>> {
+public class BaseSqlQuery<T> {
 	private static final Log LOG = LogFactory.getLog(BaseSqlQuery.class);
 
-	protected AbstractDao<VO> dao;
+	protected AbstractBasicDao<T> dao;
 	
 	protected String selectSql;
 	protected List<Object> selectArgs;
@@ -27,7 +26,7 @@ public class BaseSqlQuery<VO extends AbstractVO<VO>> {
 	protected String countSql;
 	protected List<Object> countArgs;
 
-	public BaseSqlQuery(AbstractDao<VO> dao, 
+	public BaseSqlQuery(AbstractBasicDao<T> dao, 
 			String selectSql, List<Object> selectArgs,
 			String countSql, List<Object> countArgs){
 		this.dao = dao;
@@ -39,7 +38,7 @@ public class BaseSqlQuery<VO extends AbstractVO<VO>> {
 		this.countArgs = countArgs;
 	}
 	
-	public BaseSqlQuery(AbstractDao<VO> dao, 
+	public BaseSqlQuery(AbstractBasicDao<T> dao, 
 			SQLStatement statement){
 		this.dao = dao;
 		
@@ -55,7 +54,7 @@ public class BaseSqlQuery<VO extends AbstractVO<VO>> {
 	 * Execute the quer
 	 * @return
 	 */
-	public List<VO> immediateQuery(){
+	public List<T> immediateQuery(){
 		if(LOG.isDebugEnabled()){
         	LOG.debug("Query: " + selectSql + " \nArgs: " + selectArgs.toString());
         }

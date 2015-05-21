@@ -11,9 +11,10 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
 /**
@@ -23,7 +24,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
  * @author Jared Wiltshire, Terry Packer
  */
-public abstract class AbstractBasicDwr<VO, DAO extends AbstractBasicDao<VO>> extends ModuleDwr {
+public abstract class AbstractBasicDwr<VO extends AbstractVO<VO>, DAO extends AbstractDao<VO>> extends ModuleDwr {
     protected Log LOG;
     protected DAO dao;
     

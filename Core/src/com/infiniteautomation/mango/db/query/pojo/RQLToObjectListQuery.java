@@ -6,7 +6,9 @@ package com.infiniteautomation.mango.db.query.pojo;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.ASTVisitor;
@@ -41,17 +43,16 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
         switch (node.getName()) {
         
         case "and":
-            List<T> matched = new ArrayList<>(data);
             for (Object obj : node) {
-                matched = ((ASTNode) obj).accept(this, matched);
+                data = ((ASTNode) obj).accept(this, data);
             }
-            return matched;
+            return data;
         case "or":
-            List<T> matched2 = new ArrayList<>();
+            Set<T> matched2 = new LinkedHashSet<>();
             for (Object obj : node) {
                 matched2.addAll(((ASTNode) obj).accept(this, data));
             }
-            return matched2;
+            return new ArrayList<T>(matched2);
         case "eq":
         	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
         	return compare(comparison, data);
@@ -97,13 +98,27 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 	private List<T> applyLimit(List<Object> arguments, List<T> data) {
 		
 		if(arguments.size() > 0){
-			int limit = (int)arguments.get(0);
-			if(data.size() > limit)
-				return data.subList(0, limit);
-			else
-				return data;
-		}else
+			if(arguments.size() == 1){
+				int limit = (int)arguments.get(0);
+				if(data.size() > limit)
+					return data.subList(0, limit);
+				else
+					return data;
+			}else{
+				//Do limit and offset
+				int limit = (int)arguments.get(0);
+				int offset = (int)arguments.get(1);
+				int end = offset + limit;
+				
+				//Compute end location
+				if(end>data.size())
+					end = data.size();
+			
+				return data.subList(offset, end);
+			}
+		}else{
 			return data;
+		}
 				
 	}
 
@@ -117,7 +132,7 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 		
 		if(node.getArgumentsSize() == 0)
 			return data;
-		
+		List<T> sorted = new ArrayList<T>(data);
 		boolean descending = false;
 		SortOption sort;
 		SortOptionComparator<Object> compare;
@@ -135,10 +150,10 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
             
             sort = new SortOption(prop, descending);
             compare = new SortOptionComparator<Object>(sort);
-            Collections.sort(data, compare);
+            Collections.sort(sorted, compare);
 		}
 		
-		return data;
+		return sorted;
 		
 	}
 

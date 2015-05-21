@@ -12,8 +12,7 @@ import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.ASTVisitor;
 
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
 /**
  * Class to parse RQL into SQL Statements
@@ -24,7 +23,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public class RQLToSQLSelect<T extends AbstractVO<T>> implements ASTVisitor<SQLStatement, SQLStatement>{
+public class RQLToSQLSelect<T> implements ASTVisitor<SQLStatement, SQLStatement>{
 	
 	public static final int EQUAL_TO = 1;
 	public static final int NOT_EQUAL_TO = 2;
@@ -60,19 +59,19 @@ public class RQLToSQLSelect<T extends AbstractVO<T>> implements ASTVisitor<SQLSt
 	public static final String Y = "Y";
 	public static final String N = "N";
 	
-	private AbstractDao<T> dao;
+	private AbstractBasicDao<T> dao;
 	//Map of any model members to either columns or Vo members
 	// they will get translated into columns by the dao in this class
 	private Map<String,String> propertyMap;
 	private Map<String, SQLColumnQueryAppender> columnAppenders;
 	
-	public RQLToSQLSelect(AbstractDao<T> dao, Map<String,String> propertyMap, Map<String, SQLColumnQueryAppender> appenders){
+	public RQLToSQLSelect(AbstractBasicDao<T> dao, Map<String,String> propertyMap, Map<String, SQLColumnQueryAppender> appenders){
 		this.dao = dao;
 		this.propertyMap = propertyMap;
 		this.columnAppenders = appenders;
 	}
 	
-	public RQLToSQLSelect(AbstractDao<T> dao){
+	public RQLToSQLSelect(AbstractBasicDao<T> dao){
 		this.dao = dao;
 		this.propertyMap = new HashMap<String,String>();
 		this.columnAppenders = new HashMap<String, SQLColumnQueryAppender>();

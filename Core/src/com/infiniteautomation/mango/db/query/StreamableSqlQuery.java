@@ -11,18 +11,17 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
 
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
 /**
  * @author Terry Packer
  *
  */
-public class StreamableSqlQuery<VO extends AbstractVO<VO>> extends BaseSqlQuery<VO>{
+public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	
 	private static final Log LOG = LogFactory.getLog(StreamableSqlQuery.class);
 	
-	protected MappedRowCallback<VO> selectCallback;
+	protected MappedRowCallback<T> selectCallback;
 	protected MappedRowCallback<Long> countCallback;
 	
 	
@@ -35,8 +34,8 @@ public class StreamableSqlQuery<VO extends AbstractVO<VO>> extends BaseSqlQuery<
 	 * @param countCallback
 	 * @param selectArgs
 	 */
-	public StreamableSqlQuery(AbstractDao<VO> dao, 
-			SQLStatement statement, MappedRowCallback<VO> selectCallback, MappedRowCallback<Long> countCallback) {
+	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
+			SQLStatement statement, MappedRowCallback<T> selectCallback, MappedRowCallback<Long> countCallback) {
 		super(dao, statement);
 		
 		this.selectCallback = selectCallback;
@@ -52,8 +51,8 @@ public class StreamableSqlQuery<VO extends AbstractVO<VO>> extends BaseSqlQuery<
 	 * @param countCallback
 	 * @param selectArgs
 	 */
-	public StreamableSqlQuery(AbstractDao<VO> dao, 
-			String selectSql, MappedRowCallback<VO> selectCallback, List<Object> selectArgs,
+	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
+			String selectSql, MappedRowCallback<T> selectCallback, List<Object> selectArgs,
 			String countSql, MappedRowCallback<Long> countCallback, List<Object> countArgs) {
 		super(dao, selectSql, selectArgs, countSql, countArgs);
 		
