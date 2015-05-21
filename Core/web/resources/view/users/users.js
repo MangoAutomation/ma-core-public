@@ -3,8 +3,11 @@
  * @author Terry Packer
  */
 
-define(['jquery', 'view/BaseUIComponent', 'mango/api', 'dstore/Rest', 'dstore/Request', 'dijit/form/filteringSelect', 'dstore/legacy/DstoreAdapter'], 
-		function($, BaseUIComponent, MangoAPI, Rest, Request, FilteringSelect, DstoreAdapter){
+define(['jquery', 'view/BaseUIComponent', 'dstore/Rest', 'dstore/Request', 
+        'dijit/form/filteringSelect', 'dstore/legacy/DstoreAdapter', 'dijit/TooltipDialog',
+        'dijit/popup', 'dojo/dom'], 
+		function($, BaseUIComponent, Rest, Request, 
+				FilteringSelect, DstoreAdapter, TooltipDialog, Popup){
 "use strict";
 
 
@@ -15,8 +18,6 @@ function UsersView(){
 	this.fillUserInputs = this.fillUserInputs.bind(this);
 	
 	//this.errorDiv = $('#userErrors');
-	
-	this.api = MangoAPI.defaultApi;
 	
 	this.store = new Rest({
 		target: '/rest/v1/users',
@@ -46,17 +47,28 @@ function UsersView(){
 		}, 'userPicker');
 		this.userPicker.on('change', this.loadUser.bind(this));
 		
+		//Setup the disabled check box click to modify the user image
+		$('#disabled').on('click', this.updateUserImage.bind(this));
+		
+		//Setup a watch to modify image if permissions are removed
+		$('#permissions').on('keyup', this.updateUserImage.bind(this));
+		
 		//Setup the add new user link
 		$('#newUser').on('click', this.loadNewUser.bind(this));
 		
 		//Setup the Delete User link
+		$('#deleteUser').on('click', this.deleteUser.bind(this));
 		
 		//Setup the Send Email link
+		$('#sendTestEmail').on('click', this.sendTestEmail.bind(this));
+		
+		//Setup Permissions Viewer
+		$('#permissionsViewer').on('click', this.showPermissionList.bind(this));
 		
 	} 
 	
 	//Setup the users Help Link
-	$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp);
+	$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp.bind(this));
 	
 	
  
@@ -98,11 +110,15 @@ UsersView.prototype.loadNewUser = function(){
 	
 }
 
-UsersView.prototype.loadUser = function(user, data){
+/**
+ * Load a user
+ * @param username - String
+ */
+UsersView.prototype.loadUser = function(username){
 	
 	this.clearErrors();
 	var self = this;
-	this.store.get(user).then(function(userData){
+	this.store.get(username).then(function(userData){
 		self.newUser = false;
 		$('#userEditView').show();
 		self.fillUserInputs(userData);
@@ -120,13 +136,17 @@ UsersView.prototype.fillUserInputs = function(userData){
 	
 	$('#email').val(userData.email);
 	$('#phone').val(userData.phone);
+	$('#disabled').prop('checked', userData.disabled);
 	$('#receiveAlarmEmails').val(userData.receiveAlarmEmails);
-	$('#receiveOwnAuditEvents').val(userData.receiveOwnAuditEvents);
+	$('#receiveOwnAuditEvents').prop('checked', userData.receiveOwnAuditEvents);
 	if((userData.timezone === '')||(userData.timezone === null)){
 		this.timezonePicker.set('value', "");
 	}else
 		$('#timezone').val(userData.timezone);
 	$('#permissions').val(userData.permissions);
+	
+	//Set the password to blank no matter what
+	$('#password').val('');
 	
 	//Switch out the png based on the user type
 	if(userData.disabled === true){
@@ -149,7 +169,7 @@ UsersView.prototype.fillUserInputs = function(userData){
 		$('#sendTestEmail').hide();
 		$('#deleteUser').hide();
 	}
-}
+};
 
 UsersView.prototype.saveUser = function(){
 	
@@ -162,20 +182,35 @@ UsersView.prototype.saveUser = function(){
 		email: $('#email').val(),
 		phone: $('#phone').val(),
 		disabled: $('#disabled').is(':checked'),
-		receiveAlarmEmails: $('#sendAlarmEmails').val(),
+		receiveAlarmEmails: $('#receiveAlarmEmails').val(),
 		receiveOwnAuditEvents: $('#receiveOwnAuditEvents').is(':checked'),
-		timezone: $('#timezone').val(),
+		timezone: this.timezonePicker.get('value'), //Dojo widget
 		permissions:  $('#permissions').val(),
 	};
 	var self = this;
 	if(this.newUser === true)
 		this.api.postUser(user).then(function(result){
 			self.showSuccess(tr('users.added'));
+			self.newUser = false;
 		}).fail(this.showError);
 	else
 		this.api.putUser(user).then(function(result){
 			self.showSuccess(tr('users.saved'));
 		}).fail(this.showError);
+};
+
+UsersView.prototype.deleteUser = function(){
+	var username = $('#username').val();
+	var self = this;
+	if(confirm(tr('users.deleteConfirm'))){
+		this.api.deleteUser(username).done(function(user){
+			self.showSuccess(tr('users.deleted', user.username));
+			//Load in the top user on the list
+			self.store.fetchRange({start: 0, end: 1}).then(function(userArray){
+				self.loadUser(userArray[0].username);
+			});
+		}).fail(this.showError);
+	}
 };
 
 UsersView.prototype.switchUser = function(username){
@@ -189,15 +224,88 @@ UsersView.prototype.switchUser = function(username){
     }).fail(this.showError);
 };
 
+UsersView.prototype.showPermissionList = function(){
+	
+	var self = this;
+	this.api.getAllUserGroups($('#permissions').val()).then(function(groups){
+
+		if (self.permissionsDialog != null)
+            self.permissionsDialog.destroy();
+		var content = "";
+		if (groups.length == 0)
+		    content = tr('users.permissions.nothingNew');
+		else {
+		    for (var i=0; i<groups.length; i++)
+		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
+		}
+		
+		self.permissionsDialog = new TooltipDialog({
+            id: 'permissionsTooltipDialog',
+            content: content,
+            onMouseLeave: function() { 
+                Popup.close(self.permissionsDialog);
+            }
+        });
+        
+        Popup.open({
+            popup: self.permissionsDialog,
+            around: $('#permissions')[0]
+        });
+		
+        //Assign onclick to all links and send in the group in the data of the event
+		$('.permissionStr').each(function(i){
+			$(this).on('click', {group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
+		});
+	});
+	
+};
+
+UsersView.prototype.addGroup = function(event){
+	var groups = $get("permissions");
+	if (groups.length > 0 && groups.substring(groups.length-1) != ",")
+		groups += ",";
+	groups += event.data.group;
+	$('#permissions').val(groups);
+	this.showPermissionList();
+};
+
+UsersView.prototype.sendTestEmail = function(){
+	
+	var email = $('#email').val();
+	var username = $('#username').val();
+	var self = this;
+	this.api.ajax({
+		type : 'PUT',
+		contentType: "application/json",
+        url : '/rest/v1/server/email/test.json?email='+ encodeURIComponent(email) + '&username=' + encodeURIComponent(username),
+    }).done(function(response){
+    	self.showSuccess(response);
+    }).fail(this.showError);
+};
+
+UsersView.prototype.updateUserImage = function(){
+	//Switch out the png based on the user type
+	var disabled = $('#disabled').is(':checked');
+	var admin = false;
+	if($('#permissions').val().match(/.*superadmin.*/))
+		admin = true;
+	if(disabled === true){
+		this.updateImage($('#userImg'), tr('common.disabled'), '/images/user_disabled.png');
+	} else if(admin === true){
+		this.updateImage($('#userImg'), tr('common.administrator'), '/images/user_suit.png');
+	}else{
+		this.updateImage($('#userImg'), tr('common.user'), '/images/user_green.png');
+	}
+};
 
 
 UsersView.prototype.api = null;
-
 UsersView.prototype.store = null;
 UsersView.prototype.userPicker = null;
 UsersView.prototype.switchUserPicker = null;
 UsersView.prototype.timezoneStore = null;
 UsersView.prototype.newUser = false; //Flag to indicate we are adding a user
+UsersView.prototype.permissionsDialog = null;
 
 return UsersView;
 

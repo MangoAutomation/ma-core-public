@@ -35,14 +35,18 @@
         <tr>
           <td>
             <span class="smallTitle">
-              <img id="userImg" class="ptr" 
+              <img id="userImg"
                 src="/images/user_green.png" 
                 title="<fmt:message key="users.user" />" 
                 alt="<fmt:message key="users.user" />"
               />
               <fmt:message key="users.details" />
             </span>
-            <img id="usersHelp" src="/images/help.png"/>
+            <img id="usersHelp" class="ptr"
+              src="/images/help.png"
+              title="<fmt:message key="users.user" />" 
+              alt="<fmt:message key="users.user" />"
+            />
           </td>
           <td align="right">
             <img id="saveUser" class="ptr"
@@ -84,18 +88,11 @@
           <td class="formLabel"><fmt:message key="users.phone" /></td>
           <td class="formField"><input id="phone" type="text" /></td>
         </tr>
-        <tr id="administrationRow" style="display: none;">
-          <td class="formLabelRequired"><fmt:message
-              key="common.administrator" /></td>
-          <td class="formField"><input id="administrator"
-            type="checkbox" onclick="updateUserImg();"
-            disabled="disabled" /></td>
-        </tr>
         <tr id="disabledRow" style="display: none;">
           <td class="formLabelRequired"><fmt:message
               key="common.disabled" /></td>
           <td class="formField"><input id="disabled"
-            type="checkbox" onclick="updateUserImg();" /></td>
+            type="checkbox" /></td>
         </tr>
         <tr>
           <td class="formLabelRequired"><fmt:message
@@ -117,10 +114,14 @@
           <tr>
             <td class="formLabelRequired"><fmt:message
                 key="users.permissions" /></td>
-            <td class="formField"><input id="permissions"
-              type="text" class="formLong" /> <tag:img
-                png="bullet_down" title="users.permissions"
-                onclick="openPermissionList()" /></td>
+            <td class="formField">
+            <input id="permissions" type="text" class="formLong" /> 
+              <img id="permissionsViewer" class="ptr" 
+                src="/images/bullet_down.png" 
+                title="<fmt:message key="users.permissions" />" 
+                alt="<fmt:message key="users.permissions" />"
+              />
+            </td>
           </tr>
         </tbody>
       </table>

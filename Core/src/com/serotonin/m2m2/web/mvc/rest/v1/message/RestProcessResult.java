@@ -211,6 +211,12 @@ public class RestProcessResult<T> {
 		}
 		
 	}
+	
+	public void addValidationMessage(ProcessMessage message){
+		if(this.validationMessages == null)
+			this.validationMessages = new HashMap<String,String>();
+		this.validationMessages.put(message.getContextKey(), message.getContextualMessage().translate(Common.getTranslations()));
+	}
 
 	/**
 	 * @return

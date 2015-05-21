@@ -52,7 +52,7 @@
     	  $('body').addClass('claro');
     	  
     	  mangoAPI = MangoAPI.defaultApi;
-          var translationNamespaces = ['common', 'users', 'validate'];
+          var translationNamespaces = ['common', 'users', 'validate', 'js.help'];
     	  
     	  //Load in the required data
     	  $.when(mangoAPI.setupGlobalize.apply(mangoAPI, translationNamespaces)).then(MangoAPI.firstArrayArg).done(function(Globalize){
