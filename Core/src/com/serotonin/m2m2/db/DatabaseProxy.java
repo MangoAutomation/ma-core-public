@@ -38,6 +38,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
@@ -165,6 +166,11 @@ abstract public class DatabaseProxy {
                         public void run() {
                             DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
                             factory.saveDefaultTemplates();
+                            
+                            //Add the Default Permissions for the UI
+                            List<PermissionDefinition> defs = ModuleRegistry.getDefinitions(PermissionDefinition.class);
+                            for(PermissionDefinition def : defs)
+                            	def.install();
                        }
                     });
                 }

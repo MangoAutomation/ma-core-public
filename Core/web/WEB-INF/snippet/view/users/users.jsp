@@ -27,8 +27,9 @@
     title="<fmt:message key="users.add" />" 
     alt="<fmt:message key="users.add" />"
   />
-  </c:if>
   <hr>
+  </c:if>
+
   <div id="userEditView" style="float:left; display:none">
       <table class="wide">
         <tr>

@@ -49,9 +49,14 @@ function UsersView(){
 		//Setup the add new user link
 		$('#newUser').on('click', this.loadNewUser.bind(this));
 		
-		//Setup the users Help Link
-		$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp);
+		//Setup the Delete User link
+		
+		//Setup the Send Email link
+		
 	} 
+	
+	//Setup the users Help Link
+	$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp);
 	
 	
  
@@ -136,13 +141,13 @@ UsersView.prototype.fillUserInputs = function(userData){
 	if(currentUser.admin === true){
 		$('#permissionsRow').show();
 		$('#disabledRow').show();
-		$('#sendTestEmailImg').show();
-		$('#deleteImg').show();
+		$('#sendTestEmail').show();
+		$('#deleteUser').show();
 	}else{
 		$('#permissionsRow').hide();
 		$('#disabledRow').hide();
-		$('#sendTestEmailImg').hide();
-		$('#deleteImg').hide();
+		$('#sendTestEmail').hide();
+		$('#deleteUser').hide();
 	}
 }
 
