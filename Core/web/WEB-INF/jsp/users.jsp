@@ -33,86 +33,74 @@
       var currentUser = {};
       currentUser['username'] = '${sessionUser.username}'; 
       currentUser['admin'] = ${sessionUser.admin};
-      
-      
-      //TODO probably remove this later
-      var USER_DATA_SAVED_MESSAGE = '<fmt:message key="users.dataSaved"/>';
-      var USER_ADDED_MESSAGE = '<fmt:message key="users.added"/>';
-      var USERS_SAVED = '<fmt:message key="users.saved"/>';
-      var NEW_ID = <c:out value="<%= Common.NEW_ID %>"/>;
-      var NO_NEW_PERMISSIONS_CONTENT = '<m2m2:translate key="users.permissions.nothingNew" escapeDQuotes="true"/>';
-      var CONFIRM_DELETE_USER = '<m2m2:translate key="users.deleteConfirm" escapeDQuotes="true"/>';
-      
 	 
 	  
-      require(['jquery', 'mango/api', 'dijit/layout/TabContainer', 'dijit/layout/ContentPane', 'view/users/Users'], 
-    		  function($, MangoAPI, TabContainer, ContentPane, UsersView){
+      require(['jquery', 'mango/api', 'dijit/layout/TabContainer', 'dijit/layout/ContentPane', 'view/users/UsersView', 'view/users/DataPointPermissionsView'], 
+    		  function($, MangoAPI, TabContainer, ContentPane, UsersView, DataPointPermissionsView){
     	  
     	  // add a dojo dijit style class to body
     	  $('body').addClass('claro');
     	  
     	  mangoAPI = MangoAPI.defaultApi;
-          var translationNamespaces = ['common', 'users', 'validate', 'js.help'];
+          var translationNamespaces = ['common', 'users', 'validate', 'js.help', 'filter', 'permissions'];
     	  
-    	  //Load in the required data
-    	  $.when(mangoAPI.setupGlobalize.apply(mangoAPI, translationNamespaces)).then(MangoAPI.firstArrayArg).done(function(Globalize){
-    		tr = Globalize.formatMessage.bind(Globalize);
-    		$(document).ready(setupPage);
-    	  }).fail(MangoAPI.logError);
+    	  $(document).ready(setupPage);
     	  
     	  /**
     	   * Create the tab container and tabs
     	   */
     	  function setupPage(){
-        	var tc = new TabContainer({
-      			  style: "width: 100%; height: 100vh;"
-      	  	},'tab-container');
-      	  
-      	  	var userTab = new ContentPane({
-      			title: '<span class="smallTitle"><fmt:message key="users.title" /></span>',
-      			style: "width: 100%; height: 100vh",
-      		 	selected: true
-      	  	}, 'user-tab');
-      	  	tc.addChild(userTab);
-      	  	//Fill out the tab
-      	  	var usersView = new UsersView();
-      	  	
-      	  	usersView.loadUser('${sessionUser.username}');
+          	var tc = new TabContainer({
+    			  style: "width: 100%; height: 80vh;"
+    	  	},'tab-container');
+    	  
+    	  	var userTab = new ContentPane({
+    			title: '<span class="smallTitle"><fmt:message key="users.title" /></span>',
+    			style: "width: 100%; height: 80vh",
+    		 	//selected: true
+    	  	}, 'user-tab');
+    	  	tc.addChild(userTab);
 
       	  	<%-- Add permissions tab if we are admin --%>
       	    <c:if test="${sessionUser.admin}">
       	  	var permissionTab = new ContentPane({
-      			title: '<span class="smallTitle"><fmt:message key="users.permissions"/></span>'
+      			title: '<span class="smallTitle"><fmt:message key="permissions.dataPoint"/></span>',
+      			selected: true
       	  	}, 'permission-tab');
       	  	tc.addChild(permissionTab);
       	  	</c:if>
+    	  	
+      	  	//Fill out the tab
+      	  	var usersView = new UsersView();
       	  	
-      	  	tc.startup();
-      	  	$('#tab-container').show();
+      	  	usersView.setupTranslations(translationNamespaces).done(function(){
+      	  		usersView.setupView();
+          	  	usersView.loadUser('${sessionUser.username}');
+
+          	  	<c:if test="${sessionUser.admin}">
+          	  	var permissionsView = new DataPointPermissionsView();
+          	  	permissionsView.tr = usersView.tr;
+          	  	permissionsView.setupView();
+          	  	</c:if>
+
+          	  	
+          	  	tc.startup();
+          	  	$('#tab-container').show();
+          	  	
+      	  	});
     	  }
     	  
     	  
       });
       
     </script>
-    <tag:versionedJavascript src="/resources/common.js"/>
-    <script type="text/javascript">
-      mango.i18n = <sst:convert obj="${clientSideMessages}"/>;
-    </script>
-    <tag:versionedJavascript src="/dwr/engine.js"/>
-    <tag:versionedJavascript src="/dwr/util.js"/>
-    <tag:versionedJavascript src="/dwr/interface/MiscDwr.js"/>
-    <tag:versionedJavascript src="/dwr/interface/UsersDwr.js"/>
-    
-    <tag:versionedJavascript src="/resources/view/users/permissions.js"/>
     </m2m2:moduleExists>
   </jsp:attribute>
 
 <jsp:body>
-<%-- Claro class for dojo widgets --%>
 <div>
   <m2m2:moduleExists name="mangoApi">
-  <div style="width: 100%; height: 100vh">
+  <div style="width: 100%; height: 80vh">
     <div id="tab-container" style="display: none">
         <div id="user-tab">
             <jsp:include page="/WEB-INF/snippet/view/users/users.jsp"/>

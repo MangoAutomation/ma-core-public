@@ -37,6 +37,10 @@ public class SQLStatement {
 	
 	
 	public SQLStatement(String baseSelectStatement, String baseCountStatement){
+		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement);
+	}
+	
+	public SQLStatement(String baseSelectStatement, List<Object> selectArgs, String baseCountStatement){
 		
 		this.selectSql = new StringBuilder(baseSelectStatement);
 		if(!baseSelectStatement.endsWith(SPACE))
@@ -46,7 +50,7 @@ public class SQLStatement {
 		if(!baseCountStatement.endsWith(SPACE))
 			this.countSql.append(SPACE);
 		
-		this.selectArgs = new ArrayList<Object>();
+		this.selectArgs = selectArgs;
 		this.appliedWhere = false;
 		
 		this.limitOffset = new StringBuilder();

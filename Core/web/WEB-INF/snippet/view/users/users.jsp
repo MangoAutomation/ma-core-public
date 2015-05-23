@@ -88,6 +88,12 @@
           <td class="formLabel"><fmt:message key="users.phone" /></td>
           <td class="formField"><input id="phone" type="text" /></td>
         </tr>
+        <tr>
+          <td class="formLabelRequired"><fmt:message
+              key="users.muted" /></td>
+          <td class="formField"><input id="muted"
+            type="checkbox" /></td>
+        </tr>
         <tr id="disabledRow" style="display: none;">
           <td class="formLabelRequired"><fmt:message
               key="common.disabled" /></td>
@@ -98,6 +104,12 @@
           <td class="formLabelRequired"><fmt:message
               key="users.receiveAlarmEmails" /></td>
           <td class="formField"><html5:alarmLevelSelect id="receiveAlarmEmails" required="true"/></td>
+        </tr>
+        <tr>
+          <td class="formLabelRequired"><fmt:message
+              key="users.homeURL" /></td>
+          <td class="formField"><input id="homeURL" type="text"
+            class="formLong" /></td>
         </tr>
         <tr>
           <td class="formLabelRequired"><fmt:message

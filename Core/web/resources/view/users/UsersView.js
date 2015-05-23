@@ -3,18 +3,25 @@
  * @author Terry Packer
  */
 
-define(['jquery', 'view/BaseUIComponent', 'dstore/Rest', 'dstore/Request', 
+define(['jquery', 'view/BaseUIComponent', 'dstore/Rest',
         'dijit/form/filteringSelect', 'dstore/legacy/DstoreAdapter', 'dijit/TooltipDialog',
         'dijit/popup', 'dojo/dom'], 
-		function($, BaseUIComponent, Rest, Request, 
-				FilteringSelect, DstoreAdapter, TooltipDialog, Popup){
+		function($, BaseUIComponent, Rest, FilteringSelect, DstoreAdapter, TooltipDialog, Popup){
 "use strict";
 
 
 function UsersView(){
 	
 	BaseUIComponent.apply(this, arguments);
-	
+   	
+}
+
+UsersView.prototype = Object.create(BaseUIComponent.prototype);
+
+/**
+ * Do the heavy lifting of setting up the view
+ */
+UsersView.prototype.setupView = function(){
 	this.fillUserInputs = this.fillUserInputs.bind(this);
 	
 	//this.errorDiv = $('#userErrors');
@@ -33,7 +40,7 @@ function UsersView(){
 		    pageSize: 100,
 		    queryExpr: '*${0}*',
 		    autoComplete: false,
-		    placeholder: tr('users.selectUserToBecome'),
+		    placeholder: this.tr('users.selectUserToBecome'),
 		}, 'switchUserPicker');
 		this.switchUserPicker.on('change', this.switchUser.bind(this));
 		
@@ -43,7 +50,7 @@ function UsersView(){
 		    pageSize: 100,
 		    queryExpr: '*${0}*',
 		    autoComplete: false,
-		    placeholder: tr('users.selectUserToEdit')
+		    placeholder: this.tr('users.selectUserToEdit')
 		}, 'userPicker');
 		this.userPicker.on('change', this.loadUser.bind(this));
 		
@@ -95,10 +102,7 @@ function UsersView(){
 	
 	//Setup the save image link
 	$('#saveUser').on('click', this.saveUser.bind(this));
-   	
-}
-
-UsersView.prototype = Object.create(BaseUIComponent.prototype);
+};
 
 UsersView.prototype.loadNewUser = function(){
 	this.clearErrors();
@@ -108,7 +112,7 @@ UsersView.prototype.loadNewUser = function(){
 		self.fillUserInputs(user);
 	}).fail(this.showError);
 	
-}
+};
 
 /**
  * Load a user
@@ -136,7 +140,9 @@ UsersView.prototype.fillUserInputs = function(userData){
 	
 	$('#email').val(userData.email);
 	$('#phone').val(userData.phone);
+	$('#muted').prop('checked', userData.muted);
 	$('#disabled').prop('checked', userData.disabled);
+	$('#homeURL').val(userData.homeUrl);
 	$('#receiveAlarmEmails').val(userData.receiveAlarmEmails);
 	$('#receiveOwnAuditEvents').prop('checked', userData.receiveOwnAuditEvents);
 	if((userData.timezone === '')||(userData.timezone === null)){
@@ -150,11 +156,11 @@ UsersView.prototype.fillUserInputs = function(userData){
 	
 	//Switch out the png based on the user type
 	if(userData.disabled === true){
-		this.updateImage($('#userImg'), tr('common.disabled'), '/images/user_disabled.png');
+		this.updateImage($('#userImg'), this.tr('common.disabled'), '/images/user_disabled.png');
 	} else if(userData.admin === true){
-		this.updateImage($('#userImg'), tr('common.administrator'), '/images/user_suit.png');
+		this.updateImage($('#userImg'), this.tr('common.administrator'), '/images/user_suit.png');
 	}else{
-		this.updateImage($('#userImg'), tr('common.user'), '/images/user_green.png');
+		this.updateImage($('#userImg'), this.tr('common.user'), '/images/user_green.png');
 	}
 	
 	//Now Check that the logged in user is admin to allow other edits
@@ -181,7 +187,9 @@ UsersView.prototype.saveUser = function(){
 		password: $('#password').val(),
 		email: $('#email').val(),
 		phone: $('#phone').val(),
+		muted: $('#muted').is(':checked'),
 		disabled: $('#disabled').is(':checked'),
+		homeUrl: $('#homeURL').val(),
 		receiveAlarmEmails: $('#receiveAlarmEmails').val(),
 		receiveOwnAuditEvents: $('#receiveOwnAuditEvents').is(':checked'),
 		timezone: this.timezonePicker.get('value'), //Dojo widget
@@ -190,21 +198,21 @@ UsersView.prototype.saveUser = function(){
 	var self = this;
 	if(this.newUser === true)
 		this.api.postUser(user).then(function(result){
-			self.showSuccess(tr('users.added'));
+			self.showSuccess(self.tr('users.added'));
 			self.newUser = false;
 		}).fail(this.showError);
 	else
 		this.api.putUser(user).then(function(result){
-			self.showSuccess(tr('users.saved'));
+			self.showSuccess(self.tr('users.saved'));
 		}).fail(this.showError);
 };
 
 UsersView.prototype.deleteUser = function(){
 	var username = $('#username').val();
 	var self = this;
-	if(confirm(tr('users.deleteConfirm'))){
+	if(confirm(this.tr('users.deleteConfirm'))){
 		this.api.deleteUser(username).done(function(user){
-			self.showSuccess(tr('users.deleted', user.username));
+			self.showSuccess(self.tr('users.deleted', user.username));
 			//Load in the top user on the list
 			self.store.fetchRange({start: 0, end: 1}).then(function(userArray){
 				self.loadUser(userArray[0].username);
@@ -233,7 +241,7 @@ UsersView.prototype.showPermissionList = function(){
             self.permissionsDialog.destroy();
 		var content = "";
 		if (groups.length == 0)
-		    content = tr('users.permissions.nothingNew');
+		    content = this.tr('users.permissions.nothingNew');
 		else {
 		    for (var i=0; i<groups.length; i++)
 		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
@@ -290,11 +298,11 @@ UsersView.prototype.updateUserImage = function(){
 	if($('#permissions').val().match(/.*superadmin.*/))
 		admin = true;
 	if(disabled === true){
-		this.updateImage($('#userImg'), tr('common.disabled'), '/images/user_disabled.png');
+		this.updateImage($('#userImg'), this.tr('common.disabled'), '/images/user_disabled.png');
 	} else if(admin === true){
-		this.updateImage($('#userImg'), tr('common.administrator'), '/images/user_suit.png');
+		this.updateImage($('#userImg'), this.tr('common.administrator'), '/images/user_suit.png');
 	}else{
-		this.updateImage($('#userImg'), tr('common.user'), '/images/user_green.png');
+		this.updateImage($('#userImg'), this.tr('common.user'), '/images/user_green.png');
 	}
 };
 

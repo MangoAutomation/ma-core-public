@@ -39,7 +39,9 @@
         <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">
         <link rel="stylesheet" href="/resources/main.css">
         <%-- For now we need to include the floating pane CSS to use the help popup --%>
-        <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/FloatingPane.css"/>   
+        <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/FloatingPane.css"/> 
+        <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/ResizeHandle.css"/>
+          
         
         <script src="/resources/modernizr-2.8.3.min.js"></script>
         

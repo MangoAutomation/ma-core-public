@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.jazdw.rql.parser.ASTNode;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +32,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
+import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -1136,6 +1140,42 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
 		setRelationalData(dps); //We will need this to restart the points after updating them
 		return dps;
+	}
+
+	/**
+	 * @param node
+	 * @param permissions
+	 * @param updateSetPermissions - true will update set, false will update read
+	 * @return
+	 */
+	public long bulkUpdatePermissions(ASTNode root, String permissions,
+			boolean updateSetPermissions) {
+		
+		if(root == null){
+			//All points
+			if(updateSetPermissions)
+				return ejt.update("UPDATE dataPoints SET setPermission = CASE WHEN (setPermission IS NULL) THEN (?) ELSE CONCAT(setPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
+			else
+				return ejt.update("UPDATE dataPoints SET readPermission = CASE WHEN (readPermission IS NULL) THEN (?) ELSE CONCAT(readPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
+		}
+		
+		SQLStatement statement;
+		List<Object> selectArgs = new ArrayList<Object>();
+		selectArgs.add(permissions);
+		selectArgs.add(permissions);
+		
+		if(updateSetPermissions)
+			statement = new SQLStatement("UPDATE dataPoints SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
+		else
+			statement = new SQLStatement("UPDATE dataPoints SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
+		
+		
+		root.accept(new RQLToSQLSelect<DataPointVO>(this), statement);
+		//TODO This is dirty we need a different visitor that doesn't add the table prefix into the SQL
+		LOG.debug("SQL: " + statement.getSelectSql().replace("dp.", ""));
+		LOG.debug("Args: " + statement.getSelectArgs());
+		return ejt.update(statement.getSelectSql().replace("dp.", ""), statement.getSelectArgs().toArray());
+		
 	}
 
 
