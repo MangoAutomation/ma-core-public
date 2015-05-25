@@ -17,6 +17,8 @@ $.notify.addStyle('mango-error', {
 	    	'white-space': 'normal',
 	    	'border-radius': '5px',
 	    	"font-weight": "bold",
+	    	'word-wrap' : 'break-word',
+	    	'overflow-x' : 'auto',
 	    	"padding": "8px 15px 8px 14px",
 	    	"text-shadow": "0 1px 0 rgba(255, 255, 255, 0.5)",
 	        "padding-left": "25px",
@@ -206,9 +208,12 @@ BaseUIComponent.prototype.clearErrors = function(){
  * @param level {String} - one of success, error, warn, info
  */
 BaseUIComponent.prototype.showMessage = function(message, level){
-	if(this.errorDiv == null)
-		$.notify(message, {className: level, position: 'top center'});
-	else
+	if(this.errorDiv == null){
+		if(level === 'error')
+			$.notify(message, {style: 'mango-error', position: 'top center'});
+		else
+			$.notify(message, {className: level, position: 'top center'});
+	}else
 		this.errorDiv.notify(message, level);
 };
 

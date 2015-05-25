@@ -172,7 +172,6 @@ DataPointPermissionsView.prototype.setupView = function(){
 	var self = this;
 	this.pointsGrid.on('dgrid-error', function(event){
 		self.showMessage(event.error.message, 'error');
-		self.pointsGrid.refresh();
 	});
 	
 	//Setup Apply Read Permission
