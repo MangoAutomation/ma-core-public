@@ -32,7 +32,8 @@ DataPointPermissionsView.prototype.setupView = function(){
 			enabled: true,
  			xid: null,
  			name: null,
- 			dataSourceXid: null,
+ 			deviceName: null,
+ 			dataSourceName: null,
  			setPermission: null,
  			readPermission: null,
  		},{
@@ -40,7 +41,8 @@ DataPointPermissionsView.prototype.setupView = function(){
 			enabled: false,
  			xid: null,
  			name: null,
- 			dataSourceXid: null,
+ 			deviceName: null,
+ 			dataSourceName: null,
  			setPermission: null,
  			readPermission: null,
  		},{
@@ -48,7 +50,26 @@ DataPointPermissionsView.prototype.setupView = function(){
 			enabled: false,
  			xid: null,
  			name: null,
- 			dataSourceXid: null,
+ 			deviceName: null,
+ 			dataSourceName: null,
+ 			setPermission: null,
+ 			readPermission: null,
+ 		},{
+			id: 3,
+			enabled: false,
+ 			xid: null,
+ 			name: null,
+ 			deviceName: null,
+ 			dataSourceName: null,
+ 			setPermission: null,
+ 			readPermission: null,
+ 		},{
+			id: 4,
+			enabled: false,
+ 			xid: null,
+ 			name: null,
+ 			deviceName: null,
+ 			dataSourceName: null,
  			setPermission: null,
  			readPermission: null,
  		}]
@@ -61,37 +82,50 @@ DataPointPermissionsView.prototype.setupView = function(){
 	    		label: 'Filter Enabled',
 	    		editor: 'checkbox',
 	    		editOn: 'click',
-	    		autoSave: true
+	    		autoSave: true,
+	        	sortable: false,
 	    	},
 	        xid: {
 	        	label: this.tr('filter.byDataPointXid'),
 	        	editor: 'text',
 	        	editOn: 'click',
-	        	autoSave: true
+	        	autoSave: true,
+	        	sortable: false,
 	        },
 	        name: {
-	        	lable: this.tr('filter.byDataPointName'),
+	        	label: this.tr('filter.byDataPointName'),
 	        	editor: 'text',
 	        	editOn: 'click',
-	        	autoSave: true
+	        	autoSave: true,
+	        	sortable: false,
 	        },
-	        dataSourceXid: {
-	            label: this.tr('filter.byDataSourceXid'),
+	        deviceName: {
+	        	label: this.tr('filter.byDeviceName'),
+	        	editor: 'text',
+	        	editOn: 'click',
+	        	autoSave: true,
+	        	sortable: false,
+	        },
+	        dataSourceName: {
+	            label: this.tr('filter.byDataSourceName'),
 	            editor: 'text',
 	        	editOn: 'click',
-	        	autoSave: true
+	        	autoSave: true,
+	        	sortable: false,
 	        },
 	        setPermission:{
 	        	label: this.tr('filter.bySetPermissions'),
 	        	editor: 'text',
 	        	editOn: 'click',
-	        	autoSave: true
+	        	autoSave: true,
+	        	sortable: false,
 	        },
 	        readPermission: {
 	        	label: this.tr('filter.byReadPermissions'),
 	        	editor: 'text',
 	        	editOn: 'click',
-	        	autoSave: true
+	        	autoSave: true,
+	        	sortable: false,
 	        },
 	    }	    
 	}, 'filter-grid');
@@ -109,22 +143,29 @@ DataPointPermissionsView.prototype.setupView = function(){
 	this.pointsGrid = new (declare([OnDemandGrid, Editor, ColumnResizer]))({
 	    collection: this.sortedPointsStore,
 	    columns: {
-	        xid: this.tr('filter.byDataPointXid'),
-	        name: this.tr('filter.byDataPointName'),
-	        dataSourceXid: {
-	            label: this.tr('filter.byDataSourceXid'),
+	        xid: {
+	        	label: this.tr('filter.byDataPointXid'),
+	        },
+	        name: {
+	        	label: this.tr('filter.byDataPointName'),
+	        },
+	        deviceName: {
+	        	label: this.tr('filter.byDeviceName'),
+	        },
+	        dataSourceName: {
+	            label: this.tr('filter.byDataSourceName'),
 	        },
 	        setPermission:{
 	        	label: this.tr('filter.bySetPermissions'),
-	        	editor: 'text',
-	        	editOn: 'click',
-	        	autoSave: true
+	        	//editor: 'text', //TODO Re-enable when the point models are all working right
+	        	//editOn: 'click',
+	        	//autoSave: true,
 	        },
 	        readPermission: {
 	        	label: this.tr('filter.byReadPermissions'),
-	        	editor: 'text',
-	        	editOn: 'click',
-	        	autoSave: true
+	        	//editor: 'text',
+	        	//editOn: 'click',
+	        	//autoSave: true,
 	        },
 	    },
 	}, 'points-permissions-grid');
@@ -139,6 +180,11 @@ DataPointPermissionsView.prototype.setupView = function(){
 	//Setup Apply Set Permission
 	$('#applySetPermission').on('click', {type: 'set'}, this.applyPermissions.bind(this));
 
+	//Setup Clear Read Permission
+	$('#clearReadPermission').on('click', {type: 'read'}, this.clearPermissions.bind(this));
+	//Setup Clear Set Permission
+	$('#clearSetPermission').on('click', {type: 'set'}, this.clearPermissions.bind(this));
+	
 };
 
 DataPointPermissionsView.prototype.filterChanged = function(event){
@@ -208,6 +254,34 @@ DataPointPermissionsView.prototype.applyPermissions = function(event){
 			}
 			this.api.applyBulkPointSetPermissions(permissions, this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
 				self.showSuccess(self.tr('permissions.bulkPermissionsApplied', appliedCount));
+				self.pointsGrid.refresh();
+			}).fail(this.showError);
+			break;
+		}
+
+	}
+};
+
+DataPointPermissionsView.prototype.clearPermissions = function(event){
+	//Get current filter
+	if(typeof event.data.type != 'undefined'){
+		
+		if(!confirm(this.tr('permissions.bulkClearConfirm', event.data.type)))
+			return;
+		
+		var permissions;
+		//Do API Call
+		var self = this;
+		switch(event.data.type){
+		case 'read':
+			this.api.clearBulkPointReadPermissions(this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
+				self.showSuccess(self.tr('permissions.bulkPermissionsCleared', appliedCount));
+				self.pointsGrid.refresh();
+			}).fail(this.showError);
+			break;
+		case 'set':
+			this.api.clearBulkPointSetPermissions(this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
+				self.showSuccess(self.tr('permissions.bulkPermissionsCleared', appliedCount));
 				self.pointsGrid.refresh();
 			}).fail(this.showError);
 			break;

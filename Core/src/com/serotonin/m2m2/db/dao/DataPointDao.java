@@ -1154,9 +1154,9 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		if(root == null){
 			//All points
 			if(updateSetPermissions)
-				return ejt.update("UPDATE dataPoints SET setPermission = CASE WHEN (setPermission IS NULL) THEN (?) ELSE CONCAT(setPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
+				return ejt.update("UPDATE dataPoints AS dp SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
 			else
-				return ejt.update("UPDATE dataPoints SET readPermission = CASE WHEN (readPermission IS NULL) THEN (?) ELSE CONCAT(readPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
+				return ejt.update("UPDATE dataPoints AS dp SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
 		}
 		
 		SQLStatement statement;
@@ -1165,18 +1165,46 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		selectArgs.add(permissions);
 		
 		if(updateSetPermissions)
-			statement = new SQLStatement("UPDATE dataPoints SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
+			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
 		else
-			statement = new SQLStatement("UPDATE dataPoints SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
+			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
 		
 		
 		root.accept(new RQLToSQLSelect<DataPointVO>(this), statement);
-		//TODO This is dirty we need a different visitor that doesn't add the table prefix into the SQL
-		LOG.debug("SQL: " + statement.getSelectSql().replace("dp.", ""));
-		LOG.debug("Args: " + statement.getSelectArgs());
-		return ejt.update(statement.getSelectSql().replace("dp.", ""), statement.getSelectArgs().toArray());
+		return ejt.update(statement.getSelectSql() + " );", statement.getSelectArgs().toArray());
 		
 	}
 
+	/**
+	 * @param node
+	 * @param updateSetPermissions - true will update set, false will update read
+	 * @return
+	 */
+	public long bulkClearPermissions(ASTNode root, boolean updateSetPermissions) {
+		
+		if(root == null){
+			//All points
+			if(updateSetPermissions)
+				return ejt.update("UPDATE dataPoints AS dp SET dp.setPermission = null");
+			else
+				return ejt.update("UPDATE dataPoints AS dp SET dp.readPermission = null");
+		}
+		
+		SQLStatement statement;
+		List<Object> selectArgs = new ArrayList<Object>();
+
+		
+		if(updateSetPermissions)
+			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.setPermission = null WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
+		else
+			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.readPermission = null WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
+		
+		
+		root.accept(new RQLToSQLSelect<DataPointVO>(this), statement);
+
+		return ejt.update(statement.getSelectSql() + " );", statement.getSelectArgs().toArray());
+		
+	}
+	
 
 }
