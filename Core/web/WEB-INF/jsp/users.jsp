@@ -57,7 +57,7 @@
     	  	var userTab = new ContentPane({
     			title: '<span class="smallTitle"><fmt:message key="users.title" /></span>',
     			style: "width: 100%; height: 80vh",
-    		 	//selected: true
+    		 	selected: true
     	  	}, 'user-tab');
     	  	tc.addChild(userTab);
 
@@ -65,7 +65,6 @@
       	    <c:if test="${sessionUser.admin}">
       	  	var permissionTab = new ContentPane({
       			title: '<span class="smallTitle"><fmt:message key="permissions.dataPoint"/></span>',
-      			selected: true
       	  	}, 'permission-tab');
       	  	tc.addChild(permissionTab);
       	  	</c:if>
