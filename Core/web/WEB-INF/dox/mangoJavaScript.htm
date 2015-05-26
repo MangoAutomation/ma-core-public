@@ -206,3 +206,23 @@ return status
 xid - Xid for a data point
 return status
 
+<h2>Data Point Queries</h2>
+Data points can be queried by using the <b>DataPointQuery</b> utility.  This utility has one method:
+<code>DataPointQuery.query(stringRql);</code>
+
+The DataPointWrapper returned has some of the basic information on a data point in addition to the
+Runtime member which is the same as the Object that wraps the context points for a script.
+
+<h3>RQL</h3>
+<p>
+<b>RQL</b> is a query language that is highly flexible, more info <a href="https://github.com/persvr/rql" target="rql">here</a>.
+For example to find all points with a name that starts with Volts use this query:
+<code>like(name, Volts*)</code>
+Note the use of the asterisk wildcard, this is the default for all Mango RQL.
+</p>
+
+
+
+
+
+
