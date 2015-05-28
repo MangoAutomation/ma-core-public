@@ -24,7 +24,7 @@ public class CharColumnQueryAppender extends GenericSQLColumnQueryAppender{
 			StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
 
-		if((columnArgs.size() == 1)&&(((String)columnArgs.get(0)).equalsIgnoreCase(NULL))){
+		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
 			//Catchall for null comparisons
 			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
 			selectArgs.add(NULL);

@@ -31,7 +31,8 @@ public class ExportCodeColumnQueryAppender extends GenericSQLColumnQueryAppender
 			StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
 
-		if((columnArgs.size() == 1)&&(((String)columnArgs.get(0)).equalsIgnoreCase(NULL))){
+		
+		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
 			//Catchall for null comparisons
 			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
 			selectArgs.add(NULL);
@@ -41,7 +42,10 @@ public class ExportCodeColumnQueryAppender extends GenericSQLColumnQueryAppender
 		//Map the String name to the Integer ID of the code
 		List<Object> arguments = new ArrayList<Object>();
 		for(Object o : columnArgs){
-			arguments.add(this.codes.getId((String)o));
+			if(o instanceof String)
+				arguments.add(this.codes.getId((String)o));
+			else if(o instanceof Number)
+				arguments.add((Number)o);
 		}
 		
 		super.appendSQL(column, selectSql, countSql, selectArgs, arguments, comparison);
