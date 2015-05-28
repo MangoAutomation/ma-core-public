@@ -238,6 +238,13 @@
    <artifactId>jasper</artifactId>
    <version>6.0.41</version>
    <scope>compile</scope>
+   <!-- We do not want thier servlet api -->
+   <exclusions>
+		<exclusion>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>servlet-api</artifactId>
+		</exclusion>
+	</exclusions>
   </dependency>
   <dependency>
    <groupId>org.freemarker</groupId>
@@ -327,8 +334,11 @@
 		    <groupId>javax.servlet</groupId>
 		    <artifactId>servlet-api</artifactId>
           </exclusion>
+          <exclusion>
+			<groupId>org.apache.tomcat</groupId>
+      		<artifactId>jasper</artifactId>
+		</exclusion>
       </exclusions>
-   
   </dependency>
   <dependency>
    <groupId>com.infiniteautomation.mango</groupId>
