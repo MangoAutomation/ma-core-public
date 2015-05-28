@@ -37,7 +37,7 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
 			//Catchall for null comparisons
 			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
-			selectArgs.add(NULL);
+			selectArgs.add(null);
 			return;
 		}
 		
