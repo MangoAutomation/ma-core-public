@@ -4,7 +4,7 @@
  */
 
 define(['jquery', 'view/BaseUIComponent', 'dstore/Rest', 'dstore/Memory',
-        'dijit/form/filteringSelect', 'dstore/legacy/DstoreAdapter', 
+        'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 
         'dojo/_base/declare', 'dgrid/OnDemandGrid', 'dgrid/Editor', 'dgrid/extensions/ColumnResizer'], 
 		function($, BaseUIComponent, Rest, Memory,
 				FilteringSelect, DstoreAdapter, declare, OnDemandGrid, Editor, ColumnResizer){

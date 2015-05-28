@@ -4,7 +4,7 @@
  */
 
 define(['jquery', 'view/BaseUIComponent', 'dstore/Rest',
-        'dijit/form/filteringSelect', 'dstore/legacy/DstoreAdapter', 'dijit/TooltipDialog',
+        'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 'dijit/TooltipDialog',
         'dijit/popup', 'dojo/dom'], 
 		function($, BaseUIComponent, Rest, FilteringSelect, DstoreAdapter, TooltipDialog, Popup){
 "use strict";
