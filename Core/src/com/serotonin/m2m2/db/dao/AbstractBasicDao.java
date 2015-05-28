@@ -398,15 +398,17 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             MappedRowCallback<Long> countCallback, Map<String,String> modelMap, Map<String, SQLColumnQueryAppender> modifiers){
     	
     	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT);
-    	root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
-    	
+    	if(root != null)
+    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
+    		
         return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
     }
     
     public BaseSqlQuery<T> createQuery(ASTNode root){
     	
     	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT);
-    	root.accept(new RQLToSQLSelect<T>(this), statement);
+    	if(root != null)
+    		root.accept(new RQLToSQLSelect<T>(this), statement);
     	
     	return new BaseSqlQuery<T>(this, statement);
     }
