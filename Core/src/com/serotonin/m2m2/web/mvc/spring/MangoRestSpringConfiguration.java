@@ -41,7 +41,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
  * 
  */
 @Configuration
-@ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
+@ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.web.mvc.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
 	// TODO Make this a Bean by annotating the createObjectmapper method

@@ -41,6 +41,8 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
 
     public final String xidPrefix;
     
+    protected final String typeName; //Type name for Audit Events
+    
     //Map of Property to a Comparator, useful when the Property is stored in a BLOB in the database
     protected final Map<String, Comparator<T>> comparatorMap = getComparatorMap();
     
@@ -58,8 +60,9 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param extraSQL - Any additional query pieces
      */
     protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
-        super(typeName, tablePrefix, extraProperties, extraSQL);
+        super(tablePrefix, extraProperties, extraSQL);
         xidPrefix = getXidPrefix();
+        this.typeName = typeName;
     }
 
     /**

@@ -21,7 +21,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.web.taglib.Functions;
@@ -37,7 +36,7 @@ public class UserDao extends AbstractBasicDao<User> {
 	 * @param extraSQL
 	 */
 	public UserDao() {
-		super(AuditEventType.TYPE_USER, null, new String[0], null);
+		super(null, new String[0], null);
 	}
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);
@@ -113,6 +112,7 @@ public class UserDao extends AbstractBasicDao<User> {
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
         user.setId(id);
+        //TODO Make User Change Comparable... AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -139,6 +139,8 @@ public class UserDao extends AbstractBasicDao<User> {
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.INTEGER });
+            //TODO Make User Change Comparable... AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, user);
+
         }
         catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -159,6 +161,7 @@ public class UserDao extends AbstractBasicDao<User> {
                 ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
                         new TranslatableMessage("events.ackedByDeletedUser").serialize(), userId });
                 ejt.update("DELETE FROM users WHERE id=?", args);
+                //TODO Make User Change Comparable... AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
             }
         });
     }

@@ -70,8 +70,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 
     public final String tableName;
 
-    protected final String typeName; //Type name for Audit Events
-
     protected int[] updateStatementPropertyTypes; //Required for Derby LOBs
     protected int[] insertStatementPropertyTypes; //Required for Derby LOBs
     
@@ -95,7 +93,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * Do not include the . at the end of the prefix
      * @param tablePrefix
      */
-    public AbstractBasicDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL){
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties, String extraSQL){
        Map<String,IntStringPair> propMap = getPropertiesMap();
        if(propMap == null)
     	   this.propertiesMap = new HashMap<String, IntStringPair>();
@@ -114,7 +112,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	else
     		this.tablePrefix = "";
     	
-        this.typeName = typeName;
         tableName = getTableName();
 
 
@@ -301,7 +298,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      */
     public abstract RowMapper<T> getRowMapper();
 
-
     /**
      * Return a VO with FKs populated
      * @param id
@@ -310,7 +306,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     public T getFull(int id) {
         return get(id);
     }
-    
     
     /**
      * Get By ID
@@ -345,7 +340,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     public List<T> getAllFull() {
         return getAll();
     }
-
+    
     protected String applyRange(String sql, List<Object> args, Integer offset, Integer limit) {
         if (offset == null || limit == null) {
             return sql;
