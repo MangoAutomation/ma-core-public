@@ -35,6 +35,9 @@ import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.TimerTask;
 
 public class DataPurge {
+	
+	public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
+	
     private final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = new DataPointDao();
@@ -61,15 +64,21 @@ public class DataPurge {
     private void executeImpl() {
         log.info("Data purge started");
 
-        // Get the data point information.
-        List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
-        for (DataPointVO dataPoint : dataPoints)
-            purgePoint(dataPoint);
-
-        deletedSamples += pointValueDao.deleteOrphanedPointValues();
-        pointValueDao.deleteOrphanedPointValueAnnotations();
-
-        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
+        boolean purgePoints = SystemSettingsDao.getBooleanValue(ENABLE_POINT_DATA_PURGE, true);
+        
+        if(purgePoints){
+	        // Get the data point information.
+	        List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
+	        for (DataPointVO dataPoint : dataPoints)
+	            purgePoint(dataPoint);
+	
+	        deletedSamples += pointValueDao.deleteOrphanedPointValues();
+	        pointValueDao.deleteOrphanedPointValueAnnotations();
+	
+	        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
+        }else{
+        	log.info("Purge for data points no enabled, skipping.");
+        }
 
         // File data purge
         filedataPurge();

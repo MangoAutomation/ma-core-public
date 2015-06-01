@@ -87,6 +87,8 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.POINT_DATA_PURGE_PERIODS,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS));
+        
+        settings.put(DataPurge.ENABLE_POINT_DATA_PURGE, SystemSettingsDao.getBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, true));
 
         settings.put(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
@@ -331,7 +333,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveMiscSettings(int pointDataPurgePeriodType, int pointDataPurgePeriods,
-            int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods, int dataSourceEventPurgePeriodType,
+            int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods, boolean pointDataPurgeEnabled, int dataSourceEventPurgePeriodType,
             int dataSourceEventPurgePeriods, int systemEventPurgePeriodType, int systemEventPurgePeriods,
             int publisherEventPurgePeriodType, int publisherEventPurgePeriods, int auditEventPurgePeriodType,
             int auditEventPurgePeriods, int noneAlarmPurgePeriodType, int noneAlarmPurgePeriods,
@@ -346,6 +348,9 @@ public class SystemSettingsDwr extends BaseDwr {
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,
                 dataPointEventPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS, dataPointEventPurgePeriods);
+        
+        systemSettingsDao.setBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, pointDataPurgeEnabled);
+        
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE,
                 dataSourceEventPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS, dataSourceEventPurgePeriods);
