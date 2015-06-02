@@ -5,9 +5,10 @@
 
 define(['jquery', 'view/BaseUIComponent', 'dstore/Rest', 'dstore/Memory',
         'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 
-        'dojo/_base/declare', 'dgrid/OnDemandGrid', 'dgrid/Editor', 'dgrid/extensions/ColumnResizer'], 
+        'dojo/_base/declare', 'dgrid/OnDemandGrid', 'dgrid/Editor', 'dgrid/extensions/ColumnResizer',
+        'dgrid/extensions/DijitRegistry'], 
 		function($, BaseUIComponent, Rest, Memory,
-				FilteringSelect, DstoreAdapter, declare, OnDemandGrid, Editor, ColumnResizer){
+				FilteringSelect, DstoreAdapter, declare, OnDemandGrid, Editor, ColumnResizer, DijitRegistry){
 "use strict";
 
 function DataPointPermissionsView(){
@@ -75,7 +76,7 @@ DataPointPermissionsView.prototype.setupView = function(){
  		}]
 	});
 	
-	this.filterGrid = new (declare([OnDemandGrid, Editor, ColumnResizer]))({
+	this.filterGrid = new (declare([OnDemandGrid, Editor, ColumnResizer, DijitRegistry]))({
 	    collection: this.filterStore,
 	    columns: {
 	    	enabled: {
@@ -140,7 +141,7 @@ DataPointPermissionsView.prototype.setupView = function(){
 	
 	this.sortedPointsStore = this.pointsStore.sort([{property: 'dataSourceXid', descending: true}]);
 	
-	this.pointsGrid = new (declare([OnDemandGrid, Editor, ColumnResizer]))({
+	this.pointsGrid = new (declare([OnDemandGrid, Editor, ColumnResizer, DijitRegistry]))({
 	    collection: this.sortedPointsStore,
 	    columns: {
 	        xid: {
