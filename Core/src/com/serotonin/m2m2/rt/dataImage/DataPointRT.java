@@ -109,14 +109,27 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
+    	
+    	PointValueTime after = Common.databaseProxy.newPointValueDao().getPointValueAfter(vo.getId(), time);
+    	
         List<PointValueTime> pvts = valueCache.getCacheContents();
-        for (int i = pvts.size() - 1; i >= 0; i--) {
-            PointValueTime pvt = pvts.get(i);
-            if (pvt.getTime() >= time)
-                return pvt;
-        }
-
-        return Common.databaseProxy.newPointValueDao().getPointValueAfter(vo.getId(), time);
+        
+    	if(after != null){
+    		//Check to see if we have a value closer in cache
+	        for (int i = pvts.size() - 1; i >= 0; i--) {
+	            PointValueTime pvt = pvts.get(i);
+	            if (pvt.getTime() < after.getTime())
+	                return pvt;
+	        }
+    	}else{
+	        for (int i = pvts.size() - 1; i >= 0; i--) {
+	            PointValueTime pvt = pvts.get(i);
+	            if (pvt.getTime() >= time)
+	                return pvt;
+	        }
+    	}
+    	
+        return after;
     }
 
     //
