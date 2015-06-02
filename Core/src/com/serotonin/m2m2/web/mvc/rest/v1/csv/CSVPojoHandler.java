@@ -32,7 +32,6 @@ class CSVPojoHandler {
 
 	// Pojo Class
 	private Class<?> clazz;
-	private Object instance;
 	private ModelDefinition definition;
 	// Mapping of headers to Fields and PropertyEditors
 	private final Map<String, CSVDataHandler> mapping;
@@ -58,7 +57,6 @@ class CSVPojoHandler {
 	}
 	
 	public void initialize(Object instance) throws NoSupportingModelException{
-		this.instance = instance;
 		this.clazz = instance.getClass();
 		//TODO Need to Create a Registry in the ModuleRegsitry to create new models for Types...
 		this.definition = findModelDefinition(this.clazz);
