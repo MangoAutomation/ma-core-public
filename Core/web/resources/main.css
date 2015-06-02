@@ -96,16 +96,36 @@ textarea {
    ========================================================================== */
 
 body {
-    font-size: 12px;
-    font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    font-family: Verdana, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-p, h1, h2, h3, h4, h5, h6 {
-    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
+/* Hard override fonts in datetimepicker */
 .mango .xdsoft_datetimepicker {
-    font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Verdana, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a, a:visited, a:link, .link {
+    color: #804000;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #F07800;
+    text-decoration: underline;
+}
+
+select, input, textarea, button {
+  color: #333333;
+  border: 1px solid #F07800;
+}
+
+select, input, textarea {
+  padding: 2px;
+}
+
+.mango .dijitTextBox {
+  border-color: #F07800 !important;
 }
 
 header {
@@ -113,6 +133,7 @@ header {
     position: relative;
 }
 
+/* Mango instance name in header */
 .instance-description {
     position: absolute;
     bottom: 0;
@@ -121,6 +142,7 @@ header {
     font-weight: bold;
 }
 
+/* Event summary in header */
 header .event-summary {
     margin-left: 10px;
     display: inline-block;
@@ -139,24 +161,187 @@ header .event-summary a {
     margin-right: 3px;
 }
 
+/* Navigation links - menu bar */
 nav {
     background-color: #F0F0F0;
     margin: 0.5em 0;
     padding: 5px;
 }
 
+/* User links, i.e. username, logout, mute, save home page etc */
 nav .user-nav {
     float: right;
 }
 
+/* Navigation menu label popups */
+.labelDiv {
+    position:absolute;
+    padding:1px 5px 1px 5px;
+    margin:0px;
+    background:#F8BB00;
+    white-space:nowrap;
+    z-index: 20;
+    border:1px solid #F07800;
+}
+
+/* Content pane */
 .content {
     margin: 5px;
+}
+
+/* Table styles */
+td {
+    color: #000000;
+    background-color: #F0F0F0;
+    padding: 3px;
+}
+
+tr:nth-child(even) td {
+    background-color: #DCDCDC;
+}
+
+th {
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: #F07800;
+    text-align: center;
+    white-space: nowrap;
+    padding: 3px 10px 3px 10px;
+}
+
+th td a,
+th td a:visited,
+th td a:link,
+th td a:hover {
+    color: #FFFFFF;
+    text-decoration: underline;
+}
+
+table.layout tr td,
+table.layout tr th {
+    color: inherit;
+    background-color: inherit;
+    font-weight: inherit;
+    text-align: inherit;
+    white-space: inherit;
+    padding: 0;
+    margin: 0;
+    border: none;
 }
 
 footer {
     text-align: center;
     margin-top: 15px;
     margin-bottom: 5px;
+}
+
+/* dgrid styles
+ */
+
+.dgrid-header th {
+  font-weight: bold;
+  color: #FFFFFF;
+  background-color: #F07800;
+}
+
+/* More dgrid styles..
+ * Note that these dont currently work as they are
+ * overriden by dgrid reimporting its stylesheet. These styles are included
+ * for when the bug is fixed and for reference
+ */
+.dgrid-grid .dgrid-no-data,
+.dgrid-grid .dgrid-loading {
+    margin-top: 5px;
+    text-align: center;
+}
+
+.dgrid-grid .dgrid-header {
+    right: 0;
+}
+
+.dgrid-grid .dgrid-scrollbar-width {
+    display: none;
+}
+
+.dgrid-grid .dgrid-scroller {
+    overflow-x: hidden;
+}
+
+.dgrid-grid .dgrid-content {
+    height: auto;
+}
+
+/* Mango helper classes */
+
+.border {
+    border: 1px solid #bbb;
+}
+
+.padded {
+    padding: 5px;
+}
+
+.section .title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 3px;
+    display: inline-block;
+}
+
+.section {
+  box-shadow: 3px 3px 6px -2px #999;
+  margin-bottom: 7px;
+  margin-right: 7px;
+}
+
+.row {
+    margin-bottom: 3px;
+}
+
+.align-middle * {
+    vertical-align: middle;
+}
+
+.align-middle a {
+    vertical-align: baseline;
+}
+
+.label-layout label {
+  display: inline-block;
+  width: 100px;
+  margin-right: 10px;
+  text-align: right;
+  font-weight: bold;
+}
+
+.label-layout label img {
+  margin-right: 5px;
+}
+
+.clickable, .ptr {
+  cursor: pointer;
+}
+
+.disabled {
+  opacity: 0.3;
+  cursor: default; 
+}
+
+/*
+ * AmCharts SVG styles
+ */
+
+/* Make sure SVGs inherit their font */
+svg text {
+  font-family: inherit;
+}
+
+.amExportButton a {
+  font-family: inherit !important;
+}
+
+.amcharts-graph-column-element {
+    fill-opacity: 0.7;
 }
 
 /* ==========================================================================
