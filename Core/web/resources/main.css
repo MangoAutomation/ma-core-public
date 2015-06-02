@@ -240,6 +240,40 @@ footer {
     margin-bottom: 5px;
 }
 
+/*
+ * Help dialog / documentation pane
+ */
+#documentationPane {
+    overflow: visible;
+}
+
+#documentationPane .dojoxFloatingPaneTitle {
+    font-weight: bold;
+    background-color: #6D933E;
+}
+
+#documentationPane .dojoxFloatingCloseIcon {
+    background-image: url(/images/cross_doc.png);
+    cursor: pointer;
+}
+
+#documentationPane .dojoxFloatingPaneContent {
+    font-size: 10px;
+    background-color: #f0f0f0;
+}
+
+#documentationPane .dojoxFloatingPaneContent > div {
+    padding: 5px;
+}
+
+#documentationPane .dojoxFloatingPaneContent h1 {
+    font-size: 1.3em;
+}
+
+#documentationPane .dojoxFloatingPaneContent img {
+    vertical-align: bottom;
+}
+
 /* dgrid styles
  */
 
