@@ -67,11 +67,27 @@ while [ $LOOP_EXIT = false ]; do
     rm -f "$MA_HOME"/STOP
     rm -f "$MA_HOME"/TERMINATED
 
+	#Check to see if we have a pid and are running on it...
     if [ -r "$MA_HOME"/bin/ma.pid ]; then
-        PID=$(cat "$MA_HOME"/bin/ma.pid)
-        echo `date` ma-start: MA already running with Process ID: $PID >> "$MA_HOME"/logs/ma-script.log
-        echo "MA already running with Process ID: " $PID
-        break;
+        PID=$(cat "$MA_HOME"/bin/ma.pid)      
+        if ps -p $PID > /dev/null
+         then
+         	# final check to see that main is running on this pid
+            if  [ $(pgrep -f com.serotonin.m2m2.Main) == "$PID" ]
+             then
+		        echo `date` ma-start: MA already running with Process ID: $PID >> "$MA_HOME"/logs/ma-script.log
+		        echo "MA already running with Process ID: " $PID
+		        break;
+             else
+		        echo `date` ma-start: MA removing pid file for dead pid: $PID >> "$MA_HOME"/logs/ma-script.log
+		        echo "MA removing dead pid file for PID: " $PID
+	            rm -f "$MA_HOME"/bin/ma.pid
+	        fi
+         else
+         	echo `date` ma-start: MA removing pid file for dead pid: $PID >> "$MA_HOME"/logs/ma-script.log
+	        echo "MA removing dead pid file for PID: " $PID
+            rm -f "$MA_HOME"/bin/ma.pid
+        fi
     fi
 
     echo `date` 'ma-start: starting MA' >> $MA_HOME/logs/ma-script.log
