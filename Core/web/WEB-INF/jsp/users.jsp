@@ -14,8 +14,6 @@
      }
     </style>
     <link rel="stylesheet" href="/resources/dijit/themes/claro/claro.css"/>
-    <link rel="stylesheet" type="text/css" href="resources/dojo/resources/dojo.css"/>
-    <tag:versionedCss href="/resources/common.css"/>
     <link rel="stylesheet" href="/resources/dgrid-0.4/css/dgrid.css"/>
   </jsp:attribute>
 

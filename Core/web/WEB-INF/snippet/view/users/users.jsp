@@ -31,7 +31,7 @@
   </c:if>
 
   <div id="userEditView" style="float:left; display:none">
-      <table class="wide">
+      <table class="wide layout padded">
         <tr>
           <td>
             <span class="smallTitle">

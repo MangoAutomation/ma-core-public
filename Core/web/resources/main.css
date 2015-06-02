@@ -229,6 +229,11 @@ table.layout tr th {
     border: none;
 }
 
+table.padded tr td,
+table.padded tr th {
+    padding: 3px;
+}
+
 footer {
     text-align: center;
     margin-top: 15px;
@@ -272,6 +277,12 @@ footer {
 }
 
 /* Mango helper classes */
+
+.smallTitle {
+  color: #804000;
+  font-size: 13px;
+  font-weight: bold;
+}
 
 .border {
     border: 1px solid #bbb;
@@ -325,6 +336,10 @@ footer {
 .disabled {
   opacity: 0.3;
   cursor: default; 
+}
+
+.wide {
+    width: 100%;
 }
 
 /*
