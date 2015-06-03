@@ -225,6 +225,11 @@ public class RestProcessResult<T> {
 		return this.validationMessages;
 	}
 
-	
+	public HttpHeaders getHeaders(){
+		return this.headers;
+	}
+	public void setContentType(MediaType mediaType){
+		this.headers.setContentType(mediaType);
+	}
 	
 }

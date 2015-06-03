@@ -49,12 +49,12 @@
     	   */
     	  function setupPage(){
           	var tc = new TabContainer({
-    			  style: "width: 100%; height: 80vh;"
+    			  style: "width: 100%; height: 1000px"
     	  	},'tab-container');
     	  
     	  	var userTab = new ContentPane({
     			title: '<span class="smallTitle"><fmt:message key="users.title" /></span>',
-    			style: "width: 100%; height: 80vh",
+    			style: "width: 100%; height: 1000px",
     		 	selected: true
     	  	}, 'user-tab');
     	  	tc.addChild(userTab);
