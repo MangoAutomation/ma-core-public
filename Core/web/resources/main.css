@@ -100,9 +100,11 @@ body {
     font-family: Verdana, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-/* Hard override fonts in datetimepicker */
+/* Hard override fonts in datetimepicker as it sets its own fonts.
+ * Dont use Verdana as it is too large for the font sizes datetimepicker sets.
+ */
 .mango .xdsoft_datetimepicker {
-    font-family: Verdana, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 a, a:visited, a:link, .link {
@@ -122,6 +124,10 @@ select, input, textarea, button {
 
 select, input, textarea {
   padding: 2px;
+}
+
+input {
+  line-height: normal;
 }
 
 .mango .dijitTextBox {
@@ -186,7 +192,10 @@ nav .user-nav {
 
 /* Content pane */
 .content {
-    margin: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 /* Table styles */
@@ -232,6 +241,11 @@ table.layout tr th {
 table.padded tr td,
 table.padded tr th {
     padding: 3px;
+}
+
+.dgrid td,
+.dgrid th {
+    background-color: inherit;
 }
 
 footer {
@@ -339,7 +353,11 @@ footer {
   margin-right: 7px;
 }
 
-.row {
+.section .right-links {
+    float: right;
+}
+
+.mango-row {
     margin-bottom: 3px;
 }
 
@@ -391,6 +409,16 @@ svg text {
 
 .amcharts-graph-column-element {
     fill-opacity: 0.7;
+}
+
+/*
+ * Bootstrap helpers
+ */
+
+.row.no-gutters > [class^="col-"],
+.row.no-gutters > [class*=" col-"] {
+  padding-right: 0;
+  padding-left: 0;
 }
 
 /* ==========================================================================

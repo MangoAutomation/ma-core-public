@@ -34,14 +34,15 @@
         <tag:versionedIcon href="<%= Common.applicationFavicon %>"/>
         <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
 
-        <link rel="stylesheet" href="/resources/normalize.css">
-        <link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">
-        <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">
+        <%-- included with bootstrap?
+        <link rel="stylesheet" href="/resources/normalize.css">--%>
+        <link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">
+        <%--<link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">
+        <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">--%>
         <link rel="stylesheet" href="/resources/main.css">
         <%-- For now we need to include the floating pane CSS to use the help popup --%>
         <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/FloatingPane.css"/> 
         <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/ResizeHandle.css"/>
-          
         
         <script src="/resources/modernizr-2.8.3.min.js"></script>
         
@@ -64,7 +65,7 @@
         </c:if>
         
         <!-- JSP body fragment -->
-        <div class="content">
+        <div class="content container-fluid">
         <jsp:doBody/>
         </div>
         
