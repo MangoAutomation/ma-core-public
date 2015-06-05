@@ -4,7 +4,7 @@
  * @author Jared Wiltshire
  */
 
-require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim'], 
+require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'],
 		function($, MangoAPI, ToolbarUtilities) {
     
 	var toolbarUtilities = new ToolbarUtilities();
@@ -32,7 +32,7 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim'],
 		
 		//Setup the Home URL Icon
 		$('#goHome').on('click', function(){
-			if((user.homeUrl === null) || (user.homeUrl == ''))
+			if((user.homeUrl === null) || (user.homeUrl === ''))
 				toolbarUtilities.showMessage(toolbarUtilities.tr('header.noHomeUrlDefined'), 'warn');
 			else
 				window.location = user.homeUrl;
@@ -60,6 +60,4 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim'],
 		});
 		
 	}).fail(toolbarUtilities.showError);
-	
-	
 });

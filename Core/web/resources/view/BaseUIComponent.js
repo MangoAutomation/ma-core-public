@@ -3,7 +3,12 @@
  * @author Terry Packer
  */
 
-define(['jquery', 'mango/api', 'view/ConstrainedFloatingPane', 'dojo/dom-style', 'dojo/dom-geometry', 'jquery.notify'], 
+define(['jquery',
+        'mango/api',
+        './ConstrainedFloatingPane',
+        'dojo/dom-style',
+        'dojo/dom-geometry',
+        'jquery.notify'], 
 		function($, MangoAPI, ConstrainedFloatingPane, domStyle, domGeom){
 "use strict";
 /* Style for Notification using multi-lines */
@@ -29,18 +34,18 @@ $.notify.addStyle('mango-error', {
 	  }
 	});
 
-function BaseUIComponent(){
-	
+function BaseUIComponent(options) {
 	this.api = MangoAPI.defaultApi;
     this.translationNamespaces = ['common', 'header', 'js.help'];
 	
+    $.extend(this, options);
+    
 	this.clearErrors = this.clearErrors.bind(this);
 	this.showError = this.showError.bind(this);
 	this.showSuccess = this.showSuccess.bind(this);
 	this.getCurrentUser = this.getCurrentUser.bind(this);
 	this.showHelp = this.showHelp.bind(this);
-
-};
+}
 
 /**
  * Optionally place errors into a div instead of via notifications
@@ -159,8 +164,8 @@ BaseUIComponent.prototype.showHelp = function(event){
             	link.on('click', {helpId: helpId}, self.showHelp);
             	related.append(link);
             }
+            content.append(related);
         }
-        content.append(related);
         if (result.lastUpdated){
         	var lastUpdated = $('<p>' + self.tr('js.help.lastUpdated') + ':' + result.lastUpdated + '</p>');
             content.append(lastUpdated);
@@ -176,7 +181,7 @@ BaseUIComponent.prototype.showHelp = function(event){
 
 BaseUIComponent.prototype.showSuccess = function(message){
 	//var msgNode = $('<div style="color:green">').html(message);
-	if(this.errorDiv == null)
+	if(this.errorDiv === null)
 		$.notify(message, {className: 'success', position: 'top center'});
 	else
 		this.errorDiv.notify(message, 'success');
@@ -208,7 +213,7 @@ BaseUIComponent.prototype.clearErrors = function(){
  * @param level {String} - one of success, error, warn, info
  */
 BaseUIComponent.prototype.showMessage = function(message, level){
-	if(this.errorDiv == null){
+	if(this.errorDiv === null){
 		if(level === 'error')
 			$.notify(message, {style: 'mango-error', position: 'top center'});
 		else
@@ -232,7 +237,7 @@ BaseUIComponent.prototype.showError = function(jqXHR, textStatus, error, mangoMe
     	color = "red";
     	message = "Response Parser Error. ";
     	break;
-    case 'error':
+    //case 'error':
     default:
         color = "red";
         break;
@@ -258,33 +263,49 @@ BaseUIComponent.prototype.showError = function(jqXHR, textStatus, error, mangoMe
     	this.errorDiv.notify(message, {style: 'mango-error'});
 };
 
-
-
 BaseUIComponent.prototype.escapeQuotes = function(str) {
     if (!str)
         return "";
     return str.replace(/\'/g,"\\'");
-}
+};
 
 BaseUIComponent.prototype.escapeDQuotes = function(str) {
     if (!str)
         return "";
     return str.replace(/\"/g,"\\\"");
-}
+};
 
 BaseUIComponent.prototype.encodeQuotes = function(str) {
     if (!str)
         return "";
     return str.replace(/\'/g,"%27").replace(/\"/g,"%22");
-}
+};
 
 BaseUIComponent.prototype.encodeHtml = function(str) {
     if (!str)
         return "";
     str = str.replace(/&/g,"&amp;");
     return str.replace(/</g,"&lt;");
-}
+};
 
+/**
+ * ensure dgrid components inside bootstrap tabs are loaded correctly when tab is shown
+ */
+BaseUIComponent.prototype.dgridTabResize = function() {
+    $(document).ready(function() {
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
+            var href = $(event.target).attr('href');
+            $(href).find('.dgrid').each(function(i, node) {
+                // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
+                var grid = registry.byNode(node);
+                // hidden dgrids are not started up, start them
+                grid.startup();
+                // need to resize in case the window was resized
+                grid.resize(); 
+            });
+        });
+    });
+};
 
 return BaseUIComponent;
 });

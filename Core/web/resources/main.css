@@ -341,9 +341,9 @@ footer {
 }
 
 .section .title {
-    font-size: 1.2em;
+    font-size: 1.4em;
     font-weight: bold;
-    margin-bottom: 3px;
+    margin-bottom: 6px;
     display: inline-block;
 }
 
@@ -355,6 +355,10 @@ footer {
 
 .section .right-links {
     float: right;
+}
+
+.section .right-links img {
+    cursor: pointer;
 }
 
 .mango-row {
