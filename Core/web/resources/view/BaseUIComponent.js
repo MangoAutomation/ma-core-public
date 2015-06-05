@@ -104,6 +104,13 @@ BaseUIComponent.prototype.updateImage = function(imgNode, text, src){
 	imgNode.attr('title', text);
 };
 
+BaseUIComponent.prototype.setupHelp = function($container) {
+    var self = this;
+    $(document).ready(function() {
+        $container.find('.mango-help').on('click', self.showHelp.bind(self));
+    });
+};
+
 /**
  * Show the Help via an onclick event
  * Ensure the id is passed in as event.data.helpId
@@ -151,7 +158,8 @@ BaseUIComponent.prototype.showHelp = function(event){
     
     var self = this;
     //Now Load in the help
-    this.api.getHelp(event.data.helpId).done(function(result){
+    var helpId = (event.data && event.data.helpId) || $(event.target).data('help-id');
+    this.api.getHelp(helpId).done(function(result){
     	
     	fp.set('title', result.title);
     	var content = $('<div/>');

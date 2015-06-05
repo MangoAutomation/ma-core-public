@@ -11,15 +11,15 @@ function($, ItemEditor) {
 'use strict';
 
 function GridAndEditor(options) {
-    if (options.grid && typeof options.grid.select === 'function') {
-        this.gridSelectable = true;
+    if (!options.grid) {
+        throw 'grid must be specified';
+    }
+    
+    if (typeof options.grid.select !== 'function') {
+        throw 'grid must be selectable';
     }
     
     ItemEditor.apply(this, arguments);
-    
-    if (!this.grid) {
-        throw 'grid must be specified';
-    }
 }
 
 GridAndEditor.prototype = Object.create(ItemEditor.prototype);
@@ -32,27 +32,38 @@ GridAndEditor.prototype.pageSetup = function() {
     
     var self = this;
     
-    if (this.gridSelectable) {
-        this.grid.on('dgrid-select', function(event) {
-            if (self.currentItem && self.currentItemDirty) {
-                // TODO show proper dialog
-                if (!confirm('Discard changes?')) {
-                    self.grid.clearSelection();
-                    // TODO reselect old template, this method triggers event again
-                    // reportTemplatesGrid.select(currentTemplate);
-                }
+    this.grid.on('dgrid-select', function(event) {
+        if (event.grid.disableEvent) return;
+        
+        if (self.currentItem && self.currentItemDirty) {
+            // TODO show proper dialog
+            if (!confirm('Discard changes?')) {
+                event.grid.clearSelection();
+                
+                // no built in way to inhibit event firing?
+                event.grid.disableEvent = true;
+                event.grid.select(self.currentItem);
+                event.grid.disableEvent = false;
+                
+                return;
             }
-            
-            self.editItem(event.rows[0].data);
-        });
+        }
+        
+        self.editItem(event.rows[0].data);
+    });
+};
+
+GridAndEditor.prototype.editItem = function() {
+    ItemEditor.prototype.editItem.apply(this, arguments);
+    if (!this.grid.isSelected(this.currentItem)) {
+        this.grid.clearSelection();
+        this.grid.select(this.currentItem);
     }
 };
 
-GridAndEditor.prototype.newItemClick = function() {
-    if (this.gridSelectable) {
-        this.grid.clearSelection();
-    }
-    ItemEditor.prototype.newItemClick.apply(this, arguments);
+GridAndEditor.prototype.closeEditor = function() {
+    ItemEditor.prototype.closeEditor.apply(this, arguments);
+    this.grid.clearSelection();
 };
 
 return GridAndEditor;

@@ -100,6 +100,11 @@ body {
     font-family: Verdana, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* override bootstrap style */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
 /* Hard override fonts in datetimepicker as it sets its own fonts.
  * Dont use Verdana as it is too large for the font sizes datetimepicker sets.
  */
@@ -385,7 +390,7 @@ footer {
   margin-right: 5px;
 }
 
-.clickable, .ptr {
+.clickable, .ptr, .mango-help {
   cursor: pointer;
 }
 

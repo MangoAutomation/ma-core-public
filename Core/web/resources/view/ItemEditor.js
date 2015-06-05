@@ -21,11 +21,13 @@ function ItemEditor(options) {
     if (!this.$editor) {
         throw '$editor must be specified';
     }
-    
+
     var self = this;
-    $(document).ready(function() {
-        self.pageSetup();
-    });
+    this.setupTranslations().then(function() {
+        $(document).ready(function() {
+            self.pageSetup();
+        });
+    }, this.showError);
 }
 
 ItemEditor.prototype = Object.create(BaseUIComponent.prototype);
@@ -43,6 +45,9 @@ ItemEditor.prototype.pageSetup = function() {
     this.$buttonScope.find('.editor-new').click(this.newItemClick.bind(this));
     this.$buttonScope.find('.editor-delete').click(this.deleteItemClick.bind(this));
     this.$buttonScope.find('.editor-save').click(this.saveItemClick.bind(this));
+    this.$buttonScope.find('.editor-cancel').click(this.cancelItemClick.bind(this));
+    this.$buttonScope.find('.editor-copy').click(this.copyItemClick.bind(this));
+    this.setupHelp(this.$buttonScope);
     
     self.$editor.find('input').on('change', function() {
         if (self.currentItem) {
@@ -84,6 +89,7 @@ ItemEditor.prototype.saveItemClick = function() {
 ItemEditor.prototype.deleteItemClick = function() {
     var self = this;
     
+    // TODO proper dialog
     if (confirm('Delete?')) {
         var idProp = this.store.idProperty;
         this.store.remove(this.currentItem[idProp]).then(function() {
@@ -92,8 +98,36 @@ ItemEditor.prototype.deleteItemClick = function() {
     }
 };
 
+ItemEditor.prototype.cancelItemClick = function() {
+    var close = true;
+    
+    if (this.currentItem && this.currentItemDirty) {
+        // TODO show proper dialog
+        if (!confirm('Discard changes?')) {
+            close = false;
+        }
+    }
+    
+    if (close)
+        this.closeEditor();
+};
+
+ItemEditor.prototype.copyItemClick = function(event) {
+    var item = $(event.target).data('item');
+    if (!item)
+        item = this.currentItem;
+    
+    item = $.extend({}, item);
+    var idProp = this.store.idProperty;
+    delete item[idProp];
+    // TODO new XID etc
+    
+    this.editItem(item);
+};
+
 ItemEditor.prototype.createNewItem = function() {
-    return this.store.create();
+    //return this.store.create();
+    return {};
 };
 
 ItemEditor.prototype.setInputs = function(item) {
