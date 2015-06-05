@@ -8,8 +8,9 @@ define(['jquery',
         './ConstrainedFloatingPane',
         'dojo/dom-style',
         'dojo/dom-geometry',
+        'dijit/registry',
         'jquery.notify'], 
-		function($, MangoAPI, ConstrainedFloatingPane, domStyle, domGeom){
+		function($, MangoAPI, ConstrainedFloatingPane, domStyle, domGeom, registry){
 "use strict";
 /* Style for Notification using multi-lines */
 $.notify.addStyle('mango-error', {
