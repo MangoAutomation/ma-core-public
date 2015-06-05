@@ -69,6 +69,17 @@ BaseUIComponent.prototype.tr = null;
 BaseUIComponent.prototype.translationNamespaces = null; 
 
 /**
+ * jQuery selection which will be searched for inputs when
+ * calling getInputs(), setInputs() and showValidationErrors()
+ */
+BaseUIComponent.prototype.$inputScope = $(document.body);
+
+/**
+ * Maps property names to an input
+ */
+BaseUIComponent.prototype.propToInputMap = {};
+
+/**
  * Get the current user
  * @return promise with user as data
  */
@@ -207,10 +218,45 @@ BaseUIComponent.prototype.showValidationErrors = function(vo){
 	
 	for(var i=0; i<vo.validationMessages.length; i++){
 		var msg = vo.validationMessages[i];
-		$('#' + msg.property).notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
+		var $input = inputForProperty(msg.property);
+		$input.notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
 	}
 	
 	return true;
+};
+
+BaseUIComponent.prototype.inputForProperty = function(prop) {
+    var $input = this.propToInputMap[prop];
+    if (!$input)
+        $input = this.$inputScope.find('input[name="' + prop + '"]');
+    if ($input.length <= 0)
+        $input = $('#' + prop);
+    return $input;
+};
+
+BaseUIComponent.prototype.setInputs = function(item) {
+    // clear inputs
+    for (var prop in this.propToInputMap) {
+        this.propToInputMap[prop].val('');
+    }
+    this.$inputScope.find('input').val('');
+    
+    // set the inputs
+    for (prop in item) {
+        var $input = this.inputForProperty(prop);
+        $input.val(item[prop]);
+    }
+};
+
+BaseUIComponent.prototype.getInputs = function(item) {
+    for (var key in this.propToInputMap) {
+        item[key] = this.propToInputMap[key].val();
+    }
+    this.$inputScope.find('input').each(function(i, input) {
+        var $input = $(input);
+        item[$input.attr('name')] = $input.val();
+    });
+    return item;
 };
 
 BaseUIComponent.prototype.clearErrors = function(){
