@@ -66,6 +66,31 @@ GridAndEditor.prototype.closeEditor = function() {
     this.grid.clearSelection();
 };
 
+GridAndEditor.createButtons = function(buttons, imgBase, imgSize) {
+    var renderCell = function(object, value, node, options) {
+        var $span = $('<span>');
+        
+        for (var i = 0; i < buttons.length; i++) {
+            var button = buttons[i];
+            
+            var $img = $('<img>');
+            $img.addClass('ptr');
+            $img.addClass(button['class']);
+            $img.attr('src', imgBase + button.img);
+            $img.attr('height', '' + imgSize);
+            $img.attr('width', '' + imgSize);
+            $img.attr('title', button.text);
+            $img.data('item', object);
+            
+            $span.append($img);
+        }
+        
+        return $span[0];
+    };
+    
+    return renderCell;
+};
+
 return GridAndEditor;
 
 });

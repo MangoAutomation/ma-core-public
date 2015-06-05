@@ -73,20 +73,23 @@ ItemEditor.prototype.editItem = function(item) {
     this.$inputScope.find('input:first').focus();
 };
 
-ItemEditor.prototype.newItemClick = function() {
+ItemEditor.prototype.newItemClick = function(event) {
     this.editItem(this.createNewItem());
+    event.stopPropagation();
 };
 
-ItemEditor.prototype.saveItemClick = function() {
+ItemEditor.prototype.saveItemClick = function(event) {
     var self = this;
     this.getInputs(this.currentItem);
     
     this.store.put(this.currentItem).then(function() {
         self.closeEditor();
     }, this.showError);
+    
+    event.stopPropagation();
 };
 
-ItemEditor.prototype.deleteItemClick = function() {
+ItemEditor.prototype.deleteItemClick = function(event) {
     var self = this;
     
     // TODO proper dialog
@@ -96,9 +99,12 @@ ItemEditor.prototype.deleteItemClick = function() {
             self.closeEditor();
         }, this.showError);
     }
+    
+    event.stopPropagation();
+    // TODO not working, dgrid select is being called first
 };
 
-ItemEditor.prototype.cancelItemClick = function() {
+ItemEditor.prototype.cancelItemClick = function(event) {
     var close = true;
     
     if (this.currentItem && this.currentItemDirty) {
@@ -110,6 +116,8 @@ ItemEditor.prototype.cancelItemClick = function() {
     
     if (close)
         this.closeEditor();
+    
+    event.stopPropagation();
 };
 
 ItemEditor.prototype.copyItemClick = function(event) {
@@ -120,9 +128,11 @@ ItemEditor.prototype.copyItemClick = function(event) {
     item = $.extend({}, item);
     var idProp = this.store.idProperty;
     delete item[idProp];
-    // TODO new XID etc
+    delete item.xid;
     
     this.editItem(item);
+    
+    event.stopPropagation();
 };
 
 ItemEditor.prototype.createNewItem = function() {
