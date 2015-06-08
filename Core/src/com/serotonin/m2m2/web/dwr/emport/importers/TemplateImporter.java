@@ -36,7 +36,7 @@ public class TemplateImporter extends Importer {
 
         BaseTemplateVO<?> vo = TemplateDao.instance.getByXid(xid);
         if (vo == null) {
-            String typeStr = json.getString("type");
+            String typeStr = json.getString("templateType");
             if (StringUtils.isBlank(typeStr))
                 addFailureMessage("emport.template.missingType", xid, ModuleRegistry.getTemplateDefinitionTypes());
             else {

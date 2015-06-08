@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -95,6 +96,11 @@ public class TemplateDwr extends BaseDwr{
 
         if (vo.getXid() == null) {
             vo.setXid(dao.generateUniqueXid());
+        }
+        //We are using XID as only viewable indicator of the template, but 
+        // we need a name for validation so set XID and name to the same thing.
+        if(StringUtils.isEmpty(vo.getName())){
+        	vo.setName(vo.getXid());
         }
         vo.validate(response);
 
