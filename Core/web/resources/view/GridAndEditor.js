@@ -27,29 +27,32 @@ GridAndEditor.prototype = Object.create(ItemEditor.prototype);
 GridAndEditor.prototype.grid = null;
 GridAndEditor.prototype.gridSelectable = false;
 
-GridAndEditor.prototype.pageSetup = function() {
-    ItemEditor.prototype.pageSetup.apply(this, arguments);
+GridAndEditor.prototype.documentReady = function() {
+    ItemEditor.prototype.documentReady.apply(this, arguments);
     
     var self = this;
+    var confirmTitle = this.tr('common.discardChanges');
     
     this.grid.on('dgrid-select', function(event) {
         if (event.grid.disableEvent) return;
+
+        var confirmed = true;
         
         if (self.currentItem && self.currentItemDirty) {
-            // TODO show proper dialog
-            if (!confirm('Discard changes?')) {
-                event.grid.clearSelection();
-                
-                // no built in way to inhibit event firing?
-                event.grid.disableEvent = true;
-                event.grid.select(self.currentItem);
-                event.grid.disableEvent = false;
-                
-                return;
-            }
+            var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr]);
+            confirmed = self.confirm(confirmTitle, confirmMessage);
         }
         
-        self.editItem(event.rows[0].data);
+        $.when(confirmed).done(function() {
+            self.editItem(event.rows[0].data);
+        }).fail(function() {
+            event.grid.clearSelection();
+            
+            // no built in way to inhibit event firing?
+            event.grid.disableEvent = true;
+            event.grid.select(self.currentItem);
+            event.grid.disableEvent = false;
+        });
     });
 };
 

@@ -22,13 +22,6 @@ function ItemEditor(options) {
     if (!this.$editor) {
         throw '$editor must be specified';
     }
-
-    var self = this;
-    this.setupTranslations().then(function() {
-        $(document).ready(function() {
-            self.pageSetup();
-        });
-    }, this.showError);
 }
 
 ItemEditor.prototype = Object.create(BaseUIComponent.prototype);
@@ -38,18 +31,20 @@ ItemEditor.prototype.$editor = null;
 ItemEditor.prototype.$buttonScope = null;
 ItemEditor.prototype.currentItem = null;
 ItemEditor.prototype.currentItemDirty = false;
+ItemEditor.prototype.nameAttr = 'name';
 
-ItemEditor.prototype.pageSetup = function() {
+ItemEditor.prototype.documentReady = function() {
+    BaseUIComponent.prototype.documentReady.apply(this, arguments);
+    
     var self = this;
     
     this.$buttonScope.find('.editor-new').click(this.newItemClick.bind(this));
-    this.$buttonScope.find('.editor-delete').click(this.deleteItemClick.bind(this));
+    this.$buttonScope.find('.editor-delete').on('mousedown', this.deleteItemClick.bind(this));
     this.$buttonScope.find('.editor-save').click(this.saveItemClick.bind(this));
     this.$buttonScope.find('.editor-cancel').click(this.cancelItemClick.bind(this));
-    this.$buttonScope.find('.editor-copy').click(this.copyItemClick.bind(this));
-    this.setupHelp(this.$buttonScope);
+    this.$buttonScope.find('.editor-copy').on('mousedown', this.copyItemClick.bind(this));
     
-    self.$inputScope.find('input').on('change', function() {
+    self.$inputScope.find('input').on('change keydown', function() {
         if (self.currentItem) {
             self.currentItemDirty = true;
         }
@@ -75,7 +70,6 @@ ItemEditor.prototype.editItem = function(item) {
 
 ItemEditor.prototype.newItemClick = function(event) {
     this.editItem(this.createNewItem());
-    event.stopPropagation();
 };
 
 ItemEditor.prototype.saveItemClick = function(event) {
@@ -85,52 +79,64 @@ ItemEditor.prototype.saveItemClick = function(event) {
     this.store.put(this.currentItem).then(function() {
         self.closeEditor();
     }, this.showError);
-    
-    event.stopPropagation();
 };
 
 ItemEditor.prototype.deleteItemClick = function(event) {
     var self = this;
+    var item = event.target && $(event.target).data('item') || self.currentItem;
     
-    // TODO proper dialog
-    if (confirm('Delete?')) {
-        var idProp = this.store.idProperty;
-        this.store.remove(this.currentItem[idProp]).then(function() {
-            self.closeEditor();
-        }, this.showError);
-    }
+    var confirmTitle = this.tr('common.confirmDelete');
+    var confirmMessage = this.tr('common.confirmDeleteLong', item[this.nameAttr]);
+    
+    this.confirm(confirmTitle, confirmMessage).done(function() {
+        var idProp = self.store.idProperty;
+        self.store.remove(item[idProp]).then(function() {
+            if (item === self.currentItem) {
+                self.closeEditor();
+            }
+        }, self.showError);
+    });
     
     event.stopPropagation();
-    // TODO not working, dgrid select is being called first
 };
 
 ItemEditor.prototype.cancelItemClick = function(event) {
-    var close = true;
+    var self = this;
+    var confirmed = true;
     
     if (this.currentItem && this.currentItemDirty) {
-        // TODO show proper dialog
-        if (!confirm('Discard changes?')) {
-            close = false;
-        }
+        var confirmTitle = this.tr('common.discardChanges');
+        var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr]);
+        
+        confirmed = this.confirm(confirmTitle, confirmMessage);
     }
     
-    if (close)
-        this.closeEditor();
-    
-    event.stopPropagation();
+    $.when(confirmed).done(function() {
+        self.closeEditor();
+    });
 };
 
 ItemEditor.prototype.copyItemClick = function(event) {
-    var item = $(event.target).data('item');
-    if (!item)
-        item = this.currentItem;
+    var item = event.target && $(event.target).data('item') || this.currentItem;
     
-    item = $.extend({}, item);
-    var idProp = this.store.idProperty;
-    delete item[idProp];
-    delete item.xid;
+    var self = this;
+    var confirmed = true;
     
-    this.editItem(item);
+    if (this.currentItem && this.currentItemDirty) {
+        var confirmTitle = this.tr('common.discardChanges');
+        var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr]);
+        
+        confirmed = this.confirm(confirmTitle, confirmMessage);
+    }
+    
+    $.when(confirmed).done(function() {
+        item = $.extend({}, item);
+        var idProp = self.store.idProperty;
+        delete item[idProp];
+        delete item.xid;
+        
+        self.editItem(item);
+    });
     
     event.stopPropagation();
 };

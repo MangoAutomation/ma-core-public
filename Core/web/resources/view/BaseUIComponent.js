@@ -45,7 +45,11 @@ function BaseUIComponent(options) {
 	this.showError = this.showError.bind(this);
 	this.showSuccess = this.showSuccess.bind(this);
 	this.getCurrentUser = this.getCurrentUser.bind(this);
-	this.showHelp = this.showHelp.bind(this);
+	
+	var self = this;
+	this.setupTranslations().then(function() {
+	    $(document).ready(self.documentReady.bind(self));
+	}, this.showError);
 }
 
 /**
@@ -99,7 +103,14 @@ BaseUIComponent.prototype.setupTranslations = function(namespaces){
 	var self = this;
 	//Load in the required data
 	this.api.setupGlobalize.apply(this.api, this.translationNamespaces).then(MangoAPI.firstArrayArg).done(function(Globalize){
-		self.tr = Globalize.formatMessage.bind(Globalize);
+		self.tr = function() {
+		    try {
+		        return Globalize.formatMessage.apply(Globalize, arguments);
+		    }
+		    catch(error) {
+		        return arguments[0];
+		    }
+		};
 		deferred.resolve();
 	}).fail(this.showError);
 	
@@ -115,11 +126,47 @@ BaseUIComponent.prototype.updateImage = function(imgNode, text, src){
 	imgNode.attr('title', text);
 };
 
-BaseUIComponent.prototype.setupHelp = function($container) {
-    var self = this;
-    $(document).ready(function() {
-        $container.find('.mango-help').on('click', self.showHelp.bind(self));
+BaseUIComponent.prototype.setupHelpDialog = function() {
+    var fpId = 'documentationPane';
+    var fp = dijit.byId(fpId);
+    if (!fp) return;
+    
+    var div = dojo.doc.createElement('div');
+    dojo.body().appendChild(div);
+    fp = new ConstrainedFloatingPane({
+        id: fpId,
+        title: this.tr('js.help.loading'), 
+        closeable: true,
+        dockable: false,
+        resizable: true,
+        style: "position: absolute; zIndex: 980; padding: 2px; left:10; top:10;"
+    }, div);
+    
+    //Only set position on the first load
+    var top, left;
+    if (event.target) {
+        var position = domGeom.position(event.target, false);
+        left = position.x + position.w;
+        top = position.y + position.h;
+    }
+    else {
+        left = 10;
+        top = 10;
+    }
+    var scroll = domGeom.docScroll();
+    left += scroll.x;
+    top += scroll.y;
+    
+    domStyle.set(fp.domNode, {
+        width:"400px",
+        height:"300px",
+        left:left +"px",
+        top:top +"px"
     });
+    
+    fp.startup();
+    
+    $container.find('.mango-help').on('click', this.showHelp.bind(this));
 };
 
 /**
@@ -127,46 +174,6 @@ BaseUIComponent.prototype.setupHelp = function($container) {
  * Ensure the id is passed in as event.data.helpId
  */
 BaseUIComponent.prototype.showHelp = function(event){
-	
-	var fpId = 'documentationPane';
-    var fp = dijit.byId(fpId);
-    if (!fp) {
-        var div = dojo.doc.createElement('div');
-        dojo.body().appendChild(div);
-        fp = new ConstrainedFloatingPane({
-            id: fpId,
-            title: this.tr('js.help.loading'), 
-            closeable: true,
-            dockable: false,
-            resizable: true,
-            style: "position: absolute; zIndex: 980; padding: 2px; left:10; top:10;"
-        }, div);
-        
-        //Only set position on the first load
-        var top, left;
-        if (event.target) {
-            var position = domGeom.position(event.target, false);
-            left = position.x + position.w;
-            top = position.y + position.h;
-        }
-        else {
-            left = 10;
-            top = 10;
-        }
-        var scroll = domGeom.docScroll();
-        left += scroll.x;
-        top += scroll.y;
-        
-        domStyle.set(fp.domNode, {
-            width:"400px",
-            height:"300px",
-            left:left +"px",
-            top:top +"px"
-        });
-        
-        fp.startup();
-    }
-    
     var self = this;
     //Now Load in the help
     var helpId = (event.data && event.data.helpId) || $(event.target).data('help-id');
@@ -343,21 +350,67 @@ BaseUIComponent.prototype.encodeHtml = function(str) {
     return str.replace(/</g,"&lt;");
 };
 
+BaseUIComponent.prototype.documentReady = function() {
+    this.dgridTabResize();
+    this.setupHelpDialog();
+    this.setupConfirmDialog();
+};
+
+BaseUIComponent.prototype.setupConfirmDialog = function() {
+    if ($('.modal').length) return;
+    
+    var $confirmDialog = $('<div id="confirmDialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog modal-sm"><div class="modal-content"></div></div></div>');
+    var $content = $confirmDialog.find('.modal-content');
+    var $header = $('<div class="modal-header"></div>').appendTo($content);
+    var $body = $('<div class="modal-body"></div>').appendTo($content);
+    var $footer = $('<div class="modal-footer"></div>').appendTo($content);
+    
+    var $close = $('<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>');
+    $close.attr('aria-label', this.tr('common.cancel'));
+    $close.appendTo($header);
+    
+    $header.append('<h4 class="modal-title"></h4>');
+    
+    var $cancel = $('<button type="button" class="btn btn-default" data-dismiss="modal"></button>');
+    $cancel.text(this.tr('common.cancel')).appendTo($footer);
+    var $ok = $('<button type="button" class="btn btn-primary" data-dismiss="modal"></button>');
+    $ok.text(this.tr('common.ok')).appendTo($footer);
+    
+    $(document.body).append($confirmDialog);
+};
+
+BaseUIComponent.prototype.confirm = function(title, message) {
+    var $confirm = $('#confirmDialog');
+    $confirm.find('.modal-title').text(title);
+    $confirm.find('.modal-body').text(message);
+    
+    var deferred = $.Deferred();
+    
+    var $okButton = $confirm.find('.btn-primary');
+    $okButton.off('click');
+    $okButton.on('click', deferred.resolve.bind(deferred));
+    
+    $confirm.off('hide.bs.modal');
+    $confirm.on('hide.bs.modal', deferred.reject.bind(deferred));
+    
+    $confirm.modal('show');
+    
+    return deferred.promise();
+};
+
 /**
  * ensure dgrid components inside bootstrap tabs are loaded correctly when tab is shown
  */
 BaseUIComponent.prototype.dgridTabResize = function() {
-    $(document).ready(function() {
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
-            var href = $(event.target).attr('href');
-            $(href).find('.dgrid').each(function(i, node) {
-                // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
-                var grid = registry.byNode(node);
-                // hidden dgrids are not started up, start them
-                grid.startup();
-                // need to resize in case the window was resized
-                grid.resize(); 
-            });
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
+        var href = $(event.target).attr('href');
+        $(href).find('.dgrid').each(function(i, node) {
+            // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
+            var grid = registry.byNode(node);
+            // hidden dgrids are not started up, start them
+            grid.startup();
+            // need to resize in case the window was resized
+            grid.resize(); 
         });
     });
 };
