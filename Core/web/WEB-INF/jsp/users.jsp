@@ -102,9 +102,11 @@
         <div id="user-tab">
             <jsp:include page="/WEB-INF/snippet/view/users/users.jsp"/>
         </div>
+        <c:if test="${sessionUser.admin}">
         <div id="permission-tab">
           <jsp:include page="/WEB-INF/snippet/view/users/dataPointPermissionsTable.jsp"/>
-        </div>           
+        </div>
+        </c:if>           
     </div>
   </div>
   </m2m2:moduleExists>
