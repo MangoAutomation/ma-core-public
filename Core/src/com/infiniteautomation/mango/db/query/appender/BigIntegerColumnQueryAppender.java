@@ -38,19 +38,16 @@ public class BigIntegerColumnQueryAppender extends GenericSQLColumnQueryAppender
 		}
 		
 		if(columnArgs.size() == 1){
-			try{
-				//Are we a long value
-				Long.parseLong((String)columnArgs.get(0));
-				
-			}catch(Exception e){
+			//Are we a Date String?
+			if(columnArgs.get(0) instanceof String){
 				SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
 				try {
 					Date d = sdf.parse((String)columnArgs.get(0));
 					columnArgs.set(0, Long.toString(d.getTime()));
-				} catch (ParseException e1) {
+				} catch (ParseException e) {
 					throw new ShouldNeverHappenException(e);
 				}
-			} 
+			}
 		}
 		super.appendSQL(column, selectSql, countSql, selectArgs, columnArgs, comparison);
 	}
