@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -74,6 +75,15 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		return configurer;
 	}
 
+	@Bean
+	public CommonsMultipartResolver multipartResolver(){
+		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
+		commonsMultipartResolver.setDefaultEncoding("utf-8");
+		commonsMultipartResolver.setMaxUploadSize(50000000);
+		return commonsMultipartResolver;
+	}
+	
+	
 	/**
 	 * Setup Content Negotiation to map url extensions to returned data types
 	 * 

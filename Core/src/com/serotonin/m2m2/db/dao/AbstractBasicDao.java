@@ -279,9 +279,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	 * Both the properties and the type maps must be setup
 	 * @return
 	 */
-	protected LinkedHashMap<String,Integer> getPropertyTypeMap(){
-		return new LinkedHashMap<String,Integer>();
-	}
+	protected abstract LinkedHashMap<String,Integer> getPropertyTypeMap();
+//	{
+//		return new LinkedHashMap<String,Integer>();
+//	}
 	
 	/**
      * Returns a map which maps a virtual property to a real one used
