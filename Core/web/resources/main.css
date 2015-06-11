@@ -139,6 +139,13 @@ input {
   border-color: #F07800 !important;
 }
 
+/* add pointer cursor to labels with a for attribute, i.e. linked to an input
+ * and also to file inputs
+ */
+label[for], input[type=file] {
+    cursor: pointer;
+}
+
 header {
     margin: 5px;
     position: relative;
@@ -349,7 +356,6 @@ footer {
     font-size: 1.4em;
     font-weight: bold;
     margin-bottom: 6px;
-    display: inline-block;
 }
 
 .section {

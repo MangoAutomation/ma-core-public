@@ -74,14 +74,15 @@ BaseUIComponent.prototype.translationNamespaces = null;
 
 /**
  * jQuery selection which will be searched for inputs when
- * calling getInputs(), setInputs() and showValidationErrors()
+ * calling getInputs(), setInputs() and showValidationErrors(),
+ * also used to find help links etc
  */
-BaseUIComponent.prototype.$inputScope = $(document.body);
+BaseUIComponent.prototype.$scope = $(document.body);
 
 /**
- * Maps property names to an input
+ * Maps property names to elements
  */
-BaseUIComponent.prototype.propToInputMap = {};
+BaseUIComponent.prototype.propertyMap = {};
 
 /**
  * Get the current user
@@ -102,15 +103,8 @@ BaseUIComponent.prototype.setupTranslations = function(namespaces){
 	var deferred = $.Deferred();
 	var self = this;
 	//Load in the required data
-	this.api.setupGlobalize.apply(this.api, this.translationNamespaces).then(MangoAPI.firstArrayArg).done(function(Globalize){
-		self.tr = function() {
-		    try {
-		        return Globalize.formatMessage.apply(Globalize, arguments);
-		    }
-		    catch(error) {
-		        return arguments[0];
-		    }
-		};
+	this.api.setupGlobalize.apply(this.api, this.translationNamespaces).done(function(Globalize){
+		self.tr = Globalize.tr.bind(Globalize);
 		deferred.resolve();
 	}).fail(this.showError);
 	
@@ -126,47 +120,26 @@ BaseUIComponent.prototype.updateImage = function(imgNode, text, src){
 	imgNode.attr('title', text);
 };
 
+BaseUIComponent.prototype.documentationPaneId = 'documentationPane';
+
 BaseUIComponent.prototype.setupHelpDialog = function() {
-    var fpId = 'documentationPane';
-    var fp = dijit.byId(fpId);
-    if (!fp) return;
+    var fp = dijit.byId(this.documentationPaneId);
+    if (fp) return fp;
     
     var div = dojo.doc.createElement('div');
     dojo.body().appendChild(div);
     fp = new ConstrainedFloatingPane({
-        id: fpId,
+        id: this.documentationPaneId,
         title: this.tr('js.help.loading'), 
         closeable: true,
         dockable: false,
         resizable: true,
-        style: "position: absolute; zIndex: 980; padding: 2px; left:10; top:10;"
+        style: "position: absolute; zIndex: 980; padding: 2px; left:10; top:10; width: 400px; height: 300px"
     }, div);
-    
-    //Only set position on the first load
-    var top, left;
-    if (event.target) {
-        var position = domGeom.position(event.target, false);
-        left = position.x + position.w;
-        top = position.y + position.h;
-    }
-    else {
-        left = 10;
-        top = 10;
-    }
-    var scroll = domGeom.docScroll();
-    left += scroll.x;
-    top += scroll.y;
-    
-    domStyle.set(fp.domNode, {
-        width:"400px",
-        height:"300px",
-        left:left +"px",
-        top:top +"px"
-    });
     
     fp.startup();
     
-    $container.find('.mango-help').on('click', this.showHelp.bind(this));
+    return fp;
 };
 
 /**
@@ -174,11 +147,36 @@ BaseUIComponent.prototype.setupHelpDialog = function() {
  * Ensure the id is passed in as event.data.helpId
  */
 BaseUIComponent.prototype.showHelp = function(event){
+    var fp = dijit.byId(this.documentationPaneId);
+    if (!fp) {
+        fp = this.setupHelpDialog();
+        
+        // Only set position on the first load
+        var top, left;
+        if (event.target) {
+            var position = domGeom.position(event.target, false);
+            left = position.x + position.w;
+            top = position.y + position.h;
+        }
+        else {
+            left = 10;
+            top = 10;
+        }
+        var scroll = domGeom.docScroll();
+        left += scroll.x;
+        top += scroll.y;
+        
+        domStyle.set(fp.domNode, {
+            left:left +"px",
+            top:top +"px"
+        });
+    }
+    
     var self = this;
     //Now Load in the help
     var helpId = (event.data && event.data.helpId) || $(event.target).data('help-id');
     this.api.getHelp(helpId).done(function(result){
-    	
+        
     	fp.set('title', result.title);
     	var content = $('<div/>');
     	content.html(result.content);
@@ -188,7 +186,7 @@ BaseUIComponent.prototype.showHelp = function(event){
             for (var i=0; i<result.relatedList.length; i++){
             	var helpId = result.relatedList[i].id;
             	var link = $('<a class="ptr">' + result.relatedList[i].title + "</a></br>" );
-            	link.on('click', {helpId: helpId}, self.showHelp);
+            	link.on('click', {helpId: helpId}, self.showHelp.bind(self));
             	related.append(link);
             }
             content.append(related);
@@ -225,45 +223,52 @@ BaseUIComponent.prototype.showValidationErrors = function(vo){
 	
 	for(var i=0; i<vo.validationMessages.length; i++){
 		var msg = vo.validationMessages[i];
-		var $input = inputForProperty(msg.property);
-		$input.notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
+		var $element = elementForProperty(msg.property);
+		$element.notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
 	}
 	
 	return true;
 };
 
-BaseUIComponent.prototype.inputForProperty = function(prop) {
-    var $input = this.propToInputMap[prop];
-    if (!$input)
-        $input = this.$inputScope.find('input[name="' + prop + '"]');
-    if ($input.length <= 0)
-        $input = $('#' + prop);
-    return $input;
+BaseUIComponent.prototype.elementForProperty = function(property) {
+    var $element = this.$scope.find('[data-editor-property="' + property + '"]');
+    if (!$element.length)
+        $element = this.$scope.find('[name="' + property + '"]');
+    if (!$element.length)
+        $element = $('#' + property);
+    return $element;
 };
 
 BaseUIComponent.prototype.setInputs = function(item) {
     // clear inputs
-    for (var prop in this.propToInputMap) {
-        this.propToInputMap[prop].val('');
-    }
-    this.$inputScope.find('input').val('');
+    this.$scope.find('input, select, textarea').val('');
     
     // set the inputs
-    for (prop in item) {
-        var $input = this.inputForProperty(prop);
-        $input.val(item[prop]);
+    for (var property in item) {
+        var $element = this.elementForProperty(property);
+        this.setProperty(item, property, $element, item[property]);
     }
 };
 
+BaseUIComponent.prototype.setProperty = function(item, property, $element, value) {
+    $element.val(value);
+};
+
 BaseUIComponent.prototype.getInputs = function(item) {
-    for (var key in this.propToInputMap) {
-        item[key] = this.propToInputMap[key].val();
-    }
-    this.$inputScope.find('input').each(function(i, input) {
-        var $input = $(input);
-        item[$input.attr('name')] = $input.val();
+    var self = this;
+    this.$scope.find('[data-editor-property], [name]').each(function(i, element) {
+        var $element = $(element);
+        var property = $element.attr('data-editor-property');
+        if (!property) {
+            property = $element.attr('name');
+        }
+        item[property] = self.getProperty(item, property, $element);
     });
     return item;
+};
+
+BaseUIComponent.prototype.getProperty = function(item, property, $element) {
+    return $element.val();
 };
 
 BaseUIComponent.prototype.clearErrors = function(){
@@ -352,12 +357,12 @@ BaseUIComponent.prototype.encodeHtml = function(str) {
 
 BaseUIComponent.prototype.documentReady = function() {
     this.dgridTabResize();
-    this.setupHelpDialog();
     this.setupConfirmDialog();
+    this.$scope.find('.mango-help').on('click', this.showHelp.bind(this));
 };
 
 BaseUIComponent.prototype.setupConfirmDialog = function() {
-    if ($('.modal').length) return;
+    if ($('#confirmDialog').length) return;
     
     var $confirmDialog = $('<div id="confirmDialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog modal-sm"><div class="modal-content"></div></div></div>');
     var $content = $confirmDialog.find('.modal-content');
@@ -402,16 +407,20 @@ BaseUIComponent.prototype.confirm = function(title, message) {
  * ensure dgrid components inside bootstrap tabs are loaded correctly when tab is shown
  */
 BaseUIComponent.prototype.dgridTabResize = function() {
+    var self = this;
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
         var href = $(event.target).attr('href');
-        $(href).find('.dgrid').each(function(i, node) {
-            // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
-            var grid = registry.byNode(node);
-            // hidden dgrids are not started up, start them
-            grid.startup();
-            // need to resize in case the window was resized
-            grid.resize(); 
-        });
+        self.dgridResize($(href));
+    });
+};
+
+BaseUIComponent.prototype.dgridResize = function($scope) {
+    $scope = $scope || this.$scope;
+    $scope.find('.dgrid').each(function(i, node) {
+        // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
+        var grid = registry.byNode(node);
+        // need to resize in case the window was resized
+        grid.resize(); 
     });
 };
 

@@ -13,14 +13,14 @@ function($, BaseUIComponent) {
 function ItemEditor(options) {
     BaseUIComponent.apply(this, arguments);
     
-    this.$buttonScope = this.$buttonScope || this.$editor;
-    this.$inputScope = this.$inputScope || this.$editor;
+    if (!this.$scope) {
+        throw '$scope must be specified';
+    }
+    
+    this.$editor = this.$editor || this.$scope;
     
     if (!this.store) {
         throw 'store must be specified';
-    }
-    if (!this.$editor) {
-        throw '$editor must be specified';
     }
 }
 
@@ -28,7 +28,6 @@ ItemEditor.prototype = Object.create(BaseUIComponent.prototype);
 
 ItemEditor.prototype.store = null;
 ItemEditor.prototype.$editor = null;
-ItemEditor.prototype.$buttonScope = null;
 ItemEditor.prototype.currentItem = null;
 ItemEditor.prototype.currentItemDirty = false;
 ItemEditor.prototype.nameAttr = 'name';
@@ -38,13 +37,15 @@ ItemEditor.prototype.documentReady = function() {
     
     var self = this;
     
-    this.$buttonScope.find('.editor-new').click(this.newItemClick.bind(this));
-    this.$buttonScope.find('.editor-delete').on('mousedown', this.deleteItemClick.bind(this));
-    this.$buttonScope.find('.editor-save').click(this.saveItemClick.bind(this));
-    this.$buttonScope.find('.editor-cancel').click(this.cancelItemClick.bind(this));
-    this.$buttonScope.find('.editor-copy').on('mousedown', this.copyItemClick.bind(this));
+    this.$scope.find('.editor-new').click(this.newItemClick.bind(this));
+    this.$scope.find('.editor-delete').mousedown(false);
+    this.$scope.find('.editor-delete').click(this.deleteItemClick.bind(this));
+    this.$scope.find('.editor-save').click(this.saveItemClick.bind(this));
+    this.$scope.find('.editor-cancel').click(this.cancelItemClick.bind(this));
+    this.$scope.find('.editor-copy').mousedown(false);
+    this.$scope.find('.editor-copy').click(this.copyItemClick.bind(this));
     
-    self.$inputScope.find('input').on('change keydown', function() {
+    self.$scope.find('input').on('change keydown', function() {
         if (self.currentItem) {
             self.currentItemDirty = true;
         }
@@ -53,6 +54,7 @@ ItemEditor.prototype.documentReady = function() {
 
 ItemEditor.prototype.closeEditor = function() {
     this.$editor.fadeOut();
+    $(this).trigger('editorHidden');
     this.currentItem = null;
 };
 
@@ -65,7 +67,12 @@ ItemEditor.prototype.editItem = function(item) {
     this.setInputs(item);
 
     this.$editor.fadeIn();
-    this.$inputScope.find('input:first').focus();
+    $(this).trigger('editorShown');
+    
+    // resize any dgrids inside editor
+    this.dgridResize(this.$editor);
+    
+    this.$scope.find('input:first').focus();
 };
 
 ItemEditor.prototype.newItemClick = function(event) {
