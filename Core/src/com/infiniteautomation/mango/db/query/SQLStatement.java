@@ -16,6 +16,7 @@ public class SQLStatement {
 	private static final String SPACE = " ";
 	private static final String WHERE = "WHERE ";
 	private static final String LIMIT_SQL = "LIMIT ?";
+    private static final String OFFSET_SQL = "OFFSET ?";
 	private static final String LIMIT_OFFSET_SQL = "LIMIT ? OFFSET ?";
 	private static final String ORDER_BY = "ORDER BY ";
 	private static final String ASC = " ASC ";
@@ -112,14 +113,25 @@ public class SQLStatement {
 		if(appliedLimit)
 			throw new RQLToSQLParseException("Limit cannot be applied twice to a statement");
 		
+		if (args.get(0).equals(Double.POSITIVE_INFINITY)) {
+		    if (args.size() > 1) {
+		        // apply offset only
+		        this.limitOffset.append(OFFSET_SQL);
+		        this.limitArgs.add(args.get(1));
+		        this.appliedLimit = true;
+		    }
+		    return;
+		}
+		
 		if(args.size() > 1){
-			//Limit, Offset
-			this.limitOffset.append(LIMIT_OFFSET_SQL);
+            //Limit, Offset
+            this.limitOffset.append(LIMIT_OFFSET_SQL);
 		}else{
 			//Simple Limit
 			this.limitOffset.append(LIMIT_SQL);
 		}
-		this.appliedLimit = true;
+
+        this.appliedLimit = true;
 		this.limitArgs.addAll(args);
 	}
 
