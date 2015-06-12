@@ -248,7 +248,17 @@ BaseUIComponent.prototype.setInputs = function(item) {
 };
 
 BaseUIComponent.prototype.setProperty = function(item, property, $element, value) {
-    $element.val(value);
+    if ($element.hasClass('dijit')) {
+        $element.filter('.dijit').each(function(i, node) {
+            var dijit = registry.byNode(node);
+            if (dijit) {
+                dijit.set('value', value);
+            }
+        });
+    } else {
+        // not a dijit, use jquery to set input value
+        $element.val(value);
+    }
 };
 
 BaseUIComponent.prototype.getInputs = function(item) {
@@ -265,7 +275,20 @@ BaseUIComponent.prototype.getInputs = function(item) {
 };
 
 BaseUIComponent.prototype.getProperty = function(item, property, $element) {
-    return $element.val();
+    if ($element.hasClass('dijit')) {
+        var value;
+        $element.filter('.dijit').each(function(i, node) {
+            var dijit = registry.byNode(node);
+            if (dijit) {
+                value = dijit.get('value');
+                return;
+            }
+        });
+        return value;
+    } else {
+        // not a dijit, use jquery to get input value
+        return $element.val();
+    }
 };
 
 BaseUIComponent.prototype.clearErrors = function(){
