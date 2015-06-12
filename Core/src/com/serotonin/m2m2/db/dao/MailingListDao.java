@@ -130,6 +130,21 @@ public class MailingListDao extends BaseDao {
         return addresses;
     }
 
+    /**
+     * Generate the recipient addresses
+     * @param entries
+     * @param sendTime
+     * @return
+     */
+    public Set<String> generateRecipientAddresses(List<EmailRecipient> entries, DateTime sendTime) {
+ 
+        populateEntrySubclasses(entries);
+        Set<String> addresses = new HashSet<String>();
+        for (EmailRecipient entry : entries)
+            entry.appendAddresses(addresses, sendTime);
+        return addresses;
+    }
+    
     public void populateEntrySubclasses(List<EmailRecipient> entries) {
         // Update the user type entries with their respective user objects.
         UserDao userDao = new UserDao();

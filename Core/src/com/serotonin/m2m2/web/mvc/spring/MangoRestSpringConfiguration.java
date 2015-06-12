@@ -17,6 +17,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -121,7 +122,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new CsvRowMessageConverter());
 		converters.add(new CsvQueryArrayStreamMessageConverter());
 		converters.add(new CsvDataPageQueryStreamMessageConverter());
-
+		converters.add(new ByteArrayHttpMessageConverter());
 	}
 
 	/**
