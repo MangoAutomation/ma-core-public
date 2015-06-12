@@ -120,8 +120,6 @@ ItemEditor.prototype.deleteItemClick = function(event) {
             }
         }, self.showError);
     });
-    
-    event.stopPropagation();
 };
 
 ItemEditor.prototype.cancelItemClick = function(event) {
@@ -136,15 +134,17 @@ ItemEditor.prototype.copyItemClick = function(event) {
     
     var self = this;
     this.confirmDiscard().done(function() {
-        item = $.extend({}, item);
-        var idProp = self.store.idProperty;
-        delete item[idProp];
-        delete item.xid;
-        
-        self.editItem(item);
+        var copy = self.copyItem(item);
+        self.editItem(copy);
     });
-    
-    event.stopPropagation();
+};
+
+ItemEditor.prototype.copyItem = function(item) {
+    var copy = $.extend({}, item);
+    copy.name = this.tr('common.copyPrefix', copy.name);
+    delete copy[this.store.idProperty];
+    delete copy.xid;
+    return copy;
 };
 
 ItemEditor.prototype.createNewItem = function() {

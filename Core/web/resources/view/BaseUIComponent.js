@@ -36,9 +36,6 @@ $.notify.addStyle('mango-error', {
 	});
 
 function BaseUIComponent(options) {
-	this.api = MangoAPI.defaultApi;
-    this.translationNamespaces = ['common', 'header', 'js.help'];
-	
     $.extend(this, options);
     
 	this.clearErrors = this.clearErrors.bind(this);
@@ -60,7 +57,7 @@ BaseUIComponent.prototype.errorDiv = null;
 /**
  * Mango Rest API Util
  */
-BaseUIComponent.prototype.api = null; 
+BaseUIComponent.prototype.api = MangoAPI.defaultApi;
 
 /**
  * Mango Translation utility
@@ -70,7 +67,7 @@ BaseUIComponent.prototype.tr = null;
 /**
  * Translation name spaces to be setup
  */
-BaseUIComponent.prototype.translationNamespaces = null; 
+BaseUIComponent.prototype.translationNamespaces = ['common', 'header', 'js.help']; 
 
 /**
  * jQuery selection which will be searched for inputs when
