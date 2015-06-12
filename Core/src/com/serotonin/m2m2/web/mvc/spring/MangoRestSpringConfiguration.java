@@ -32,6 +32,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvDataPageQueryStreamMessa
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
+import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JUnitModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 
@@ -123,6 +124,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new CsvQueryArrayStreamMessageConverter());
 		converters.add(new CsvDataPageQueryStreamMessageConverter());
 		converters.add(new ByteArrayHttpMessageConverter());
+		converters.add(new HtmlHttpMessageConverter());
 	}
 
 	/**

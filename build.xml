@@ -64,7 +64,7 @@
 
 
     <!-- Compile the default Proprietary modules into the core -->
-    <property name="proprietary-modules" value="MangoNoSql,DataPointDetailsView,eGauge Data Source"/>
+    <property name="proprietary-modules" value="MangoNoSql,DataPointDetailsView,eGauge Data Source,Excel Reports"/>
 
     <for list="${proprietary-modules}" param="moduleName" delimiter=",">
         <sequential>
