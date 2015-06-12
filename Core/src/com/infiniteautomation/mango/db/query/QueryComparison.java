@@ -193,7 +193,7 @@ public class QueryComparison {
 				return thisValue.compareTo(value) <= 0;
 			case LIKE:
 				//Create regex by simply replacing % by .*
-				String regex = thisValue.replace("%", ".*");
+				String regex = value.replace("%", ".*");
 				return thisValue.matches(regex);
 	    	case EQUAL_TO:
 	    		return thisValue.equals(value);
