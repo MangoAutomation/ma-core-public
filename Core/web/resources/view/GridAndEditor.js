@@ -75,7 +75,6 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize) {
                 case 'src':
                 case 'height':
                 case 'width':
-                case 'title':
                 case 'alt':
                 case 'onclick':
                     continue;
@@ -87,8 +86,9 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize) {
             $img.attr('src', imgBase + button.src);
             $img.attr('height', '' + imgSize);
             $img.attr('width', '' + imgSize);
-            $img.attr('title', button.text);
-            $img.attr('alt', button.text);
+            if (button.title) {
+                $img.attr('alt', button.title);
+            }
             $img.data('item', object);
             $img.click(button.onclick);
             // cancel mousedown events so dgrid doesn't select row
