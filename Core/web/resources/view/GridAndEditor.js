@@ -31,19 +31,11 @@ GridAndEditor.prototype.documentReady = function() {
     ItemEditor.prototype.documentReady.apply(this, arguments);
     
     var self = this;
-    var confirmTitle = this.tr('common.discardChanges');
     
     this.grid.on('dgrid-select', function(event) {
         if (event.grid.disableEvent) return;
 
-        var confirmed = true;
-        
-        if (self.currentItem && self.currentItemDirty) {
-            var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr]);
-            confirmed = self.confirm(confirmTitle, confirmMessage);
-        }
-        
-        $.when(confirmed).done(function() {
+        self.confirmDiscard().done(function() {
             self.editItem(event.rows[0].data);
         }).fail(function() {
             event.grid.clearSelection();

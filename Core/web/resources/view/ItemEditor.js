@@ -75,8 +75,25 @@ ItemEditor.prototype.editItem = function(item) {
     this.$scope.find('input:first').focus();
 };
 
+ItemEditor.prototype.confirmDiscard = function(event) {
+    var self = this;
+    var confirmed = true;
+    
+    if (this.currentItem && this.currentItemDirty) {
+        var confirmTitle = this.tr('common.discardChanges');
+        var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr] || '');
+        
+        confirmed = this.confirm(confirmTitle, confirmMessage);
+    }
+    
+    return $.when(confirmed);
+};
+
 ItemEditor.prototype.newItemClick = function(event) {
-    this.editItem(this.createNewItem());
+    var self = this;
+    this.confirmDiscard().done(function() {
+        self.editItem(self.createNewItem());
+    });
 };
 
 ItemEditor.prototype.saveItemClick = function(event) {
@@ -109,16 +126,7 @@ ItemEditor.prototype.deleteItemClick = function(event) {
 
 ItemEditor.prototype.cancelItemClick = function(event) {
     var self = this;
-    var confirmed = true;
-    
-    if (this.currentItem && this.currentItemDirty) {
-        var confirmTitle = this.tr('common.discardChanges');
-        var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr]);
-        
-        confirmed = this.confirm(confirmTitle, confirmMessage);
-    }
-    
-    $.when(confirmed).done(function() {
+    this.confirmDiscard().done(function() {
         self.closeEditor();
     });
 };
@@ -127,16 +135,7 @@ ItemEditor.prototype.copyItemClick = function(event) {
     var item = event.target && $(event.target).data('item') || this.currentItem;
     
     var self = this;
-    var confirmed = true;
-    
-    if (this.currentItem && this.currentItemDirty) {
-        var confirmTitle = this.tr('common.discardChanges');
-        var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr]);
-        
-        confirmed = this.confirm(confirmTitle, confirmMessage);
-    }
-    
-    $.when(confirmed).done(function() {
+    this.confirmDiscard().done(function() {
         item = $.extend({}, item);
         var idProp = self.store.idProperty;
         delete item[idProp];

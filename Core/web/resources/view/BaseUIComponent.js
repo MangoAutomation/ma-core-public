@@ -404,23 +404,33 @@ BaseUIComponent.prototype.confirm = function(title, message) {
 };
 
 /**
+ * Finds dgrid components within $scope and calls resize on them
+ */
+BaseUIComponent.dgridResize = function($scope) {
+    $scope.find('.dgrid').each(function(i, node) {
+        // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
+        var grid = registry.byNode(node);
+        // need to resize in case the window was resized
+        grid.resize(); 
+    });
+};
+
+/**
+ * Finds dgrid components within $scope and calls resize on them
+ */
+BaseUIComponent.prototype.dgridResize = function($scope) {
+    $scope = $scope || this.$scope;
+    BaseUIComponent.dgridResize($scope);
+};
+
+/**
  * ensure dgrid components inside bootstrap tabs are loaded correctly when tab is shown
  */
 BaseUIComponent.prototype.dgridTabResize = function() {
     var self = this;
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
         var href = $(event.target).attr('href');
-        self.dgridResize($(href));
-    });
-};
-
-BaseUIComponent.prototype.dgridResize = function($scope) {
-    $scope = $scope || this.$scope;
-    $scope.find('.dgrid').each(function(i, node) {
-        // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
-        var grid = registry.byNode(node);
-        // need to resize in case the window was resized
-        grid.resize(); 
+        BaseUIComponent.dgridResize($(href));
     });
 };
 
