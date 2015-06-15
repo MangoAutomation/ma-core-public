@@ -237,10 +237,10 @@ UsersView.prototype.showPermissionList = function(){
 	var self = this;
 	this.api.getAllUserGroups($('#permissions').val()).then(function(groups){
 
-		if (self.permissionsDialog != null)
+		if (self.permissionsDialog !== null)
             self.permissionsDialog.destroy();
 		var content = "";
-		if (groups.length == 0)
+		if (groups.length === 0)
 		    content = this.tr('users.permissions.nothingNew');
 		else {
 		    for (var i=0; i<groups.length; i++)
@@ -306,8 +306,6 @@ UsersView.prototype.updateUserImage = function(){
 	}
 };
 
-
-UsersView.prototype.api = null;
 UsersView.prototype.store = null;
 UsersView.prototype.userPicker = null;
 UsersView.prototype.switchUserPicker = null;

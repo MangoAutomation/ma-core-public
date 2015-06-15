@@ -373,7 +373,17 @@ footer {
 }
 
 .mango-row {
-    margin-bottom: 3px;
+    margin-bottom: 4px;
+}
+
+/* add clearfix to mango-row */
+.mango-row:before,
+.mango-row:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+.mango-row:after {
+    clear: both;
 }
 
 .align-middle * {
@@ -385,9 +395,9 @@ footer {
 }
 
 .label-layout label {
-  display: inline-block;
+  float: left;
   width: 100px;
-  margin-right: 10px;
+  margin: 0 10px 0 0;
   text-align: right;
   font-weight: bold;
 }
@@ -407,6 +417,61 @@ footer {
 
 .wide {
     width: 100%;
+}
+
+.clearable-input {
+    position: relative;
+}
+
+/* use &#10006; as content for .clearable-input-inner */
+.clearable-input-inner {
+    position: absolute;
+    line-height: 1em;
+    margin-top: -0.5em;
+    top: 50%;
+    right: 3px;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+.clearable-input-inner:hover {
+    opacity: 0.8;
+}
+
+/* jQuery fileupload progress bar */
+
+.upload-progress {
+    border: 1px solid #ccc;
+    height: 2em;
+    padding: 2px;
+    vertical-align: middle;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-progress-text {
+    position: absolute;
+    top: 50%;
+    line-height: 1em;
+    margin-top: -0.5em;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+}
+
+.upload-progress-inner {
+    background-color: #F07800;
+    background-size: 30px 30px;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, .15) 25%, transparent 25%,
+                        transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%,
+                        transparent 75%, transparent);
+    width: 0%;
+    height: 100%;
+    animation: animate-stripes 3s linear infinite;
+}
+
+@keyframes animate-stripes {
+    0% {background-position: 0 0;} 100% {background-position: 60px 0;}
 }
 
 /*
