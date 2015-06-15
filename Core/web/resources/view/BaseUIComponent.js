@@ -210,6 +210,23 @@ BaseUIComponent.prototype.showSuccess = function(message){
 };
 
 /**
+ * Handler for dstore errors, note that dstore does not currently parse the JSON response
+ * so we parse it manually
+ */
+BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
+    var parsed = $.parseJSON(data.response.data);
+    
+    if (parsed.validationMessages && parsed.validationMessages.length) {
+        this.showValidationErrors(parsed);
+        return;
+    }
+    
+    var message = data.message;
+    this.showGenericError(message);
+};
+
+/**
+ * Display notification on element for every property which has validation errors
  * Return true if we have errors
  */
 BaseUIComponent.prototype.showValidationErrors = function(vo){
@@ -218,10 +235,14 @@ BaseUIComponent.prototype.showValidationErrors = function(vo){
 	if(vo.validationMessages.length === 0)
 		return false;
 	
-	for(var i=0; i<vo.validationMessages.length; i++){
+	for (var i=0; i<vo.validationMessages.length; i++) {
 		var msg = vo.validationMessages[i];
-		var $element = elementForProperty(msg.property);
-		$element.notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
+		var $element = this.elementForProperty(msg.property);
+		if ($element.length) {
+	        $element.notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
+		} else {
+	        this.showGenericError(msg.message);
+		}
 	}
 	
 	return true;
@@ -309,6 +330,9 @@ BaseUIComponent.prototype.showMessage = function(message, level){
 		this.errorDiv.notify(message, level);
 };
 
+/**
+ * Displays error messages from jquery XHR requests, typically used with MangoAPI calls
+ */
 BaseUIComponent.prototype.showError = function(jqXHR, textStatus, error, mangoMessage){
 
 	var logLevel, message='', color;
@@ -344,10 +368,21 @@ BaseUIComponent.prototype.showError = function(jqXHR, textStatus, error, mangoMe
     if(message === 'Validation error')
     	this.showValidationErrors(jqXHR.responseJSON);
 
-    if(this.errorDiv === null)
-    	$.notify(message, {style: 'mango-error', position: 'top center', autoHide: true, autoHideDelay: 30000, clickToHide: true});
-    else
-    	this.errorDiv.notify(message, {style: 'mango-error'});
+    this.showGenericError(message);
+};
+
+BaseUIComponent.prototype.showGenericError = function(message) {
+    if (this.errorDiv) {
+        this.errorDiv.notify(message, {style: 'mango-error'});
+    } else {
+        $.notify(message, {
+            style: 'mango-error',
+            position: 'top center',
+            autoHide: true,
+            autoHideDelay: 30000,
+            clickToHide: true
+        });
+    }
 };
 
 BaseUIComponent.prototype.escapeQuotes = function(str) {

@@ -102,7 +102,9 @@ ItemEditor.prototype.saveItemClick = function(event) {
     
     this.store.put(this.currentItem).then(function() {
         self.closeEditor();
-    }, this.showError);
+        // TODO translate
+        self.showSuccess('Success');
+    }, self.dstoreErrorHandler.bind(self));
 };
 
 ItemEditor.prototype.deleteItemClick = function(event) {
@@ -118,7 +120,7 @@ ItemEditor.prototype.deleteItemClick = function(event) {
             if (item === self.currentItem) {
                 self.closeEditor();
             }
-        }, self.showError);
+        }, self.dstoreErrorHandler.bind(self));
     });
 };
 
