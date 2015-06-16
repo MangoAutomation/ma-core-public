@@ -474,6 +474,11 @@ footer {
     0% {background-position: 0 0;} 100% {background-position: 60px 0;}
 }
 
+/* lower notifyjs z-index so it is behind bootstrap modals */
+div.notifyjs-corner {
+    z-index: 1030;
+}
+
 /*
  * AmCharts SVG styles
  */
