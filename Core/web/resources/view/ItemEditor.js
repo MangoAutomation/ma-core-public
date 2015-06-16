@@ -142,7 +142,7 @@ ItemEditor.prototype.copyItemClick = function(event) {
 };
 
 ItemEditor.prototype.copyItem = function(item) {
-    var copy = $.extend({}, item);
+    var copy = $.extend(true, {}, item);
     copy.name = this.tr('common.copyPrefix', copy.name);
     delete copy[this.store.idProperty];
     delete copy.xid;

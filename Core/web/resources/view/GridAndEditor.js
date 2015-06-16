@@ -36,7 +36,9 @@ GridAndEditor.prototype.documentReady = function() {
         if (event.grid.disableEvent) return;
 
         self.confirmDiscard().done(function() {
-            self.editItem(event.rows[0].data);
+            // deep copy data so we can edit the item without modifying original
+            var item = $.extend(true, {}, event.rows[0].data);
+            self.editItem(item);
         }).fail(function() {
             event.grid.clearSelection();
             
