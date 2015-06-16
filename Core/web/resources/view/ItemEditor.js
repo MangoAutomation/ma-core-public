@@ -29,7 +29,7 @@ ItemEditor.prototype = Object.create(BaseUIComponent.prototype);
 ItemEditor.prototype.store = null;
 ItemEditor.prototype.$editor = null;
 ItemEditor.prototype.currentItem = null;
-ItemEditor.prototype.currentItemDirty = false;
+ItemEditor.prototype.currentItemModified = false;
 ItemEditor.prototype.nameAttr = 'name';
 
 ItemEditor.prototype.documentReady = function() {
@@ -47,7 +47,7 @@ ItemEditor.prototype.documentReady = function() {
     
     self.$scope.find('input').on('change keydown', function() {
         if (self.currentItem) {
-            self.currentItemDirty = true;
+            self.setItemModified();
         }
     });
 };
@@ -62,7 +62,8 @@ ItemEditor.prototype.editItem = function(item) {
     this.$editor.hide();
     
     this.currentItem = item;
-    this.currentItemDirty = false;
+    this.currentItemModified = false;
+    this.$editor.removeClass('editor-item-modified');
     
     this.setInputs(item);
 
@@ -75,11 +76,17 @@ ItemEditor.prototype.editItem = function(item) {
     this.$scope.find('input:first').focus();
 };
 
+ItemEditor.prototype.setItemModified = function() {
+    this.currentItemModified = true;
+    this.$editor.addClass('editor-item-modified');
+    $(this).trigger('currentItemModified');
+};
+
 ItemEditor.prototype.confirmDiscard = function(event) {
     var self = this;
     var confirmed = true;
     
-    if (this.currentItem && this.currentItemDirty) {
+    if (this.currentItem && this.currentItemModified) {
         var confirmTitle = this.tr('common.discardChanges');
         var confirmMessage = self.tr('common.discardChangesLong', self.currentItem[self.nameAttr] || '');
         
