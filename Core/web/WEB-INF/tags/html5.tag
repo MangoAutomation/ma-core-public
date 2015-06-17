@@ -36,15 +36,15 @@
 
         <%-- included with bootstrap?
         <link rel="stylesheet" href="/resources/normalize.css">--%>
-        <link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">
+        <tag:versionedCss href="/resources/bootstrap/css/bootstrap.min.css"/>
         <%--<link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">
         <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">--%>
-        <link rel="stylesheet" href="/resources/main.css">
+        <tag:versionedCss href="/resources/main.css"/>
         <%-- For now we need to include the floating pane CSS to use the help popup --%>
-        <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/FloatingPane.css"/> 
-        <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/ResizeHandle.css"/>
+        <tag:versionedCss href="/resources/dojox/layout/resources/FloatingPane.css"/>
+        <tag:versionedCss href="/resources/dojox/layout/resources/ResizeHandle.css"/>
         
-        <script src="/resources/modernizr-2.8.3.min.js"></script>
+        <tag:versionedJavascript src="/resources/modernizr-2.8.3.min.js"/>
         
         <!-- JSP styles fragment -->
         <jsp:invoke fragment="styles"/>
@@ -74,7 +74,7 @@
         <html5:footer />
         </c:if>
         
-        <!-- Template scripts -->
+        <%-- Template scripts TODO work out how the loader can use the  versioned java script URL--%>
         <script src="/resources/loaderConfig.js"></script>
         <script src="/resources/require.js"></script>
         <script src="/resources/main.js"></script>

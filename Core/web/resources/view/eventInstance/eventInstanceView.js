@@ -931,16 +931,16 @@ eventInstances = new StoreView({
 	function createLongRangeFilter(fromDate,fromTime,toDate,toTime){
 		
 		var from = createDateTime(fromDate,fromTime);
-		var to = createDateTime(toDate,toTime)
+		var to = createDateTime(toDate,toTime);
 
-		if((from != null)&&(to != null))
-			eventInstances.filters['activeTimestampString'] = "LongRange:>" + from.getTime() + ":<" + to.getTime();
+		if((from !== null)&&(to !== null))
+			eventInstances.filters.activeTimestampString = "LongRange:>" + from.getTime() + ":<" + to.getTime();
 		else if(from !== null)
-			eventInstances.filters['activeTimestampString'] = "Long:>" + from.getTime();
+			eventInstances.filters.activeTimestampString = "Long:>" + from.getTime();
 		else if(to !== null)
-			eventInstances.filters['activeTimestampString'] = "Long:<" + to.getTime();
-		else if ((to == null)&&(from == null)){
-			delete eventInstances.filters['activeTimestampString'];
+			eventInstances.filters.activeTimestampString = "Long:<" + to.getTime();
+		else if ((to === null)&&(from === null)){
+			delete eventInstances.filters.activeTimestampString;
 		}
 	}
 	

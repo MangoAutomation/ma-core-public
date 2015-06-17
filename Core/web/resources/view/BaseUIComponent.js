@@ -9,7 +9,8 @@ define(['jquery',
         'dojo/dom-style',
         'dojo/dom-geometry',
         'dijit/registry',
-        'jquery.notify'], 
+        'jquery.notify',
+        'jquery-ui/jquery-ui'], 
 		function($, MangoAPI, ConstrainedFloatingPane, domStyle, domGeom, registry){
 "use strict";
 /* Style for Notification using multi-lines */
@@ -82,6 +83,11 @@ BaseUIComponent.prototype.$scope = $(document.body);
 BaseUIComponent.prototype.propertyMap = {};
 
 /**
+ * Documentation Pane ID
+ */
+BaseUIComponent.prototype.documentationPanelId = 'mangoHelpModal';
+
+/**
  * Get the current user
  * @return promise with user as data
  */
@@ -144,6 +150,34 @@ BaseUIComponent.prototype.setupHelpDialog = function() {
  * Ensure the id is passed in as event.data.helpId
  */
 BaseUIComponent.prototype.showHelp = function(event){
+	
+	//TODO Un-comment when ready to use Bootstraps modal window
+//	var help = $('#' + this.documentationPanelId);
+//	if(!help.length){
+//		help = $('<div id="' + this.documentationPaneId + '" class="modal">');
+//		var content = $('<div class="modal-content">');
+//		help.append(content);
+//		var header = $('<div class="modal-header">');
+//		header.append('<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>');
+//		header.append('<h4 class="modal-title">Help Title</h4>');
+//		content.append(header);
+//		
+//		var modalBody = $('<div class="modal-body">');
+//		modalBody.append('<p>Help content here</p>');
+//		content.append(modalBody);
+//		
+//		var modalFooter = $('<div class="modal-footer">');
+//		content.append(modalFooter);
+//		
+//		$('body').append(help);
+//	}
+//	
+//	help.draggable({
+//		handle: ".modal-header"
+//	});
+//	
+//	help.modal('show');
+
     var fp = dijit.byId(this.documentationPaneId);
     if (!fp) {
         fp = this.setupHelpDialog();

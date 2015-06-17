@@ -9,9 +9,7 @@ define(['jquery', 'view/BaseUIComponent'],
 
 function ToolbarUtilities(){
 	BaseUIComponent.apply(this, arguments);
-	
-	
-};
+}
 
 ToolbarUtilities.prototype = Object.create(BaseUIComponent.prototype);
 

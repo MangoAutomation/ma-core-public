@@ -9,6 +9,7 @@ define(['dojo/_base/declare','dojox/layout/FloatingPane', 'dojo/_base/fx', 'dojo
 "use strict";
 
 var ConstrainedFloatingPane = declare(FloatingPane, {
+
     
     show: function(/* Function? */callback){
         // summary:
@@ -27,7 +28,7 @@ var ConstrainedFloatingPane = declare(FloatingPane, {
             })
         }).play();
         // use w / h from content box dimensions and x / y from position
-        var contentBox = domGeom.getContentBox(this.domNode)
+        var contentBox = domGeom.getContentBox(this.domNode);
         var pos = domGeom.position(this.domNode, true);
         pos = lang.mixin(pos, {w: contentBox.w, h: contentBox.h});
         this.resize(pos);
