@@ -64,15 +64,6 @@ DataPointPermissionsView.prototype.setupView = function(){
  			dataSourceName: null,
  			setPermission: null,
  			readPermission: null,
- 		},{
-			id: 4,
-			enabled: false,
- 			xid: null,
- 			name: null,
- 			deviceName: null,
- 			dataSourceName: null,
- 			setPermission: null,
- 			readPermission: null,
  		}]
 	});
 	
@@ -205,7 +196,7 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 		for(var prop in filter){
 			//Don't add extra info
 			if((prop != 'enabled')&&(prop != 'id')&&(filter.enabled === true)){
-				if((filter[prop] != null)&&(filter[prop] != "")){
+				if((filter[prop] !== null)&&(filter[prop] !== "")){
 					//totalFilter[prop] = new Regex(filter[prop]);
 					totalFilter = totalFilter.match(prop, filter[prop]);
 				}
