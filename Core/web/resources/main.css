@@ -142,7 +142,7 @@ input {
 /* add pointer cursor to labels with a for attribute, i.e. linked to an input
  * and also to file inputs
  */
-label[for], input[type=file] {
+label[for], input[type=file], input[type=checkbox] {
     cursor: pointer;
 }
 

@@ -375,7 +375,11 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
         });
     } else {
         // not a dijit, use jquery to set input value
-        $element.val(value);
+        if ($element.is('[type=checkbox]')) {
+            $element.prop('checked', value).trigger('change');
+        } else {
+            $element.val(value).trigger('change');
+        }
     }
 };
 
@@ -419,7 +423,11 @@ BaseUIComponent.prototype.getProperty = function(item, property, $element) {
         return value;
     } else if ($element.is(':input')) {
         // not a dijit, use jquery to get input value
-        return $element.val();
+        if ($element.is('[type=checkbox]')) {
+            return $element.prop('checked');
+        } else {
+            return $element.val();
+        }
     }
 };
 
