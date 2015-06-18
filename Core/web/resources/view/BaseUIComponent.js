@@ -248,7 +248,12 @@ BaseUIComponent.prototype.showSuccess = function(message){
  * so we parse it manually
  */
 BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
-    var parsed = $.parseJSON(data.response.data);
+    var parsed = {};
+    if (data.response && data.response.data) {
+        try {
+            parsed = $.parseJSON(data.response.data);
+        } catch(e) { }
+    }
     
     if (parsed.validationMessages && parsed.validationMessages.length) {
         this.showValidationErrors(parsed);
@@ -256,6 +261,8 @@ BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
     }
     
     var message = data.message;
+    // TODO maybe construct an object which can be passed to showError()
+    // for consistency
     this.showGenericError(message);
 };
 
@@ -282,15 +289,71 @@ BaseUIComponent.prototype.showValidationErrors = function(vo){
 	return true;
 };
 
-BaseUIComponent.prototype.elementForProperty = function(property) {
-    var $element = this.$scope.find('[data-editor-property="' + property + '"]');
-    if (!$element.length)
-        $element = this.$scope.find('[name="' + property + '"]');
-    if (!$element.length)
-        $element = $('#' + property);
-    return $element;
+BaseUIComponent.prototype.elementForProperty = function(propertyArray, $scope) {
+    $scope = $scope || this.$scope;
+    if (!$.isArray(propertyArray)) {
+        propertyArray = propertyArray.split('.');
+    }
+    
+    var prop = propertyArray.shift();
+    var arrayMatch = prop.match(/(.+)\[(\d+)\]/);
+    var arrayIndex;
+    if (arrayMatch) {
+        // redefine the property as being just the name of the array
+        prop = arrayMatch[1];
+        arrayIndex = arrayMatch[2];
+    }
+    
+    // find the element with matching property, exclude nested properties
+    var $element = $scope.find('[data-editor-property="' + prop + '"]')
+        .not($scope.find('[data-editor-property] [data-editor-property]'));
+
+    // if we didn't find the element and this is the last component of the property
+    // then look for inputs too (using the name attribute)
+    if (!propertyArray.length && !$element.length) {
+        $element = $scope.find('[name="' + prop + '"]')
+            .not($scope.find('[data-editor-property] [name]'));
+    }
+    
+    if (arrayMatch) {
+        // note that this will only work for dgrids using memory backed stores
+        if ($element.hasClass('dgrid')) {
+            // lookup grid from dijit registry
+            var grid = registry.byNode($element[0]);
+            var item = grid.collection.data[arrayIndex];
+            $element = $(grid.row(item).element);
+        } else {
+            /* look for a nested element with data-editor-property set to the array index
+             * e.g.
+             * <ol data-editor-property="myArray">
+             *    <li data-editor-property="0">List item 1</li>
+             *    <li data-editor-property="1">List item 2</li>
+             * </ol>
+             */
+            propertyArray.unshift(arrayIndex);
+            
+            // could also get the xth child?
+            //$element = $element.children().eq(arrayMatch[2]);
+        }
+    }
+    
+    // non ideal fall-back, used on users page, keep here for compatibility
+    if (!$element.length) {
+        $element = $('#' + prop);
+    }
+    
+    if (!propertyArray.length || !$element.length) {
+        return $element;
+    } else {
+        return this.elementForProperty(propertyArray, $element);
+    }
 };
 
+/**
+ * Set inputs to the values from the item's properties
+ * 
+ * Note: does not support object and array properties, override .setProperty()
+ */
 BaseUIComponent.prototype.setInputs = function(item) {
     // clear inputs
     this.$scope.find('input, select, textarea').val('');
@@ -316,16 +379,30 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
     }
 };
 
+/**
+ * Retrieve values from inputs and set the properties on the item
+ * 
+ * Note: does not support object and array properties, override .getProperty()
+ */
 BaseUIComponent.prototype.getInputs = function(item) {
     var self = this;
-    this.$scope.find('[data-editor-property], [name]').each(function(i, element) {
-        var $element = $(element);
-        var property = $element.attr('data-editor-property');
-        if (!property) {
-            property = $element.attr('name');
-        }
-        item[property] = self.getProperty(item, property, $element);
-    });
+    var $scope = this.$scope;
+    $scope.find('[data-editor-property], [name]')
+        // remove nested properties
+        .not($scope.find('[data-editor-property] [data-editor-property]'))
+        .not($scope.find('[data-editor-property] [name]'))
+        .each(function(i, element) {
+            var $element = $(element);
+            var property = $element.attr('data-editor-property');
+            if (!property) {
+                property = $element.attr('name');
+            }
+                    
+            var propertyValue = self.getProperty(item, property, $element);
+            if (propertyValue !== undefined) {
+                item[property] = propertyValue;
+            }
+        });
     return item;
 };
 
@@ -336,11 +413,11 @@ BaseUIComponent.prototype.getProperty = function(item, property, $element) {
             var dijit = registry.byNode(node);
             if (dijit) {
                 value = dijit.get('value');
-                return;
+                return; // break
             }
         });
         return value;
-    } else {
+    } else if ($element.is(':input')) {
         // not a dijit, use jquery to get input value
         return $element.val();
     }
@@ -367,50 +444,55 @@ BaseUIComponent.prototype.showMessage = function(message, level){
 /**
  * Displays error messages from jquery XHR requests, typically used with MangoAPI calls
  */
-BaseUIComponent.prototype.showError = function(jqXHR, textStatus, error, mangoMessage){
-
-	var logLevel, message='', color;
-    switch(textStatus) {
-    case 'notNeeded':
-        // request cancelled as it wasn't needed
+BaseUIComponent.prototype.showError = function(errorObject) {
+    var logLevel = 'error';
+    var message;
+    switch(errorObject.type) {
+    case 'loadNotNeeded':
+    case 'tooMuchData':
+    case 'noData':
+        // dont display these messages
         return;
-    case 'abort':
-        message = "Mango API request was cancelled. ";
-        color = "red";
+    case 'providerDisabled':
+        message = errorObject.description;
+        logLevel = 'warn';
         break;
-    case 'parsererror':
-    	color = "red";
-    	message = "Response Parser Error. ";
-    	break;
-    //case 'error':
+    case 'jqXHR':
+        if (errorObject.textStatus === 'abort') {
+            message = 'Mango XHR request was cancelled';
+            logLevel = 'warn';
+        } else {
+            message = "Mango XHR request failed";
+            if (errorObject.textStatus)
+                message += ", status=" + errorObject.textStatus;
+            if (errorObject.errorThrown)
+                message += ", error=" + errorObject.errorThrown;
+            if (errorObject.mangoMessage)
+                message += ", message=" + errorObject.mangoMessage;
+        }
+        
+        if (errorObject.mangoMessage === 'Validation error') {
+            this.showValidationErrors(errorObject.jqXHR.responseJSON);
+            return;
+        }
+        
+        message += ", url=" + errorObject.url;
+        break;
     default:
-        color = "red";
-        break;
-    }
-
-    //if (jqXHR && jqXHR.url)
-    //    message += ", url=" + jqXHR.url;
-    if (mangoMessage)
-        message += mangoMessage;
-    else{
-    	if((jqXHR)&&(jqXHR.statusText))
-    		message += jqXHR.statusText;
-    	else
-    		message += 'unknown';
+        message = "Generic error: " + errorObject.type;
     }
     
-    if(message === 'Validation error')
-    	this.showValidationErrors(jqXHR.responseJSON);
-
-    this.showGenericError(message);
+    this.showGenericError(message, logLevel);
 };
 
-BaseUIComponent.prototype.showGenericError = function(message) {
+BaseUIComponent.prototype.showGenericError = function(message, level) {
+    level = level || 'error';
+    var style = 'mango-' + level;
     if (this.errorDiv) {
-        this.errorDiv.notify(message, {style: 'mango-error'});
+        this.errorDiv.notify(message, {style: style});
     } else {
         $.notify(message, {
-            style: 'mango-error',
+            style: style,
             position: 'top center',
             autoHide: true,
             autoHideDelay: 30000,
