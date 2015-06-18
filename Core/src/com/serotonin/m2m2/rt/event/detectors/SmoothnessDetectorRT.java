@@ -83,7 +83,6 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT {
 
         // Calculate the smoothness
         double smoothness = calc();
-        System.out.println("Smoothness calc: " + smoothness);
 
         if (smoothness < vo.getLimit()) {
             if (!limitBreech) {
