@@ -35,6 +35,7 @@ import com.serotonin.m2m2.rt.event.detectors.NoUpdateDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointChangeDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PositiveCusumDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.SmoothnessDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.StateChangeCountDetectorRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -44,7 +45,8 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class PointEventDetectorVO extends SimpleEventDetectorVO implements Cloneable, JsonSerializable, ChangeComparable<PointEventDetectorVO> {
+public class PointEventDetectorVO extends SimpleEventDetectorVO implements Cloneable, JsonSerializable,
+        ChangeComparable<PointEventDetectorVO> {
     public static final String XID_PREFIX = "PED_";
 
     public static final int TYPE_ANALOG_HIGH_LIMIT = 1;
@@ -61,12 +63,13 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
     public static final int TYPE_ALPHANUMERIC_REGEX_STATE = 12;
     public static final int TYPE_ANALOG_RANGE = 13;
     public static final int TYPE_ANALOG_CHANGE = 14;
+    public static final int TYPE_SMOOTHNESS = 15;
 
     private static List<ImplDefinition> definitions;
 
     public static List<ImplDefinition> getImplementations(int dataType) {
         if (definitions == null) {
-            List<ImplDefinition> d = new ArrayList<ImplDefinition>();
+            List<ImplDefinition> d = new ArrayList<>();
             d.add(new ImplDefinition(TYPE_ANALOG_HIGH_LIMIT, null, "pointEdit.detectors.highLimit",
                     new int[] { DataTypes.NUMERIC }));
             d.add(new ImplDefinition(TYPE_ANALOG_LOW_LIMIT, null, "pointEdit.detectors.lowLimit",
@@ -94,12 +97,14 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
                     new int[] { DataTypes.NUMERIC }));
             d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
                     new int[] { DataTypes.NUMERIC }));
-//            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
-//                    new int[] { DataTypes.NUMERIC }));           
+            //            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
+            //                    new int[] { DataTypes.NUMERIC }));           
+            d.add(new ImplDefinition(TYPE_SMOOTHNESS, null, "pointEdit.detectors.smoothness",
+                    new int[] { DataTypes.NUMERIC }));
             definitions = d;
         }
 
-        List<ImplDefinition> impls = new ArrayList<ImplDefinition>();
+        List<ImplDefinition> impls = new ArrayList<>();
         for (ImplDefinition def : definitions) {
             if (def.supports(dataType))
                 impls.add(def);
@@ -167,9 +172,11 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         case TYPE_NEGATIVE_CUSUM:
             return new NegativeCusumDetectorRT(this);
         case TYPE_ANALOG_RANGE:
-        	return new AnalogRangeDetectorRT(this);
-//        case TYPE_ANALOG_CHANGE:
-//        	return new AnalogChangeDetectorRT(this);
+            return new AnalogRangeDetectorRT(this);
+            //        case TYPE_ANALOG_CHANGE:
+            //        	return new AnalogChangeDetectorRT(this);
+        case TYPE_SMOOTHNESS:
+            return new SmoothnessDetectorRT(this);
         }
         throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
     }
@@ -188,43 +195,45 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         TranslatableMessage message;
         TranslatableMessage durationDesc = getDurationDescription();
         if (detectorType == TYPE_ANALOG_HIGH_LIMIT) {
-        	
-        	if(binaryState){
-        		//Check if Not above
+
+            if (binaryState) {
+                //Check if Not above
                 if (durationDesc == null)
-                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigher", dataPoint.getTextRenderer().getText(
-                            limit, TextRenderer.HINT_SPECIFIC));
+                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigher", dataPoint
+                            .getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC));
                 else
-                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigherPeriod", dataPoint.getTextRenderer()
-                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        	}else{
-        		//Must be above
+                    message = new TranslatableMessage("event.detectorVo.highLimitNotHigherPeriod", dataPoint
+                            .getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+            }
+            else {
+                //Must be above
                 if (durationDesc == null)
-                    message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer().getText(
-                            limit, TextRenderer.HINT_SPECIFIC));
+                    message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC));
                 else
                     message = new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
                             .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        	}
+            }
         }
         else if (detectorType == TYPE_ANALOG_LOW_LIMIT) {
-        	if(binaryState){
-        		//Not below
+            if (binaryState) {
+                //Not below
                 if (durationDesc == null)
-                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLower", dataPoint.getTextRenderer().getText(
-                            limit, TextRenderer.HINT_SPECIFIC));
+                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLower", dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC));
                 else
-                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLowerPeriod", dataPoint.getTextRenderer()
-                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        	}else{
-        		//Must be below
+                    message = new TranslatableMessage("event.detectorVo.lowLimitNotLowerPeriod", dataPoint
+                            .getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+            }
+            else {
+                //Must be below
                 if (durationDesc == null)
                     message = new TranslatableMessage("event.detectorVo.lowLimit", dataPoint.getTextRenderer().getText(
                             limit, TextRenderer.HINT_SPECIFIC));
                 else
                     message = new TranslatableMessage("event.detectorVo.lowLimitPeriod", dataPoint.getTextRenderer()
                             .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        	}
+            }
         }
         else if (detectorType == TYPE_BINARY_STATE) {
             if (durationDesc == null)
@@ -275,29 +284,39 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             else
                 message = new TranslatableMessage("event.detectorVo.negCusumPeriod", dataPoint.getTextRenderer()
                         .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        }else if (detectorType == TYPE_ANALOG_RANGE) {
-        	
-        	//For within range
-        	if(binaryState){
-	            if (durationDesc == null)
-	                message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
-	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
-	                        limit, TextRenderer.HINT_SPECIFIC));
-	            else
-	                message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer().getText(
-	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
-	                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        	}else{
-        		//Outside of range
-	            if (durationDesc == null)
-	                message = new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer().getText(
-	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
-	                        limit, TextRenderer.HINT_SPECIFIC));
-	            else
-	                message = new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint.getTextRenderer().getText(
-	                        weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(
-	                        limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        	}
+        }
+        else if (detectorType == TYPE_ANALOG_RANGE) {
+
+            //For within range
+            if (binaryState) {
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
+                            weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(limit,
+                            TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer()
+                            .getText(weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(limit,
+                            TextRenderer.HINT_SPECIFIC), durationDesc);
+            }
+            else {
+                //Outside of range
+                if (durationDesc == null)
+                    message = new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer()
+                            .getText(weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(limit,
+                            TextRenderer.HINT_SPECIFIC));
+                else
+                    message = new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint
+                            .getTextRenderer().getText(weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer()
+                            .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
+            }
+        }
+        else if (detectorType == TYPE_SMOOTHNESS) {
+            if (durationDesc == null)
+                message = new TranslatableMessage("event.detectorVo.smoothness", dataPoint.getTextRenderer().getText(
+                        limit, TextRenderer.HINT_SPECIFIC));
+            else
+                message = new TranslatableMessage("event.detectorVo.smoothnessPeriod", dataPoint.getTextRenderer()
+                        .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
 
         else
@@ -482,8 +501,9 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         TYPE_CODES.addElement(TYPE_POSITIVE_CUSUM, "POSITIVE_CUSUM");
         TYPE_CODES.addElement(TYPE_NEGATIVE_CUSUM, "NEGATIVE_CUSUM");
         TYPE_CODES.addElement(TYPE_ANALOG_RANGE, "RANGE");
+        TYPE_CODES.addElement(TYPE_SMOOTHNESS, "SMOOTHNESS");
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
@@ -495,15 +515,15 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             writer.writeEntry("limit", limit);
             addDuration(writer);
             writer.writeEntry("notHigher", binaryState);
-            if(this.multistateState == 1) //Using reset limit
-            	writer.writeEntry("resetLimit", weight);
+            if (this.multistateState == 1) //Using reset limit
+                writer.writeEntry("resetLimit", weight);
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             writer.writeEntry("limit", limit);
             addDuration(writer);
             writer.writeEntry("notLower", binaryState);
-            if(this.multistateState == 1) //Using Reset Limit
-            	writer.writeEntry("resetLimit", weight);
+            if (this.multistateState == 1) //Using Reset Limit
+                writer.writeEntry("resetLimit", weight);
             break;
         case TYPE_BINARY_STATE:
             writer.writeEntry("state", binaryState);
@@ -544,11 +564,16 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             addDuration(writer);
             break;
         case TYPE_ANALOG_RANGE:
-        	writer.writeEntry("low", weight);
-        	writer.writeEntry("high", limit);
-        	writer.writeEntry("withinRange", binaryState);
-        	addDuration(writer);
-        	break;
+            writer.writeEntry("low", weight);
+            writer.writeEntry("high", limit);
+            writer.writeEntry("withinRange", binaryState);
+            addDuration(writer);
+            break;
+        case TYPE_SMOOTHNESS:
+            writer.writeEntry("limit", limit);
+            writer.writeEntry("boxcar", changeCount);
+            addDuration(writer);
+            break;
         }
     }
 
@@ -574,25 +599,25 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         case TYPE_ANALOG_HIGH_LIMIT:
             limit = getDouble(jsonObject, "limit");
             updateDuration(jsonObject);
-            if(jsonObject.containsKey("notHigher"))
-            	binaryState = getBoolean(jsonObject, "notHigher");
+            if (jsonObject.containsKey("notHigher"))
+                binaryState = getBoolean(jsonObject, "notHigher");
             else
-            	binaryState = false;
-            if(jsonObject.containsKey("resetLimit")){
-            	multistateState = 1;
-            	weight = getDouble(jsonObject, "resetLimit");
+                binaryState = false;
+            if (jsonObject.containsKey("resetLimit")) {
+                multistateState = 1;
+                weight = getDouble(jsonObject, "resetLimit");
             }
             break;
         case TYPE_ANALOG_LOW_LIMIT:
             limit = getDouble(jsonObject, "limit");
             updateDuration(jsonObject);
-            if(jsonObject.containsKey("notLower"))
-            	binaryState = getBoolean(jsonObject, "notLower");
+            if (jsonObject.containsKey("notLower"))
+                binaryState = getBoolean(jsonObject, "notLower");
             else
-            	binaryState = false;
-            if(jsonObject.containsKey("resetLimit")){
-            	multistateState = 1;
-            	weight = getDouble(jsonObject, "resetLimit");
+                binaryState = false;
+            if (jsonObject.containsKey("resetLimit")) {
+                multistateState = 1;
+                weight = getDouble(jsonObject, "resetLimit");
             }
             break;
         case TYPE_BINARY_STATE:
@@ -634,10 +659,15 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
             updateDuration(jsonObject);
             break;
         case TYPE_ANALOG_RANGE:
-        	weight = getDouble(jsonObject, "low");
-        	limit = getDouble(jsonObject, "high");
-        	binaryState = getBoolean(jsonObject, "withinRange");
-        	break;
+            weight = getDouble(jsonObject, "low");
+            limit = getDouble(jsonObject, "high");
+            binaryState = getBoolean(jsonObject, "withinRange");
+            break;
+        case TYPE_SMOOTHNESS:
+            limit = getDouble(jsonObject, "limit");
+            changeCount = getInt(jsonObject, "boxcar");
+            updateDuration(jsonObject);
+            break;
         }
     }
 
@@ -687,7 +717,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         writer.writeEntry("durationType", Common.TIME_PERIOD_CODES.getCode(durationType));
         writer.writeEntry("duration", duration);
     }
-    
+
     @Override
     public String getEventDetectorKey() {
         return SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX + id;

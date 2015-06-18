@@ -40,29 +40,30 @@ public class DataPointEditDwr extends BaseDwr {
         Permissions.ensureDataSourcePermission(user, dataPoint.getDataSourceId());
         return dataPoint;
     }
-    
+
     @DwrPermission(user = true)
-    public ProcessResult ensureEditingPointMatch(int uiPointId){
-    	ProcessResult result = new ProcessResult();
-    	User user = Common.getUser();
-    	DataPointVO dataPoint = user.getEditPoint();
-    	if(dataPoint.getId() == uiPointId){
-    		result.addData("match",true);
-    	}else{
-    		
-    		result.addData("message", Common.translate("pointEdit.error.uiPointMismatch"));
-    		result.addData("match", false);
-    	}
-    	
-    	return result;
+    public ProcessResult ensureEditingPointMatch(int uiPointId) {
+        ProcessResult result = new ProcessResult();
+        User user = Common.getUser();
+        DataPointVO dataPoint = user.getEditPoint();
+        if (dataPoint.getId() == uiPointId) {
+            result.addData("match", true);
+        }
+        else {
+
+            result.addData("message", Common.translate("pointEdit.error.uiPointMismatch"));
+            result.addData("match", false);
+        }
+
+        return result;
     }
-    
+
     //
     // Set text renderer
     //
     @DwrPermission(user = true)
-    public void setAnalogTextRenderer(String format, String suffix,boolean useUnitAsSuffix) {
-        setTextRenderer(new AnalogRenderer(format, suffix,useUnitAsSuffix));
+    public void setAnalogTextRenderer(String format, String suffix, boolean useUnitAsSuffix) {
+        setTextRenderer(new AnalogRenderer(format, suffix, useUnitAsSuffix));
     }
 
     @DwrPermission(user = true)
@@ -84,8 +85,8 @@ public class DataPointEditDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
-    public void setPlainRenderer(String suffix,boolean useUnitAsSuffix) {
-        setTextRenderer(new PlainRenderer(suffix,useUnitAsSuffix));
+    public void setPlainRenderer(String suffix, boolean useUnitAsSuffix) {
+        setTextRenderer(new PlainRenderer(suffix, useUnitAsSuffix));
     }
 
     @DwrPermission(user = true)
@@ -211,7 +212,7 @@ public class DataPointEditDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void updateHighLimitDetector(int pedId, String xid, String alias, double limit, boolean notHigher,
-    		int useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
+            int useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
@@ -226,7 +227,7 @@ public class DataPointEditDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void updateLowLimitDetector(int pedId, String xid, String alias, double limit, boolean notLower,
-    		int useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
+            int useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
         PointEventDetectorVO ped = getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
@@ -316,7 +317,7 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
     }
-    
+
     @DwrPermission(user = true)
     public void updateAlphanumericRegexStateDetector(int pedId, String xid, String alias, String state, int duration,
             int durationType, int alarmLevel) {
@@ -368,7 +369,20 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
     }
-    
+
+    @DwrPermission(user = true)
+    public void updateSmoothnessDetector(int pedId, String xid, String alias, double limit, int boxcar, int duration,
+            int durationType, int alarmLevel) {
+        PointEventDetectorVO ped = getEventDetector(pedId);
+        ped.setXid(xid);
+        ped.setAlias(alias);
+        ped.setLimit(limit);
+        ped.setChangeCount(boxcar);
+        ped.setDuration(duration);
+        ped.setDurationType(durationType);
+        ped.setAlarmLevel(alarmLevel);
+    }
+
     private PointEventDetectorVO getEventDetector(int pedId) {
         DataPointVO dp = getDataPoint();
         for (PointEventDetectorVO ped : dp.getEventDetectors()) {

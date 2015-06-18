@@ -108,6 +108,7 @@ String[] mangoMessageKeys = {
 	    "pointEdit.detectors.negCusum",
 	    "pointEdit.detectors.regexState",
 	    "pointEdit.detectors.range",
+        "pointEdit.detectors.smoothness",
 	    
 	    "pointEdit.logging.period",
 	    
