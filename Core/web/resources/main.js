@@ -10,8 +10,9 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'
 	var toolbarUtilities = new ToolbarUtilities();
 	
 	$.when(toolbarUtilities.getCurrentUser(),
+			toolbarUtilities.api.getEventsActiveSummary(),
 			toolbarUtilities.setupTranslations()).then(MangoAPI.firstArrayArg)
-	.done(function(user){
+	.done(function(user, activeEvents){
 		
 		//Setup the Mute Icon
 		var userMutedIcon = $('#userMutedIcon');
@@ -58,6 +59,9 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'
 				toolbarUtilities.showSuccess(toolbarUtilities.tr('header.homeUrlSaved'));
 			}).fail(toolbarUtilities.showError);
 		});
+		
+		//Setup the Alarms View
+		toolbarUtilities.setupEventsSummary(activeEvents);
 		
 	}).fail(toolbarUtilities.showError);
 });
