@@ -45,7 +45,7 @@ ItemEditor.prototype.documentReady = function() {
     this.$scope.find('.editor-copy').mousedown(false);
     this.$scope.find('.editor-copy').click(this.copyItemClick.bind(this));
     
-    self.$scope.find('input').on('change keydown', function(event) {
+    self.$scope.find('input, select, textarea').on('change keydown', function(event) {
         // dont set modified if we programmatically triggered the change event
         if (!event.isTrigger && self.currentItem) {
             self.setItemModified();
@@ -125,7 +125,7 @@ ItemEditor.prototype.deleteItemClick = function(event) {
     this.confirm(confirmTitle, confirmMessage).done(function() {
         var idProp = self.store.idProperty;
         self.store.remove(item[idProp]).then(function() {
-            if (item === self.currentItem) {
+            if (self.store.getIdentity(item) == self.store.getIdentity(self.currentItem)) {
                 self.closeEditor();
             }
         }, self.dstoreErrorHandler.bind(self));
