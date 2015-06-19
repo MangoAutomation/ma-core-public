@@ -142,7 +142,7 @@ input {
 /* add pointer cursor to labels with a for attribute, i.e. linked to an input
  * and also to file inputs
  */
-label[for], input[type=file], input[type=checkbox], select, option {
+label[for], input[type=file], input[type=checkbox], select, input[type=radio] {
     cursor: pointer;
 }
 
@@ -394,7 +394,9 @@ footer {
     vertical-align: baseline;
 }
 
-.label-layout label {
+.label-layout label,
+label.row-label,
+.mango-row > label {
   float: left;
   width: 100px;
   margin: 0 10px 0 0;
