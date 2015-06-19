@@ -45,8 +45,9 @@ ItemEditor.prototype.documentReady = function() {
     this.$scope.find('.editor-copy').mousedown(false);
     this.$scope.find('.editor-copy').click(this.copyItemClick.bind(this));
     
-    self.$scope.find('input').on('change keydown', function() {
-        if (self.currentItem) {
+    self.$scope.find('input').on('change keydown', function(event) {
+        // dont set modified if we programmatically triggered the change event
+        if (!event.isTrigger && self.currentItem) {
             self.setItemModified();
         }
     });
