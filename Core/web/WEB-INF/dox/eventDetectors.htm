@@ -109,3 +109,16 @@
   detector becomes active. Events raised by this detector will automatically return to normal when the condition is no 
   longer satisfied.
 </p>
+
+<h1>Smoothness</h1>
+<p>
+  This detector applies only to Numeric points. It uses an algorithm to calculate a smoothness metric on a stream of 
+  values. The metric is specific to the stream of values, and will likely be different for each input source. Because 
+  the calculated smoothness value at any point can be highly variable, it is often useful to apply a "boxcar" to a set
+  of calculated values from which the average is derived. The <b>Low limit</b> is the value below which the detector 
+  becomes active, and the <b>Boxcar size</b> is the length of calculated values over which the average is derived. The 
+  detector may optionally be configured with a <b>Duration</b>; the smoothness must stay below the limit for at least 
+  the given duration before the detector becomes active. Events raised by this detector will automatically return to 
+  normal when the condition is no longer satisfied. NOTE: this detector is best used with points that update on a 
+  regular schedule, such as every 5 minutes. Points that update irregularly may not perform well.
+</p>

@@ -581,6 +581,49 @@
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
+    
+    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_SMOOTHNESS %>">
+      <tr><td class="horzSeparator" colspan="2"></td></tr>
+      <tr>
+        <td class="formLabelRequired">
+          <tag:img png="delete" title="common.delete" onclick="pointEventDetectorEditor.deleteDetector(getPedId(this))"/>
+          <fmt:message key="pointEdit.detectors.type"/>
+        </td>
+        <td class="formField"><fmt:message key="pointEdit.detectors.smoothnessDet"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
+        <td class="formField">
+          <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
+                  onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.lowLimit"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.smoothnessBoxcar"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_ChangeCount" type="text" class="formShort"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
+    </tbody>
   </table>
 </div>
 
@@ -590,7 +633,6 @@
   function setEventDetectors(vo){
       
       DataPointDwr.getEventDetectorOptions(vo.pointLocator.dataTypeId,function(response){
-
           var options = [];
           for(var i=0; i<response.data.options.length; i++){
               options.push({
@@ -771,6 +813,12 @@
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
+          }
+          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_SMOOTHNESS %>) {
+              $set("eventDetector"+ detector.id +"Limit", detector.limit);
+              $set("eventDetector"+ detector.id +"ChangeCount", detector.changeCount);
+              $set("eventDetector"+ detector.id +"Duration", detector.duration);
+              $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           
           $set("eventDetector"+ detector.id +"Xid", detector.xid);
@@ -1058,6 +1106,28 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateAnalogRangeDetector(pedId, xid, alias, limit, weight, state, duration,
+                              durationType, alarmLevel, saveCB);
+                  }
+              }
+              else if (pedType == <%= PointEventDetectorVO.TYPE_SMOOTHNESS %>) {
+                  var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var boxcar = parseInt($get("eventDetector"+ pedId +"ChangeCount"));
+                  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
+                  var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  
+                  if (isNaN(limit))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
+                  else if (isNaN(boxcar))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingBoxcar"/>";
+                  else if (boxcar < 3)
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidBoxcar"/>";
+                  else if (isNaN(duration))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
+                  else if (duration < 0)
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                  else {
+                      saveCBCount++;
+                      DataPointEditDwr.updateSmoothnessDetector(pedId, xid, alias, limit, boxcar, duration,
                               durationType, alarmLevel, saveCB);
                   }
               }
