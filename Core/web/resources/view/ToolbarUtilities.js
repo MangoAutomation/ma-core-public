@@ -58,6 +58,7 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
 	this.infoLabel = this.tr('common.alarmLevel.info');
 	this.noneLabel = this.tr('common.alarmLevel.none');
 	
+	var self = this;
     this.api.registerForAlarmEvents(
             ['ACKNOWLEDGED', 'RAISED', 'RETURN_TO_NORMAL', 'DEACTIVATED'],
             ['LIFE_SAFETY', 'CRITICAL', 'URGENT', 'INFORMATION', 'NONE'],
@@ -65,7 +66,7 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
         // onMessage
         //TODO Check ERROR Status of data
         //Find the level we are working with
-        var level = this.getEventLevel(data.payload.event);
+        var level = self.getEventLevel(data.payload.event);
         // TODO increment and decrement the unsilencedCount based on the events received
         switch(data.payload.type){
         case 'RAISED':
@@ -85,7 +86,7 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
         		level.unsilencedCount--;
         break;
         }
-        this.renderEventLevel(level);
+        self.renderEventLevel(level);
     }, function(){}, function(){}, function(){});
     
     for (var i = 0; i < this.eventsActiveSummary.length; i++) {

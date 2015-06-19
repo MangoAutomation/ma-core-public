@@ -4,9 +4,8 @@
  */
 
 define(['jquery', 'view/BaseUIComponent', 'dstore/Rest',
-        'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 'dijit/TooltipDialog',
-        'dijit/popup', 'dojo/dom'], 
-		function($, BaseUIComponent, Rest, FilteringSelect, DstoreAdapter, TooltipDialog, Popup){
+        'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 'dojo/dom'], 
+		function($, BaseUIComponent, Rest, FilteringSelect, DstoreAdapter){
 "use strict";
 
 
@@ -17,6 +16,13 @@ function UsersView(){
 }
 
 UsersView.prototype = Object.create(BaseUIComponent.prototype);
+
+UsersView.prototype.store = null;
+UsersView.prototype.userPicker = null;
+UsersView.prototype.switchUserPicker = null;
+UsersView.prototype.timezoneStore = null;
+UsersView.prototype.newUser = false; //Flag to indicate we are adding a user
+
 
 /**
  * Do the heavy lifting of setting up the view
@@ -70,7 +76,7 @@ UsersView.prototype.setupView = function(){
 		$('#sendTestEmail').on('click', this.sendTestEmail.bind(this));
 		
 		//Setup Permissions Viewer
-		$('#permissionsViewer').on('click', this.showPermissionList.bind(this));
+		$('#permissionsViewer').on('click', {inputNode: $('#permissions')}, this.showPermissionList.bind(this));
 		
 	} 
 	
@@ -232,51 +238,6 @@ UsersView.prototype.switchUser = function(username){
     }).fail(this.showError);
 };
 
-UsersView.prototype.showPermissionList = function(){
-	
-	var self = this;
-	this.api.getAllUserGroups($('#permissions').val()).then(function(groups){
-
-		if (self.permissionsDialog !== null)
-            self.permissionsDialog.destroy();
-		var content = "";
-		if (groups.length === 0)
-		    content = self.tr('users.permissions.nothingNew');
-		else {
-		    for (var i=0; i<groups.length; i++)
-		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
-		}
-		
-		self.permissionsDialog = new TooltipDialog({
-            id: 'permissionsTooltipDialog',
-            content: content,
-            onMouseLeave: function() { 
-                Popup.close(self.permissionsDialog);
-            }
-        });
-        
-        Popup.open({
-            popup: self.permissionsDialog,
-            around: $('#permissions')[0]
-        });
-		
-        //Assign onclick to all links and send in the group in the data of the event
-		$('.permissionStr').each(function(i){
-			$(this).on('click', {group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
-		});
-	});
-	
-};
-
-UsersView.prototype.addGroup = function(event){
-	var groups = $get("permissions");
-	if (groups.length > 0 && groups.substring(groups.length-1) != ",")
-		groups += ",";
-	groups += event.data.group;
-	$('#permissions').val(groups);
-	this.showPermissionList();
-};
-
 UsersView.prototype.sendTestEmail = function(){
 	
 	var email = $('#email').val();
@@ -306,12 +267,6 @@ UsersView.prototype.updateUserImage = function(){
 	}
 };
 
-UsersView.prototype.store = null;
-UsersView.prototype.userPicker = null;
-UsersView.prototype.switchUserPicker = null;
-UsersView.prototype.timezoneStore = null;
-UsersView.prototype.newUser = false; //Flag to indicate we are adding a user
-UsersView.prototype.permissionsDialog = null;
 
 return UsersView;
 

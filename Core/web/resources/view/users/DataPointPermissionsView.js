@@ -25,6 +25,7 @@ DataPointPermissionsView.prototype.filterPicker = null;
 DataPointPermissionsView.prototype.currentFilter = null;
 DataPointPermissionsView.prototype.defaultURL = null;
 
+
 DataPointPermissionsView.prototype.setupView = function(){
 	
 	this.filterStore = new Memory({
@@ -170,14 +171,22 @@ DataPointPermissionsView.prototype.setupView = function(){
 	$('#applyReadPermission').on('click', {type: 'read'}, this.applyPermissions.bind(this));
 	//Setup Apply Set Permission
 	$('#applySetPermission').on('click', {type: 'set'}, this.applyPermissions.bind(this));
-
+	
 	//Setup Clear Read Permission
 	$('#clearReadPermission').on('click', {type: 'read'}, this.clearPermissions.bind(this));
 	//Setup Clear Set Permission
 	$('#clearSetPermission').on('click', {type: 'set'}, this.clearPermissions.bind(this));
+
+	//Setup the Permissions viewer
+	$('#setPermissionsViewer').on('click', {inputNode: $('#setPermissions')}, this.showPermissionList.bind(this));
+	$('#readPermissionsViewer').on('click', {inputNode: $('#readPermissions')}, this.showPermissionList.bind(this));
+
 	
 };
 
+/**
+ * Filter has been modified
+ */
 DataPointPermissionsView.prototype.filterChanged = function(event){
 	
 	//Get new info

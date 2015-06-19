@@ -9,9 +9,11 @@ define(['jquery',
         'dojo/dom-style',
         'dojo/dom-geometry',
         'dijit/registry',
+        'dijit/TooltipDialog',
+        'dijit/popup',
         'jquery.notify',
         'jquery-ui/jquery-ui'], 
-		function($, MangoAPI, ConstrainedFloatingPane, domStyle, domGeom, registry){
+		function($, MangoAPI, ConstrainedFloatingPane, domStyle, domGeom, registry, TooltipDialog, Popup){
 "use strict";
 /* Style for Notification using multi-lines */
 $.notify.addStyle('mango-error', {
@@ -86,6 +88,11 @@ BaseUIComponent.prototype.propertyMap = {};
  * Documentation Pane ID
  */
 BaseUIComponent.prototype.documentationPanelId = 'mangoHelpModal';
+
+/**
+ * Permissions Dialog reference
+ */
+BaseUIComponent.prototype.permissionsDialog = null;
 
 /**
  * Get the current user
@@ -619,6 +626,53 @@ BaseUIComponent.prototype.dgridTabResize = function() {
         var href = $(event.target).attr('href');
         BaseUIComponent.dgridResize($(href));
     });
+};
+
+/* Permissions View */
+BaseUIComponent.prototype.showPermissionList = function(event){
+	
+	var self = this;
+	
+	this.api.getAllUserGroups(event.data.inputNode.val()).then(function(groups){
+
+		if (self.permissionsDialog !== null)
+            self.permissionsDialog.destroy();
+		var content = "";
+		if (groups.length === 0)
+		    content = self.tr('users.permissions.nothingNew');
+		else {
+		    for (var i=0; i<groups.length; i++)
+		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
+		}
+		
+		self.permissionsDialog = new TooltipDialog({
+            id: 'permissionsTooltipDialog',
+            content: content,
+            onMouseLeave: function() { 
+                Popup.close(self.permissionsDialog);
+            }
+        });
+        
+        Popup.open({
+            popup: self.permissionsDialog,
+            around: event.data.inputNode[0]
+        });
+		
+        //Assign onclick to all links and send in the group in the data of the event
+		$('.permissionStr').each(function(i){
+			$(this).on('click', {group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
+		});
+	});
+	
+};
+
+BaseUIComponent.prototype.addGroup = function(event){
+	var groups = $get("permissions");
+	if (groups.length > 0 && groups.substring(groups.length-1) != ",")
+		groups += ",";
+	groups += event.data.group;
+	$('#permissions').val(groups);
+	this.showPermissionList();
 };
 
 return BaseUIComponent;
