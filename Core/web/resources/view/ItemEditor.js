@@ -101,6 +101,7 @@ ItemEditor.prototype.newItemClick = function(event) {
     var self = this;
     this.confirmDiscard().done(function() {
         self.editItem(self.createNewItem());
+        self.$editor.addClass('editor-item-modified');
     });
 };
 

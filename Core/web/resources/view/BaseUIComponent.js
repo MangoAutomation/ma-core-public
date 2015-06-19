@@ -356,7 +356,8 @@ BaseUIComponent.prototype.elementForProperty = function(propertyArray, $scope) {
  */
 BaseUIComponent.prototype.setInputs = function(item) {
     // clear inputs
-    this.$scope.find('input, select, textarea').val('');
+    this.$scope.find('input, select, textarea')
+        .not('input[type=radio], input[type=checkbox]').val('');
     
     // set the inputs
     for (var property in item) {
@@ -370,16 +371,21 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
         $element.filter('.dijit').each(function(i, node) {
             var dijit = registry.byNode(node);
             if (dijit) {
-                dijit.set('value', value);
+                // dont trigger events, no way to tell if it was triggered
+                // programmatically
+                dijit.set('value', value, false);
             }
         });
     } else {
         // not a dijit, use jquery to set input value
         if ($element.is('[type=checkbox]')) {
-            $element.prop('checked', value).trigger('change');
+            $element.prop('checked', value);
+        } else if ($element.is('[type=radio]')) {
+            $element.filter('[value="' + value + '"]').prop('checked', true);
         } else {
-            $element.val(value).trigger('change');
+            $element.val(value);
         }
+        $element.trigger('change');
     }
 };
 
@@ -425,6 +431,8 @@ BaseUIComponent.prototype.getProperty = function(item, property, $element) {
         // not a dijit, use jquery to get input value
         if ($element.is('[type=checkbox]')) {
             return $element.prop('checked');
+        } else if ($element.is('[type=radio]')) {
+            return $element.filter(':checked').val();
         } else {
             return $element.val();
         }
