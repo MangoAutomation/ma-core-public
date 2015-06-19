@@ -241,7 +241,7 @@ UsersView.prototype.showPermissionList = function(){
             self.permissionsDialog.destroy();
 		var content = "";
 		if (groups.length === 0)
-		    content = this.tr('users.permissions.nothingNew');
+		    content = self.tr('users.permissions.nothingNew');
 		else {
 		    for (var i=0; i<groups.length; i++)
 		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
