@@ -358,23 +358,35 @@ BaseUIComponent.prototype.elementForProperty = function(propertyArray, $scope) {
 
 /**
  * Set inputs to the values from the item's properties
- * 
- * Note: does not support object and array properties, override .setProperty()
  */
-BaseUIComponent.prototype.setInputs = function(item) {
+BaseUIComponent.prototype.setInputs = function(item, $scope) {
+    $scope = $scope || this.$scope;
+    
     // clear inputs
-    this.$scope.find('input, select, textarea')
+    $scope.find('input, select, textarea')
         .not('input[type=radio], input[type=checkbox]').val('');
     
     // set the inputs
     for (var property in item) {
-        var $element = this.elementForProperty(property);
+        var $element = this.elementForProperty(property, $scope);
         this.setProperty(item, property, $element, item[property]);
     }
 };
 
 BaseUIComponent.prototype.setProperty = function(item, property, $element, value) {
-    if ($element.hasClass('dijit')) {
+    if (!$element.length) return;
+    
+    if (typeof value === 'object') {
+        if ($element.hasClass('dgrid') && $.isArray(value)) {
+            var grid = registry.byNode($element[0]);
+            if (grid && grid.collection.data) {
+                grid.collection.setData(value);
+                grid.refresh();
+                return;
+            }
+        }
+        this.setInputs(value, $element);
+    } else if ($element.hasClass('dijit')) {
         $element.filter('.dijit').each(function(i, node) {
             var dijit = registry.byNode(node);
             if (dijit) {
@@ -398,12 +410,10 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
 
 /**
  * Retrieve values from inputs and set the properties on the item
- * 
- * Note: does not support object and array properties, override .getProperty()
  */
-BaseUIComponent.prototype.getInputs = function(item) {
+BaseUIComponent.prototype.getInputs = function(item, $scope) {
     var self = this;
-    var $scope = this.$scope;
+    $scope = $scope || this.$scope;
     $scope.find('[data-editor-property], [name]')
         // remove nested properties
         .not($scope.find('[data-editor-property] [data-editor-property]'))
@@ -424,7 +434,21 @@ BaseUIComponent.prototype.getInputs = function(item) {
 };
 
 BaseUIComponent.prototype.getProperty = function(item, property, $element) {
-    if ($element.hasClass('dijit')) {
+    if (!$element.length) return;
+    
+    if ($element.hasClass('dgrid')) {
+        var grid = registry.byNode($element[0]);
+        if (grid && grid.collection.data) {
+            return grid.collection.data;
+        }
+    }
+    
+    var $childProperties = $element.find('[data-editor-property], [name]');
+    if ($childProperties.length) {
+        var result = {};
+        this.getInputs(result, $element);
+        return result;
+    } else if ($element.hasClass('dijit')) {
         var value;
         $element.filter('.dijit').each(function(i, node) {
             var dijit = registry.byNode(node);
@@ -605,7 +629,7 @@ BaseUIComponent.dgridResize = function($scope) {
         // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
         var grid = registry.byNode(node);
         // need to resize in case the window was resized
-        grid.resize(); 
+        if (grid) grid.resize(); 
     });
 };
 

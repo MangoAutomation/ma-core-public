@@ -6,8 +6,9 @@
 
 define(['jquery',
          './BaseUIComponent',
+         'dijit/registry'
 ],
-function($, BaseUIComponent) {
+function($, BaseUIComponent, registry) {
 'use strict';
 
 function ItemEditor(options) {
@@ -45,10 +46,11 @@ ItemEditor.prototype.documentReady = function() {
     this.$scope.find('.editor-copy').mousedown(false);
     this.$scope.find('.editor-copy').click(this.copyItemClick.bind(this));
     
-    self.$scope.find('input, select, textarea').on('change keydown', function(event) {
-        // dont set modified if we programmatically triggered the change event
-        if (!event.isTrigger && self.currentItem) {
-            self.setItemModified();
+    this.$scope.find('input, select, textarea').on('change keydown', self.setItemModified.bind(self));
+    this.$scope.find('.dgrid').each(function(i, node) {
+        var grid = registry.byNode(node);
+        if (grid && grid.collection) {
+            grid.collection.on('add, update, delete', self.setItemModified.bind(self));
         }
     });
 };
@@ -77,10 +79,13 @@ ItemEditor.prototype.editItem = function(item) {
     this.$scope.find('input:first').focus();
 };
 
-ItemEditor.prototype.setItemModified = function() {
-    this.currentItemModified = true;
-    this.$editor.addClass('editor-item-modified');
-    $(this).trigger('currentItemModified');
+ItemEditor.prototype.setItemModified = function(event) {
+    // dont set modified if we programmatically triggered the change event
+    if (this.currentItem && !(event && event.isTrigger)) {
+        this.currentItemModified = true;
+        this.$editor.addClass('editor-item-modified');
+        $(this).trigger('currentItemModified');
+    }
 };
 
 ItemEditor.prototype.confirmDiscard = function(event) {
