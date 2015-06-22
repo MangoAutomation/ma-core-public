@@ -298,7 +298,12 @@ BaseUIComponent.prototype.showValidationErrors = function(vo){
 
 BaseUIComponent.prototype.elementForProperty = function(propertyArray, $scope) {
     $scope = $scope || this.$scope;
-    if (!$.isArray(propertyArray)) {
+    // convert array index properties to strings
+    if (typeof propertyArray === 'number') {
+        propertyArray = '' + propertyArray;
+    }
+    // split property string into an array
+    if (typeof propertyArray === 'string') {
         propertyArray = propertyArray.split('.');
     }
     
@@ -443,9 +448,9 @@ BaseUIComponent.prototype.getProperty = function(item, property, $element) {
         }
     }
     
-    var $childProperties = $element.find('[data-editor-property], [name]');
-    if ($childProperties.length) {
-        var result = {};
+    if ($element.find('[data-editor-property], [name]').length) {
+        var isArray = $.isArray(item[property]) || $element.is('[data-editor-array]');
+        var result = isArray ? [] : {};
         this.getInputs(result, $element);
         return result;
     } else if ($element.hasClass('dijit')) {
