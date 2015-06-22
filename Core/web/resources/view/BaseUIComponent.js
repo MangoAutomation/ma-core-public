@@ -639,7 +639,7 @@ BaseUIComponent.prototype.showPermissionList = function(event){
             self.permissionsDialog.destroy();
 		var content = "";
 		if (groups.length === 0)
-		    content = self.tr('users.permissions.nothingNew');
+		    content = self.tr('common.permissions.noMoreGroups');
 		else {
 		    for (var i=0; i<groups.length; i++)
 		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
@@ -660,19 +660,19 @@ BaseUIComponent.prototype.showPermissionList = function(event){
 		
         //Assign onclick to all links and send in the group in the data of the event
 		$('.permissionStr').each(function(i){
-			$(this).on('click', {group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
+			$(this).on('click', {inputNode: event.data.inputNode, group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
 		});
 	});
 	
 };
 
 BaseUIComponent.prototype.addGroup = function(event){
-	var groups = $get("permissions");
+	var groups = event.data.inputNode.val();
 	if (groups.length > 0 && groups.substring(groups.length-1) != ",")
 		groups += ",";
 	groups += event.data.group;
-	$('#permissions').val(groups);
-	this.showPermissionList();
+	event.data.inputNode.val(groups);
+	this.showPermissionList({data: {inputNode: event.data.inputNode}});
 };
 
 return BaseUIComponent;
