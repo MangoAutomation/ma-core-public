@@ -173,7 +173,7 @@ public class RQLToSQLSelect<T> implements ASTVisitor<SQLStatement, SQLStatement>
                 descending = false;
             }
             
-            SQLQueryColumn column = dao.getQueryColumn(prop);
+            SQLQueryColumn column = this.getQueryColumn(prop);
             statement.applySort(column, descending);
 		}
 		return statement;

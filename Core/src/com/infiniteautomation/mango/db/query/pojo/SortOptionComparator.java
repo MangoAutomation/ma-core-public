@@ -8,6 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.db.query.SortOption;
 
@@ -16,7 +18,8 @@ import com.infiniteautomation.mango.db.query.SortOption;
  *
  */
 public class SortOptionComparator<T> implements Comparator<T>{
-
+	private static Log LOG = LogFactory.getLog(SortOptionComparator.class);
+			
 	private SortOption sort;
 	
 	public SortOptionComparator(SortOption sort){
@@ -37,15 +40,20 @@ public class SortOptionComparator<T> implements Comparator<T>{
 			else
 				return 0;
 			Object v2 = PropertyUtils.getProperty(o2, sort.getAttribute());
-			Comparable<?> c2;
+			Comparable<Comparable<?>> c2;
 			if(v2 instanceof Comparable)
-				c2 = (Comparable<?>)v2;
+				c2 = (Comparable<Comparable<?>>)v2;
 			else
 				return 0;
-			return c1.compareTo(c2);
+			
+			if(sort.isDesc())
+				return c2.compareTo(c1);
+			else
+				return c1.compareTo(c2);
 		} catch (SecurityException | IllegalArgumentException | 
 				IllegalAccessException | InvocationTargetException | 
 				NoSuchMethodException e) {
+			LOG.warn(e.getMessage(),e);
 			return 0;
 		}
 	}

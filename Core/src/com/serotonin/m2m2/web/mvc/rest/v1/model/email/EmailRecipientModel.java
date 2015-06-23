@@ -10,6 +10,7 @@ import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
+import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
@@ -47,6 +48,23 @@ public abstract class EmailRecipientModel<T extends EmailRecipient> extends Abst
 			throw new ShouldNeverHappenException("Unsupported Email Recipient Type: " + recipient.getRecipientType());
 		}
 	}
-	
+
+	/**
+	 * Create a subclass model depending on the Email Recipient subclass
+	 * @param recipient
+	 * @return
+	 */
+	public static EmailRecipientModel<?> createModel(RecipientListEntryBean recipient) {
+		switch(recipient.getRecipientType()){
+		case EmailRecipient.TYPE_ADDRESS:
+			return new AddressEntryModel((AddressEntry) recipient.createEmailRecipient());
+		case EmailRecipient.TYPE_USER:
+			return new UserEntryModel((UserEntry) recipient.createEmailRecipient());
+		case EmailRecipient.TYPE_MAILING_LIST:
+			return new MailingListModel((MailingList)recipient.createEmailRecipient());
+		default:
+			throw new ShouldNeverHappenException("Unsupported Email Recipient Type: " + recipient.getRecipientType());
+		}
+	}
 	
 }

@@ -427,7 +427,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	Set<String> properties = this.propertyTypeMap.keySet();
     	String dbCol = prop;
 
-    	int sqlType;
+    	Integer sqlType;
     	if (propertiesMap.containsKey(prop)) {
     		IntStringPair pair = propertiesMap.get(prop);
     		dbCol = pair.getValue();
@@ -444,7 +444,6 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             	return new SQLQueryColumn(this.tablePrefix + dbCol, sqlType);
         }
         
-        //TODO Change this to be handled more gracefully
         //No Column matches...
         throw new ShouldNeverHappenException("No column found for: " + prop);
 	}

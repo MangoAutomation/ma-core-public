@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.exception;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,7 +27,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModel;
  */
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
-
+	 protected Log LOG = LogFactory.getLog(RestExceptionHandler.class);
 	
     @ExceptionHandler({ 
     	NoSupportingModelException.class,
@@ -34,6 +36,9 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     	RuntimeException.class
     	})
     protected ResponseEntity<Object> handleMangoError(Exception e, WebRequest request) {
+    	
+    	//Log this
+    	LOG.error(e.getMessage(), e);
     	
     	RestErrorModel error = new RestErrorModel(e);
         HttpHeaders headers = new HttpHeaders();
