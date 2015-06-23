@@ -42,7 +42,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 
     // If polling is done with cron
     private String cronPattern;
-
+    private long logRelativeTime=0L;		//logtime Relative the fire time
+    
     private TimerTask timerTask;
     private volatile Thread jobThread;
     private long jobThreadStartTime;
@@ -59,7 +60,11 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public void setCronPattern(String cronPattern) {
         this.cronPattern = cronPattern;
     }
-
+    
+    protected void setLogRelativeTime(long logRelativeTime) {
+		this.logRelativeTime = logRelativeTime;
+    }
+	
     public void setPollingPeriod(int periodType, int periods, boolean quantize) {
         pollingPeriodMillis = Common.getMillis(periodType, periods);
         this.quantize = quantize;
@@ -146,7 +151,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
      */
     protected void doPollNoSync(long time) {
         synchronized (pointListChangeLock) {
-            doPoll(time);
+            doPoll(fireTime+logRelativeTime);
         }
     }
 
