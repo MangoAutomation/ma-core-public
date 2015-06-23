@@ -11,6 +11,8 @@ import com.serotonin.ShouldNeverHappenException;
  *
  */
 public enum RollupEnum {
+
+	
 	NONE(true, 0),
 	AVERAGE(false, 1),
 	DELTA(false, 2),
@@ -43,5 +45,18 @@ public enum RollupEnum {
 				return r;
 		
 		throw new ShouldNeverHappenException("Uknown Rollup, id: " + id);
+	}
+	
+	/**
+	 * Convert from an ENUM String to an ID
+	 * if none is found return -1
+	 * @param code
+	 * @return
+	 */
+	public static int getFromCode(String code){
+		for(RollupEnum r : RollupEnum.values())
+			if(r.name().equals(code))
+				return r.id;
+		return -1;
 	}
 }
