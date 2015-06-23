@@ -2,6 +2,8 @@ package com.serotonin.m2m2.web.servlet;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -41,9 +43,30 @@ public class ChartExportServlet extends HttpServlet {
         long from = def.getFrom() == null ? -1 : def.getFrom().getMillis();
         long to = def.getTo() == null ? System.currentTimeMillis() : def.getTo().getMillis();
 
+        //Add in the necessary headers
+        long currentTime = System.currentTimeMillis();
+        response.setDateHeader("Expires", currentTime);
+        response.setDateHeader("Last-Modified", currentTime);
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Cache-Control", "post-check=0, pre-check=0");
+        response.setHeader("Pragma", "no-cache");
+        
+        //Detect file type
         //Eventually Switch on file type
         String pathInfo = request.getPathInfo();
         if(pathInfo != null){
+        	 String [] requestFilenameParts =  request.getPathInfo().split("\\.");
+	        String suffix = requestFilenameParts[1];
+	        
+	        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+	        String currentTimeString = sdf.format(new Date(currentTime));
+	        
+	        //Create and set the filename
+	        String filename = requestFilenameParts[0].replace("/", "");
+	        filename = filename + "-" + currentTimeString + "." + suffix;
+	        response.setHeader("Content-Disposition","attachment;filename=\"" + filename + "\"");
+        
+
 	        if(request.getPathInfo().endsWith(".csv"))
 	        	this.exportCsv(response, from, to, def, user);
 	        else if(pathInfo.endsWith(".xlsx"))
