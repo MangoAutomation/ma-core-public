@@ -63,12 +63,22 @@ GridAndEditor.prototype.closeEditor = function() {
     this.grid.clearSelection();
 };
 
-GridAndEditor.createButtons = function(buttons, imgBase, imgSize) {
+GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
     var renderCell = function(object, value, node, options) {
         var $span = $('<span>');
         
         for (var i = 0; i < buttons.length; i++) {
             var button = buttons[i];
+            var permission = button.permissionProp && object[button.permissionProp];
+            
+            if (user) {
+                var isOwner = object.username === user.username;
+                var hasPermission = permission && user.hasPermission(permission);
+                
+                if (!(user.admin || isOwner || hasPermission)) {
+                    continue;
+                }
+            }
             
             var $img = $('<img>');
             
