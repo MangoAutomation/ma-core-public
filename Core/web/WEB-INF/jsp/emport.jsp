@@ -29,6 +29,7 @@
 	        		handleAs: "json",
 	        	}
 	        	).then(function(data){
+	        		$set("alternateMessage"); //Clear out message
 	        		show("csvMessageTable");
 	        		//Should be an array of validated point models
         			var messages = new Array();

@@ -325,6 +325,10 @@ dataPoints = new StoreView({
 		    domConstruct.place(pd,"pointDetails-content");
     	}
 
+    	//Setup for the point Impl CB and make the call prior to setting the inputs
+    	currentPoint = vo;
+    	if( typeof editPointCBImpl == 'function') editPointCBImpl(vo.pointLocator, vo);
+    	
 	    //Set the point details div to be visible
 	    show("pointDetails");
     	
@@ -343,17 +347,10 @@ dataPoints = new StoreView({
     		//Disable the point settings inputs
     		hide("extraPointSettings");
     	}
-    	
 
-    	//Setup for the point Impl CB
-    	currentPoint = vo;
-    	
     	//Set the enabled value
     	this.updateStatus(vo.id,vo.enabled);
-    	
-    	if( typeof editPointCBImpl == 'function') editPointCBImpl(vo.pointLocator, vo);
-		
-    	
+
 
     },
     
