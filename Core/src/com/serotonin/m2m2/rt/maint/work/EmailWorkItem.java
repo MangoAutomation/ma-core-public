@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
+import com.serotonin.m2m2.email.PostEmailRunnable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.web.mail.EmailContent;
@@ -38,12 +39,12 @@ public class EmailWorkItem implements WorkItem {
         queueEmail(toAddrs, content, null);
     }
 
-    public static void queueEmail(String[] toAddrs, MangoEmailContent content, Runnable[] postSendExecution)
+    public static void queueEmail(String[] toAddrs, MangoEmailContent content, PostEmailRunnable[] postSendExecution)
             throws AddressException {
         queueEmail(toAddrs, content.getSubject(), content, postSendExecution);
     }
 
-    public static void queueEmail(String[] toAddrs, String subject, EmailContent content, Runnable[] postSendExecution)
+    public static void queueEmail(String[] toAddrs, String subject, EmailContent content, PostEmailRunnable[] postSendExecution)
             throws AddressException {
         EmailWorkItem item = new EmailWorkItem();
 
@@ -62,10 +63,13 @@ public class EmailWorkItem implements WorkItem {
     private InternetAddress[] toAddresses;
     private String subject;
     private EmailContent content;
-    private Runnable[] postSendExecution;
+    private PostEmailRunnable[] postSendExecution;
 
     @Override
     public void execute() {
+    	
+    	Exception failedEx = null;
+    	boolean success = true;
         try {
             if (fromAddress == null) {
                 String addr = SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
@@ -84,6 +88,8 @@ public class EmailWorkItem implements WorkItem {
         }
         catch (Exception e) {
             LOG.warn("Error sending email", e);
+            failedEx = e;
+            success = false;
             String to = "";
             for (InternetAddress addr : toAddresses) {
                 if (to.length() > 0)
@@ -96,8 +102,8 @@ public class EmailWorkItem implements WorkItem {
         }
         finally {
             if (postSendExecution != null) {
-                for (Runnable runnable : postSendExecution)
-                    runnable.run();
+                for (PostEmailRunnable runnable : postSendExecution)
+                    runnable.emailFinished(success, failedEx);
             }
         }
     }
