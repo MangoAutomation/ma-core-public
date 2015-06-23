@@ -64,12 +64,13 @@ ItemEditor.prototype.closeEditor = function() {
 ItemEditor.prototype.editItem = function(item) {
     this.$editor.hide();
     
+    this.currentItem = null;
+    this.setInputs(item);
+    
     this.currentItem = item;
     this.currentItemModified = false;
     this.$editor.removeClass('editor-item-modified');
     
-    this.setInputs(item);
-
     this.$editor.fadeIn();
     $(this).trigger('editorShown');
     
@@ -79,9 +80,9 @@ ItemEditor.prototype.editItem = function(item) {
     this.$scope.find('input:first').focus();
 };
 
-ItemEditor.prototype.setItemModified = function(event) {
-    // dont set modified if we programmatically triggered the change event
-    if (this.currentItem && !(event && event.isTrigger)) {
+ItemEditor.prototype.setItemModified = function(event, modified) {
+    // triggered events are ignored unless modified is set to true
+    if (this.currentItem && (modified || !(event && event.isTrigger))) {
         this.currentItemModified = true;
         this.$editor.addClass('editor-item-modified');
         $(this).trigger('currentItemModified');

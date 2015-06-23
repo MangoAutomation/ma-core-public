@@ -395,9 +395,8 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
         $element.filter('.dijit').each(function(i, node) {
             var dijit = registry.byNode(node);
             if (dijit) {
-                // dont trigger events, no way to tell if it was triggered
-                // programmatically
                 dijit.set('value', value, false);
+                dijit.emit('programmatic-change');
             }
         });
     } else {
@@ -701,6 +700,7 @@ BaseUIComponent.prototype.addGroup = function(event){
 		groups += ",";
 	groups += event.data.group;
 	event.data.inputNode.val(groups);
+	event.data.inputNode.trigger('change', true);
 	this.showPermissionList({data: {inputNode: event.data.inputNode}});
 };
 

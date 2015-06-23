@@ -429,7 +429,7 @@ label.row-label,
     position: relative;
 }
 
-/* use &#10006; as content for .clearable-input-inner */
+/* use &#10006; (unicode cross symbol) as content for .clearable-input-inner */
 .clearable-input-inner {
     position: absolute;
     line-height: 1em;
@@ -442,6 +442,10 @@ label.row-label,
 
 .clearable-input-inner:hover {
     opacity: 0.8;
+}
+
+.permissionStr {
+    display: block;
 }
 
 /* jQuery fileupload progress bar */
