@@ -117,8 +117,7 @@ ItemEditor.prototype.saveItemClick = function(event) {
     
     this.store.put(this.currentItem).then(function() {
         self.closeEditor();
-        // TODO translate
-        self.showSuccess('Success');
+        self.showSuccess(tr('common.success'));
     }, self.dstoreErrorHandler.bind(self));
 };
 

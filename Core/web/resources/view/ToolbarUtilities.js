@@ -130,7 +130,7 @@ ToolbarUtilities.prototype.renderEventLevel = function(level) {
         if (level.unsilencedCount === 1) {
             // display single event message and ack button
             $a.append(level.translatedName + ': ' + event.message);
-            $div.append(acknowledgeEventTick(event));
+            $div.append(this.acknowledgeEventTick(event));
         } else  {
             // display link and count
             $a.append(this.tr('common.alarmLevel.numOfEvents', level.unsilencedCount, level.translatedName));
@@ -140,6 +140,20 @@ ToolbarUtilities.prototype.renderEventLevel = function(level) {
         // hide
         $div.hide();
     }
+};
+
+ToolbarUtilities.prototype.acknowledgeEventTick = function(event, message) {
+    var _this = this;
+    var $img = $('<img>');
+    $img.prop('src', '/images/tick.png');
+    $img.addClass('clickable');
+    $img.addClass('acknowledge');
+    $img.on('click', function() {
+        // TODO add input to pass in message
+        // TODO translate
+        _this.api.acknowledgeEvent(event, 'Quick acknowledge from toolbar');
+    });
+    return $img;
 };
 
 /**
