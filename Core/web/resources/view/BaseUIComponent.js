@@ -396,19 +396,28 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
             var dijit = registry.byNode(node);
             if (dijit) {
                 dijit.set('value', value, false);
-                dijit.emit('programmatic-change');
+                // TODO test this
+                dijit.emit('change.set-property');
             }
         });
     } else {
         // not a dijit, use jquery to set input value
-        if ($element.is('[type=checkbox]')) {
+        var datetimepicker = $element.data('xdsoft_datetimepicker');
+        if (datetimepicker) {
+            var datetime = datetimepicker.data('xdsoft_datetime');
+            if (typeof value === 'number') {
+                value = new Date(value);
+            }
+            datetime.setCurrentTime(value);
+            $element.val(datetime.str());
+        } else if ($element.is('[type=checkbox]')) {
             $element.prop('checked', value);
         } else if ($element.is('[type=radio]')) {
             $element.filter('[value="' + value + '"]').prop('checked', true);
         } else {
             $element.val(value);
         }
-        $element.trigger('change');
+        $element.trigger('change.set-property');
     }
 };
 
@@ -464,7 +473,23 @@ BaseUIComponent.prototype.getProperty = function(item, property, $element) {
         return value;
     } else if ($element.is(':input')) {
         // not a dijit, use jquery to get input value
-        if ($element.is('[type=checkbox]')) {
+        var datetimepicker = $element.data('xdsoft_datetimepicker');
+        if (datetimepicker) {
+            var datetime = datetimepicker.data('xdsoft_datetime');
+            var m = datetime.currentTime;
+            
+            var dateFormat = $element.attr('data-editor-date-format');
+            switch(dateFormat) {
+            case 'date': return m.toDate();
+            case 'moment': return m;
+            case 'epoch': return m && m.valueOf() || 0;
+            case 'isostring':
+            case '':
+            case undefined:
+            case null: return m && m.toISOString() || '';
+            default: return m && m.format(dateFormat) || '';
+            }
+        } else if ($element.is('[type=checkbox]')) {
             return $element.prop('checked');
         } else if ($element.is('[type=radio]')) {
             return $element.filter(':checked').val();
@@ -700,7 +725,7 @@ BaseUIComponent.prototype.addGroup = function(event){
 		groups += ",";
 	groups += event.data.group;
 	event.data.inputNode.val(groups);
-	event.data.inputNode.trigger('change', true);
+	event.data.inputNode.trigger('change');
 	this.showPermissionList({data: {inputNode: event.data.inputNode}});
 };
 

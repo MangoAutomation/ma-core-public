@@ -80,9 +80,8 @@ ItemEditor.prototype.editItem = function(item) {
     this.$scope.find('input:first').focus();
 };
 
-ItemEditor.prototype.setItemModified = function(event, modified) {
-    // triggered events are ignored unless modified is set to true
-    if (this.currentItem && (modified || !(event && event.isTrigger))) {
+ItemEditor.prototype.setItemModified = function(event) {
+    if (this.currentItem) {
         this.currentItemModified = true;
         this.$editor.addClass('editor-item-modified');
         $(this).trigger('currentItemModified');
