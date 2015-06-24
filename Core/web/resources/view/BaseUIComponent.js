@@ -414,8 +414,10 @@ BaseUIComponent.prototype.setProperty = function(item, property, $element, value
             $element.prop('checked', value);
         } else if ($element.is('[type=radio]')) {
             $element.filter('[value="' + value + '"]').prop('checked', true);
-        } else {
+        } else if ($element.is(':input')) {
             $element.val(value);
+        } else {
+            $element.text(value);
         }
         $element.trigger('change.set-property');
     }
