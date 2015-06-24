@@ -63,6 +63,18 @@ GridAndEditor.prototype.closeEditor = function() {
     this.grid.clearSelection();
 };
 
+GridAndEditor.buttonDisabled = function(object, user, permission) {
+    if (user) {
+        var isOwner = object.username === user.username;
+        var hasPermission = permission && user.hasPermission(permission);
+        
+        if (!(isOwner || hasPermission)) {
+            return true;
+        }
+    }
+    return false;
+};
+
 GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
     var renderCell = function(object, value, node, options) {
         var $span = $('<span>');
@@ -70,16 +82,8 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
         for (var i = 0; i < buttons.length; i++) {
             var button = buttons[i];
             var permission = button.permissionProp && object[button.permissionProp];
-            
-            if (user) {
-                var isOwner = object.username === user.username;
-                var hasPermission = permission && user.hasPermission(permission);
-                
-                if (!(user.admin || isOwner || hasPermission)) {
-                    continue;
-                }
-            }
-            
+            var buttonDisabled = button.disabled || GridAndEditor.buttonDisabled;
+
             var $img = $('<img>');
             
             for (var attr in button) {
@@ -89,6 +93,7 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
                 case 'width':
                 case 'alt':
                 case 'onclick':
+                case 'disabled':
                     continue;
                 }
                 $img.attr(attr, button[attr]);
@@ -102,7 +107,13 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
                 $img.attr('alt', button.title);
             }
             $img.data('item', object);
-            $img.click(button.onclick);
+            
+            if (buttonDisabled(object, user, permission)) {
+                $img.addClass('disabled');
+            } else {
+                $img.click(button.onclick);
+            }
+            
             // cancel mousedown events so dgrid doesn't select row
             $img.mousedown(false);
             
