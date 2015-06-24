@@ -311,24 +311,22 @@ public class EventManager implements ILifecycle {
 		evt.setAcknowledgedTimestamp(time);
 		evt.setAlternateAckSource(alternateAckSource);
 		
+		for (User user : userDao.getActiveUsers()) {
+			// Do not create an event for this user if the event type says the
+			// user should be skipped.
+			if (evt.getEventType().excludeUser(user))
+				continue;
 
-		User user = userDao.getUser(userId);
-		if(user.isDisabled())
-			return;
-		// Do not create an event for this user if the event type says the
-		// user should be skipped.
-		if (evt.getEventType().excludeUser(user))
-			return;
 
-		if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
-			//Notify All User Event Listeners of the new event
-			for(UserEventListener l : this.userEventListeners){
-				if(l.getUserId() == user.getId()){
-					Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, false, true));
+			if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+				//Notify All User Event Listeners of the new event
+				for(UserEventListener l : this.userEventListeners){
+					if(l.getUserId() == user.getId()){
+						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, false, true));
+					}
 				}
+				this.userEventCache.removeEvent(user.getId(), evt);
 			}
-		this.userEventCache.removeEvent(userId, evt);
-
 		}
 	}
 

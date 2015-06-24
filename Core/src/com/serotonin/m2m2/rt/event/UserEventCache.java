@@ -55,6 +55,7 @@ public class UserEventCache implements TimeoutClient{
         		if(ue.getId() == evt.getId()){
         			events.add(i, ue);
         			events.remove(i+1);
+        			break;
         		}
         	}
         	this.lastAccessed = System.currentTimeMillis();
@@ -68,6 +69,7 @@ public class UserEventCache implements TimeoutClient{
         		EventInstance ue  = events.get(i);
         		if(ue.getId() == evt.getId()){
         			events.remove(i);
+        			break;
         		}
         	}
         	this.lastAccessed = System.currentTimeMillis();
