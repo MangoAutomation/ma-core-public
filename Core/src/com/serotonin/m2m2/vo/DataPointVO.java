@@ -910,15 +910,15 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
         //Validate the unit
         try {
-            setUnit(UnitUtil.parseLocal(this.unitString));
+        	if(unit == null){
+        		//We know the unit is invalid and will try the unitString as a likely invalid source (From DWR only)
+        		unit = defaultUnit();  //So the other units validate ok
+        		UnitUtil.parseLocal(this.unitString);
+        		throw new Exception("No Unit"); //Guarantee we fail
+        	}
         }
         catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("unit", "validate.unitInvalid", ((IllegalArgumentException) e).getCause()
-                        .getMessage());
-            }else{
-                response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
-            }
+        	response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
         }
 
         try {
@@ -942,13 +942,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             }
         }
         catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("renderedUnit", "validate.unitInvalid", ((IllegalArgumentException) e)
-                        .getCause().getMessage());
-            }
-            else {
-                response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
-            }
+             response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
         }
 
         if (overrideIntervalLoggingSamples) {
@@ -999,7 +993,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         // integral unit should have same dimensions as the default integrated unit
         if (renderedUnit == null)
             return false;
-        //Why? setRenderedUnit(UnitUtil.parseLocal(this.renderedUnitString));
 
         return renderedUnit.isCompatible(unit);
     }
@@ -1297,14 +1290,28 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
 
-            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            unitString = UnitUtil.formatLocal(unit);
+            try{
+	            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+	            unitString = UnitUtil.formatLocal(unit);
+            }catch(Exception e){
+            	unit = defaultUnit();
+            	unitString = UnitUtil.formatLocal(unit);
+            }
+            try{
+            	integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }catch(Exception e){
+            	integralUnit = defaultUnit();
+            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }
 
-            integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
-
-            renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            try{
+            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }catch(Exception e){
+            	renderedUnit = defaultUnit();
+            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }
 
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1320,16 +1327,29 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
+            
+            try{
+	            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+	            unitString = UnitUtil.formatLocal(unit);
+            }catch(Exception e){
+            	unit = defaultUnit();
+            	unitString = UnitUtil.formatLocal(unit);
+            }
+            try{
+            	integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }catch(Exception e){
+            	integralUnit = defaultUnit();
+            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }
 
-            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            unitString = UnitUtil.formatLocal(unit);
-
-            integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
-
-            renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-
+            try{
+            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }catch(Exception e){
+            	renderedUnit = defaultUnit();
+            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
 

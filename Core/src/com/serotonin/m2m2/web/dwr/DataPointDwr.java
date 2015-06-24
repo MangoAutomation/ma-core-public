@@ -368,11 +368,26 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             dp.setEngineeringUnits(newDp.getEngineeringUnits());
             dp.setUseIntegralUnit(newDp.isUseIntegralUnit());
             dp.setUseRenderedUnit(newDp.isUseRenderedUnit());
-            dp.setUnit(UnitUtil.parseLocal(newDp.getUnitString())); //These won't come back from the UI as they aren't converted
+            try{
+            	dp.setUnit(UnitUtil.parseLocal(newDp.getUnitString())); //These won't come back from the UI as they aren't converted
+            }catch(Exception e){
+            	LOG.warn(e.getMessage(), e);
+            	dp.setUnit(null); //For validation
+            }
             dp.setUnitString(newDp.getUnitString());
-            dp.setRenderedUnit(UnitUtil.parseLocal(newDp.getRenderedUnitString()));
+            try{
+            	dp.setRenderedUnit(UnitUtil.parseLocal(newDp.getRenderedUnitString()));
+            }catch(Exception e){
+            	LOG.warn(e.getMessage(), e);
+            	dp.setRenderedUnit(null);
+            }
             dp.setRenderedUnitString(newDp.getRenderedUnitString());
-            dp.setIntegralUnit(UnitUtil.parseLocal(newDp.getIntegralUnitString()));
+            try{
+            	dp.setIntegralUnit(UnitUtil.parseLocal(newDp.getIntegralUnitString()));
+            }catch(Exception e){
+            	LOG.warn(e.getMessage(), e);
+            	dp.setIntegralUnit(null);
+            }
             dp.setIntegralUnitString(newDp.getIntegralUnitString());
             dp.setChartColour(newDp.getChartColour());
             dp.setPlotType(newDp.getPlotType());

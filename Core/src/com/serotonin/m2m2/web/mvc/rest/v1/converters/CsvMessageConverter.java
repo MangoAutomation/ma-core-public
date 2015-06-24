@@ -58,7 +58,7 @@ public class CsvMessageConverter extends AbstractHttpMessageConverter<List<Abstr
 			HttpMessageNotReadableException {
 		
 		
-		CSVPojoReader in = new CSVPojoReader(new CSVReader(new InputStreamReader(inputMessage.getBody()),separator, quote));
+		CSVPojoReader in = new CSVPojoReader(new CSVReader(new InputStreamReader(inputMessage.getBody(), Common.UTF8_CS),separator, quote));
 		List records = in.readAll();
 		in.close();
 		return records;

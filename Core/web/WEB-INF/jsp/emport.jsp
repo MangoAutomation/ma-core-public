@@ -23,8 +23,8 @@
 					method: "PUT",
 	        		data: emportData,
 	        		headers: {
-	        			'Content-Type' : 'text/csv',
-	        			'Accept' : 'application/json'
+	        			'Content-Type' : 'text/csv; charset=utf-8',
+	        			'Accept' : 'application/json',
 	        			},
 	        		handleAs: "json",
 	        	}

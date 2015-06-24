@@ -64,7 +64,7 @@ public class CsvRowMessageConverter extends
 			Class<? extends AbstractRestModel<?>> clazz,
 			HttpInputMessage inputMessage) throws IOException,
 			HttpMessageNotReadableException {
-		CSVPojoReader in = new CSVPojoReader(new CSVReader(new InputStreamReader(inputMessage.getBody()),separator, quote));
+		CSVPojoReader in = new CSVPojoReader(new CSVReader(new InputStreamReader(inputMessage.getBody(), Common.UTF8_CS),separator, quote));
 		AbstractVoModel<?> record = (AbstractVoModel<?>) in.readNext();
 		in.close();
 		return record;
@@ -77,7 +77,7 @@ public class CsvRowMessageConverter extends
 	 * org.springframework.http.converter.AbstractHttpMessageConverter#writeInternal
 	 * (java.lang.Object, org.springframework.http.HttpOutputMessage)
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	protected void writeInternal(AbstractRestModel<?> record,
 			HttpOutputMessage outputMessage) throws IOException,

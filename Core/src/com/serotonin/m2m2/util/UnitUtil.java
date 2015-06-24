@@ -53,7 +53,7 @@ public class UnitUtil {
         return localFormat.format(unit);
     }
 
-    public static Unit<?> parseLocal(String unit) {
+    public static Unit<?> parseLocal(String unit) throws IllegalArgumentException {
         try {
             return localFormat.parseProductUnit(unit, new ParsePosition(0));
         }
@@ -62,11 +62,8 @@ public class UnitUtil {
                 return ucumFormat.parseProductUnit(unit, new ParsePosition(0));
             }
             catch (ParseException e2) {
-                // Don't throw an exception here since this causes deserialization to fail. Instead, just return a 
-                // default value. If this isn't the best way to handle exceptions, then at least this handling should 
-                // be implemented in DataPointVO.readObject.
-                //throw new IllegalArgumentException(e);
-                return Unit.ONE;
+            	//This has been changed to now throw an exception for better validation
+                throw new IllegalArgumentException(e);
             }
         }
     }
@@ -75,7 +72,7 @@ public class UnitUtil {
         return ucumFormat.format(unit);
     }
 
-    public static Unit<?> parseUcum(String unit) {
+    public static Unit<?> parseUcum(String unit) throws IllegalArgumentException {
         try {
             return ucumFormat.parseProductUnit(unit, new ParsePosition(0));
         }
@@ -84,11 +81,9 @@ public class UnitUtil {
                 return localFormat.parseProductUnit(unit, new ParsePosition(0));
             }
             catch (ParseException e2) {
-                // Don't throw an exception here since this causes deserialization to fail. Instead, just return a 
-                // default value. If this isn't the best way to handle exceptions, then at least this handling should 
-                // be implemented in DataPointVO.readObject.
-                //throw new IllegalArgumentException(e);
-                return Unit.ONE;
+            	//This has been changed to now throw an exception for better validation
+                throw new IllegalArgumentException(e);
+                //return Unit.ONE;
             }
         }
     }
