@@ -90,7 +90,6 @@ public class EventDao extends BaseDao {
 
     private void updateEvent(EventInstance event) {
         ejt.update(EVENT_UPDATE, new Object[] { event.getRtnTimestamp(), event.getRtnCause(), event.getId() });
-        updateCache(event);
     }
 
     private static final String EVENT_ACK = "update events set ackTs=?, ackUserId=?, alternateAckSource=? where id=? and ackTs is null";
@@ -103,8 +102,7 @@ public class EventDao extends BaseDao {
                 Types.CLOB, Types.INTEGER });
         // Silence the user events
         ejt.update(USER_EVENT_ACK, new Object[] { boolToChar(true), eventId });
-        // Clear the cache
-        clearCache();
+
     }
 
     private static final String USER_EVENTS_INSERT = "insert into userEvents (eventId, userId, silenced) values (?,?,?)";
@@ -124,10 +122,7 @@ public class EventDao extends BaseDao {
             }
         });
 
-        if (alarm) {
-            for (int userId : userIds)
-                removeUserIdFromCache(userId);
-        }
+
     }
 
     private static final String BASIC_EVENT_SELECT = //
@@ -171,42 +166,7 @@ public class EventDao extends BaseDao {
         return results;
     }
 
-    public List<EventInstance> getPendingEventsForDataPoint(int dataPointId, int userId) {
-        // Check the cache
-        List<EventInstance> userEvents = getFromCache(userId);
-        if (userEvents == null) {
-            // This is a potentially long running query, so run it offline.
-            userEvents = Collections.emptyList();
-            addToCache(userId, userEvents);
-            Common.timer.execute(new UserPendingEventRetriever(userId));
-        }
 
-        List<EventInstance> list = null;
-        for (EventInstance e : userEvents) {
-            if (e.getEventType().getDataPointId() == dataPointId) {
-                if (list == null)
-                    list = new ArrayList<EventInstance>();
-                list.add(e);
-            }
-        }
-
-        if (list == null)
-            return Collections.emptyList();
-        return list;
-    }
-
-    class UserPendingEventRetriever implements Runnable {
-        private final int userId;
-
-        UserPendingEventRetriever(int userId) {
-            this.userId = userId;
-        }
-
-        @Override
-        public void run() {
-            addToCache(userId, getPendingEvents(EventType.EventTypeNames.DATA_POINT, -1, userId));
-        }
-    }
 
     public List<EventInstance> getPendingEventsForDataSource(int dataSourceId, int userId) {
         return getPendingEvents(EventType.EventTypeNames.DATA_SOURCE, dataSourceId, userId);
@@ -355,7 +315,6 @@ public class EventDao extends BaseDao {
             }
         });
 
-        clearCache();
 
         return count;
     }
@@ -383,7 +342,6 @@ public class EventDao extends BaseDao {
             }
         });
 
-        clearCache();
 
         return count;
     }
@@ -405,7 +363,6 @@ public class EventDao extends BaseDao {
             }
         });
 
-        clearCache();
 
         return count;
     }
@@ -713,58 +670,6 @@ public class EventDao extends BaseDao {
                 + "where u.silenced=? and u.userId=?", new Object[] { boolToChar(false), userId });
     }
 
-    //
-    //
-    // Pending event caching
-    //
-    static class PendingEventCacheEntry {
-        private final List<EventInstance> list;
-        private final long createTime;
 
-        public PendingEventCacheEntry(List<EventInstance> list) {
-            this.list = list;
-            createTime = System.currentTimeMillis();
-        }
-
-        public List<EventInstance> getList() {
-            return list;
-        }
-
-        public boolean hasExpired() {
-            return System.currentTimeMillis() - createTime > CACHE_TTL;
-        }
-    }
-
-    private static Map<Integer, PendingEventCacheEntry> pendingEventCache = new ConcurrentHashMap<Integer, PendingEventCacheEntry>();
-
-    private static final long CACHE_TTL = 300000; // 5 minutes
-
-    public static List<EventInstance> getFromCache(int userId) {
-        PendingEventCacheEntry entry = pendingEventCache.get(userId);
-        if (entry == null)
-            return null;
-        if (entry.hasExpired()) {
-            pendingEventCache.remove(userId);
-            return null;
-        }
-        return entry.getList();
-    }
-
-    public static void addToCache(int userId, List<EventInstance> list) {
-        pendingEventCache.put(userId, new PendingEventCacheEntry(list));
-    }
-
-    public static void updateCache(EventInstance event) {
-        if (event.isAlarm() && event.getEventType().getEventType().equals(EventType.EventTypeNames.DATA_POINT))
-            pendingEventCache.clear();
-    }
-
-    public static void removeUserIdFromCache(int userId) {
-        pendingEventCache.remove(userId);
-    }
-
-    public static void clearCache() {
-        pendingEventCache.clear();
-    }
 
 }
