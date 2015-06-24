@@ -223,6 +223,10 @@ public class EventInstance{
     public TranslatableMessage getMessage() {
         return message;
     }
+    
+    public String getMessageString(){
+    	return message.translate(Common.getTranslations());
+    }
 
     public boolean isRtnApplicable() {
         return rtnApplicable;

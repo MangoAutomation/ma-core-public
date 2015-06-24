@@ -154,6 +154,11 @@
     
     <!-- Adding JS functionality for all these beans  -->
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.EventInstanceVO" javascript="EventInstanceVO"/>
+        
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.EventInstance" javascript="EventInstance">
+        <param name="include" value="id,messageString,activeTimestamp,rtnApplicable,rtnTimestamp,alarmLevel"/>
+    </convert>
+    
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.AuditEventType"/>
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.SystemEventType"/>
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.DataSourceEventType"/>

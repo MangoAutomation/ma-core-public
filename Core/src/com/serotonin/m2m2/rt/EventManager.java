@@ -21,6 +21,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.UserEventCache;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -49,6 +50,9 @@ public class EventManager implements ILifecycle {
 	private long lastAlarmTimestamp = 0;
 	private int highestActiveAlarmLevel = 0;
 
+	//Cache for all active events for a logged in user, allow entries to remain un-accessed for 15 minutes and cleanup cache every minute
+	private final UserEventCache userEventCache = new UserEventCache(15 * 60000,  60000);
+	
 	//
 	//
 	// Basic event management.
@@ -125,6 +129,8 @@ public class EventManager implements ILifecycle {
 					}
 				}
 			
+				//Add to the UserEventCache if the user has recently accessed thier events
+				this.userEventCache.addEvent(user.getId(), evt);
 			}
 			
 		}
@@ -225,26 +231,24 @@ public class EventManager implements ILifecycle {
 		
 		// Loop in case of multiples
 		while (evt != null) {
-			
-			if(this.userEventListeners.size() > 0){
-				for (User user : userDao.getActiveUsers()) {
-					// Do not create an event for this user if the event type says the
-					// user should be skipped.
-					if (type.excludeUser(user))
-						continue;
-		
-					if (Permissions.hasEventTypePermission(user, type)) {
-						//Notify All User Event Listeners of the new event
-						for(UserEventListener l : this.userEventListeners){
-							if(l.getUserId() == user.getId()){
-								Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
 
-							}
+			for (User user : userDao.getActiveUsers()) {
+				// Do not create an event for this user if the event type says the
+				// user should be skipped.
+				if (type.excludeUser(user))
+					continue;
+	
+				if (Permissions.hasEventTypePermission(user, type)) {
+					//Notify All User Event Listeners of the new event
+					for(UserEventListener l : this.userEventListeners){
+						if(l.getUserId() == user.getId()){
+							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
+	
 						}
-					
 					}
-					
+					this.userEventCache.updateEvent(user.getId(), evt);
 				}
+				
 			}
 			
 			resetHighestAlarmLevel(time);
@@ -270,24 +274,23 @@ public class EventManager implements ILifecycle {
 		evt.returnToNormal(time, inactiveCause);
 		eventDao.saveEvent(evt);
 
-		if(this.userEventListeners.size() > 0){
-			for (User user : userDao.getActiveUsers()) {
-				// Do not create an event for this user if the event type says the
-				// user should be skipped.
-				if (evt.getEventType().excludeUser(user))
-					continue;
-	
-				if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
-					//Notify All User Event Listeners of the new event
-					for(UserEventListener l : this.userEventListeners){
-						if(l.getUserId() == user.getId()){
-							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true, false));
-						}
+
+		for (User user : userDao.getActiveUsers()) {
+			// Do not create an event for this user if the event type says the
+			// user should be skipped.
+			if (evt.getEventType().excludeUser(user))
+				continue;
+
+			if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+				//Notify All User Event Listeners of the new event
+				for(UserEventListener l : this.userEventListeners){
+					if(l.getUserId() == user.getId()){
+						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true, false));
 					}
-				
 				}
-				
+			
 			}
+			this.userEventCache.removeEvent(user.getId(), evt);
 		}
 		
 		// Call inactiveEvent handlers.
@@ -308,24 +311,24 @@ public class EventManager implements ILifecycle {
 		evt.setAcknowledgedTimestamp(time);
 		evt.setAlternateAckSource(alternateAckSource);
 		
-		if(this.userEventListeners.size() > 0){
-			User user = userDao.getUser(userId);
-			if(user.isDisabled())
-				return;
-			// Do not create an event for this user if the event type says the
-			// user should be skipped.
-			if (evt.getEventType().excludeUser(user))
-				return;
-	
-			if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
-				//Notify All User Event Listeners of the new event
-				for(UserEventListener l : this.userEventListeners){
-					if(l.getUserId() == user.getId()){
-						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, false, true));
-					}
+
+		User user = userDao.getUser(userId);
+		if(user.isDisabled())
+			return;
+		// Do not create an event for this user if the event type says the
+		// user should be skipped.
+		if (evt.getEventType().excludeUser(user))
+			return;
+
+		if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+			//Notify All User Event Listeners of the new event
+			for(UserEventListener l : this.userEventListeners){
+				if(l.getUserId() == user.getId()){
+					Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, false, true));
 				}
-			
 			}
+		this.userEventCache.removeEvent(userId, evt);
+
 		}
 	}
 
@@ -466,6 +469,14 @@ public class EventManager implements ILifecycle {
 	}
 
 	//
+	// User Event Cache Access
+	//
+	public List<EventInstance> getAllActiveUserEvents(int userId){
+		return this.userEventCache.getAllEvents(userId);
+	}
+
+	
+	//
 	//
 	// Convenience
 	//
@@ -490,6 +501,19 @@ public class EventManager implements ILifecycle {
 		return result;
 	}
 
+	/**
+	 * To access all active events quickly
+	 * @param type
+	 * @return
+	 */
+	public List<EventInstance> getAllActive() {
+		List<EventInstance> result = new ArrayList<EventInstance>();
+		for (EventInstance e : activeEvents) {
+				result.add(e);
+		}
+		return result;
+	}
+	
 	/**
 	 * Finds and removes the first event instance with the given type. Returns
 	 * null if there is none.
