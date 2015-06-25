@@ -230,7 +230,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     }
 
     @Override
-    public final void addProperties(List<TranslatableMessage> list) {
+    public void addProperties(List<TranslatableMessage> list) {
         super.addProperties(list);
         AuditEventType.addPropertyMessage(list, "dsEdit.logging.purgeOverride", purgeOverride);
         AuditEventType.addPeriodMessage(list, "dsEdit.logging.purge", purgeType, purgePeriod);
@@ -239,7 +239,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         addPropertiesImpl(list);
     }
 
-    public void addPropertyChanges(List<TranslatableMessage> list, T from) {
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void addPropertyChanges(List<TranslatableMessage> list, DataSourceVO<?> from) {
         super.addPropertyChanges(list, from);
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.logging.purgeOverride", from.isPurgeOverride(),
                 purgeOverride);
@@ -248,7 +251,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.permission.edit", from.getEditPermission(),
                 editPermission);
 
-        addPropertyChangesImpl(list, from);
+        addPropertyChangesImpl(list, (T) from);
     }
 
     abstract protected void addPropertiesImpl(List<TranslatableMessage> list);
