@@ -351,7 +351,7 @@ BaseUIComponent.prototype.elementForProperty = function(propertyArray, $scope) {
     
     // non ideal fall-back, used on users page, keep here for compatibility
     if (!$element.length) {
-        $element = $('#' + prop);
+        $element = $scope.find('#' + prop);
     }
     
     if (!propertyArray.length || !$element.length) {
