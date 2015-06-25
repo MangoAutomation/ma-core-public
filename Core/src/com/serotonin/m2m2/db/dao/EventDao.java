@@ -198,6 +198,20 @@ public class EventDao extends BaseDao {
         return results;
     }
 
+    public List<EventInstance> getAllUnsilencedEvents(int userId) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(EVENT_SELECT_WITH_USER_DATA);
+
+        sb.append(" where ue.userId=? ");
+        sb.append(" and ue.silenced=? ");
+        sb.append("order by e.activeTs desc");
+
+        List<EventInstance> results = query(sb.toString(), new Object[] { userId, boolToChar(false) }, new UserEventInstanceRowMapper());
+        attachRelationalInfo(results);
+        return results;
+    }
+    
     public List<EventInstance> getPendingEvents(int userId) {
         List<EventInstance> results = Common.databaseProxy.doLimitQuery(this, EVENT_SELECT_WITH_USER_DATA
                 + "where ue.userId=? and e.ackTs is null order by e.activeTs desc", new Object[] { userId },

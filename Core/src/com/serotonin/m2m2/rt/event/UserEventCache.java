@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,9 +36,9 @@ public class UserEventCache implements TimeoutClient{
     
     protected class UserEventCacheEntry {
         public long lastAccessed = System.currentTimeMillis();
-        public List<EventInstance> events;
+        public CopyOnWriteArrayList<EventInstance> events;
         
-        protected UserEventCacheEntry(List<EventInstance> events) {
+        protected UserEventCacheEntry(CopyOnWriteArrayList<EventInstance> events) {
             this.events = events;
         }
         
@@ -95,11 +96,7 @@ public class UserEventCache implements TimeoutClient{
     public void addEvent(Integer userId, EventInstance value) {
         synchronized (cacheMap) {
             UserEventCacheEntry entry = cacheMap.get(userId);
-            if(entry == null){
-            	List<EventInstance> userEvents = new ArrayList<EventInstance>();
-            	userEvents.add(value);
-            	cacheMap.put(userId, new UserEventCacheEntry(userEvents));
-            }else{
+            if(entry != null){
             	entry.addEvent(value);
             }
         }
@@ -139,8 +136,9 @@ public class UserEventCache implements TimeoutClient{
             UserEventCacheEntry c = cacheMap.get(userId);
             
             if (c == null){
-                List<EventInstance> userEvents = dao.getPendingEvents(userId);
-            	cacheMap.put(userId, new UserEventCacheEntry(userEvents));
+                List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
+                CopyOnWriteArrayList<EventInstance> list = new CopyOnWriteArrayList<EventInstance>(userEvents);
+            	cacheMap.put(userId, new UserEventCacheEntry(list));
             	return userEvents;
             }else {
                 c.lastAccessed = System.currentTimeMillis();
