@@ -267,7 +267,14 @@ BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
         return;
     }
     
-    var message = data.message;
+    var message;
+    if(data.response){
+    	//Mango will return errors in the header
+    	message = data.response.getHeader('errors');
+    }else{
+    	message = data.message;
+    }
+
     // TODO maybe construct an object which can be passed to showError()
     // for consistency
     this.showGenericError(message);
