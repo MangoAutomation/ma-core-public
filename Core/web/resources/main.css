@@ -100,11 +100,6 @@ body {
     font-family: Verdana, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-/* override bootstrap style */
-h1, h2, h3, h4, h5, h6 {
-    font-weight: bold;
-}
-
 /* Hard override fonts in datetimepicker as it sets its own fonts.
  * Dont use Verdana as it is too large for the font sizes datetimepicker sets.
  */
@@ -514,6 +509,31 @@ svg text {
 .row.no-gutters > [class*=" col-"] {
   padding-right: 0;
   padding-left: 0;
+}
+
+/*
+ * Bootstrap overrides, bootstrap is a little opinionated :/
+ */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+label {
+    font-weight: normal;
+}
+
+/* cron pattern css */
+
+.cron-interval {
+    display: inline-block;
+}
+
+.cron-interval label {
+    margin-bottom: 0
+}
+
+.cron-interval label, .cron-interval select {
+    display: block;
 }
 
 /* ==========================================================================
