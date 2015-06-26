@@ -32,7 +32,6 @@ CronPicker.prototype.pickerChanged = function(event) {
     var $pickerInput = $(event.target);
     var name = $pickerInput.attr('name');
     var value = $pickerInput.val();
-    var i;
     
     // default to "every" if user unselects all options
     if (!value || !value.length) {
@@ -44,46 +43,13 @@ CronPicker.prototype.pickerChanged = function(event) {
     // selections which contain special characters
     var prevValue = this._pattern[name];
     if (value.length > 1 && value.length > prevValue.length ) {
-        for (i = 0; i < value.length; i++) {
+        for (var i = 0; i < value.length; i++) {
             var val = value[i];
             if (val === '*' || val === '?' || val.indexOf('/') >= 0) {
                 value = prevValue;
                 $pickerInput.val(value);
                 break;
             }
-        }
-    }
-    
-    /* rely on jquery returning values in order of options in HTML which
-     * should be sorted
-     * 
-    value.sort(function(a, b) {
-        var aNum = parseInt(a, 10);
-        var bNum = parseInt(a, 10);
-        if (isNaN(aNum) || isNaN(bNum)) {
-            return -1;
-        }
-        return aNum - bNum;
-    });
-    */
-    
-    // convert consecutive selections into ranges, array must be sorted!
-    for (i = 0; i < value.length; i++) {
-        var from = parseInt(value[i]);
-        var to = null;
-        
-        if (isNaN(from)) continue;
-        
-        for (var j = i+1; j < value.length; j++) {
-            var next = parseInt(value[j]);
-            if (!isNaN(next) && next === from + j-i) {
-                to = next;
-            } else {
-                break;
-            }
-        }
-        if (to !== null) {
-            value.splice(i, j-i, from + '-' + to);
         }
     }
     
@@ -124,13 +90,16 @@ CronPicker.prototype.parsePattern = function(pattern) {
     this._pattern.dayOfWeek = this.parseFieldPattern(valArray[5], ['?']);
 };
 
-CronPicker.prototype.parseFieldPattern = function(pattern, defaultResult) {
-    if (!pattern) return defaultResult || ['*'];
-    
-    var selections = pattern.split(',');
-    
-    // find ranges like 4-7 and convert to 4,5,6,7
+/**
+ * Find ranges like "4-7" and convert to ["4","5","6","7"]
+ * Find combined values like "1,7" and convert to ["1", "7"]
+ */
+CronPicker.prototype.expandRanges = function(selections) {
     for (var i = 0; i < selections.length; i++) {
+        var sel = selections[i];
+        if (sel.indexOf(',') >= 0) {
+            selections.splice.apply(selections, [i, 1].concat(sel.split(',')));
+        }
         var match = selections[i].match(/(\d+)-(\d+)/);
         if (match) {
             selections.splice(i, 1);
@@ -139,6 +108,26 @@ CronPicker.prototype.parseFieldPattern = function(pattern, defaultResult) {
             }
         }
     }
+};
+
+CronPicker.prototype.removeDuplicates = function(selections) {
+    for (var i = 0; i < selections.length;) {
+        var dupIndex = selections.indexOf(selections[i], i+1);
+        if (dupIndex > i) {
+            selections.splice(dupIndex, 1);
+            continue;
+        }
+        i++;
+    }
+};
+
+CronPicker.prototype.parseFieldPattern = function(pattern, defaultResult) {
+    if (!pattern) return defaultResult || ['*'];
+    
+    var selections = pattern.split(',');
+    this.expandRanges(selections);
+    this.removeDuplicates(selections);
+    this.sort(selections);
     
     return selections;
 };
@@ -150,10 +139,50 @@ CronPicker.prototype.setPickerValues = function() {
     }
 };
 
+CronPicker.prototype.sort = function(selections) {
+    selections.sort(function(a, b) {
+        var aNum = parseInt(a, 10);
+        var bNum = parseInt(b, 10);
+        if (isNaN(aNum) || isNaN(bNum)) {
+            return -1;
+        }
+        return aNum - bNum;
+    });
+};
+
+CronPicker.prototype.getField = function(field) {
+    var value = this._pattern[field];
+    this.expandRanges(value);
+    this.removeDuplicates(value);
+    this.sort(value);
+    
+    // convert consecutive selections into ranges, array must be sorted!
+    for (var i = 0; i < value.length; i++) {
+        var from = parseInt(value[i]);
+        var to = null;
+        
+        if (isNaN(from)) continue;
+        
+        for (var j = i+1; j < value.length; j++) {
+            var next = parseInt(value[j]);
+            if (!isNaN(next) && next === from + j-i) {
+                to = next;
+            } else {
+                break;
+            }
+        }
+        if (to !== null) {
+            value.splice(i, j-i, from + '-' + to);
+        }
+    }
+    
+    return value.join(',');
+};
+
 CronPicker.prototype.pattern = function() {
-    var pattern = this._pattern;
-    var valArray = [pattern.second.join(','), pattern.minute.join(','), pattern.hour.join(','),
-                    pattern.dayOfMonth.join(','), pattern.month.join(','), pattern.dayOfWeek.join(',')];
+    var field = this.getField;
+    var valArray = [this.getField('second'), this.getField('minute'), this.getField('hour'),
+                    this.getField('dayOfMonth'), this.getField('month'), this.getField('dayOfWeek')];
     return valArray.join(' ');
 };
 
