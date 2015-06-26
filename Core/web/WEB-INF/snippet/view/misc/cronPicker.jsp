@@ -5,14 +5,14 @@
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <div class="cron-picker">
   <div class="cron-interval">
-    <label for="cron-second">Second</label>
+    <label for="cron-second"><fmt:message key="cronPicker.second"/></label>
     <select name="second" id="cron-second" multiple>
-      <option value="*">Every</option>
-      <option value="0/5">Every 5</option>
-      <option value="0/10">Every 10</option>
-      <option value="0/15">Every 15</option>
-      <option value="0/20">Every 20</option>
-      <option value="0/30">Every 30</option>
+      <option value="*"><fmt:message key="cronPicker.every"/></option>
+      <option value="0/5"><fmt:message key="cronPicker.everyX"><fmt:param value="5"/></fmt:message></option>
+      <option value="0/10"><fmt:message key="cronPicker.everyX"><fmt:param value="10"/></fmt:message></option>
+      <option value="0/15"><fmt:message key="cronPicker.everyX"><fmt:param value="15"/></fmt:message></option>
+      <option value="0/20"><fmt:message key="cronPicker.everyX"><fmt:param value="20"/></fmt:message></option>
+      <option value="0/30"><fmt:message key="cronPicker.everyX"><fmt:param value="30"/></fmt:message></option>
       <option value="0">0</option>
       <option value="1">1</option>
       <option value="2">2</option>
@@ -76,14 +76,14 @@
     </select>
   </div>
   <div class="cron-interval">
-    <label for="cron-minute">Minute</label>
+    <label for="cron-minute"><fmt:message key="cronPicker.minute"/></label>
     <select name="minute" id="cron-minute" multiple>
-      <option value="*">Every</option>
-      <option value="0/5">Every 5</option>
-      <option value="0/10">Every 10</option>
-      <option value="0/15">Every 15</option>
-      <option value="0/20">Every 20</option>
-      <option value="0/30">Every 30</option>
+      <option value="*"><fmt:message key="cronPicker.every"/></option>
+      <option value="0/5"><fmt:message key="cronPicker.everyX"><fmt:param value="5"/></fmt:message></option>
+      <option value="0/10"><fmt:message key="cronPicker.everyX"><fmt:param value="10"/></fmt:message></option>
+      <option value="0/15"><fmt:message key="cronPicker.everyX"><fmt:param value="15"/></fmt:message></option>
+      <option value="0/20"><fmt:message key="cronPicker.everyX"><fmt:param value="20"/></fmt:message></option>
+      <option value="0/30"><fmt:message key="cronPicker.everyX"><fmt:param value="30"/></fmt:message></option>
       <option value="0">0</option>
       <option value="1">1</option>
       <option value="2">2</option>
@@ -147,14 +147,14 @@
     </select>
   </div>
   <div class="cron-interval">
-    <label for="cron-hour">Hour</label>
+    <label for="cron-hour"><fmt:message key="cronPicker.hour"/></label>
     <select name="hour" id="cron-hour" multiple>
-      <option value="*">Every</option>
-      <option value="0/2">Every 2</option>
-      <option value="0/3">Every 3</option>
-      <option value="0/4">Every 4</option>
-      <option value="0/6">Every 6</option>
-      <option value="0/12">Every 12</option>
+      <option value="*"><fmt:message key="cronPicker.every"/></option>
+      <option value="0/2"><fmt:message key="cronPicker.everyX"><fmt:param value="2"/></fmt:message></option>
+      <option value="0/3"><fmt:message key="cronPicker.everyX"><fmt:param value="3"/></fmt:message></option>
+      <option value="0/4"><fmt:message key="cronPicker.everyX"><fmt:param value="4"/></fmt:message></option>
+      <option value="0/6"><fmt:message key="cronPicker.everyX"><fmt:param value="6"/></fmt:message></option>
+      <option value="0/12"><fmt:message key="cronPicker.everyX"><fmt:param value="12"/></fmt:message></option>
       <option value="0">0</option>
       <option value="1">1</option>
       <option value="2">2</option>
@@ -182,14 +182,14 @@
     </select>
   </div>
   <div class="cron-interval">
-    <label for="cron-day-of-month">Day of month</label>
+    <label for="cron-day-of-month"><fmt:message key="cronPicker.dayOfMonth"/></label>
     <select name="dayOfMonth" id="cron-day-of-month" multiple>
-      <option value="*">Every</option>
-      <option value="0/2">Every 2</option>
-      <option value="0/5">Every 5</option>
-      <option value="0/7">Every 7</option>
-      <option value="0/10">Every 10</option>
-      <option value="?">Don't care</option>
+      <option value="*"><fmt:message key="cronPicker.every"/></option>
+      <option value="0/2"><fmt:message key="cronPicker.everyX"><fmt:param value="2"/></fmt:message></option>
+      <option value="0/5"><fmt:message key="cronPicker.everyX"><fmt:param value="5"/></fmt:message></option>
+      <option value="0/7"><fmt:message key="cronPicker.everyX"><fmt:param value="7"/></fmt:message></option>
+      <option value="0/10"><fmt:message key="cronPicker.everyX"><fmt:param value="10"/></fmt:message></option>
+      <option value="?"><fmt:message key="cronPicker.dontCare"/></option>
       <option value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
@@ -224,41 +224,41 @@
     </select>
   </div>
   <div class="cron-interval">
-    <label for="cron-month">Month</label>
+    <label for="cron-month"><fmt:message key="cronPicker.month"/></label>
     <select name="month" if="cron-month" multiple>
-      <option value="*">Every</option>
-      <option value="0/2">Every 2</option>
-      <option value="0/3">Every 3</option>
-      <option value="0/4">Every 4</option>
-      <option value="0/6">Every 6</option>
-      <option value="1">January</option>
-      <option value="2">February</option>
-      <option value="3">March</option>
-      <option value="4">April</option>
-      <option value="5">May</option>
-      <option value="6">June</option>
-      <option value="7">July</option>
-      <option value="8">August</option>
-      <option value="9">September</option>
-      <option value="10">October</option>
-      <option value="11">November</option>
-      <option value="12">December</option>
+      <option value="*"><fmt:message key="cronPicker.every"/></option>
+      <option value="0/2"><fmt:message key="cronPicker.everyX"><fmt:param value="2"/></fmt:message></option>
+      <option value="0/3"><fmt:message key="cronPicker.everyX"><fmt:param value="3"/></fmt:message></option>
+      <option value="0/4"><fmt:message key="cronPicker.everyX"><fmt:param value="4"/></fmt:message></option>
+      <option value="0/6"><fmt:message key="cronPicker.everyX"><fmt:param value="6"/></fmt:message></option>
+      <option value="1"><fmt:message key="cronPicker.january"/></option>
+      <option value="2"><fmt:message key="cronPicker.february"/></option>
+      <option value="3"><fmt:message key="cronPicker.march"/></option>
+      <option value="4"><fmt:message key="cronPicker.april"/></option>
+      <option value="5"><fmt:message key="cronPicker.may"/></option>
+      <option value="6"><fmt:message key="cronPicker.june"/></option>
+      <option value="7"><fmt:message key="cronPicker.july"/></option>
+      <option value="8"><fmt:message key="cronPicker.august"/></option>
+      <option value="9"><fmt:message key="cronPicker.september"/></option>
+      <option value="10"><fmt:message key="cronPicker.october"/></option>
+      <option value="11"><fmt:message key="cronPicker.november"/></option>
+      <option value="12"><fmt:message key="cronPicker.december"/></option>
     </select>
   </div>
   <div class="cron-interval">
-    <label for="cron-day-of-week">Day of week</label>
+    <label for="cron-day-of-week"><fmt:message key="cronPicker.dayOfWeek"/></label>
     <select name="dayOfWeek" id="cron-day-of-week" multiple>
-      <option value="*">Every</option>
-      <option value="1,7">Weekends</option>
-      <option value="2-6">Weekdays</option>
-      <option value="?">Don't care</option>
-      <option value="1">Sunday</option>
-      <option value="2">Monday</option>
-      <option value="3">Tuesday</option>
-      <option value="4">Wednesday</option>
-      <option value="5">Thursday</option>
-      <option value="6">Friday</option>
-      <option value="7">Saturday</option>
+      <option value="*"><fmt:message key="cronPicker.every"/></option>
+      <option value="1,7"><fmt:message key="cronPicker.weekends"/></option>
+      <option value="2-6"><fmt:message key="cronPicker.weekdays"/></option>
+      <option value="?"><fmt:message key="cronPicker.dontCare"/></option>
+      <option value="1"><fmt:message key="cronPicker.sunday"/></option>
+      <option value="2"><fmt:message key="cronPicker.monday"/></option>
+      <option value="3"><fmt:message key="cronPicker.tuesday"/></option>
+      <option value="4"><fmt:message key="cronPicker.wednesday"/></option>
+      <option value="5"><fmt:message key="cronPicker.thursday"/></option>
+      <option value="6"><fmt:message key="cronPicker.friday"/></option>
+      <option value="7"><fmt:message key="cronPicker.saturday"/></option>
     </select>
   </div>
 </div>
