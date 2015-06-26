@@ -40,7 +40,7 @@ var config = {
         'jstz': 'jstz-1.0.4.min',
         'jquery.mousewheel': 'jquery.mousewheel.min',
         'jquery.select2': 'select2/js/select2.full.min',
-        'jquery.notify': 'notify-combined.min',
+        'jquery.notify': 'notify-combined.min'
     },
     shim: {
         "bootstrap" : {
