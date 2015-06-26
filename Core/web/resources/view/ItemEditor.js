@@ -151,6 +151,7 @@ ItemEditor.prototype.copyItemClick = function(event) {
     this.confirmDiscard().done(function() {
         var copy = self.copyItem(item);
         self.editItem(copy);
+        self.$editor.addClass('editor-item-modified');
     });
 };
 
