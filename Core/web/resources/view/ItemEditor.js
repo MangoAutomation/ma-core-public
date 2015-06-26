@@ -57,7 +57,7 @@ ItemEditor.prototype.documentReady = function() {
 
 ItemEditor.prototype.closeEditor = function() {
     this.$editor.fadeOut();
-    $(this).trigger('editorHidden');
+    $(this).trigger('editorHidden', this.currentItem);
     this.currentItem = null;
 };
 
@@ -72,7 +72,7 @@ ItemEditor.prototype.editItem = function(item) {
     this.$editor.removeClass('editor-item-modified');
     
     this.$editor.fadeIn();
-    $(this).trigger('editorShown');
+    $(this).trigger('editorShown', item);
     
     // resize any dgrids inside editor
     this.dgridResize(this.$editor);
@@ -84,7 +84,7 @@ ItemEditor.prototype.setItemModified = function(event) {
     if (this.currentItem) {
         this.currentItemModified = true;
         this.$editor.addClass('editor-item-modified');
-        $(this).trigger('currentItemModified');
+        $(this).trigger('currentItemModified', item);
     }
 };
 
