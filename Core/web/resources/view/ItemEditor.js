@@ -74,17 +74,22 @@ ItemEditor.prototype.editItem = function(item) {
     this.$editor.fadeIn();
     $(this).trigger('editorShown', item);
     
-    // resize any dgrids inside editor
-    this.dgridResize(this.$editor);
-    
-    this.$scope.find('input:first').focus();
+    // need a delay as fadeIn doesn't seem to set display:block immediately
+    // and so grids and inputs are not visible
+    var _this = this;
+    setTimeout(function() {
+        // resize any dgrids inside editor
+        _this.dgridResize(_this.$editor);
+        
+        _this.$scope.find('input:first').focus();
+    }, 100);
 };
 
 ItemEditor.prototype.setItemModified = function(event) {
     if (this.currentItem) {
         this.currentItemModified = true;
         this.$editor.addClass('editor-item-modified');
-        $(this).trigger('currentItemModified', item);
+        $(this).trigger('currentItemModified', this.currentItem);
     }
 };
 

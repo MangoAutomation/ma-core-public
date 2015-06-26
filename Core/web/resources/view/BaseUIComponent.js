@@ -663,7 +663,7 @@ BaseUIComponent.prototype.confirm = function(title, message) {
  * Finds dgrid components within $scope and calls resize on them
  */
 BaseUIComponent.dgridResize = function($scope) {
-    $scope.find('.dgrid').each(function(i, node) {
+    $scope.find('.dgrid').not(':hidden').each(function(i, node) {
         // this requires the grid to be mixed in with 'dgrid/extensions/DijitRegistry'
         var grid = registry.byNode(node);
         // need to resize in case the window was resized
