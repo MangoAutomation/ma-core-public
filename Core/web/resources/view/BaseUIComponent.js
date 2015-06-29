@@ -256,6 +256,9 @@ BaseUIComponent.prototype.showSuccess = function(message){
  */
 BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
     var parsed = {};
+    if (data.error) {
+        data = data.error; // dstore error wrapped up in a dgrid event
+    }
     if (data.response && data.response.data) {
         try {
             parsed = $.parseJSON(data.response.data);
@@ -264,20 +267,22 @@ BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
     
     if (parsed.validationMessages && parsed.validationMessages.length) {
         this.showValidationErrors(parsed);
-        return;
     }
     
     var message;
     if(data.response){
     	//Mango will return errors in the header
     	message = data.response.getHeader('errors');
-    }else{
+    }
+    if (!message) {
     	message = data.message;
     }
 
     // TODO maybe construct an object which can be passed to showError()
     // for consistency
-    this.showGenericError(message);
+    if (message) {
+        this.showGenericError(message);
+    }
 };
 
 /**

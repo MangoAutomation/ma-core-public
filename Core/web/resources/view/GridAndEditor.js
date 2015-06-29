@@ -41,7 +41,7 @@ GridAndEditor.prototype.documentReady = function() {
             self.editItem(item);
         }).fail(function() {
             event.grid.clearSelection();
-            
+
             // no built in way to inhibit event firing?
             event.grid.disableEvent = true;
             event.grid.select(self.currentItem);
@@ -54,7 +54,11 @@ GridAndEditor.prototype.editItem = function() {
     ItemEditor.prototype.editItem.apply(this, arguments);
     if (!this.grid.isSelected(this.currentItem)) {
         this.grid.clearSelection();
+        
+        // no built in way to inhibit event firing?
+        this.grid.disableEvent = true;
         this.grid.select(this.currentItem);
+        this.grid.disableEvent = false;
     }
 };
 
