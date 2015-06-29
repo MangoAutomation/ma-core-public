@@ -699,8 +699,9 @@ BaseUIComponent.prototype.dgridTabResize = function() {
 BaseUIComponent.prototype.showPermissionList = function(event){
 	
 	var self = this;
+	var inputNode = event.data.inputNode;
 	
-	this.api.getAllUserGroups(event.data.inputNode.val()).then(function(groups){
+	this.api.getAllUserGroups(inputNode.val()).then(function(groups){
 
 		if (self.permissionsDialog !== null)
             self.permissionsDialog.destroy();
@@ -712,26 +713,58 @@ BaseUIComponent.prototype.showPermissionList = function(event){
 		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
 		}
 		
+		var closeDialog = function() {
+            Popup.close(self.permissionsDialog);
+            
+            //inputNode.trigger('change');
+            // trigger does not bubble up to dgrid on change listener
+            self.dispatchEvent(inputNode[0], 'change', true);
+		};
+		
 		self.permissionsDialog = new TooltipDialog({
             id: 'permissionsTooltipDialog',
             content: content,
-            onMouseLeave: function() { 
-                Popup.close(self.permissionsDialog);
-            }
+            onMouseLeave: closeDialog,
+            // have to set onBlur because mouseleave event is not called when list is resized and cursor
+            // is outside its new area
+            onBlur: closeDialog
         });
         
         Popup.open({
             popup: self.permissionsDialog,
-            around: event.data.inputNode[0]
+            around: inputNode[0]
         });
 		
         //Assign onclick to all links and send in the group in the data of the event
 		$('.permissionStr').each(function(i){
-			$(this).on('click', {inputNode: event.data.inputNode, group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
+			$(this).on('click', {inputNode: inputNode, group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
 		});
 	});
 	
 };
+
+BaseUIComponent.prototype.dispatchEvent = function(element, type, bubbles, cancellable) {
+    bubbles = bubbles || false;
+    cancellable = cancellable || false;
+    
+    var event;
+    if (window.Event) {
+        event = new Event(type, {
+            bubbles: bubbles,
+            cancelable: cancellable
+        });
+    }
+    else if ('createEvent' in document) {
+        event = document.createEvent('HTMLEvents');
+        event.initEvent(type, bubbles, cancellable);
+    } else if ('fireEvent' in element) {
+        element.fireEvent(type);
+    }
+    
+    if (event) {
+        element.dispatchEvent(event);
+    }
+}
 
 BaseUIComponent.prototype.addGroup = function(event){
 	var groups = event.data.inputNode.val();
@@ -739,7 +772,7 @@ BaseUIComponent.prototype.addGroup = function(event){
 		groups += ",";
 	groups += event.data.group;
 	event.data.inputNode.val(groups);
-	event.data.inputNode.trigger('change');
+	// dont trigger change event here, trigger when mouse leaves dialog
 	this.showPermissionList({data: {inputNode: event.data.inputNode}});
 };
 
