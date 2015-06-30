@@ -331,7 +331,7 @@ footer {
     right: 0;
 }
 
-.mango .dgrid-grid .dgrid-scrollbar-width {
+.mango .dgrid-grid .dgrid-header-scroll {
     display: none;
 }
 
@@ -359,10 +359,26 @@ footer {
     padding: 5px;
 }
 
+.no-top-margin {
+    margin-top: 0;
+}
+
 .section .title {
     font-size: 1.4em;
     font-weight: bold;
     margin-bottom: 6px;
+}
+
+.section h1 {
+    font-size: 2em;
+}
+
+.section h2 {
+    font-size: 1.6em;
+}
+
+.section h3 {
+    font-size: 1.3em;
 }
 
 .section {
@@ -371,16 +387,26 @@ footer {
   margin-right: 7px;
 }
 
-.section .right-links {
-    float: right;
+.left-links,
+.float-left {
+    float: left;
+    margin-right: 5px;
 }
 
-.section .right-links img {
+.right-links,
+.float-right {
+    float: right;
+    margin-left: 5px;
+}
+
+.right-links img,
+.left-links img {
     cursor: pointer;
 }
 
-.mango-row {
-    margin-bottom: 4px;
+.mango-row,
+.mango-row-simple {
+    margin-bottom: 5px;
 }
 
 /* add clearfix to mango-row */
