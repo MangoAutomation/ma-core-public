@@ -538,6 +538,14 @@ label {
   box-sizing: content-box;
 }
 
+input[type=radio], input[type=checkbox] {
+  margin: 0;
+}
+
+label {
+  margin: 0;
+}
+
 /* cron pattern css */
 
 .cron-interval {
