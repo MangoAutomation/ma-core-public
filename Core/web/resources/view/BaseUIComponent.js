@@ -764,7 +764,7 @@ BaseUIComponent.prototype.dispatchEvent = function(element, type, bubbles, cance
     if (event) {
         element.dispatchEvent(event);
     }
-}
+};
 
 BaseUIComponent.prototype.addGroup = function(event){
 	var groups = event.data.inputNode.val();
