@@ -98,6 +98,7 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
                 case 'alt':
                 case 'onclick':
                 case 'disabled':
+                case 'render':
                     continue;
                 }
                 $img.attr(attr, button[attr]);
@@ -114,12 +115,16 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
             
             if (buttonDisabled(object, user, permission)) {
                 $img.addClass('disabled');
-            } else {
+            } else if (button.onclick) {
                 $img.click(button.onclick);
             }
             
             // cancel mousedown events so dgrid doesn't select row
             $img.mousedown(false);
+
+            if (button.render) {
+                $img = button.render($img, object, value, node, options, user);
+            }
             
             $span.append($img);
         }
