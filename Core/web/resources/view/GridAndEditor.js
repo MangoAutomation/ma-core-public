@@ -86,8 +86,15 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
         for (var i = 0; i < buttons.length; i++) {
             var button = buttons[i];
             var permission = button.permissionProp && object[button.permissionProp];
-            var buttonDisabled = button.disabled || GridAndEditor.buttonDisabled;
-
+            var buttonDisabled = GridAndEditor.buttonDisabled(object, user, permission);
+            if (typeof button.disabled !== 'undefined') {
+                if (typeof button.disabled === 'function') {
+                    buttonDisabled = button.disabled(object, user, permission, button, buttonDisabled);
+                } else {
+                    buttonDisabled = button.disabled;
+                }
+            }
+            
             var $img = $('<img>');
             
             for (var attr in button) {
@@ -113,7 +120,7 @@ GridAndEditor.createButtons = function(buttons, imgBase, imgSize, user) {
             }
             $img.data('item', object);
             
-            if (buttonDisabled(object, user, permission)) {
+            if (buttonDisabled) {
                 $img.addClass('disabled');
             } else if (button.onclick) {
                 $img.click(button.onclick);
