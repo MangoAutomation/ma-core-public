@@ -149,8 +149,17 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      */
     public void delete(int id) {
         T vo = get(id);
+        delete(vo);
+    }
+    
+    /**
+     * Delete the vo from the db
+     * 
+     * @param vo
+     */
+    public void delete(T vo) {
         if (vo != null) {
-            ejt.update(DELETE, id);
+            ejt.update(DELETE, vo.getId());
             AuditEventType.raiseDeletedEvent(this.typeName, vo);
         }
     }
