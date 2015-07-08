@@ -70,6 +70,19 @@
                       </execute >
                     </action>
                   </pluginExecution>
+                  <pluginExecution>
+                    <pluginExecutionFilter>
+                      <groupId>org.codehaus.gmavenplus</groupId>
+                      <artifactId>gmavenplus-plugin</artifactId>
+                      <versionRange>[1.5,)</versionRange>
+                      <goals>
+                        <goal>execute</goal>
+                      </goals>
+                    </pluginExecutionFilter>
+                    <action>
+                      <ignore/>
+                    </action>
+                  </pluginExecution>
                 </pluginExecutions>
               </lifecycleMappingMetadata>
             </configuration>
