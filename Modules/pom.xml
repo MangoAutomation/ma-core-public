@@ -12,6 +12,7 @@
   <name>Mango Modules</name>
   <properties>
     <moduleName>${project.artifactId}</moduleName>
+    <descriptionKey>${project.artifactId}.description</descriptionKey>
   </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
