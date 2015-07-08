@@ -13,6 +13,7 @@
   <properties>
     <moduleName>${project.artifactId}</moduleName>
     <descriptionKey>${project.artifactId}.description</descriptionKey>
+    <zipAssemblyName>m2m2-${project.artifactId}-${noSnapshotVer}</zipAssemblyName>
   </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -41,7 +42,7 @@
                   <descriptorRefs>
                     <descriptorRef>moduleZipAssembly</descriptorRef>
                   </descriptorRefs>
-                  <finalName>m2m2-${project.artifactId}-${noSnapshotVer}</finalName>
+                  <finalName>${zipAssemblyName}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
               </execution>
@@ -81,6 +82,52 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                     <version>2.4.3</version>
                     <scope>runtime</scope>
                 </dependency>
+            </dependencies>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <phase>install</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target name="install-module-zip">
+                  
+                    <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.plugin.classpath" />
+                    <property environment="env"/>
+                    
+                    <if><and>
+                      <not><isset property="core.target" /></not>
+                      <isset property="env.MA_HOME" />
+                    </and><then>
+                      <property name="core.target" value="${env.MA_HOME}" />
+                    </then>
+                    </if>
+                    
+                    <if><isset property="core.target" /><then>
+                      <copy file="${project.build.directory}/${zipAssemblyName}.zip"
+                          todir="${core.target}/web/modules/" />
+                    </then></if>
+                  
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>ant-contrib</groupId>
+                <artifactId>ant-contrib</artifactId>
+                <version>1.0b3</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>ant</groupId>
+                    <artifactId>ant</artifactId>
+                  </exclusion>
+                </exclusions>
+              </dependency>
             </dependencies>
           </plugin>
         </plugins>
