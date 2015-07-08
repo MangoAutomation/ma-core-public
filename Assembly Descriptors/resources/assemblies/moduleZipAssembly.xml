@@ -19,6 +19,9 @@
         <include>classes/**</include>
         <include>resources/**</include>
       </includes>
+      <excludes>
+        <exclude>resources/META-INF/</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}</directory>
