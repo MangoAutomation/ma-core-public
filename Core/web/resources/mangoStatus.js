@@ -35,7 +35,7 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
                
                //Combine this block of messages into 1 HTML String
                var newMessages = "";
-               for(var i=0; i<data.messages.length; i++){
+               for (var i = data.messages.length - 1; i >= 0; i--) {
                    newMessages += data.messages[i] + "<br>";
                }
                
