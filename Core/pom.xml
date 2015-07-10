@@ -4,13 +4,6 @@
  <artifactId>mango</artifactId>
  <!-- When changing version ensure you change Common.java as well. -->
  <name>Mango Core</name>
- <properties>
-  <!-- previous jetty version: 7.4.5.v20110725 9.2.0.v20140526 -->
-  <jettyVersion>9.2.2.v20140723</jettyVersion>
-  <!-- previous spring version: 3.1.1.RELEASE,3.1.2.RELEASE, 4.0.5.RELEASE 
-   for websockets support -->
-  <springVersion>4.0.5.RELEASE</springVersion>
- </properties>
  <repositories>
   <repository>
    <id>mango-core</id>
@@ -297,19 +290,23 @@
    <artifactId>postgresql</artifactId>
    <version>9.2-1002-jdbc4</version>
   </dependency>
-  <!-- For JSP Compilation -->
   <dependency>
-   <groupId>org.apache.tomcat</groupId>
-   <artifactId>jasper</artifactId>
-   <version>6.0.41</version>
+   <groupId>org.eclipse.jetty</groupId>
+   <artifactId>apache-jsp</artifactId>
+   <version>${jettyVersion}</version>
    <scope>compile</scope>
-   <!-- We do not want thier servlet api -->
-   <exclusions>
-		<exclusion>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>servlet-api</artifactId>
-		</exclusion>
-	</exclusions>
+  </dependency>
+  <dependency>
+   <groupId>org.eclipse.jetty</groupId>
+   <artifactId>apache-jstl</artifactId>
+   <version>${jettyVersion}</version>
+   <scope>compile</scope>
+  </dependency>
+  <dependency>
+   <groupId>org.eclipse.jetty</groupId>
+   <artifactId>jetty-annotations</artifactId>
+   <version>${jettyVersion}</version>
+   <scope>compile</scope>
   </dependency>
   <dependency>
    <groupId>org.freemarker</groupId>
@@ -378,12 +375,12 @@
    <groupId>com.serotonin</groupId>
    <artifactId>serotonin-providers</artifactId>
    <version>2.0.6</version>
-	<exclusions>
-		<exclusion>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-		</exclusion>
-	</exclusions>
+    <exclusions>
+        <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+        </exclusion>
+    </exclusions>
   </dependency>
   <dependency>
    <groupId>com.serotonin</groupId>
@@ -396,14 +393,18 @@
    <version>2.1.8</version>
        <exclusions>
           <exclusion>
-		    <groupId>javax.servlet</groupId>
-		    <artifactId>servlet-api</artifactId>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
           </exclusion>
           <exclusion>
-			<groupId>org.apache.tomcat</groupId>
-      		<artifactId>jasper</artifactId>
-		</exclusion>
-      </exclusions>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>jasper</artifactId>
+          </exclusion>
+          <exclusion>
+            <artifactId>jstl</artifactId>
+            <groupId>javax.servlet</groupId>
+          </exclusion>
+       </exclusions>
   </dependency>
   <dependency>
    <groupId>com.infiniteautomation.mango</groupId>
@@ -423,12 +424,12 @@
    <version>2.0.11</version>
          <exclusions>
           <exclusion>
-		    <groupId>javax.servlet</groupId>
-		    <artifactId>servlet-api</artifactId>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
           </exclusion>
           <exclusion>
-			   <groupId>org.freemarker</groupId>
-			   <artifactId>freemarker</artifactId>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
           </exclusion>
       </exclusions>
   </dependency>

@@ -8,6 +8,11 @@
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
+  <!-- previous jetty version: 7.4.5.v20110725, 9.2.0.v20140526, 9.2.2.v20140723 -->
+  <jettyVersion>9.2.11.v20150529</jettyVersion>
+  <!-- previous spring version: 3.1.1.RELEASE,3.1.2.RELEASE, 4.0.5.RELEASE 
+   for websockets support -->
+  <springVersion>4.0.5.RELEASE</springVersion>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
   <compilerSourceVersion>1.7</compilerSourceVersion>
