@@ -37,6 +37,25 @@
     </excludes>
    </testResource>
   </testResources>
+  <plugins>
+    <plugin>
+      <artifactId>maven-war-plugin</artifactId>
+      <configuration>
+        <warSourceDirectory>web</warSourceDirectory>
+        <classifier>web</classifier>
+        <warSourceIncludes>WEB-INF/**/**</warSourceIncludes>
+        <packagingExcludes>WEB-INF/lib/**, WEB-INF/dox/**, WEB-INF/classes/**</packagingExcludes>
+      </configuration>
+      <executions>
+        <execution>
+          <phase>package</phase>
+          <goals>
+            <goal>war</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
  </build>
  <dependencies>
   <dependency>
@@ -349,6 +368,7 @@
    <groupId>com.infiniteautomation.mango</groupId>
    <artifactId>ma-priv</artifactId>
    <version>1.3.5</version>
+   <scope>runtime</scope>
   </dependency>
   <dependency>
    <groupId>com.infiniteautomation.mango</groupId>
@@ -407,18 +427,18 @@
       <version>1.9.5</version>
       <scope>test</scope>
   </dependency>
-<dependency>
-    <groupId>org.springframework</groupId>
-    <artifactId>spring-test</artifactId>
-    <version>${springVersion}</version>
-    <scope>test</scope>
-</dependency>
-<dependency>
-    <groupId>org.hamcrest</groupId>
-    <artifactId>hamcrest-all</artifactId>
-    <version>1.3</version>
-    <scope>test</scope>
-</dependency>
+  <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${springVersion}</version>
+      <scope>test</scope>
+  </dependency>
+  <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+  </dependency>
  </dependencies>
  <parent>
    <artifactId>mango-parent</artifactId>
