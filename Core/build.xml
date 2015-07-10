@@ -200,9 +200,8 @@
             description="Compile the JSPs, add to core jar">
         <taskdef name="jasper2" classname="org.apache.jasper.JspC">
             <classpath>
-                <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
-                <pathelement path="${core.target}/work/jsp" />
+                <path refid="master-classpath" />
                 <path refid="module-libs" />
             </classpath>
         </taskdef>
@@ -384,9 +383,9 @@
             description="Compile the JSPs in place for debugging">
         <taskdef name="jasper2" classname="org.apache.jasper.JspC">
             <classpath>
-                <path refid="master-classpath" />
                 <pathelement path="${coreHome}/classes" />
                 <pathelement path="${coreHome}/maven-target/classes" />
+                <path refid="master-classpath" />
                 <path refid="module-libs" />
             </classpath>
         </taskdef>

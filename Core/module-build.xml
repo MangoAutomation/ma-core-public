@@ -166,6 +166,7 @@
                         <if>
                             <isset property="jsps" />
                             <then>
+                    	        <mkdir dir="${module.target}/web/WEB-INF" />
                                 <mkdir dir="${module.target}/work-tmp/jsp" />
                                 <mkdir dir="${module.target}/work-tmp/jsp-src" />
                                 <echo message="${jsps}" />
@@ -230,6 +231,8 @@
                         <if>
                             <isset property="tagdir" />
                             <then>
+                                <property name="tagpkg"
+                                          value="work/jsp/org/apache/jsp/tag/web/${name}" />
                                 <!-- Copy the compiled tag dir back to the module -->
                                 <echo message="Copying Tags to ${module.target}/${tagpkg}" />
                                 <copy todir="${module.target}/module-classes/org/apache/jsp/tag/web/${name}"
@@ -238,8 +241,6 @@
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-                                <property name="tagpkg"
-                                          value="work/jsp/org/apache/jsp/tag/web/${name}" />
                                 <copy todir="${module.target}/${tagpkg}"
                                       preservelastmodified="true">
                                     <fileset dir="${module.target}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
