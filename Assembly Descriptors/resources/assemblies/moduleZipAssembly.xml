@@ -30,6 +30,14 @@
         <include>${project.build.finalName}.jar</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/work</directory>
+      <outputDirectory>work/jsp</outputDirectory>
+      <includes>
+        <include>org/apache/jsp/modules/${moduleName}/**/*.class</include>
+        <include>org/apache/jsp/tag/web/${moduleName}/**/*.class</include>
+      </includes>
+    </fileSet>
   </fileSets>
   <files>
     <file>
