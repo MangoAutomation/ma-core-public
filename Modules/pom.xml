@@ -95,7 +95,6 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                 </goals>
                 <configuration>
                   <target name="install-module-zip">
-                  
                     <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.plugin.classpath" />
                     <property environment="env"/>
                     
@@ -111,7 +110,6 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                       <copy file="${project.build.directory}/${zipAssemblyName}.zip"
                           todir="${core.target}/web/modules/" />
                     </then></if>
-                  
                   </target>
                 </configuration>
               </execution>
@@ -130,6 +128,61 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
               </dependency>
             </dependencies>
           </plugin>
+          <plugin>
+            <artifactId>maven-war-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-core-jsps</id>
+                <goals>
+                  <goal>exploded</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <warSourceDirectory>web</warSourceDirectory>
+                  <webappDirectory>${project.build.directory}/web/modules/${moduleName}/web/</webappDirectory>
+                  <overlays>
+                    <overlay>
+                      <groupId>com.infiniteautomation</groupId>
+                      <artifactId>mango</artifactId>
+                      <classifier>web</classifier>
+                      <targetPath>../../../</targetPath>
+                    </overlay>
+                  </overlays>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-jspc-maven-plugin</artifactId>
+            <version>${jettyVersion}</version>
+            <executions>
+              <execution>
+                <id>compile-jsp</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>jspc</goal>
+                </goals>
+                <configuration>
+                  <webAppSourceDirectory>${project.build.directory}/web/</webAppSourceDirectory>
+                  <webXml>${project.build.directory}/web/WEB-INF/web.xml</webXml>
+                  <webXmlFragment>${project.build.directory}/web/WEB-INF/web-fragment.xml</webXmlFragment>
+                  <includes>**/*.jsp, **/*.jspf</includes>
+                  <excludes>WEB-INF/**</excludes>
+                  <mergeFragment>false</mergeFragment>
+                  <keepSources>true</keepSources>
+                  <generatedClasses>${project.build.directory}/work</generatedClasses>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>com.infiniteautomation</groupId>
+                <artifactId>mango</artifactId>
+                <version>${project.parent.version}</version>
+              </dependency>
+            </dependencies>
+          </plugin>
         </plugins>
     </pluginManagement>
   </build>
@@ -138,6 +191,14 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
       <groupId>com.infiniteautomation</groupId>
       <artifactId>mango</artifactId>
       <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.infiniteautomation</groupId>
+      <artifactId>mango</artifactId>
+      <version>${project.parent.version}</version>
+      <classifier>web</classifier>
+      <type>war</type>
       <scope>provided</scope>
     </dependency>
   </dependencies>
