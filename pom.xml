@@ -10,6 +10,8 @@
  <properties>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
+  <compilerSourceVersion>1.7</compilerSourceVersion>
+  <compilerTargetVersion>1.7</compilerTargetVersion>
  </properties>
  <organization>
    <name>Infinite Automation</name>
@@ -28,17 +30,21 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.2</version>
             <configuration>
-              <source>1.7</source>
-              <target>1.7</target>
+              <source>${compilerSourceVersion}</source>
+              <target>${compilerTargetVersion}</target>
             </configuration>
           </plugin>
-           <plugin>
+          <plugin>
             <artifactId>maven-release-plugin</artifactId>
             <version>2.5.1</version>
-           </plugin>
+          </plugin>
+          <plugin>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.6</version>
+          </plugin>
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
-            <version>2.5.3</version>
+            <version>2.5.5</version>
             <dependencies>
               <dependency>
                 <groupId>com.infiniteautomation.mango</groupId>
@@ -81,6 +87,19 @@
                     </pluginExecutionFilter>
                     <action>
                       <ignore/>
+                    </action>
+                  </pluginExecution>
+                  <pluginExecution>
+                    <pluginExecutionFilter>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-war-plugin</artifactId>
+                      <versionRange>[2.6,)</versionRange>
+                      <goals>
+                        <goal>exploded</goal>
+                      </goals>
+                    </pluginExecutionFilter>
+                    <action>
+                      <ignore></ignore>
                     </action>
                   </pluginExecution>
                 </pluginExecutions>
