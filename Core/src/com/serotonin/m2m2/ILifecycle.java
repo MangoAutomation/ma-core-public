@@ -1,5 +1,6 @@
 package com.serotonin.m2m2;
 
+import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.provider.Provider;
 
 public interface ILifecycle extends Provider {
@@ -41,4 +42,16 @@ public interface ILifecycle extends Provider {
      * (Re)load the license
      */
     public void loadLic();
+
+    /**
+     * @param timeout
+     * @param b
+     * @return
+     */
+    TimeoutTask scheduleShutdown(long timeout, boolean b);
+
+    /**
+     * @return
+     */
+    boolean isRestarting();
 }

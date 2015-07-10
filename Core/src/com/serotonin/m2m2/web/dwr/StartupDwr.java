@@ -10,7 +10,6 @@ import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.m2m2.ILifecycle;
-import com.serotonin.m2m2.Lifecycle;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
@@ -56,7 +55,7 @@ public class StartupDwr {
 		//Add the message to describe what process we are in
 		if((progress < 100)&&(shutdownProgress == 0)){
 			result.addData("processMessage", this.translations.translate("startup.startingUp"));
-		} else if((shutdownProgress > 0)&&(((Lifecycle)lifecycle).isRestarting())){
+		} else if((shutdownProgress > 0)&&(lifecycle.isRestarting())){
 			result.addData("processMessage", this.translations.translate("shutdown.restarting"));
 		}else if(shutdownProgress > 0){
 			result.addData("processMessage", this.translations.translate("shutdown.shuttingDown"));
