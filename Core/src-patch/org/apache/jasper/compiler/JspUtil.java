@@ -719,6 +719,7 @@ public class JspUtil {
             // XXX J.W. patch applied here, inserted trailing dot
             // Bug reported in Tomcat project, from which Jetty pulls the Jasper code
             // https://bz.apache.org/bugzilla/show_bug.cgi?id=58119
+            // remove when org.eclipse.jetty:apache-jsp:8.0.25 is available
             className = Constants.TAG_FILE_PACKAGE_NAME + ".web.";
             begin = index + WEB_INF_TAGS.length();
         } else {
@@ -913,9 +914,9 @@ public class JspUtil {
     }
 
     /**
-     * Handles taking input from TLDs 'java.lang.Object' ->
-     * 'java.lang.Object.class' 'int' -> 'int.class' 'void' -> 'Void.TYPE'
-     * 'int[]' -> 'int[].class'
+     * Handles taking input from TLDs 'java.lang.Object' -&gt;
+     * 'java.lang.Object.class' 'int' -&gt; 'int.class' 'void' -&gt; 'Void.TYPE'
+     * 'int[]' -&gt; 'int[].class'
      *
      * @param type
      */

@@ -85,10 +85,6 @@
     <resources>
       <resource>
         <directory>resources</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>META-INF/module.properties</include>
-        </includes>
       </resource>
     </resources>
     <pluginManagement>
@@ -246,6 +242,18 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
               </execution>
             </executions>
             <dependencies>
+              <!-- Exclude apache-jsp here so patched classes in Core are used -->
+              <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>apache-jsp</artifactId>
+                <version>${jettyVersion}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>org.mortbay.jasper</groupId>
+                    <artifactId>apache-jsp</artifactId>
+                  </exclusion>
+                </exclusions>
+              </dependency>
               <dependency>
                 <groupId>com.infiniteautomation</groupId>
                 <artifactId>mango</artifactId>
