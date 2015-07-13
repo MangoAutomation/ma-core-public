@@ -17,11 +17,15 @@
         <include>web/**</include>
         <include>dox/**</include>
         <include>classes/**</include>
-        <include>resources/**</include>
       </includes>
-      <excludes>
-        <exclude>resources/META-INF/</exclude>
-      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>module.properties</include>
+      </includes>
+      <filtered>true</filtered>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}</directory>
@@ -39,11 +43,4 @@
       </includes>
     </fileSet>
   </fileSets>
-  <files>
-    <file>
-      <source>${project.build.directory}/classes/META-INF/module.properties</source>
-      <outputDirectory></outputDirectory>
-      <destName>module.properties</destName>
-    </file>
-  </files>
 </assembly>
