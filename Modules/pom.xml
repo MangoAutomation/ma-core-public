@@ -13,7 +13,7 @@
   <properties>
     <moduleName>${project.artifactId}</moduleName>
     <descriptionKey>${project.artifactId}.description</descriptionKey>
-    <zipAssemblyName>m2m2-${project.artifactId}-${noSnapshotVer}</zipAssemblyName>
+    <zipAssemblyName>m2m2-${moduleName}-${noSnapshotVer}</zipAssemblyName>
   </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
