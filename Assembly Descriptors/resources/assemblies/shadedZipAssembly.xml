@@ -35,10 +35,12 @@
         <include>org/apache/jsp/tag/web/${moduleName}/**/*.class</include>
       </includes>
     </fileSet>
-  </fileSets>
-  <dependencySets>
-    <dependencySet>
+    <fileSet>
+      <directory>${project.build.directory}</directory>
       <outputDirectory>lib</outputDirectory>
-    </dependencySet>
-  </dependencySets>
+      <includes>
+        <include>${project.build.finalName}.jar</include>
+      </includes>
+    </fileSet>
+  </fileSets>
 </assembly>
