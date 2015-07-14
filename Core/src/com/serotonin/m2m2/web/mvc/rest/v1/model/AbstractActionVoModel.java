@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.vo.AbstractActionVO;
@@ -20,15 +19,11 @@ import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
 @CSVEntity
 @JsonPropertyOrder({"enabled"})
 public abstract class AbstractActionVoModel<T extends AbstractActionVO<T>> extends AbstractVoModel<T>{
-
-	@JsonIgnore
-	protected T data;
 	/**
 	 * @param data
 	 */
 	public AbstractActionVoModel(T data) {
 		super(data);
-		this.data = data;
 	}
 
 	@CSVColumnGetter(order=3, header="enabled")
@@ -40,9 +35,5 @@ public abstract class AbstractActionVoModel<T extends AbstractActionVO<T>> exten
 	@JsonSetter(value="enabled")
 	public void setEnabled(boolean enabled){
 		this.data.setEnabled(enabled);
-	}
-
-	public T getData(){
-		return this.data;
 	}
 }

@@ -36,6 +36,7 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 	 */
 	public AbstractDataSourceModel(T data) {
 		super(data);
+		this.data = data;
 	}
 	
 	@JsonGetter(value="alarmLevels")
