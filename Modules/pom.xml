@@ -12,9 +12,57 @@
   <name>Mango Modules</name>
   <properties>
     <moduleName>${project.artifactId}</moduleName>
-    <descriptionKey>${project.artifactId}.description</descriptionKey>
+    <descriptionKey>${moduleName}.description</descriptionKey>
     <zipAssemblyName>m2m2-${moduleName}-${noSnapshotVer}</zipAssemblyName>
+    <core.target>${env.MA_HOME}</core.target>
+    <webDirectory>${project.build.directory}/web</webDirectory>
+    <moduleTagDirectory>${webDirectory}/WEB-INF/tags/${moduleName}</moduleTagDirectory>
+    <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
+    <jspWorkDirectory>${project.build.directory}/work</jspWorkDirectory>
+    <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
   </properties>
+  <profiles>
+    <profile>
+      <id>copy-web</id>
+      <properties>
+        <webDirectory>${core.target}/web</webDirectory>
+        <jspWorkDirectory>${core.target}/work/jsp</jspWorkDirectory>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.gmavenplus</groupId>
+              <artifactId>gmavenplus-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>find-module-definitions</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <artifactId>maven-war-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>explode-web</id>
+                  <configuration>
+                    <overlays>
+                      <overlay>
+                        <id>core</id>
+                        <skip>true</skip>
+                      </overlay>
+                    </overlays>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
@@ -40,7 +88,7 @@
                 </goals>
                 <configuration>
                   <descriptorRefs>
-                    <descriptorRef>moduleZipAssembly</descriptorRef>
+                    <descriptorRef>${moduleZipAssembly}</descriptorRef>
                   </descriptorRefs>
                   <finalName>${zipAssemblyName}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
@@ -53,35 +101,36 @@
             <artifactId>gmavenplus-plugin</artifactId>
             <version>1.5</version>
             <executions>
-                <execution>
-                    <phase>process-classes</phase>
-                    <goals>
-                        <goal>execute</goal>
-                    </goals>
-                    <configuration>
-                        <scripts>
-                            <script><![CDATA[
+              <execution>
+                <id>find-module-definitions</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <scripts>
+                    <script><![CDATA[
 new org.reflections.Reflections("com.serotonin.m2m2.module")
     .merge(new org.reflections.Reflections(new File(project.build.outputDirectory).toURI().toURL()))
     .save(project.build.outputDirectory + "/META-INF/reflections/" +
         project.properties['moduleName'] + "-reflections.xml")
-                            ]]></script>
-                        </scripts>
-                    </configuration>
-                </execution>
+                    ]]></script>
+                  </scripts>
+                </configuration>
+              </execution>
             </executions>
             <dependencies>
-                <dependency>
-                    <groupId>org.reflections</groupId>
-                    <artifactId>reflections</artifactId>
-                    <version>0.9.10</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
-                    <version>2.4.3</version>
-                    <scope>runtime</scope>
-                </dependency>
+              <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.10</version>
+              </dependency>
+              <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>2.4.3</version>
+                <scope>runtime</scope>
+              </dependency>
             </dependencies>
           </plugin>
           <plugin>
@@ -89,27 +138,16 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
             <version>1.8</version>
             <executions>
               <execution>
+                <id>copy-module</id>
                 <phase>install</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
                 <configuration>
-                  <target name="install-module-zip">
-                    <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.plugin.classpath" />
-                    <property environment="env"/>
-                    
-                    <if><and>
-                      <not><isset property="core.target" /></not>
-                      <isset property="env.MA_HOME" />
-                    </and><then>
-                      <property name="core.target" value="${env.MA_HOME}" />
-                    </then>
-                    </if>
-                    
-                    <if><isset property="core.target" /><then>
+                  <skip>${skipModuleInstall}</skip>
+                  <target>
                       <copy file="${project.build.directory}/${zipAssemblyName}.zip"
                           todir="${core.target}/web/modules/" />
-                    </then></if>
                   </target>
                 </configuration>
               </execution>
@@ -132,16 +170,30 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
             <artifactId>maven-war-plugin</artifactId>
             <executions>
               <execution>
-                <id>unpack-core-jsps</id>
+                <id>explode-tags</id>
+                <goals>
+                  <goal>exploded</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <warSourceDirectory>web/tags</warSourceDirectory>
+                  <warSourceIncludes>**/*.tag</warSourceIncludes>
+                  <webappDirectory>${moduleTagDirectory}</webappDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>explode-web</id>
                 <goals>
                   <goal>exploded</goal>
                 </goals>
                 <phase>generate-resources</phase>
                 <configuration>
                   <warSourceDirectory>web</warSourceDirectory>
-                  <webappDirectory>${project.build.directory}/web/modules/${moduleName}/web/</webappDirectory>
+                  <warSourceExcludes>tags/**</warSourceExcludes>
+                  <webappDirectory>${moduleWebDirectory}</webappDirectory>
                   <overlays>
                     <overlay>
+                      <id>core</id>
                       <groupId>com.infiniteautomation</groupId>
                       <artifactId>mango</artifactId>
                       <classifier>web</classifier>
@@ -164,14 +216,16 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                   <goal>jspc</goal>
                 </goals>
                 <configuration>
-                  <webAppSourceDirectory>${project.build.directory}/web/</webAppSourceDirectory>
-                  <webXml>${project.build.directory}/web/WEB-INF/web.xml</webXml>
-                  <webXmlFragment>${project.build.directory}/web/WEB-INF/web-fragment.xml</webXmlFragment>
-                  <includes>**/*.jsp, **/*.jspf</includes>
+                  <webAppSourceDirectory>${webDirectory}</webAppSourceDirectory>
+                  <webXml>${webDirectory}/WEB-INF/web.xml</webXml>
+                  <webXmlFragment>${project.build.directory}/web-fragment.xml</webXmlFragment>
+                  <includes>modules/${moduleName}/web/**/*.jsp, modules/${moduleName}/web/**/*.jspf</includes>
                   <excludes>WEB-INF/**</excludes>
                   <mergeFragment>false</mergeFragment>
                   <keepSources>true</keepSources>
-                  <generatedClasses>${project.build.directory}/work</generatedClasses>
+                  <generatedClasses>${jspWorkDirectory}</generatedClasses>
+                  <compilerTargetVM>${compilerTargetVersion}</compilerTargetVM>
+                  <compilerSourceVM>${compilerSourceVersion}</compilerSourceVM>
                 </configuration>
               </execution>
             </executions>
