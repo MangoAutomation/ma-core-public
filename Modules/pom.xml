@@ -20,6 +20,7 @@
     <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
     <jspWorkDirectory>${project.build.directory}/work</jspWorkDirectory>
     <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
+    <skipModuleInstall>true</skipModuleInstall>
   </properties>
   <profiles>
     <profile>
@@ -58,9 +59,24 @@
                 </execution>
               </executions>
             </plugin>
+            <plugin>
+              <artifactId>maven-assembly-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>module-zip</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
           </plugins>
         </pluginManagement>
       </build>
+    </profile>
+    <profile>
+      <id>install-module</id>
+      <properties>
+        <skipModuleInstall>false</skipModuleInstall>
+      </properties>
     </profile>
   </profiles>
   <build>
