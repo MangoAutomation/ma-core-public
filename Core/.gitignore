@@ -18,3 +18,7 @@
 /databases
 /backup
 /dist/
+/web/WEB-INF/tags/*
+!/web/WEB-INF/tags/*.tag
+!/web/WEB-INF/tags/page
+!/web/WEB-INF/tags/html5
