@@ -39,11 +39,28 @@
   </testResources>
   <plugins>
     <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>build-helper-maven-plugin</artifactId>
+      <executions>
+        <execution>
+          <phase>generate-sources</phase>
+          <goals>
+            <goal>add-source</goal>
+          </goals>
+          <configuration>
+            <sources>
+              <source>src-patch</source>
+            </sources>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+    <plugin>
       <artifactId>maven-war-plugin</artifactId>
       <configuration>
         <warSourceDirectory>web</warSourceDirectory>
         <classifier>web</classifier>
-        <warSourceIncludes>WEB-INF/**/**</warSourceIncludes>
+        <warSourceIncludes>WEB-INF/*, WEB-INF/jsp/**, WEB-INF/snippet/**, WEB-INF/tags/*, WEB-INF/tags/html5/**, WEB-INF/tags/page/**</warSourceIncludes>
         <packagingExcludes>WEB-INF/lib/**, WEB-INF/dox/**, WEB-INF/classes/**</packagingExcludes>
       </configuration>
       <executions>
@@ -56,6 +73,35 @@
       </executions>
     </plugin>
   </plugins>
+  <pluginManagement>
+    <plugins>
+      <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+      <plugin>
+        <groupId>org.eclipse.m2e</groupId>
+        <artifactId>lifecycle-mapping</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+          <lifecycleMappingMetadata>
+            <pluginExecutions>
+              <pluginExecution>
+                <pluginExecutionFilter>
+                  <groupId>org.codehaus.mojo</groupId>
+                  <artifactId>build-helper-maven-plugin</artifactId>
+                  <versionRange>[1.9.1,)</versionRange>
+                  <goals>
+                    <goal>add-source</goal>
+                  </goals>
+                </pluginExecutionFilter>
+                <action>
+                  <ignore></ignore>
+                </action>
+              </pluginExecution>
+            </pluginExecutions>
+          </lifecycleMappingMetadata>
+        </configuration>
+      </plugin>
+    </plugins>
+  </pluginManagement>
  </build>
  <dependencies>
   <dependency>
