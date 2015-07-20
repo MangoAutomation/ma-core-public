@@ -4,6 +4,10 @@
  <artifactId>mango</artifactId>
  <!-- When changing version ensure you change Common.java as well. -->
  <name>Mango Core</name>
+ <properties>
+   <webDirectory>${project.basedir}/web</webDirectory>
+   <jspWorkDirectory>${project.basedir}/work/jsp</jspWorkDirectory>
+ </properties>
  <repositories>
   <repository>
    <id>mango-core</id>
@@ -47,6 +51,51 @@
           </configuration>
         </execution>
       </executions>
+    </plugin>
+    <plugin>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-jspc-maven-plugin</artifactId>
+      <version>${jettyVersion}</version>
+      <executions>
+        <execution>
+          <id>compile-jsp</id>
+          <phase>prepare-package</phase>
+          <goals>
+            <goal>jspc</goal>
+          </goals>
+          <configuration>
+            <webAppSourceDirectory>${webDirectory}</webAppSourceDirectory>
+            <webXml>${webDirectory}/WEB-INF/web.xml</webXml>
+            <webXmlFragment>${project.build.directory}/web-fragment.xml</webXmlFragment>
+            <includes>**/*.jsp, **/*.jspf</includes>
+            <excludes>modules/**</excludes>
+            <mergeFragment>false</mergeFragment>
+            <keepSources>false</keepSources>
+            <generatedClasses>${jspWorkDirectory}</generatedClasses>
+            <compilerTargetVM>${compilerTargetVersion}</compilerTargetVM>
+            <compilerSourceVM>${compilerSourceVersion}</compilerSourceVM>
+          </configuration>
+        </execution>
+      </executions>
+      <dependencies>
+        <!-- Exclude apache-jsp here so patched classes in Core are used -->
+        <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>apache-jsp</artifactId>
+          <version>${jettyVersion}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>org.mortbay.jasper</groupId>
+              <artifactId>apache-jsp</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>com.infiniteautomation</groupId>
+          <artifactId>mango</artifactId>
+          <version>${project.parent.version}</version>
+        </dependency>
+      </dependencies>
     </plugin>
     <plugin>
       <artifactId>maven-war-plugin</artifactId>
