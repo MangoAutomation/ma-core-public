@@ -10,6 +10,8 @@
 <%@attribute name="showHeader" %>
 <%@attribute name="showToolbar" %>
 <%@attribute name="showFooter" %>
+<%@attribute name="replaceStyles" %>
+<%@attribute name="replaceScripts" %>
 <c:choose>
     <c:when test="${empty showHeader}"><c:set var="showHeader">${param.showHeader}</c:set></c:when>
 </c:choose>
@@ -33,21 +35,30 @@
 
         <tag:versionedIcon href="<%= Common.applicationFavicon %>"/>
         <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
-
-        <%-- included with bootstrap?
-        <link rel="stylesheet" href="/resources/normalize.css">--%>
-        <tag:versionedCss href="/resources/bootstrap/css/bootstrap.min.css"/>
-        <%--<link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">
-        <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">--%>
-        <tag:versionedCss href="/resources/main.css"/>
-        <%-- For now we need to include the floating pane CSS to use the help popup --%>
-        <tag:versionedCss href="/resources/dojox/layout/resources/FloatingPane.css"/>
-        <tag:versionedCss href="/resources/dojox/layout/resources/ResizeHandle.css"/>
+        
+        <c:choose>
+          <c:when test="${replaceStyles == true}">
+            <!-- JSP styles fragment -->
+            <jsp:invoke fragment="styles"/>
+            <!-- / JSP styles fragment -->
+          </c:when>
+          <c:otherwise>
+            <%-- included with bootstrap?
+            <link rel="stylesheet" href="/resources/normalize.css">--%>
+            <tag:versionedCss href="/resources/bootstrap/css/bootstrap.min.css"/>
+            <%--<link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">
+            <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">--%>
+            <tag:versionedCss href="/resources/main.css"/>
+            <%-- For now we need to include the floating pane CSS to use the help popup --%>
+            <tag:versionedCss href="/resources/dojox/layout/resources/FloatingPane.css"/>
+            <tag:versionedCss href="/resources/dojox/layout/resources/ResizeHandle.css"/>
+            <!-- JSP styles fragment -->
+            <jsp:invoke fragment="styles"/>
+            <!-- / JSP styles fragment -->
+          </c:otherwise>
+        </c:choose>
         
         <tag:versionedJavascript src="/resources/modernizr-2.8.3.min.js"/>
-        
-        <!-- JSP styles fragment -->
-        <jsp:invoke fragment="styles"/>
     </head>
     <body class="mango">
         <!--[if lt IE 8]>
@@ -74,12 +85,22 @@
         <html5:footer />
         </c:if>
         
-        <%-- Template scripts TODO work out how the loader can use the  versioned java script URL--%>
-        <script src="/resources/loaderConfig.js"></script>
-        <script src="/resources/require.js"></script>
-        <script src="/resources/main.js"></script>
-        
-        <!-- JSP scripts fragment -->
-        <jsp:invoke fragment="scripts"/>
+        <!-- Scripts -->
+        <c:choose>
+          <c:when test="${replaceScripts == true}">
+            <!-- JSP scripts fragment -->
+            <jsp:invoke fragment="scripts"/>
+            <!-- / JSP scripts fragment -->
+          </c:when>
+          <c:otherwise>
+            <%-- Template scripts TODO work out how the loader can use the  versioned java script URL--%>
+            <tag:versionedJavascript src="/resources/loaderConfig.js"/>
+            <tag:versionedJavascript src="/resources/require.js"/>
+            <tag:versionedJavascript src="/resources/main.js"/>
+            <!-- JSP scripts fragment -->
+            <jsp:invoke fragment="scripts"/>
+            <!-- / JSP scripts fragment -->
+          </c:otherwise>
+        </c:choose>
     </body>
 </html>

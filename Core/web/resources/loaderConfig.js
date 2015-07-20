@@ -9,9 +9,12 @@
 var loader;
 
 var scriptTags = document.getElementsByTagName('script');
+var scriptSuffix = '/resources/loaderConfig.js';
 for (var i = scriptTags.length - 1; i >= 0; i--) {
     var script = scriptTags[i];
-    if (script.getAttribute('src') === '/resources/loaderConfig.js') {
+    var scriptSrc = script.getAttribute('src');
+    
+    if (scriptSrc.indexOf(scriptSuffix, scriptSrc.length - scriptSuffix.length) !== -1) {
         loader = script.getAttribute('data-loader') || 'RequireJS';
         break;
     }
