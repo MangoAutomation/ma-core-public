@@ -181,6 +181,11 @@ nav {
     padding: 5px;
 }
 
+/* no top margin if header is hidden */
+nav:first-child {
+  margin-top: 0;
+}
+
 /* User links, i.e. username, logout, mute, save home page etc */
 nav .user-nav {
     float: right;
