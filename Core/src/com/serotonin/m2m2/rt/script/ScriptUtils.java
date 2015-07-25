@@ -30,6 +30,7 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 public class ScriptUtils {
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
+    public static final String TIMESTAMP_CONTEXT_KEY = "TIMESTAMP";
 
     public static ScriptEngine newEngine() {
         ScriptEngineManager manager = new ScriptEngineManager();
@@ -112,6 +113,9 @@ public class ScriptUtils {
         //Add in Additional Utilities with Global Scope
         globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
         globalBindings.put(UnitUtility.CONTEXT_KEY, new UnitUtility());
+        
+        //Holder for modifying timestamps of meta points
+        globalBindings.put(TIMESTAMP_CONTEXT_KEY, null);
         
         engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
     }

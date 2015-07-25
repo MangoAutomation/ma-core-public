@@ -127,7 +127,7 @@ public class ScriptExecutor {
      */
     protected static PointValueTime getResult(ScriptEngine engine, Object result, int dataTypeId, long timestamp) throws ResultTypeException{
         // Check if a timestamp was set
-        Object ts = engine.get("TIMESTAMP");
+        Object ts = engine.getBindings(ScriptContext.GLOBAL_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
         if (ts != null) {
             // Check the type of the object.
             if (ts instanceof Number)
