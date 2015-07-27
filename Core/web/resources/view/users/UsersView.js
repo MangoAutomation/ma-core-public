@@ -232,7 +232,7 @@ UsersView.prototype.switchUser = function(username){
 	this.clearErrors();
 	
 	this.api.ajax({
-        url : "/rest/v1/login/su/" + encodeURIComponent(username) + ".json"
+        url : "/rest/v1/login/su/" + encodeURIComponent(username)
     }).then(function(userData){
     	window.location.href = userData.homeUrl;
     }).fail(this.showError);
@@ -246,7 +246,7 @@ UsersView.prototype.sendTestEmail = function(){
 	this.api.ajax({
 		type : 'PUT',
 		contentType: "application/json",
-        url : '/rest/v1/server/email/test.json?email='+ encodeURIComponent(email) + '&username=' + encodeURIComponent(username),
+        url : '/rest/v1/server/email/test?email='+ encodeURIComponent(email) + '&username=' + encodeURIComponent(username),
     }).done(function(response){
     	self.showSuccess(response);
     }).fail(this.showError);

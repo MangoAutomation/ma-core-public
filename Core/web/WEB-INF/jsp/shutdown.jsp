@@ -66,7 +66,7 @@ require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window"
         else
             pollLock = true;
         xhr.get({
-            url: "/status/mango.json?time=" + timestamp,
+            url: "/status/mango?time=" + timestamp,
             handleAs: "json",
             load: function(data){
  	            

@@ -4,8 +4,7 @@
  */
 var dataSources;
 
-var filters = new Array();
-
+var filters = [];
 
 require(["deltamation/StoreView", "dijit/form/CheckBox", "dijit/form/ValidationTextBox","dijit/form/TextBox",
          "dojo/dom-style","dojo/_base/html", "put-selector/put", "dojo/when", "dojo/on",
@@ -54,7 +53,7 @@ dataSources = new StoreView({
     copyId: null, /* ID for creating a copy */
     minRowsPerPage: 100,
     maxRowsPerPage: 100,
-    filters: new Array(),
+    filters: [],
 	sortMap: [
 	          {attribute: "name", descending:true},
 	          {attribute: "typeDescriptionString", descending:true},
@@ -78,7 +77,7 @@ dataSources = new StoreView({
     				domConstruct.place(label,div);
     				input.placeAt(div);
     				input.watch("value",function(name,oldValue,value){
-    					if(value == '')
+    					if(value === '')
     						delete dataSources.filters['name'];
     					else
     						dataSources.filters['name'] = new RegExp("^.*"+value+".*$","i");
@@ -375,7 +374,7 @@ dataSources = new StoreView({
 	   	 if(dsXid === null){
 	   		 return;
 	   	 }
-	   	 window.open("/rest/v1/data-points/data-source/" + dsXid + ".csv", '_self');
+	   	 window.open("/rest/v1/data-points/data-source/" + dsXid + "?format=csv", '_self');
 	   	 return;
     }
     

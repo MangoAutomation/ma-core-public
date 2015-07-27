@@ -22,6 +22,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -84,7 +85,11 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		commonsMultipartResolver.setMaxUploadSize(50000000);
 		return commonsMultipartResolver;
 	}
-	
+
+	@Override
+	public void configurePathMatch(PathMatchConfigurer configurer) {
+		configurer.setUseSuffixPatternMatch(false);
+	}
 	
 	/**
 	 * Setup Content Negotiation to map url extensions to returned data types
@@ -96,19 +101,21 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	public void configureContentNegotiation(
 			ContentNegotiationConfigurer configurer) {
 		// Simple strategy: only path extension is taken into account
-		configurer.favorPathExtension(true).ignoreAcceptHeader(false)
-				.useJaf(false). // TODO get maven jar to use application types
-				defaultContentType(MediaType.TEXT_HTML).
+		configurer.favorPathExtension(false).ignoreAcceptHeader(false)
+				.favorParameter(true)
+				.useJaf(false) // TODO get maven jar to use application types
+				.defaultContentType(MediaType.TEXT_HTML)
 				//Add Some file extension default mappings
 				// mediaType("html", MediaType.TEXT_HTML).
-				mediaType("xml", MediaType.APPLICATION_XML). // TODO add jaxb
+				.mediaType("xml", MediaType.APPLICATION_XML) // TODO add jaxb
 																// for this to
 																// work
-				mediaType("json", MediaType.APPLICATION_JSON). 
-				mediaType("csv", new MediaType("text", "csv"));
+				.mediaType("json", MediaType.APPLICATION_JSON) 
+				.mediaType("csv", new MediaType("text", "csv"));
 				//mediaType("csv", new MediaType("text", "csv", Common.UTF8_CS));
 	}
 
+	
 	/**
 	 * Configure the Message Converters for the API for now only JSON
 	 */

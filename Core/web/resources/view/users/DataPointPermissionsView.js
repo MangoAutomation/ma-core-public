@@ -125,7 +125,7 @@ DataPointPermissionsView.prototype.setupView = function(){
 	
 	this.filterGrid.on('dgrid-datachange', this.filterChanged.bind(this));
 	
-	this.baseURL = '/rest/v1/data-points.json';
+	this.baseURL = '/rest/v1/data-points';
 	this.pointsStore = new Rest({
 	    target: this.baseURL,
 	    idProperty: 'xid'

@@ -552,7 +552,7 @@ function deletePoint() {
 	 if(dsXid === null){
 		 return;
 	 }
-	 window.open("/rest/v1/data-points/data-source/" + dsXid + ".csv", '_self');
+	 window.open("/rest/v1/data-points/data-source/" + dsXid + "?format=csv", '_self');
 	 return;
  }
  

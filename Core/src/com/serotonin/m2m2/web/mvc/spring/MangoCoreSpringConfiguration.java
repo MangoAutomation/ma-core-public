@@ -112,5 +112,4 @@ public class MangoCoreSpringConfiguration implements BeanFactoryAware{
 	public BeanFactory getBeanFactory(){
 		return this.beanFactory;
 	}
-	
 }
