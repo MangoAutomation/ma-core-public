@@ -28,6 +28,7 @@
         }
     });
   </script>
+  <spring:htmlEscape defaultHtmlEscape="true" /> 
   <table cellspacing="0" cellpadding="0" border="0">
     <tr>
       <td>
