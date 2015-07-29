@@ -197,7 +197,9 @@ return status
 
 <h3>isDataPointEnabled(xid)</h3>
 xid - Xid for a data point
-return true if enabled false if not or DNE
+return true if enabled false if not or DNE or User does not have permissions
+<b>Note: </b> a disabled data point is a data point that is not collecting data, which can be due to either the point 
+being disabled or its data source being disabled.
 
 <h3>enableDataPoint(xid)</h3>
 xid - Xid for a data point

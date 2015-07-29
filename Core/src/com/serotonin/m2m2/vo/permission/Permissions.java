@@ -142,7 +142,7 @@ public class Permissions {
         if(permissionContains(ds.getEditPermission(), userPermissions))
         	return true;
         else
-        	throw new PermissionException("No permission to data source with xid: " + ds.getXid() , null);
+        	return false;
     }
     
     
@@ -170,7 +170,7 @@ public class Permissions {
     	if (permissionContains(dsPermission, userPermissions))
             return true;
         else
-        	throw new PermissionException("No read permission to data point with xid: " + point.getXid() , null);
+        	return false;
     }
     
     public static void ensureDataPointSetPermission(User user, DataPointVO point) throws PermissionException {
@@ -202,7 +202,7 @@ public class Permissions {
     	if (permissionContains(dsPermission, userPermissions))
             return true;
         else
-        	throw new PermissionException("No set permission to data point with xid: " + point.getXid() , null);
+        	return false;
     }
     
     public static int getDataPointAccessType(User user, IDataPoint point) {

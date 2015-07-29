@@ -12,7 +12,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
@@ -42,13 +41,17 @@ public class RuntimeManagerScriptUtility{
 	public boolean isDataSourceEnabled(String xid){
 		
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		//This will throw an exception if there is no permission
-		Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo);
 		
 		if(vo == null)
 			return false;
-		else
-			return vo.isEnabled();
+		else{
+			//This will throw an exception if there is no permission
+			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
+				return vo.isEnabled();
+			else
+				return false;
+		}
+
 	}
 	
 	/**
@@ -61,15 +64,17 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-			Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo);
-			vo.setEnabled(true);
-			try{
-				Common.runtimeManager.saveDataSource(vo);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-				throw e;
-			}
-			return OPERATION_SUCCESSFUL;
+			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo)){
+				vo.setEnabled(true);
+				try{
+					Common.runtimeManager.saveDataSource(vo);
+				}catch(Exception e){
+					LOG.error(e.getMessage(), e);
+					throw e;
+				}
+				return OPERATION_SUCCESSFUL;
+			}else
+				return DOES_NOT_EXIST; //No permissions
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -84,35 +89,42 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-			Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo);
-			vo.setEnabled(false);
-			try{
-				Common.runtimeManager.saveDataSource(vo);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-				throw e;
-			}
-			return OPERATION_SUCCESSFUL;
+			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo)){
+				vo.setEnabled(false);
+				try{
+					Common.runtimeManager.saveDataSource(vo);
+				}catch(Exception e){
+					LOG.error(e.getMessage(), e);
+					throw e;
+				}
+				return OPERATION_SUCCESSFUL;
+			}else
+				return DOES_NOT_EXIST; //No permissions
 		}else
 			return OPERATION_NO_CHANGE;
 	}
 	
 	/**
 	 * Is a data point enabled?
+	 * 
+	 * A point is enabled if both the data source and point are enabled.
+	 * 
 	 * @param xid
 	 * @return true if it is, false if it is not
 	 */
 	public boolean isDataPointEnabled(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		try{
-			Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo);
-		}catch(PermissionException e){
-			Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), vo);
-		}
 		if(vo == null)
 			return false;
-		else
-			return vo.isEnabled();
+		else{
+			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo) || Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), vo)){
+				DataSourceVO<?> ds = DataSourceDao.instance.get(vo.getDataSourceId());
+				if(ds == null)
+					return false;
+				return (ds.isEnabled() && vo.isEnabled());
+			}else
+				return false;
+		}
 	}
 	
 	/**
@@ -125,15 +137,17 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-			Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo);
-			vo.setEnabled(true);
-			try{
-				Common.runtimeManager.saveDataPoint(vo);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-				throw e;
-			}
-			return OPERATION_SUCCESSFUL;
+			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo)){
+				vo.setEnabled(true);
+				try{
+					Common.runtimeManager.saveDataPoint(vo);
+				}catch(Exception e){
+					LOG.error(e.getMessage(), e);
+					throw e;
+				}
+				return OPERATION_SUCCESSFUL;
+			}else
+				return DOES_NOT_EXIST; //No permissions
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -148,15 +162,17 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null)
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-			Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo);
-			vo.setEnabled(false);
-			try{
-				Common.runtimeManager.saveDataPoint(vo);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-				throw e;
-			}
-			return OPERATION_SUCCESSFUL;
+			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo)){
+				vo.setEnabled(false);
+				try{
+					Common.runtimeManager.saveDataPoint(vo);
+				}catch(Exception e){
+					LOG.error(e.getMessage(), e);
+					throw e;
+				}
+				return OPERATION_SUCCESSFUL;
+			}else
+				return DOES_NOT_EXIST; //No permissions
 		}else
 			return OPERATION_NO_CHANGE;
 	}

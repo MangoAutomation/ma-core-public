@@ -19,7 +19,6 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
@@ -50,18 +49,14 @@ public class DataSourceQuery{
 		BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.instance.createQuery(root);
 		
 		List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
-		
 		List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
+
 		//Filter on permissions
 		for(DataSourceVO<?> ds : dataSources){
-			try{
-				if(Permissions.hasDataSourcePermission(permissions.getDataPointReadPermissions(), ds)){
-					
-					List<DataPointWrapper> points = getPointsForSource(ds);
-					results.add(new DataSourceWrapper(ds, points));
-				}
-
-			}catch(PermissionException e){ }
+			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), ds)){
+				List<DataPointWrapper> points = getPointsForSource(ds);
+				results.add(new DataSourceWrapper(ds, points));
+			}
 		}
 		return results;
 	}

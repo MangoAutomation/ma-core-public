@@ -17,7 +17,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
@@ -55,29 +54,22 @@ public class DataPointQuery{
 		List<DataPointVO> dataPoints = sqlQuery.immediateQuery();
 		
 		List<DataPointWrapper> results = new ArrayList<DataPointWrapper>();
+
 		//Filter on permissions
+		DataPointRT rt = null;
+		AbstractPointWrapper wrapper = null;
+		
 		for(DataPointVO dp : dataPoints){
-			try{
-				if(Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), dp)){
-					DataPointRT rt = null;
-					AbstractPointWrapper wrapper = null;
-					try{
-						if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), dp)){
-							rt = Common.runtimeManager.getDataPoint(dp.getId());
-							if(rt != null)
-								wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
-						}
-					}catch(PermissionException e){
-						//No Write but read
-						rt = Common.runtimeManager.getDataPoint(dp.getId());
-						if(rt != null)
-							wrapper = ScriptUtils.wrapPoint(engine, rt);
-					}
-					results.add(new DataPointWrapper(dp, wrapper));
-				}
-			}catch(PermissionException e){ }
-				
-				
+			
+			//Can we read or write to this point?
+			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), dp) || Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), dp)){
+				rt = Common.runtimeManager.getDataPoint(dp.getId());
+				if(rt != null)
+					wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
+				else
+					wrapper = null;
+				results.add(new DataPointWrapper(dp, wrapper));
+			}
 		}
 		return results;
 	}
