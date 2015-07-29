@@ -181,7 +181,8 @@ The enable/disable methods return a status of:
   <li>1 - Operation successful</li>
 </ul>
 
-
+Available Methods:
+<hr></hr>
 <h3>isDataSourceEnabled(xid)</h3>
 xid - Xid for a data source
 return true if enabled false if not or DNE
@@ -210,19 +211,57 @@ return status
 Data points can be queried by using the <b>DataPointQuery</b> utility.  This utility has one method:
 <code>DataPointQuery.query(stringRql);</code>
 
-The DataPointWrapper returned has some of the basic information on a data point in addition to the
-Runtime member which is the same as the Object that wraps the context points for a script.
+<h3>DataPointWrapper</h3>
+<p>The DataPointWrapper returned has some of the basic information on a data point in addition to the
+Runtime member which is the same as the Object that wraps the context points for a script. 
+ The following are members of the DataPointWrapper Object: </p>
+<ul>
+  <li>extendedName - String</li>
+  <li>settable - Boolean</li>
+  <li>deviceName - String</li>
+  <li>enabled - Boolean</li>
+  <li>xid - String</li>
+  <li>name - String</li>
+  <li>unit - String</li>
+  <li>dataSourceName - String</li>
+  <li>dataSourceXid - String</li>
+  <li>runtime - Point Context object</li>
+</ul>
+<p>Note: The runtime is the object you would expect to see by adding a point to the script context.  This is the object 
+that contains the .ago(), .past() and .prev() methods as described above.  Use caution as this member is null if the data point is not enabled.</p>
 
 <h3>RQL</h3>
 <p>
-<b>RQL</b> is a query language that is highly flexible, more info <a href="https://github.com/persvr/rql" target="rql">here</a>.
+RQL is a query language that is highly flexible, more info <a href="https://github.com/persvr/rql" target="rql">here</a>.
 For example to find all points with a name that starts with Volts use this query:
 <code>like(name, Volts*)</code>
-Note the use of the asterisk wildcard, this is the default for all Mango RQL.  Also to see what is available to use in the query go <a href="http://localhost:8080/rest/v1/data-points/explain-query" target="explain">here</a>.
-
+Note the use of the asterisk wildcard, this is the default for all Mango RQL.  
+Also to see what is available to use in the query go <a href="http://localhost:8080/rest/v1/data-points/explain-query" target="explain">here</a>.
 </p>
 
+<h3>RQL Examples</h3>
+<p>This example will query for a set of the first 10 data points who's names contain the word 'boiler' 
+and return an average their values.  There is an additional check to ensure that only points that are enabled are used.  Note that this could also be done in the RQL statement.</p>
+<code>
+var points = DataPointQuery.query('like(name, *boiler*)&amp;limit(10)');
+var average = 0.0;
 
+LOG.info('Found ' + points.size() + ' points to compute average.');
+
+for(var i=0; i&lt;points.size(); i++){
+  if(points.get(i).runtime !== null){
+    LOG.info('Adding ' + points.get(i).runtime.value + ' to the average.');
+    average = average + points.get(i).runtime.value;  
+  }
+}
+
+return average/points.size();
+</code>
+
+
+<h2>More Help</h2>
+<p>More examples of user created scripts can be found <a href="http://infiniteautomation.com/wiki/doku.php?id=automation:script_examples" target="wiki">here</a>.</p>
+<p>For general discussion on scripting in Mango see <a href="http://infiniteautomation.com/forum/category/14/scripting-general-discussion" target="forum">here</a>.</p>
 
 
 
