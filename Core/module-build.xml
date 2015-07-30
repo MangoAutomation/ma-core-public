@@ -130,10 +130,9 @@
                                 <include name="**/*.jspf" />
                                 <include name="**/*.tag" />
                                 <include name="**/*.tagf" />
-                                <include name="**/*.tld" />
                             </fileset>
                         </copy>
-
+                    	
                         <!-- Check if there is a tags lib -->
                         <if>
                             <isset property="tagdir" />
@@ -142,6 +141,12 @@
                                 <move todir="${core.target}/web/WEB-INF/tags/${name}">
                                     <fileset dir="${module.core}/${tagdir}" />
                                 </move>
+                            	<mkdir dir="${core.target}/web/WEB-INF/modules/${name}" />
+    	                        <copy todir="${core.target}/web/WEB-INF/modules/${name}" preservelastmodified="true">
+    	                            <fileset dir="web">
+    	                                <include name="**/*.tld" />
+    	                            </fileset>
+    	                        </copy>
                             </then>
                         </if>
 
@@ -276,6 +281,7 @@
                           <then>
                               <echo message="Deleting Tag work directory for module"/>
                               <delete dir="${core.target}/web/WEB-INF/tags/${name}" />
+                              <delete dir="${core.target}/web/WEB-INF/modules/${name}" />
                               <echo message="Deleting JSP work directory for module"/>
                               <delete dir="${core.target}/work/jsp/org/apache/jsp/modules/${name}" />                              
                           </then>
@@ -443,6 +449,13 @@
                         <include name="**/*" />
                     </fileset>
                 </copy>
+            	
+            	<mkdir dir="${core.target}/web/WEB-INF/modules/${name}" />
+            	<copy todir="${core.target}/web/WEB-INF/modules/${name}" preservelastmodified="true">
+            		<fileset dir="web">
+            			<include name="**/*.tld" />
+            		</fileset>
+            	</copy>
             </then>
         </if>
         <!-- Copy the compiled jsps into the core -->
