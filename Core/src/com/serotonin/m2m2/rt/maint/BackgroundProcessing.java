@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +22,8 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
 import com.serotonin.timer.TimerTask;
@@ -70,13 +73,19 @@ public class BackgroundProcessing implements ILifecycle {
 				return item.getDescription();
 			}
         };
-
+        try{
         if (item.getPriority() == WorkItem.PRIORITY_HIGH)
             Common.timer.execute(runnable);
         else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM)
             mediumPriorityService.execute(runnable);
         else
             lowPriorityService.execute(runnable);
+        }catch(RejectedExecutionException e){
+        	// Notify the event manager of the problem
+            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_REJECTED_WORK_ITEM), 
+            		System.currentTimeMillis(), false, new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()));
+        	throw e;
+        }
     }
 
     public int getMediumPriorityServiceQueueSize() {
