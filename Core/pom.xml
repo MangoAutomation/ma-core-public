@@ -455,6 +455,10 @@
             <artifactId>jstl</artifactId>
             <groupId>javax.servlet</groupId>
           </exclusion>
+          <exclusion>
+            <artifactId>javax.servlet.jsp-api</artifactId>
+            <groupId>javax.servlet.jsp</groupId>
+          </exclusion>
        </exclusions>
   </dependency>
   <dependency>
