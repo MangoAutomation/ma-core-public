@@ -409,12 +409,40 @@ public class Common {
 
     //
     // Misc
+    
+    private static List<CommPortProxy> ports;
+    //This will slow down startup by 1s or so on most systems
+    static{
+    	try {
+			ports = SerialUtils.getCommPorts();
+		} catch (CommPortConfigException e) {
+			//For sync blocks so we dont' get NPE
+			ports = new ArrayList<CommPortProxy>();
+		}
+    }
+    
+    /**
+     * Get the cached value for the comm port
+     * @return
+     * @throws CommPortConfigException
+     */
     public static List<CommPortProxy> getCommPorts() throws CommPortConfigException {
-        List<CommPortProxy> ports = SerialUtils.getCommPorts();
-
-        return ports;
+    	synchronized(ports){
+	        return ports;
+    	}
     }
 
+    /**
+     * Refresh the values for our Comm Ports
+     * @return
+     * @throws CommPortConfigException
+     */
+    public static void refreshCommPorts() throws CommPortConfigException {
+    	synchronized(ports){
+    		ports = SerialUtils.getCommPorts();
+    	}
+    }    
+    
     public synchronized static String encrypt(String plaintext) {
         try {
             String alg = envProps.getString("security.hashAlgorithm", "SHA");

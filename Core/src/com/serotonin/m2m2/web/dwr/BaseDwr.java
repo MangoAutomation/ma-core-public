@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.dwr;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -27,6 +28,8 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.IllegalFieldValueException;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.io.serial.CommPortConfigException;
+import com.serotonin.io.serial.CommPortProxy;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ILifecycle;
@@ -752,5 +755,19 @@ abstract public class BaseDwr {
         }
 
         return result;
+    }
+    
+    @DwrPermission(user = true)
+    public Set<String> refreshCommPorts() throws CommPortConfigException{
+
+    	Set<String> portNames = new HashSet<String>();
+
+		Common.refreshCommPorts();
+    	List<CommPortProxy> ports = Common.getCommPorts();
+    	for(CommPortProxy proxy : ports){
+    		portNames.add(proxy.getName());
+    	}
+    	
+    	return portNames;
     }
 }

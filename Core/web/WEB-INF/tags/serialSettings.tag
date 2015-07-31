@@ -11,13 +11,15 @@
         <span class="formError">${commPortError}</span>
       </c:when>
       <c:otherwise>
-        <input id="commPortId" type="text" value="${dataSource.commPortId}"/><br/>
+        <input id="commPortId" type="text" value="${dataSource.commPortId}"/><br/> 
         <sst:select id="commPortIds" value="${dataSource.commPortId}">
           <c:forEach items="${commPorts}" var="port">
             <sst:option value="${port.name}">${port.name}</sst:option>
           </c:forEach>
         </sst:select>
+        <tag:img id='commPortsLoadingImg' src="/images/hourglass.png" style='display: none;'/>
         <tag:img src="/images/arrow-turn-090-left.png" onclick="$set('commPortId', $get('commPortIds'))"/>
+        <tag:img id='commPortRefreshButton' src="/images/arrow_refresh.png" onclick="reloadCommPorts('commPortIds', 'commPortsLoadingImg')" title='common.refreshCommPorts'/>
       </c:otherwise>
     </c:choose>
   </td>

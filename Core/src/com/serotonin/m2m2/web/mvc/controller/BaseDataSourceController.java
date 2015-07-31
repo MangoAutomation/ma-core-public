@@ -36,7 +36,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  */
 public abstract class BaseDataSourceController extends ParameterizableViewController {
-
+	
     BaseDataSourceController(String viewName, String errorViewName) {
         setViewName(viewName);
         setErrorViewName(errorViewName);

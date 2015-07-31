@@ -1214,3 +1214,36 @@ function PermissionUI(dwr) {
         this.viewPermissions(textNodeId);
     }
 }
+
+/**
+ * Method to reload comm ports into the select list
+ * @param selectId
+ */
+function reloadCommPorts(selectId, loadingId){
+
+	//Remove all values from list
+	var select = document.getElementById(selectId);
+	var loadingImg = document.getElementById(loadingId);
+	select.style.display = 'none';
+	while(select.options.length > 0){
+		select.options.remove(0);
+	}
+	
+	//Show the loading image
+	loadingImg.style.display = null;
+
+	//Display Loading image
+
+	MiscDwr.refreshCommPorts(function(portNames){
+		for(var i=0; i < portNames.length; i++){
+			var name = portNames[i];
+			var option = document.createElement('option');
+			option.text = name;
+			option.value = name;
+			select.add(option);
+		}
+		loadingImg.style.display = 'none';
+		select.style.display = null;
+		
+	});
+}
