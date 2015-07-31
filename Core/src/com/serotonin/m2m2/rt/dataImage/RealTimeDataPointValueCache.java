@@ -35,6 +35,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  * Available properties defined in RealTimeDataPointValue
  * 
+ * Changes to data point configurations are only picked up when the point hierarchy is saved.
+ * 
  * @author Terry Packer
  *
  */
@@ -103,9 +105,10 @@ public class RealTimeDataPointValueCache {
 		List<RealTimeDataPointValue> results = new ArrayList<RealTimeDataPointValue>();
 
 		for(RealTimeDataPointValue rtdpv : this.realTimeData){
-			if(!Permissions.hasPermission(rtdpv.getReadPermission(), permissions))
-				continue; //Only query those points we can keep
-			results.add(rtdpv);
+			
+			//Do we have set or read permissions for this point?
+			if(Permissions.hasPermission(rtdpv.getSetPermission(), permissions) || Permissions.hasPermission(rtdpv.getReadPermission(), permissions))
+				results.add(rtdpv);
 		}
 		
 		return results;
