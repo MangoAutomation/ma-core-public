@@ -206,15 +206,14 @@
             </classpath>
         </taskdef>
         <!-- If we have modules installed we need to collect their jars too -->
-
+    	<mkdir dir="${core.target}/work/jsp" />
         <jasper2 validateXml="false"
                  uriroot="${core.target}/web"
                  webXmlFragment="${core.target}/web/WEB-INF/generated_web.xml"
-                 addWebXmlMappings="true"
-                 outputDir="${core.target}/work/jsp-src"
+                 addWebXmlMappings="false"
+                 outputDir="${core.target}/work/jsp"
                  verbose="1">
         </jasper2>
-        <mkdir dir="${core.target}/work/jsp" />
         <javac destdir="${core.target}/work/jsp"
                debug="true"
                debuglevel="lines,vars,source"
@@ -224,7 +223,7 @@
                includeantruntime="false"
                source="1.7"
                target="1.7">
-            <src path="${core.target}/work/jsp-src" />
+            <src path="${core.target}/work/jsp" />
             <classpath>
                 <path refid="master-classpath" />
                 <pathelement path="${core.target}/classes" />
@@ -232,12 +231,6 @@
                 <!-- need to add all module libs to the classpath -->
             </classpath>
         </javac>
-        <!-- Copy the compiled files back into our classes folder -->
-        <copy todir="${core.target}/classes" preservelastmodified="true">
-            <fileset dir="${core.target}/work/jsp">
-                <include name="**/*.class" />
-            </fileset>
-        </copy>
     </target>
 
     <target name="jar"
@@ -391,11 +384,10 @@
         </taskdef>
         <!-- If we have modules installed we need to collect their jars too -->
         <mkdir dir="${core.target}/work/jsp" />
-        <mkdir dir="${core.target}/work/jsp-src" />
         <jasper2 validateXml="false"
                  uriroot="${coreHome}/web"
                  addWebXmlMappings="false"
-                 outputDir="${core.target}/work/jsp-src"
+                 outputDir="${core.target}/work/jsp"
                  verbose="1">
         </jasper2>
 
@@ -408,7 +400,7 @@
                includeantruntime="false"
                source="1.7"
                target="1.7">
-            <src path="${core.target}/work/jsp-src" />
+            <src path="${core.target}/work/jsp" />
             <classpath>
                 <path refid="master-classpath" />
                 <pathelement path="${coreHome}/classes" />
@@ -416,12 +408,6 @@
                 <path refid="module-libs" />
             </classpath>
         </javac>
-        <!-- Copy the compiled files back into our classes folder REALLY? -->
-        <copy todir="${coreHome}/maven-target/classes" preservelastmodified="true">
-            <fileset dir="${core.target}/work/jsp">
-                <include name="**/*.class" />
-            </fileset>
-        </copy>
     </target>
 
 
