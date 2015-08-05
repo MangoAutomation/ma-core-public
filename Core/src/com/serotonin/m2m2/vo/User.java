@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.vo;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -15,12 +16,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonReader;
+import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.json.spi.JsonSerializable;
+import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -32,7 +39,7 @@ import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.validation.StringValidation;
 
-public class User implements SetPointSource, HttpSessionBindingListener /* , JsonSerializable */{
+public class User implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
     private int id = Common.NEW_ID;
     @JsonProperty
     private String username;
@@ -424,4 +431,29 @@ public class User implements SetPointSource, HttpSessionBindingListener /* , Jso
             return false;
         return true;
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
+	 */
+	@Override
+	public void jsonWrite(ObjectWriter writer) throws IOException,
+			JsonException {
+		
+		writer.writeEntry("receiveAlarmEmails", AlarmLevels.CODES.getCode(receiveAlarmEmails));
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
+	 */
+	@Override
+	public void jsonRead(JsonReader reader, JsonObject jsonObject)
+			throws JsonException {
+		
+		String text = jsonObject.getString("recieveAlarmEmails");
+		if(text != null){
+			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
+		}
+		
+	}
 }
