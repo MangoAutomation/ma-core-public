@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.LicenseDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.license.ModuleLicense;
@@ -64,7 +65,7 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
     public void licenseCheck(boolean initialization) {
         if (initialization) {
             ERRORS.clear();
-            if(shouldScheduleTimeout()){
+            if(shouldScheduleTimeout()&&(this.task == null)){
             	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy HH:mm:ss");
             	Date shutdownTime = new Date(System.currentTimeMillis() + this.runtime);
             	final String shutdownString = sdf.format(shutdownTime);
@@ -73,13 +74,16 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
                 ERRORS.add(new TranslatableMessage("module.notLicensed"));
                 
                 final TimedExpiryChecker checker = new TimedExpiryChecker(getModule().getName(), this.runtime, this.action);
+                ModuleRegistry.addLicenseEnforcement(checker);
+                
         		this.task = new TimerTask(new FixedRateTrigger(timeoutRecheckPeriod, timeoutRecheckPeriod)){
         			private boolean alarmRaised = false;
         			private SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_LICENSE_CHECK, 0,
 	    	                EventType.DuplicateHandling.ALLOW);
+        			private TimedExpiryChecker tec = checker; 
         			@Override
         			public void run(long runtime) {
-        				checker.isExpired();
+        				tec.isExpired();
         				//Raise a warning the first time we check.
         				if(!alarmRaised){
         					
@@ -99,6 +103,9 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
         			
         		};
                 Common.timer.schedule(task);
+            }else{
+            	if(task != null)
+	        		task.cancel();
             }
         }else{
         	if(!shouldScheduleTimeout())
@@ -114,7 +121,8 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
      * @return
      */
     protected boolean shouldScheduleTimeout(){
-    	ModuleLicense license = getModule().license();
+    	//Check the license from the registry in case it changed 
+    	ModuleLicense license = ModuleRegistry.getModule(this.getModule().getName()).license();
     	return (license == null) || (license.getLicenseType().equals("free"));
     }
     
