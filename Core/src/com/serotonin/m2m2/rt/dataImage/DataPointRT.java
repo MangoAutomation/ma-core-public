@@ -472,6 +472,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         return vo;
     }
 
+    public List<PointEventDetectorRT> getEventDetectors(){
+    	return this.detectors;
+    }
+    
     @Override
     public int getDataTypeId() {
         return vo.getPointLocator().getDataTypeId();

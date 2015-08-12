@@ -50,7 +50,7 @@ public class PointChangeDetectorRT extends PointEventDetectorRT {
     }
 
     @Override
-    protected boolean isEventActive() {
+	public boolean isEventActive() {
         return false;
     }
 }

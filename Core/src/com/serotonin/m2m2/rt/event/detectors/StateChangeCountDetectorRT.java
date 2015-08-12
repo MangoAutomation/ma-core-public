@@ -41,7 +41,7 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT {
     }
 
     @Override
-    protected boolean isEventActive() {
+	public boolean isEventActive() {
         return eventActive;
     }
 

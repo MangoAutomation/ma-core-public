@@ -48,9 +48,13 @@ abstract public class PointEventDetectorRT implements DataPointListener {
         return context;
     }
 
+    public PointEventDetectorVO getVO(){
+    	return this.vo;
+    }
+    
     abstract protected TranslatableMessage getMessage();
 
-    abstract protected boolean isEventActive();
+    public abstract boolean isEventActive();
 
     //
     //

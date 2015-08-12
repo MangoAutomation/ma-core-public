@@ -20,7 +20,7 @@ abstract public class DifferenceDetectorRT extends TimeDelayedEventDetectorRT {
     protected long lastChange;
 
     @Override
-    protected boolean isEventActive() {
+	public boolean isEventActive() {
         return eventActive;
     }
 

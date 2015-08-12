@@ -52,7 +52,7 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT {
     }
 
     @Override
-    protected boolean isEventActive() {
+	public boolean isEventActive() {
         return eventActive;
     }
 
