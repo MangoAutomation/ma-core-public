@@ -48,16 +48,17 @@ public class WorkItemMonitor extends TimerTask {
             "internal.monitor.DB_ACTIVE_CONNECTIONS");
     private final IntegerMonitor dbIdleConnections = new IntegerMonitor(DB_IDLE_CONNECTIONS_MONITOR_ID,
             "internal.monitor.DB_IDLE_CONNECTIONS");
-    
-    private final IntegerMonitor javaFreeMemory = new IntegerMonitor("java.lang.Runtime.freeMemory",
-            "java.monitor.JAVA_FREE_MEMORY");
-    private final IntegerMonitor javaHeapMemory = new IntegerMonitor("java.lang.Runtime.totalMemory",
-            "java.monitor.JAVA_HEAP_MEMORY");
+
+
     private final IntegerMonitor javaMaxMemory = new IntegerMonitor("java.lang.Runtime.maxMemory",
             "java.monitor.JAVA_MAX_MEMORY");
+    private final IntegerMonitor javaUsedMemory = new IntegerMonitor("java.lang.Runtime.usedMemory",
+            "java.monitor.JAVA_USED_MEMORY");
+    private final IntegerMonitor javaFreeMemory = new IntegerMonitor("java.lang.Runtime.freeMemory",
+            "java.monitor.JAVA_FREE_MEMORY");
     private final IntegerMonitor javaAvailableProcessors = new IntegerMonitor("java.lang.Runtime.availableProcessors",
             "java.monitor.JAVA_PROCESSORS");
-
+    
     private final int mb = 1024*1024;
     
     private WorkItemMonitor() {
@@ -71,7 +72,6 @@ public class WorkItemMonitor extends TimerTask {
         Common.MONITORED_VALUES.addIfMissingStatMonitor(dbActiveConnections);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(dbIdleConnections);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaFreeMemory);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(javaHeapMemory);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaMaxMemory);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaAvailableProcessors);
 
@@ -110,9 +110,9 @@ public class WorkItemMonitor extends TimerTask {
         dbIdleConnections.setValue(Common.databaseProxy.getIdleConnections());
         
         //In MB
-        javaFreeMemory.setValue((int)(Runtime.getRuntime().freeMemory()/mb));
-        javaHeapMemory.setValue((int)(Runtime.getRuntime().totalMemory()/mb));
-        javaMaxMemory.setValue((int)(Runtime.getRuntime().maxMemory()/mb));
-        
+        Runtime rt = Runtime.getRuntime();
+        javaMaxMemory.setValue((int)(rt.maxMemory()/mb));
+        javaUsedMemory.setValue((int)(rt.totalMemory()/mb) -(int)(rt.freeMemory()/mb));   
+        javaFreeMemory.setValue(javaMaxMemory.intValue() - javaUsedMemory.intValue());
     }
 }

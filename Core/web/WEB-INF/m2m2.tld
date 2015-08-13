@@ -86,6 +86,46 @@
     </attribute>
   </tag>
   <tag>
+    <name>hasPermission</name>
+    <tag-class>com.serotonin.m2m2.web.taglib.HasPermissionTag</tag-class>
+    <body-content>JSP</body-content>
+    <attribute>
+      <name>permissions</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>permissionDefinitions</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>user</name>
+      <required>true</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag>
+  <tag>
+    <name>hasNoPermission</name>
+    <tag-class>com.serotonin.m2m2.web.taglib.HasNoPermissionTag</tag-class>
+    <body-content>JSP</body-content>
+    <attribute>
+      <name>permissions</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>permissionDefinitions</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>user</name>
+      <required>true</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag>
+  <tag>
     <name>menuItem</name>
     <tag-class>com.serotonin.m2m2.web.taglib.MenuItemTag</tag-class>
     <body-content>empty</body-content>
