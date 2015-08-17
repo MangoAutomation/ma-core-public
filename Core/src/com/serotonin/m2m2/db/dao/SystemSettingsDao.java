@@ -121,8 +121,8 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PERMISSION_DATASOURCE = "permissionDatasource";
     
     //Background Processing
-    public static final String HIGH_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
-    public static final String HIGH_PRI_MAX_POOL_SIZE = "mediumPriorityThreadMaximumPoolSize";
+    public static final String HIGH_PRI_CORE_POOL_SIZE = "highPriorityThreadCorePoolSize";
+    public static final String HIGH_PRI_MAX_POOL_SIZE = "highPriorityThreadMaximumPoolSize";
     
     public static final String MED_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
     public static final String MED_PRI_MAX_POOL_SIZE = "mediumPriorityThreadMaximumPoolSize";
