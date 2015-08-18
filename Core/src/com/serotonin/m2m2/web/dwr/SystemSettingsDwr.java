@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;
@@ -224,6 +225,12 @@ public class SystemSettingsDwr extends BaseDwr {
             modulePermissions.add(permission);
         }
 
+        //Thread Pool Settings
+        settings.put(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE));
+        settings.put(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE));
+        settings.put(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE));
+        settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
+        
         return settings;
     }
 
@@ -284,6 +291,44 @@ public class SystemSettingsDwr extends BaseDwr {
         systemSettingsDao.setIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE, contentType);
     }
 
+    @DwrPermission(admin = true)
+    public ProcessResult saveThreadPoolSettings(int highPriorityCorePoolSize, int highPriorityMaxPoolSize, 
+    		int medPriorityCorePoolSize, int lowPriorityCorePoolSize) {
+        ProcessResult response = new ProcessResult();
+        
+        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
+        
+        if(highPriorityCorePoolSize > 0){
+        	systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
+        	executor.setCorePoolSize(highPriorityCorePoolSize);
+        }else{
+        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        }
+        
+        if(highPriorityMaxPoolSize >= highPriorityCorePoolSize){
+            systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, highPriorityMaxPoolSize);
+            executor.setMaximumPoolSize(highPriorityMaxPoolSize);
+        }else{
+        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+        }
+        
+        if(medPriorityCorePoolSize > 0){
+        	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, medPriorityCorePoolSize);
+        	Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(medPriorityCorePoolSize);
+        }else{
+        	response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        }
+
+        if(lowPriorityCorePoolSize > 0){
+        	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);
+        	Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(lowPriorityCorePoolSize);
+        }else{
+        	response.addContextualMessage(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        }
+        return response;
+    }
+    
     @DwrPermission(admin = true)
     public Map<String, Object> sendTestEmail(String host, int port, String from, String name, boolean auth,
             String username, String password, boolean tls, int contentType) {
@@ -396,6 +441,7 @@ public class SystemSettingsDwr extends BaseDwr {
             systemSettingsDao.setValue(p.getKey(), p.getValue());
     }
 
+    
     @DwrPermission(admin = true)
     public ProcessResult saveColourSettings(String chartBackgroundColour, String plotBackgroundColour,
             String plotGridlineColour) {

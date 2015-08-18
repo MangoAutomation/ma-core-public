@@ -141,6 +141,13 @@
             $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_ENABLED %>"/>);                
 
+            //Thread Pools
+           $set("<c:out value="<%= SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE %>"/>);                
+           $set("<c:out value="<%= SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE %>"/>);                
+           $set("<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>);                
+           $set("<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>);                
+
+            
             //
             // Permissions
             $set("<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>", settings.<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>);
@@ -295,6 +302,23 @@
                 });
         setUserMessage("emailMessage");
         startImageFader("sendTestEmailImg");
+    }
+    
+    function saveThreadPoolSettings() {
+        SystemSettingsDwr.saveThreadPoolSettings(
+            $get("<c:out value="<%= SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE %>"/>"),
+            $get("<c:out value="<%= SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE %>"/>"),
+            $get("<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>"),
+            $get("<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>"),
+            function(response) {
+                setDisabled("saveThreadPoolSettingsBtn", false);
+                if (response.hasMessages)
+                    showDwrMessages(response.messages);
+                else
+                	setUserMessage("threadPoolMessage", "<fmt:message key="systemSettings.threadPools.settingsSaved"/>");
+            });
+        setUserMessage("threadPoolMessage");
+        setDisabled("saveThreadPoolSettingsBtn", true);
     }
     
     function updateAlarmLevel(eventType, eventSubtype, alarmLevel) {
@@ -831,6 +855,42 @@
       </tr>
       
       <tr><td colspan="2" id="httpMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
+
+  <tag:labelledSection labelKey="systemSettings.threadPools" closed="true">
+  <table>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="systemSettings.threadPools.highPriorityCorePoolSize"/></td>
+      <td class="formField">
+        <input id="<c:out value="<%= SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE %>"/>" type="number"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="systemSettings.threadPools.highPriorityMaximumPoolSize"/></td>
+      <td class="formField">
+        <input id="<c:out value="<%= SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE %>"/>" type="number"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="systemSettings.threadPools.mediumPriorityCorePoolSize"/></td>
+      <td class="formField">
+        <input id="<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>" type="number"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="systemSettings.threadPools.lowPriorityCorePoolSize"/></td>
+      <td class="formField">
+        <input id="<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>" type="number"/>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+        <input id="saveThreadPoolSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveThreadPoolSettings()"/>
+        <tag:help id="threadPoolSettings"/>
+      </td>
+    </tr>
+    <tr><td colspan="2" id="threadPoolMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
   

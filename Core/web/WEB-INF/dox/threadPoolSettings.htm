@@ -1,0 +1,41 @@
+<!--
+    Copyright (C) 2015 Infinite Automation Systems Inc. All rights reserved.
+    @author Terry Packer
+-->
+<h2>Overview</h2>
+<p>Mango processes units of work referred to as 'work items'.  There are 3 priority levels for the work items: low, medium, and high. When a work item is processed it is assigned to 
+a thread pool corresponding to its priority.
+</p>
+<h2>High Priority Thread Pool</h2>
+<p>Mango's high priority pool is the only pool that can grow and shrink dynamically. The <b>core pool size</b> is the number of threads that will remain around to process work.  If more work is required to be done than 
+there are threads in the pool, Mango will create new threads up to <b>maximum pool size</b>.  When the maximum pool size threads have been reached, work will be discarded.  It is important for large systems to configure their 
+thread pools properly because too large of a pool can cause system crashes while too small may not be able to perform all work.  
+</p>
+
+<h3>High Priority Tasks</h3>
+<ul>
+<li>Data Source Polls</li>
+<li>BACnet device polling</li>
+<li>Database batch writes</li>
+<li>Event Handler Processes</li>
+<li>Setting a data point's value</li>
+<li>Http Image Retriever</li>
+</ul>
+
+<h2>Low and Medimum Priority Thread Pools</h2>
+<p>These pools begin empty and will grow up to <b>core pool size</b>.  Once the pool has reached its core size it will not grow any larger and the existing threads 
+wiil wait in the pool for work.  If not enough threads are availble for the pool to do work, the task will be queued.  This queue can grow unbounded.</p>
+
+<h3>Medium Priority Tasks</h3>
+<ul>
+<li>Event Notify - When a data point value is saved or updated anything in mango that needs to know about it receives its message via this Work Item </li>
+<li>Backup Tasks</li>
+</ul>
+
+<h3>Low Priority Tasks</h3>
+<ul>
+<li>Reports</li>
+<li>NoSQL Backups</li>
+<li>Email</li>
+<li>User Event Listeners</li>
+</ul>

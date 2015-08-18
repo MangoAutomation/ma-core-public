@@ -144,4 +144,7 @@
   <item id="mangoJavaScriptUnits" key="dox.mangoJavaScriptUnits" filename="mangoJavaScriptUnits.htm">
   	<relation id="mangoJavaScript"/>
   </item>  
+  
+  <item id="threadPoolSettings" key="dox.threadPoolSettings" filename="threadPoolSettings.htm"></item>
+  
 </doxManifest>
