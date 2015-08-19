@@ -377,7 +377,8 @@ public class Permissions {
             }
         }
 
-        
+        if(d.getAllGroups().size() == 0)
+        	return null;
         
         return d;
     }

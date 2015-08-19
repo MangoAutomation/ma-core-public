@@ -701,17 +701,56 @@ BaseUIComponent.prototype.showPermissionList = function(event){
 	var self = this;
 	var inputNode = event.data.inputNode;
 	
-	this.api.getAllUserGroups(inputNode.val()).then(function(groups){
+	//this.api.getAllUserGroups(inputNode.val()).then(function(groups){
+	this.api.getAllPermissionsInformation(inputNode.val()).then(function(userPermissions){
 
 		if (self.permissionsDialog !== null)
             self.permissionsDialog.destroy();
-		var content = "";
-		if (groups.length === 0)
-		    content = self.tr('common.permissions.noMoreGroups');
-		else {
-		    for (var i=0; i<groups.length; i++)
-		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
+		
+		//Generate the Content
+		var content = '<table class="userPerms">';
+		for (var i=0; i<userPermissions.length; i++) {
+			content += '<tr><td>';
+			if (userPermissions[i].admin)
+				content += '<img src="/images/user_suit.png"/> ';
+			else if (userPermissions[i].access)
+				content += '<img src="/images/tick.png"/> ';
+			else
+				content += '<img src="/images/cross.png"/> ';
+			
+			content += '</td><td class="permUser">'+ userPermissions[i].username +'</td><td>';
+			
+			for (var j=0; j<userPermissions[i].allGroups.length; j++) {
+				var p = userPermissions[i].allGroups[j];
+				var matched = false;
+				for (var k=0; k<userPermissions[i].matchingGroups.length; k++) {
+					if (p == userPermissions[i].matchingGroups[k]) {
+						matched = true;
+						break;
+					}
+				}
+				
+				if (j > 0)
+					content += ",";
+				
+				if (matched)
+					content += "<b>"+ p +"</b>";
+				else
+					content += "<a id='perm-"+ self.escapeQuotes(p) +"' class='ptr groupStr'>"+ p +"</a>";
+			}
+			
+			content += "</td></tr>";
 		}
+		content += "</table>";
+		
+		
+//		var content = "";
+//		if (groups.length === 0)
+//		    content = self.tr('common.permissions.noMoreGroups');
+//		else {
+//		    for (var i=0; i<groups.length; i++)
+//		        content += "<a id='perm-"+ self.escapeQuotes(groups[i]) +"' class='ptr permissionStr'>"+ groups[i] +"</a>";
+//		}
 		
 		var closeDialog = function() {
             Popup.close(self.permissionsDialog);
@@ -721,22 +760,23 @@ BaseUIComponent.prototype.showPermissionList = function(event){
             self.dispatchEvent(inputNode[0], 'change', true);
 		};
 		
+
 		self.permissionsDialog = new TooltipDialog({
-            id: 'permissionsTooltipDialog',
+            //id: 'permissionsTooltipDialog',
             content: content,
             onMouseLeave: closeDialog,
             // have to set onBlur because mouseleave event is not called when list is resized and cursor
             // is outside its new area
             onBlur: closeDialog
         });
-        
+		
         Popup.open({
             popup: self.permissionsDialog,
             around: inputNode[0]
         });
 		
         //Assign onclick to all links and send in the group in the data of the event
-		$('.permissionStr').each(function(i){
+		$('.groupStr').each(function(i){
 			$(this).on('click', {inputNode: inputNode, group: $(this).attr('id').substring(5)}, self.addGroup.bind(self));
 		});
 	});
