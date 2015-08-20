@@ -22,12 +22,14 @@ UsersView.prototype.userPicker = null;
 UsersView.prototype.switchUserPicker = null;
 UsersView.prototype.timezoneStore = null;
 UsersView.prototype.newUser = false; //Flag to indicate we are adding a user
+UsersView.prototype.loadedUsername  = null; //Used when updating the user due to the REST url mapping being the Username
 
 
 /**
  * Do the heavy lifting of setting up the view
  */
 UsersView.prototype.setupView = function(){
+	
 	this.fillUserInputs = this.fillUserInputs.bind(this);
 	
 	//this.errorDiv = $('#userErrors');
@@ -144,6 +146,8 @@ UsersView.prototype.fillUserInputs = function(userData){
 		usernameInput.prop('disabled', false);
 	usernameInput.val(userData.username);
 	
+	this.loadedUsername = userData.username;
+	
 	$('#email').val(userData.email);
 	$('#phone').val(userData.phone);
 	$('#muted').prop('checked', userData.muted);
@@ -207,9 +211,10 @@ UsersView.prototype.saveUser = function(){
 			self.showSuccess(self.tr('users.added'));
 			self.newUser = false;
 		}).fail(this.showError);
-	else
-		this.api.putUser(user).then(function(result){
+	else //We are updating a user, we must use the existing username for the url
+		this.api.putUser(user, this.loadedUsername).then(function(result){
 			self.showSuccess(self.tr('users.saved'));
+			self.loadedUsername = result.username; //Update our path reference
 		}).fail(this.showError);
 };
 
