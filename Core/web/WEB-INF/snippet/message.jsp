@@ -109,20 +109,19 @@ String[] mangoMessageKeys = {
 	    "pointEdit.detectors.regexState",
 	    "pointEdit.detectors.range",
         "pointEdit.detectors.smoothness",
-	    
 	    "pointEdit.logging.period",
-	    
-	    "pointEdit.logging.tolerance",
-	    
+	    "pointEdit.logging.tolerance",	    
 	    "pointEdit.logging.type",
 	    "pointEdit.logging.type.change",
 	    "pointEdit.logging.type.all",
 	    "pointEdit.logging.type.never",
 	    "pointEdit.logging.type.interval",
-	    "pointEdit.logging.type.tsChange",
-      
+	    "pointEdit.logging.type.tsChange",     
 	    "pointEdit.template.templateName",  
-      
+        
+        "filter.byReadPermissions",
+        "filter.bySetPermissions",
+        
         "table.confirmDelete.DataSource",
         "table.confirmDelete.DataPoint",
         "table.confirmDelete.AllDataPoints",

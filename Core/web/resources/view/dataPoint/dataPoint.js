@@ -39,6 +39,8 @@ dataPoints = new StoreView({
               {attribute: "deviceName", descending:true},
               {attribute: "name", descending:true},
               {attribute: "dataTypeString", descending: true},
+              {attribute: "setPermission", descending: true},
+              {attribute: "readPermission", descending: true}
               ],
     
     columns: {
@@ -181,7 +183,98 @@ dataPoints = new StoreView({
 				return div;
     		},
     	 },
-    	
+    	 setPermission: {
+     		label: mangoMsg['filter.bySetPermissions'],
+      		sortable: false,
+      		renderHeaderCell: function(th){
+      			
+  				var div = domConstruct.create("div");
+  				var input = new TextBox({
+  					name: 'inputText',
+  					placeHolder: 'filter text',
+  					style: "width: 10em",
+  					intermediateChanges: true,
+  				});
+  				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['filter.bySetPermissions'],});
+  				domConstruct.place(label,div);
+  				input.placeAt(div);
+  				input.watch("value",function(name,oldValue,value){
+  					
+  					if(value == '')
+  						delete dataPoints.filter['setPermission'];
+  					else
+  						dataPoints.filter['setPermission'] = new RegExp("^.*"+value+".*$");
+  					
+  					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+  					dataPoints.grid.set('query',dataPoints.filter);
+  				});
+  				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+  				on(sortLink,'click',function(event){
+  					
+  					//Flip through the list to see if we already have an order?
+  					for(var i =0; i<dataPoints.sortMap.length; i++){
+  						if(dataPoints.sortMap[i].attribute === "setPermission"){
+  							dataPoints.sortMap[i].descending = !dataPoints.sortMap[i].descending;
+  							break;
+  						}
+  					}
+  					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+  					var options = {};
+  					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
+  					
+  					dataPoints.grid.set("query",dataPoints.filter,options);
+  				});
+     				domConstruct.place(sortLink,div);
+
+  				return div;
+      		},
+     	 },
+    	 readPermission: {
+    		label: mangoMsg['filter.byReadPermissions'],
+      		sortable: false,
+      		renderHeaderCell: function(th){
+      			
+  				var div = domConstruct.create("div");
+  				var input = new TextBox({
+  					name: 'inputText',
+  					placeHolder: 'filter text',
+  					style: "width: 10em",
+  					intermediateChanges: true,
+  				});
+  				var label = domConstruct.create("span",{style: "padding-right: 5px", innerHTML: mangoMsg['filter.byReadPermissions'],});
+  				domConstruct.place(label,div);
+  				input.placeAt(div);
+  				input.watch("value",function(name,oldValue,value){
+  					
+  					if(value == '')
+  						delete dataPoints.filter['readPermission'];
+  					else
+  						dataPoints.filter['readPermission'] = new RegExp("^.*"+value+".*$");
+  					
+  					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+  					dataPoints.grid.set('query',dataPoints.filter);
+  				});
+  				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
+  				on(sortLink,'click',function(event){
+  					
+  					//Flip through the list to see if we already have an order?
+  					for(var i =0; i<dataPoints.sortMap.length; i++){
+  						if(dataPoints.sortMap[i].attribute === "readPermission"){
+  							dataPoints.sortMap[i].descending = !dataPoints.sortMap[i].descending;
+  							break;
+  						}
+  					}
+  					dataPoints.filter.dataSourceId = dataPointsDataSourceId;
+  					var options = {};
+  					options.sort = [{attribute: dataPoints.sortMap[i].attribute, descending: dataPoints.sortMap[i].descending}];
+  					
+  					dataPoints.grid.set("query",dataPoints.filter,options);
+  				});
+     				domConstruct.place(sortLink,div);
+
+  				return div;
+      		},
+    	 },
     },
     
     //Add any columns from the data source
