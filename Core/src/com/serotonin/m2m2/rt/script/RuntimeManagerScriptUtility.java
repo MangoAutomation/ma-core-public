@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -31,6 +32,38 @@ public class RuntimeManagerScriptUtility{
 	private ScriptPermissions permissions;
 	public RuntimeManagerScriptUtility(ScriptPermissions permissions){
 		this.permissions = permissions;
+	}
+	
+	/**
+	 * Refresh a data point with the given XID.
+	 * 
+	 * 
+	 * 
+	 * @param xid
+	 * @return status of operation
+	 * 0 - Point not enabled
+	 * -1 - Point does not exist
+	 * 1 - Refresh performed 
+	 */
+	public int refreshPoint(String xid){
+		
+		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		
+		if(vo != null){
+			
+			if(!vo.isEnabled())
+				return OPERATION_NO_CHANGE;
+			
+			DataSourceRT dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
+			if(dsRt == null)
+				return OPERATION_NO_CHANGE;
+			
+			Common.runtimeManager.forcePointRead(vo.getId());
+			return OPERATION_SUCCESSFUL;
+			
+		}else
+			return DOES_NOT_EXIST;
+		
 	}
 	
 	/**

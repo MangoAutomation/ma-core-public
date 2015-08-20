@@ -183,6 +183,18 @@ The enable/disable methods return a status of:
 
 Available Methods:
 <hr></hr>
+<h3>refreshDataPoint(xid)</h3>
+Refreshing a data point suggests to the Data Source that the point value should be collected ASAP.  This will only happen if the underlying 
+data source has implemented this functionality.
+
+xid - Xid for data point
+returns:
+<ul>
+  <li>-1 - Point does not exist</li>
+  <li>0 - Point is not enabled</li>
+  <li>1 - Suggestion made to data source</li>
+</ul>
+
 <h3>isDataSourceEnabled(xid)</h3>
 xid - Xid for a data source
 return true if enabled false if not or DNE
