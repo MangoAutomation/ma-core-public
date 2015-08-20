@@ -37,15 +37,13 @@ public class RuntimeManagerScriptUtility{
 	/**
 	 * Refresh a data point with the given XID.
 	 * 
-	 * 
-	 * 
 	 * @param xid
 	 * @return status of operation
 	 * 0 - Point not enabled
 	 * -1 - Point does not exist
 	 * 1 - Refresh performed 
 	 */
-	public int refreshPoint(String xid){
+	public int refreshDataPoint(String xid){
 		
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
 		
