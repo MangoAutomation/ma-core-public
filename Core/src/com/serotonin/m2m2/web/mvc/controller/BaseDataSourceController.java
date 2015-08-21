@@ -17,7 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
-import com.serotonin.io.serial.CommPortConfigException;
+import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -178,9 +178,9 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
 
         // Reference data
         try {
-            model.put("commPorts", Common.getCommPorts());
+            model.put("commPorts", Common.serialPortManager.getFreeCommPorts());
         }
-        catch (CommPortConfigException e) {
+        catch (SerialPortConfigException e) {
             model.put("commPortError", e.getMessage());
         }
 

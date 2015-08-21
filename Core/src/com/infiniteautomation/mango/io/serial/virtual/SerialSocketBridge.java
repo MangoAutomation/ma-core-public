@@ -1,4 +1,8 @@
-package com.serotonin.m2m2.rt.serial;
+/**
+ * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * @author Terry Packer
+ */
+package com.infiniteautomation.mango.io.serial.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,28 +12,37 @@ import java.net.Socket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.io.serial.SerialPortException;
-import com.serotonin.io.serial.SerialPortInputStream;
-import com.serotonin.io.serial.SerialPortOutputStream;
-import com.serotonin.io.serial.SerialPortProxy;
+import com.infiniteautomation.mango.io.serial.SerialPortException;
+import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
+import com.infiniteautomation.mango.io.serial.SerialPortInputStream;
+import com.infiniteautomation.mango.io.serial.SerialPortOutputStream;
+import com.infiniteautomation.mango.io.serial.SerialPortProxy;
 
 /**
- * Class to allow virtual comm port to connect to a TCP/IP Port
+ * Class to connect a serial port to a Client Socket/Inet Address
+ * 
  * @author tpacker
  *
  */
-public class EthernetComBridge extends SerialPortProxy{
+public class SerialSocketBridge extends SerialPortProxy{
 
-	private final static Log LOG = LogFactory.getLog(EthernetComBridge.class);
+	private final static Log LOG = LogFactory.getLog(SerialSocketBridge.class);
 	 
 	private String address;
 	private int port;
-	private int timeout = 1000;
+	private int timeout = 1000; //in milliseconds
 	
 	private Socket socket;
 	
-	public EthernetComBridge(String address, int port, int timeout) {
-		super("ethernet-bridge");
+	/**
+	 * 
+	 * @param id
+	 * @param address
+	 * @param port
+	 * @param timeout (in ms)
+	 */
+	SerialSocketBridge(SerialPortIdentifier id, String address, int port, int timeout) {
+		super(id);
 		this.address = address;
 		this.port = port;
 		this.timeout = timeout;
@@ -84,7 +97,7 @@ public class EthernetComBridge extends SerialPortProxy{
 	@Override
 	public SerialPortInputStream getInputStream() {
 		try{
-			return new EthernetComBridgeInputStream(this.socket.getInputStream());
+			return new SerialSocketBridgeInputStream(this.socket.getInputStream());
 		}catch(IOException e){
 			LOG.error(e.getMessage(), e);
 			return null;
@@ -94,7 +107,7 @@ public class EthernetComBridge extends SerialPortProxy{
 	@Override
 	public SerialPortOutputStream getOutputStream() {
 		try{
-			return new EthernetComBridgeOutputStream(this.socket.getOutputStream());
+			return new SerialSocketBridgeOutputStream(this.socket.getOutputStream());
 		}catch(IOException e){
 			LOG.error(e.getMessage(), e);
 			return null;

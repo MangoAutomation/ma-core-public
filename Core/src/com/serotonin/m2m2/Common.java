@@ -37,11 +37,9 @@ import org.joda.time.Period;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
-import com.serotonin.io.serial.CommPortConfigException;
-import com.serotonin.io.serial.CommPortProxy;
-import com.serotonin.io.serial.SerialUtils;
 import com.serotonin.json.JsonContext;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -94,6 +92,7 @@ public class Common {
     public static BackgroundProcessing backgroundProcessing;
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
+    public static SerialPortManager serialPortManager;
 
     public static String applicationLogo = "/images/logo.png";
     public static String applicationFavicon = "/images/favicon.ico";
@@ -406,43 +405,9 @@ public class Common {
             throw new ShouldNeverHappenException(e);
         }
     }
-
+    
     //
     // Misc
-    
-    private static List<CommPortProxy> ports;
-    //This will slow down startup by 1s or so on most systems
-    static{
-    	try {
-			ports = SerialUtils.getCommPorts();
-		} catch (CommPortConfigException e) {
-			//For sync blocks so we dont' get NPE
-			ports = new ArrayList<CommPortProxy>();
-		}
-    }
-    
-    /**
-     * Get the cached value for the comm port
-     * @return
-     * @throws CommPortConfigException
-     */
-    public static List<CommPortProxy> getCommPorts() throws CommPortConfigException {
-    	synchronized(ports){
-	        return ports;
-    	}
-    }
-
-    /**
-     * Refresh the values for our Comm Ports
-     * @return
-     * @throws CommPortConfigException
-     */
-    public static void refreshCommPorts() throws CommPortConfigException {
-    	synchronized(ports){
-    		ports = SerialUtils.getCommPorts();
-    	}
-    }    
-    
     public synchronized static String encrypt(String plaintext) {
         try {
             String alg = envProps.getString("security.hashAlgorithm", "SHA");

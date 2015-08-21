@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import com.infiniteautomation.mango.io.serial.SerialPortManager;
+import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;
+import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -230,6 +233,15 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE));
         settings.put(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE));
         settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
+        
+        //Virtual Serial Ports
+        @SuppressWarnings("unchecked")
+		List<SerialSocketBridgeConfig> list = (List<SerialSocketBridgeConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.serialSocketBridgeKey,
+                new TypeDefinition(List.class, SerialSocketBridgeConfig.class));
+        if (list != null){
+        	settings.put("serialSocketBridgeConfigs", list);
+        }
+        
         
         return settings;
     }

@@ -234,6 +234,10 @@
       <param name="include" value="message"/>
     </convert>
     
+    <convert converter="bean" match="com.infiniteautomation.mango.io.serial.SerialPortIdentifier">
+      <param name="include" value="name,type"/>
+    </convert>    
+    
     <convert converter="bean" match="com.serotonin.m2m2.rt.console.LogEvent" />
     <convert converter="bean" match="com.serotonin.m2m2.rt.script.ScriptContextVariable" />
     

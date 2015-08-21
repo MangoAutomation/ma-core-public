@@ -1,16 +1,26 @@
-package com.serotonin.m2m2.rt.serial;
+/**
+ * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * @author Terry Packer
+ */
+package com.infiniteautomation.mango.io.serial.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.infiniteautomation.mango.io.serial.SerialPortInputStream;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.io.serial.SerialPortInputStream;
 
-public class EthernetComBridgeInputStream extends SerialPortInputStream{
+/**
+ * Class for the input stream of a serial port to a Client Socket/Inet Address
+ * 
+ * @author Terry Packer
+ *
+ */
+public class SerialSocketBridgeInputStream extends SerialPortInputStream{
 
 	private InputStream stream;
 	
-	public EthernetComBridgeInputStream(InputStream is){
+	public SerialSocketBridgeInputStream(InputStream is){
 		this.stream = is;
 	}
 	

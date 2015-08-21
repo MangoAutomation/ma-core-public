@@ -151,6 +151,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 defaulter.updateDefaultValues(dp);
         }
 
+        Common.getUser().setEditPoint(dp);
         return dp;
     }
 
