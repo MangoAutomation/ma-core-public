@@ -6,6 +6,8 @@ package com.infiniteautomation.mango.io.serial.virtual;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
 import com.infiniteautomation.mango.io.serial.SerialPortProxy;
 import com.serotonin.json.JsonException;
@@ -14,6 +16,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.ExportCodes;
 
@@ -40,12 +43,17 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
     	this.type = type;
     }
 	
+    public VirtualSerialPortConfig(){ }
+    
 	@JsonProperty
 	private String portName;
 	
 	private int type;
 	
-	
+	public void validate(ProcessResult response){
+		 if (StringUtils.isBlank(portName))
+	            response.addContextualMessage("portName", "validate.required");
+	}
 	
     public String getPortName() {
 		return portName;
@@ -67,12 +75,15 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	
 	@Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	String text = jsonObject.getString("portType");
+    	String text = jsonObject.getString("type");
         if (text != null) {
             type = PORT_TYPE_CODES.getId(text);
             if (type == -1)
-                throw new TranslatableJsonException("emport.error.invalid", "portType", text,
+                throw new TranslatableJsonException("emport.error.invalid", "type", text,
                         PORT_TYPE_CODES.getCodeList());
+        }else{
+        	 throw new TranslatableJsonException("emport.error.missing", "type", text,
+                     PORT_TYPE_CODES.getCodeList());
         }
     }
     
@@ -81,5 +92,36 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 			JsonException {
         writer.writeEntry("type", PORT_TYPE_CODES.getCode(type));
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((portName == null) ? 0 : portName.hashCode());
+		result = prime * result + type;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VirtualSerialPortConfig other = (VirtualSerialPortConfig) obj;
+		if (portName == null) {
+			if (other.portName != null)
+				return false;
+		} else if (!portName.equals(other.portName))
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
 	
+    
+    
 }

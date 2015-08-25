@@ -147,6 +147,7 @@
            $set("<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>);                
            $set("<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>);                
 
+           displayVirtualSerialPorts(settings.virtualSerialPorts)
             
             //
             // Permissions
@@ -632,8 +633,130 @@
         }
         permissionUI.viewPermissions(permId);
     }
+    
+    //Virtual Serial Ports
+    var virtualPorts;
+    var editingVirtualSerialPortId = -1;
+    
+    function displayVirtualSerialPorts(ports){
+    	//Set the global reference
+    	virtualPorts = ports;
+    	
+    	//Quickly add an id
+    	for(var i=0; i<ports.length; i++){
+    		ports[i].id = i;
+    	}
+        dwr.util.removeAllRows("virtualCommPortsTable");
+        dwr.util.addRows("virtualCommPortsTable", ports, [
+                function(p) { return "<img id='dv"+ p.id +"Img' src='/images/item.png'/>"; },
+                function(p) { return "<a class='link ptr virtual-comm' id='"+ p.id +"'>"+ p.portName + ' --> ' + p.address +"</a>"; }
+        ]);
+        
+        require(["dojo/query", "dojo/on"], function(query, on) {
+            query(".virtual-comm").forEach(function(e) {
+                on(e, "click", function() { showVirtualCommPort(e.id); });        	
+            });
+        });
+    	
+    }
+    
+    /**
+     * Add a port 
+     */
+    function saveVirtualSerialPort(){
+    	
+    	var port = {
+    		type: $get('virtualSerialPortType'),
+    		portName: $get('virtualSerialPortName'),
+    		
+    		//Type Specific section
+    		address: $get('virtualSerialPortAddress'),
+    		port: $get('virtualSerialPortPort'),
+    		timeout: $get('virtualSerialPortTimeout')
+    	};
+    	
+    	//Update one
+    	if(editingVirtualSerialPortId > 0){
+    		SystemSettingsDwr.updateSerialSocketBridge(port, function(result){
+        		if (result.hasMessages)
+                    showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
+                else {
+                	if (editingDeviceId == "") {
+                        stopImageFader($("dv"+ editingDeviceId +"Img"));
+                        editingDeviceId = result.data.device.id;
+                	}
+                	
+                    displayVirtualSerialPorts(result.data.ports);
+                    startImageFader($("dv"+ editingDeviceId +"Img"));
+                    setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortsaved"/>");
+                    displayVirtualSerialPorts(result.data.ports);
+                }
+        	});  
+    	}else{
+    		//Save new one
+        	SystemSettingsDwr.addSerialSocketBridge(port, function(result){
+        		if (result.hasMessages)
+                    showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
+                else {
+                	if (editingDeviceId == "") {
+                        stopImageFader($("dv"+ editingDeviceId +"Img"));
+                        editingDeviceId = result.data.device.id;
+                	}
+                    setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortsaved"/>");
+                    displayVirtualSerialPorts(result.data.ports);
+                }
+        	});    		
+    	}
+    }
+    function removeVirtualSerialPort(){
+    	//Remove
+    	var serialPortId = editingVirtualSerialPortId;
+    	startImageFader("deleteImg");
+    	var port = virtualPorts[serialPortId];
+    	
+    	SystemSettingsDwr.removeSerialSocketBridge(port, function(result){
+    		
+    		if (result.hasMessages)
+                showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
+            else {
+            	 stopImageFader("dv"+ serialPortId +"Img");
+                 hide("virtualSerialPortConfigDiv");
+                 editingVirtualSerialPortId = null;
+                 displayVirtualSerialPorts(result.data.ports);
+             }
+    	});   
+    }
+    
+    function showVirtualCommPort(id){
+    	
+    	editingVirtualSerialPortId = id;
+    	if(id < 0){
+    		//Clear out inputs
+    		$set('virtualSerialPortName');
+    		//Not yet set('virtualSerialPortType');
+    		$set('virtualSerialPortAddress', 'localhost');
+    		$set('virtualSerialPortPort', 9000);
+    		$set('virtualSerialPortTimeout', 0);
+    		show('virtualSerialPortConfigDiv');
+    		hide("deleteImg")
+    	}else{
+    		stopImageFader($("dv"+ id +"Img"));
+    		var port = virtualPorts[id];
+    		$set('virtualSerialPortName', port.portName);
+    		//Not yet set('virtualSerialPortType');
+    		$set('virtualSerialPortAddress', port.address);
+    		$set('virtualSerialPortPort', port.port);
+    		$set('virtualSerialPortTimeout', port.timeout);
+    		startImageFader($("dv"+ id +"Img"));
+    		show('virtualSerialPortConfigDiv');
+    		show("deleteImg")
+    	}
+    	
+    	
+    }
+    
   </script>
-  
+
   <tag:labelledSection labelKey="systemSettings.systemInformation">
     <table>
       <tr>
@@ -688,6 +811,68 @@
       </tr>
       <tr><td colspan="2" id="infoMessage" class="formError"></td></tr>
     </table>
+  </tag:labelledSection>
+  
+  
+  <tag:labelledSection labelKey="systemSettings.comm.virtual.serialPorts" closed="true">
+  <div class="borderDiv marR" style="widthxx: 250px; float: left;">
+    <table>
+      <tr>
+        <td>
+          <span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialSocketBridge"/></span>
+          <tag:help id="serialSocketBridge"/>
+        </td>
+        <td align="right"><tag:img png="add" onclick="showVirtualCommPort('-1')" title="common.add"/></td>
+      </tr>
+    </table>
+    <table><tbody id="virtualCommPortsTable"></tbody></table>
+  </div>
+  <div id="virtualSerialPortConfigDiv" class="borderDiv" style="float:left; display:none;">
+    <table>
+      <tr>
+        <td><span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings"/></span></td>
+        <td align="right">
+          <tag:img png="save" onclick="saveVirtualSerialPort();" title="common.save"/>
+          <tag:img id="deleteImg" png="delete" onclick="removeVirtualSerialPort();" title="common.delete" style="display:none;"/>
+        </td>
+      </tr>
+    </table>
+            
+    <table><tbody id="virtualSerialPortGenericMessages"></tbody></table>
+          
+    <table id="virtualSerialPortConfigProps">
+      <tr>
+        <td colspan="2" id="virtualSerialPortMessage" class="formError"></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.commPortId"/></td>
+        <td class="formField"><input id="virtualSerialPortName" type="text"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialPorts.types"/></td>
+        <td class="formField">
+          <select id="virtualSerialPortType" disabled>
+            <option value="2" selected>
+              <fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialSocketBridge"/>
+            </option>
+          </select>
+        </td>
+      </tr>
+       <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.address"/></td>
+        <td class="formField"><input id="virtualSerialPortAddress" type="text" value="localhost"/></td>
+      </tr>     
+       <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.port"/></td>
+        <td class="formField"><input id="virtualSerialPortPort" type="text" value="9000"/></td>
+      </tr>     
+       <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.timeout"/></td>
+        <td class="formField"><input id="virtualSerialPortTimeout" type="number" value="0"/></td>
+      </tr>     
+   </table>
+  </div>   
+  <div class="clearfix"></div>
   </tag:labelledSection>
   
   <tag:labelledSection labelKey="systemSettings.systemPermissions" closed="true">

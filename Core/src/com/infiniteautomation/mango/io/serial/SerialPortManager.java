@@ -32,7 +32,7 @@ public class SerialPortManager {
 
 	private final Log LOG = LogFactory.getLog(SerialPortManager.class);
 
-	public static final String serialSocketBridgeKey = "comm.virtual.serialSocketBridge";
+	public static final String VIRTUAL_SERIAL_PORT_KEY = "comm.virtual.serial";
 	
 	private final ReadWriteLock lock;
     private final List<SerialPortIdentifier> freePorts;
@@ -111,7 +111,7 @@ public class SerialPortManager {
             
             //Collect any Virtual Comm Ports from the DB and load them in
             @SuppressWarnings("unchecked")
-			List<SerialSocketBridgeConfig> list = (List<SerialSocketBridgeConfig>) SystemSettingsDao.getJsonObject(serialSocketBridgeKey,
+			List<SerialSocketBridgeConfig> list = (List<SerialSocketBridgeConfig>) SystemSettingsDao.getJsonObject(VIRTUAL_SERIAL_PORT_KEY,
                     new TypeDefinition(List.class, SerialSocketBridgeConfig.class));
             if (list != null){
             	for(SerialSocketBridgeConfig config : list){

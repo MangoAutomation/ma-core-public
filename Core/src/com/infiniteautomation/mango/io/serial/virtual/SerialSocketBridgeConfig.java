@@ -26,6 +26,8 @@ public class SerialSocketBridgeConfig extends VirtualSerialPortConfig{
 	@JsonProperty
 	private int timeout;//in milliseconds
 	
+	
+	
 	/**
 	 * 
 	 * @param name
@@ -40,8 +42,12 @@ public class SerialSocketBridgeConfig extends VirtualSerialPortConfig{
 		this.timeout = timeout;
 	}
 	
+	public SerialSocketBridgeConfig() {}
 	
+	
+	@Override
 	public void validate(ProcessResult response){
+		super.validate(response);
 		if (timeout < 0)
             response.addContextualMessage("timeout", "validate.cannotBeNegative");
 		
