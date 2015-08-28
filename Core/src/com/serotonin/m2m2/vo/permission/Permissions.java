@@ -232,9 +232,13 @@ public class Permissions {
 
         if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT)){
             DataPointVO point = new DataPointDao().get(eventType.getDataPointId());
+            if(point == null)
+            	return false;
             return hasDataPointReadPermission(user, point);
         }else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE)){
         	DataSourceVO<?> ds = new DataSourceDao().get(eventType.getDataSourceId());
+        	if(ds == null)
+        		return false;
         	return hasDataSourcePermission(user, ds);
         }
 
