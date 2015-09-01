@@ -1303,7 +1303,7 @@
     </table>
   </tag:labelledSection>
   
-    <tag:labelledSection labelKey="systemSettings.databaseBackupSettings" closed="true">
+    <tag:labelledSection labelKey="systemSettings.H2DatabaseBackupSettings" closed="true">
     <table id="databaseBackupSettingsTab">
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.backupEnable"/></td>
