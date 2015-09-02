@@ -243,7 +243,10 @@ dataSources = new StoreView({
     			startImageFader("dsStatusImg", true);
     	}
     	
-    	startImageFader("toggleDataSource" + id, true);
+    	var dsInListView = dojo.byId("toggleDataSource" + id);
+        if(dsInListView !== null)
+        	startImageFader("toggleDataSource" + id, true);
+    	
     	DataSourceDwr.toggle(id, function(result) {
     		var dsEnabled = $("dataSource.enabled");
     		if(dsEnabled !== null)
@@ -261,8 +264,8 @@ dataSources = new StoreView({
                 }
                 if(typeof callback == 'function') callback(true);
             }else{
-                var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
-                if(dsInView !== null){
+                dsInListView = dojo.byId("toggleDataSource"+ result.data.id);
+                if(dsInListView !== null){
                     updateImg(
                             $("toggleDataSource"+ result.data.id),
                             mangoImg("database_stop.png"),

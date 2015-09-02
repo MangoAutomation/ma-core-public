@@ -32,7 +32,7 @@ dataPoints = new StoreView({
     defaultSort: [{attribute: "deviceName"},{attribute: "name"}],
     defaultQuery: {dataSourceId: [dataPointsDataSourceId]},
     closeEditOnSave: false,  /* We are managing this ourselves */
-    filter: new Array(),
+    filter: [],
     minRowsPerPage: 100,
     maxRowsPerPage: 100,
     sortMap: [
@@ -61,12 +61,12 @@ dataPoints = new StoreView({
     				input.placeAt(div);
     				input.watch("value",function(name,oldValue,value){
     					
-    					if(value == '')
-    						delete dataPoints.filter['deviceName'];
+    					if(value === '')
+    						delete dataPoints.filter.deviceName;
     					else
-    						dataPoints.filter['deviceName'] = new RegExp("^.*"+value+".*$");
+    						dataPoints.filter.deviceName = new RegExp("^.*"+value+".*$");
     					
-    					dataPoints.filter['dataSourceId'] = dataPointsDataSourceId;
+    					dataPoints.filter.dataSourceId = dataPointsDataSourceId;
     					dataPoints.grid.set('query',dataPoints.filter);
     				});
     				var sortLink  = domConstruct.create("span",{style: "padding-right: 5px; float: right", innerHTML:  "sort",});
@@ -482,10 +482,14 @@ dataPoints = new StoreView({
         if(dpInEditView !== null){
         	startImageFader("toggleDataPoint", true);
         }    	
-        //Is this point in the 
-        startImageFader("toggleDataPoint" + id, true);
+        //Is this point in the data source list view 
+        var dpInEditListView = dojo.byId("toggleDataPoint" + id);
+        if(dpInEditListView !== null)
+        	startImageFader("toggleDataPoint" + id, true);
         
-    	startImageFader("toggleAllDataPoints" + id, true);
+        var dpInAllListView = dojo.byId("toggleAllDataPoints" + id);
+        if(dpInAllListView !== null)
+        	startImageFader("toggleAllDataPoints" + id, true);
     	
     	var _this = this;
     	DataPointDwr.toggle(id, function(result) {
@@ -496,8 +500,13 @@ dataPoints = new StoreView({
             if(typeof(allDataPoints) != 'undefined')
             	allDataPoints.updateStatus(result.data.id,result.data.enabled);
             
-    		stopImageFader("toggleAllDataPoints" + id);
-    		stopImageFader("toggleDataPoint" + id);
+            dpInAllListView = dojo.byId("toggleAllDataPoints" + id);
+            if(dpInAllListView !== null)
+            	stopImageFader("toggleAllDataPoints" + id);
+            
+    		dpInEditListView = dojo.byId("toggleDataPoint" + id);
+            if(dpInEditListView !== null)
+            	stopImageFader("toggleDataPoint" + id);
     		
     		dpInEditView = dojo.byId("toggleDataPoint");
             if(dpInEditView !== null)

@@ -508,6 +508,7 @@ allDataPoints = new StoreView({
         	startImageFader("toggleDataPoint" + id, true);
         
     	startImageFader("toggleAllDataPoints" + id, true);
+    	
     	DataPointDwr.toggle(id, function(result) {
     		_this.updateStatus(result.data.id,result.data.enabled);
     		stopImageFader("toggleAllDataPoints" + id);
