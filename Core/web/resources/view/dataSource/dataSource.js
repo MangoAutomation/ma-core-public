@@ -238,16 +238,20 @@ dataSources = new StoreView({
 	            }
             }
     		return;
+    	}else{
+    		if(id == _this.currentId)
+    			startImageFader("dsStatusImg", true);
     	}
-
+    	
+    	startImageFader("toggleDataSource" + id, true);
     	DataSourceDwr.toggle(id, function(result) {
     		var dsEnabled = $("dataSource.enabled");
-    		if(dsEnabled != null)
+    		if(dsEnabled !== null)
     			$set("dataSource.enabled", result.data.enabled); //Save state on page
             if(result.data.enabled){
                 
                 var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
-                if(dsInView != null){
+                if(dsInView !== null){
                     updateImg(
                             $("toggleDataSource"+ result.data.id),
                             mangoImg("database_go.png"),
@@ -258,7 +262,7 @@ dataSources = new StoreView({
                 if(typeof callback == 'function') callback(true);
             }else{
                 var dsInView = dojo.byId("toggleDataSource"+ result.data.id);
-                if(dsInView != null){
+                if(dsInView !== null){
                     updateImg(
                             $("toggleDataSource"+ result.data.id),
                             mangoImg("database_stop.png"),
@@ -269,7 +273,7 @@ dataSources = new StoreView({
                 if(typeof callback == 'function') callback(false);
                 
             }
-            
+            stopImageFader("toggleDataSource" + id);
             /* Only Update the datasource image if we are editing this one */
             if(id == _this.currentId){
 	            var imgNode = $("dsStatusImg");

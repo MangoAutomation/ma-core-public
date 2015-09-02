@@ -477,13 +477,32 @@ dataPoints = new StoreView({
     	if(id<0)
     		return;
     	
+    	//Are we also editing this point?
+    	var dpInEditView = dojo.byId("toggleDataPoint");
+        if(dpInEditView !== null){
+        	startImageFader("toggleDataPoint", true);
+        }    	
+        //Is this point in the 
+        startImageFader("toggleDataPoint" + id, true);
+        
+    	startImageFader("toggleAllDataPoints" + id, true);
+    	
     	var _this = this;
     	DataPointDwr.toggle(id, function(result) {
+    		//TODO there is a known bug here that will change the color of the editing points light even 
+    		// if the data point that was toggled is no longer in the edit view.  
     		_this.updateStatus(result.data.id,result.data.enabled);
-    		
             //If the data points view is enabled, update that too
             if(typeof(allDataPoints) != 'undefined')
             	allDataPoints.updateStatus(result.data.id,result.data.enabled);
+            
+    		stopImageFader("toggleAllDataPoints" + id);
+    		stopImageFader("toggleDataPoint" + id);
+    		
+    		dpInEditView = dojo.byId("toggleDataPoint");
+            if(dpInEditView !== null)
+    			stopImageFader("toggleDataPoint");
+
 
         });
     },    
@@ -502,7 +521,7 @@ dataPoints = new StoreView({
         
     	var node = $("toggleDataPoint"+ id);
     	//Check to see if the node is visible
-    	if(node == null)
+    	if(node === null)
     		return;
         if(enabled){
             updateImg(

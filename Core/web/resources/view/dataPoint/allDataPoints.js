@@ -496,9 +496,29 @@ allDataPoints = new StoreView({
      */
     toggle: function(id) {
     	var _this = this;
+        
+    	//Are we also editing this point?
+    	var dpInEditView = dojo.byId("toggleDataPoint");
+        if(dpInEditView !== null){
+        	startImageFader("toggleDataPoint", true);
+        }    	
+        //Is this point in the data source list
+        var dpInView = dojo.byId("toggleDataPoint" + id);
+        if(dpInView !== null)
+        	startImageFader("toggleDataPoint" + id, true);
+        
+    	startImageFader("toggleAllDataPoints" + id, true);
     	DataPointDwr.toggle(id, function(result) {
     		_this.updateStatus(result.data.id,result.data.enabled);
-            
+    		stopImageFader("toggleAllDataPoints" + id);
+    		
+    		dpInView = dojo.byId("toggleDataPoint" + id);
+    		if(dpInView !== null)
+    			stopImageFader("toggleDataPoint" + id);
+    		
+    		dpInEditView = dojo.byId("toggleDataPoint");
+    		if(dpInEditView !== null)
+    			stopImageFader("toggleDataPoint");
             //If the data points view is enabled, update that too
             if(typeof(dataPoints) != 'undefined')
             	dataPoints.updateStatus(result.data.id,result.data.enabled);
