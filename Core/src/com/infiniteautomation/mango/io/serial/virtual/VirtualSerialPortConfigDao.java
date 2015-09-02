@@ -105,5 +105,18 @@ public class VirtualSerialPortConfigDao {
 			//Don't really care?
 		}
     }
+
+	/**
+	 * @param xid
+	 * @return
+	 */
+	public VirtualSerialPortConfig getByXid(String xid) {
+		List<VirtualSerialPortConfig> configs = getAll();
+		for(VirtualSerialPortConfig config : configs){
+			if(config.getXid().equals(xid))
+				return config;
+		}
+		return null;
+	}
 	
 }

@@ -664,7 +664,9 @@
      * Add a port 
      */
     function saveVirtualSerialPort(){
-    	
+    	hide("virtualSerialPortGenericMessages");
+    	hide("virtualSerialPortValidationMessages");
+
     	var port = {
     		xid: $get('virtualSerialPortXid'),
     		type: $get('virtualSerialPortType'),
@@ -680,12 +682,19 @@
  		
     	SystemSettingsDwr.saveSerialSocketBridge(port, function(result){
     		if (result.hasMessages)
-                showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
+                showDwrMessages(result.messages, "virtualSerialPortValidationMessages");
             else {
             	if(editingVirtualSerialPortXid !== -1)
             		stopImageFader("dv"+ editingVirtualSerialPortXid +"Img");
                 displayVirtualSerialPorts(result.data.ports);
-                setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortSaved"/>", 'virtualSerialPortGenericMessages');
+                
+                showDwrMessages([{
+               	 genericMessage: "<fmt:message key="systemSettings.comm.virtual.serialPortSaved"/>",
+               	 level: 'error'	 
+                }], 'virtualSerialPortGenericMessages');
+                
+                show("virtualSerialPortGenericMessages");
+                
                 displayVirtualSerialPorts(result.data.ports);
                 hide('virtualSerialPortConfigDiv');
                 stopImageFader("saveVirtualSerialPortImg");
@@ -696,19 +705,27 @@
 
     }
     function removeVirtualSerialPort(){
+    	hide("virtualSerialPortGenericMessages");
+    	hide("virtualSerialPortValidationMessages");
+    	
     	startImageFader("deleteImg");
     	var port = virtualPorts[editingVirtualSerialPortXid];
     	startImageFader("removeVirtualSerialPortImg", true);
     	SystemSettingsDwr.removeSerialSocketBridge(port, function(result){
     		
     		if (result.hasMessages)
-                showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
+                showDwrMessages(result.messages, "virtualSerialPortValidationMessages");
             else {
             	if(editingVirtualSerialPortXid !== -1)
             		stopImageFader("dv"+ editingVirtualSerialPortXid +"Img");
                  hide("virtualSerialPortConfigDiv");
                  stopImageFader("removeVirtualSerialPortImg");
-                 setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortRemoved"/>", 'virtualSerialPortGenericMessages');
+                 showDwrMessages([{
+                	 genericMessage: "<fmt:message key="systemSettings.comm.virtual.serialPortRemoved"/>",
+                	 level: 'error'	 
+                 }], 'virtualSerialPortGenericMessages');
+
+                 show("virtualSerialPortGenericMessages");
                  displayVirtualSerialPorts(result.data.ports);
                  editingVirtualSerialPortXid = -1;
              }
@@ -716,7 +733,7 @@
     }
     
     function showVirtualCommPort(xid){
-    	
+    	hide("virtualSerialPortGenericMessages");
     	if(editingVirtualSerialPortXid !== -1)
     		stopImageFader($("dv"+ editingVirtualSerialPortXid +"Img"));
     	
@@ -808,6 +825,7 @@
   
   
   <tag:labelledSection labelKey="systemSettings.comm.virtual.serialPorts" closed="true">
+  <table><tbody id="virtualSerialPortGenericMessages"></tbody></table>
   <div class="borderDiv marR" style="widthxx: 250px; float: left;">
     <table>
       <tr>
@@ -831,7 +849,7 @@
       </tr>
     </table>
             
-    <table><tbody id="virtualSerialPortGenericMessages"></tbody></table>
+    <table><tbody id="virtualSerialPortValidationMessages"></tbody></table>
           
     <table id="virtualSerialPortConfigProps">
       <tr>

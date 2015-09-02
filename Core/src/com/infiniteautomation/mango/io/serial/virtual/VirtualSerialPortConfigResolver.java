@@ -30,16 +30,28 @@ public class VirtualSerialPortConfigResolver implements TypeResolver {
         if (text == null)
             throw new TranslatableJsonException("emport.error.virtual.comm.missing", "type",
             		VirtualSerialPortConfig.PORT_TYPE_CODES);
-
-        int type = VirtualSerialPortConfig.PORT_TYPE_CODES.getId(text);
+        
+        return findClass(text);
+    }
+    
+    /**
+     * 
+     * @param typeStr
+     * @return
+     * @throws TranslatableJsonException
+     */
+    public static Class<?> findClass(String typeStr) throws TranslatableJsonException{
+        int type = VirtualSerialPortConfig.PORT_TYPE_CODES.getId(typeStr);
         if (!VirtualSerialPortConfig.PORT_TYPE_CODES.isValidId(type))
-            throw new TranslatableJsonException("emport.error.virtual.comm.invalid", "type", text,
+            throw new TranslatableJsonException("emport.error.virtual.comm.invalid", "type", typeStr,
             		VirtualSerialPortConfig.PORT_TYPE_CODES.getCodeList());
 
         if (type == VirtualSerialPortConfig.SerialPortTypes.JSSC)
             throw new ShouldNeverHappenException("JSSC Ports are not virtual");
+        
         if (type == VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE)
-            return SerialSocketBridgeConfig.class;
+            return SerialSocketBridgeConfig.class;   
+        
         return SerialSocketBridgeConfig.class;
     }
 }

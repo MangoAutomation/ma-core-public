@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
@@ -48,6 +49,8 @@ public class EmportDwr extends BaseDwr {
     public static final String PUBLISHERS = "publishers";
     public static final String SYSTEM_SETTINGS = "systemSettings";
     public static final String TEMPLATES = "templates";
+    public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
+    
 
     @DwrPermission(admin = true)
     public String createExportData(int prettyIndent, String[] exportElements) {
@@ -71,7 +74,8 @@ public class EmportDwr extends BaseDwr {
             data.put(SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettings());
         if (ArrayUtils.contains(exportElements, TEMPLATES))
             data.put(TEMPLATES, TemplateDao.instance.getAll());
-        
+        if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
+            data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
 
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if (ArrayUtils.contains(exportElements, def.getElementId()))
