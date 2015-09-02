@@ -13,6 +13,7 @@ var scriptSuffix = '/resources/loaderConfig.js';
 for (var i = scriptTags.length - 1; i >= 0; i--) {
     var script = scriptTags[i];
     var scriptSrc = script.getAttribute('src');
+    if (!scriptSrc) continue;
     
     if (scriptSrc.indexOf(scriptSuffix, scriptSrc.length - scriptSuffix.length) !== -1) {
         loader = script.getAttribute('data-loader') || 'RequireJS';
