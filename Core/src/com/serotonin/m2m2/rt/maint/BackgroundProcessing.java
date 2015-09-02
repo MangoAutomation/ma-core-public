@@ -49,12 +49,7 @@ public class BackgroundProcessing implements ILifecycle {
                     item.execute();
                 }
                 catch (Throwable t) {
-                    try {
-                        log.error("Error in work item", t);
-                    }
-                    catch (RuntimeException e) {
-                        t.printStackTrace();
-                    }
+                	log.error("Error in work item", t);
                 }
             }
 
@@ -74,12 +69,12 @@ public class BackgroundProcessing implements ILifecycle {
 			}
         };
         try{
-        if (item.getPriority() == WorkItem.PRIORITY_HIGH)
-            Common.timer.execute(runnable);
-        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM)
-            mediumPriorityService.execute(runnable);
-        else
-            lowPriorityService.execute(runnable);
+	        if (item.getPriority() == WorkItem.PRIORITY_HIGH)
+	            Common.timer.execute(runnable);
+	        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM)
+	            mediumPriorityService.execute(runnable);
+	        else
+	            lowPriorityService.execute(runnable);
         }catch(RejectedExecutionException e){
         	// Notify the event manager of the problem
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_REJECTED_WORK_ITEM), 
