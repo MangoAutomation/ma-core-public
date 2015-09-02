@@ -26,8 +26,6 @@ public class SerialSocketBridgeConfig extends VirtualSerialPortConfig{
 	@JsonProperty
 	private int timeout;//in milliseconds
 	
-	
-	
 	/**
 	 * 
 	 * @param name
@@ -35,8 +33,8 @@ public class SerialSocketBridgeConfig extends VirtualSerialPortConfig{
 	 * @param port
 	 * @param timeout (ms)
 	 */
-	public SerialSocketBridgeConfig(String name, String address, int port, int timeout){
-		super(name, SerialPortTypes.SERIAL_SOCKET_BRIDGE);
+	public SerialSocketBridgeConfig(String xid, String name, String address, int port, int timeout){
+		super(xid, name, SerialPortTypes.SERIAL_SOCKET_BRIDGE);
 		this.address = address;
 		this.port = port;
 		this.timeout = timeout;

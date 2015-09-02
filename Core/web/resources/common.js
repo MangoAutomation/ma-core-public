@@ -506,10 +506,10 @@ function ImageFader(/*element*/imgNode, /*milliseconds*/cycleRate, /*0<float<1*/
 }
 
 function startImageFader(node, disableOnclick) {
+    node = getNodeIfString(node);
     if (disableOnclick)
         this.disableOnclick(node);
     
-    node = getNodeIfString(node);
     var fader = new ImageFader(node);
     if (node.fader)
         stopImageFader(node);
@@ -525,8 +525,8 @@ function hasImageFader(node) {
 }
 
 function stopImageFader(node) {
-    enableOnclick(node);
     node = getNodeIfString(node);
+    enableOnclick(node);
     var fader = node.fader;
     if (fader) {
         fader.stop();

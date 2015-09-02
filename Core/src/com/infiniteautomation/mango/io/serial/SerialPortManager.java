@@ -260,8 +260,6 @@ public class SerialPortManager {
 		
 	}
 
-
-
 	/**
 	 * Ensure all ports are closed
 	 */

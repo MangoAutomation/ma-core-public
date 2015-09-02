@@ -636,20 +636,20 @@
     
     //Virtual Serial Ports
     var virtualPorts;
-    var editingVirtualSerialPortId = -1;
+    var editingVirtualSerialPortXid = -1;
     
     function displayVirtualSerialPorts(ports){
     	//Set the global reference
-    	virtualPorts = ports;
-    	
-    	//Quickly add an id
-    	for(var i=0; i<ports.length; i++){
-    		ports[i].id = i;
+    	virtualPorts = {};
+    	for(var i = 0; i<ports.length; i++){
+    		var port = ports[i];
+    		virtualPorts[port.xid] = port;
     	}
+    	
         dwr.util.removeAllRows("virtualCommPortsTable");
         dwr.util.addRows("virtualCommPortsTable", ports, [
-                function(p) { return "<img id='dv"+ p.id +"Img' src='/images/item.png'/>"; },
-                function(p) { return "<a class='link ptr virtual-comm' id='"+ p.id +"'>"+ p.portName + ' --> ' + p.address +"</a>"; }
+                function(p) { return "<img id='dv"+ p.xid +"Img' src='/images/item.png'/>"; },
+                function(p) { return "<a class='link ptr virtual-comm' id='"+ p.xid +"'>"+ p.portName + ' --> ' + p.address +"</a>"; }
         ]);
         
         require(["dojo/query", "dojo/on"], function(query, on) {
@@ -666,6 +666,7 @@
     function saveVirtualSerialPort(){
     	
     	var port = {
+    		xid: $get('virtualSerialPortXid'),
     		type: $get('virtualSerialPortType'),
     		portName: $get('virtualSerialPortName'),
     		
@@ -675,81 +676,73 @@
     		timeout: $get('virtualSerialPortTimeout')
     	};
     	
-    	//Update one
-    	if(editingVirtualSerialPortId > 0){
-    		SystemSettingsDwr.updateSerialSocketBridge(port, function(result){
-        		if (result.hasMessages)
-                    showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
-                else {
-                	if (editingDeviceId == "") {
-                        stopImageFader($("dv"+ editingDeviceId +"Img"));
-                        editingDeviceId = result.data.device.id;
-                	}
-                	
-                    displayVirtualSerialPorts(result.data.ports);
-                    startImageFader($("dv"+ editingDeviceId +"Img"));
-                    setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortsaved"/>");
-                    displayVirtualSerialPorts(result.data.ports);
-                }
-        	});  
-    	}else{
-    		//Save new one
-        	SystemSettingsDwr.addSerialSocketBridge(port, function(result){
-        		if (result.hasMessages)
-                    showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
-                else {
-                	if (editingDeviceId == "") {
-                        stopImageFader($("dv"+ editingDeviceId +"Img"));
-                        editingDeviceId = result.data.device.id;
-                	}
-                    setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortsaved"/>");
-                    displayVirtualSerialPorts(result.data.ports);
-                }
-        	});    		
-    	}
+    	startImageFader("saveVirtualSerialPortImg", true);
+ 		
+    	SystemSettingsDwr.saveSerialSocketBridge(port, function(result){
+    		if (result.hasMessages)
+                showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
+            else {
+            	if(editingVirtualSerialPortXid !== -1)
+            		stopImageFader("dv"+ editingVirtualSerialPortXid +"Img");
+                displayVirtualSerialPorts(result.data.ports);
+                setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortSaved"/>", 'virtualSerialPortGenericMessages');
+                displayVirtualSerialPorts(result.data.ports);
+                hide('virtualSerialPortConfigDiv');
+                stopImageFader("saveVirtualSerialPortImg");
+            	editingVirtualSerialPortXid = -1;
+            }
+ 		});
+    	
+
     }
     function removeVirtualSerialPort(){
-    	//Remove
-    	var serialPortId = editingVirtualSerialPortId;
     	startImageFader("deleteImg");
-    	var port = virtualPorts[serialPortId];
-    	
+    	var port = virtualPorts[editingVirtualSerialPortXid];
+    	startImageFader("removeVirtualSerialPortImg", true);
     	SystemSettingsDwr.removeSerialSocketBridge(port, function(result){
     		
     		if (result.hasMessages)
                 showDwrMessages(result.messages, "virtualSerialPortGenericMessages");
             else {
-            	 stopImageFader("dv"+ serialPortId +"Img");
+            	if(editingVirtualSerialPortXid !== -1)
+            		stopImageFader("dv"+ editingVirtualSerialPortXid +"Img");
                  hide("virtualSerialPortConfigDiv");
-                 editingVirtualSerialPortId = null;
+                 stopImageFader("removeVirtualSerialPortImg");
+                 setMessage("<fmt:message key="systemSettings.comm.virtual.serialPortRemoved"/>", 'virtualSerialPortGenericMessages');
                  displayVirtualSerialPorts(result.data.ports);
+                 editingVirtualSerialPortXid = -1;
              }
     	});   
     }
     
-    function showVirtualCommPort(id){
+    function showVirtualCommPort(xid){
     	
-    	editingVirtualSerialPortId = id;
-    	if(id < 0){
+    	if(editingVirtualSerialPortXid !== -1)
+    		stopImageFader($("dv"+ editingVirtualSerialPortXid +"Img"));
+    	
+    	editingVirtualSerialPortXid = xid;
+    	if(xid === -1){
     		//Clear out inputs
+    		$set('virtualSerialPortXid');
     		$set('virtualSerialPortName');
     		//Not yet set('virtualSerialPortType');
     		$set('virtualSerialPortAddress', 'localhost');
     		$set('virtualSerialPortPort', 9000);
     		$set('virtualSerialPortTimeout', 0);
     		show('virtualSerialPortConfigDiv');
-    		hide("deleteImg")
+    		hide("removeVirtualSerialPortImg")
     	}else{
-    		stopImageFader($("dv"+ id +"Img"));
-    		var port = virtualPorts[id];
+    		stopImageFader($("dv"+ xid +"Img"));
+    		var port = virtualPorts[xid];
+    		$set('virtualSerialPortXid', port.xid);
     		$set('virtualSerialPortName', port.portName);
     		//Not yet set('virtualSerialPortType');
     		$set('virtualSerialPortAddress', port.address);
     		$set('virtualSerialPortPort', port.port);
     		$set('virtualSerialPortTimeout', port.timeout);
-    		startImageFader($("dv"+ id +"Img"));
+    		startImageFader($("dv"+ xid +"Img"));
     		show('virtualSerialPortConfigDiv');
-    		show("deleteImg")
+    		show("removeVirtualSerialPortImg")
     	}
     	
     	
@@ -822,7 +815,7 @@
           <span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialSocketBridge"/></span>
           <tag:help id="serialSocketBridge"/>
         </td>
-        <td align="right"><tag:img png="add" onclick="showVirtualCommPort('-1')" title="common.add"/></td>
+        <td align="right"><tag:img png="add" onclick="showVirtualCommPort(-1)" title="common.add"/></td>
       </tr>
     </table>
     <table><tbody id="virtualCommPortsTable"></tbody></table>
@@ -832,8 +825,8 @@
       <tr>
         <td><span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings"/></span></td>
         <td align="right">
-          <tag:img png="save" onclick="saveVirtualSerialPort();" title="common.save"/>
-          <tag:img id="deleteImg" png="delete" onclick="removeVirtualSerialPort();" title="common.delete" style="display:none;"/>
+          <tag:img id="saveVirtualSerialPortImg" png="save" onclick="saveVirtualSerialPort();" title="common.save"/>
+          <tag:img id="removeVirtualSerialPortImg" png="delete" onclick="removeVirtualSerialPort();" title="common.delete" style="display:none;"/>
         </td>
       </tr>
     </table>
@@ -843,6 +836,10 @@
     <table id="virtualSerialPortConfigProps">
       <tr>
         <td colspan="2" id="virtualSerialPortMessage" class="formError"></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
+        <td class="formField"><input id="virtualSerialPortXid" type="text" disabled/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.commPortId"/></td>

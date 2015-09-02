@@ -13,13 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
-import com.infiniteautomation.mango.io.serial.SerialPortManager;
+import org.apache.commons.lang3.StringUtils;
+
 import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
-import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;
-import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -237,12 +236,7 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
         
         //Virtual Serial Ports
-        @SuppressWarnings("unchecked")
-		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
-                new TypeDefinition(List.class, VirtualSerialPortConfig.class));
-        if (list == null)
-        	list = new ArrayList<VirtualSerialPortConfig>();
-        settings.put("virtualSerialPorts", list);
+        settings.put("virtualSerialPorts", VirtualSerialPortConfigDao.instance.getAll());
         
         return settings;
     }
@@ -753,20 +747,18 @@ public class SystemSettingsDwr extends BaseDwr {
     }
     
     @DwrPermission(admin = true)
-    public ProcessResult addSerialSocketBridge(SerialSocketBridgeConfig config) {
+    public ProcessResult saveSerialSocketBridge(SerialSocketBridgeConfig config) {
     	
     	ProcessResult response = new ProcessResult();
+    	
+    	//If we don't have a unique XID then we need to generate one
+    	if(StringUtils.isEmpty(config.getXid()))
+    		config.setXid(VirtualSerialPortConfigDao.instance.generateUniqueXid());
+    	
     	config.validate(response);
     	
     	if(!response.getHasMessages()){
-            @SuppressWarnings("unchecked")
-    		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
-                    new TypeDefinition(List.class, VirtualSerialPortConfig.class));
-            if(list == null)
-            	list = new ArrayList<VirtualSerialPortConfig>();
-            list.add(config);
-            saveVirtualSerialPorts(list);
-            response.addData("ports", list);
+            response.addData("ports", VirtualSerialPortConfigDao.instance.save(config));
     	}
     		
     	
@@ -777,68 +769,9 @@ public class SystemSettingsDwr extends BaseDwr {
     public ProcessResult removeSerialSocketBridge(SerialSocketBridgeConfig config) {
     	
     	ProcessResult response = new ProcessResult();
-
-        @SuppressWarnings("unchecked")
-		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
-                new TypeDefinition(List.class, VirtualSerialPortConfig.class));
-        if(list != null){
-        	list.remove(config);
-        	saveVirtualSerialPorts(list);
-        	response.addData("ports", list);
-        }
-       
+    	response.addData("ports", VirtualSerialPortConfigDao.instance.remove(config));
     	
     	return response;
-    }
-
-    @DwrPermission(admin = true)
-    public ProcessResult updateSerialSocketBridge(SerialSocketBridgeConfig config) {
-    	
-    	ProcessResult response = new ProcessResult();
-
-    	config.validate(response);
-    	if(response.getHasMessages())
-    		return response;
-    	
-    	
-        @SuppressWarnings("unchecked")
-		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
-                new TypeDefinition(List.class, VirtualSerialPortConfig.class));
-        if(list != null){
-        	int index = 0;
-        	boolean found = false;
-        	for(VirtualSerialPortConfig c : list){
-        		if(c.equals(config)){
-        			found = true;
-        			break;
-        		}
-        		index++;
-        	}
-        	if(found){
-	        	list.set(index, config);
-	            saveVirtualSerialPorts(list);
-        	}
-        	response.addData("ports", list);
-        }else{
-        	response.addData("ports", new ArrayList<VirtualSerialPortConfig>());
-        }
-    	
-    	return response;
-    }
-    
-    /**
-     * Save all of them, overwrite existing
-     * @param configs
-     */
-    private void saveVirtualSerialPorts(List<VirtualSerialPortConfig> configs){
-    	SystemSettingsDao dao = new SystemSettingsDao();
-    	dao.setJsonObjectValue(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY, configs);
-    	//Reload the serial ports
-    	try {
-			Common.serialPortManager.refreshFreeCommPorts();
-		} catch (SerialPortConfigException e) {
-			//Don't really care?
-		}
     }
     
 }

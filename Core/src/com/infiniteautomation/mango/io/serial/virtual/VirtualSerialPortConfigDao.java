@@ -1,0 +1,109 @@
+/**
+ * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * @author Terry Packer
+ */
+package com.infiniteautomation.mango.io.serial.virtual;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
+import com.infiniteautomation.mango.io.serial.SerialPortManager;
+import com.serotonin.json.util.TypeDefinition;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+
+/**
+ * 
+ * Helper to access the Virtual Serial Port Configs from the System settings
+ * 
+ * @author Terry Packer
+ *
+ */
+public class VirtualSerialPortConfigDao {
+	
+	public static VirtualSerialPortConfigDao instance = new VirtualSerialPortConfigDao();
+
+	/**
+	 * Insert new configs or update existing ones 
+	 * @param config
+	 * @return current list of configs
+	 */
+	public List<VirtualSerialPortConfig> save(VirtualSerialPortConfig config){
+
+		List<VirtualSerialPortConfig> all = getAll();
+		if(all.contains(config)){
+			//Do an update
+			int i = all.indexOf(config);
+			all.remove(config);
+			all.add(i,config);
+		}else{
+			//Just insert 
+			all.add(config);
+		}
+		
+		updateSystemSettings(all);
+		return all;
+	}
+	
+	/**
+	 * Remove a config from the system
+	 * @param config
+	 * @return
+	 */
+	public List<VirtualSerialPortConfig> remove(VirtualSerialPortConfig config){
+		List<VirtualSerialPortConfig> all = getAll();
+		all.remove(config);
+		updateSystemSettings(all);
+		return all;
+	}
+	
+	/**
+	 * Retrieve all configs
+	 * @return
+	 */
+	public List<VirtualSerialPortConfig> getAll(){
+        @SuppressWarnings("unchecked")
+		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
+                new TypeDefinition(List.class, VirtualSerialPortConfig.class));
+        if(list == null)
+        	list = new ArrayList<VirtualSerialPortConfig>();
+        return list;
+	}
+	
+    //
+    // XID convenience methods
+    //
+    public String generateUniqueXid() {
+        String xid = Common.generateXid("VSP_");
+        List<VirtualSerialPortConfig> configs = getAll();
+        
+        while (doesXidExist(xid, configs))
+            xid = Common.generateXid("VSP_");
+        return xid;
+    }
+
+    protected boolean doesXidExist(String xid, List<VirtualSerialPortConfig> configs){
+    	for(VirtualSerialPortConfig config : configs){
+    		if(config.getXid().equals(xid))
+    			return true;
+    	}
+    	return false;
+    }
+	
+    /**
+     * Save all of them, overwrite existing
+     * @param configs
+     */
+    private void updateSystemSettings(List<VirtualSerialPortConfig> configs){
+    	SystemSettingsDao dao = new SystemSettingsDao();
+    	dao.setJsonObjectValue(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY, configs);
+    	//Reload the serial ports
+    	try {
+			Common.serialPortManager.refreshFreeCommPorts();
+		} catch (SerialPortConfigException e) {
+			//Don't really care?
+		}
+    }
+	
+}

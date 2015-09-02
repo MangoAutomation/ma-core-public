@@ -38,12 +38,16 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
     }
     
     
-    public VirtualSerialPortConfig(String name, int type){
+    public VirtualSerialPortConfig(String xid, String name, int type){
+    	this.xid = xid;
     	this.portName = name;
     	this.type = type;
     }
 	
     public VirtualSerialPortConfig(){ }
+    
+    @JsonProperty
+    private String xid;
     
 	@JsonProperty
 	private String portName;
@@ -51,11 +55,22 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	private int type;
 	
 	public void validate(ProcessResult response){
+		if (StringUtils.isBlank(xid))
+            response.addContextualMessage("xid", "validate.required");
+		
 		 if (StringUtils.isBlank(portName))
 	            response.addContextualMessage("portName", "validate.required");
 	}
 	
-    public String getPortName() {
+    public String getXid() {
+		return xid;
+	}
+
+	public void setXid(String xid) {
+		this.xid = xid;
+	}
+
+	public String getPortName() {
 		return portName;
 	}
 
@@ -97,6 +112,7 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((xid == null) ? 0 : xid.hashCode());
 		result = prime * result
 				+ ((portName == null) ? 0 : portName.hashCode());
 		result = prime * result + type;
@@ -109,17 +125,8 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		VirtualSerialPortConfig other = (VirtualSerialPortConfig) obj;
-		if (portName == null) {
-			if (other.portName != null)
-				return false;
-		} else if (!portName.equals(other.portName))
-			return false;
-		if (type != other.type)
-			return false;
-		return true;
+		VirtualSerialPortConfig other = (VirtualSerialPortConfig)obj;
+		return this.xid.equals(other.getXid());
 	}
 	
     
