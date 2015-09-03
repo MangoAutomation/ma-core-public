@@ -65,14 +65,14 @@ abstract public class ModuleElementDefinition {
     }
 
     /**
-     * This method is run after post initialize and only the first time a module is installed.
+     * Called after post database state but only on the first time a module is run.
      */
     public void install(){
     	
     }
     
     /**
-     * This method is run after post initialize and only during a module upgrade.
+     *  Called after post database state but only when a module is being upgraded.
      */
     public void upgrade(){
     	
