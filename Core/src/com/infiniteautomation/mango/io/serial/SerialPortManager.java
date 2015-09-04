@@ -234,8 +234,10 @@ public class SerialPortManager {
 		try{
 			
 			//Close the port
-			if(port != null)
-				port.close();
+			if(port == null)
+				return; //Can't close a non existent port
+			
+			port.close();
 
 			SerialPortIdentifier id = port.getSerialPortIdentifier();
 			if(this.ownedPorts.remove(id)){
