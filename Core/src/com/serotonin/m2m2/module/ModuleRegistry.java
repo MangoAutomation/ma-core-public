@@ -471,7 +471,7 @@ public class ModuleRegistry {
                 
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
-                "none.jsp"));
+                null));
         
         /* MOBILE MAPPINGS */
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",

@@ -5,6 +5,7 @@
 
 
 var showPointValueEmport;
+var closeImportErrorBox;
 
 require(["dijit/Dialog", "dojox/form/Uploader", "dijit/form/Button", "dojox/form/uploader/FileList",
          "dojo/dom", "dojo/on", "dojo/_base/lang", "dojo/dom-construct",
@@ -48,22 +49,24 @@ function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDema
     }, "uploaderStatus");
     
     var errorBoxParent;
-    showPointValueEmport = function() {
-        // move error box into dialog
-        var errorBox = dom.byId('mangoErrorBox');
-        errorBoxParent = errorBox.parentNode;
-        errorBoxParent.removeChild(errorBox);
-        var contentArea = dom.byId('pointValueEmportContent');
-        contentArea.insertBefore(errorBox, contentArea.firstChild);
-        
+    showPointValueEmport = function(actionUrl) {
+    	//Set the inputs/action
+    	uploader.set('url', actionUrl);
+
+    	clearImportErrorBox();
+    	clearUploadList();
         pointValueEmport.show();
     };
     
     on(submit, "click", function() {
-        uploader.submit();
+        clearImportErrorBox();
+        clearUploadList();
+    	uploader.submit();
     });
     on(reset, "click", function() {
         uploader.reset();
+        clearImportErrorBox();
+        clearUploadList();
     });
     
     on(pointValueEmportClose, "click", function() {
@@ -72,34 +75,25 @@ function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDema
     
     on(pointValueEmport, "hide", function() {
         uploader.reset();
-        
-        var store = new Memory({data: []});
-        uploaderStatus.set('store', store);
-        
-        // put error box back where it belongs
-        var errorBox = dom.byId('deltaErrorBox');
-        var contentArea = dom.byId('pointValueEmportContent');
-        contentArea.removeChild(errorBox);
-        errorBoxParent.insertBefore(errorBox, errorBoxParent.firstChild);
+        clearUploadList();
     });
     
     on(uploader, "complete", function(json) {
         var store = new Memory({data: json.fileInfo});
         uploaderStatus.set('store', store);
+        uploaderStatus.refresh();
         
         for (var i = 0; i < json.fileInfo.length; i++) {
             var info = json.fileInfo[i];
             if (info.hasImportErrors === true) {
                 for (var j = 0; j < info.errorMessages.length; j++) {
                     var error = info.errorMessages[j];
-                    addErrorDiv(error);
+                    addImportErrorMessage(error);
                 }
+                show('importErrorBox');
             }
         }
-        
-        if (machineStates) {
-            machineStates.grid.refresh();
-        }
+
     });
 
     if (require.has('file-multiple')) {
@@ -108,4 +102,30 @@ function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDema
             uploader.addDropTarget(domnode);
         }
     }
+    
+    closeImportErrorBox = function(){
+    	hide('importErrorBox');
+    };
+    
+    function addImportErrorMessage(message){
+    	var errorBox = dojo.byId('importErrors');
+        var div = document.createElement('div');
+        div.innerHTML = message;
+        errorBox.appendChild(div);
+    }
+    
+    function clearImportErrorBox(){
+    	closeImportErrorBox();
+    	var myNode = document.getElementById('importErrors');
+    	while (myNode.firstChild) {
+    	    myNode.removeChild(myNode.firstChild);
+    	}
+    }
+    
+    function clearUploadList(){
+        var store = new Memory({data: []});
+        uploaderStatus.set('store', store);
+        uploaderStatus.refresh();
+    }
+    
 });

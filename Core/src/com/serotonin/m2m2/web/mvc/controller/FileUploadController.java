@@ -6,21 +6,19 @@ package com.serotonin.m2m2.web.mvc.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.FilenameUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.View;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -30,9 +28,10 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.PointValueEmporter;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.FileType;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
 /**
@@ -40,17 +39,25 @@ import com.serotonin.m2m2.web.mvc.UrlHandler;
  *
  */
 public class FileUploadController implements UrlHandler {
+	
+	
     public View handleRequest(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
             throws Exception {
-        @SuppressWarnings("unused")
-        User user = Common.getUser(request);
+    	
+    	checkPermission(request);
+    	
+        return prepareResponse(request,response,model);
 
-        prepareResponse(request,response,model);
-
-        return null;
     }
 
     /**
+	 * @param request
+	 */
+	protected void checkPermission(HttpServletRequest request) throws PermissionException{
+		Permissions.ensureAdmin(request);
+	}
+
+	/**
      * @param request
      * @param response
      * @param model
@@ -58,46 +65,29 @@ public class FileUploadController implements UrlHandler {
      * @throws JsonException 
      * @throws FileUploadException 
      */
-    private void prepareResponse(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
+    private FileUploadView prepareResponse(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
             throws IOException, JsonException, FileUploadException {
-        String uploadType = "";
        
-        @SuppressWarnings("unchecked")
-        List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest)request;
+        String dataType = multipartRequest.getParameter("dataType");
+        String uploadType = multipartRequest.getParameter("uploadType");
+        
         List<Object> fileInfo = new ArrayList<Object>();
-        Map<String, Object> info = new HashMap<String, Object>();
-        for (FileItem item : items) {
-            if (item.isFormField()) {
-                // Process regular form field (input type="text|radio|checkbox|etc", select, etc).
-                String fieldname = item.getFieldName();
-                String fieldvalue = item.getString();
+        
+        Translations translations = ControllerUtils.getTranslations(request);
+        Iterator<String> itr =  multipartRequest.getFileNames();
+        while(itr.hasNext()){
+			
+            MultipartFile file = multipartRequest.getFile(itr.next());
+    		if (!file.isEmpty()) {
+    			Map<String, Object> info = new HashMap<String, Object>();
+    			info.put("filename", file.getOriginalFilename());
+    			info.put("dataType", dataType);
+    			parseFile(file.getInputStream(), info, translations, request);
+    			fileInfo.add(info);
+    		}
+        }
 
-                if (fieldname.equals("uploadType")) {
-                    model.put("uploadType", fieldvalue);
-                    uploadType = fieldvalue;
-                }else{
-                	info.put(fieldname, fieldvalue);
-                }
-            }
-        }
-        for (FileItem item : items) {    
-                
-        	if (!item.isFormField()) {
-                // Process form file field (input type="file").
-              
-                
-                String filename = FilenameUtils.getName(item.getName());
-                info.put("filename", filename);
-                
-                Translations translations = ControllerUtils.getTranslations(request);
-                InputStream filecontent = item.getInputStream();
-                
-                parseFile(filecontent, info, translations,request);
-                
-                fileInfo.add(info);
-            }
-            
-        }
         model.put("fileInfo", fileInfo);
         
         boolean iframe = false;
@@ -116,10 +106,9 @@ public class FileUploadController implements UrlHandler {
             flash = true;
             response.setContentType("text/plain");
         }
-        
-        OutputStream output = response.getOutputStream();
+
         if (iframe || html5) {
-            writeJson(output, model, iframe);
+            return new FileUploadView(iframe);
         }
         else if (flash) {
             // TODO handle Flash
@@ -128,25 +117,6 @@ public class FileUploadController implements UrlHandler {
         else {
             throw new ShouldNeverHappenException("Invalid file upload type.");
         }
-        
-        output.close();
-    }
-    
-    private void writeJson(OutputStream output, Map<String, Object> json, boolean iframe) throws IOException, JsonException {
-        OutputStreamWriter osWriter = new OutputStreamWriter(output);
-        
-        if (iframe) {
-            osWriter.write("<textarea>");
-        }
-        
-        JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, osWriter);
-        writer.writeObject(json);
-        
-        if (iframe) {
-            osWriter.write("</textarea>");
-        }
-        
-        osWriter.flush();
     }
     
     /**
@@ -155,7 +125,7 @@ public class FileUploadController implements UrlHandler {
      * @param model
      * @param translations
      */
-    private void parseFile(InputStream input, Map<String, Object> model, Translations translations,HttpServletRequest request) {
+    protected void parseFile(InputStream input, Map<String, Object> model, Translations translations,HttpServletRequest request) {
     	
     	//Get the filename
     	String filename = (String)model.get("filename");
@@ -163,9 +133,9 @@ public class FileUploadController implements UrlHandler {
     	if(filename == null)
     		return;
     	else{
-    		if(filename.endsWith(".xls"))
+    		if(filename.toLowerCase().endsWith(".xls"))
     			emporter = new SpreadsheetEmporter(FileType.XLS);
-    		else if(filename.endsWith(".xlsx"))
+    		else if(filename.toLowerCase().endsWith(".xlsx"))
     			emporter = new SpreadsheetEmporter(FileType.XLSX);
     		else
     			return;
@@ -176,12 +146,10 @@ public class FileUploadController implements UrlHandler {
         String dataType = (String) model.get("dataType");
 
         if(dataType != null){
-	        if(dataType.equals("dataPoint")){
-	        	throw new ShouldNeverHappenException("Unsupported data.");
-	        }else if(dataType.equals("pointValue")){
-	        	//Get the file
+	        if(dataType.equals("pointValue"))
 	        	emporter.doImport(input, new PointValueEmporter());
-	        }
+	        else
+	        	throw new ShouldNeverHappenException("Unsupported data.");
     	}
 
         model.put("hasImportErrors", emporter.hasErrors());
@@ -200,6 +168,46 @@ public class FileUploadController implements UrlHandler {
         model.put("rowsWithErrors", emporter.getRowErrors());
     }
 	
-	
+	class FileUploadView implements View{
+
+		private boolean iframe;
+		
+		public FileUploadView(boolean iframe){
+			this.iframe = iframe;
+		}
+		
+		/* (non-Javadoc)
+		 * @see org.springframework.web.servlet.View#getContentType()
+		 */
+		@Override
+		public String getContentType() {
+			return "application/json";
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.web.servlet.View#render(java.util.Map, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+		 */
+		@Override
+		public void render(Map<String, ?> model, HttpServletRequest request,
+				HttpServletResponse response) throws Exception {
+			
+			OutputStreamWriter osWriter = new OutputStreamWriter(response.getOutputStream());
+	        
+	        if (iframe) {
+	            osWriter.write("<textarea>");
+	        }
+	        
+	        JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, osWriter);
+	        writer.writeObject(model);
+	        
+	        if (iframe) {
+	            osWriter.write("</textarea>");
+	        }
+	        
+	        osWriter.flush();
+			
+		}
+		
+	}
 	
 }

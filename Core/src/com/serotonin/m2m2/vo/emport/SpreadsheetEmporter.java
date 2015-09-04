@@ -139,7 +139,7 @@ public class SpreadsheetEmporter {
         
         Sheet sheet = wb.getSheet(sheetEmporter.getSheetName());
         if (sheet == null) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.sheetNotFound", sheetEmporter.getSheetName()));
+            errorMessages.add(new TranslatableMessage("emport.spreadsheet.sheetNotFound", sheetEmporter.getSheetName()));
             return;
         }
         
@@ -149,7 +149,7 @@ public class SpreadsheetEmporter {
         
         int numRows = sheet.getLastRowNum() + 1;
         if (numRows == 0) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.noRows", sheetEmporter.getSheetName()));
+            errorMessages.add(new TranslatableMessage("emport.spreadsheet.nowRows", sheetEmporter.getSheetName()));
             return;
         }
         
@@ -159,8 +159,8 @@ public class SpreadsheetEmporter {
         
         if(sheetEmporter.hasHeaders()) {
 	        String[] headers = sheetEmporter.getHeaders();
-	        if (row.getLastCellNum()+1 < headers.length) {
-	            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.headersIncorrect", sheetEmporter.getSheetName()));
+	        if (row.getLastCellNum() < headers.length) {
+	            errorMessages.add(new TranslatableMessage("emport.spreadsheet.headerLengthIncorrect", sheetEmporter.getSheetName(), headers.length, row.getLastCellNum()));
 	            return;
 	        }
 	        
@@ -175,7 +175,7 @@ public class SpreadsheetEmporter {
 	            }
 	            
 	            if (cellValue == null || !cellValue.equalsIgnoreCase(headers[cellNum])) {
-	                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.headersIncorrect"));
+	                errorMessages.add(new TranslatableMessage("emport.spreadsheet.headersMismatch", sheetEmporter.getSheetName(), cellNum, headers[cellNum], cellValue));
 	                return;
 	            }
 	        }
@@ -235,7 +235,7 @@ public class SpreadsheetEmporter {
             wb.write(outStream);
             outStream.close();
         } catch (IOException e) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.ioError"));
+            errorMessages.add(new TranslatableMessage("emport.spreadsheet.ioError", e.getMessage()));
         }
     }
     
@@ -399,7 +399,7 @@ public class SpreadsheetEmporter {
             wb.write(outStream);
             outStream.close();
         } catch (IOException e) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.ioError"));
+            errorMessages.add(new TranslatableMessage("emport.spreadsheet.ioError", e.getMessage()));
         }
 
     }
@@ -419,7 +419,7 @@ public class SpreadsheetEmporter {
         
         String ret = cell.getStringCellValue();
         if (ret == null) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notString", new CellReference(cell).formatAsString());
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notString", new CellReference(cell).formatAsString());
         }
         
         return ret;
@@ -433,11 +433,11 @@ public class SpreadsheetEmporter {
      */
     public double readNumericCell(Integer rowNum, Cell cell) throws SpreadsheetException {
         if (cell == null) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumberGeneric");
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumberGeneric");
         }
         
         if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumber", new CellReference(cell).formatAsString());
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumber", new CellReference(cell).formatAsString());
         }
         
         double ret;
@@ -445,7 +445,7 @@ public class SpreadsheetEmporter {
             ret = cell.getNumericCellValue();
         }
         catch (IllegalStateException e) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumber", new CellReference(cell).formatAsString());
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumber", new CellReference(cell).formatAsString());
         }
         
         return ret;
@@ -461,11 +461,11 @@ public class SpreadsheetEmporter {
      */
     public Date readDateCell(Integer rowNum, Cell cell) throws SpreadsheetException {
         if (cell == null) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumberGeneric");
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumberGeneric");
         }
         
         if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumber", new CellReference(cell).formatAsString());
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notDate", new CellReference(cell).formatAsString());
         }
         
         Date ret;
@@ -473,7 +473,7 @@ public class SpreadsheetEmporter {
             ret = cell.getDateCellValue();
         }
         catch (IllegalStateException e) {
-            throw new SpreadsheetException(rowNum,"delta.util.spreadsheet.notNumber", new CellReference(cell).formatAsString());
+            throw new SpreadsheetException(rowNum,"emport.spreadsheet.notDate", new CellReference(cell).formatAsString());
         }
         
         return ret;
@@ -486,7 +486,7 @@ public class SpreadsheetEmporter {
             }
             
             if (inStream == null) {
-                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.noInStream"));
+                errorMessages.add(new TranslatableMessage("emport.spreadsheet.noInStream"));
                 return;
             }
             
@@ -498,12 +498,12 @@ public class SpreadsheetEmporter {
             }
             else {
                 wb = null;
-                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.unknownType"));
+                errorMessages.add(new TranslatableMessage("emport.spreadsheet.unknownType", fileType));
             }
             inStream.close();
         }
         catch (IOException e) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.ioError"));
+            errorMessages.add(new TranslatableMessage("emport.spreadsheet.ioError", e.getMessage()));
             return;
         }
     }
@@ -515,7 +515,7 @@ public class SpreadsheetEmporter {
             }
             
             if (outStream == null) {
-                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.noOutStream"));
+                errorMessages.add(new TranslatableMessage("emport.spreadsheet.noOutStream"));
                 return;
             }
             
@@ -527,11 +527,11 @@ public class SpreadsheetEmporter {
             }
             else {
                 wb = null;
-                errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.unknownType"));
+                errorMessages.add(new TranslatableMessage("emport.spreadsheet.unknownType"));
             }
         }
         catch (IOException e) {
-            errorMessages.add(new TranslatableMessage("delta.util.spreadsheet.ioError"));
+            errorMessages.add(new TranslatableMessage("emport.spreadsheet.ioError", e.getMessage()));
             return;
         }
     }
