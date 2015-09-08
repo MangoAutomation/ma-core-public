@@ -69,7 +69,7 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
             	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy HH:mm:ss");
             	Date shutdownTime = new Date(System.currentTimeMillis() + this.runtime);
             	final String shutdownString = sdf.format(shutdownTime);
-    			LOG.warn(getModule().getName() + " is unlicensed, system will shutdown at " + shutdownString);
+    			
             	
                 ERRORS.add(new TranslatableMessage("module.notLicensed"));
                 
@@ -96,6 +96,7 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
 	        					alarmRaised = true;
 	        	    			SystemEventType.raiseEvent(eventType, System.currentTimeMillis(), true,
 	        	    	                new TranslatableMessage(messageKey, shutdownString));
+	        	    			LOG.warn(getModule().getName() + " is unlicensed, system will shutdown at " + shutdownString);
         	    			}
 
         				}
