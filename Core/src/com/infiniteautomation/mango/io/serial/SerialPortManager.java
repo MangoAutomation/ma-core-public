@@ -75,9 +75,12 @@ public class SerialPortManager {
      */
     public void refreshFreeCommPorts() throws SerialPortConfigException {
     	this.lock.writeLock().lock();
-    	freePorts.clear();
-    	initialize(false);
-    	this.lock.writeLock().unlock();
+    	try{
+    		freePorts.clear();
+    		initialize(false);
+    	}finally{
+    		this.lock.writeLock().unlock();
+    	}
     }   
 
     /**
@@ -208,17 +211,16 @@ public class SerialPortManager {
 			portId.setCurrentOwner(ownerName);
 			portId.setPort(port);
 			ownedPorts.add(portId);
-
-			lock.writeLock().unlock();
 			
 			return port;
 		}catch (Exception e) {
-			lock.writeLock().unlock();
             // Wrap all exceptions
             if (e instanceof SerialPortException)
                 throw (SerialPortException) e;
             throw new SerialPortException(e);
-        }
+        }finally{
+			lock.writeLock().unlock();
+		}
 	}
 
 
@@ -251,13 +253,13 @@ public class SerialPortManager {
 				}
 			}
 			
-			lock.writeLock().unlock();
 		}catch(Exception e){
-			lock.writeLock().unlock();
             // Wrap all exceptions
             if (e instanceof SerialPortException)
                 throw (SerialPortException) e;
             throw new SerialPortException(e);
+		}finally{
+			lock.writeLock().unlock();
 		}
 		
 	}
@@ -280,11 +282,10 @@ public class SerialPortManager {
 			}
 			
 			ownedPorts.clear();
-			
-			lock.writeLock().unlock();
 		}catch(Exception e){
-			lock.writeLock().unlock();
 			throw e;
+		}finally{
+			lock.writeLock().unlock();
 		}
 		
 	}
