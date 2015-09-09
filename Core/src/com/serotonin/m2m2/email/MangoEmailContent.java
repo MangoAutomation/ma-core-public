@@ -10,6 +10,7 @@ import java.util.Map;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.web.mail.TemplateEmailContent;
 
 import freemarker.template.Template;
@@ -19,6 +20,13 @@ public class MangoEmailContent extends TemplateEmailContent {
     public static final int CONTENT_TYPE_BOTH = 0;
     public static final int CONTENT_TYPE_HTML = 1;
     public static final int CONTENT_TYPE_TEXT = 2;
+    
+    public static ExportCodes CONTENT_TYPE_CODES = new ExportCodes();
+    static {
+    	CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_BOTH, "HTML_AND_TEXT");
+    	CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_HTML, "HTML");
+    	CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_TEXT, "TEXT");
+    }
 
     private final String defaultSubject;
     private final SubjectDirective subjectDirective;

@@ -5,10 +5,15 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.awt.Color;
+import java.io.File;
 import java.lang.reflect.Type;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -19,8 +24,10 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.email.MangoEmailContent;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsVO;
 import com.serotonin.util.ColorUtils;
 
 public class SystemSettingsDao extends BaseDao {
@@ -371,189 +378,306 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     /**
-     * Get a VO that represents the cached values
+     * Get the values currently in the database and prepare for export
      * 
      * @return
      */
-    public SystemSettingsVO getSystemSettings() {
-        SystemSettingsVO vo = new SystemSettingsVO();
-
-        vo.setDatabaseSchemaVersion(getValue(DATABASE_SCHEMA_VERSION));
-        vo.setNewInstance(getBooleanValue(NEW_INSTANCE));
-
-        vo.setEmailSmtpHost(getValue(EMAIL_SMTP_HOST));
-        vo.setEmailSmtpPort(getIntValue(EMAIL_SMTP_PORT));
-        vo.setEmailFromAddress(getValue(EMAIL_FROM_ADDRESS));
-        vo.setEmailSmtpUsername(getValue(EMAIL_SMTP_USERNAME));
-        vo.setEmailSmtpPassword(getValue(EMAIL_SMTP_PASSWORD));
-        vo.setEmailFromName(getValue(EMAIL_FROM_NAME));
-        vo.setEmailAuthorization(getBooleanValue(EMAIL_AUTHORIZATION));
-        vo.setEmailTls(getBooleanValue(EMAIL_TLS));
-        vo.setEmailContentType(getIntValue(EMAIL_CONTENT_TYPE));
-
-        vo.setPointDataPurgePeriodType(getIntValue(POINT_DATA_PURGE_PERIOD_TYPE));
-        vo.setPointDataPurgePeriods(getIntValue(POINT_DATA_PURGE_PERIODS));
-
-        vo.setDataPointEventPurgePeriodType(getIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
-        vo.setDataPointEventPurgePeriods(getIntValue(DATA_POINT_EVENT_PURGE_PERIODS));
-        vo.setDataSourceEventPurgePeriodType(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
-        vo.setDataSourceEventPurgePeriods(getIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS));
-        vo.setSystemEventPurgePeriodType(getIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE));
-        vo.setSystemEventPurgePeriods(getIntValue(SYSTEM_EVENT_PURGE_PERIODS));
-        vo.setPublisherEventPurgePeriodType(getIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
-        vo.setPublisherEventPurgePeriods(getIntValue(PUBLISHER_EVENT_PURGE_PERIODS));
-        vo.setAuditEventPurgePeriodType(getIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE));
-        vo.setAuditEventPurgePeriods(getIntValue(AUDIT_EVENT_PURGE_PERIODS));
-
-        vo.setNoneAlarmPurgePeriodType(getIntValue(NONE_ALARM_PURGE_PERIOD_TYPE));
-        vo.setNoneAlarmPurgePeriods(getIntValue(NONE_ALARM_PURGE_PERIODS));
-        vo.setInformationAlarmPurgePeriodType(getIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE));
-        vo.setInformationAlarmPurgePeriods(getIntValue(INFORMATION_ALARM_PURGE_PERIODS));
-        vo.setUrgentAlarmPurgePeriodType(getIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE));
-        vo.setUrgentAlarmPurgePeriods(getIntValue(URGENT_ALARM_PURGE_PERIODS));
-        vo.setCriticalAlarmPurgePeriodType(getIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE));
-        vo.setCriticalAlarmPurgePeriods(getIntValue(CRITICAL_ALARM_PURGE_PERIODS));
-        vo.setLifeSafetyAlarmPurgePeriodType(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
-        vo.setLifeSafetyAlarmPurgePeriods(getIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS));
-
-        vo.setEventPurgePeriodType(getIntValue(EVENT_PURGE_PERIOD_TYPE));
-        vo.setEventPurgePeriods(getIntValue(EVENT_PURGE_PERIODS));
-
-        vo.setHttpClientUseProxy(getBooleanValue(HTTP_CLIENT_USE_PROXY));
-        vo.setHttpClientProxyServer(getValue(HTTP_CLIENT_PROXY_SERVER));
-        vo.setHttpClientProxyPort(getIntValue(HTTP_CLIENT_PROXY_PORT));
-        vo.setHttpClientProxyUsername(getValue(HTTP_CLIENT_PROXY_USERNAME));
-        vo.setHttpClientProxyPassword(getValue(HTTP_CLIENT_PROXY_USERNAME));
-
-        vo.setLanguage(getValue(LANGUAGE));
-
-        vo.setFiledataPath(getValue(FILEDATA_PATH));
-        vo.setDatasourceDisplaySuffix(getValue(DATASOURCE_DISPLAY_SUFFIX));
-        vo.setHttpdsPrologue(getValue(HTTPDS_PROLOGUE));
-        vo.setHttpdsEpilogue(getValue(HTTPDS_EPILOGUE));
-        vo.setUiPerformance(getIntValue(UI_PERFORMANCE));
-        vo.setFutureDateLimitPeriods(getIntValue(FUTURE_DATE_LIMIT_PERIODS));
-        vo.setFutureDateLimitPeriodType(getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE));
-        vo.setInstanceDescription(getValue(INSTANCE_DESCRIPTION));
-
-        vo.setChartBackgroundColor(getValue(CHART_BACKGROUND_COLOUR));
-        vo.setPlotBackgroundColor(getValue(PLOT_BACKGROUND_COLOUR));
-        vo.setPlotGridlineColor(getValue(PLOT_GRIDLINE_COLOUR));
-
-        vo.setBackupFileLocation(getValue(BACKUP_FILE_LOCATION));
-        vo.setBackupPeriodType(getIntValue(BACKUP_PERIOD_TYPE));
-        vo.setBackupPeriods(getIntValue(BACKUP_PERIODS));
-        vo.setBackupLastRunSuccess(getValue(BACKUP_LAST_RUN_SUCCESS));
-        vo.setBackupFileCount(getIntValue(BACKUP_FILE_COUNT));
-        vo.setBackupHour(getIntValue(BACKUP_HOUR));
-        vo.setBackupMinute(getIntValue(BACKUP_MINUTE));
-        vo.setBackupEnabled(getBooleanValue(BACKUP_ENABLED));
-
-        vo.setAllowAnonymousChartView(getBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW));
-
-        vo.setDatabaseBackupFileLocation(getValue(DATABASE_BACKUP_FILE_LOCATION));
-        vo.setDatabaseBackupPeriodType(getIntValue(DATABASE_BACKUP_PERIOD_TYPE));
-        vo.setDatabaseBackupPeriods(getIntValue(DATABASE_BACKUP_PERIODS));
-        vo.setDatabaseBackupLastRunSuccess(getValue(DATABASE_BACKUP_LAST_RUN_SUCCESS));
-        vo.setDatabaseBackupFileCount(getIntValue(DATABASE_BACKUP_FILE_COUNT));
-        vo.setDatabaseBackupHour(getIntValue(DATABASE_BACKUP_HOUR));
-        vo.setDatabaseBackupMinute(getIntValue(DATABASE_BACKUP_MINUTE));
-        vo.setDatabaseBackupEnabled(getBooleanValue(DATABASE_BACKUP_ENABLED));
-
-        return vo;
+    public Map<String,String> getSystemSettingsForExport() {
+    	
+    	final Map<String,String> settings = new HashMap<String,String>();
+    	
+    	ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
+            
+            public void processRow(ResultSet rs) throws SQLException {
+            	String settingName = rs.getString(1);
+            	String settingValue = rs.getString(2);
+            	settings.put(settingName, settingValue);
+            }
+    	});
+    	
+    	convertSettings(settings);
+    	
+    	return settings;
     }
 
     /**
-     * Take a VO and save its values to the system
+     * Convert any Export Codes to their String rep
+	 * @param settings
+	 */
+	private void convertSettings(Map<String, String> settings) {
+		
+		String setting = settings.get(EMAIL_CONTENT_TYPE);
+		if(setting != null){
+			int code = Integer.parseInt(setting);
+			settings.put(EMAIL_CONTENT_TYPE, MangoEmailContent.CONTENT_TYPE_CODES.getCode(code));
+		}
+		
+		
+		convertPeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(SYSTEM_EVENT_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(AUDIT_EVENT_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(EVENT_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(BACKUP_PERIOD_TYPE, settings);
+		convertPeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings);
+	}
+
+	/**
+	 * @param pointDataPurgePeriodType
+	 * @param settings
+	 */
+	private void convertPeriodType(String key,
+			Map<String, String> settings) {
+		
+		String setting = settings.get(key);
+		if(setting != null){
+			int code = Integer.parseInt(setting);
+			settings.put(key, Common.TIME_PERIOD_CODES.getCode(code));
+		}
+		
+	}
+
+	/**
+     * Save values to the table by replacing old values and inserting new ones
+     * caution, there is no checking on quality of the values being saved use
+     * validate() first.
      * 
      * @param vo
      */
-    public void updateSettings(SystemSettingsVO vo) {
+    public void updateSettings(Map<String,Object> settings) {
 
-        this.setValue(DATABASE_SCHEMA_VERSION, vo.getDatabaseSchemaVersion());
-        this.setBooleanValue(NEW_INSTANCE, vo.getNewInstance());
-
-        this.setValue(EMAIL_SMTP_HOST, vo.getEmailSmtpHost());
-        this.setIntValue(EMAIL_SMTP_PORT, vo.getEmailSmtpPort());
-        this.setValue(EMAIL_FROM_ADDRESS, vo.getEmailFromAddress());
-        this.setValue(EMAIL_SMTP_USERNAME, vo.getEmailSmtpUsername());
-        this.setValue(EMAIL_SMTP_PASSWORD, vo.getEmailSmtpPassword());
-        this.setValue(EMAIL_FROM_NAME, vo.getEmailFromName());
-        this.setBooleanValue(EMAIL_AUTHORIZATION, vo.getEmailAuthorization());
-        this.setBooleanValue(EMAIL_TLS, vo.getEmailTls());
-        this.setIntValue(EMAIL_CONTENT_TYPE, vo.getEmailContentType());
-
-        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
-        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS, vo.getDataPointEventPurgePeriods());
-
-        this.setIntValue(POINT_DATA_PURGE_PERIOD_TYPE, vo.getPointDataPurgePeriodType());
-        this.setIntValue(POINT_DATA_PURGE_PERIODS, vo.getPointDataPurgePeriods());
-
-        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, vo.getDataPointEventPurgePeriodType());
-        this.setIntValue(DATA_POINT_EVENT_PURGE_PERIODS, vo.getDataPointEventPurgePeriods());
-        this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, vo.getDataSourceEventPurgePeriodType());
-        this.setIntValue(DATA_SOURCE_EVENT_PURGE_PERIODS, vo.getDataSourceEventPurgePeriods());
-        this.setIntValue(SYSTEM_EVENT_PURGE_PERIOD_TYPE, vo.getSystemEventPurgePeriodType());
-        this.setIntValue(SYSTEM_EVENT_PURGE_PERIODS, vo.getSystemEventPurgePeriods());
-        this.setIntValue(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, vo.getPublisherEventPurgePeriodType());
-        this.setIntValue(PUBLISHER_EVENT_PURGE_PERIODS, vo.getPublisherEventPurgePeriods());
-        this.setIntValue(AUDIT_EVENT_PURGE_PERIOD_TYPE, vo.getAuditEventPurgePeriodType());
-        this.setIntValue(AUDIT_EVENT_PURGE_PERIODS, vo.getAuditEventPurgePeriods());
-
-        this.setIntValue(NONE_ALARM_PURGE_PERIOD_TYPE, vo.getNoneAlarmPurgePeriodType());
-        this.setIntValue(NONE_ALARM_PURGE_PERIODS, vo.getNoneAlarmPurgePeriods());
-        this.setIntValue(INFORMATION_ALARM_PURGE_PERIOD_TYPE, vo.getInformationAlarmPurgePeriodType());
-        this.setIntValue(INFORMATION_ALARM_PURGE_PERIODS, vo.getInformationAlarmPurgePeriods());
-        this.setIntValue(URGENT_ALARM_PURGE_PERIOD_TYPE, vo.getUrgentAlarmPurgePeriodType());
-        this.setIntValue(URGENT_ALARM_PURGE_PERIODS, vo.getUrgentAlarmPurgePeriods());
-        this.setIntValue(CRITICAL_ALARM_PURGE_PERIOD_TYPE, vo.getCriticalAlarmPurgePeriodType());
-        this.setIntValue(CRITICAL_ALARM_PURGE_PERIODS, vo.getCriticalAlarmPurgePeriods());
-        this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, vo.getLifeSafetyAlarmPurgePeriodType());
-        this.setIntValue(LIFE_SAFETY_ALARM_PURGE_PERIODS, vo.getLifeSafetyAlarmPurgePeriods());
-
-        this.setIntValue(EVENT_PURGE_PERIOD_TYPE, vo.getEventPurgePeriodType());
-        this.setIntValue(EVENT_PURGE_PERIODS, vo.getEventPurgePeriods());
-
-        this.setBooleanValue(HTTP_CLIENT_USE_PROXY, vo.getHttpClientUseProxy());
-        this.setValue(HTTP_CLIENT_PROXY_SERVER, vo.getHttpClientProxyServer());
-        this.setIntValue(HTTP_CLIENT_PROXY_PORT, vo.getHttpClientProxyPort());
-        this.setValue(HTTP_CLIENT_PROXY_USERNAME, vo.getHttpClientProxyUsername());
-        this.setValue(HTTP_CLIENT_PROXY_PASSWORD, vo.getHttpClientProxyPassword());
-
-        this.setValue(LANGUAGE, vo.getLanguage());
-
-        this.setValue(FILEDATA_PATH, vo.getFiledataPath());
-        this.setValue(DATASOURCE_DISPLAY_SUFFIX, vo.getDatasourceDisplaySuffix());
-        this.setValue(HTTPDS_PROLOGUE, vo.getHttpdsPrologue());
-        this.setValue(HTTPDS_EPILOGUE, vo.getHttpdsEpilogue());
-        this.setIntValue(UI_PERFORMANCE, vo.getUiPerformance());
-        this.setIntValue(FUTURE_DATE_LIMIT_PERIODS, vo.getFutureDateLimitPeriods());
-        this.setIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE, vo.getFutureDateLimitPeriodType());
-        this.setValue(INSTANCE_DESCRIPTION, vo.getInstanceDescription());
-
-        this.setValue(CHART_BACKGROUND_COLOUR, vo.getChartBackgroundColor());
-        this.setValue(PLOT_BACKGROUND_COLOUR, vo.getChartBackgroundColor());
-        this.setValue(PLOT_GRIDLINE_COLOUR, vo.getPlotGridlineColor());
-
-        this.setValue(BACKUP_FILE_LOCATION, vo.getBackupFileLocation());
-        this.setIntValue(BACKUP_PERIOD_TYPE, vo.getBackupPeriodType());
-        this.setIntValue(BACKUP_PERIODS, vo.getBackupPeriods());
-        this.setValue(BACKUP_LAST_RUN_SUCCESS, vo.getBackupLastRunSuccess());
-        this.setIntValue(BACKUP_FILE_COUNT, vo.getBackupFileCount());
-        this.setIntValue(BACKUP_HOUR, vo.getBackupHour());
-        this.setIntValue(BACKUP_MINUTE, vo.getBackupMinute());
-        this.setBooleanValue(BACKUP_ENABLED, vo.getBackupEnabled());
-
-        this.setBooleanValue(ALLOW_ANONYMOUS_CHART_VIEW, vo.getAllowAnonymousChartView());
-
-        this.setValue(DATABASE_BACKUP_FILE_LOCATION, vo.getDatabaseBackupFileLocation());
-        this.setIntValue(DATABASE_BACKUP_PERIOD_TYPE, vo.getDatabaseBackupPeriodType());
-        this.setIntValue(DATABASE_BACKUP_PERIODS, vo.getDatabaseBackupPeriods());
-        this.setValue(DATABASE_BACKUP_LAST_RUN_SUCCESS, vo.getDatabaseBackupLastRunSuccess());
-        this.setIntValue(DATABASE_BACKUP_FILE_COUNT, vo.getDatabaseBackupFileCount());
-        this.setIntValue(DATABASE_BACKUP_HOUR, vo.getDatabaseBackupHour());
-        this.setIntValue(DATABASE_BACKUP_MINUTE, vo.getDatabaseBackupMinute());
-        this.setBooleanValue(DATABASE_BACKUP_ENABLED, vo.getDatabaseBackupEnabled());
+    	Iterator<String> it = settings.keySet().iterator();
+    	while(it.hasNext()){
+    		String setting = it.next();
+    		//Lookup the setting to see if it exists
+    		setValue(setting, settings.get(setting).toString());
+    	}
 
     }
+
+	/**
+	 * 
+	 * Validate the system settings passed in, only validating settings that exist in the map.
+	 * 
+	 * @param settings
+	 * @param voResponse
+	 */
+	public void validate(Map<String, Object> settings, ProcessResult response) {
+		
+		Object setting = null;
+		
+		try{
+			setting = settings.get(EMAIL_CONTENT_TYPE);
+			if(setting != null){
+				
+				if(setting instanceof Number){
+					int emailContentType = ((Number)setting).intValue();
+					switch(emailContentType){
+						case MangoEmailContent.CONTENT_TYPE_BOTH:
+						case MangoEmailContent.CONTENT_TYPE_HTML:
+						case MangoEmailContent.CONTENT_TYPE_TEXT:
+						break;
+						default:
+							response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.invalideValue");
+					}
+				}else{
+					//String Code
+					if(MangoEmailContent.CONTENT_TYPE_CODES.getId((String)setting) < 0)
+						response.addContextualMessage(EMAIL_CONTENT_TYPE, "emport.error.invalid", EMAIL_CONTENT_TYPE, (String)setting,
+								MangoEmailContent.CONTENT_TYPE_CODES.getCodeList());
+				}
+			}
+		}catch(NumberFormatException e){
+			response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
+		}
+		
+		
+		validatePeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings, response);
+		
+		validatePeriodType(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(SYSTEM_EVENT_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(AUDIT_EVENT_PURGE_PERIOD_TYPE, settings, response);
+		
+		validatePeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings, response);
+
+		validatePeriodType(EVENT_PURGE_PERIOD_TYPE, settings, response);
+		
+		//Should validate language not sure how yet
+		
+		try {
+			setting = settings.get(CHART_BACKGROUND_COLOUR);
+			if(setting != null)
+				ColorUtils.toColor((String)setting);
+        }
+        catch (InvalidArgumentException e) {
+            response.addContextualMessage(CHART_BACKGROUND_COLOUR,
+                    "systemSettings.validation.invalidColour");
+        }
+		
+		try {
+			setting = settings.get(PLOT_BACKGROUND_COLOUR);
+			if(setting != null)
+				ColorUtils.toColor((String)setting);
+        }
+        catch (InvalidArgumentException e) {
+            response.addContextualMessage(PLOT_BACKGROUND_COLOUR,
+                    "systemSettings.validation.invalidColour");
+        }
+		
+		try {
+			setting = settings.get(PLOT_GRIDLINE_COLOUR);
+			if(setting != null)
+				ColorUtils.toColor((String)setting);
+        }
+        catch (InvalidArgumentException e) {
+            response.addContextualMessage(PLOT_GRIDLINE_COLOUR,
+                    "systemSettings.validation.invalidColour");
+        }
+		
+		setting = settings.get(BACKUP_FILE_LOCATION);
+		if(setting != null){
+	    	File tmp = new File((String)setting);
+	    	if(!tmp.exists()){
+	    		//Doesn't exist, push up message
+	    		response.addContextualMessage(BACKUP_FILE_LOCATION,
+	    				"systemSettings.validation.backupLocationNotExists");
+	    	}
+	    	if(!tmp.canWrite()){
+	    		response.addContextualMessage(BACKUP_FILE_LOCATION,
+	    				"systemSettings.validation.cannotWriteToBackupFileLocation");
+	    	}
+		}
+		
+    	//Validate the Hour and Minute
+    	Integer backupHour = getIntValue(BACKUP_HOUR, settings);
+    	if(backupHour != null)
+			if((backupHour > 23)||(backupHour<0)){
+	    		response.addContextualMessage(BACKUP_HOUR,
+	    				"systemSettings.validation.backupHourInvalid");
+	    	}
+    	
+    	Integer backupMinute = getIntValue(BACKUP_MINUTE, settings);
+    	if(backupMinute != null)
+	    	if((backupMinute > 59)||(backupMinute<0)){
+	    		response.addContextualMessage(BACKUP_MINUTE,
+	    				"systemSettings.validation.backupMinuteInvalid");
+	    	}
+    	
+    	validatePeriodType(BACKUP_PERIOD_TYPE, settings, response);
+    	
+    	//Validate the number of backups to keep
+    	Integer backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
+    	if(backupFileCount != null)
+	    	if(backupFileCount < 1){
+	    		response.addContextualMessage(BACKUP_FILE_COUNT,
+	    				"systemSettings.validation.backupFileCountInvalid");
+	    	}   	
+
+
+		//Validate
+    	setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
+    	if(setting != null){
+	    	File tmp = new File((String)setting);
+	    	if(!tmp.exists()){
+	    		//Doesn't exist, push up message
+	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
+	    				"systemSettings.validation.databaseBackupLocationNotExists");
+	    	}
+	    	if(!tmp.canWrite()){
+	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
+	    				"systemSettings.validation.cannotWriteToDatabaseBackupFileLocation");
+	    	}
+    	}
+    	
+    	//Validate the Hour and Minute
+    	Integer databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
+    	if(databaseBackupHour != null)
+	    	if((databaseBackupHour > 23)||(databaseBackupHour<0)){
+	    		response.addContextualMessage(DATABASE_BACKUP_HOUR,
+	    				"systemSettings.validation.databaseBackupHourInvalid");
+	    	}
+    	
+    	Integer databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
+    	if(databaseBackupMinute != null)
+	    	if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
+	    		response.addContextualMessage(DATABASE_BACKUP_MINUTE,
+	    				"systemSettings.validation.databaseBackupMinuteInvalid");
+	    	}
+    	
+    	validatePeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings, response);
+    	
+    	//Validate the number of backups to keep
+    	Integer databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
+    	if(databaseBackupFileCount != null)
+	    	if(databaseBackupFileCount < 1){
+	    		response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
+	    				"systemSettings.validation.databaseBackupFileCountInvalid");
+	    	} 
+	}
+	
+
+	/**
+	 * @param pointDataPurgePeriodType2
+	 * @param pointDataPurgePeriodType3
+	 * @param response
+	 */
+	private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
+
+		Object setting = settings.get(key);
+		if(setting == null)
+			return;
+			
+		if(setting instanceof Number){
+			try{
+				int value = ((Number)setting).intValue();
+				
+				switch(value){
+				case TimePeriods.DAYS:
+				case TimePeriods.HOURS:
+				case TimePeriods.MILLISECONDS:
+				case TimePeriods.MINUTES:
+				case TimePeriods.MONTHS:
+				case TimePeriods.SECONDS:
+				case TimePeriods.WEEKS:
+				case TimePeriods.YEARS:
+					break;
+				default:
+					response.addContextualMessage(key, "validate.invalidValue");
+				}
+			}catch(NumberFormatException e){
+				response.addContextualMessage(key, "validate.illegalValue");
+			}	
+		}else{
+			//String code
+			if(Common.TIME_PERIOD_CODES.getId((String)setting) < 0)
+				response.addContextualMessage( key, "emport.error.invalid", key, (String)setting,
+						Common.TIME_PERIOD_CODES.getCodeList());
+		}
+		
+	}
+	
+    private Integer getIntValue(String key, Map<String,Object> settings) throws NumberFormatException {
+        Object value = settings.get(key);
+        if (value == null)
+            return null;
+
+        if(value instanceof Number)
+        	return ((Number) value).intValue();
+        else
+        	return Integer.parseInt((String)value);
+    }
+	
 }

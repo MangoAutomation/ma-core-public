@@ -4,12 +4,13 @@
  */
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
-import com.serotonin.json.JsonException;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 /**
@@ -33,30 +34,29 @@ public class SystemSettingsImporter extends Importer{
 		
 		try {
 			SystemSettingsDao dao = new SystemSettingsDao();
-			SystemSettingsVO vo = dao.getSystemSettings();
+			Map<String, Object> settings = new HashMap<String,Object>();
 			
-            // The VO was found or successfully created. Finish reading it in.
-            ctx.getReader().readInto(vo, json);
+            //Finish reading it in.
+			for(String key : json.keySet()){
+				JsonValue value = json.get(key);
+				settings.put(key, value.toNative());
+			}
 
             // Now validate it. Use a new response object so we can distinguish errors in this vo from
             // other errors.
             ProcessResult voResponse = new ProcessResult();
-            vo.validate(voResponse);
+            dao.validate(settings, voResponse);
             if (voResponse.getHasMessages())
                 setValidationMessages(voResponse, "emport.systemSettings.prefix","System Settings");
             else {
-                
-            	dao.updateSettings(vo);
-            	
+            	dao.updateSettings(settings);
                 addSuccessMessage(false, "emport.systemSettings.prefix","Import Success");
             }
         }
-        catch (TranslatableJsonException e) {
-            addFailureMessage("emport.systemSettings.prefix","System Settings", e.getMsg());
+        catch (Exception e) {
+            addFailureMessage("emport.systemSettings.prefix","System Settings", e.getMessage());
         }
-        catch (JsonException e) {
-            addFailureMessage("emport.systemSettings.prefix", "System Settings", getJsonExceptionMessage(e));
-        }
+        
 		
 		
 	}
