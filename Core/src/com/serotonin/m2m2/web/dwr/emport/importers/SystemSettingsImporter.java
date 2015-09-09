@@ -39,7 +39,8 @@ public class SystemSettingsImporter extends Importer{
             //Finish reading it in.
 			for(String key : json.keySet()){
 				JsonValue value = json.get(key);
-				settings.put(key, value.toNative());
+				if(value != null)
+					settings.put(key, value.toNative());
 			}
 
             // Now validate it. Use a new response object so we can distinguish errors in this vo from

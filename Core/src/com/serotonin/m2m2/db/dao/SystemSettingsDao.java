@@ -382,16 +382,35 @@ public class SystemSettingsDao extends BaseDao {
      * 
      * @return
      */
-    public Map<String,String> getSystemSettingsForExport() {
+    public Map<String,Object> getSystemSettingsForExport() {
     	
-    	final Map<String,String> settings = new HashMap<String,String>();
+    	final Map<String,Object> settings = new HashMap<String,Object>();
     	
     	ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
             
             public void processRow(ResultSet rs) throws SQLException {
             	String settingName = rs.getString(1);
-            	String settingValue = rs.getString(2);
-            	settings.put(settingName, settingValue);
+
+            	//Don't export any passwords
+            	if(!settingName.toLowerCase().contains("password")){
+            		String settingValue = rs.getString(2);
+                	//Convert Numbers to Integers
+                	try{
+                		settings.put(settingName, Integer.parseInt(settingValue));
+                	}catch(NumberFormatException e){
+                		
+                		//Are we a boolean
+                		if(settingValue.equalsIgnoreCase("y")){
+                			settings.put(settingName, new Boolean(true));
+                		}else if(settingValue.equalsIgnoreCase("n")){
+                			settings.put(settingName, new Boolean(false));
+                		}else{
+                			//Must be a string
+                			settings.put(settingName, settingValue);
+                		}
+                		
+                	}
+            	}
             }
     	});
     	
@@ -404,14 +423,13 @@ public class SystemSettingsDao extends BaseDao {
      * Convert any Export Codes to their String rep
 	 * @param settings
 	 */
-	private void convertSettings(Map<String, String> settings) {
+	private void convertSettings(Map<String, Object> settings) {
 		
-		String setting = settings.get(EMAIL_CONTENT_TYPE);
-		if(setting != null){
-			int code = Integer.parseInt(setting);
+		Object setting = settings.get(EMAIL_CONTENT_TYPE);
+		if((setting != null)&&(setting instanceof Integer)){
+			int code = (Integer)setting;
 			settings.put(EMAIL_CONTENT_TYPE, MangoEmailContent.CONTENT_TYPE_CODES.getCode(code));
 		}
-		
 		
 		convertPeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, settings);
@@ -427,6 +445,7 @@ public class SystemSettingsDao extends BaseDao {
 		convertPeriodType(EVENT_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(BACKUP_PERIOD_TYPE, settings);
 		convertPeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings);
+		
 	}
 
 	/**
@@ -434,11 +453,11 @@ public class SystemSettingsDao extends BaseDao {
 	 * @param settings
 	 */
 	private void convertPeriodType(String key,
-			Map<String, String> settings) {
+			Map<String, Object> settings) {
 		
-		String setting = settings.get(key);
-		if(setting != null){
-			int code = Integer.parseInt(setting);
+		Object setting = settings.get(key);
+		if((setting != null)&&(setting instanceof Integer)){
+			int code = (Integer)setting;
 			settings.put(key, Common.TIME_PERIOD_CODES.getCode(code));
 		}
 		
@@ -457,7 +476,17 @@ public class SystemSettingsDao extends BaseDao {
     	while(it.hasNext()){
     		String setting = it.next();
     		//Lookup the setting to see if it exists
-    		setValue(setting, settings.get(setting).toString());
+    		Object value = settings.get(setting);
+    		String stringValue;
+    		if(value instanceof Boolean){
+    			if((Boolean)value)
+    				stringValue = "Y";
+    			else
+    				stringValue = "N";
+    		}else{
+    			stringValue = value.toString();
+    		}
+    		setValue(setting, stringValue);
     	}
 
     }

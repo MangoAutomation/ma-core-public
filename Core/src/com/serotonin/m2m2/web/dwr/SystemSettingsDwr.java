@@ -169,9 +169,13 @@ public class SystemSettingsDwr extends BaseDwr {
 
             SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
             String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
-            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
-            lastRunString = sdf.format(lastRunDate);
-            settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, lastRunString);
+            if(lastRunString != null){
+	            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
+	            lastRunString = sdf.format(lastRunDate);
+	            settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, lastRunString);
+            }else{
+            	settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, "unknown");
+            }
         }
         catch (Exception e) {
             settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, "unknown");
@@ -199,9 +203,13 @@ public class SystemSettingsDwr extends BaseDwr {
 
             SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
             String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
-            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
-            lastRunString = sdf.format(lastRunDate);
-            settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, lastRunString);
+            if(lastRunString != null){
+	            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
+	            lastRunString = sdf.format(lastRunDate);
+	            settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, lastRunString);
+            }else{
+            	settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, "unknown");
+            }
         }
         catch (Exception e) {
             settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, "unknown");
