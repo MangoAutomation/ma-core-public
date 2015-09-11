@@ -25,7 +25,9 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
 			ServerHttpResponse response, WebSocketHandler wsHandler,
 			Map<String, Object> attributes) throws Exception {
 		User user = Common.getUser(((ServletServerHttpRequest)request).getServletRequest());
-		attributes.put("user", user);
+		if (user != null) {
+		    attributes.put("user", user);
+		}
 		
 		return super.beforeHandshake(request, response, wsHandler, attributes);
 	}
