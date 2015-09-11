@@ -133,7 +133,7 @@
   <filter-mapping>
     <filter-name>IsLoggedIn</filter-name>
     <url-pattern>*.shtm</url-pattern>
-    <url-pattern>/protected/*</url-pattern>
+    <url-pattern>/protected/*</url-pattern>   
   </filter-mapping>
 
 

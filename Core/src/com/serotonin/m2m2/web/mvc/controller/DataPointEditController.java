@@ -4,10 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.controller;
 
-import org.springframework.stereotype.Controller;
 
 
-@Controller
 public class DataPointEditController extends BaseDataSourceController{
 
 	public DataPointEditController(){

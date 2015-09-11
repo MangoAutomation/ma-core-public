@@ -64,6 +64,7 @@ public class ModulesController implements UrlHandler {
 
         Module core = new Module("core", version, new TranslatableMessage("modules.core.description"),
                 "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1);
+        
         core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
         modules.add(0, core);

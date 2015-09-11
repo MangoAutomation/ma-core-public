@@ -4,14 +4,12 @@
  */
 package com.serotonin.m2m2.web.mvc.controller;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 
 /**
  * @author Terry Packer
  *
  */
-@Controller
 public class HelpController extends ParameterizableViewController{
 	
 	public HelpController(){

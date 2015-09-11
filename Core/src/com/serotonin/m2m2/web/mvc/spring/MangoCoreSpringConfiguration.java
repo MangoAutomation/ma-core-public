@@ -15,18 +15,6 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import com.serotonin.m2m2.web.mvc.BlabberUrlHandlerMapping;
-import com.serotonin.m2m2.web.mvc.controller.DataPointEditController;
-import com.serotonin.m2m2.web.mvc.controller.DataSourceEditController;
-import com.serotonin.m2m2.web.mvc.controller.DataSourceErrorController;
-import com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController;
-import com.serotonin.m2m2.web.mvc.controller.HelpController;
-import com.serotonin.m2m2.web.mvc.controller.LoginController;
-import com.serotonin.m2m2.web.mvc.controller.LogoutController;
-import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
-import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
-import com.serotonin.m2m2.web.mvc.controller.StartupController;
-import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
-import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.interceptor.CommonDataInterceptor;
 import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 
@@ -66,38 +54,12 @@ public class MangoCoreSpringConfiguration implements BeanFactoryAware{
 	
 	@Bean(name="mappings")
 	public BlabberUrlHandlerMapping blabberUrlHandlerMapping(
-			CommonDataInterceptor commonDataInterceptor,
-			DataPointEditController dataPointEditController,
-			DataSourcePropertiesController dataSourcePropertiesController,
-			DataSourceEditController dataSourceEditController,
-			DataSourceErrorController dataSourceErrorController,
-			HelpController helpController,
-			StartupController startupController,
-			ShutdownController shutdownController,
-			LoginController loginController,
-			LogoutController logoutController,
-			PublisherEditController publisherEditController,
-			UnauthorizedController unauthorizedController,
-			UsersController usersController
+			CommonDataInterceptor commonDataInterceptor
 			){
 		
 		BlabberUrlHandlerMapping mapping = new BlabberUrlHandlerMapping();
 		mapping.addInterceptor(commonDataInterceptor);
 
-		//Register the Controller to its appropriate URL (This could be put into the class itself now)
-		mapping.registerHandler("/data_point_edit.shtm", dataPointEditController);
-		mapping.registerHandler("/data_source_properties.shtm", dataSourcePropertiesController);
-		mapping.registerHandler("/data_source_edit.shtm", dataSourceEditController);
-		mapping.registerHandler("/data_source_properties_error.shtm", dataSourceErrorController);
-		mapping.registerHandler("/help.shtm", helpController);
-		mapping.registerHandler("/startup.htm", startupController);
-		mapping.registerHandler("/shutdown.htm", shutdownController);
-		mapping.registerHandler("/login.htm", loginController);
-		mapping.registerHandler("/logout.htm", logoutController);
-		mapping.registerHandler("/publisher_edit.shtm", publisherEditController);
-		mapping.registerHandler("/unauthorized.htm", unauthorizedController);
-		mapping.registerHandler("/users.shtm", usersController);
-		
 		return mapping;
 	}
 	

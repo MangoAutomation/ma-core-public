@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.servlet.mvc.Controller;
 
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
@@ -33,8 +34,19 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 import com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController;
+import com.serotonin.m2m2.web.mvc.controller.DataPointEditController;
+import com.serotonin.m2m2.web.mvc.controller.DataSourceEditController;
+import com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController;
 import com.serotonin.m2m2.web.mvc.controller.FileUploadController;
+import com.serotonin.m2m2.web.mvc.controller.HelpController;
+import com.serotonin.m2m2.web.mvc.controller.LoginController;
+import com.serotonin.m2m2.web.mvc.controller.LogoutController;
 import com.serotonin.m2m2.web.mvc.controller.ModulesController;
+import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
+import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
+import com.serotonin.m2m2.web.mvc.controller.StartupController;
+import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
+import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 
 /**
@@ -478,6 +490,20 @@ public class ModuleRegistry {
                 new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
 
         preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
+    
+        /* Controller Mappings */
+        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_point_edit.shtm", new DataPointEditController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties.shtm", new DataSourcePropertiesController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_edit.shtm", new DataSourceEditController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties_error.shtm", new DataSourceEditController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/help.shtm", new HelpController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/startup.htm", new StartupController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/logout.htm", new LogoutController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", new UnauthorizedController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/users.shtm", new UsersController()));
+        
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
@@ -625,6 +651,26 @@ public class ModuleRegistry {
             @Override
             public String getJspPath() {
                 return jspPath;
+            }
+        };
+    }
+    
+    static ControllerMappingDefinition createControllerMappingDefinition(final Permission level, final String path,
+            final Controller controller) {
+        return new ControllerMappingDefinition() {
+            @Override
+            public Permission getPermission() {
+                return level;
+            }
+            
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public Controller getController() {
+                return controller;
             }
         };
     }

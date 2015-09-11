@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.web.mvc.controller;
 
-import org.springframework.stereotype.Controller;
 
 
 /**
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Controller;
  * @author Terry Packer
  * 
  */
-@Controller
 public class DataSourcePropertiesController extends BaseDataSourceController {
     
 	public DataSourcePropertiesController(){

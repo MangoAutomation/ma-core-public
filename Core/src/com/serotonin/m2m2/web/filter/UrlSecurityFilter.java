@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.ControllerMappingDefinition;
 import com.serotonin.m2m2.module.UriMappingDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -43,11 +44,13 @@ public class UrlSecurityFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
+        boolean foundMapping = false;
+        
         String uri = request.getRequestURI();
         for (UriMappingDefinition uriDef : ModuleRegistry.getDefinitions(UriMappingDefinition.class)) {
             if (StringUtils.equals(uri, uriDef.getPath())) {
                 boolean allowed = true;
-
+                foundMapping = true;
                 User user = Common.getUser(request);
                 
                 switch (uriDef.getPermission()) {
@@ -94,6 +97,60 @@ public class UrlSecurityFilter implements Filter {
             }
         }
 
+        //if not set then check our other definitions
+        if(!foundMapping){
+	        for (ControllerMappingDefinition uriDef : ModuleRegistry.getDefinitions(ControllerMappingDefinition.class)) {
+	            if (StringUtils.equals(uri, uriDef.getPath())) {
+	                boolean allowed = true;
+	
+	                User user = Common.getUser(request);
+	                
+	                switch (uriDef.getPermission()) {
+	                case ADMINISTRATOR:
+	                    if ((user==null)||(!Permissions.hasAdmin(user)))
+	                        allowed = false;
+	                    break;
+	                case DATA_SOURCE:
+	                    if ((user==null)||(!user.isDataSourcePermission()))
+	                        allowed = false;
+	                    break;
+	                case USER:
+	                	if(user == null){
+	                		allowed = false;
+	                	}
+	                break;
+	                case CUSTOM:
+	                	try{
+	                		allowed = uriDef.hasCustomPermission(user);
+	                	}catch(PermissionException e){
+	                		allowed = false;
+	                	}
+	                break;
+	                case ANONYMOUS:
+	                break;
+	                }
+	
+	                if (!allowed) {
+	                	String msg;
+	                	if(user == null){
+	                		msg = "Denying access to page where user isn't logged in, uri=" + uri;
+	                	}else{
+	                		msg = "Denying access to page where user hasn't sufficient permission, user="
+	                                + user.getUsername() + ", uri=" + uri;
+	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
+	                		return;
+	                	}
+	                    LOG.info(msg);
+	                }else{
+	                	request.setAttribute("urlSecurity", true);
+	                }
+	
+	                break;
+	            }
+	        }
+        }
+        
+        
         filterChain.doFilter(servletRequest, servletResponse);
     }
 }
