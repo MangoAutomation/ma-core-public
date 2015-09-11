@@ -3,54 +3,79 @@
     @author Terry Packer
 -->
 <#if highPriorityWorkItems??>
-<table border="1" style="width:100%">
-	<caption><b>High Priority Items</b></caption>
-	<tr><th>Classname</th><th>Description</th></tr>
+<div style="padding-top: 10px;">
+<table cellPadding="1" cellSpacing="1" border="0" style="width:100%;">
+	<caption class="smallTitle">High Priority Items</caption>
+	<tbody style="outline: 1px solid #F07800">
+	<tr><th class="smallTitle">Classname</th><th class="smallTitle">Description</th></tr>
 	<#if highPriorityWorkItems?has_content>
-	<#list highPriorityWorkItems as item>
-	<tr><td>${item.classname}</td><td>${item.description}</td></tr>
+	<#list highPriorityWorkItems as workItem>
+	<tr style="outline: 1px solid lightgrey"><td>${workItem.classname}</td><td>${workItem.description}</td></tr>
 	</#list>
 	<#else>
-	<tr><td colspan="2">No Items</td>
+	<tr style="outline: 1px solid lightgrey; text-align: center"><td colspan="2" style="text-align:center;">No Items</td>
 	</#if>
+	</tbody>
 </table>
+</div>
 </#if>
 <#if mediumPriorityWorkItems??>
-<table border="1" style="width:100%">
-	<caption><b>Medium Priority Items</b></caption>
-	<tr><th>Classname</th><th>Description</th></tr>
+<div style="padding-top: 10px;">
+<table cellPadding="1" cellSpacing="1" border="0" style="width:100%;">
+	<caption class="smallTitle">Medium Priority Items</caption>
+	<tbody style="outline: 1px solid #F07800">
+	<tr><th class="smallTitle">Classname</th><th class="smallTitle">Description</th></tr>
 	<#if mediumPriorityWorkItems?has_content>
 	<#list mediumPriorityWorkItems as item>
-	<tr><td>${item.classname}</td><td>${item.description}</td></tr>
+	<tr style="outline: 1px solid lightgrey"><td>${item.classname}</td><td>${item.description}</td></tr>
 	</#list>
 	<#else>
-	<tr><td colspan="2">No Items</td>
+	<tr style="outline: 1px solid lightgrey; text-align: center"><td colspan="2">No Items</td>
 	</#if>
+	</tbody>
 </table>
+</div>
 </#if>
 <#if lowPriorityWorkItems??>
-<table border="1" style="width:100%">
-	<caption><b>Low Priority Items</b></caption>
-	<tr><th>Classname</th><th>Description</th></tr>
+<div style="padding-top: 10px;">
+<table cellPadding="1" cellSpacing="1" border="0" style="width:100%;">
+	<caption class="smallTitle">Low Priority Items</caption>
+	<tbody style="outline: 1px solid #F07800">
+	<tr><th class="smallTitle">Classname</th><th class="smallTitle">Description</th></tr>
 	<#if lowPriorityWorkItems?has_content>
 	<#list lowPriorityWorkItems as item>
-	<tr><td>${item.classname}</td><td>${item.description}</td></tr>
+	<tr style="outline: 1px solid lightgrey"><td>${item.classname}</td><td>${item.description}</td></tr>
 	</#list>
 	<#else>
-	<tr><td colspan="2">No Items</td>
+	<tr style="outline: 1px solid lightgrey; text-align: center"><td colspan="2">No Items</td>
 	</#if>	
+	</tbody>
 </table>
+</div>
 </#if>
 <#if threadList??>
-<table border="1" style="width:100%">
-	<caption><b>Thread List</b></caption>
-	<tr><th>Name</th><th>State</th><th>CPU Time (ms)</th><th>Blocked Time (ms)</th><th>Wait Time (ms)</th><th>Lock Owner Name</th><th>Lock Name</th><th>Is Suspended</th><th>Is In Native</th></tr>
+<div style="padding-top: 10px;">
+<table cellPadding="1" cellSpacing="1" border="0" style="width:100%;">
+	<caption class="smallTitle">Thread List</caption>
+	<tbody style="outline: 1px solid #F07800">
+	<tr>
+	  <th class="smallTitle">Name</th>
+	  <th class="smallTitle">State</th>
+	  <th class="smallTitle">CPU Time (ms)</th>
+	  <th class="smallTitle">Blocked Time (ms)</th>
+	  <th class="smallTitle">Wait Time (ms)</th>
+	  <th class="smallTitle">Lock Owner Name</th>
+	  <th class="smallTitle">Lock Name</th>
+	  <th class="smallTitle">Is Suspended</th>
+	  <th class="smallTitle">Is In Native</th></tr>
 	<#if threadList?has_content>
 	<#list threadList as item>
-		<tr><td>${item.threadName}</td><td>${item.threadState}</td><td>${item.cpuTime}</td><td>${item.blockedTime}</td><td>${item.waitTime}</td><td>${item.lockOwnerName}</td><td>${item.lockName}</td><td>${item.suspended?string("yes","no")}</td><td>${item.inNative?string("yes","no")}</td></tr>
+		<tr style="outline: 1px solid lightgrey"><td>${item.threadName}</td><td>${item.threadState}</td><td>${item.cpuTime}</td><td>${item.blockedTime}</td><td>${item.waitTime}</td><td>${item.lockOwnerName}</td><td>${item.lockName}</td><td>${item.suspended?string("yes","no")}</td><td>${item.inNative?string("yes","no")}</td></tr>
 	</#list>
 	<#else>
-	<tr><td colspan="8">No Items</td>
+	<tr style="outline: 1px solid lightgrey; text-align: center"<td colspan="8">No Items</td>
 	</#if>	
+	</tbody>
 </table>
+</div>
 </#if>

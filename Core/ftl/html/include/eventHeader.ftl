@@ -37,7 +37,3 @@
     </style>
   </head>
   <body>
-    <table width="500" cellPadding="0" cellSpacing="0" border="0">
-      <tr><td>
-        <table cellPadding="0" cellSpacing="1" border="0" width="100%" style="background-color:#F07800;">
-          <tr><td style="background-color:#FFFFFF;padding:5px;">

@@ -26,14 +26,20 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.email.UsedImagesDirective;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
+import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailInline;
 
@@ -133,15 +139,15 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
-        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false);
+        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo());
+        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
-            String alias, boolean includeSystemInfo) {
+            String alias, boolean includeSystemInfo, int pointValueCount) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
                     SystemEventType.TYPE_EMAIL_SEND_FAILURE)) {
@@ -208,6 +214,49 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
             	model.put("threadList", getThreadsList());
             }
 
+            //If we are a point event then add the value
+            if(evt.getEventType() instanceof DataPointEventType){
+            	DataPointVO dp = (DataPointVO)evt.getContext().get("point");
+            	if(dp != null){
+            		DataPointRT rt = Common.runtimeManager.getDataPoint(dp.getId());
+            		if(rt != null){
+            			List<PointValueTime> pointValues = null;
+            			if( pointValueCount > 0)
+            				pointValues = rt.getLatestPointValues(pointValueCount);
+            			if((pointValues != null)&&(pointValues.size() > 0)){
+            				
+            				int type = SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
+
+            				if (type == MangoEmailContent.CONTENT_TYPE_HTML || type == MangoEmailContent.CONTENT_TYPE_BOTH){
+            					List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
+	            				for(PointValueTime pvt : pointValues){
+	            					RenderedPointValueTime rpvt = new RenderedPointValueTime();
+	            					
+	            					rpvt.setValue(Functions.getHtmlText(rt.getVO(), pvt));
+	                                rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
+	                                renderedPointValues.add(rpvt);
+	            				}
+	            				model.put("renderedHtmlPointValues", renderedPointValues);
+            				}
+            				
+            				if (type == MangoEmailContent.CONTENT_TYPE_TEXT || type == MangoEmailContent.CONTENT_TYPE_BOTH){
+            					List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
+	            				for(PointValueTime pvt : pointValues){
+	            					RenderedPointValueTime rpvt = new RenderedPointValueTime();
+	            					rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
+	                                rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
+	                                renderedPointValues.add(rpvt);
+	            				}
+            				model.put("renderedPointValues", renderedPointValues);
+            				}
+            				
+            			}
+            		}
+            			
+            	}
+            	
+            }
+            
             MangoEmailContent content = new MangoEmailContent(notificationType.getFile(), model, translations, subject,
                     Common.UTF8);
 

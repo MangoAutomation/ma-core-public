@@ -6,7 +6,27 @@
   <td><#include "alarmLevel.ftl"></td>
   <td colspan="2">${evt.prettyActiveTimestamp} - <b><@fmt message=evt.message/></b></td>
 </tr>
+
+<#if renderedHtmlPointValues??>
+<#if renderedHtmlPointValues?has_content>
+<tr>
+  <td colspan="3"><hr></td></tr>
+<tr>
+  <td colspan="3" class="smallTitle"><b><@fmt key="ftl.recentPointValues"/></b></td>
+</tr>
+</#if>
+  <#list renderedHtmlPointValues as renderedPvt>
+<tr>
+  <td width="10"></td>
+  <td>${renderedPvt.value}</td>
+  <td>${renderedPvt.time}</td>
+</tr>
+  </#list>
+</#if>
 <#if evt.eventComments??>
+<#if eventComments?has_content>
+<tr> <td colspan="3"><hr></td></tr>
+</#if>
   <#list evt.eventComments as comment>
     <tr>
       <td width="10"></td>
@@ -25,4 +45,3 @@
     </tr>
   </#list>
 </#if>
-<tr><td colspan="3"></td></tr>

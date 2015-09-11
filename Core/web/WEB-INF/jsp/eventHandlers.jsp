@@ -408,6 +408,8 @@
                 escalRecipients.updateRecipientList(handler.escalationRecipients);
                 $set("sendInactive", handler.sendInactive);
                 $set("inactiveOverride", handler.inactiveOverride);
+                $set("includeSystemInfo", handler.includeSystemInfo);
+                $set("includePointValueCount", handler.includePointValueCount);
                 inactiveRecipients.updateRecipientList(handler.inactiveRecipients);
             }
             else if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>) {
@@ -437,7 +439,7 @@
             $set("activeProcessTimeout", 15);
             $set("inactiveProcessCommand", "");
             $set("inactiveProcessTimeout", 15);
-            
+            $set("includePointValueCount", 10);
             // Clear the recipient lists.
             emailRecipients.updateRecipientList();
             escalRecipients.updateRecipientList();
@@ -578,11 +580,10 @@
             var emailList = emailRecipients.createRecipientArray();
             var escalList = escalRecipients.createRecipientArray();
             var inactiveList = inactiveRecipients.createRecipientArray();
-            var includeSystemInfo = $get("includeSystemInfo");
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("sendEscalation"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
-                    $get("inactiveOverride"), inactiveList, includeSystemInfo, saveEventHandlerCB);
+                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), saveEventHandlerCB);
         }
         else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
@@ -718,7 +719,7 @@
             <tr><td class="horzSeparator" colspan="2"></td></tr>
           </table>
           
-          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>" style="display:none" width="100%">
+          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>" style="display:none; width: 100%">
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.target"/></td>
               <td class="formField">
@@ -769,7 +770,7 @@
             </tr>
           </table>
             
-          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>" style="display:none" width="100%">
+          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>" style="display:none; width: 100%">
             <tbody id="emailRecipients"></tbody>
             
             <tr><td class="horzSeparator" colspan="2"></td></tr>
@@ -777,6 +778,10 @@
               <td class="formLabelRequired"><fmt:message key="eventHandlers.includeSystemInfo"/></td>
               <td class="formField"><input id="includeSystemInfo" type="checkbox" /></td>
             </tr>            
+           <tr>
+              <td class="formLabelRequired"><fmt:message key="eventHandlers.includePointValueCount"/></td>
+              <td class="formField"><input id="includePointValueCount" type="number" class="formShort"/></td>
+            </tr>  
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.escal"/></td>
               <td class="formField"><input id="sendEscalation" type="checkbox" onclick="sendEscalationChanged()"/></td>
@@ -808,7 +813,7 @@
             
           </table>
           
-          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>" style="display:none" width="100%">
+          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>" style="display:none; width: 100%">
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.activeCommand"/></td>
               <td class="formField">

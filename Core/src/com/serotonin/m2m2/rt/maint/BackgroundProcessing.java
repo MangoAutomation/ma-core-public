@@ -130,7 +130,10 @@ public class BackgroundProcessing implements ILifecycle {
     	Iterator<TimerTask> iter = Common.timer.getTasks().iterator();
     	while(iter.hasNext()){
     		TimerTask task = iter.next();
-    		list.add(new WorkItemModel(task.getClass().getCanonicalName(), task.toString(), "HIGH"));
+    		String name = task.getClass().getCanonicalName();
+    		if(name == null)
+    			System.out.println("found it");
+    		list.add(new WorkItemModel(name, task.toString(), "HIGH"));
     	}
     	return list;
     }

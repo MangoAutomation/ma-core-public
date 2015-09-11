@@ -5,17 +5,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.LicenseDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.license.ModuleLicense;
-import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -23,8 +17,6 @@ import com.serotonin.timer.TimerTask;
  * Simply checks that a license for the module exists and stops the timer if so.
  */
 public abstract class TimedModuleLicense extends LicenseDefinition {
-	
-	private final Log LOG = LogFactory.getLog(TimedModuleLicense.class);
 
 	protected TimerTask task;
 
@@ -76,33 +68,15 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
                 final TimedExpiryChecker checker = new TimedExpiryChecker(getModule().getName(), this.runtime, this.action);
                 ModuleRegistry.addLicenseEnforcement(checker);
                 
-        		this.task = new TimerTask(new FixedRateTrigger(timeoutRecheckPeriod, timeoutRecheckPeriod)){
-        			private boolean alarmRaised = false;
-        			private SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_LICENSE_CHECK, 0,
-	    	                EventType.DuplicateHandling.ALLOW);
-        			private TimedExpiryChecker tec = checker; 
-        			@Override
-        			public void run(long runtime) {
-        				tec.isExpired();
-        				//Raise a warning the first time we check.
-        				if(!alarmRaised){
-        					
-        					//Ensure our events subsystem is active
-        					EventTypeVO vo  = SystemEventType.getEventType(eventType.getSystemEventType());
-        					if(vo == null)
-        						return; //We can't raise an event yet
-        					
-        					if(modifyTaskWhenSystemReady(this)){
-	        					alarmRaised = true;
-	        	    			SystemEventType.raiseEvent(eventType, System.currentTimeMillis(), true,
-	        	    	                new TranslatableMessage(messageKey, shutdownString));
-	        	    			LOG.warn(getModule().getName() + " is unlicensed, system will shutdown at " + shutdownString);
-        	    			}
-
-        				}
-        			}
-        			
-        		};
+        		this.task = new TimedLicenseEnforcementChecker(
+        				new FixedRateTrigger(timeoutRecheckPeriod, timeoutRecheckPeriod),
+        				"License Enforcement Checker for " + getModule().getName(),
+        				this,
+        				checker,
+        				messageKey,
+        				shutdownString
+        				);
+        		
                 Common.timer.schedule(task);
             }else{
             	if(task != null)

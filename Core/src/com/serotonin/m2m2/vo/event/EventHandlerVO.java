@@ -108,6 +108,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
     private boolean inactiveOverride;
     private List<RecipientListEntryBean> inactiveRecipients;
     private boolean includeSystemInfo; //Include Work Items and Service Thread Pool Data
+    private int includePointValueCount = 10;
 
     // Process handler fields.
     private String activeProcessCommand;
@@ -325,7 +326,15 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
     	this.includeSystemInfo = includeSystemInfo;
     }
     
-    public String getActiveProcessCommand() {
+    public int getIncludePointValueCount() {
+		return includePointValueCount;
+	}
+
+	public void setIncludePointValueCount(int includePointValueCount) {
+		this.includePointValueCount = includePointValueCount;
+	}
+
+	public String getActiveProcessCommand() {
         return activeProcessCommand;
     }
 
@@ -503,6 +512,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                             createRecipientMessage(inactiveRecipients));
             }
             AuditEventType.addPropertyMessage(list, "eventHandlers.includeSystemInfo", includeSystemInfo);
+            AuditEventType.addPropertyMessage(list, "eventHandlers.includePointValueCount", includePointValueCount);
         }
         else if (handlerType == TYPE_PROCESS) {
             AuditEventType.addPropertyMessage(list, "eventHandlers.activeCommand", activeProcessCommand);
@@ -554,6 +564,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveRecipients",
                     createRecipientMessage(from.inactiveRecipients), createRecipientMessage(inactiveRecipients));
             AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includeSystemInfo", from.includeSystemInfo, includeSystemInfo);
+            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includePointValueCount", from.includePointValueCount, includePointValueCount);
         }
         else if (handlerType == TYPE_PROCESS) {
             AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeCommand",
@@ -592,7 +603,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -617,6 +628,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             out.writeBoolean(inactiveOverride);
             out.writeObject(inactiveRecipients);
             out.writeBoolean(includeSystemInfo);
+            out.writeInt(includePointValueCount);
         }
         else if (handlerType == TYPE_PROCESS) {
             SerializationHelper.writeSafeUTF(out, activeProcessCommand);
@@ -652,6 +664,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                includePointValueCount = 0;
             }
             else if (handlerType == TYPE_PROCESS) {
                 activeProcessCommand = SerializationHelper.readSafeUTF(in);
@@ -681,6 +694,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                includePointValueCount = 0;
             }
             else if (handlerType == TYPE_PROCESS) {
                 activeProcessCommand = SerializationHelper.readSafeUTF(in);
@@ -711,6 +725,37 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
                 includeSystemInfo = in.readBoolean();
+                includePointValueCount = 0;
+            }
+            else if (handlerType == TYPE_PROCESS) {
+                activeProcessCommand = SerializationHelper.readSafeUTF(in);
+                activeProcessTimeout = in.readInt();
+                inactiveProcessCommand = SerializationHelper.readSafeUTF(in);
+                inactiveProcessTimeout = in.readInt();
+            }
+        }else if (ver == 4) {
+            handlerType = in.readInt();
+            disabled = in.readBoolean();
+            if (handlerType == TYPE_SET_POINT) {
+                targetPointId = in.readInt();
+                activeAction = in.readInt();
+                activeValueToSet = SerializationHelper.readSafeUTF(in);
+                activePointId = in.readInt();
+                inactiveAction = in.readInt();
+                inactiveValueToSet = SerializationHelper.readSafeUTF(in);
+                inactivePointId = in.readInt();
+            }
+            else if (handlerType == TYPE_EMAIL) {
+                activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                sendEscalation = in.readBoolean();
+                escalationDelayType = in.readInt();
+                escalationDelay = in.readInt();
+                escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                sendInactive = in.readBoolean();
+                inactiveOverride = in.readBoolean();
+                inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                includeSystemInfo = in.readBoolean();
+                includePointValueCount = in.readInt();
             }
             else if (handlerType == TYPE_PROCESS) {
                 activeProcessCommand = SerializationHelper.readSafeUTF(in);
@@ -769,6 +814,7 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
                     writer.writeEntry("inactiveRecipients", inactiveRecipients);
             }
             writer.writeEntry("includeSystemInformation", includeSystemInfo);
+            writer.writeEntry("includePointValueCount", includePointValueCount);
         }
         else if (handlerType == TYPE_PROCESS) {
             writer.writeEntry("activeProcessCommand", activeProcessCommand);
@@ -897,6 +943,8 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             if(b != null){
             	includeSystemInfo = b;
             }
+            
+            includePointValueCount = jsonObject.getInt("includePointValueCount", 0);
         }
         else if (handlerType == TYPE_PROCESS) {
             text = jsonObject.getString("activeProcessCommand");
