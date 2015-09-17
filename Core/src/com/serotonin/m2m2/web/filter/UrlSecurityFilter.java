@@ -11,15 +11,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.AntPathMatcher;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.ControllerMappingDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.ControllerMappingDefinition;
 import com.serotonin.m2m2.module.UriMappingDefinition;
 import com.serotonin.m2m2.module.UrlMappingDefinition;
 import com.serotonin.m2m2.vo.User;
