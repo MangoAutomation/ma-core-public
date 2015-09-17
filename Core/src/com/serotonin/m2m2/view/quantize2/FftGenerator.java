@@ -67,7 +67,26 @@ public class FftGenerator {
 	}
 	
 	/**
-	 * Return the pre FFT values if not done, else return FFT values
+	 * Return the pre DFT values if not done, else return DFT values
+	 * 
+	 * When returning DFT values
+     * . The physical layout of the output data is as follows:<br>
+     *  
+     * if n is even then
+     *  
+     * <pre>
+     * a[2*k] = Re[k], 0&lt;=k&lt;n/2
+     * a[2*k+1] = Im[k], 0&lt;k&lt;n/2 
+     * a[1] = Re[n/2]
+     * </pre>
+     *  
+     * if n is odd then
+     *  
+     * <pre>
+     * a[2*k] = Re[k], 0&lt;=k&lt;(n+1)/2 
+     * a[2*k+1] = Im[k], 0&lt;k&lt;(n-1)/2
+     * a[1] = Im[(n-1)/2]
+     * </pre>
 	 * @return
 	 */
 	public double[] getValues(){
