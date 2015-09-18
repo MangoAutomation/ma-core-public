@@ -36,6 +36,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
@@ -287,7 +288,7 @@ public class RuntimeManager {
 
             // Add it to the list of running data sources.
             runningDataSources.add(dataSource);
-
+            
             // Add the enabled points to the data source.
             List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPoints(vo.getId(), null);
             for (DataPointVO dataPoint : dataSourcePoints) {
@@ -389,6 +390,15 @@ public class RuntimeManager {
 
                 // Initialize it.
                 dataPoint.initialize();
+                
+                //If we are a polling data source then we need to wait to start our interval logging
+                // until the first poll due to quantization
+                boolean isPolling = ds instanceof PollingDataSource;
+                
+                //If we are not polling go ahead and start the interval logging, otherwise we will let the data source do it on the first poll
+                if(!isPolling)
+                	dataPoint.initializeIntervalLogging(0l, false);
+                
                 DataPointListener l = getDataPointListeners(vo.getId());
                 if (l != null)
                     l.pointInitialized();

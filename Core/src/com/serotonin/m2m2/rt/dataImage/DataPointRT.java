@@ -327,18 +327,28 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     //
     // / Interval logging
     //
-    private void initializeIntervalLogging() {
+    /**
+     * 
+     */
+    public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
         synchronized (intervalLoggingLock) {
             if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
                 return;
-            
+            long delay = 0l;
+            long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
+            if(quantize){
+            	// Quantize the start.
+            	//Compute delay only if we are offset from the next poll time
+            	long nextPollOffset = (nextPollTime % loggingPeriodMillis);
+            	if(nextPollOffset != 0)
+            		delay = loggingPeriodMillis - nextPollOffset;
+                LOG.debug("First interval log should be at: " + (nextPollTime + delay));
+            }
             //Are we using a custom timer?
             if(this.timer == null)
-	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(0, Common.getMillis(
-	                    vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), this);
+	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), this);
             else
-	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(0, Common.getMillis(
-	                    vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), this, this.timer);
+	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), this, this.timer);
             	
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
@@ -605,7 +615,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
 
-        initializeIntervalLogging();
+        //initializeIntervalLogging();
     }
 
     @Override
@@ -627,7 +637,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     }
 
     public void initializeHistorical() {
-        initializeIntervalLogging();
+        initializeIntervalLogging(0l, false);
     }
 
     public void terminateHistorical() {

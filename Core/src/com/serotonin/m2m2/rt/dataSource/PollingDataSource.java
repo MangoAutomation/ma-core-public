@@ -114,9 +114,9 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         try {
             jobThread = Thread.currentThread();
             jobThreadStartTime = fireTime;
-
+            
             // Check if there were changes to the data points list.
-            updateChangedPoints();
+            updateChangedPoints(fireTime);
 
             doPollNoSync(fireTime);
         }
@@ -152,12 +152,18 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 
     abstract protected void doPoll(long time);
 
-    protected void updateChangedPoints() {
+    protected void updateChangedPoints(long fireTime) {
         synchronized (pointListChangeLock) {
             if (addedChangedPoints.size() > 0) {
-                // Remove any existing instances of the points.
+
+            	// Remove any existing instances of the points.
                 dataPoints.removeAll(addedChangedPoints);
-                dataPoints.addAll(addedChangedPoints);
+                
+                // Add the changed points and start the interval logging
+                for(DataPointRT rt : addedChangedPoints){
+                	rt.initializeIntervalLogging(fireTime, quantize);
+                	dataPoints.add(rt);
+                }
                 addedChangedPoints.clear();
                 pointListChanged = true;
             }
@@ -177,9 +183,12 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public void beginPolling() {
         if (cronPattern == null) {
             long delay = 0;
-            if (quantize)
+            if (quantize){
                 // Quantize the start.
-                delay = pollingPeriodMillis - (System.currentTimeMillis() % pollingPeriodMillis);
+            	long now = System.currentTimeMillis();
+                delay = pollingPeriodMillis - (now % pollingPeriodMillis);
+                LOG.debug("First poll should be at: " + (now + delay));
+            }
             timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this);
         }
         else {
