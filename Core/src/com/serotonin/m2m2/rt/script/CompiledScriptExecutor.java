@@ -13,9 +13,6 @@ import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 
@@ -34,8 +31,8 @@ public class CompiledScriptExecutor extends ScriptExecutor{
      * @throws ScriptException
      */
     public static CompiledScript compile(String script) throws ScriptException {
-    	StopWatch stopWatch = new Log4JStopWatch();
-		stopWatch.start();
+//    	StopWatch stopWatch = new Log4JStopWatch();
+//		stopWatch.start();
         script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
         //TODO Review change 
 //        ensureInit();
@@ -45,7 +42,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
     	ScriptUtils.prepareEngine(engine);
     	CompiledScript compiledScript = ((Compilable)engine).compile(script);
         
-        stopWatch.stop("compile(script)");
+//        stopWatch.stop("compile(script)");
         return compiledScript;
     }
 
@@ -67,8 +64,8 @@ public class CompiledScriptExecutor extends ScriptExecutor{
            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
            ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log) throws ScriptException, ResultTypeException {
        
-    	StopWatch stopWatch = new Log4JStopWatch();
-		stopWatch.start();
+//    	StopWatch stopWatch = new Log4JStopWatch();
+//		stopWatch.start();
     	ensureInit();
 
         // Create the wrapper object context.
@@ -87,7 +84,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
         }
 
         PointValueTime value = getResult(engine, result, dataTypeId, timestamp);
-    	stopWatch.stop("execute()");
+    	//stopWatch.stop("execute()");
         return value;
     }
     
