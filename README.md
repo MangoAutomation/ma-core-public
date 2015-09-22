@@ -3,7 +3,7 @@ ma-core-public
 
 Mango Automation Core public code
 
-Mango Automation is a full features SCADA / HMI solution that offers complete flexibility no matter how large or small your needs are.  Mango can be used in hundreds of configuration, from data protocol gateway to graphic user interface.  With the Mango expansion modules in the app store and the ability to build custom modules, you will find everything you need in Mango.  Here is a list of the key features available.
+Mango Automation is a full featured SCADA / HMI solution that offers complete flexibility no matter how large or small your needs are.  Mango can be used in hundreds of configuration, from data protocol gateway to graphic user interface.  With the Mango expansion modules in the app store and the ability to build custom modules, you will find everything you need in Mango.  Here is a list of the key features available.
 
 --Speed--
 
