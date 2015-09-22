@@ -18,7 +18,7 @@
                       useScope="runtime" />
 
     <property name="fullName"
-              value="m2m2-${maven-pom.artifactId}-${maven-pom.version}" />
+              value="m2m2-core-${maven-pom.version}" />
 	<!-- Caution, core.target is not meant to be set to coreHome -->
     <property name="core.target" value="${coreHome}/dist/build" />
     <property name="core.release" value="${coreHome}/dist/release" />
