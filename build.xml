@@ -78,7 +78,7 @@
 
 
     <subant target="public-release">
-        <property name="core.deploy.paths" value="${core.deploy.path}/${maven-pom.version}/${TODAY}" />
+        <property name="core.deploy.paths" value="${core.deploy.path}/${maven-pom.version}/" />
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
 
@@ -86,17 +86,17 @@
     <!-- now using the build target we will build ALL of the modules so we have them-->
     <subant target="deploy-all-somewhere">
         <property name="core.target" value="${core.target}" />
-        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/${TODAY}"/>
+        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/"/>
         <fileset dir="${modules.private.path}" includes="build.xml"/>
     </subant>
     <subant target="deploy-all-somewhere">
         <property name="core.target" value="${core.target}" />
-        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/${TODAY}"/>
+        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/"/>
         <fileset dir="${modules.public.path}" includes="build.xml"/>
     </subant>
     <subant target="deploy-all-somewhere">
         <property name="core.target" value="${core.target}" />
-        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/${TODAY}"/>
+        <property name="modules.deploy.path" value="${core.deploy.path}/${maven-pom.version}/"/>
         <fileset dir="${modules.proprietary.path}" includes="build.xml"/>
     </subant>
 
