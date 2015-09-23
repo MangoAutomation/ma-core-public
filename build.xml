@@ -31,7 +31,12 @@
     <subant target="clean">
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
-    
+
+    <!-- Generate Java Doc -->
+    <subant target="docs">
+        <fileset dir="${coreHome}" includes="build.xml"/>
+    </subant>
+
     <!-- Compile the core target -->
     <subant target="jar">
         <fileset dir="${coreHome}" includes="build.xml"/>
