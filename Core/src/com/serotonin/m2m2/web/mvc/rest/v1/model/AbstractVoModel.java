@@ -50,6 +50,7 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 	
 	
 	//For CSV Models to define the type
+	@ApiModelProperty(value = "Model Type Definition", required = false)
 	@CSVColumnGetter(order=0, header="modelType")
 	public abstract String getModelType();
 	
@@ -57,7 +58,7 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 	public void setModelType(String typeName){ }
 	
 	
-	
+	@ApiModelProperty(value = "XID of object", required = false)
 	@CSVColumnGetter(order=1, header="xid")
 	@JsonGetter("xid")
 	public String getXid(){
@@ -69,6 +70,7 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		this.data.setXid(xid);
 	}
 	
+	@ApiModelProperty(value = "Name of object", required = false)
 	@CSVColumnGetter(order=2, header="name")
 	@JsonGetter("name")
 	public String getName(){

@@ -131,8 +131,6 @@ public class BackgroundProcessing implements ILifecycle {
     	while(iter.hasNext()){
     		TimerTask task = iter.next();
     		String name = task.getClass().getCanonicalName();
-    		if(name == null)
-    			System.out.println("found it");
     		list.add(new WorkItemModel(name, task.toString(), "HIGH"));
     	}
     	return list;
@@ -237,7 +235,7 @@ public class BackgroundProcessing implements ILifecycle {
     public void initialize() {
     	
     	//Adjust the RealTime timer pool now
-    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, 0);
+    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, 1);
     	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, 100);
     	ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
     	executor.setCorePoolSize(corePoolSize);

@@ -58,11 +58,10 @@ public class SwaggerConfig{
    private ApiInfo apiInfo() {
 	      ApiInfo apiInfo = new ApiInfo(
 	    	      "Mango Rest API",                             /* title */
-	    	      "Mango Automation  " + 
-	    	      "at <a href=\"http://infiniteautomation.com\">http://infiniteautomation.com</a> " + 
-	    	      "we need to define an api key \"special-key\" to test the authorization filters", 
+	    	      //Sub-title and support info,
+	    	      "Support: <a href='http://infiniteautomation.com/forum'>Forum</a>&nbsp or &nbsp <a href='http://infiniteautomation.com/wiki/doku.php?id=graphics:api:intro'>Wiki</a>",  
 	    	      "http://infiniteautomation.com/terms/",           /* TOS URL */
-	    	      "info@infiniteautomation.com",                            /* Contact */
+	    	      "info@infiniteautomation.com",                    /* Contact */
 	    	      "Apache 2.0",                                     /* license */
 	    	      "http://www.apache.org/licenses/LICENSE-2.0.html" /* license URL */
 	        );

@@ -39,7 +39,6 @@ import com.serotonin.m2m2.web.mvc.controller.DataSourceEditController;
 import com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController;
 import com.serotonin.m2m2.web.mvc.controller.FileUploadController;
 import com.serotonin.m2m2.web.mvc.controller.HelpController;
-import com.serotonin.m2m2.web.mvc.controller.LoginController;
 import com.serotonin.m2m2.web.mvc.controller.LogoutController;
 import com.serotonin.m2m2.web.mvc.controller.ModulesController;
 import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
@@ -47,6 +46,7 @@ import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
 import com.serotonin.m2m2.web.mvc.controller.StartupController;
 import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
 import com.serotonin.m2m2.web.mvc.controller.UsersController;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModelDefinition;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 
 /**
@@ -422,6 +422,8 @@ public class ModuleRegistry {
         
         //Add in core Models
         preDefaults.add(new RestErrorModelDefinition());
+        //TODO Add env property to load the Demo Swagger Endpoint then re-enable the demo controller
+        //preDefaults.add(new DemoModelDefinition());
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());
