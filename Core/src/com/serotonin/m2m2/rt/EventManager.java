@@ -228,11 +228,12 @@ public class EventManager implements ILifecycle {
 
 	public void returnToNormal(EventType type, long time, int cause) {
 		EventInstance evt = remove(type);
-		
+		if(evt == null)
+			return;
+		List<User> activeUsers = userDao.getActiveUsers();
 		// Loop in case of multiples
 		while (evt != null) {
-
-			for (User user : userDao.getActiveUsers()) {
+			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
 				if (type.excludeUser(user))
@@ -268,33 +269,44 @@ public class EventManager implements ILifecycle {
 			log.trace("Event returned to normal: type=" + type);
 	}
 
-	private void deactivateEvent(EventInstance evt, long time, int inactiveCause) {
-		activeEvents.remove(evt);
-		resetHighestAlarmLevel(time);
-		evt.returnToNormal(time, inactiveCause);
-		eventDao.saveEvent(evt);
+	/**
+	 * Deactivate a group of simmilar events
+	 * @param evts
+	 * @param time
+	 * @param inactiveCause
+	 */
+	private void deactivateEvents(List<EventInstance> evts, long time, int inactiveCause) {
+		List<User> activeUsers = userDao.getActiveUsers();
+		activeEvents.removeAll(evts);
+		List<Integer> eventIds = new ArrayList<Integer>();
+		for(EventInstance evt : evts){
+			if(evt.isActive())
+				eventIds.add(evt.getId());
+			evt.returnToNormal(time, inactiveCause);	
+			for (User user : activeUsers) {
+				// Do not create an event for this user if the event type says the
+				// user should be skipped.
+				if (evt.getEventType().excludeUser(user))
+					continue;
 
-
-		for (User user : userDao.getActiveUsers()) {
-			// Do not create an event for this user if the event type says the
-			// user should be skipped.
-			if (evt.getEventType().excludeUser(user))
-				continue;
-
-			if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
-				//Notify All User Event Listeners of the new event
-				for(UserEventListener l : this.userEventListeners){
-					if(l.getUserId() == user.getId()){
-						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true, false));
+				if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+					//Notify All User Event Listeners of the new event
+					for(UserEventListener l : this.userEventListeners){
+						if(l.getUserId() == user.getId()){
+							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true, false));
+						}
 					}
+				
 				}
-			
 			}
-			this.userEventCache.removeEvent(user.getId(), evt);
+			
+			// Call inactiveEvent handlers.
+			handleInactiveEvent(evt);
 		}
-		
-		// Call inactiveEvent handlers.
-		handleInactiveEvent(evt);
+		if(eventIds.size() > 0){
+			resetHighestAlarmLevel(time);
+			eventDao.returnEventsToNormal(eventIds, time, inactiveCause);
+		}
 	}
 	
 	/**
@@ -334,17 +346,118 @@ public class EventManager implements ILifecycle {
 		return lastAlarmTimestamp;
 	}
 
+	/**
+	 * Purge All Events We have
+	 * @return
+	 */
+	public int purgeAllEvents(){
+		activeEvents.clear();
+		synchronized (recentEvents) {
+			recentEvents.clear();
+		}
+		
+		userEventCache.purgeAllEvents();
+		
+		return eventDao.purgeAllEvents();
+	}
+	
+	/**
+	 * Purge events prior to time
+	 * @param time
+	 * @return
+	 */
+	public int purgeEventsBefore(final long time){
+		List<EventInstance> toRemove = new ArrayList<EventInstance>();
+		for (EventInstance e : activeEvents) {
+			if(e.getActiveTimestamp() < time){
+				toRemove.add(e);
+			}
+		}
+		activeEvents.removeAll(toRemove);
+		toRemove.clear();
+		synchronized (recentEvents) {
+			for (EventInstance e : recentEvents) {
+				if(e.getActiveTimestamp() < time){
+					toRemove.add(e);
+				}
+			}
+			recentEvents.removeAll(toRemove);
+		}
+		
+		userEventCache.purgeEventsBefore(time);
+		
+		return eventDao.purgeEventsBefore(time);
+	}
+	
+	/**
+	 * Purge Events before time with a given type
+	 * @param time
+	 * @param typeName
+	 * @return
+	 */
+	public int purgeEventsBefore(final long time, final String typeName){
+		List<EventInstance> toRemove = new ArrayList<EventInstance>();
+		for (EventInstance e : activeEvents) {
+			if((e.getActiveTimestamp() < time)&&(e.getEventType().getEventType().equals(typeName))){
+				toRemove.add(e);
+			}
+		}
+		activeEvents.removeAll(toRemove);
+		toRemove.clear();
+		synchronized (recentEvents) {
+			for (EventInstance e : recentEvents) {
+				if((e.getActiveTimestamp() < time)&&(e.getEventType().getEventType().equals(typeName))){
+					toRemove.add(e);
+				}
+			}
+			recentEvents.removeAll(toRemove);
+		}
+
+		userEventCache.purgeEventsBefore(time, typeName);
+		
+		return eventDao.purgeEventsBefore(time, typeName);
+	}
+	
+	/**
+	 * Purge Events before time with a given type
+	 * @param time
+	 * @param typeName
+	 * @return
+	 */
+	public int purgeEventsBefore(final long time, final int alarmLevel){
+		List<EventInstance> toRemove = new ArrayList<EventInstance>();
+		for (EventInstance e : activeEvents) {
+			if((e.getActiveTimestamp() < time)&&(e.getAlarmLevel() == alarmLevel)){
+				toRemove.add(e);
+			}
+		}
+		activeEvents.removeAll(toRemove);
+		toRemove.clear();
+		synchronized (recentEvents) {
+			for (EventInstance e : recentEvents) {
+				if((e.getActiveTimestamp() < time)&&(e.getAlarmLevel() == alarmLevel)){
+					toRemove.add(e);
+				}
+			}
+		}
+
+		userEventCache.purgeEventsBefore(time, alarmLevel);
+		
+		return eventDao.purgeEventsBefore(time, alarmLevel);
+	}
+	
 	//
 	//
 	// Canceling events.
 	//
 	public void cancelEventsForDataPoint(int dataPointId) {
+		List<EventInstance> dataPointEvents = new ArrayList<EventInstance>();
 		for (EventInstance e : activeEvents) {
 			if (e.getEventType().getDataPointId() == dataPointId)
-				deactivateEvent(e, System.currentTimeMillis(),
-						EventInstance.RtnCauses.SOURCE_DISABLED);
+				dataPointEvents.add(e);
 		}
-
+		
+		deactivateEvents(dataPointEvents, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 		synchronized (recentEvents) {
 			for (int i = recentEvents.size() - 1; i >= 0; i--) {
 				EventInstance e = recentEvents.get(i);
@@ -354,12 +467,17 @@ public class EventManager implements ILifecycle {
 		}
 	}
 
+	/**
+	 * Cancel active events for a Data Source
+	 * @param dataSourceId
+	 */
 	public void cancelEventsForDataSource(int dataSourceId) {
+		List<EventInstance> dataSourceEvents = new ArrayList<EventInstance>();
 		for (EventInstance e : activeEvents) {
 			if (e.getEventType().getDataSourceId() == dataSourceId)
-				deactivateEvent(e, System.currentTimeMillis(),
-						EventInstance.RtnCauses.SOURCE_DISABLED);
+				dataSourceEvents.add(e);
 		}
+		deactivateEvents(dataSourceEvents, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		synchronized (recentEvents) {
 			for (int i = recentEvents.size() - 1; i >= 0; i--) {
@@ -370,13 +488,18 @@ public class EventManager implements ILifecycle {
 		}
 	}
 
+	/**
+	 * Cancel all events for a publisher
+	 * @param publisherId
+	 */
 	public void cancelEventsForPublisher(int publisherId) {
+		List<EventInstance> publisherEvents = new ArrayList<EventInstance>();
 		for (EventInstance e : activeEvents) {
 			if (e.getEventType().getPublisherId() == publisherId)
-				deactivateEvent(e, System.currentTimeMillis(),
-						EventInstance.RtnCauses.SOURCE_DISABLED);
+				publisherEvents.add(e);
+				
 		}
-
+		deactivateEvents(publisherEvents, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 		synchronized (recentEvents) {
 			for (int i = recentEvents.size() - 1; i >= 0; i--) {
 				EventInstance e = recentEvents.get(i);

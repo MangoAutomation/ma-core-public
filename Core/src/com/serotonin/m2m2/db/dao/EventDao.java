@@ -9,12 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
@@ -92,6 +90,23 @@ public class EventDao extends BaseDao {
         ejt.update(EVENT_UPDATE, new Object[] { event.getRtnTimestamp(), event.getRtnCause(), event.getId() });
     }
 
+    private static final String EVENT_BULK_RTN = "update events set rtnTs=?, rtnCause=? where id in ";
+    public void returnEventsToNormal(List<Integer> eventIds, long timestamp, long cause){
+    	if(eventIds.size() == 0)
+    		throw new ShouldNeverHappenException("Not enough Ids!");
+    	StringBuilder inClause = new StringBuilder();
+    	inClause.append("(");
+    	final String comma = ",";
+    	Iterator<Integer> it = eventIds.iterator();
+    	while(it.hasNext()){
+    		inClause.append(it.next());
+    		if(it.hasNext())
+    			inClause.append(comma);
+    	}
+    	inClause.append(")");
+    	ejt.update( EVENT_BULK_RTN + inClause.toString(), new Object[]{timestamp, cause});
+    }
+    
     private static final String EVENT_ACK = "update events set ackTs=?, ackUserId=?, alternateAckSource=? where id=? and ackTs is null";
     private static final String USER_EVENT_ACK = "update userEvents set silenced=? where eventId=?";
 
@@ -306,6 +321,25 @@ public class EventDao extends BaseDao {
         return getEventInstance(eventId);
     }
 
+    /**
+     * Purge all events by truncating the table
+     * @return
+     */
+    public int purgeAllEvents(){
+    	final ExtendedJdbcTemplate ejt2 = ejt;
+    	int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+            @Override
+            public Integer doInTransaction(TransactionStatus status) {
+            	int count = ejt2.queryForInt("select count (*) from events", new Object[0], 0);
+                ejt2.update("delete from userevents");
+                ejt2.update("delete from events");
+                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
+                        + "  and typeKey not in (select id from events)");
+                return count;
+            }
+        });
+    	return count;
+    }
     /**
      * Purge Events Before a given time with a given alarmLevel
      * @param time

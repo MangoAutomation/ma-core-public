@@ -517,7 +517,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public TranslatableMessage purgeAllEvents() {
-        long cnt = new EventDao().purgeEventsBefore(System.currentTimeMillis());
+        int cnt = Common.eventManager.purgeAllEvents();
         return new TranslatableMessage("systemSettings.purgeAllEventsComplete", cnt);
     }
 

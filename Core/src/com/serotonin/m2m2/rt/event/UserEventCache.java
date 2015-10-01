@@ -75,6 +75,41 @@ public class UserEventCache implements TimeoutClient{
         	}
         	this.lastAccessed = System.currentTimeMillis();
         }
+
+		public void purgeBefore(long time){
+			List<EventInstance> toRemove = new ArrayList<EventInstance>();
+			for(EventInstance e : events){
+				if(e.getActiveTimestamp() < time){
+					toRemove.add(e);
+				}
+			}
+			events.removeAll(toRemove);
+		}
+		public void purgeBefore(long time, int alarmLevel){
+			List<EventInstance> toRemove = new ArrayList<EventInstance>();
+			for(EventInstance e : events){
+				if((e.getActiveTimestamp() < time)&&(e.getAlarmLevel() == alarmLevel)){
+					toRemove.add(e);
+				}
+			}
+			events.removeAll(toRemove);
+		}
+		public void purgeBefore(long time, String typeName){
+			List<EventInstance> toRemove = new ArrayList<EventInstance>();
+			for(EventInstance e : events){
+				if((e.getActiveTimestamp() < time)&&(e.getEventType().getEventType().equals(typeName))){
+					toRemove.add(e);
+				}
+			}
+			events.removeAll(toRemove);
+		}
+		/**
+		 * Dump our entire cache
+		 */
+		public void purge() {
+			this.events.clear();
+			this.lastAccessed = System.currentTimeMillis();
+		}
     }
     
     /**
@@ -147,6 +182,46 @@ public class UserEventCache implements TimeoutClient{
         }
     }
     
+    /**
+     * 
+     * @param time
+     */
+    public void purgeEventsBefore(long time){
+		synchronized (cacheMap) {
+			Iterator<Integer> it = cacheMap.keySet().iterator();
+			while(it.hasNext()){
+				cacheMap.get(it.next()).purgeBefore(time);
+			}
+		}
+    }
+    public void purgeEventsBefore(long time, int alarmLevel){
+		synchronized (cacheMap) {
+			Iterator<Integer> it = cacheMap.keySet().iterator();
+			while(it.hasNext()){
+				cacheMap.get(it.next()).purgeBefore(time, alarmLevel);
+			}
+		}
+    }
+    public void purgeEventsBefore(long time, String typeName){
+		synchronized (cacheMap) {
+			Iterator<Integer> it = cacheMap.keySet().iterator();
+			while(it.hasNext()){
+				cacheMap.get(it.next()).purgeBefore(time, typeName);
+			}
+		}
+    }
+	/**
+	 * Clear Events for all users
+	 */
+	public void purgeAllEvents() {
+		synchronized (cacheMap) {
+			Iterator<Integer> it = cacheMap.keySet().iterator();
+			while(it.hasNext()){
+				cacheMap.get(it.next()).purge();
+			}
+		}
+	}
+    
     // CLEANUP method
     public void cleanup() {
         
@@ -202,5 +277,4 @@ public class UserEventCache implements TimeoutClient{
         if (timerTask != null)
             timerTask.cancel();  
 	}
-
 }
