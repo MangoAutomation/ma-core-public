@@ -5,10 +5,11 @@
 package com.serotonin.m2m2.rt.event;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
@@ -29,7 +30,7 @@ public class UserEventCache implements TimeoutClient{
 	private final Log LOG = LogFactory.getLog(UserEventCache.class);
 	
     private long timeToLive;
-    private HashMap<Integer, UserEventCacheEntry> cacheMap;
+    private Map<Integer, UserEventCacheEntry> cacheMap;
     private final EventDao dao;
     private TimerTask timerTask;
     private volatile Thread jobThread; //So we don't run multiple cleanups at once
@@ -121,19 +122,22 @@ public class UserEventCache implements TimeoutClient{
     public UserEventCache(long timeToLive, final long timeInterval) {
         this.timeToLive = timeToLive;
         
-        cacheMap = new HashMap<Integer, UserEventCacheEntry>();
+        cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
         this.dao = new EventDao();
         
         timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
     }
     
-    
+
+    /**
+     * Add event for a user
+     * @param userId
+     * @param value
+     */
     public void addEvent(Integer userId, EventInstance value) {
-        synchronized (cacheMap) {
-            UserEventCacheEntry entry = cacheMap.get(userId);
-            if(entry != null){
-            	entry.addEvent(value);
-            }
+        UserEventCacheEntry entry = cacheMap.get(userId);
+        if(entry != null){
+        	entry.addEvent(value);
         }
     }
     
@@ -142,22 +146,21 @@ public class UserEventCache implements TimeoutClient{
 	 * @param evt
 	 */
 	public void updateEvent(int userId, EventInstance evt) {
-        synchronized (cacheMap) {
-            UserEventCacheEntry entry = cacheMap.get(userId);
-            if(entry != null){
-            	entry.replace(evt);
-            }
+        UserEventCacheEntry entry = cacheMap.get(userId);
+        if(entry != null){
+        	entry.replace(evt);
         }
 	}
 
+	/**
+	 * Remove Event for User
+	 * @param userId
+	 * @param evt
+	 */
     public void removeEvent(Integer userId, EventInstance evt) {
-        synchronized (cacheMap) {
-            synchronized (cacheMap) {
-                UserEventCacheEntry entry = cacheMap.get(userId);
-                if(entry != null){
-                	entry.remove(evt);
-                }
-            }
+        UserEventCacheEntry entry = cacheMap.get(userId);
+        if(entry != null){
+        	entry.remove(evt);
         }
     }
 
@@ -167,18 +170,15 @@ public class UserEventCache implements TimeoutClient{
      * @return
      */
     public List<EventInstance> getAllEvents(Integer userId) {
-        synchronized (cacheMap) {
-            UserEventCacheEntry c = cacheMap.get(userId);
-            
-            if (c == null){
-                List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
-                CopyOnWriteArrayList<EventInstance> list = new CopyOnWriteArrayList<EventInstance>(userEvents);
-            	cacheMap.put(userId, new UserEventCacheEntry(list));
-            	return userEvents;
-            }else {
-                c.lastAccessed = System.currentTimeMillis();
-                return c.events;
-            }
+        UserEventCacheEntry c = cacheMap.get(userId);
+        if (c == null){
+            List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
+            CopyOnWriteArrayList<EventInstance> list = new CopyOnWriteArrayList<EventInstance>(userEvents);
+        	cacheMap.put(userId, new UserEventCacheEntry(list));
+        	return userEvents;
+        }else {
+            c.lastAccessed = System.currentTimeMillis();
+            return c.events;
         }
     }
     
@@ -187,38 +187,33 @@ public class UserEventCache implements TimeoutClient{
      * @param time
      */
     public void purgeEventsBefore(long time){
-		synchronized (cacheMap) {
-			Iterator<Integer> it = cacheMap.keySet().iterator();
-			while(it.hasNext()){
-				cacheMap.get(it.next()).purgeBefore(time);
-			}
+		Iterator<Integer> it = cacheMap.keySet().iterator();
+		while(it.hasNext()){
+			cacheMap.get(it.next()).purgeBefore(time);
 		}
     }
+    
     public void purgeEventsBefore(long time, int alarmLevel){
-		synchronized (cacheMap) {
 			Iterator<Integer> it = cacheMap.keySet().iterator();
 			while(it.hasNext()){
 				cacheMap.get(it.next()).purgeBefore(time, alarmLevel);
 			}
-		}
     }
+    
     public void purgeEventsBefore(long time, String typeName){
-		synchronized (cacheMap) {
-			Iterator<Integer> it = cacheMap.keySet().iterator();
-			while(it.hasNext()){
-				cacheMap.get(it.next()).purgeBefore(time, typeName);
-			}
+		Iterator<Integer> it = cacheMap.keySet().iterator();
+		while(it.hasNext()){
+			cacheMap.get(it.next()).purgeBefore(time, typeName);
 		}
     }
+    
 	/**
 	 * Clear Events for all users
 	 */
 	public void purgeAllEvents() {
-		synchronized (cacheMap) {
-			Iterator<Integer> it = cacheMap.keySet().iterator();
-			while(it.hasNext()){
-				cacheMap.get(it.next()).purge();
-			}
+		Iterator<Integer> it = cacheMap.keySet().iterator();
+		while(it.hasNext()){
+			cacheMap.get(it.next()).purge();
 		}
 	}
     
@@ -228,25 +223,22 @@ public class UserEventCache implements TimeoutClient{
         long now = System.currentTimeMillis();
         ArrayList<Integer> deleteKey = null;
         
-        synchronized (cacheMap) {
-            Iterator<Entry<Integer, UserEventCacheEntry>> itr = cacheMap.entrySet().iterator();
-            
-            deleteKey = new ArrayList<Integer>((cacheMap.size() / 2) + 1);
-            Entry<Integer, UserEventCacheEntry> entry = null;
-            UserEventCacheEntry cacheEntry = null;
-            while (itr.hasNext()) {
-                entry = itr.next();
-                cacheEntry = entry.getValue();
-                if (cacheEntry != null && (now > (timeToLive + cacheEntry.lastAccessed))) {
-                    deleteKey.add(entry.getKey());
-                }
+
+        Iterator<Entry<Integer, UserEventCacheEntry>> itr = cacheMap.entrySet().iterator();
+        
+        deleteKey = new ArrayList<Integer>((cacheMap.size() / 2) + 1);
+        Entry<Integer, UserEventCacheEntry> entry = null;
+        UserEventCacheEntry cacheEntry = null;
+        while (itr.hasNext()) {
+            entry = itr.next();
+            cacheEntry = entry.getValue();
+            if (cacheEntry != null && (now > (timeToLive + cacheEntry.lastAccessed))) {
+                deleteKey.add(entry.getKey());
             }
         }
         
         for (Integer key : deleteKey) {
-            synchronized (cacheMap) {
-                cacheMap.remove(key);
-            }
+        	cacheMap.remove(key);
         }
     }
 
