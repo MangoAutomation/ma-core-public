@@ -69,7 +69,9 @@
   <category name="org.springframework.web"><level value="debug"/></category>
   <!-- For Jackson JSON Rendering -->
   <category name="com.fasterxml"><level value="debug"/></category>
-  
+  <!-- For Brewers Dashboard -->
+  <category name="com.infiniteautomation.brewersdashboard.rt"><level value="debug"/></category>
+    
   <root>
     <level value="error"/>
     <appender-ref ref="async"/>

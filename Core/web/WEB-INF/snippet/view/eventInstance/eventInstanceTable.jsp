@@ -18,9 +18,9 @@
 	    
 	    <div id="ackAllDiv" class="titlePadding" style="padding-left: 10px; float:right;">
 	      <fmt:message key="events.acknowledgeAllEventsInView"/>
-	      <tag:img png="tick" onclick="eventInstances.acknowledgeEventsInView();" title="events.acknowledgeAllEventsInView"/>&nbsp;
+	      <tag:img id="ackEventsInViewImg" png="tick" onclick="eventInstances.acknowledgeEventsInView();" title="events.acknowledgeAllEventsInView"/>&nbsp;
 	      <fmt:message key="events.silenceAllEventsInView"/>
-	      <tag:img png="sound_mute" onclick="eventInstances.silenceEventsInView()" title="events.silenceAllEventsInView"/><br/>
+	      <tag:img id="silenceEventsInViewImg" png="sound_mute" onclick="eventInstances.silenceEventsInView()" title="events.silenceAllEventsInView"/><br/>
 	    </div>
 	
 	    <div id="eventDateSelectionDiv" class="titlePadding" style="float:right" ></div>

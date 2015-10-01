@@ -696,11 +696,15 @@ eventInstances = new StoreView({
      * Acknowledge all events in the view that are unacknowleged
      */
     acknowledgeEventsInView: function(){
+    	//Start flasher
+    	startImageFader("ackEventsInViewImg", true);
         EventInstanceDwr.acknowledgeEvents(function(response){
             if(response.hasMessages){
                 showDwrMessages(response.messages);
             }
             eventInstances.grid.refresh();
+            //StopFlasher
+            stopImageFader("ackEventsInViewImg");
         });
         
     },
@@ -709,11 +713,13 @@ eventInstances = new StoreView({
      * Acknowledge all events in the view that are unacknowleged
      */
     silenceEventsInView: function(){
+    	startImageFader("silenceEventsInViewImg", true);
         EventInstanceDwr.silenceEvents(function(response){
             if(response.hasMessages){
                 showDwrMessages(response.messages);
             }
             eventInstances.grid.refresh();
+            stopImageFader("silenceEventsInViewImg");
         });
         
     },
