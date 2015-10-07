@@ -22,7 +22,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ILifecycle;
-import com.serotonin.m2m2.Lifecycle;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.console.LoggingConsoleRT;
@@ -71,7 +70,8 @@ public class StatusServlet extends HttpServlet{
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, sw);
         
 		//Limit to logged in users while running
-		if((lifecycle.getLifecycleState() != Lifecycle.RUNNING)||(Common.getUser(request) != null)){
+        //TODO create a nice way of sharing states between ma-priv and core
+		if((lifecycle.getLifecycleState() != 200)||(Common.getUser(request) != null)){
 			data.put("messages", LoggingConsoleRT.instance.getMessagesSince(time));
 		}else{
 			data.put("messages", new ArrayList<String>());
