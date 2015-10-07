@@ -297,6 +297,10 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public TranslatableMessage testProcessCommand(String command, int timeout) {
+    	
+    	//Ensure only Data Source Level users can access this
+    	Permissions.ensureDataSourcePermission(Common.getUser());
+    	
         if (StringUtils.isBlank(command))
             return null;
 

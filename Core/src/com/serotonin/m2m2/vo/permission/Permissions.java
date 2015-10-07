@@ -71,6 +71,20 @@ public class Permissions {
             throw new PermissionException("User is disabled", user);
     }
 
+    public static boolean isValidUser(){
+    	return isValidUser(Common.getUser());
+    }
+	public static boolean isValidUser(HttpServletRequest request) {
+		return isValidUser(Common.getUser(request));
+	}
+	public static boolean isValidUser(User user){
+		if (user == null)
+            return false;
+		else if (user.isDisabled())
+           return false;
+		else return true;
+	}
+    
     //
     //
     // Administrator
@@ -489,5 +503,7 @@ public class Permissions {
 		}
 		
 	}
+
+
 	
 }

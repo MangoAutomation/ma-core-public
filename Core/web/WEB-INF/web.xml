@@ -209,37 +209,7 @@
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
-  
-  
-  
-  
-  <servlet>
-    <servlet-name>dwr-invoker</servlet-name>
-    <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
-    <init-param>
-      <description>Necessary for testing existing dwr creators, no performance hit</description>
-      <param-name>debug</param-name>
-      <param-value>true</param-value>
-    </init-param>
-    <init-param>
-      <param-name>activeReverseAjaxEnabled</param-name>
-      <param-value>true</param-value>
-    </init-param>    
-    <init-param>
-      <param-name>publishContainerAs</param-name>
-      <param-value>DwrContainer</param-value>
-    </init-param>
-    <init-param>
-      <param-name>crossDomainSessionSecurity</param-name>
-      <param-value>false</param-value>
-    </init-param>
-    <init-param>
-      <param-name>org.directwebremoting.extend.ConverterManager</param-name>
-      <param-value>com.serotonin.m2m2.web.dwr.util.BlabberConverterManager</param-value>
-    </init-param>
-    <load-on-startup>2</load-on-startup>
-  </servlet>
-  
+
   <servlet>
     <servlet-name>imageChart</servlet-name>
     <servlet-class>com.serotonin.m2m2.web.servlet.ImageChartServlet</servlet-class>
@@ -293,10 +263,6 @@
   <servlet-mapping>
     <servlet-name>springDispatcher</servlet-name>
     <url-pattern>/api-docs*</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>dwr-invoker</servlet-name>
-    <url-pattern>/dwr/*</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
