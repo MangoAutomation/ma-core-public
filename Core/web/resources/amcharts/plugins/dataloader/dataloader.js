@@ -2,7 +2,7 @@
 Plugin Name: amCharts Data Loader
 Description: This plugin adds external data loading capabilities to all amCharts libraries.
 Author: Martynas Majeris, amCharts
-Version: 1.0.5
+Version: 1.0.10
 Author URI: http://www.amcharts.com/
 
 Copyright 2015 amCharts
@@ -75,11 +75,13 @@ AmCharts.addInitHandler( function( chart ) {
     'timestamp': false,
     'delimiter': ',',
     'skip': 0,
+    'skipEmpty': true,
     'useColumnNames': false,
     'reverse': false,
     'reloading': false,
     'complete': false,
     'error': false,
+    'headers': [],
     'chart': chart
   };
 
@@ -140,11 +142,19 @@ AmCharts.addInitHandler( function( chart ) {
         chart.startDuration = 0;
       }
 
-      // set empty data set
-      if ( undefined === chart.dataProvider )
-        chart.dataProvider = chart.type === 'map' ? {} : [];
+      if ( 'gauge' === chart.type ) {
+        // set empty data set
+        if ( undefined === chart.arrows )
+          chart.arrows = [];
 
-      loadFile( l.url, chart, l, 'dataProvider' );
+        loadFile( l.url, chart, l, 'arrows' );
+      } else {
+        // set empty data set
+        if ( undefined === chart.dataProvider )
+          chart.dataProvider = chart.type === 'map' ? {} : [];
+
+        loadFile( l.url, chart, l, 'dataProvider' );
+      }
 
     }
 
@@ -249,6 +259,10 @@ AmCharts.addInitHandler( function( chart ) {
               // take in new data
               chart.validateData();
 
+              // invalidate size for the pie chart
+              if ( 'pie' === chart.type && chart.invalidateSize !== undefined )
+                chart.invalidateSize();
+
               // make the chart animate again
               if ( l.startDuration ) {
                 if ( 'stock' === chart.type ) {
@@ -259,7 +273,8 @@ AmCharts.addInitHandler( function( chart ) {
                   }
                 } else {
                   chart.startDuration = l.startDuration;
-                  chart.animateAgain();
+                  if ( chart.animateAgain !== undefined )
+                    chart.animateAgain();
                 }
               }
             }
@@ -378,8 +393,7 @@ AmCharts.addInitHandler( function( chart ) {
       curtain.style.fontSize = '20px';
       try {
         curtain.style.background = 'rgba(255, 255, 255, 0.3)';
-      }
-      catch ( e ) {
+      } catch ( e ) {
         curtain.style.background = 'rgb(255, 255, 255)';
       }
       curtain.innerHTML = '<div style="display: table-cell; vertical-align: middle;">' + msg + '</div>';
@@ -445,6 +459,21 @@ AmCharts.loadFile = function( url, options, handler ) {
     request = new ActiveXObject( 'Microsoft.XMLHTTP' );
   }
 
+  // open the connection
+  try {
+    request.open( 'GET', options.timestamp ? AmCharts.timestampUrl( url ) : url, options.async );
+  } catch ( e ) {
+    handler.call( this, false );
+  }
+
+  // add headers?
+  if ( options.headers !== undefined && options.headers.length ) {
+    for ( var i = 0; i < options.headers.length; i++ ) {
+      var header = options.headers[ i ];
+      request.setRequestHeader( header.key, header.value );
+    }
+  }
+
   // set handler for data if async loading
   request.onreadystatechange = function() {
 
@@ -458,7 +487,6 @@ AmCharts.loadFile = function( url, options, handler ) {
 
   // load the file
   try {
-    request.open( 'GET', options.timestamp ? AmCharts.timestampUrl( url ) : url, options.async );
     request.send();
   } catch ( e ) {
     handler.call( this, false );
@@ -520,6 +548,8 @@ AmCharts.parseCSV = function( response, options ) {
   // iterate through the result set
   var row;
   while ( ( row = options.reverse ? data.pop() : data.shift() ) ) {
+    if ( options.skipEmpty && row.length === 1 && row[ 0 ] === '' )
+      continue;
     var dataPoint = {};
     for ( i = 0; i < row.length; i++ ) {
       col = undefined === cols[ i ] ? 'col' + i : cols[ i ];

@@ -13,6 +13,7 @@
 * Improved Scripting functionality by streamlining old system and adding new Utilities for Data Point and Data Source management
 * Integration of RQL parsing via AST
 * Various security enhancements
+* Upgrade AmCharts to 3.17.2
 
 *Version 2.5.2*
 * Added ability to check for upgrades, and install upgrades and new modules locally

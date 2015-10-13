@@ -1,6 +1,6 @@
 # amCharts Data Loader
 
-Version: 1.0.5
+Version: 1.0.10
 
 
 ## Description
@@ -93,14 +93,16 @@ complete | | Callback function to execute when loader is done
 delimiter | , | [CSV only] a delimiter for columns (use \t for tab delimiters)
 error | | Callback function to execute if file load fails
 format | json | Type of data: json, csv
+headers | | An array of objects with two properties (key and value) to attach to HTTP request
 load | | Callback function to execute when file is successfully loaded (might be invoked multiple times)
 noStyles | false | If set to true no styles will be applied to "Data loading" curtain
-postProcess | | If set to function reference, that function will be called to "post-process" loaded data before passing it on to chart
+postProcess | | If set to function reference, that function will be called to "post-process" loaded data before passing it on to chart. The handler function will receive two parameters: loaded data, Data Loader options
 showErrors | true | Show loading errors in a chart curtain
 showCurtain | true| Show curtain over the chart area when loading data
 reload | 0 | Reload data every X seconds
 reverse | false | [CSV only] add data points in revers order
 skip | 0 | [CSV only] skip X first rows in data (includes first row if useColumnNames is used)
+skipEmpty | true | [CSV only] Ignore empty lines in data
 timestamp | false | Add current timestamp to data URLs (to avoid caching)
 useColumnNames | false | [CSV only] Use first row in data as column names when parsing
 
@@ -154,6 +156,23 @@ var chart = AmCharts.makeChart("chartdiv", {
 
 Sure. You just add a `eventDataLoader` object to your data set. All the same 
 settings apply.
+
+
+## Adding custom headers to HTTP requests
+
+If you want to add additional headers to your data load HTTP requests, use
+"headers" array. Each header is an object with two keys: "key" and "value":
+
+```
+"dataLoader": {
+  "url": "data/serial.json",
+  "format": "json",
+  "headers": [{
+    "key": "x-access-token",
+    "value": "123456789"
+  }]
+}
+```
 
 
 ## Manually triggering a reload of all data
@@ -270,13 +289,28 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 ## Changelog
 
+### 1.0.10
+* Fixed error related to headers not being set when using standalone data load functions
+
+### 1.0.9
+* Plugin will now ignore empty CSV lines by default (configurable with `skipEmpty` property)
+
+### 1.0.8
+* Added `headers` config variable which allows adding custom headers to HTTP requests
+
+### 1.0.7
+* Fixed an issue with the Pie chart when it is being loaded in inactive tab
+
+### 1.0.6
+* Added support for Gauge chart (loads `arrows` array)
+
 ### 1.0.5
 * Fixed JS error if periodSelector was not defined in chart config
 * Now all callback functions (complete, error, load) receive additional parameter: chart
 * postProcess function will now have "this" context set to Data Loader object as well as receive chart reference as third paramater
 
 ### 1.0.4
-* Added chart.dataLoader.loadData() function which can be used to manually trigger all data reload
+* Added `chart.dataLoader.loadData()` function which can be used to manually trigger all data reload
 
 ### 1.0.3
 * Fixed the bug where defaults were not being applied properly
@@ -287,7 +321,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 * Fixed the issue with modified Array prototypes
 
 ### 1.0.1
-* Added "complete", "load" and "error" properties that can be set with function handlers to be invoked on load completion, successful file load or failed load respectively
+* Added `complete`, `load` and `error` properties that can be set with function handlers to be invoked on load completion, successful file load or failed load respectively
 * Fixed language container initialization bug
 * Fixed bug that was causing parse errors not be displayed
 

@@ -37,6 +37,10 @@ var config = {
         'amcharts.radar'    : 'amcharts/radar',
         'amcharts.serial'   : 'amcharts/serial',
         'amcharts.xy'       : 'amcharts/xy',
+        'amcharts.themes.chalk' : 'amcharts/themes/chalk',
+        'amcharts.themes.light' : 'amcharts/themes/light',
+        'amcharts.themes.dark' : 'amcharts/themes/dark',
+        'amcharts.themes.black' : 'amcharts/themes/black',        
         'bootstrap': 'bootstrap/js/bootstrap.min',
         'moment': 'moment-with-locales.min',
         'moment-timezone': 'moment-timezone-with-data.min',
@@ -89,6 +93,34 @@ var config = {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
+                AmCharts.isReady = true;
+            }
+        },
+        'amcharts.themes.chalk'	: {
+        	deps: ['amcharts/amcharts'],
+        	exports: 'AmCharts',
+        	init: function() {
+                AmCharts.isReady = true;
+            }
+        },
+        'amcharts.themes.light'	: {
+        	deps: ['amcharts/amcharts'],
+        	exports: 'AmCharts',
+        	init: function() {
+                AmCharts.isReady = true;
+            }
+        },
+        'amcharts.themes.dark'	: {
+        	deps: ['amcharts/amcharts'],
+        	exports: 'AmCharts',
+        	init: function() {
+                AmCharts.isReady = true;
+            }
+        },
+        'amcharts.themes.black'	: {
+        	deps: ['amcharts/amcharts'],
+        	exports: 'AmCharts',
+        	init: function() {
                 AmCharts.isReady = true;
             }
         },
