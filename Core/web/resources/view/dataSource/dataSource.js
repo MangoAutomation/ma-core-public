@@ -530,5 +530,3 @@ function initDataSourceEdit(){
 		}
 	});
 }
-
-
