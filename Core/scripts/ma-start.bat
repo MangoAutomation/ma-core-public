@@ -1,9 +1,9 @@
 @echo off
 rem
-rem | Copyright (C) 2006-2011 Serotonin Software Technologies Inc. All rights reserved.
-rem | @author Matthew Lohbihler
+rem | Copyright (C) 2006-2015 Serotonin Software Technologies Inc. All rights reserved.
+rem | @author Matthew Lohbihler, Woody Beverley, Terry Packer
 rem
-rem | Runs Mango Automation. (Script Version 2.0 - To be run from MA_HOME\bin)
+rem | Runs Mango Automation. (Script Version 2.6.0 - To be run from MA_HOME\bin)
 
 rem | Check if MA_HOME is properly defined
 if "%MA_HOME%" == "" goto useCD
@@ -51,6 +51,18 @@ set EXECJAVA=%JAVA_HOME%\bin\java
 echo Using Java at %EXECJAVA%
 
 :restart
+if exist "%MA_HOME%"\m2m2-core-*.zip (
+rem We have an upgrade, clean up old libs, extract zip and upgrade
+echo Extracting Core Upgrade...
+del /q "%MA_HOME%"\lib\*.jar
+del /s /q  "%MA_HOME%"\work
+pushd ..
+"%JAVA_HOME%\bin\jar" xf "%MA_HOME%"\m2m2-core-*.zip
+del /q "%MA_HOME%"\m2m2-core-*.zip
+popd
+rem Run the upgrade script that will finish by calling this script to start Mango
+upgrade.bat
+)
 "%EXECJAVA%" %JPDA% -server -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
 if exist "%MA_HOME%\RESTART" goto restart
 
