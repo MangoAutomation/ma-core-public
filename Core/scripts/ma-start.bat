@@ -53,10 +53,12 @@ echo Using Java at %EXECJAVA%
 :restart
 if exist "%MA_HOME%"\m2m2-core-*.zip (
 rem We have an upgrade, clean up old libs, extract zip and upgrade
-echo Extracting Core Upgrade...
+echo Cleaning lib folder...
 del /q "%MA_HOME%"\lib\*.jar
+echo Cleaning work folder...
 del /s /q  "%MA_HOME%"\work
 pushd ..
+echo Extracting Core Upgrade...
 "%JAVA_HOME%\bin\jar" xf "%MA_HOME%"\m2m2-core-*.zip
 del /q "%MA_HOME%"\m2m2-core-*.zip
 popd
