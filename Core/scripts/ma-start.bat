@@ -44,14 +44,24 @@ rem | Native libraries can be put into the overrides directory
 PATH=%PATH%;%MA_HOME%\overrides
 
 set EXECJAVA=java
+set EXECJAR=jar
 if "%JAVA_HOME%" == "" goto gotJava
 set EXECJAVA=%JAVA_HOME%\bin\java
+set EXECJAR=%JAVA_HOME%\bin\jar
 
 :gotJava
 echo Using Java at %EXECJAVA%
 
 :restart
 if exist "%MA_HOME%"\m2m2-core-*.zip (
+echo Core upgrade found...
+rem Check to see we have the jar utility
+"%EXECJAR%" >nul 2>&1
+if errorlevel 9009 if not errorlevel 9010 (
+	echo No Jar utility found to extract upgrade, Please manually unzip core upgrade and restart Mango...
+	goto end
+)
+
 rem We have an upgrade, clean up old libs, extract zip and upgrade
 echo Cleaning lib folder...
 del /q "%MA_HOME%"\lib\*.jar
@@ -59,7 +69,7 @@ echo Cleaning work folder...
 del /s /q  "%MA_HOME%"\work
 pushd ..
 echo Extracting Core Upgrade...
-"%JAVA_HOME%\bin\jar" xf "%MA_HOME%"\m2m2-core-*.zip
+"%EXECJAR%" xf "%MA_HOME%"\m2m2-core-*.zip
 del /q "%MA_HOME%"\m2m2-core-*.zip
 popd
 rem Run the upgrade script that will finish by calling this script to start Mango
