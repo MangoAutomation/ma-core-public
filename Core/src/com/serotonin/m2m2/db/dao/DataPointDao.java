@@ -1165,13 +1165,13 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		selectArgs.add(permissions);
 		
 		if(updateSetPermissions)
-			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
+			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
 		else
-			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
+			statement = new SQLStatement("UPDATE dataPoints AS dp SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
 		
 		
 		root.accept(new RQLToSQLSelect<DataPointVO>(this), statement);
-		return ejt.update(statement.getSelectSql() + " );", statement.getSelectArgs().toArray());
+		return ejt.update(statement.getSelectSql(), statement.getSelectArgs().toArray());
 		
 	}
 
