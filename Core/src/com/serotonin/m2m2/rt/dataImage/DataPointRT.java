@@ -227,6 +227,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         // Check if this value qualifies for discardation.
         if (vo.isDiscardExtremeValues() && DataTypes.getDataType(newValue.getValue()) == DataTypes.NUMERIC) {
             double newd = newValue.getDoubleValue();
+            //Discard if NaN
+            if(Double.isNaN(newd))
+            	return;
+            
             if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit())
                 // Discard the value
                 return;
