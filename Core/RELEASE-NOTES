@@ -1,6 +1,7 @@
 *Version 2.6.2*
 * Fixed MySQL bug when bulk setting data point permisisons
 * Fixed bug where 404 errors were redirecting the user to the login page.
+* Discarding NaN values when discarding extreme values logging property is set for Numeric points.
 
 *Version 2.6.0*
 * Added ability to override web.xml via placing a modified file at overrides/web/web.xml
