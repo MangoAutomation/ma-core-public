@@ -51,18 +51,35 @@
 
 	        	}, function(err){
 	        		//Set the overall message:
-	        		show("csvMessageTable");
-	        		$set("alternateMessage", err.message);
-        			var messages = new Array();
-        			for(var i=0; i<err.response.data.length; i++){
-            			var dp = err.response.data[i];
-            			if(dp.validationMessages != null){
-            				for(var key in dp.validationMessages){
-            					messages.push({'xid': dp.xid, 'key': key, 'message': dp.validationMessages[key]});
-            				}	
-            			}
-        			}
-    				showImportMessages(messages);
+	        		if(Array.isArray(err.response.data)){
+	        			show("csvMessageTable");
+	        			$set("alternateMessage", err.message);
+	        			var messages = new Array();
+	        			for(var i=0; i<err.response.data.length; i++){
+	            			var dp = err.response.data[i];
+	            			if(dp.validationMessages != null){
+	            				for(var key in dp.validationMessages){
+	            					messages.push({
+	            							'xid': dp.xid, 
+	            						 	'property': dp.validationMessages[key].property, 
+	            						 	'level' : dp.validationMessages[key].level,
+	            						 	'message': dp.validationMessages[key].message});
+	            				}	
+	            			}
+	        			}
+	    				showImportMessages(messages);	        			
+	        		}else{
+	        			//We are a stacktrace
+	        			var message = '<pre style="color:red;">' + err.message;
+	        			if(typeof err.response.data.message != 'undefined')
+	        				message += '<br>' + err.response.data.message;
+	        			if(typeof err.response.data.stackTrace != 'undefined'){
+	        				message += '<br>';
+	        				message += err.response.data.stackTrace.replace('\n','<br>');
+	        			}
+	        			$set("alternateMessage", message + '</pre>');
+	        		}
+
 	        	}, function(evt){ });
 	        
 	        //When done
@@ -76,7 +93,9 @@
       dwr.util.addRows("importCsvMessages", messages, [
               function(m) { return m.xid; },
               function(m) { return m.property; },
-              function(m) { return m.message; }
+              function(m) { 
+            	  return m.message; 
+           	  }
           ],
           {
               rowCreator: function(options) {
@@ -89,6 +108,8 @@
                   td.vAlign = "top";
                   if(options.rowData.level == 'ERROR')
                 	  td.style.color = "red";
+                  if(options.rowData.level == 'INFORMATION')
+                	  td.style.color = "green";
                   return td;
               }
           }

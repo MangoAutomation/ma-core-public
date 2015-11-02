@@ -102,11 +102,15 @@ public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractR
 		if(validation.getHasMessages()){
 			//Add our messages to the list
 			for(ProcessMessage message : validation.getMessages()){
-				this.messages.add(new RestValidationMessage(
-						message.getContextualMessage().translate(Common.getTranslations()),
-						RestMessageLevel.ERROR,
-						message.getContextKey()
-						));
+				if(message.getGenericMessage() != null){
+					this.messages.add(new RestValidationMessage(message.getGenericMessage(), RestMessageLevel.ERROR, ""));
+				}else{
+					this.messages.add(new RestValidationMessage(
+							message.getContextualMessage().translate(Common.getTranslations()),
+							RestMessageLevel.ERROR,
+							message.getContextKey()
+							));
+				}
 			}
 			return false;
 		}else{
