@@ -329,6 +329,10 @@ public class SystemSettingsDwr extends BaseDwr {
         }
         
         if(medPriorityCorePoolSize > 0){
+        	//Due to the pool type we should set these to the same values
+        	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, medPriorityCorePoolSize);
+        	Common.backgroundProcessing.setMediumPriorityServiceMaximumPoolSize(medPriorityCorePoolSize);
+        	
         	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, medPriorityCorePoolSize);
         	Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(medPriorityCorePoolSize);
         }else{
@@ -336,6 +340,10 @@ public class SystemSettingsDwr extends BaseDwr {
         }
 
         if(lowPriorityCorePoolSize > 0){
+        	//Due to the pool type we should set these to the same values
+        	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, lowPriorityCorePoolSize);
+        	Common.backgroundProcessing.setLowPriorityServiceMaximumPoolSize(lowPriorityCorePoolSize);
+
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);
         	Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(lowPriorityCorePoolSize);
         }else{

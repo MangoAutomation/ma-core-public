@@ -145,11 +145,11 @@ public class BackgroundProcessing implements ILifecycle {
     /**
      * Set the Core Pool Size, in the medium priority queue this 
      * results in the maximum number of threads that will be run 
-     * due to the way the pool is setup.
+     * due to the way the pool is setup.  This will only set the pool size up to Maximum Pool Size
      * @param corePoolSize
      */
     public void setMediumPriorityServiceCorePoolSize(int corePoolSize){
-    	if(corePoolSize > 0) //Default is 3
+    	if((corePoolSize > 0)&&(corePoolSize <= this.mediumPriorityService.getMaximumPoolSize()))
     		this.mediumPriorityService.setCorePoolSize(corePoolSize);
     }
 
@@ -191,7 +191,7 @@ public class BackgroundProcessing implements ILifecycle {
      * @param corePoolSize
      */
     public void setLowPriorityServiceCorePoolSize(int corePoolSize){
-    	if(corePoolSize > 0) //Default is 1
+    	if((corePoolSize > 0)&&(corePoolSize <= this.lowPriorityService.getMaximumPoolSize()))
     		this.lowPriorityService.setCorePoolSize(corePoolSize);
     }
 
@@ -237,6 +237,9 @@ public class BackgroundProcessing implements ILifecycle {
     	//Adjust the RealTime timer pool now
     	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, 1);
     	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, 100);
+    	//Sanity check to ensure the pool sizes are appropriate
+    	if(maxPoolSize < corePoolSize)
+    		maxPoolSize = corePoolSize;
     	ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
     	executor.setCorePoolSize(corePoolSize);
     	executor.setMaximumPoolSize(maxPoolSize);
@@ -244,12 +247,18 @@ public class BackgroundProcessing implements ILifecycle {
     	//Pull our settings from the System Settings
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, 3);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, 30);
+    	//Sanity check to ensure the pool sizes are appropriate
+    	if(maxPoolSize < corePoolSize)
+    		maxPoolSize = corePoolSize;
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
         mediumPriorityService.allowCoreThreadTimeOut(true);
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, 3);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, 30);
+    	//Sanity check to ensure the pool sizes are appropriate
+    	if(maxPoolSize < corePoolSize)
+    		maxPoolSize = corePoolSize;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low"));
     }
@@ -257,14 +266,20 @@ public class BackgroundProcessing implements ILifecycle {
     @Override
     public void terminate() {
         // Close the executor services.
-        mediumPriorityService.shutdown();
-        lowPriorityService.shutdown();
+    	if(mediumPriorityService != null)
+    		mediumPriorityService.shutdown();
+    	if(lowPriorityService != null)
+    		lowPriorityService.shutdown();
     }
 
     @Override
     public void joinTermination() {
         boolean medDone = false;
+        if(mediumPriorityService == null)
+        	medDone = true;
         boolean lowDone = false;
+        if(lowPriorityService == null)
+        	lowDone = true;
 
         try {
             // With 5 second waits and a worst case of both of both high and low priority jobs that just won't finish,

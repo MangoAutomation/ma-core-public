@@ -1,3 +1,7 @@
+*Version 2.6.6*
+* Fixed bug when setting Low and Medium priority thread pools to large values would cause mango to fail to restart
+* Upgrading ma-priv library for better startup logging
+
 *Version 2.6.4*
 * Improved feedback for Data Point Import via CSV
 
