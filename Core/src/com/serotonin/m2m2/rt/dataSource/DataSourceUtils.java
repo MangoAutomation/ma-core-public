@@ -23,17 +23,51 @@ import com.serotonin.m2m2.view.text.MultistateValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
 
 /**
+ * Utility for common methods with  Point Value Time String manipulations
+ * 
  * @author Matthew Lohbihler
  */
 public class DataSourceUtils {
-    public static DataValue getValue(Pattern valuePattern, String data, int dataTypeId, String binary0Value,
+    
+	/**
+	 * Get a value from string data via pattern matching on group 1
+	 * @param valuePattern
+	 * @param data
+	 * @param dataTypeId
+	 * @param binary0Value
+	 * @param textRenderer
+	 * @param valueFormat
+	 * @param pointName
+	 * @return
+	 * @throws TranslatableException
+	 */
+	public static DataValue getValue(Pattern valuePattern, String data, int dataTypeId, String binary0Value,
+            TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
+		return getValue(valuePattern, 1, data, dataTypeId, binary0Value,
+	            textRenderer, valueFormat, pointName);
+    }
+
+	/**
+	 * Get DataValue from String using group number
+	 * @param valuePattern
+	 * @param group
+	 * @param data
+	 * @param dataTypeId
+	 * @param binary0Value
+	 * @param textRenderer
+	 * @param valueFormat
+	 * @param pointName
+	 * @return
+	 * @throws TranslatableException
+	 */
+	public static DataValue getValue(Pattern valuePattern, int group, String data, int dataTypeId, String binary0Value,
             TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
         if (data == null)
             throw new TranslatableException(new TranslatableMessage("event.valueParse.noData", pointName));
 
         Matcher matcher = valuePattern.matcher(data);
         if (matcher.find()) {
-            String valueStr = matcher.group(1);
+            String valueStr = matcher.group(group);
             if (valueStr == null)
                 valueStr = "";
 
@@ -42,8 +76,34 @@ public class DataSourceUtils {
 
         throw new NoMatchException(new TranslatableMessage("event.valueParse.noValue", pointName));
     }
-
+	
+	/**
+	 * Get the timestamp from a string using the pattern by matching group 1
+	 * @param time
+	 * @param timePattern
+	 * @param data
+	 * @param timeFormat
+	 * @param pointName
+	 * @return
+	 * @throws TranslatableException
+	 */
     public static long getValueTime(long time, Pattern timePattern, String data, DateFormat timeFormat, String pointName)
+            throws TranslatableException {
+    	return getValueTime(time, timePattern, 1, data, timeFormat, pointName);
+    }
+
+    /**
+     * Get the timestamp from a string using the pattern by matching the provided group number
+     * @param time - default time if none found
+     * @param timePattern
+     * @param group
+     * @param data
+     * @param timeFormat
+     * @param pointName
+     * @return
+     * @throws TranslatableException
+     */
+    public static long getValueTime(long time, Pattern timePattern, int group, String data, DateFormat timeFormat, String pointName)
             throws TranslatableException {
         if (data == null)
             throw new TranslatableException(new TranslatableMessage("event.valueParse.noData", pointName));
@@ -53,7 +113,7 @@ public class DataSourceUtils {
         if (timePattern != null) {
             Matcher matcher = timePattern.matcher(data);
             if (matcher.find()) {
-                String timeStr = matcher.group(1);
+                String timeStr = matcher.group(group);
                 try {
                     valueTime = timeFormat.parse(timeStr).getTime();
                 }
@@ -70,7 +130,18 @@ public class DataSourceUtils {
 
         return valueTime;
     }
-
+    
+    /**
+     * Create Data Value From String
+     * @param valueStr
+     * @param dataTypeId
+     * @param binary0Value
+     * @param textRenderer
+     * @param valueFormat
+     * @param pointName
+     * @return
+     * @throws TranslatableException
+     */
     public static DataValue getValue(String valueStr, int dataTypeId, String binary0Value, TextRenderer textRenderer,
             DecimalFormat valueFormat, String pointName) throws TranslatableException {
         if (dataTypeId == DataTypes.ALPHANUMERIC)
