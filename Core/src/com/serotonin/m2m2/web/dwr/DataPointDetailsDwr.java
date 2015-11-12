@@ -36,6 +36,9 @@ import com.serotonin.m2m2.web.servlet.ImageValueServlet;
 import com.serotonin.m2m2.web.taglib.Functions;
 
 public class DataPointDetailsDwr extends DataPointDwr {
+	
+	private static final int pointEventsLimit = 21; //21 most recent events since the page will at most show 20 anyway
+	
     public static PointDetailsState getPointData() {
         // Get the point from the user's session. It should have been set by the controller.
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
@@ -56,7 +59,7 @@ public class DataPointDetailsDwr extends DataPointDwr {
         setPrettyText(request, state, pointVO, model, pointValue);
         setChange(pointVO, state, pointRT, request, model, user);
 
-        setEvents(pointVO, user, model);
+        setEvents(pointVO, user, model, pointEventsLimit);
         setMessages(state, request, "dataPointMessages.jsp", model);
 
         return state;
