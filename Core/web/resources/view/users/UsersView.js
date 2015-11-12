@@ -156,7 +156,7 @@ UsersView.prototype.fillUserInputs = function(userData){
 	$('#receiveAlarmEmails').val(userData.receiveAlarmEmails);
 	$('#receiveOwnAuditEvents').prop('checked', userData.receiveOwnAuditEvents);
 	if((userData.timezone === '')||(userData.timezone === null)){
-		this.timezonePicker.set('value', "");
+		$('#timezone').val(this.tr('users.timezone.def'));
 	}else
 		$('#timezone').val(userData.timezone);
 	$('#permissions').val(userData.permissions);
