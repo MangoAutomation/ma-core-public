@@ -4,6 +4,7 @@
 * Adding additional utility methods for extracting Regex capture groups from Strings
 * Fixed bug in dataTypeOptions tag where onChange wasn't working if the onChange code was missing a ;
 * Trimmed down event data that gets sent to UI via longpoll to improve performance
+* Improved REST error feedback in Response headers and log file
 
 *Version 2.6.4*
 * Improved feedback for Data Point Import via CSV
