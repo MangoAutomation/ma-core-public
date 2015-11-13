@@ -22,7 +22,7 @@ public abstract class MangoWebSocketHandler extends MangoWebSocketPublisher{
 	public MangoWebSocketHandler(ObjectMapper jacksonMapper){
 		super(jacksonMapper);
 	}
-
+	
 	/**
 	 * @param session
 	 * @return
