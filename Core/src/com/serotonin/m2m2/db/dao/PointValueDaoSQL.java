@@ -743,7 +743,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     @Override
     public long dateRangeCount(int dataPointId, long from, long to) {
         return ejt.queryForLong("select count(*) from pointValues where dataPointId=? and ts>=? and ts<?",
-                new Object[] { dataPointId, from, to });
+                new Object[] { dataPointId, from, to }, 0l);
     }
 
     @Override
@@ -757,7 +757,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         if (dataPointIds.isEmpty())
             return -1;
         return ejt.queryForLong("select min(ts) from pointValues where dataPointId in ("
-                + createDelimitedList(dataPointIds, ",", null) + ")");
+                + createDelimitedList(dataPointIds, ",", null) + ")", null, 0l);
     }
 
     @Override
@@ -765,7 +765,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         if (dataPointIds.isEmpty())
             return -1;
         return ejt.queryForLong("select max(ts) from pointValues where dataPointId in ("
-                + createDelimitedList(dataPointIds, ",", null) + ")");
+                + createDelimitedList(dataPointIds, ",", null) + ")", null, -1l);
     }
 
     @Override

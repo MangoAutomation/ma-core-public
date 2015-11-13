@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
@@ -82,6 +82,6 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         	LOG.debug("Count: " + countSql + " \nArgs: " + countArgs.toString());
         }
  
-		this.dao.query(countSql, countArgs.toArray(), ParameterizedSingleColumnRowMapper.newInstance(Long.class), countCallback);
+		this.dao.query(countSql, countArgs.toArray(), SingleColumnRowMapper.newInstance(Long.class), countCallback);
 	}
 }

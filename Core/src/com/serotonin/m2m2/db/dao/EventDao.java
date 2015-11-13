@@ -416,7 +416,7 @@ public class EventDao extends BaseDao {
     }
 
     public int getEventCount() {
-        return ejt.queryForInt("select count(*) from events");
+        return ejt.queryForInt("select count(*) from events", null, 0);
     }
 
     public List<EventInstance> search(int eventId, String eventType, String status, int alarmLevel,
@@ -715,7 +715,7 @@ public class EventDao extends BaseDao {
 
     public int getHighestUnsilencedAlarmLevel(int userId) {
         return ejt.queryForInt("select max(e.alarmLevel) from userEvents u " + "  join events e on u.eventId=e.id "
-                + "where u.silenced=? and u.userId=?", new Object[] { boolToChar(false), userId });
+                + "where u.silenced=? and u.userId=?", new Object[] { boolToChar(false), userId }, 0);
     }
 
 

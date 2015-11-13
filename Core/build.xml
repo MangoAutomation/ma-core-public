@@ -26,6 +26,9 @@
     <!-- Build number file to allow overidding for Release Builds -->
     <property name="mango.build.number" value="mango.build.number" />
 
+	<!-- Build Mango Core for this Java Version -->
+	<property name="mango.java.version" value="1.8"/>
+	
     <path id="master-classpath">
         <fileset refid="maven-deps" />
     </path>
@@ -174,8 +177,8 @@
                optimize="false"
                failonerror="true"
                includeantruntime="false"
-               source="1.7"
-               target="1.7">
+               source="${mango.java.version}"
+               target="${mango.java.version}">
             <src path="src" />
             <classpath refid="master-classpath" />
         </javac>
@@ -221,8 +224,8 @@
                optimize="true"
                failonerror="true"
                includeantruntime="false"
-               source="1.7"
-               target="1.7">
+               source="${mango.java.version}"
+               target="${mango.java.version}">
             <src path="${core.target}/work/jsp" />
             <classpath>
                 <path refid="master-classpath" />
@@ -398,8 +401,8 @@
                optimize="true"
                failonerror="true"
                includeantruntime="false"
-               source="1.7"
-               target="1.7">
+               source="${mango.java.version}"
+               target="${mango.java.version}">
             <src path="${core.target}/work/jsp" />
             <classpath>
                 <path refid="master-classpath" />
@@ -557,8 +560,8 @@
                optimize="true"
                failonerror="true"
                includeantruntime="false"
-               source="1.7"
-               target="1.7">
+               source="${mango.java.version}"
+               target="${mango.java.version}">
             <src path="${core.target}/work/jsp" />
             <classpath>
                 <path refid="master-classpath" />

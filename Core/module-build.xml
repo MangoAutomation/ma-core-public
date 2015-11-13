@@ -17,6 +17,7 @@
     <property name="core.target" value="${coreHome}" />
     <property name="module.deploy.paths" value="${core.target}/web/modules" />
     <property name="zip.paths" value="${core.target}/ma-modules.zip" />
+	<property name="mango.java.version" value="1.8"/>
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"
              classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
@@ -90,8 +91,8 @@
         </if>
         <echo message="Building with Java ${ant.java.version}." />
         <javac destdir="${module.target}/module-classes"
-               target="7"
-               source="7"
+               target="${mango.java.version}"
+               source="${mango.java.version}"
                debug="true"
                debuglevel="lines,vars,source"
                deprecation="false"
@@ -188,8 +189,8 @@
                                        optimize="true"
                                        failonerror="true"
                                        includeantruntime="false"
-                                       source="1.7"
-                                       target="1.7">
+                                       source="${mango.java.version}"
+                                       target="${mango.java.version}">
                                     <src path="${module.target}/work-tmp/jsp-src" />
                                     <classpath>
                                         <path refid="module-master-classpath" />

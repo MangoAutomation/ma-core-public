@@ -405,8 +405,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         //List<T> results = filter.getResults();
 
         // TODO work out how to do this in one transaction
-        @SuppressWarnings("deprecation")
-		int count = ejt.queryForInt(countSql, countArgs.toArray());
+		int count = ejt.queryForInt(countSql, countArgs.toArray(), 0);
         if((LOG !=null)&&(LOG.isDebugEnabled()))
         	LOG.debug("DB Has: " + count);
         
