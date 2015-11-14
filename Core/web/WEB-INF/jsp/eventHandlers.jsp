@@ -409,6 +409,7 @@
                 $set("sendInactive", handler.sendInactive);
                 $set("inactiveOverride", handler.inactiveOverride);
                 $set("includeSystemInfo", handler.includeSystemInfo);
+                $set("includeLogfile", handler.includeLogfile);
                 $set("includePointValueCount", handler.includePointValueCount);
                 inactiveRecipients.updateRecipientList(handler.inactiveRecipients);
             }
@@ -583,7 +584,7 @@
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("sendEscalation"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
-                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), saveEventHandlerCB);
+                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), saveEventHandlerCB);
         }
         else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
@@ -777,6 +778,10 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.includeSystemInfo"/></td>
               <td class="formField"><input id="includeSystemInfo" type="checkbox" /></td>
+            </tr>  
+            <tr>
+              <td class="formLabelRequired"><fmt:message key="eventHandlers.includeLogfile"/></td>
+              <td class="formField"><input id="includeLogfile" type="checkbox"/></td>
             </tr>            
            <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.includePointValueCount"/></td>

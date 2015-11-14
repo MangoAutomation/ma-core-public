@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -12,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,10 +25,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
+import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
+import com.serotonin.m2m2.email.PostEmailRunnable;
 import com.serotonin.m2m2.email.UsedImagesDirective;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -41,6 +49,8 @@ import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
 import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.web.mail.EmailAttachment;
+import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailInline;
 
 public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient<EventInstance> {
@@ -139,15 +149,15 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
-        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0);
+        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount());
+        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), vo.isIncludeLogfile());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
-            String alias, boolean includeSystemInfo, int pointValueCount) {
+            String alias, boolean includeSystemInfo, int pointValueCount, boolean includeLogs) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
                     SystemEventType.TYPE_EMAIL_SEND_FAILURE)) {
@@ -249,21 +259,37 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
 	            				}
             				model.put("renderedPointValues", renderedPointValues);
             				}
-            				
             			}
             		}
-            			
             	}
-            	
             }
             
-            MangoEmailContent content = new MangoEmailContent(notificationType.getFile(), model, translations, subject,
-                    Common.UTF8);
-
+            MangoEmailContent content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
+            PostEmailRunnable[] postEmail = null;
+            if(includeLogs){
+    	        final File logZip = getZippedLogfile(content, new File(Common.getLogsDir(), "ma.log"));
+    	        //Setup To delete the temp files from zip
+    	        if (logZip != null) {
+    	            // See that the temp file(s) gets deleted after the email is sent.
+    	        	PostEmailRunnable deleteTempFile = new PostEmailRunnable() {
+    	                @Override
+    	                public void run() {
+    	                    if (!logZip.delete())
+    	                        LOG.warn("Temp file " + logZip.getPath() + " not deleted");
+    	                    
+    	                    //Set our state to email failed if necessary
+    	                    //TODO Create an Event to notify of Failed Emails...
+    	                    //if(!this.isSuccess()){}
+    	                }
+    	            };
+    	            postEmail = new PostEmailRunnable[] { deleteTempFile };
+    	        }
+            }
+            
             for (String s : inlineImages.getImageList())
                 content.addInline(new EmailInline.FileInline(s, Common.getWebPath(s)));
 
-            EmailWorkItem.queueEmail(toAddrs, content);
+            EmailWorkItem.queueEmail(toAddrs, content, postEmail);
         }
         catch (Exception e) {
             LOG.error("", e);
@@ -305,5 +331,30 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
     	return models;
     }
 
+	private static File getZippedLogfile(EmailContent content, File file){
+		if (file != null) {
+			try{
+	            File zipFile = File.createTempFile("tempZIP", ".zip");
+	            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
+	            zipOut.putNextEntry(new ZipEntry(file.getName()));
+	
+	            FileInputStream in = new FileInputStream(file);
+	            StreamUtils.transfer(in, zipOut);
+	            in.close();
+	
+	            zipOut.closeEntry();
+	            zipOut.close();
+	
+	            content.addAttachment(new EmailAttachment.FileAttachment(file.getName() + ".zip", zipFile));
+	
+	            return zipFile;
+	        }
+	        catch (IOException e) {
+	            LOG.error("Failed to create zip file", e);
+	        }
+
+		}
+		return null;
+	}
     
 }
