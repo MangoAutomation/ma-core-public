@@ -22,7 +22,7 @@ for (var i = scriptTags.length - 1; i >= 0; i--) {
 }
 
 var config = {
-    baseUrl : '/resources',
+    baseUrl : '/2.6.6/resources',
     paths: {
         'mango': '/mango-javascript/mango-2.0',
         'mango-1.0': '/modules/dashboards/web/js/mango/v1',
