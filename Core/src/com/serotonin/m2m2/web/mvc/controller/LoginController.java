@@ -64,8 +64,11 @@ public class LoginController {
 				//Munch, we don't care
 			}
 
-            if (user != null)
-                return "redirect:" + DefaultPagesDefinition.getDefaultUri(request, response, user);        
+            if (user != null){
+            	//Assign new SessionId to thwart Session Hijacking attempts for pre-login sniffed requests
+            	request.changeSessionId();
+                return "redirect:" + DefaultPagesDefinition.getDefaultUri(request, response, user);     
+            }
         }
 
         return "/WEB-INF/jsp/login.jsp";
@@ -81,8 +84,11 @@ public class LoginController {
     		User user = Common.loginManager.performLogin(login.getUsername(), login.getPassword(), request, response, null, errors, false, false);
     		if ((user == null)||errors.hasErrors())
     			return initForm(request, response, login, errors);
-    		else
-    			return "redirect:" + DefaultPagesDefinition.getDefaultUri(request, response, user);      
+    		else{
+    			//Assign new SessionId to thwart Session Hijacking attempts for pre-login sniffed requests
+            	request.changeSessionId();
+    			return "redirect:" + DefaultPagesDefinition.getDefaultUri(request, response, user);  
+    		}
     	}catch(TranslatableException e){
     		
     		//Add the error
