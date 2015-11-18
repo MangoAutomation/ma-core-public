@@ -151,6 +151,13 @@ public class Common {
         return 11;
     }
 
+    /**
+     * @return The version of Java that the core is compiled for
+     */
+    public static final double getJavaSpecificationVersion(){
+    	return 1.8;
+    }
+    
     public static String getWebPath(String path) {
         return MA_HOME + "/web" + (path.startsWith("/") ? path : "/" + path);
     }

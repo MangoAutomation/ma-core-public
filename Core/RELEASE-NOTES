@@ -1,6 +1,6 @@
 *Version 2.6.6*
 * Fixed bug when setting Low and Medium priority thread pools to large values would cause mango to fail to restart
-* Upgrading ma-priv library for better startup error logging
+* Upgrading ma-priv library for better startup error logging and JVM Compatibility check
 * Adding additional utility methods for extracting Regex capture groups from Strings
 * Fixed bug in dataTypeOptions tag where onChange wasn't working if the onChange code was missing a ;
 * Trimmed down event data that gets sent to UI via longpoll to improve performance
