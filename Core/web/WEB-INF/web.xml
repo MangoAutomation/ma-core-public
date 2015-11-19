@@ -7,13 +7,33 @@
 <!-- <web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  -->
 <!--     xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"  -->
 <!--     version="2.4"> -->
+<!-- <web-app xmlns="http://java.sun.com/xml/ns/javaee" -->
+<!--     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" -->
+<!--     version="2.5"> -->
 <web-app xmlns="http://java.sun.com/xml/ns/javaee"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-    version="2.5">
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+  <!-- Spring Security must be part of the Root Context so until we move to annotation driven initialization it must be done here in XML -->
+  <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+        	/WEB-INF/applicationContext.xml,
+            /WEB-INF/spring-security.xml
+        </param-value>
+    </context-param>
+  
   <!-- 
     Filter definitions.
    -->
+  <!-- Spring Security -->
+  <filter>
+	<filter-name>springSecurityFilterChain</filter-name>
+	<filter-class>org.springframework.web.filter.DelegatingFilterProxy
+	</filter-class>
+  </filter>
+
   <filter>
     <filter-name>CharacterSet</filter-name>
     <filter-class>com.serotonin.web.filter.CharacterSetFilter</filter-class>
@@ -22,8 +42,6 @@
       <param-value>UTF-8</param-value>
     </init-param>
   </filter>
-  
-
   
   <filter>
     <filter-name>UrlSecurity</filter-name>
@@ -68,10 +86,10 @@
         </init-param>
   </filter>
   
-<filter>
+  <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>com.serotonin.m2m2.web.filter.UrlRewriteFilter</filter-class>
-</filter>
+  </filter>
 
   <filter>
     <description>Filter to ensure we properly decode/encode URLs for the REST API</description>
@@ -91,6 +109,13 @@
   <!-- 
     Filter mappings.
    -->
+  <filter-mapping>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <url-pattern>/rest/v1/*</url-pattern>
+    <!-- To ensure we are within the Security Context if we Login via legacy Servlet -->
+    <url-pattern>/login.htm</url-pattern>
+  </filter-mapping>
+  
   <filter-mapping>
     <filter-name>CharacterEncodingFilter</filter-name>
     <url-pattern>/rest/*</url-pattern>
@@ -259,6 +284,7 @@
     <servlet-name>springDispatcher</servlet-name>
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
+
   <!--  For Swagger REST API DOCUMENTATION -->
   <servlet-mapping>
     <servlet-name>springDispatcher</servlet-name>

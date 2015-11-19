@@ -6,6 +6,7 @@
 * Trimmed down event data that gets sent to UI via longpoll to improve performance
 * Improved REST error feedback in Response headers and log file
 * Upgrade build for Java 8 Compliance
+* Adding Spring Security
 
 *Version 2.6.4*
 * Improved feedback for Data Point Import via CSV

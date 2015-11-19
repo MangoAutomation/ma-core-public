@@ -46,6 +46,19 @@ public interface ILoginManager {
     		boolean logout, boolean passwordEncrypted) throws TranslatableException;
     
     /**
+     * Simple Login without adding information to HttpSession, no exceptions thrown if user is not 
+     * authenticated then null is returned.
+     * 
+     * NOTE: This does not yet support Authentication via Module Definitions
+     * 
+     * @param username
+     * @param password
+     * @param passwordEncrypted
+     * @return
+     */
+    public User performLogin(String username, String password, boolean passwordEncrypted);
+    
+    /**
      * Does this request contain the urlSecurity attribute?
      * 
      * This means we were referred from a secure page

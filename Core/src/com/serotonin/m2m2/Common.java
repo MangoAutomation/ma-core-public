@@ -34,6 +34,8 @@ import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -267,6 +269,15 @@ public class Common {
     //
     // Session user
     public static User getUser() {
+		
+		//Check for the User via Spring Security
+	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	    if(auth != null){
+	    	Object principle = auth.getPrincipal();
+	    	if(principle != null)
+	    		return (User)principle;
+	    }
+    	
         WebContext webContext = WebContextFactory.get();
         if (webContext == null) {
             // If there is no web context, check if there is a background context
@@ -287,11 +298,22 @@ public class Common {
     }
 
     public static User getUser(HttpServletRequest request) {
+    	
+		//Check for the User via Spring Security
+	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	    if(auth != null){
+	    	Object principle = auth.getPrincipal();
+	    	if(principle != null){
+	    		//The Principle could be "anonymousUser"
+	    		if(principle instanceof User)
+	    			return (User)principle;
+	    	}
+	    }
+    	
         // Check first to see if the user object is in the request.
         User user = (User) request.getAttribute(SESSION_USER);
         if (user != null)
             return user;
-
         // If not, get it from the session.
         user = (User) request.getSession().getAttribute(SESSION_USER);
 
@@ -300,6 +322,7 @@ public class Common {
             // user object swiped from them by a quicker (logout) request.
             request.setAttribute(SESSION_USER, user);
         }
+        
         return user;
     }
 
