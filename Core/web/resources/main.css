@@ -308,6 +308,18 @@ footer {
     font-size: 1.2em;
 }
 
+#documentationPane .dojoxFloatingPaneContent h4 {
+    font-size: 1.1em;
+}
+
+#documentationPane .dojoxFloatingPaneContent h5 {
+    font-size: 1.0em;
+}
+
+#documentationPane .dojoxFloatingPaneContent h6 {
+    font-size: .9em;
+}
+
 #documentationPane .dojoxFloatingPaneContent img {
     vertical-align: bottom;
 }
