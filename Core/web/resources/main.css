@@ -386,6 +386,19 @@ footer {
     font-size: 1.3em;
 }
 
+.section h4 {
+    font-size: 1.1em;
+}
+
+.section h5 {
+    font-size: 1.0em;
+}
+
+.section h6 {
+    font-size: .9em;
+}
+
+
 .section {
   box-shadow: 3px 3px 6px -2px #999;
   margin-bottom: 7px;
