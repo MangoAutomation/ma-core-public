@@ -27,7 +27,7 @@
     <property name="mango.build.number" value="mango.build.number" />
 
 	<!-- Build Mango Core for this Java Version -->
-	<property name="mango.java.version" value="1.8"/>
+	<property name="mango.java.version" value="1.7"/>
 	
     <path id="master-classpath">
         <fileset refid="maven-deps" />

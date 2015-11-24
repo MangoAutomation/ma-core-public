@@ -17,7 +17,7 @@
     <property name="core.target" value="${coreHome}" />
     <property name="module.deploy.paths" value="${core.target}/web/modules" />
     <property name="zip.paths" value="${core.target}/ma-modules.zip" />
-	<property name="mango.java.version" value="1.8"/>
+	<property name="mango.java.version" value="1.7"/>
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"
              classpath="${coreHome}/lib-opt/ant-contrib-1.0b3.jar" />
@@ -401,7 +401,7 @@
             </else>
         </if>
 
-        <!-- When finished remove the module folder from the core to leave it unchanged-->
+        <!-- When finished remove the module folder from the core to leave it unchanged -->
         <echo message="Deleting module directory from core: ${module.core}"/>
         <delete dir="${module.core}" />     
     </target>
