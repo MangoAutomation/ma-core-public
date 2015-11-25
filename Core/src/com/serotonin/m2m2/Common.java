@@ -61,6 +61,7 @@ import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.filter.LoggedInFilter;
 import com.serotonin.monitor.MonitoredValues;
@@ -73,7 +74,8 @@ import freemarker.template.Configuration;
 
 public class Common {
     private static final String SESSION_USER = "sessionUser";
-
+    
+    public static OverridingWebAppContext owac;
     // Note the start time of the application.
     public static final long START_TIME = System.currentTimeMillis();
 
@@ -157,7 +159,7 @@ public class Common {
      * @return The version of Java that the core is compiled for
      */
     public static final double getJavaSpecificationVersion(){
-    	return 1.8;
+    	return 1.7;
     }
     
     public static String getWebPath(String path) {

@@ -204,8 +204,8 @@
         <taskdef name="jasper2" classname="org.apache.jasper.JspC">
             <classpath>
                 <pathelement path="${core.target}/classes" />
+                <pathelement path="${coreHome}/maven-target/classes" />
                 <path refid="master-classpath" />
-                <path refid="module-libs" />
             </classpath>
         </taskdef>
         <!-- If we have modules installed we need to collect their jars too -->

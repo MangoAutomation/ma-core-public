@@ -48,7 +48,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests()
 			.antMatchers(HttpMethod.GET, "/login*").anonymous() //Ensure we add the login authorization to our Context if we login via legacy
 			.antMatchers(HttpMethod.POST, "/login*").anonymous()
-			
+			//.antMatchers(HttpMethod.GET, "/*").anonymous()
 			.antMatchers(HttpMethod.GET, "/rest/v1/login/*").anonymous()
 			.antMatchers(HttpMethod.POST, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.PUT, "/rest/v1/**").authenticated()

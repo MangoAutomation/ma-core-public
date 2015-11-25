@@ -128,7 +128,7 @@ public class SerialPortManager {
         }
         catch (NoClassDefFoundError e) {
             throw new SerialPortConfigException(
-                    "Comm configuration error. Check that your serial port DLL or libraries have been correctly installed.");
+                    "Comm configuration error. Check that your serial port DLL or libraries have been correctly installed. " + e.getMessage() );
         }
 
     }

@@ -362,22 +362,24 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>apache-jsp</artifactId>
 			<version>${jettyVersion}</version>
+			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>apache-jstl</artifactId>
 			<version>${jettyVersion}</version>
+			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-annotations</artifactId>
 			<version>${jettyVersion}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.mortbay.jasper</groupId>
-			<artifactId>apache-jsp</artifactId>
-			<version>8.0.23.M1</version>
-		</dependency>
+<!-- 		<dependency> This seems to cause Jetty to be slow with Graphics Views -->
+<!-- 			<groupId>org.mortbay.jasper</groupId> -->
+<!-- 			<artifactId>apache-jsp</artifactId> -->
+<!-- 			<version>8.0.23.M1</version> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
@@ -488,7 +490,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>1.4.4</version>
+			<version>1.4.5</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
