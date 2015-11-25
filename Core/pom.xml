@@ -83,12 +83,12 @@
 						<groupId>org.eclipse.jetty</groupId>
 						<artifactId>apache-jsp</artifactId>
 						<version>${jettyVersion}</version>
-						<exclusions>
-							<exclusion>
-								<groupId>org.mortbay.jasper</groupId>
-								<artifactId>apache-jsp</artifactId>
-							</exclusion>
-						</exclusions>
+<!-- 						<exclusions> -->
+<!-- 							<exclusion> -->
+<!-- 								<groupId>org.mortbay.jasper</groupId> -->
+<!-- 								<artifactId>apache-jsp</artifactId> -->
+<!-- 							</exclusion> -->
+<!-- 						</exclusions> -->
 					</dependency>
 					<dependency>
 						<groupId>com.infiniteautomation</groupId>
