@@ -13,6 +13,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserDetailsService;
@@ -53,9 +56,11 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.POST, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.PUT, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.DELETE, "/rest/v1/**").authenticated()
-			.antMatchers(HttpMethod.GET, "/rest/v1/**").authenticated(); //Since we are currently checking credentials in the REST Code we can use this for now
-			
-			//Later when we add Authority restrictions to various URLs we can use the .antMatchers().hasAuthority() instead of hasRole() to avoid the ROLE_ prefix being appended
+			.antMatchers(HttpMethod.GET, "/rest/v1/**").authenticated() //Since we are currently checking credentials in the REST Code we can use this for now
+			//CSRF Headers https://spring.io/blog/2015/01/12/the-login-page-angular-js-and-spring-security-part-ii
+			.anyRequest().authenticated().and().addFilterAfter(new CsrfHeaderFilter(), CsrfFilter.class)
+			.csrf().csrfTokenRepository(csrfTokenRepository());
+		//Later when we add Authority restrictions to various URLs we can use the .antMatchers().hasAuthority() instead of hasRole() to avoid the ROLE_ prefix being appended
 		//Basic HTTP 
 		//http.httpBasic();
 		
@@ -63,7 +68,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		//formLogin.loginPage("/login.htm");
 		
 		//For Logout Control See: http://docs.spring.io/spring-security/site/docs/current/reference/html/jc.html#jc-hello-wsca
-//		http.logout()
+		http.logout();
 //		.logoutUrl("/my/logout")
 //		.logoutSuccessUrl("/my/index")
 //		.logoutSuccessHandler(logoutSuccessHandler)
@@ -72,4 +77,11 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 //		.deleteCookies(cookieNamesToClear)
 		
 	}
+	
+	private CsrfTokenRepository csrfTokenRepository() {
+		  HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
+		  repository.setHeaderName("X-XSRF-TOKEN");
+		  return repository;
+		}
+	
 }
