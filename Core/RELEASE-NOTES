@@ -1,4 +1,4 @@
-*Version 2.6.6*
+*Version 2.6.5*
 * Fixed bug when setting Low and Medium priority thread pools to large values would cause mango to fail to restart
 * Upgrading ma-priv library for better startup error logging and JVM Compatibility check
 * Adding additional utility methods for extracting Regex capture groups from Strings
