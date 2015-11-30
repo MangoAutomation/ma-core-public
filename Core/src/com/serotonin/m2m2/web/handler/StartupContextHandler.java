@@ -34,6 +34,8 @@ public class StartupContextHandler extends ResourceHandler{
 	private final static int RESOURCE = 2;
 	private final static int JSON = 3;
 	
+	private static final String JSON_CONTENT_TYPE = "application/json";
+	
 	private StatusServlet statusServlet;
 	private String pageTemplate;
 	
@@ -60,6 +62,8 @@ public class StartupContextHandler extends ResourceHandler{
         		request.getPathInfo().endsWith(".map")){
         	requestType = RESOURCE;
         }else if(request.getPathInfo().endsWith(".json")){
+        	requestType = JSON;
+        }else if(JSON_CONTENT_TYPE.equalsIgnoreCase(request.getContentType())){
         	requestType = JSON;
         }
 

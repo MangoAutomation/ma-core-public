@@ -73,7 +73,7 @@
             </tr>
           </table>
           <%-- for Spring Security --%>
-          <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+          <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/> 
         </form>
         <br/>
       </td>

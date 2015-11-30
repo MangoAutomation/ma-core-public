@@ -68,6 +68,7 @@ require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window"
         xhr.get({
             url: "/status/mango?time=" + timestamp,
             handleAs: "json",
+            headers: { 'Content-Type' : 'application/json'},
             load: function(data){
  	            
                 //Update my messages
@@ -93,8 +94,12 @@ require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window"
 	                progress = 98; //This looks like its almost restarted, then if it does it will flip over to 'Starting' messages
 	            }
 	
-	            if(data.startupProgress < 100)
+	            if(data.startupProgress < 100){
 	                progress = data.startupProgress;
+	                //Also check if we can early re-direct, ie. the system is ready for the login page
+		            if(typeof data.startupUri != 'undefined')
+		            	redirect = true;
+	            }
 	
 
 	            
@@ -104,6 +109,7 @@ require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window"
 	                 redirect = true;
 	             }
 	            
+
 	            //Do redirect?
 	            if(redirect){
 	                setTimeout(function(){

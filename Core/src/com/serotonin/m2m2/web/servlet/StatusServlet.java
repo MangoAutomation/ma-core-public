@@ -81,7 +81,9 @@ public class StatusServlet extends HttpServlet{
         data.put("shutdownProgress", lifecycle.getShutdownProgress());
     	data.put("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
     	
-		data.put("startupUri", DefaultPagesDefinition.getLoginUri(request,response));
+    	//Can only get the Startup URI once the database is initalized
+    	if(lifecycle.getLifecycleState() > 100)
+    		data.put("startupUri", DefaultPagesDefinition.getLoginUri(request,response));
     	
         try {
 			writer.writeObject(data);

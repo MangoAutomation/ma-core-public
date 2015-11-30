@@ -22,8 +22,9 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
     function getStatus(timestamp){
         var lastPollTime = new Date().getTime();
         xhr.get({
-           url: "/status/mango.json?time=" + timestamp,
+           url: "/status/mango?time=" + timestamp,
            handleAs: "json",
+           headers: { 'Content-Type' : 'application/json'},
            load: function(data){
                
                //Update the progress bar

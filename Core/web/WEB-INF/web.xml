@@ -114,7 +114,7 @@
     <url-pattern>/rest/v1/*</url-pattern>
 <!--     To ensure we are within the Security Context if we Login via legacy Servlet -->
     <url-pattern>/login.htm</url-pattern>
-<!--     <url-pattern>/*</url-pattern> -->
+    <url-pattern>*.shtm</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
