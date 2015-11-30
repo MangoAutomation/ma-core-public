@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig.SerialPortTypes;
 import com.serotonin.io.serial.CommPortConfigException;
 import com.serotonin.json.util.TypeDefinition;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 
 
@@ -98,12 +99,17 @@ public class SerialPortManager {
             
             switch(SerialNativeInterface.getOsType()){
             	case SerialNativeInterface.OS_LINUX:
-            		portNames = SerialPortList.getPortNames(Pattern.compile("(cu|ttyS|ttyUSB|ttyACM|ttyAMA|rfcomm|ttyO)[0-9]{1,3}"));
+            		portNames = SerialPortList.getPortNames(Common.envProps.getString("serial.port.linux.path","/dev/"),
+            				Pattern.compile(Common.envProps.getString("serial.port.linux.regex", "((cu|ttyS|ttyUSB|ttyACM|ttyAMA|rfcomm|ttyO|COM)[0-9]{1,3}|rs(232|485)-[0-9])")));
                 break;
             	case SerialNativeInterface.OS_MAC_OS_X:
-                    portNames = SerialPortList.getPortNames(Pattern.compile("(cu|tty)..*")); //Was "tty.(serial|usbserial|usbmodem).*")
+                    portNames = SerialPortList.getPortNames(Common.envProps.getString("serial.port.osx.path","/dev/"),
+                    		Pattern.compile(Common.envProps.getString("serial.port.osx.regex","(cu|tty)..*"))); //Was "tty.(serial|usbserial|usbmodem).*")
                 break;
-                default:
+            	case SerialNativeInterface.OS_WINDOWS:
+                    portNames = SerialPortList.getPortNames(Common.envProps.getString("serial.port.windows.path",""),
+                    		Pattern.compile(Common.envProps.getString("serial.port.windows.regex","")));
+            	default:
                 	 portNames = SerialPortList.getPortNames();
                 break;
             }
