@@ -11,8 +11,8 @@
   <script type="text/javascript">
   var doCsvImport;
   
-  require(['dojo/json', 'dojo/_base/xhr', "dojo/request/xhr", "dojo/domReady!"], 
-	        function(JSON, baseXhr, xhr){
+  require(['dojo/json', 'dojo/_base/xhr', "dojo/request/xhr", "dojo/cookie", "dojo/domReady!"], 
+	        function(JSON, baseXhr, xhr, cookie){
 	    doCsvImport = function () {
 	        setDisabled("importBtn", true);
 	        hideGenericMessages("importMessages");
@@ -25,6 +25,7 @@
 	        		headers: {
 	        			'Content-Type' : 'text/csv; charset=utf-8',
 	        			'Accept' : 'application/json',
+	        			'X-XSRF-TOKEN' : cookie('XSRF-TOKEN')
 	        			},
 	        		handleAs: "json",
 	        	}
