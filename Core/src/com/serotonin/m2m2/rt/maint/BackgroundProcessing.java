@@ -37,6 +37,11 @@ import com.serotonin.util.ILifecycle;
  */
 public class BackgroundProcessing implements ILifecycle {
     final Log log = LogFactory.getLog(BackgroundProcessing.class);
+    
+    //Lower Limits on Pool Sizes for Mango To Run
+    public static final int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
+    public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
+    public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
 
     private ThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
@@ -159,10 +164,9 @@ public class BackgroundProcessing implements ILifecycle {
      * @param maximumPoolSize
      */
     public void setMediumPriorityServiceMaximumPoolSize(int maximumPoolSize){
-    	if(maximumPoolSize >= this.mediumPriorityService.getCorePoolSize()) //Default
+    	if((maximumPoolSize >= MED_PRI_MAX_POOL_SIZE_MIN)&&(maximumPoolSize >= this.mediumPriorityService.getCorePoolSize())) //Default
     		this.mediumPriorityService.setMaximumPoolSize(maximumPoolSize);
     }
-
     
     public int getMediumPriorityServiceCorePoolSize(){
     	return this.mediumPriorityService.getCorePoolSize();
@@ -201,7 +205,7 @@ public class BackgroundProcessing implements ILifecycle {
      * @param maximumPoolSize
      */
     public void setLowPriorityServiceMaximumPoolSize(int maximumPoolSize){
-    	if(maximumPoolSize >= this.lowPriorityService.getCorePoolSize()) //Default
+    	if((maximumPoolSize >= LOW_PRI_MAX_POOL_SIZE_MIN)&&maximumPoolSize >= this.lowPriorityService.getCorePoolSize()) //Default
     		this.lowPriorityService.setMaximumPoolSize(maximumPoolSize);
     }
     
@@ -237,7 +241,10 @@ public class BackgroundProcessing implements ILifecycle {
     	//Adjust the RealTime timer pool now
     	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, 1);
     	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, 100);
+    	
     	//Sanity check to ensure the pool sizes are appropriate
+    	if(maxPoolSize < HIGH_PRI_MAX_POOL_SIZE_MIN)
+    		maxPoolSize = HIGH_PRI_MAX_POOL_SIZE_MIN;
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
     	ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
@@ -247,7 +254,10 @@ public class BackgroundProcessing implements ILifecycle {
     	//Pull our settings from the System Settings
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, 3);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, 30);
+    	
     	//Sanity check to ensure the pool sizes are appropriate
+    	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
+    		maxPoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
@@ -257,6 +267,8 @@ public class BackgroundProcessing implements ILifecycle {
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, 3);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, 30);
     	//Sanity check to ensure the pool sizes are appropriate
+    	if(maxPoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
+    		maxPoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,

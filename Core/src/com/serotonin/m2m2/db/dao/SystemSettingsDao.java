@@ -27,6 +27,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.util.ColorUtils;
 
@@ -655,6 +656,43 @@ public class SystemSettingsDao extends BaseDao {
 	    		response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
 	    				"systemSettings.validation.databaseBackupFileCountInvalid");
 	    	} 
+    	
+    	//Thread Pool Sizes
+    	Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
+    	Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
+    	
+        if(corePoolSize < 1){
+        	response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        }
+
+        if(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
+        	response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
+        }
+        
+        if(maxPoolSize < corePoolSize){
+        	response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+        }
+
+        //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
+        // core pool thread is available
+        corePoolSize = getIntValue(MED_PRI_CORE_POOL_SIZE, settings);
+        maxPoolSize = getIntValue(MED_PRI_MAX_POOL_SIZE, settings);
+        if(maxPoolSize < corePoolSize){
+        	response.addContextualMessage(MED_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+        }
+        if(corePoolSize < BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN){
+        	response.addContextualMessage(MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
+        }
+        
+        corePoolSize = getIntValue(LOW_PRI_CORE_POOL_SIZE, settings);
+        maxPoolSize = getIntValue(LOW_PRI_MAX_POOL_SIZE, settings);
+        if(maxPoolSize < corePoolSize){
+        	response.addContextualMessage(LOW_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+        }
+        if(corePoolSize < BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
+        	response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
+        }
+        
 	}
 	
 

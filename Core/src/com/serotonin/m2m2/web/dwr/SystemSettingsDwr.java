@@ -31,6 +31,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
@@ -321,14 +322,18 @@ public class SystemSettingsDwr extends BaseDwr {
         	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
         }
         
-        if(highPriorityMaxPoolSize >= highPriorityCorePoolSize){
+        if(highPriorityMaxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
+        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
+        }else if(highPriorityMaxPoolSize < highPriorityCorePoolSize){
+        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+        }else{
             systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, highPriorityMaxPoolSize);
             executor.setMaximumPoolSize(highPriorityMaxPoolSize);
-        }else{
-        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }
         
-        if(medPriorityCorePoolSize > 0){
+        //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
+        // core pool thread is available  
+        if(medPriorityCorePoolSize >= BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN){
         	//Due to the pool type we should set these to the same values
         	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, medPriorityCorePoolSize);
         	Common.backgroundProcessing.setMediumPriorityServiceMaximumPoolSize(medPriorityCorePoolSize);
@@ -336,10 +341,10 @@ public class SystemSettingsDwr extends BaseDwr {
         	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, medPriorityCorePoolSize);
         	Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(medPriorityCorePoolSize);
         }else{
-        	response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        	response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
         }
 
-        if(lowPriorityCorePoolSize > 0){
+        if(lowPriorityCorePoolSize > BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
         	//Due to the pool type we should set these to the same values
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, lowPriorityCorePoolSize);
         	Common.backgroundProcessing.setLowPriorityServiceMaximumPoolSize(lowPriorityCorePoolSize);
@@ -347,7 +352,7 @@ public class SystemSettingsDwr extends BaseDwr {
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);
         	Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(lowPriorityCorePoolSize);
         }else{
-        	response.addContextualMessage(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        	response.addContextualMessage(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
         return response;
     }
