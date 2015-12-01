@@ -159,6 +159,15 @@ public class ImageChartServlet extends BaseInfoServlet {
                         pointCount++;
                         markerPoint = dp;
 
+                        //Get the Color if there wasn't one provided
+                        if(colour == null){
+                        	try{
+                        		colour = ColorUtils.toColor(dp.getChartColour());
+                        	}catch(InvalidArgumentException e){
+                        		//Munch it
+                        	}
+                        }
+                        
                         PointValueFacade pointValueFacade = new PointValueFacade(dataPointId);
                         List<PointValueTime> data;
                         if (from == -1 && to == -1)
