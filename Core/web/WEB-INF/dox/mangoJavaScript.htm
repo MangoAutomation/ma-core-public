@@ -102,14 +102,18 @@ The following fields can be useful for conversions:</p>
 </p>
 <ul>
   <li><b>minimumValue</b>: (float) the minimum value the point reached over the period</li>
-  <li><b>minimum time</b>: (integer) the time at which the minimum value was reached</li>
+  <li><b>minimumTime</b>: (integer) the time at which the minimum value was reached</li>
   <li><b>maximumValue</b>: (float) the maximum value the point reached over the period</li>
-  <li><b>maximum time</b>: (integer) the time at which the maximum value was reached</li>
+  <li><b>maximumTime</b>: (integer) the time at which the maximum value was reached</li>
   <li><b>average</b>: (float) the average value of the point over the period</li>
+  <li><b>integral</b>: (float) the integral value of the point over the period</li>
   <li><b>sum</b>: (float) the sum of all value updates over the period (appropriate for pulse counting)</li>
+  <li><b>firstValue</b>: (float) the first value in the period</li>
+  <li><b>firstTime</b>: (integer) the time of the first value</li>
+  <li><b>lastValue</b>: (float) the last value in the period</li>
+  <li><b>lastTime</b>: (integer) the time of the last value</li> 
   <li><b>count</b>: (integer) the number of updates over the period</li>
-  <li><b>noData</b>: (boolean) whether the period contained any data (true if the period precedes the point's first known value)</li>
-  <li><b>realStart</b>: (integer) the actual start time used for calculations (in case the start time precedes the point's first known value)</li>
+  <li><b>delta</b>: (float) the cumulative change in value from firstValue to lastValue</li>
   <li><b>end</b>: (integer) the end time used for calculations</li>
 </ul>
 <p>

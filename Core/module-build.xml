@@ -203,12 +203,7 @@
                                 
                                 <if><available file="${pkg}" type="dir" />
                                     <then>
-                                        <copy todir="${module.target}/module-classes"
-                                              preservelastmodified="true">
-                                            <fileset dir="${module.target}/work-tmp/jsp/">
-                                                <include name="org/apache/jsp/modules/${name}/**/*" />
-                                            </fileset>
-                                        </copy>
+                                    	<!-- Not putting the compiled JSP classes into jar -->
                                         <copy todir="${module.target}/work"
                                               preservelastmodified="true">
                                             <fileset dir="${module.target}/work-tmp/">
@@ -241,12 +236,7 @@
                                           value="work/jsp/org/apache/jsp/tag/web/${name}" />
                                 <!-- Copy the compiled tag dir back to the module -->
                                 <echo message="Copying Tags to ${module.target}/${tagpkg}" />
-                                <copy todir="${module.target}/module-classes/org/apache/jsp/tag/web/${name}"
-                                      preservelastmodified="true">
-                                    <fileset dir="${module.target}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
-                                        <include name="**/*" />
-                                    </fileset>
-                                </copy>
+                            	<!-- Not putting the compiled JSP classes into jar -->
                                 <copy todir="${module.target}/${tagpkg}"
                                       preservelastmodified="true">
                                     <fileset dir="${module.target}/work-tmp/jsp/org/apache/jsp/tag/web/${name}">
