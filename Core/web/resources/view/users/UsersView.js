@@ -113,8 +113,13 @@ UsersView.prototype.setupView = function(){
 };
 
 UsersView.prototype.loadNewUser = function(){
-	//Reset the picker which will fire a change with '' as username
-	this.userPicker.reset();
+	this.clearErrors();
+	var self = this;
+	this.api.newUser().then(function(user){
+		self.newUser = true;
+		self.fillUserInputs(user);
+		self.userPicker.reset(); //May trigger on-change with username=''
+	}).fail(this.showError);
 };
 
 /**
@@ -122,17 +127,11 @@ UsersView.prototype.loadNewUser = function(){
  * @param username - String
  */
 UsersView.prototype.loadUser = function(username){
+	//We don't want to send an empty string as its interpreted as RQL select all
+	if(username.length === 0)
+		return;
 	this.clearErrors();
 	var self = this;
-	
-	if(username.length === 0){
-		this.api.newUser().then(function(user){
-			self.newUser = true;
-			self.fillUserInputs(user);
-		}).fail(this.showError);
-		return;
-	}
-	
 
 	this.store.get(username).then(function(userData){
 		self.newUser = false;
