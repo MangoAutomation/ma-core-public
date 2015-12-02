@@ -113,13 +113,8 @@ UsersView.prototype.setupView = function(){
 };
 
 UsersView.prototype.loadNewUser = function(){
-	this.clearErrors();
-	var self = this;
-	this.api.newUser().then(function(user){
-		self.newUser = true;
-		self.fillUserInputs(user);
-	}).fail(this.showError);
-	
+	//Reset the picker which will fire a change with '' as username
+	this.userPicker.reset();
 };
 
 /**
@@ -127,9 +122,18 @@ UsersView.prototype.loadNewUser = function(){
  * @param username - String
  */
 UsersView.prototype.loadUser = function(username){
-	
 	this.clearErrors();
 	var self = this;
+	
+	if(username.length === 0){
+		this.api.newUser().then(function(user){
+			self.newUser = true;
+			self.fillUserInputs(user);
+		}).fail(this.showError);
+		return;
+	}
+	
+
 	this.store.get(username).then(function(userData){
 		self.newUser = false;
 		$('#userEditView').show();
@@ -191,6 +195,12 @@ UsersView.prototype.saveUser = function(){
 	
 	this.clearErrors();
 	
+	//We can't save a user with no username
+	if($('#username').val().length === 0){
+		$('#username').notify(this.tr('users.validate.usernameRequired'), {className: 'error', position: 'right'});
+		return;
+	}
+	
 	//Get the user info
 	var user = {
 		username: $('#username').val(),
@@ -210,11 +220,13 @@ UsersView.prototype.saveUser = function(){
 		this.api.postUser(user).then(function(result){
 			self.showSuccess(self.tr('users.added'));
 			self.newUser = false;
+			self.userPicker.setDisplayedValue(result.username);
 		}).fail(this.showError);
 	else //We are updating a user, we must use the existing username for the url
 		this.api.putUser(user, this.loadedUsername).then(function(result){
 			self.showSuccess(self.tr('users.saved'));
 			self.loadedUsername = result.username; //Update our path reference
+			self.userPicker.setDisplayedValue(result.username);
 		}).fail(this.showError);
 };
 
