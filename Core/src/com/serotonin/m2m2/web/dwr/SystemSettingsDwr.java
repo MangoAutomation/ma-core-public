@@ -323,7 +323,7 @@ public class SystemSettingsDwr extends BaseDwr {
         }
         
         if(highPriorityMaxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
-        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
+        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }else if(highPriorityMaxPoolSize < highPriorityCorePoolSize){
         	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }else{
