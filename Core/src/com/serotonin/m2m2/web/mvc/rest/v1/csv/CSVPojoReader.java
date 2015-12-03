@@ -76,9 +76,20 @@ public class CSVPojoReader<T> implements Closeable {
 			}
 		}
 		String[] line = reader.readNext();
-
+		
 		T pojo = null;
 		if (line != null) {
+			if(line.length != headers.length){
+				String columnString = new String();
+				for(String col : line)
+					columnString += col + ",";
+				if(line.length > headers.length){
+					throw new IOException("Header and row length must match.\nRow has too many columns.\n" + columnString);
+				}else{
+					throw new IOException("Header and row length must match.\nRow has too few columns.\n" + columnString);
+				}
+			}
+			
 			if (!pojoHandler.isInitialized()) {
 				String typeName = line[0]; // Always needs to be
 				// Find the model
