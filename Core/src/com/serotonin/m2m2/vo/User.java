@@ -400,6 +400,17 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
             response.addMessage("email", new TranslatableMessage("validate.notLongerThan", 255));
         if (StringValidation.isLengthGreaterThan(phone, 40))
             response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
+        
+        //Validate Permissions (Can't be blank)
+        if (!StringUtils.isEmpty(this.permissions)) {
+        	for (String s : this.permissions.split(",")) {
+            	if(StringUtils.isBlank(s)){
+            		response.addMessage("permissions", new TranslatableMessage("validate.cannotContainEmptyString"));
+            		break;
+            	}
+            }
+        }
+
     }
 
     @Override
