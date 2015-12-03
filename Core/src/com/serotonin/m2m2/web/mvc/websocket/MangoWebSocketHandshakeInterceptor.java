@@ -24,11 +24,14 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
 	public boolean beforeHandshake(ServerHttpRequest request,
 			ServerHttpResponse response, WebSocketHandler wsHandler,
 			Map<String, Object> attributes) throws Exception {
+		
+		//Setup Session Tracking
 		User user = Common.getUser(((ServletServerHttpRequest)request).getServletRequest());
 		if (user != null) {
 		    attributes.put("user", user);
 		}
-		
+
+		attributes.put("httpsession", ((ServletServerHttpRequest)request).getServletRequest().getSession());
 		return super.beforeHandshake(request, response, wsHandler, attributes);
 	}
 
