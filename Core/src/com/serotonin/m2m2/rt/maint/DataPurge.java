@@ -112,8 +112,8 @@ public class DataPurge {
                 // Check the data source level.
                 DataSourceVO<?> ds = dataSourceDao.getDataSource(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
-                    purgeType = dataPoint.getPurgeType();
-                    purgePeriod = dataPoint.getPurgePeriod();
+                    purgeType = ds.getPurgeType();
+                    purgePeriod = ds.getPurgePeriod();
                 }
                 else {
                     // Use the system settings.

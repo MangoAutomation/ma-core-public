@@ -10,6 +10,7 @@
 * Upgrade Jetty to 9.2.12.v20150709
 * Adding Spring Security
 * Jetty JSP Engine configurable/tunable via env.properties
+* Fixed Purge Override bug where data source purge override was not being respected.
 
 *Version 2.6.4*
 * Improved feedback for Data Point Import via CSV
