@@ -175,7 +175,13 @@ class CSVPojoHandler {
 				PropertyEditor editor = fieldHandler.getEditor();
 				if(editor instanceof CSVPropertyEditor)
 					((CSVPropertyEditor) editor).setContext(pojo);
-				editor.setAsText(text);
+				try{
+					editor.setAsText(text);
+				}catch(NumberFormatException e){
+					throw new CSVException("Invalid number: '" + text + "'");
+				}catch(Exception e){
+					throw new CSVException("Invalid value: '" + e.getMessage() + "'");
+				}
 				Object value = editor.getValue();
 				fieldHandler.setValue(pojo, value);
 				return true;

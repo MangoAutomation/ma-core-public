@@ -112,7 +112,7 @@ public class CSVPojoReader<T> implements Closeable {
 				try{
 					pojoHandler.setField(pojo, headers[i], line[i].trim());
 				}catch(CSVException e){
-					throw new CSVException("Row " + i + " column " + headers[i] + " " + e.getMessage());
+					throw new CSVException("Row " + i + " column '" + headers[i] + "' " + e.getMessage());
 				}
 			}
 		}
