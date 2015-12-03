@@ -61,7 +61,7 @@ public class CSVPojoWriter<T> implements Closeable {
     * @param pojo The pojo to write
  * @throws NoSupportingModelException 
     */
-   public void writeNext(Object pojo) throws NoSupportingModelException {
+   public void writeNext(Object pojo) throws NoSupportingModelException, CSVException {
 	  if(!pojoHandler.isInitialized() && pojo != null){
 		  pojoHandler.initialize(pojo);
 		  this.headers = pojoHandler.getHeaders().toArray(new String[0]);
@@ -92,7 +92,7 @@ public class CSVPojoWriter<T> implements Closeable {
     * @param list The list of pojos to write
     * @throws NoSupportingModelException 
     */
-   public void writeAll(List<T> list) throws NoSupportingModelException {
+   public void writeAll(List<T> list) throws NoSupportingModelException, CSVException {
 	   if(list.size() == 0)
 		   writeNext(null);
 	   else{

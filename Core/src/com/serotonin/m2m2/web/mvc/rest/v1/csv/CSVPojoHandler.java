@@ -13,8 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.ss.formula.functions.T;
-
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
@@ -165,7 +163,7 @@ class CSVPojoHandler {
 	 * @param text
 	 *            The String representation of the value to set
 	 */
-	public boolean setField(Object pojo, String header, String text) {
+	public boolean setField(Object pojo, String header, String text) throws CSVException{
 		if (text.length() > 0) {
 			// If text is empty use default value in pojo which is set by the
 			// user
@@ -206,7 +204,6 @@ class CSVPojoHandler {
 			//No value set as it was empty
 			return true;
 		}
-		System.err.println("No Such field found - " + header);
 		return false;
 	}
 
@@ -219,7 +216,7 @@ class CSVPojoHandler {
 	 *            The header to find
 	 * @return The String representing the value in the pojo
 	 */
-	public String getField(Object pojo, String header) {
+	public String getField(Object pojo, String header) throws CSVException{
 		if (pojo == null) {
 			// If a pojo is null we should just return empty strings for the
 			// field
@@ -925,7 +922,7 @@ class CSVPojoHandler {
 		 * @throws InvocationTargetException
 		 * @throws IllegalArgumentException
 		 */
-		public void setValue(Object obj, Object value) {
+		public void setValue(Object obj, Object value) throws CSVException{
 			if (setter == null)
 				return; // Nothing to do
 			try {
@@ -936,16 +933,16 @@ class CSVPojoHandler {
 				try {
 					setter.invoke(obj, value);
 				} catch (IllegalAccessException ex) {
-					throw new IllegalAccessError(ex.getMessage());
+					throw new CSVException(setter.getName() + " " + ex.getMessage());
 				} catch (IllegalArgumentException e) {
-					throw new IllegalAccessError(e.getMessage());
+					throw new CSVException(setter.getName() + " " + e.getMessage());
 				} catch (InvocationTargetException e) {
-					throw new IllegalAccessError(e.getMessage());
+					throw new CSVException(setter.getName() + " " + e.getTargetException().getMessage());
 				}
 			} catch (IllegalArgumentException e) {
-				throw new IllegalAccessError(e.getMessage());
+				throw new CSVException(setter.getName() + " " + e.getMessage());
 			} catch (InvocationTargetException e) {
-				throw new IllegalAccessError(e.getMessage());
+				throw new CSVException(setter.getName() + " " + e.getTargetException().getMessage());
 			}
 		}
 
@@ -961,7 +958,7 @@ class CSVPojoHandler {
 		 * @throws InvocationTargetException
 		 * @throws IllegalArgumentException
 		 */
-		public Object getValue(Object obj) {
+		public Object getValue(Object obj) throws CSVException{
 			if (getter == null)
 				return null;
 			try {
@@ -971,17 +968,17 @@ class CSVPojoHandler {
 				getter.setAccessible(true);
 				try {
 					return getter.invoke(obj);
-				} catch (IllegalAccessException ex) {
-					throw new IllegalAccessError(ex.getMessage());
+				} catch (IllegalAccessException e) {
+					throw new CSVException(setter.getName() + " " + e.getMessage());
 				} catch (IllegalArgumentException e) {
-					throw new IllegalAccessError(e.getMessage());
+					throw new CSVException(setter.getName() + " " + e.getMessage());
 				} catch (InvocationTargetException e) {
-					throw new IllegalAccessError(e.getMessage());
+					throw new CSVException(setter.getName() + " " + e.getMessage());
 				}
 			} catch (IllegalArgumentException e) {
-				throw new IllegalAccessError(e.getMessage());
+				throw new CSVException(setter.getName() + " " + e.getMessage());
 			} catch (InvocationTargetException e) {
-				throw new IllegalAccessError(e.getMessage());
+				throw new CSVException(setter.getName() + " " + e.getTargetException().getMessage());
 			}
 		}
 
@@ -1010,9 +1007,9 @@ class CSVPojoHandler {
 		}
 		
 
-		public abstract void setValue(Object obj, Object value);
+		public abstract void setValue(Object obj, Object value) throws CSVException;
 
-		public abstract Object getValue(Object obj);
+		public abstract Object getValue(Object obj) throws CSVException;
 		
 		/* (non-Javadoc)
 		 * @see java.lang.Comparable#compareTo(java.lang.Object)

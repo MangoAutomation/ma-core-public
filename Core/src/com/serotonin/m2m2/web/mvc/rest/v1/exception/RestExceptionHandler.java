@@ -30,6 +30,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
+import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModel;
 
 /**
@@ -46,6 +47,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 	
     @ExceptionHandler({ 
     	NoSupportingModelException.class,
+    	CSVException.class,
     	ModelNotFoundException.class,
     	Exception.class,
     	RuntimeException.class
