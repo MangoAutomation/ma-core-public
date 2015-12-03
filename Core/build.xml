@@ -190,7 +190,9 @@
                deprecation="false"
                optimize="false"
                failonerror="true"
-               includeantruntime="false">
+               includeantruntime="false"
+               source="${mango.java.version}"
+               target="${mango.java.version}">
             <src path="src-patch" />
             <classpath refid="master-classpath" />
         </javac>
