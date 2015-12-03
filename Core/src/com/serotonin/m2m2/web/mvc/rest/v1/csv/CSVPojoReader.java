@@ -63,10 +63,16 @@ public class CSVPojoReader<T> implements Closeable {
 			headers = reader.readNext();
 			if (headers == null)
 				return null;
-			// TODO Check for headers[0] = 'modelType'
+			
 			// Make sure we don't have any accidental whitespaces
 			for (int i = 0; i < headers.length; i++) {
 				headers[i] = headers[i].trim();
+			}
+			if(headers.length > 0){
+				if(!headers[0].equalsIgnoreCase("modelType"))
+					throw new IOException("Invalid header format, first column must be modelType.");
+			}else{
+				throw new IOException("No headers provided.");
 			}
 		}
 		String[] line = reader.readNext();

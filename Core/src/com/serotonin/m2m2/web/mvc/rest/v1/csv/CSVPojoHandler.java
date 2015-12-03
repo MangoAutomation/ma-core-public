@@ -260,6 +260,7 @@ class CSVPojoHandler {
 					CSVColumn csvColumn = field.getAnnotation(CSVColumn.class);
 					if(csvColumn == null)
 						continue;
+
 					// Check that the field show be used (not transient and not
 					// hidden)
 					if (!Modifier.isTransient(field.getModifiers())
