@@ -64,6 +64,10 @@
     <relation id="chartRenderers"/>
   </item>
   
+  <item id="bulkDataPointPermissions" key="dox.bulkDataPointPermissions" filename="bulkDataPointPermissions.htm">
+  	<relation id="permissions"/>
+  	<relation id="systemPermissions"/>
+  </item>
   
   <item id="dataPointEditing" key="dox.dataPointEditing" filename="dataPointEditing.htm">
     <relation id="colours"/>

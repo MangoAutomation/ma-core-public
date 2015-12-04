@@ -40,7 +40,7 @@
     	  $('body').addClass('claro');
     	  
     	  mangoAPI = MangoAPI.defaultApi;
-          var translationNamespaces = ['common', 'users', 'validate', 'js.help', 'filter', 'permissions'];
+          var translationNamespaces = ['common', 'users', 'validate', 'js', 'filter', 'permissions'];
     	  
     	  $(document).ready(setupPage);
     	  
@@ -68,26 +68,23 @@
       	  	</c:if>
     	  	
       	  	//Fill out the tab
-      	  	var usersView = new UsersView();
-      	  	
-      	  	usersView.setupTranslations(translationNamespaces).done(function(){
-      	  		usersView.setupView();
-          	  	usersView.loadUser('${sessionUser.username}');
+      	  	var usersView = new UsersView(
+      	  			{	translationNamespaces: translationNamespaces,
+      	  				componentReady: function(){
+      	        	  		usersView.setupView();
+      	            	  	usersView.loadUser('${sessionUser.username}');
 
-          	  	<c:if test="${sessionUser.admin}">
-          	  	var permissionsView = new DataPointPermissionsView();
-          	  	permissionsView.tr = usersView.tr;
-          	  	permissionsView.setupView();
-          	  	</c:if>
-
-          	  	
-          	  	tc.startup();
-          	  	$('#tab-container').show();
-          	  	
-      	  	});
+      	            	  	<c:if test="${sessionUser.admin}">
+      	            	  	var permissionsView = new DataPointPermissionsView();
+      	            	  	permissionsView.tr = usersView.tr;
+      	            	  	permissionsView.setupView();
+      	            	  	</c:if>
+      	            	  	
+      	            	  	tc.startup();
+      	            	  	$('#tab-container').show();
+      	  				}
+      	  			});
     	  }
-    	  
-    	  
       });
       
     </script>

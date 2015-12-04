@@ -24,6 +24,10 @@ UsersView.prototype.timezoneStore = null;
 UsersView.prototype.newUser = false; //Flag to indicate we are adding a user
 UsersView.prototype.loadedUsername  = null; //Used when updating the user due to the REST url mapping being the Username
 
+/**
+ * Hook for BaseUIComponent to call when all is ready
+ */
+UsersView.prototype.componentReady = function(){ };
 
 /**
  * Do the heavy lifting of setting up the view
@@ -84,7 +88,7 @@ UsersView.prototype.setupView = function(){
 	
 	//Setup the users Help Link
 	$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp.bind(this));
-	
+	$('#bulkPermissionsHelp').on('click', {helpId: 'bulkDataPointPermissions'}, this.showHelp.bind(this));
 	
  
 	this.timezoneStore = new Rest({

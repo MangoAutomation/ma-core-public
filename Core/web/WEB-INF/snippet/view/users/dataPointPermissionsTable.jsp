@@ -20,8 +20,8 @@
   <fmt:message key="permissions.bulkApply" />
   <img id="bulkPermissionsHelp" class="ptr"
    src="/images/help.png"
-   title="<fmt:message key="permission.bulkEditDataPoint" />" 
-   alt="<fmt:message key="permission.bulkEditDataPoint" />"
+   title="<fmt:message key="permissions.bulkdEditDataPoint" />" 
+   alt="<fmt:message key="permissions.bulkdEditDataPoint" />"
   />
   </span>
 

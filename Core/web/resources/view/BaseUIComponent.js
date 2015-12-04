@@ -70,7 +70,7 @@ BaseUIComponent.prototype.tr = null;
 /**
  * Translation name spaces to be setup
  */
-BaseUIComponent.prototype.translationNamespaces = ['common', 'header', 'js.help']; 
+BaseUIComponent.prototype.translationNamespaces = ['common', 'header', 'js']; 
 
 /**
  * jQuery selection which will be searched for inputs when
@@ -620,7 +620,15 @@ BaseUIComponent.prototype.documentReady = function() {
     this.dgridTabResize();
     this.setupConfirmDialog();
     this.$scope.find('.mango-help').on('click', this.showHelp.bind(this));
+    this.componentReady();
 };
+
+/**
+ * Hook for extending components to know when they are ready
+ */
+BaseUIComponent.prototype.componentReady = function(){ };
+
+
 
 BaseUIComponent.prototype.setupConfirmDialog = function() {
     if ($('#confirmDialog').length) return;
