@@ -8,6 +8,8 @@ import java.io.IOException;
 
 import org.eclipse.jetty.server.session.AbstractSession;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PingMessage;
+import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -16,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 
 /**
@@ -24,16 +27,29 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
  */
 public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 
+	public static final int DEFAULT_PING_TIMEOUT_MS = 10000;
+	
 	/**
 	 * Close the socket after our HttpSession is invalidated,
 	 * Eventually this should work via Events instead of checking when we need to send data.
 	 */
 	protected boolean closeOnLogout = true;
+	/**
+	 * Enable Ping/Pong Connection Tracking
+	 */
+	protected boolean usePingPong = true;
+	/**
+	 * Timeout in ms to wait for Pong response before terminating connection
+	 */
+	protected int pingPongTimeoutMs;
+	public static final String RECEIVED_PONG = "receivedPong";
+	
 	
 	protected ObjectMapper jacksonMapper;
 	
 	public MangoWebSocketPublisher(){
 		this.jacksonMapper = MangoRestSpringConfiguration.objectMapper;
+		this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
 	}
 
 	/**
@@ -42,16 +58,22 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	 */
 	public MangoWebSocketPublisher(ObjectMapper jacksonMapper){
 		this.jacksonMapper = jacksonMapper;
+		this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
 	}
 	
+
 	/**
 	 * 
 	 * @param jacksonMapper
 	 * @param closeOnLogout - Close the websocket on HttpSesssion Invalidation?
+	 * @param usePingPong - Use Ping Pong Connection maintenence
+	 * @param pingPongTimeoutMs - Ms to wait for Pong
 	 */
-	public MangoWebSocketPublisher(ObjectMapper jacksonMapper, boolean closeOnLogout){
+	public MangoWebSocketPublisher(ObjectMapper jacksonMapper, boolean closeOnLogout, boolean usePingPong, int pingPongTimeoutMs){
 		this.jacksonMapper = jacksonMapper;
 		this.closeOnLogout = closeOnLogout;
+		this.usePingPong = usePingPong;
+		this.pingPongTimeoutMs = pingPongTimeoutMs;
 	}
 
 	
@@ -131,6 +153,39 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	protected AbstractSession getHttpSession(WebSocketSession session){
 		return (AbstractSession)session.getAttributes().get("httpsession");
 	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.web.socket.handler.AbstractWebSocketHandler#afterConnectionEstablished(org.springframework.web.socket.WebSocketSession)
+	 */
+	@Override
+	public void afterConnectionEstablished(WebSocketSession session)
+			throws Exception {
+		if(this.usePingPong)
+			this.startPingPong(session);
+	}
+    
+	/**
+	 * Start the Ping/Pong Tracker for this session
+	 */
+	public void startPingPong(WebSocketSession session) throws Exception{
+		
+		MangoPingPongTracker tracker = new MangoPingPongTracker(session, this.pingPongTimeoutMs);
+		try {
+			session.getAttributes().put(RECEIVED_PONG, new Boolean(false));
+			session.sendMessage(new PingMessage());
+		}finally{
+			new TimeoutTask(this.pingPongTimeoutMs, tracker);
+		}
+		
+	}
 	
-	
+	/* (non-Javadoc)
+	 * @see org.springframework.web.socket.handler.AbstractWebSocketHandler#handlePongMessage(org.springframework.web.socket.WebSocketSession, org.springframework.web.socket.PongMessage)
+	 */
+	@Override
+	protected void handlePongMessage(WebSocketSession session,
+			PongMessage message) throws Exception {
+		//Let the session know we received this pong
+		session.getAttributes().put(RECEIVED_PONG, new Boolean(true));
+	}
 }

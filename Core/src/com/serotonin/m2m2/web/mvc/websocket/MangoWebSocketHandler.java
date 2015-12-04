@@ -31,4 +31,6 @@ public abstract class MangoWebSocketHandler extends MangoWebSocketPublisher{
 		return (User)session.getAttributes().get("user");
 	}
 	
+	
+	
 }

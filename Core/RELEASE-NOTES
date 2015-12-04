@@ -11,6 +11,7 @@
 * Adding Spring Security
 * Jetty JSP Engine configurable/tunable via env.properties
 * Fixed Purge Override bug where data source purge override was not being respected.
+* WebSocket Ping/Pong connection testing to ensure dead connections are cleaned up
 
 *Version 2.6.4*
 * Improved feedback for Data Point Import via CSV

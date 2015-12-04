@@ -27,6 +27,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractVO<T>> e
     
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    	super.afterConnectionEstablished(session);
         sessions.add(session);
     }
     
