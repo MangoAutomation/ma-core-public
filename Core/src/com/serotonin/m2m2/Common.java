@@ -144,11 +144,11 @@ public class Common {
     }
 
     public static final int getMinorVersion() {
-        return 6;
+        return 7;
     }
 
     public static final int getMicroVersion() {
-        return 5;
+        return 0;
     }
 
     public static final int getDatabaseSchemaVersion() {
