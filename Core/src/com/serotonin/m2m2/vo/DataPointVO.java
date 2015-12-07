@@ -26,6 +26,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -868,7 +869,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             response.addContextualMessage("intervalLoggingType", "validate.invalidValue");
 
         if (purgeOverride) {
-            if (!Common.TIME_PERIOD_CODES.isValidId(purgeType))
+            if (!Common.TIME_PERIOD_CODES.isValidId(purgeType, TimePeriods.MILLISECONDS, TimePeriods.SECONDS, TimePeriods.MINUTES, TimePeriods.HOURS))
                 response.addContextualMessage("purgeType", "validate.invalidValue");
             if (purgePeriod <= 0)
                 response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
