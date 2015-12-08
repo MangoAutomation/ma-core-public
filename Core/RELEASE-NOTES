@@ -1,5 +1,4 @@
-
-*Version 2.6.5*
+*Version 2.7.0*
 * Added ability to configure the search path and regex for serial ports
 * Fixed bug when setting Low and Medium priority thread pools to large values would cause mango to fail to restart
 * Upgrading ma-priv library for better startup error logging and JVM Compatibility check
@@ -9,7 +8,8 @@
 * Improved REST error feedback in Response headers and log file
 * Upgrade Jetty to 9.2.12.v20150709
 * Adding Spring Security
-* Jetty JSP Engine configurable/tunable via env.properties
+* Jetty JSP Engine configurable/tunable via env.properties 
+* For better JSP performance set development=false if you do not need runtime compilation of JSP files
 * Fixed Purge Override bug where data source purge override was not being respected.
 * WebSocket Ping/Pong connection testing to ensure dead connections are cleaned up
 
