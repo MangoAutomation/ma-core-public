@@ -12,6 +12,7 @@ import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.adapter.jetty.JettyWebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +44,6 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	 */
 	protected int pingPongTimeoutMs;
 	public static final String RECEIVED_PONG = "receivedPong";
-	
 	
 	protected ObjectMapper jacksonMapper;
 	
@@ -103,7 +103,9 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 		MangoWebSocketErrorModel error = new MangoWebSocketErrorModel(errorType, message.translate(Common.getTranslations()));
 		MangoWebSocketResponseModel model = new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.ERROR, error);
 		synchronized (session) {
-	        session.sendMessage(new TextMessage(this.jacksonMapper.writeValueAsBytes(model)));
+			//Send message asynchronously
+			JettyWebSocketSession jws = (JettyWebSocketSession)session;
+			jws.getNativeSession().getRemote().sendStringByFuture(new TextMessage(this.jacksonMapper.writeValueAsBytes(model)).getPayload());
 		}
 	}
 	
@@ -131,7 +133,9 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 		
 		MangoWebSocketResponseModel model = new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.OK, payload);
 		synchronized (session) {
-		    session.sendMessage(new TextMessage(this.jacksonMapper.writeValueAsBytes(model)));
+			//Send message asynchronously
+			JettyWebSocketSession jws = (JettyWebSocketSession)session;
+			jws.getNativeSession().getRemote().sendStringByFuture(new TextMessage(this.jacksonMapper.writeValueAsBytes(model)).getPayload());
 		}
 	}
 	
@@ -142,7 +146,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	public void handleTransportError(WebSocketSession session,
 			Throwable exception) throws Exception {
 		//Ensure we at the very least close the session, this should be overridden in subclasses and ideally the exception logged first
-		session.close(CloseStatus.SERVER_ERROR);
+		session.close(new CloseStatus(CloseStatus.SERVER_ERROR.getCode(), exception.getMessage()));
 	}	
 	
 	/**
@@ -169,10 +173,12 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	 */
 	public void startPingPong(WebSocketSession session) throws Exception{
 		
-		MangoPingPongTracker tracker = new MangoPingPongTracker(session, this.pingPongTimeoutMs);
+		MangoPingPongTracker tracker = new MangoPingPongTracker((JettyWebSocketSession)session, this.pingPongTimeoutMs);
 		try {
 			session.getAttributes().put(RECEIVED_PONG, new Boolean(false));
-			session.sendMessage(new PingMessage());
+			synchronized(session){
+				session.sendMessage(new PingMessage());
+			}
 		}finally{
 			new TimeoutTask(this.pingPongTimeoutMs, tracker);
 		}

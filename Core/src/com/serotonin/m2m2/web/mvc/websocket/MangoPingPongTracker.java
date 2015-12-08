@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.adapter.jetty.JettyWebSocketSession;
 
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
@@ -29,10 +29,10 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 	
 	private static final Log LOG = LogFactory.getLog(MangoPingPongTracker.class);
 			
-	private WebSocketSession  session; 
+	private JettyWebSocketSession  session; 
 	private int timeout;
 	
-	public MangoPingPongTracker(WebSocketSession  session, int timeout){
+	public MangoPingPongTracker(JettyWebSocketSession  session, int timeout){
 		this.session = session;
 		this.timeout = timeout;
 	}
@@ -51,7 +51,9 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 		if(receivedPong){
 			this.session.getAttributes().put(MangoWebSocketPublisher.RECEIVED_PONG, new Boolean(false));
 			try {
-				session.sendMessage(new PingMessage());
+				synchronized(session){
+					session.getNativeSession().getRemote().sendPing(new PingMessage().getPayload());
+				}
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 			}finally{
@@ -59,7 +61,7 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 			}
 		}else{
 			try {
-				session.close(new CloseStatus(CloseStatus.SESSION_NOT_RELIABLE.getCode(), "Didn't receive Pong from Endpoint within " + timeout + "ms."));
+				session.close(new CloseStatus(CloseStatus.SESSION_NOT_RELIABLE.getCode(), "Didn't receive Pong from Endpoint within " + timeout + " ms."));
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 			}
