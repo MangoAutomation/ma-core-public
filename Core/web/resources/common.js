@@ -156,7 +156,7 @@ mango.longPoll.pollCB = function(response) {
 	        	mango.soundPlayer.play("level4"); //Play Sound
 	        	if(response.alarmsLifeSafety > 1){
 	            dojo.publish("alarmTopic",[{
-	            	message: "<a class='ptr' href='/events.shtm?level=lifeSafety'><img src='/images/flag_red.png'/> " + response.alarmsLifeSafety + " Life Safety Events</a>",
+	            	message: "<a class='ptr' href='/events.shtm?level=lifeSafety'><img src='/images/flag_red.png'/> " + response.alarmsLifeSafety + " Safety Events</a>",
 	            	type: "fatal",
 	            	duration: -1, //Don't Go Away
 	            }]);
