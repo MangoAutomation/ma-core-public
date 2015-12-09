@@ -74,10 +74,6 @@
 	        			var message = '<pre style="color:red;">' + err.message;
 	        			if(typeof err.response.data.message != 'undefined')
 	        				message += '<br><br>' + err.response.data.message;
-	        			if(typeof err.response.data.stackTrace != 'undefined'){
-	        				message += '<br><br>';
-	        				message += err.response.data.stackTrace.replace('\n','<br>');
-	        			}
 	        			$set("alternateMessage", message + '</pre>');
 	        		}
 
