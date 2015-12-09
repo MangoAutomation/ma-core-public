@@ -108,7 +108,11 @@
   </div>
   </m2m2:moduleExists>
   <m2m2:moduleDoesNotExist name="mangoApi">
-    <h1>Required Module MangoApi is not installed.</h1>
+    <h1 style="color:red">
+    <fmt:message key="common.moduleDoesNotExist">
+      <fmt:param value="mangoApi"/>
+    </fmt:message>
+    </h1>
   </m2m2:moduleDoesNotExist>
 </div>
 </jsp:body>
