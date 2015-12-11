@@ -9,8 +9,10 @@ import java.util.Map;
 
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 /**
@@ -48,14 +50,14 @@ public class SystemSettingsImporter extends Importer{
             ProcessResult voResponse = new ProcessResult();
             dao.validate(settings, voResponse);
             if (voResponse.getHasMessages())
-                setValidationMessages(voResponse, "emport.systemSettings.prefix","System Settings");
+                setValidationMessages(voResponse, "emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()));
             else {
             	dao.updateSettings(settings);
-                addSuccessMessage(false, "emport.systemSettings.prefix","Import Success");
+                addSuccessMessage(false, "emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()));
             }
         }
         catch (Exception e) {
-            addFailureMessage("emport.systemSettings.prefix","System Settings", e.getMessage());
+            addFailureMessage("emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()), e.getMessage());
         }
         
 		
