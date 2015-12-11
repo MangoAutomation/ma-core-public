@@ -276,8 +276,11 @@ public class Common {
 	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 	    if(auth != null){
 	    	Object principle = auth.getPrincipal();
-	    	if(principle != null)
-	    		return (User)principle;
+	    	if(principle != null){
+	    		//At this point User could be of type AnonymousUser
+	    		if(principle instanceof User)
+	    			return (User)principle;
+	    	}
 	    }
     	
         WebContext webContext = WebContextFactory.get();
