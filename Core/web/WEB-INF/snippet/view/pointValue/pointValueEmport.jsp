@@ -22,7 +22,7 @@
       </fieldset>
     </form>
     <div id="importErrorBox" class="borderDiv" style="display:none">
-      <tag:img id="closeImportErrorBoxImg" png="cross" onclick="closeImportErrorBox()" title="downtime.view.clearErrors"/>
+      <tag:img id="closeImportErrorBoxImg" png="cross" onclick="closeImportErrorBox()" title="common.view.clearErrors"/>
       <div id="importErrors"></div>
     </div>    
     <div id="uploaderStatus" style="height: 100px; width:350px;"></div>

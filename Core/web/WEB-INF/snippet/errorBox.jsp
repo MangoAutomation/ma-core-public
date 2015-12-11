@@ -44,5 +44,5 @@
 </script>
 
 <div id="mangoErrorBox" class="borderDiv" style="display:none">
-  <tag:img id="closeErrorBoxImg" png="cross" onclick="closeErrorBox()" title="downtime.view.clearErrors"/>
+  <tag:img id="closeErrorBoxImg" png="cross" onclick="closeErrorBox()" title="common.view.clearErrors"/>
 </div>
