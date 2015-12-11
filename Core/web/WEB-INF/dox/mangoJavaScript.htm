@@ -114,7 +114,8 @@ The following fields can be useful for conversions:</p>
   <li><b>lastTime</b>: (integer) the time of the last value</li> 
   <li><b>count</b>: (integer) the number of updates over the period</li>
   <li><b>delta</b>: (float) the cumulative change in value from firstValue to lastValue</li>
-  <li><b>end</b>: (integer) the end time used for calculations</li>
+  <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
+  <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
 </ul>
 <p>
   For example, the following returns the minimum value of 'n' over the past hour:
@@ -125,8 +126,13 @@ The following fields can be useful for conversions:</p>
   properties:
 </p>
 <ul>
-  <li><b>realStart</b>: (integer) the actual start time used for calculations (in case the start time precedes the point's first known value)</li>
-  <li><b>end</b>: (integer) the end time used for calculations</li>
+  <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
+  <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
+  <li><b>count</b> (integer) count of the total number of entries
+  <li><b>firstValue</b>: the first value in the period</li>
+  <li><b>firstTime</b>: (integer) the time of the first value</li>
+  <li><b>lastValue</b>: the last value in the period</li>
+  <li><b>lastTime</b>: (integer) the time of the last value</li> 
   <li><b>data</b>: (array) the list of individual StartAndRuntime objects.</li>
 </ul>
 Each StartAndRuntime object has the following properties:

@@ -186,6 +186,14 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
 
     @Override
     public String toString() {
-        return "{data: " + data.toString() + ", periodStart: " + periodStart + ", periodEnd: " + periodEnd + "}";
+        return "{data: " + data.toString() +
+        		", periodStartTime: " + periodStart + 
+        		", periodEndTime: " + periodEnd + 
+        		", count: " + count +
+        		", firstValue: " + firstValue +
+        		", firstTime: " + firstTime + 
+        		", lastValue: " + lastValue +
+        		", lastTime: " + lastTime + 
+        		"}";
     }
 }
