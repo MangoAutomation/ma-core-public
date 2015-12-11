@@ -42,7 +42,7 @@ public class BackgroundProcessing implements ILifecycle {
     public static final int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
     public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
     public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
-
+    
     private ThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
 
@@ -239,8 +239,8 @@ public class BackgroundProcessing implements ILifecycle {
     public void initialize() {
     	
     	//Adjust the RealTime timer pool now
-    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, 1);
-    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, 100);
+    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
     	
     	//Sanity check to ensure the pool sizes are appropriate
     	if(maxPoolSize < HIGH_PRI_MAX_POOL_SIZE_MIN)
@@ -252,8 +252,8 @@ public class BackgroundProcessing implements ILifecycle {
     	executor.setMaximumPoolSize(maxPoolSize);
     	
     	//Pull our settings from the System Settings
-    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, 3);
-    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, 30);
+    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
     	
     	//Sanity check to ensure the pool sizes are appropriate
     	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
@@ -263,8 +263,8 @@ public class BackgroundProcessing implements ILifecycle {
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
         
-    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, 3);
-    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, 30);
+    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
+    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
     	//Sanity check to ensure the pool sizes are appropriate
     	if(maxPoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
     		maxPoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;

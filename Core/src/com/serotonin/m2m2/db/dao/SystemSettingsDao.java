@@ -369,12 +369,12 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(DATABASE_BACKUP_HOUR, 0);
         DEFAULT_VALUES.put(DATABASE_BACKUP_MINUTE, 5);
         
-        DEFAULT_VALUES.put(HIGH_PRI_CORE_POOL_SIZE, 0);   
+        DEFAULT_VALUES.put(HIGH_PRI_CORE_POOL_SIZE, 1);   
         DEFAULT_VALUES.put(HIGH_PRI_MAX_POOL_SIZE, 100);   
         DEFAULT_VALUES.put(MED_PRI_CORE_POOL_SIZE, 3);   
         DEFAULT_VALUES.put(MED_PRI_MAX_POOL_SIZE, 30);   
         DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);   
-        DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 1);   
+        DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);   
         
     }
 
@@ -661,15 +661,15 @@ public class SystemSettingsDao extends BaseDao {
     	Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
     	Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
     	
-        if(corePoolSize < 1){
-        	response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+        if((corePoolSize != null)&&(corePoolSize < 0)){
+        	response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", 0);
         }
 
-        if(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
+        if((maxPoolSize != null)&&(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN)){
         	response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }
         
-        if(maxPoolSize < corePoolSize){
+        if((maxPoolSize != null)&&(maxPoolSize < corePoolSize)){
         	response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }
 
@@ -739,6 +739,9 @@ public class SystemSettingsDao extends BaseDao {
     private Integer getIntValue(String key, Map<String,Object> settings) throws NumberFormatException {
         Object value = settings.get(key);
         if (value == null)
+        	value = getIntValue(key);
+        
+        if(value == null)
             return null;
 
         if(value instanceof Number)
