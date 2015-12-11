@@ -23,10 +23,10 @@ public class WorkItemMonitor extends TimerTask {
         Common.timer.schedule(new WorkItemMonitor());
     }
 
-    public static final String HIGH_PROIRITY_MONITOR_ID = WorkItemMonitor.class.getName() + ".scheduledTimerTaskCount";
+    public static final String SCHEDULED_TASK_MONITOR_ID = WorkItemMonitor.class.getName() + ".scheduledTimerTaskCount";
     public static final String MEDIUM_PROIRITY_MONITOR_ID = WorkItemMonitor.class.getName()
             + ".mediumPriorityServiceQueueSize";
-    public static final String SCHEDULED_TASK_MONITOR_ID = WorkItemMonitor.class.getName()
+    public static final String HIGH_PROIRITY_MONITOR_ID = WorkItemMonitor.class.getName()
             + ".highPriorityServiceQueueSize";
     public static final String MAX_STACK_HEIGHT_MONITOR_ID = WorkItemMonitor.class.getName() + ".maxStackHeight";
     public static final String THREAD_COUNT_MONITOR_ID = WorkItemMonitor.class.getName() + ".threadCount";
