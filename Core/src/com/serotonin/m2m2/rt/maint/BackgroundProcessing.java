@@ -262,7 +262,6 @@ public class BackgroundProcessing implements ILifecycle {
     		maxPoolSize = corePoolSize;
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
-        mediumPriorityService.allowCoreThreadTimeOut(true);
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, 3);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, 30);
