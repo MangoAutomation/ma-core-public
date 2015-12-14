@@ -313,7 +313,9 @@ public class BackgroundProcessing implements ILifecycle {
                             + mediumPriorityService.getActiveCount() + "," + mediumPriorityService.getQueue().size()
                             + ") to complete");
                 else
-                    log.info("BackgroundProcessing waiting for low priority tasks to complete");
+                    log.info("BackgroundProcessing waiting for low priority tasks ("
+                            + lowPriorityService.getActiveCount() + "," + lowPriorityService.getQueue().size()
+                            + ") to complete");
 
                 rewaits--;
             }
