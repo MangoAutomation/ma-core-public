@@ -30,6 +30,6 @@ if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
     echo `date` 'ma-start: running init extensions...' >> "$MA_HOME"/logs/ma-script.log
     for f in "$MA_HOME"/bin/ext-enabled/*.sh
     do
-        source $f init
+        source "$f" init
     done
 fi

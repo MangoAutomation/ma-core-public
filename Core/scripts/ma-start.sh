@@ -30,8 +30,8 @@ while [ $LOOP_EXIT = false ]; do
     MA_CP="$MA_HOME"/overrides/classes
     MA_CP=$MA_CP:"$MA_HOME"/classes
     MA_CP=$MA_CP:"$MA_HOME"/overrides/properties
-	MA_CP="$MA_CP:$MA_HOME"/overrides/lib/*
-    MA_CP="$MA_CP:$MA_HOME"/lib/*
+	MA_CP=$MA_CP:"$MA_HOME"/overrides/lib/*
+    MA_CP=$MA_CP:"$MA_HOME"/lib/*
 
 	# Commented out because Mango dynamically builds the library path of module libs during startup
     #for f in `find "$MA_HOME"/web/modules -name '*.jar' -type f`
@@ -43,24 +43,24 @@ while [ $LOOP_EXIT = false ]; do
     #done
 
     # Run enabled start extensions
-    if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+    if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
         echo `date` 'ma-start: running start extensions...' >> "$MA_HOME"/logs/ma-script.log
-        for f in "$MA_HOME/bin/ext-enabled/*.sh"
+        for f in "$MA_HOME"/bin/ext-enabled/*.sh
         do
-            source $f start
+            source "$f" start
         done
     fi
     
     # Check for output redirection
-    if [ ! -z $SYSOUT ] && [ ! -z $SYSERR ]; then
+    if [ ! -z "$SYSOUT" ] && [ ! -z "$SYSERR" ]; then
         # Both output redirects are set
-        exec >$SYSOUT 2>$SYSERR
-    elif [ ! -z $SYSOUT ]; then
+        exec >"$SYSOUT" 2>"$SYSERR"
+    elif [ ! -z "$SYSOUT" ]; then
         # Just sysout is set
-        exec >$SYSOUT
-    elif [ ! -z $SYSERR ]; then
+        exec >"$SYSOUT"
+    elif [ ! -z "$SYSERR" ]; then
         # Just syserr is set
-        exec >$SYSERR
+        exec >"$SYSERR"
     fi
     
     # Make sure there are no explicit stop or termination flag files
@@ -134,7 +134,7 @@ while [ $LOOP_EXIT = false ]; do
             echo `date` 'ma-start: running restart extentions' >> "$MA_HOME"/logs/ma-script.log
             for f in "$MA_HOME"/bin/ext-enabled/*.sh
             do
-                source $f restart
+                source "$f" restart
             done
         fi
     fi
