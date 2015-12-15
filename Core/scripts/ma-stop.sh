@@ -13,11 +13,11 @@ if [ -z "$MA_HOME" ]; then
 fi
 
 # Run enabled stop extensions.
-if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
     echo `date` 'ma-start: running stop extensions...' >> "$MA_HOME"/logs/ma-script.log
     for f in "$MA_HOME"/bin/ext-enabled/*.sh
     do
-        source $f stop
+        source "$f" stop
     done
 fi
 

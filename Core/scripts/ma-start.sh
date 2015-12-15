@@ -30,8 +30,8 @@ while [ $LOOP_EXIT = false ]; do
     MA_CP="$MA_HOME"/overrides/classes
     MA_CP=$MA_CP:"$MA_HOME"/classes
     MA_CP=$MA_CP:"$MA_HOME"/overrides/properties
-	MA_CP="$MA_CP:$MA_HOME/overrides/lib/*"
-    MA_CP="$MA_CP:$MA_HOME/lib/*"
+	MA_CP="$MA_CP:$MA_HOME"/overrides/lib/*
+    MA_CP="$MA_CP:$MA_HOME"/lib/*
 
 	# Commented out because Mango dynamically builds the library path of module libs during startup
     #for f in `find "$MA_HOME"/web/modules -name '*.jar' -type f`
@@ -90,7 +90,7 @@ while [ $LOOP_EXIT = false ]; do
         fi
     fi
 
-    echo `date` 'ma-start: starting MA' >> $MA_HOME/logs/ma-script.log
+    echo `date` 'ma-start: starting MA' >> "$MA_HOME"/logs/ma-script.log
     $EXECJAVA $JPDA $JAVAOPTS -server -cp "$MA_CP" \
         "-Dma.home=$MA_HOME" \
         "-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
@@ -130,7 +130,7 @@ while [ $LOOP_EXIT = false ]; do
     
     # Run enabled restart extensions
     if [ -r "$MA_HOME"/RESTART ]; then
-        if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+        if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
             echo `date` 'ma-start: running restart extentions' >> "$MA_HOME"/logs/ma-script.log
             for f in "$MA_HOME"/bin/ext-enabled/*.sh
             do

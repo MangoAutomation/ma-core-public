@@ -26,7 +26,7 @@ else
 fi
 
 # Run enabled init extensions.
-if [ "$(ls -A $MA_HOME/bin/ext-enabled)" ]; then
+if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
     echo `date` 'ma-start: running init extensions...' >> "$MA_HOME"/logs/ma-script.log
     for f in "$MA_HOME"/bin/ext-enabled/*.sh
     do
