@@ -18,7 +18,8 @@
         <input type="submit" id="msSubmit" />
         
         <input type="hidden" id="dataType" name="dataType" value="pointValue"/>
-        
+        <%-- for Spring Security --%>
+        <input type="hidden" id="${_csrf.parameterName}" name="${_csrf.parameterName}" value="${_csrf.token}"/> 
       </fieldset>
     </form>
     <div id="importErrorBox" class="borderDiv" style="display:none">

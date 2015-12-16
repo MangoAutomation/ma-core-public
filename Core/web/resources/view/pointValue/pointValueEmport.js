@@ -9,8 +9,8 @@ var closeImportErrorBox;
 
 require(["dijit/Dialog", "dojox/form/Uploader", "dijit/form/Button", "dojox/form/uploader/FileList",
          "dojo/dom", "dojo/on", "dojo/_base/lang", "dojo/dom-construct",
-         "dgrid/OnDemandGrid", "dojo/store/Memory", "dojo/domReady!"],
-function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDemandGrid, Memory) {
+         "dgrid/OnDemandGrid", "dojo/store/Memory", "dojo/cookie", "dojo/domReady!"],
+function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDemandGrid, Memory, cookie) {
     var form = dom.byId('msForm');
     
     var pointValueEmport = new Dialog({
@@ -22,7 +22,50 @@ function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDema
     // https://bugs.dojotoolkit.org/ticket/14811
     var uploader = new Uploader({
         label: mangoTranslate('view.browse'),
-        multiple: true
+        multiple: false,
+        //Hack to override XHR request and set the CSRF header
+		createXhr: function(){
+			var xhr = new XMLHttpRequest();
+			var timer;
+			xhr.upload.addEventListener("progress", lang.hitch(this, "_xhrProgress"), false);
+			xhr.addEventListener("load", lang.hitch(this, "_xhrProgress"), false);
+			xhr.addEventListener("error", lang.hitch(this, function(evt){
+				this.onError(evt);
+				clearInterval(timer);
+			}), false);
+			xhr.addEventListener("abort", lang.hitch(this, function(evt){
+				this.onAbort(evt);
+				clearInterval(timer);
+			}), false);
+			xhr.onreadystatechange = lang.hitch(this, function(){
+				if(xhr.readyState === 4){
+	//				console.info("COMPLETE")
+					clearInterval(timer);
+					try{
+						this.onComplete(JSON.parse(xhr.responseText.replace(/^\{\}&&/,'')));
+					}catch(e){
+						var msg = "Error parsing server result:";
+						console.error(msg, e);
+						console.error(xhr.responseText);
+						this.onError(msg, e);
+					}
+				}
+			});
+			xhr.open("POST", this.getUrl());
+			xhr.setRequestHeader("Accept","application/json");
+			xhr.setRequestHeader("X-XSRF-TOKEN", cookie('XSRF-TOKEN'));
+			
+			timer = setInterval(lang.hitch(this, function(){
+				try{
+					if(typeof(xhr.statusText)){} // accessing this error throws an error. Awesomeness.
+				}catch(e){
+					//this.onError("Error uploading file."); // not always an error.
+					clearInterval(timer);
+				}
+			}),250);
+	
+			return xhr;
+		}
     }, "msUploader");
     
     var reset = new Button({
