@@ -60,11 +60,14 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.GET, "/login*").permitAll() 
 			.antMatchers(HttpMethod.POST, "/login*").permitAll()
 			
+			
 			//Allow Startup REST Endpoint
 			.antMatchers(HttpMethod.GET, "/status**").permitAll()
 			
 			//REST api Restrictions
 			.antMatchers(HttpMethod.GET, "/rest/v1/login/*").permitAll()
+			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/login/*").permitAll() //For CORS reqeusts
+			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.POST, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.PUT, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.DELETE, "/rest/v1/**").authenticated()
