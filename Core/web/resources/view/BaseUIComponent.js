@@ -299,7 +299,7 @@ BaseUIComponent.prototype.showValidationErrors = function(vo){
 		var msg = vo.validationMessages[i];
 		var $element = this.elementForProperty(msg.property);
 		if ($element.length) {
-	        $element.notify(msg.message, {className: msg.level.toLowerCase(), position: 'right'});
+	        $element.notify(msg.message, {className: msg.level.toLowerCase(), position: 'top'});
 		} else {
 	        this.showGenericError(msg.message);
 		}
