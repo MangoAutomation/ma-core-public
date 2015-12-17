@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -71,6 +72,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             Common.runtimeManager.saveDataSource(ds);
             response.addData("id", ds.getId());
             response.addData("vo", ds); //For new table method
+            Common.getUser().setEditDataSource(ds);
         }
 
         return response;
@@ -106,41 +108,21 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         DataPointVO dp = Common.getUser().getEditPoint();
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
 
-        //Kludge to ensure you don't save the wrong point to the wrong ds
-        if (dp != null) {
-            if ((dp.getDataSourceTypeName() != ds.getDefinition().getDataSourceTypeName())
-                    || (dp.getDataSourceId() != ds.getId())) {
-                throw new RuntimeException(
-                        "Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
-            }
-        }
-        //Another Kludge to allow modules to get new-ish data points via this method...
-        //TODO This affects the data source tools so be careful with changes.
-        if ((dp == null) && (pointId == Common.NEW_ID)) {
-            dp = new DataPointVO();
-            dp.setId(pointId);
-            dp.setXid(DataPointDao.instance.generateUniqueXid());
-            dp.setDataSourceId(ds.getId());
-            dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
-            dp.setDeviceName(ds.getName());
-            dp.setPointLocator(ds.createPointLocator());
-            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-            dp.defaultTextRenderer();
-        }
-        else if ((dp != null) && (pointId != dp.getId())) {
-            if (pointId == -1) {
-                dp = new DataPointVO();
-                dp.setId(pointId);
-                dp.setXid(DataPointDao.instance.generateUniqueXid());
-                dp.setDataSourceId(ds.getId());
-                dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
-                dp.setDeviceName(ds.getName());
-                dp.setPointLocator(ds.createPointLocator());
-                dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-                dp.defaultTextRenderer();
-            }
-            else
-                dp = DataPointDao.instance.get(pointId);
+        if(ds.getId() == Common.NEW_ID)
+        	throw new ShouldNeverHappenException("Please Save Data Source First.");
+        
+        if(pointId == Common.NEW_ID){
+        	 dp = new DataPointVO();
+             dp.setId(pointId);
+             dp.setXid(DataPointDao.instance.generateUniqueXid());
+             dp.setDataSourceId(ds.getId());
+             dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
+             dp.setDeviceName(ds.getName());
+             dp.setPointLocator(ds.createPointLocator());
+             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+             dp.defaultTextRenderer();
+        }else{
+        	dp = DataPointDao.instance.getFull(pointId);
         }
 
         //Use the defaulter
@@ -151,6 +133,13 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 defaulter.updateDefaultValues(dp);
         }
 
+        //Ensure we don't assign points to the wrong data source type, basically ensure the editing source is the one we
+        // should use for this point.  If not we must fail.
+        if (!(dp.getDataSourceTypeName().equals(ds.getDefinition().getDataSourceTypeName()))
+                || (dp.getDataSourceId() != ds.getId())) {
+            throw new RuntimeException("Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
+        }
+        
         Common.getUser().setEditPoint(dp);
         return dp;
     }
