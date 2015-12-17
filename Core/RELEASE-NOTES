@@ -1,3 +1,7 @@
+*Version 2.7.2*
+* Fixed bug where uploading point values was being reject as a security breach
+* Fixed bug where failures during stopping a datasource could cause it to become out of synce witht the UI
+
 *Version 2.7.0*
 * Added ability to configure the search path and regex for serial ports
 * Fixed bug when setting Low and Medium priority thread pools to large values would cause mango to fail to restart

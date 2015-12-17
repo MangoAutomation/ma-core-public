@@ -314,21 +314,25 @@ public class RuntimeManager {
 
     private void stopDataSource(int id) {
         synchronized (runningDataSources) {
+
             DataSourceRT dataSource = getRunningDataSource(id);
             if (dataSource == null)
                 return;
-
-            // Stop the data points.
-            for (DataPointRT p : dataPoints.values()) {
-                if (p.getDataSourceId() == id)
-                    stopDataPoint(p.getId());
-            }
-
-            runningDataSources.remove(dataSource);
-            dataSource.terminate();
-
-            dataSource.joinTermination();
-            LOG.info("Data source '" + dataSource.getName() + "' stopped");
+	        try{	
+	            // Stop the data points.
+	            for (DataPointRT p : dataPoints.values()) {
+	                if (p.getDataSourceId() == id)
+	                    stopDataPoint(p.getId());
+	            }
+	
+	            runningDataSources.remove(dataSource);
+	            dataSource.terminate();
+	
+	            dataSource.joinTermination();
+	            LOG.info("Data source '" + dataSource.getName() + "' stopped");
+        	}catch(Exception e){
+        		LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
+        	}
         }
     }
 
