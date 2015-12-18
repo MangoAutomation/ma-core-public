@@ -149,9 +149,25 @@ Each StartAndRuntime object has the following properties:
 </p>
 <pre>return b.past(MONTH, 2).get(false).proportion;</pre>
 
-<p>The <b>ValueChangeCounter</b> object is returned by Alphanumeric points. It contains the single property <b>changes</b>, which is the number of times the point changed during the period. For example, the following returns the number of times 'a' changed during the previous 45 minutes.
+<p>
+  The <b>ValueChangeCounter</b> object is returned by Alphanumeric points. 
+  It contains a property <b>changes</b>, which is the number of times the point changed during the period. 
+  For example, the following returns the number of times 'a' changed during the previous 45 minutes.
 </p>
 <pre>b.previous(MINUTE, 45);</pre>
+Each ValueChangeCounter has the following properties:
+<ul>
+  <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
+  <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
+  <li><b>count</b> (integer) count of the total number of entries
+  <li><b>firstValue</b>: the first value in the period</li>
+  <li><b>firstTime</b>: (integer) the time of the first value</li>
+  <li><b>lastValue</b>: the last value in the period</li>
+  <li><b>lastTime</b>: (integer) the time of the last value</li> 
+  <li><b>count</b>: (integer) count of the number of samples</li>
+  <li><b>changes</b>: (integer) number of unique sample values</li>
+  
+</ul>
 
 <h1>Global Utilities</h1>
 The script context has some utilites that are globally available.

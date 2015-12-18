@@ -123,7 +123,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     @Override
     public String toString() {
         return "{count: " + count + ", changes: " + changes + ", firstValue: " + firstValue + ", firstTime: "
-                + firstTime + ", lastValue: " + lastValue + ", lastTime: " + lastTime + ", periodStart: " + periodStart
-                + ", periodEnd: " + periodEnd + "}";
+                + firstTime + ", lastValue: " + lastValue + ", lastTime: " + lastTime + ", periodStartTime: " + periodStart
+                + ", periodEndTime: " + periodEnd + "}";
     }
 }
