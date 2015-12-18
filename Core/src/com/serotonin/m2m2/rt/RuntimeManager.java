@@ -447,6 +447,11 @@ public class RuntimeManager {
         }
     }
 
+    public void restartDataPoint(DataPointVO vo){
+    	this.stopDataPoint(vo.getId());
+    	this.startDataPoint(vo);
+    }
+    
     public boolean isDataPointRunning(int dataPointId) {
         return dataPoints.get(dataPointId) != null;
     }
