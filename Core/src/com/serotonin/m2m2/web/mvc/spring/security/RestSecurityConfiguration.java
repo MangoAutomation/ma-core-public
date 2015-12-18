@@ -55,6 +55,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			//We are letting the legacy permissions system handle these pages for now
 			.antMatchers(HttpMethod.GET, "/**/*.shtm").permitAll()
 			.antMatchers(HttpMethod.POST, "/**/*.shtm").permitAll()
+			.antMatchers(HttpMethod.GET, "/*.shtm").permitAll()
 			
 			//Allow all access for legacy login
 			.antMatchers(HttpMethod.GET, "/login*").permitAll() 
