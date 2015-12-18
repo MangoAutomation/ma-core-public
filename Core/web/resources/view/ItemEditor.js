@@ -130,7 +130,10 @@ ItemEditor.prototype.deleteItemClick = function(event) {
     var item = event.target && $(event.target).data('item') || self.currentItem;
     
     var confirmTitle = this.tr('common.confirmDelete');
-    var confirmMessage = this.tr('common.confirmDeleteLong', item[this.nameAttr]);
+    var itemDesc = item[this.nameAttr];
+    if(item.xid !== 'undefined')
+    	itemDesc += ' [xid=' + item.xid + ']'; 
+    var confirmMessage = this.tr('common.confirmDeleteLong', itemDesc);
     
     this.confirm(confirmTitle, confirmMessage).done(function() {
         var idProp = self.store.idProperty;
