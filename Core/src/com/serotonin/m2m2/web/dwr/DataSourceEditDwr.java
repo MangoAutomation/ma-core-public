@@ -122,7 +122,10 @@ public class DataSourceEditDwr extends DataSourceListDwr {
              dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
              dp.defaultTextRenderer();
         }else{
-        	dp = DataPointDao.instance.getFull(pointId);
+        	//Only get a new point if it doesn't match our editing point as there are modifications we want to 
+        	// retain in the user's editing point
+        	if(dp.getId() != pointId)
+        		dp = DataPointDao.instance.getFull(pointId);
         }
 
         //Use the defaulter
