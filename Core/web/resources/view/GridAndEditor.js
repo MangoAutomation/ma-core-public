@@ -74,6 +74,8 @@ GridAndEditor.buttonDisabled = function(object, user, permission) {
         
         if(typeof Permission !== 'undefined')
         	hasPermission = user.hasPermission(permission);
+        else
+        	hasPermission = user.admin;
         
         if (!(isOwner || hasPermission)) {
             return true;
