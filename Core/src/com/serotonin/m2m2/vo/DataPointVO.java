@@ -891,6 +891,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             catch (InvalidArgumentException e) {
                 response.addContextualMessage("chartColour", "validate.invalidValue");
             }
+        }else if(chartColour == null){
+        	response.addContextualMessage("chartColour", "validate.invalidValue");
         }
 
         pointLocator.validate(response, this);
