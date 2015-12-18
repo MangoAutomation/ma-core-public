@@ -28,6 +28,15 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'
 		userMutedIcon.on('click', function(){
 			toolbarUtilities.api.toggleUserMute(user.username).done(function(response){
 				//Flip the icon to the current state
+				if(response.muted === true){
+					userMutedIcon.attr('src', '/images/sound_mute.png');
+					userMutedIcon.attr('alt', toolbarUtilities.tr('header.mute'));
+					userMutedIcon.attr('title', toolbarUtilities.tr('header.mute'));
+				}else{
+					userMutedIcon.attr('src', '/images/sound_none.png');
+					userMutedIcon.attr('alt', toolbarUtilities.tr('header.unmute'));
+					userMutedIcon.attr('title', toolbarUtilities.tr('header.unmute'));
+				}
 			}).fail(toolbarUtilities.showError);
 		});
 		
