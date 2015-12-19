@@ -3,6 +3,7 @@
 * Fixed bug where failures during stopping a datasource could cause it to become out of synce witht the UI
 * Fixed bug where adding points via the Data Source discovery tools could cause a spurious pop up that would not allow saving the point
 * Now able to toggle mute via HTML5 pages, still cannot play sounds though
+* Fixes to Linux startup scripts for installations with spaces in the path
 
 *Version 2.7.0*
 * Added ability to configure the search path and regex for serial ports
