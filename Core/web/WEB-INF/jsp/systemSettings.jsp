@@ -265,6 +265,9 @@
     }
     
     function saveEmailSettings() {
+        setUserMessage("emailMessage");
+        setDisabled("saveEmailSettingsBtn", true);
+        hideContextualMessages("emailSettingsTab")
         SystemSettingsDwr.saveEmailSettings(
             $get("<c:out value="<%= SystemSettingsDao.EMAIL_SMTP_HOST %>"/>"),
             $get("<c:out value="<%= SystemSettingsDao.EMAIL_SMTP_PORT %>"/>"),
@@ -275,12 +278,15 @@
             $get("<c:out value="<%= SystemSettingsDao.EMAIL_SMTP_PASSWORD %>"/>"),
             $get("<c:out value="<%= SystemSettingsDao.EMAIL_TLS %>"/>"),
             $get("<c:out value="<%= SystemSettingsDao.EMAIL_CONTENT_TYPE %>"/>"),
-            function() {
-                setDisabled("saveEmailSettingsBtn", false);
-                setUserMessage("emailMessage", "<fmt:message key="systemSettings.emailSettingsSaved"/>");
+            function(response) {
+            	setDisabled("saveEmailSettingsBtn", false);
+            	if(response.hasMessages){
+            		showDwrMessages(response.messages);
+            	}else{
+            		setUserMessage("emailMessage", "<fmt:message key="systemSettings.emailSettingsSaved"/>");
+            	}
             });
-        setUserMessage("emailMessage");
-        setDisabled("saveEmailSettingsBtn", true);
+
     }
     
     function sendTestEmail() {
@@ -963,7 +969,7 @@
   </c:if>
   
   <tag:labelledSection labelKey="systemSettings.emailSettings" closed="true">
-    <table>
+    <table id="emailSettingsTab">
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.smtpHost"/></td>
         <td class="formField"><input id="<c:out value="<%= SystemSettingsDao.EMAIL_SMTP_HOST %>"/>" type="text"/></td>
