@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
@@ -48,6 +49,10 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		return new MangoUserAuthenticationProvider();
 	}
 
+	public AccessDeniedHandler accessDeniedHandler(){
+		return new MangoAccessDeniedHandler();
+	}
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		
@@ -93,6 +98,8 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 //		.logoutSuccessHandler(logoutSuccessHandler)
 //		.addLogoutHandler(logoutHandler)
 		
+		//Exception Handling
+		http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
 	}
 	
 	private CsrfTokenRepository csrfTokenRepository() {
