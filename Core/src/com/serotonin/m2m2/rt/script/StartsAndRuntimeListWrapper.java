@@ -15,9 +15,9 @@ import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
  * @author Terry Packer
  *
  */
-public class StartsAndRuntimeListWrapper {
+public abstract class StartsAndRuntimeListWrapper {
 
-	private StartsAndRuntimeList statistics;
+	protected StartsAndRuntimeList statistics;
 
 	/**
 	 * @param statistics
@@ -34,7 +34,7 @@ public class StartsAndRuntimeListWrapper {
         return this.statistics.getPeriodEndTime();
     }
 
-    public DataValue getFirstValue() {
+    protected DataValue getFirstDataValue() {
         return this.statistics.getFirstValue();
     }
 
@@ -45,7 +45,7 @@ public class StartsAndRuntimeListWrapper {
     		return (long)this.statistics.getFirstTime();
     }
 
-    public DataValue getLastValue() {
+    protected DataValue getLastDataValue() {
         return this.statistics.getLastValue();
     }
 

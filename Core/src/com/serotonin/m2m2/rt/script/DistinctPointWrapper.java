@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.DateUtils;
@@ -54,8 +55,10 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         PointValueTime end = point.getPointValueAfter(from);
         StartsAndRuntimeList stats = new StartsAndRuntimeList(from, to, start, values, end);
-        StartsAndRuntimeListWrapper wrapper = new StartsAndRuntimeListWrapper(stats);
-        return wrapper;
+        if(point.getDataTypeId() == DataTypes.BINARY)
+        	return  new BinaryStartsAndRuntimeListWrapper(stats);
+        else
+        	return new MultistateStartsAndRuntimeListWrapper(stats);
     }
     
     @Override
