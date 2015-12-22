@@ -331,7 +331,7 @@ public class EventDao extends BaseDao {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
             	int count = ejt2.queryForInt("select count(*) from events", new Object[0], 0);
-                ejt2.update("delete from userevents");
+                ejt2.update("delete from userEvents");
                 ejt2.update("delete from events");
                 ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
                         + "  and typeKey not in (select id from events)");
