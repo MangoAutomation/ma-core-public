@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.ValueChangeCounter;
 
 /**
@@ -31,8 +30,11 @@ public class ValueChangeCounterWrapper {
 
     }
 
-    public DataValue getFirstValue() {
-        return this.statistics.getFirstValue();
+    public String getFirstValue() {
+    	if(statistics.getFirstValue() == null)
+    		return null;
+    	else
+    		return this.statistics.getFirstValue().getStringValue();
     }
 
     public long getFirstTime() {
@@ -42,8 +44,11 @@ public class ValueChangeCounterWrapper {
     		return (long)this.statistics.getFirstTime();
     }
 
-    public DataValue getLastValue() {
-    	return this.statistics.getLastValue();
+    public String getLastValue() {
+    	if(statistics.getLastValue() == null)
+    		return null;
+    	else
+    		return this.statistics.getLastValue().getStringValue();
     }
 
     public long getLastTime() {
