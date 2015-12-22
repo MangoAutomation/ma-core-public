@@ -605,7 +605,6 @@
             showDwrMessages(response.messages, $("genericMessages"));
         else {
             var handler = response.data.handler;
-            setUserMessage("<fmt:message key="eventHandlers.saved"/>");
             if (!selectedHandlerNode) {
                 var storeItem = createHandlerItem(handler);
                 var item = store.newItem(storeItem, {parent: selectedEventTypeNode.item, attribute: "children"});
@@ -618,6 +617,7 @@
                 $set(handler.id +"Msg", handler.message);
             
             $$(selectedHandlerNode.item, "object", makeNonTreeItem(handler));
+            setUserMessage("<fmt:message key="eventHandlers.saved"/>");
         }
     }
     
