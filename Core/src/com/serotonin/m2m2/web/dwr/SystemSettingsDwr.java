@@ -306,16 +306,11 @@ public class SystemSettingsDwr extends BaseDwr {
         
     	ProcessResult response = new ProcessResult();
     	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
-    	
-    	if(StringUtils.isEmpty(host))
-    		response.addContextualMessage(SystemSettingsDao.EMAIL_SMTP_HOST, "validate.invalidValue");
+
     	if(port < 0)
     		response.addContextualMessage(SystemSettingsDao.EMAIL_SMTP_PORT, "validate.cannotBeNegative");
     	if(!emailPattern.matcher(from).matches())
     		response.addContextualMessage(SystemSettingsDao.EMAIL_FROM_ADDRESS, "validate.invalidValue");
-    	if(StringUtils.isEmpty(name))
-    		response.addContextualMessage(SystemSettingsDao.EMAIL_FROM_NAME, "validate.required");
-    	
     		
     	//If valid then save all
     	if(!response.getHasMessages()){
