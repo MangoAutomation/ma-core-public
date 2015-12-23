@@ -44,4 +44,12 @@ public class SerialPortIdentifier {
 	public void setPort(SerialPortProxy port) {
 		this.port = port;
 	}
+	
+	@Override
+	public String toString(){
+		String commPortId = "";
+		if(port != null)
+			commPortId = port.getCommPortId();
+		return commPortId + " - " + name;
+	}
 }

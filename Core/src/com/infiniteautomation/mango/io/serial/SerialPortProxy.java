@@ -17,6 +17,8 @@ public abstract class SerialPortProxy {
     public static final int STOPBITS_1 = 1;
     public static final int DATABITS_8 = 8;
     public static final int FLOWCONTROL_NONE = 0;
+    
+    //TODO Pull in other static defs from jssc.SerialPort
 
     protected SerialPortIdentifier commPortId;
     
