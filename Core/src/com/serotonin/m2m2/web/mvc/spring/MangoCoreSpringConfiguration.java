@@ -53,9 +53,7 @@ public class MangoCoreSpringConfiguration implements BeanFactoryAware{
 	}
 	
 	@Bean(name="mappings")
-	public BlabberUrlHandlerMapping blabberUrlHandlerMapping(
-			CommonDataInterceptor commonDataInterceptor
-			){
+	public BlabberUrlHandlerMapping blabberUrlHandlerMapping(CommonDataInterceptor commonDataInterceptor){
 		
 		BlabberUrlHandlerMapping mapping = new BlabberUrlHandlerMapping();
 		mapping.addInterceptor(commonDataInterceptor);
