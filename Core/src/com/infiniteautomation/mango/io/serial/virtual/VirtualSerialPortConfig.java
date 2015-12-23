@@ -29,12 +29,14 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	public interface SerialPortTypes {
 		int JSSC = 1;
 		int SERIAL_SOCKET_BRIDGE = 2;
+		int SERIAL_SERVER_SOCKET_BRIDGE = 3;
 	}
 	
     public static final ExportCodes PORT_TYPE_CODES = new ExportCodes();
     static {
     	PORT_TYPE_CODES.addElement(SerialPortTypes.JSSC, "JSSC", "serial.portType.jssc");
     	PORT_TYPE_CODES.addElement(SerialPortTypes.SERIAL_SOCKET_BRIDGE, "SERIAL_SOCKET_BRIDGE", "serial.portType.serialSocketBridge");
+    	PORT_TYPE_CODES.addElement(SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE, "SERIAL_SERVER_SOCKET_BRIDGE", "serial.portType.serialServerSocketBridge");
     }
     
     
