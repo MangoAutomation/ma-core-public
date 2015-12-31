@@ -16,6 +16,7 @@ You may need to set a JAVA_HOME environmental variable pointing to your JDK fold
 
 1. To start on *nix systems, navigate (cd) to the MA_HOME/bin/ directory. Then type "./ma.sh start" to start or "./ma.sh stop"
 2. To start on Windows systems, navigate to the MA_HOME\bin\ directory and double click ma-start.bat or type "ma-start.bat" into your command prompt.
+3. Be sure to make sure your Mango is up to date by using the 'Check for Upgrades' button on the Modules page, within the Mango interface.
 
 -==@**** Troubleshooting ****@==-
 
