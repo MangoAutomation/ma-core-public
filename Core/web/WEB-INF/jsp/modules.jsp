@@ -363,6 +363,7 @@
     <div id="upgradeModulesButtons">
       <input id="downloadUpgradesBtn" type="button" value="<fmt:message key="modules.downloadUpgrades"/>" onclick="startDownloads()"/>
       <input id="upgradesCloseBtn" type="button" value="<fmt:message key="modules.upgradesClose"/>" onclick="hide('upgradesDiv')"/>
+      <tag:help id="performUpgrades" />&nbsp;
       <img id="upgradeModulesThrobber" src="/images/throbber.gif" style="vertical-align: bottom;"/>&nbsp;
       <span id="upgradeStage"></span>
     </div>

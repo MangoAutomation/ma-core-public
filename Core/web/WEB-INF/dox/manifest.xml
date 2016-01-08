@@ -95,6 +95,8 @@
   
   <item id="systemInformation" key="dox.systemInformation" filename="systemInformation.htm"/>
   
+  <item id="performUpgrades" key="dox.performUpgrades" filename="performUpgrades.htm"/>
+  
   <item id="otherSettings" key="dox.otherSettings" filename="purgeSettings.htm"/>
   
   <item id="uiPerformance" key="dox.uiPerformance" filename="uiPerformance.htm"/>
