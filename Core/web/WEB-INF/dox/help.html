@@ -89,6 +89,10 @@ in points' values, such as the value being too high/low for too long, changing t
 create tabular lists of points including their values, last update times, and charts of historical information (if 
 the point is configured to support this). Values and charts are updated in real time without having to refresh your
 browser window. Charts of multiple points can also be displayed on demand.</p>
+<p>Mango has a RESTful API which can be used to build custom integrations or monitoring applications. The <b>Custom Dashboards</b>
+module contains a JavaScript API built to make using the REST API easier for HTML5 implementations of dashboards, as well as several tutorials.
+Information on possible API endpoints is available by setting swagger.enabled=true in your env.properties file, then navigating
+to &lt;mango&gt;/swagger in a browser. More information on both JavaScript and REST APIs is available on the Wiki.</p>
 <p>You can also create <b>Graphical Views</b> of points using drag and drop functionality to position graphical 
 representations of points on an arbitrary background image. Animated images can be used to create highly dynamic 
 visualization of system behaviour, and, like the watch lists, values are updated in real time without a browser 
@@ -126,16 +130,19 @@ settable point determines how the Data Source sets the value within the external
   <li><img src="images/flag_blue.png"> Information</li>
   <li><img src="images/flag_yellow.png"> Urgent</li>
   <li><img src="images/flag_orange.png"> Critical</li>
-  <li><img src="images/flag_red.png"> Life safety</li>
+  <li><img src="images/flag_red.png"> Safety</li>
 </ul>
 <p>You can click on the icon or the description to go to the list of active alarms.</p>
 
 <h3>Graphic Dashboards</h3>
 
-<p>Mango Automation has three modules for creating graphic representations of your data:</p>
+<p>Mango Automation has four modules for creating graphic representations of your data:</p>
 
 <ul><li><strong>Graphic Views</strong> offers a simple way to use images, graphics and animations to create dashboards and HMIs. 
 With drag and drop simplicity, you quickly get your page online.</li>
+
+<li><strong>Custom Dashboards</strong> offers folders that are automatically hosted securely through Mango and access to our JavaScript
+API. This module contains many example dashboards as well!</li>
 
 <li><strong>JSP Pages</strong> allow you to write custom JSP pages using HTML and JavaScript that use your real time and 
 historical data. This allows for complete customization of dashboards, mobile apps, HMIs and GUIs.</li>
