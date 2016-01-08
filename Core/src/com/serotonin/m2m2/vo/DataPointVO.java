@@ -1455,7 +1455,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             purgeType = Common.TIME_PERIOD_CODES.getId(text);
             if (purgeType == -1)
                 throw new TranslatableJsonException("emport.error.invalid", "purgeType", text,
-                        Common.TIME_PERIOD_CODES.getCodeList());
+                        Common.TIME_PERIOD_CODES.getCodeList(TimePeriods.MILLISECONDS, TimePeriods.SECONDS, TimePeriods.MINUTES, TimePeriods.HOURS));
         }
 
         JsonObject locatorJson = jsonObject.getJsonObject("pointLocator");
