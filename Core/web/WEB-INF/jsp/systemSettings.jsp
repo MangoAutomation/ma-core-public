@@ -1103,7 +1103,8 @@
   <tag:labelledSection labelKey="systemSettings.uiPerformance" closed="true">
       <table>
       <tr>
-        <td class="formLabelRequired"><fmt:message key="systemSettings.uiPerformance"/></td>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.uiPerformance"/>
+        <tag:help id="uiPerformance"/></td>
         <td class="formField">
           <select id="<c:out value="<%= SystemSettingsDao.UI_PERFORMANCE %>"/>">
             <option value="2000"><fmt:message key="systemSettings.uiPerformance.high"/></option>
