@@ -91,6 +91,10 @@ public class RuntimeManager {
         // Start everything with priority up to and including 4.
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
 
+        //TODO - Multithreaded startup
+        //1. Sort data sources into bins that will be started with a pool of threads.  Each bin will represent 1 priority level.
+        //2. Start each bin in order waiting for all threads to finish before moving to the next bin.
+        
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
         DataSourceDao dataSourceDao = DaoRegistry.dataSourceDao;
         List<DataSourceVO<?>> configs = dataSourceDao.getDataSources();
@@ -114,13 +118,12 @@ public class RuntimeManager {
 
         // Initialize the prioritized data sources. Start the polling later.
         List<DataSourceVO<?>> pollingRound = new ArrayList<DataSourceVO<?>>();
+        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO<?>> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
-                for (DataSourceVO<?> config : priorityList) {
-                    if (initializeDataSource(config))
-                        pollingRound.add(config);
-                }
+            	DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(priorityList, dataSourceStartupThreads);
+            	pollingRound.addAll(initializer.initialize());
             }
         }
 
@@ -271,7 +274,7 @@ public class RuntimeManager {
         }
     }
 
-    private boolean initializeDataSource(DataSourceVO<?> vo) {
+    boolean initializeDataSource(DataSourceVO<?> vo) {
     	long startTime = System.nanoTime();
 
         synchronized (runningDataSources) {

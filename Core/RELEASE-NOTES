@@ -1,3 +1,6 @@
+*Version 2.7.3*
+* Adding multi-threading to data source initialization
+
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach
 * Fixed bug where failures during stopping a datasource could cause it to become out of sync with the UI
