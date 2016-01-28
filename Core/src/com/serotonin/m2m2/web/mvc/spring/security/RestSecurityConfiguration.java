@@ -100,6 +100,9 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		
 		//Exception Handling
 		http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
+		
+		//Customize the headers here
+		http.headers().frameOptions().sameOrigin();
 	}
 	
 	private CsrfTokenRepository csrfTokenRepository() {
