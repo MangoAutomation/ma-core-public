@@ -16,6 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -76,6 +77,9 @@ public class RuntimeManager {
         if (started)
             throw new ShouldNeverHappenException("RuntimeManager already started");
 
+        //TODO Remove when done debugging
+        Log4JStopWatch watch = new Log4JStopWatch();
+        
         // Set the started indicator to true.
         started = true;
 
@@ -160,6 +164,8 @@ public class RuntimeManager {
 	        }
 
         }
+        
+        watch.stop("Runtime Manager Startup");
     }
 
     synchronized public void terminate() {
