@@ -45,6 +45,17 @@
       <c:set var="statpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.statusPagePath}</c:set>
       <jsp:include page="${statpage}"/>
     </c:if>
+    <hr>
+    <h3><fmt:message key="dsEdit.latestPollTimes"/></h3>
+    <div style="float: right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getPollTimes()"/></div>
+    <table>
+      <tr id="noPollTimesMsg"><td colspan="2"><b><fmt:message key="dsEdit.noPollTimes"/></b></td></tr>
+      <tr id="pollTimesHeader" class="rowHeader">
+        <td><fmt:message key="dsEdit.pollStartTime"/></td>
+        <td><fmt:message key="dsEdit.pollDuration"/></td>
+      </tr>
+      <tbody id="pollTimesList"></tbody>
+    </table>
   </tag:labelledSection>
 
     <div id="dataSourcePropertiesTabContainer" data-dojo-props="doLayout: false"  style="height: auto;">    </div>

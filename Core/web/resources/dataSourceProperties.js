@@ -91,18 +91,16 @@
      
 	//Get any alarms
 	getAlarms();
-     showMessage("dataSourceMessage");
-     showMessage("pointMessage");
+    showMessage("dataSourceMessage");
+    showMessage("pointMessage");
      
-     getStatusMessages();
+    getStatusMessages();
+    getPollTimes();
      
-     //Init the point settings
-     initDataPointTemplates();
-     textRendererEditor.init();
-     pointEventDetectorEditor.init();
-     
-     
-     
+    //Init the point settings
+    initDataPointTemplates();
+    textRendererEditor.init();
+    pointEventDetectorEditor.init();
  }
  
  function writePointList(points){
@@ -213,6 +211,7 @@
 	             setDataSourceStatusImg(result.data.enabled, imgNode);
 	             getAlarms();
 	             getStatusMessages();
+	             getPollTimes();
 	         });
 	     }
      }
@@ -530,6 +529,42 @@ function deletePoint() {
      }
  }
 
+ /**
+  * Get the current poll times for a datasource
+  */
+ function getPollTimes() {
+     DataSourceDwr.getPollTimes(currentDsId,writePollTimes);
+ }
+ 
+ /**
+  * Create the poll times table
+  * TODO make this a new data table
+  * @param alarms
+  */
+ function writePollTimes(pollTimes) {
+     dwr.util.removeAllRows("pollTimesList");
+     if (pollTimes.length == 0) {
+         show("noPollTimesMsg");
+         hide("pollTimesList");
+         hide("pollTimesHeader");
+     }
+     else {
+         hide("noPollTimesMsg");
+         show("pollTimesList");
+         show("pollTimesHeader");
+         dwr.util.addRows("pollTimesList", pollTimes, [
+                 function(pollTime){ return pollTime.key; },
+                 function(pollTime){ return pollTime.value;}
+                 ],
+                 {
+                     rowCreator: function(options) {
+                    	 var tr = document.createElement("tr");
+                         tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
+                         return tr;
+                     }
+                 });
+     }
+ }
  
  function alarmLevelChanged(eventId) {
      var alarmLevel = $get("alarmLevel"+ eventId);

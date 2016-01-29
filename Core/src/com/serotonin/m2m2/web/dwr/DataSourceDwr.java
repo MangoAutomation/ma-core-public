@@ -11,9 +11,11 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.Period;
 
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -26,6 +28,7 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRTM;
+import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -45,7 +48,9 @@ import com.serotonin.m2m2.web.taglib.Functions;
  *
  */
 public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao, DataSourceRT, DataSourceRTM> {
-
+	
+	private static final String SPACE = " ";
+	
     /**
      * Default Constructor
      */
@@ -259,6 +264,45 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
         return beans;
     }
 
+    /**
+     * Get the latest poll times and thier durations
+     * @param id
+     * @return
+     */
+    @DwrPermission(user = true)
+    public List<StringStringPair> getPollTimes(int id) {
+        DataSourceRT ds = Common.runtimeManager.getRunningDataSource(id);
+        List<StringStringPair> times = new ArrayList<StringStringPair>();
+        
+        if ((ds != null)&&(ds instanceof PollingDataSource)){
+            List<LongLongPair> list = ((PollingDataSource)ds).getLatestPollTimes();
+            String pollTime;
+            for(LongLongPair poll : list){
+            	StringBuilder duration = new StringBuilder();
+            	pollTime = Functions.getFullMilliSecondTime(poll.getKey());
+            	//Format Duration Nicely
+            	Period period = new Period(poll.getValue());
+            	if(period.getHours() >= 1){
+            		duration.append(translate("common.duration.hours",period.getHours()));
+            		duration.append(SPACE);
+            	}
+            	if(period.getMinutes() >= 1){
+            		duration.append(translate("common.duration.minutes",period.getMinutes()));
+            		duration.append(SPACE);
+            	}
+            	if(period.getSeconds() >= 1){
+            		duration.append(translate("common.duration.seconds",period.getSeconds()));
+            		duration.append(SPACE);
+            	}
+            	duration.append(translate("common.duration.millis", period.getMillis()));
+            	
+            	StringStringPair pair = new StringStringPair(pollTime, duration.toString());
+            	times.add(pair);
+            }
+        }
+        return times;
+    }
+    
     /**
      * Load a list of VOs
      * 

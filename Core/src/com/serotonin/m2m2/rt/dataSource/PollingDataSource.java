@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.dataSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,7 +15,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.EvictingQueue;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -50,6 +53,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
     private final AtomicLong unsuccessfulPolls = new AtomicLong();
+    private final EvictingQueue<LongLongPair> latestPollTimesMap = EvictingQueue.create(10);
 
     public PollingDataSource(DataSourceVO<?> vo) {
         super(vo);
@@ -119,6 +123,11 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             updateChangedPoints(fireTime);
 
             doPollNoSync(fireTime);
+            
+            //Save the poll time and duration
+            synchronized(this.latestPollTimesMap){
+            	this.latestPollTimesMap.add(new LongLongPair(fireTime, System.currentTimeMillis() - fireTime));
+            }
         }
         finally {
             if (terminationLock != null) {
@@ -244,5 +253,20 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
                 }
             }
         }
+    }
+    
+    /**
+     * Get the latest poll times and durations.  Use sparingly as this will block the polling thread
+     * @return
+     */
+    public List<LongLongPair> getLatestPollTimes(){
+    	List<LongLongPair> latestTimes = new ArrayList<LongLongPair>();
+    	synchronized(this.latestPollTimesMap){
+    		Iterator<LongLongPair> it = this.latestPollTimesMap.iterator();
+    		while(it.hasNext()){
+    			latestTimes.add(it.next());
+    		}
+    	}
+    	return latestTimes;
     }
 }

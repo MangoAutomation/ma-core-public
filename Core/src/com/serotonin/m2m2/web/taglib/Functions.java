@@ -199,6 +199,7 @@ public class Functions {
 
     private static String dtfFullMinute = "yyyy/MM/dd HH:mm";
     private static String dtfFullSecond = "yyyy/MM/dd HH:mm:ss";
+    private static String dtfFullMilliSecond = "yyyy/MM/dd HH:mm:ss.SSS";
     private static String dtfLong = "yyyy/MM/dd";
     private static String dtfMed = "MMM dd HH:mm";
     private static String dtfShort = "HH:mm:ss";
@@ -224,6 +225,10 @@ public class Functions {
         return dtfFormat(time, dtfFullSecond, defaultDTZ());
     }
 
+    public static String getFullMilliSecondTime(long time) {
+        return dtfFormat(time, dtfFullMilliSecond, defaultDTZ());
+    }    
+    
     public static String getTime(long time, DateTimeZone dtz) {
         DateTime valueTime = new DateTime(time);
         DateTime now = new DateTime();

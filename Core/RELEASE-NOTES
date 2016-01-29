@@ -2,6 +2,7 @@
 * Adding multi-threading to data source initialization
 * Change to allow i-frame embedding of Mango hosted pages on Mango Hosted pages
 * Change to ensure NONE level events do not make it into the User's Live events list
+* Added latest poll times and durations to data sources edit page under the 'Runtime status' area
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach
