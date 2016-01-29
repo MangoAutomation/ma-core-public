@@ -243,6 +243,7 @@ public class ModulesDwr extends BaseDwr {
     }
 
     class UpgradeDownloader implements Runnable {
+    	
         private final List<StringStringPair> modules;
         private final boolean backup;
         private final boolean restart;
@@ -261,10 +262,13 @@ public class ModulesDwr extends BaseDwr {
 
         @Override
         public void run() {
+        	LOG.info("UpgradeDownloader started");
+        	
             if (backup) {
                 // Run the backup.
                 stage = Common.translate("modules.downloadUpgrades.stage.backup");
-
+                LOG.info("UpgradeDownloader: " + stage);
+                
                 // Do the backups. They run async, so this returns immediately. The shutdown will wait for the 
                 // background processes to finish though.
                 BackupWorkItem.queueBackup(SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
@@ -273,6 +277,8 @@ public class ModulesDwr extends BaseDwr {
             }
 
             stage = Common.translate("modules.downloadUpgrades.stage.download");
+            LOG.info("UpgradeDownloader: " + stage);
+            
             HttpClient httpClient = Common.getHttpClient();
 
             // Create the temp directory into which to download, if necessary.
@@ -332,6 +338,7 @@ public class ModulesDwr extends BaseDwr {
             }
 
             stage = Common.translate("modules.downloadUpgrades.stage.install");
+            LOG.info("UpgradeDownloader: " + stage);
 
             // Move the downloaded files to their proper places.
             File[] files = tempDir.listFiles();
@@ -367,15 +374,18 @@ public class ModulesDwr extends BaseDwr {
 
             if (restart) {
                 stage = Common.translate("modules.downloadUpgrades.stage.restart");
-
+                LOG.info("UpgradeDownloader: " + stage);
+                
                 if (SHUTDOWN_TASK == null) {
                     ILifecycle lifecycle = Providers.get(ILifecycle.class);
                     SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true);
                 }
             }
-            else
+            else{
                 stage = Common.translate("modules.downloadUpgrades.stage.done");
-
+                LOG.info("UpgradeDownloader: " + stage);
+            }
+            
             finished = true;
         }
 
