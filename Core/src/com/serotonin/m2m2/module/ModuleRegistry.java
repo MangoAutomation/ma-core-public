@@ -412,7 +412,7 @@ public class ModuleRegistry {
 
             @Override
             public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
-                return "/help.shtm";
+                return "/help.htm";
             }
 
             @Override
@@ -492,14 +492,14 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
 
-        preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.shtm"));
+        preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.htm"));
     
         /* Controller Mappings */
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_point_edit.shtm", new DataPointEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties.shtm", new DataSourcePropertiesController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_edit.shtm", new DataSourceEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties_error.shtm", new DataSourceEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/help.shtm", new HelpController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/help.htm", new HelpController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/startup.htm", new StartupController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/logout.htm", new LogoutController()));
