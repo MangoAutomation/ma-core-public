@@ -30,6 +30,7 @@ import com.serotonin.m2m2.module.definitions.LegacyPointDetailsViewPermissionDef
 import com.serotonin.m2m2.module.definitions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
@@ -504,7 +505,7 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/logout.htm", new LogoutController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", new UnauthorizedController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/users.shtm", new UsersController()));
+        preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
         
     }
 
@@ -673,6 +674,34 @@ public class ModuleRegistry {
             @Override
             public Controller getController() {
                 return controller;
+            }
+        };
+    }
+    
+    static ControllerMappingDefinition createControllerMappingDefinition(final Permission level, final String path,
+            final Controller controller, final String permission) {
+        return new ControllerMappingDefinition() {
+            @Override
+            public Permission getPermission() {
+                return level;
+            }
+            
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public Controller getController() {
+                return controller;
+            }
+            /* (non-Javadoc)
+             * @see com.serotonin.m2m2.module.ControllerMappingDefinition#hasCustomPermission(com.serotonin.m2m2.vo.User)
+             */
+            @Override
+            public boolean hasCustomPermission(User user)
+            		throws PermissionException {
+            	return Permissions.hasPermission(user, SystemSettingsDao.getValue(permission));
             }
         };
     }
