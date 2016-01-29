@@ -11,7 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -24,38 +24,36 @@ import com.serotonin.timer.TimerTask;
  * @author Terry Packer
  *
  */
-public class DataSourceGroupInitializer {
-	private final Log LOG = LogFactory.getLog(DataSourceGroupInitializer.class);
+public class DataSourceGroupTerminator {
+	private final Log LOG = LogFactory.getLog(DataSourceGroupTerminator.class);
 			
-	private List<DataSourceVO<?>> group;
+	private List<DataSourceRT> group;
 	private int threadPoolSize;
-	private List<DataSourceSubGroupInitializer> runningTasks;
-	private List<DataSourceVO<?>> polling;
+	private List<DataSourceSubGroupTerminator> runningTasks;
 	
 	/**
 	 * @param priorityList
 	 */
-	public DataSourceGroupInitializer(List<DataSourceVO<?>> group, int threadPoolSize) {
+	public DataSourceGroupTerminator(List<DataSourceRT> group, int threadPoolSize) {
 		this.group = group;
 		this.threadPoolSize = threadPoolSize;
-		this.polling = new ArrayList<DataSourceVO<?>>();
 	}
 
 	/**
 	 * Blocking method that will attempt to start all datasources in parallel using threadPoolSize number of threads at most.
 	 * @return List of all data sources that need to begin polling.
 	 */
-	public List<DataSourceVO<?>> initialize() {
+	public void terminate() {
 		
 		if(this.group == null)
-			return polling;
+			return;
 		
 		//Compute the size of the subGroup that each thread will use.
 		int subGroupSize = this.group.size() / this.threadPoolSize;
 		
 		LOG.info("Starting " + this.group.size() + " data sources in " + this.threadPoolSize + " threads.");
 		
-		this.runningTasks = new ArrayList<DataSourceSubGroupInitializer>(this.threadPoolSize);
+		this.runningTasks = new ArrayList<DataSourceSubGroupTerminator>(this.threadPoolSize);
 		//Add and Start the tasks 
 		int endPos;
 		for(int i=0; i<this.threadPoolSize; i++){
@@ -65,7 +63,7 @@ public class DataSourceGroupInitializer {
 			}else{
 				endPos = (i*subGroupSize) + subGroupSize;
 			}
-			DataSourceSubGroupInitializer currentSubgroup = new DataSourceSubGroupInitializer(this.group.subList(i*subGroupSize, endPos), this);
+			DataSourceSubGroupTerminator currentSubgroup = new DataSourceSubGroupTerminator(this.group.subList(i*subGroupSize, endPos), this);
 			
 			synchronized(this.runningTasks){
 				this.runningTasks.add(currentSubgroup);
@@ -78,33 +76,32 @@ public class DataSourceGroupInitializer {
 			try { Thread.sleep(100); } catch (InterruptedException e) { }
 		}
 		
-		return polling;
+		return;
 	}
 
-	public void addPollingDataSources(List<DataSourceVO<?>> vos){
-		synchronized(this.polling){
-			this.polling.addAll(vos);
-		}
-	}
-	
-	public void removeRunningTask(DataSourceSubGroupInitializer task){
+	/**
+	 * Remove a running task from our list, when empty the terminator is finished
+	 * @param task
+	 */
+	public void removeRunningTask(DataSourceSubGroupTerminator task){
 		synchronized(this.runningTasks){
 			this.runningTasks.remove(task);
 		}
 	}
+	
 	/**
 	 * Initialize a sub group of the data sources in one thread.
 	 * @author Terry Packer
 	 *
 	 */
-	class DataSourceSubGroupInitializer extends TimerTask{
+	class DataSourceSubGroupTerminator extends TimerTask{
 		
-		private final Log LOG = LogFactory.getLog(DataSourceSubGroupInitializer.class);
+		private final Log LOG = LogFactory.getLog(DataSourceSubGroupTerminator.class);
 		
-		private List<DataSourceVO<?>> subgroup;
-		private DataSourceGroupInitializer parent;
+		private List<DataSourceRT> subgroup;
+		private DataSourceGroupTerminator parent;
 		
-		public DataSourceSubGroupInitializer(List<DataSourceVO<?>> subgroup, DataSourceGroupInitializer parent){
+		public DataSourceSubGroupTerminator(List<DataSourceRT> subgroup, DataSourceGroupTerminator parent){
 			super(new OneTimeTrigger(0));
 			this.subgroup = subgroup;
 			this.parent = parent;
@@ -116,12 +113,8 @@ public class DataSourceGroupInitializer {
 		@Override
 		public void run(long runtime) {
 			try{
-				List<DataSourceVO<?>> polling = new ArrayList<DataSourceVO<?>>();
-				for(DataSourceVO<?> config : subgroup){
-					if(Common.runtimeManager.initializeDataSourceStartup(config))
-						polling.add(config);
-				}
-				this.parent.addPollingDataSources(polling);
+				for(DataSourceRT config : subgroup)
+					Common.runtimeManager.stopDataSourceShutdown(config.getId());
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 			}finally{
