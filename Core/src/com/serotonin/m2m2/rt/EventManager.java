@@ -110,29 +110,32 @@ public class EventManager implements ILifecycle {
 		List<Integer> eventUserIds = new ArrayList<Integer>();
 		Set<String> emailUsers = new HashSet<String>();
 
-		for (User user : userDao.getActiveUsers()) {
-			// Do not create an event for this user if the event type says the
-			// user should be skipped.
-			if (type.excludeUser(user))
-				continue;
-
-			if (Permissions.hasEventTypePermission(user, type)) {
-				eventUserIds.add(user.getId());
-				if (evt.isAlarm() && user.getReceiveAlarmEmails() > 0
-						&& alarmLevel >= user.getReceiveAlarmEmails())
-					emailUsers.add(user.getEmail());
-			
-				//Notify All User Event Listeners of the new event
-				for(UserEventListener l : this.userEventListeners){
-					if(l.getUserId() == user.getId()){
-						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
+		//So none level events don't make it into the cache as they are already acknowledged
+		if(evt.isAlarm()){
+			for (User user : userDao.getActiveUsers()) {
+				// Do not create an event for this user if the event type says the
+				// user should be skipped.
+				if (type.excludeUser(user))
+					continue;
+	
+				if (Permissions.hasEventTypePermission(user, type)) {
+					eventUserIds.add(user.getId());
+					if (evt.isAlarm() && user.getReceiveAlarmEmails() > 0
+							&& alarmLevel >= user.getReceiveAlarmEmails())
+						emailUsers.add(user.getEmail());
+				
+					//Notify All User Event Listeners of the new event
+					for(UserEventListener l : this.userEventListeners){
+						if(l.getUserId() == user.getId()){
+							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
+						}
 					}
+				
+					//Add to the UserEventCache if the user has recently accessed their events
+					this.userEventCache.addEvent(user.getId(), evt);
 				}
-			
-				//Add to the UserEventCache if the user has recently accessed thier events
-				this.userEventCache.addEvent(user.getId(), evt);
+				
 			}
-			
 		}
 
 		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)) {
