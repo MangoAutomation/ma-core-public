@@ -282,7 +282,7 @@ Also to see what is available to use in the query go <a href="http://localhost:8
 <h3>RQL Examples</h3>
 <p>This example will query for a set of the first 10 data points who's names contain the word 'boiler' 
 and return an average their values.  There is an additional check to ensure that only points that are enabled are used.  Note that this could also be done in the RQL statement.</p>
-<code>
+<pre>
 var points = DataPointQuery.query('like(name, *boiler*)&amp;limit(10)');
 var average = 0.0;
 
@@ -296,10 +296,19 @@ for(var i=0; i&lt;points.size(); i++){
 }
 
 return average/points.size();
-</code>
+</pre>
 
-
-<h2>More Help</h2>
+<h1>Logging</h1>
+<p>Logging can be achieved during script testing on the edit page by enabling the logging level desired and then using the appropriate log statement.</p>
+<pre>
+LOG.trace('trace');
+LOG.debug('debug');
+LOG.info('info');
+LOG.warn('warn');
+LOG.error('error');
+LOG.fatal('fatal');
+</pre>
+<h1>More Help</h1>
 <p>More examples of user created scripts can be found <a href="http://infiniteautomation.com/wiki/doku.php?id=automation:script_examples" target="wiki">here</a>.</p>
 <p>For general discussion on scripting in Mango see <a href="http://infiniteautomation.com/forum/category/14/scripting-general-discussion" target="forum">here</a>.</p>
 
