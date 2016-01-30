@@ -11,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
@@ -31,12 +32,19 @@ public class DataSourceGroupInitializer {
 	private int threadPoolSize;
 	private List<DataSourceSubGroupInitializer> runningTasks;
 	private List<DataSourceVO<?>> polling;
-	
+	private boolean useMetrics;
+	private StartPriority startPriority;
+
 	/**
-	 * @param priorityList
+	 * 
+	 * @param group
+	 * @param logMetrics
+	 * @param threadPoolSize
 	 */
-	public DataSourceGroupInitializer(List<DataSourceVO<?>> group, int threadPoolSize) {
+	public DataSourceGroupInitializer(StartPriority startPriority, List<DataSourceVO<?>> group, boolean logMetrics, int threadPoolSize) {
+		this.startPriority = startPriority;;
 		this.group = group;
+		this.useMetrics = logMetrics;
 		this.threadPoolSize = threadPoolSize;
 		this.polling = new ArrayList<DataSourceVO<?>>();
 	}
@@ -47,13 +55,18 @@ public class DataSourceGroupInitializer {
 	 */
 	public List<DataSourceVO<?>> initialize() {
 		
-		if(this.group == null)
+		long startTs = System.currentTimeMillis();
+		if(this.group == null){
+			if(this.useMetrics)
+				LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (System.currentTimeMillis() - startTs));
 			return polling;
+		}
 		
 		//Compute the size of the subGroup that each thread will use.
 		int subGroupSize = this.group.size() / this.threadPoolSize;
 		
-		LOG.info("Starting " + this.group.size() + " data sources in " + this.threadPoolSize + " threads.");
+		if(useMetrics)
+			LOG.info("Initializing " + this.group.size() + " " + this.startPriority.name() + " priority data sources in " + this.threadPoolSize + " threads.");
 		
 		this.runningTasks = new ArrayList<DataSourceSubGroupInitializer>(this.threadPoolSize);
 		//Add and Start the tasks 
@@ -78,6 +91,9 @@ public class DataSourceGroupInitializer {
 			try { Thread.sleep(100); } catch (InterruptedException e) { }
 		}
 		
+		if(this.useMetrics)
+			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (System.currentTimeMillis() - startTs));
+
 		return polling;
 	}
 

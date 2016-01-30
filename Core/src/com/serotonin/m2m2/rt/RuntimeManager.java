@@ -78,7 +78,7 @@ public class RuntimeManager {
 
         // Set the started indicator to true.
         started = true;
-
+        
         //Get the RTM defs from modules
         List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
         Collections.sort(defs, new Comparator<RuntimeManagerDefinition>() {
@@ -115,10 +115,11 @@ public class RuntimeManager {
         // Initialize the prioritized data sources. Start the polling later.
         List<DataSourceVO<?>> pollingRound = new ArrayList<DataSourceVO<?>>();
         int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
+        boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO<?>> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
-            	DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(priorityList, dataSourceStartupThreads);
+            	DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList, useMetrics, dataSourceStartupThreads);
             	pollingRound.addAll(initializer.initialize());
             }
         }
@@ -192,11 +193,12 @@ public class RuntimeManager {
         }
 
         int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
+        boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
-            	DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorityList, dataSourceStartupThreads);
+            	DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
                 initializer.terminate();
             }
         }

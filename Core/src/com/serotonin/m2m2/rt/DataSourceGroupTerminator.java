@@ -11,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
@@ -30,12 +31,16 @@ public class DataSourceGroupTerminator {
 	private List<DataSourceRT> group;
 	private int threadPoolSize;
 	private List<DataSourceSubGroupTerminator> runningTasks;
+	private boolean useMetrics;
+	private StartPriority startPriority;
 	
 	/**
 	 * @param priorityList
 	 */
-	public DataSourceGroupTerminator(List<DataSourceRT> group, int threadPoolSize) {
+	public DataSourceGroupTerminator(StartPriority startPriority, List<DataSourceRT> group, boolean logMetrics, int threadPoolSize) {
+		this.startPriority = startPriority;
 		this.group = group;
+		this.useMetrics = logMetrics;
 		this.threadPoolSize = threadPoolSize;
 	}
 
@@ -44,14 +49,19 @@ public class DataSourceGroupTerminator {
 	 * @return List of all data sources that need to begin polling.
 	 */
 	public void terminate() {
-		
-		if(this.group == null)
+
+		long startTs = System.currentTimeMillis();
+		if(this.group == null){
+			if(this.useMetrics)
+				LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (System.currentTimeMillis() - startTs));
 			return;
+		}
 		
 		//Compute the size of the subGroup that each thread will use.
 		int subGroupSize = this.group.size() / this.threadPoolSize;
 		
-		LOG.info("Starting " + this.group.size() + " data sources in " + this.threadPoolSize + " threads.");
+		if(this.useMetrics)
+			LOG.info("Terminating " + this.group.size() + " " + this.startPriority.name() + " priority data sources in " + this.threadPoolSize + " threads.");
 		
 		this.runningTasks = new ArrayList<DataSourceSubGroupTerminator>(this.threadPoolSize);
 		//Add and Start the tasks 
@@ -76,6 +86,9 @@ public class DataSourceGroupTerminator {
 			try { Thread.sleep(100); } catch (InterruptedException e) { }
 		}
 		
+		if(this.useMetrics)
+			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (System.currentTimeMillis() - startTs));
+
 		return;
 	}
 
