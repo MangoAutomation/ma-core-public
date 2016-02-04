@@ -130,6 +130,25 @@ input {
   line-height: normal;
 }
 
+.formVeryShort {
+	width: 30px;
+}
+.formShort {
+	width: 50px;
+}
+.formNormal {
+	width: 150px;
+}
+.formLong {
+	width: 250px;
+}
+.formVeryLong {
+	width: 500px;
+}
+.formFullLength {
+	width: 100%;
+}
+
 .mango .dijitTextBox {
   border-color: #F07800 !important;
 }
@@ -248,6 +267,10 @@ table.layout tr th {
     padding: 0;
     margin: 0;
     border: none;
+}
+
+table.layout td.formLabelRequired {
+	font-weight: bold;
 }
 
 table.padded tr td,

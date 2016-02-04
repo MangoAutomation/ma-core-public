@@ -9,7 +9,7 @@
 --%><%@attribute name="onchange" rtexprvalue="true" %><%--
 --%><%@attribute name="required" rtexprvalue="true" %><%--
 --%><%@attribute name="allOption" type="java.lang.Boolean" %><%--
---%><select id="${id}" name="${name}" value="${value}" onchange="${onchange}" required="${required}">
+--%><select id="${id}" name="${name}" value="${value}" onchange="${onchange}" required="${required}" class="formNormal">
   <c:if test="${allOption}"><sst:option value="-1"><fmt:message key="common.all"/></sst:option></c:if>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.NONE) %>"><fmt:message key="<%= AlarmLevels.NONE_DESCRIPTION %>"/></option>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.INFORMATION) %>"><fmt:message key="<%= AlarmLevels.INFORMATION_DESCRIPTION %>"/></option>
