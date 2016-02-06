@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.EvictingQueue;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
@@ -53,11 +53,12 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
     private final AtomicLong unsuccessfulPolls = new AtomicLong();
-    private final EvictingQueue<LongLongPair> latestPollTimesMap = EvictingQueue.create(10);
+    private final ConcurrentLinkedQueue<LongLongPair> latestPollTimes;
 
     public PollingDataSource(DataSourceVO<?> vo) {
         super(vo);
         this.vo = vo;
+        this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
     }
 
     public void setCronPattern(String cronPattern) {
@@ -105,14 +106,28 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 
     @Override
     public void scheduleTimeout(long fireTime) {
-        if (jobThread != null) {
+    	long startTs = System.currentTimeMillis();
+    	//TODO Remove when done testing.
+    	if(jobThreadStartTime == fireTime){
+    		LOG.warn("Poll at same time: " + fireTime);
+    	}
+
+    	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
+    	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
+        	//Get the stack trace
+//        	StackTraceElement[] trace = oldJobThread.getStackTrace();
+//        	StringBuilder builder = new StringBuilder("\n");
+//        	for(StackTraceElement e : trace){
+//        		builder.append(e.getClassName() + "." + e.getMethodName() + " " + e.getLineNumber() + "\n");
+//        	}
+        	
             // There is another poll still running, so abort this one.
-            LOG.warn(vo.getName() + ": poll at " + Functions.getFullSecondTime(fireTime)
-                    + " aborted because a previous poll started at " + Functions.getFullSecondTime(jobThreadStartTime)
-                    + " is still running");
+            LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
+                    + " aborted because its runtime of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
             incrementUnsuccessfulPolls(fireTime);
             return;
         }
+        
         incrementSuccessfulPolls(fireTime);
 
         try {
@@ -125,9 +140,10 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             doPollNoSync(fireTime);
             
             //Save the poll time and duration
-            synchronized(this.latestPollTimesMap){
-            	this.latestPollTimesMap.add(new LongLongPair(fireTime, System.currentTimeMillis() - fireTime));
-            }
+            this.latestPollTimes.add(new LongLongPair(fireTime, System.currentTimeMillis() - startTs));
+            //Trim the Queue
+            while(this.latestPollTimes.size() >= 10)
+            	this.latestPollTimes.poll();
         }
         finally {
             if (terminationLock != null) {
@@ -261,12 +277,10 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
      */
     public List<LongLongPair> getLatestPollTimes(){
     	List<LongLongPair> latestTimes = new ArrayList<LongLongPair>();
-    	synchronized(this.latestPollTimesMap){
-    		Iterator<LongLongPair> it = this.latestPollTimesMap.iterator();
-    		while(it.hasNext()){
-    			latestTimes.add(it.next());
-    		}
-    	}
+		Iterator<LongLongPair> it = this.latestPollTimes.iterator();
+		while(it.hasNext()){
+			latestTimes.add(it.next());
+		}
     	return latestTimes;
     }
 }

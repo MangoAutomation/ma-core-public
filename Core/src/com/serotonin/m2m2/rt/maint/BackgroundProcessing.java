@@ -261,7 +261,7 @@ public class BackgroundProcessing implements ILifecycle {
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium"));
+                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium", Thread.NORM_PRIORITY));
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
@@ -271,7 +271,7 @@ public class BackgroundProcessing implements ILifecycle {
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low"));
+                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
     }
 
     @Override

@@ -13,11 +13,18 @@ import java.util.concurrent.ThreadFactory;
  */
 public class MangoThreadFactory implements ThreadFactory{
 
-	private String priority;
+	private String prefix;
 	private ThreadFactory factory;
+	private int priority;
 	
-	public MangoThreadFactory(String priority){
-		this.priority = priority + "-";
+	/**
+	 * 
+	 * @param namePrefix
+	 * @param threadPriority
+	 */
+	public MangoThreadFactory(String namePrefix, int threadPriority){
+		this.prefix = namePrefix + "-";
+		this.priority = threadPriority;
 		this.factory = Executors.defaultThreadFactory();
 	}
 
@@ -31,8 +38,9 @@ public class MangoThreadFactory implements ThreadFactory{
 		//For now simply add our priority to the front of the name
 		// we could get fancier but this will suffice for now.
 		// the thread name will look like this medium-pool-x-thread-x
-		name = priority + name;
+		name = prefix + name;
 		t.setName(name);
+		t.setPriority(priority);
 		return t;
 	}
 	
