@@ -121,7 +121,7 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
             //Read the bytes, store into queue
             try {
                 synchronized (dataStream) {
-                	byte[] buffer = this.port.readBytes();
+                	byte[] buffer = this.port.readBytes(event.getEventValue());
                     for (int i = 0; i < buffer.length; i++) {
                         this.dataStream.put(buffer[i]);
                     }
