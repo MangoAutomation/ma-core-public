@@ -4,6 +4,10 @@
 * Change to ensure NONE level events do not make it into the User's Live events list
 * Added latest poll times and durations to data sources edit page under the 'Runtime status' area
 * Added env property runtime.datasources.logStartupMetrics to allow output of startup times for data source groups
+* Added device name to event messages for data points
+* Added env property runtime.realTimeTimer.defaultTaskQueueSize to allow optionally queuing up tasks of the same type
+* Added env property runtime.realTimeTimer.flushTaskQueueOnReject to optionally flush the stale tasks from the queue
+* Raising events for High priority thread pool's rejected tasks
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach

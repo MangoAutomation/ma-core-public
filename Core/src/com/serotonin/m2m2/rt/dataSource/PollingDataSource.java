@@ -21,15 +21,18 @@ import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.util.timeout.RejectedTaskHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient {
+abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient,RejectedTaskHandler {
 	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private Object terminationLock;
@@ -60,7 +63,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         this.vo = vo;
         this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
     }
-
+    
     public void setCronPattern(String cronPattern) {
         this.cronPattern = cronPattern;
     }
@@ -108,10 +111,12 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public void scheduleTimeout(long fireTime) {
     	long startTs = System.currentTimeMillis();
     	//TODO Remove when done testing.
+    	//System.out.println("Scheduled: " + fireTime + " time: " + startTs + " task: " + this.timerTask.getTaskId() + " dspoll");
     	if(jobThreadStartTime == fireTime){
     		LOG.warn("Poll at same time: " + fireTime);
     	}
-
+    	//End remove when done testing
+    	
     	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
     	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
         	//Get the stack trace
@@ -123,7 +128,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         	
             // There is another poll still running, so abort this one.
             LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
-                    + " aborted because its runtime of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
+                    + " aborted because its start time of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
             incrementUnsuccessfulPolls(fireTime);
             return;
         }
@@ -200,6 +205,37 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.RejectedTaskHandler#rejected(com.serotonin.timer.RejectedTaskReason)
+     */
+    @Override
+    public void rejected(RejectedTaskReason reason){
+    	
+    	LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(reason.getScheduledExecutionTime())
+                + " aborted because " + reason.getDescription());
+    	
+    	//Raise Event that Task Was Rejected
+    	switch(reason.getCode()){
+    	case RejectedTaskReason.CURRENTLY_RUNNING:
+    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+    		break;
+    	case RejectedTaskReason.POOL_FULL:
+    		//Aborted a poll
+    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+    		//Raise System Event that Pool is full
+    		SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_REJECTED_WORK_ITEM), 
+            		reason.getScheduledExecutionTime(), false, new TranslatableMessage("event.system.rejectedHighPriorityTaskPoolFull", "Data Source: " + vo.getName()));
+    		break;
+    	case RejectedTaskReason.TASK_QUEUE_FULL:
+    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+    		break;
+    	default:
+    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+    		LOG.error("Task rejected for unknownReason: " + reason.getCode() + " - " + reason.getDescription());
+    	}
+    }
+    
     //
     //
     // Data source interface
@@ -214,11 +250,11 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
                 LOG.debug("First poll should be at: " + (now + delay));
             }
-            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this);
+            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this, this);
         }
         else {
             try {
-                timerTask = new TimeoutTask(new CronTimerTrigger(cronPattern), this);
+                timerTask = new TimeoutTask(new CronTimerTrigger(cronPattern), this, this);
             }
             catch (ParseException e) {
                 // Should not happen

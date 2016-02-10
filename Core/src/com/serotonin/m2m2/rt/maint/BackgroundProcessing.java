@@ -60,7 +60,7 @@ public class BackgroundProcessing implements ILifecycle {
 
             @Override
             public String toString() {
-                return item.getClass().getCanonicalName();
+                return item.getDescription();
             }
 
 			@Override

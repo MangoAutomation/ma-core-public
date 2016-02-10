@@ -25,13 +25,13 @@ public class PointChangeDetectorRT extends PointEventDetectorRT {
         if (annotation != null) {
             // user annotation
             if (annotation.getKey().equals("annotation.user")) {
-                return new TranslatableMessage("event.detector.changeCountUser", vo.njbGetDataPoint().getName(),
+                return new TranslatableMessage("event.detector.changeCountUser", vo.njbGetDataPoint().getDeviceName() + " - " + vo.njbGetDataPoint().getName(),
                         formatValue(oldValue), formatValue(newValue), annotation.getArgs()[0]);
             }
-            return new TranslatableMessage("event.detector.changeCountAnnotation", vo.njbGetDataPoint().getName(),
+            return new TranslatableMessage("event.detector.changeCountAnnotation", vo.njbGetDataPoint().getDeviceName() + " - " + vo.njbGetDataPoint().getName(),
                     formatValue(oldValue), formatValue(newValue), annotation);
         }
-        return new TranslatableMessage("event.detector.changeCount", vo.njbGetDataPoint().getName(),
+        return new TranslatableMessage("event.detector.changeCount", vo.njbGetDataPoint().getDeviceName() + " - " + vo.njbGetDataPoint().getName(),
                 formatValue(oldValue), formatValue(newValue));
     }
 
