@@ -153,14 +153,14 @@ public class PlainRenderer extends ConvertingRenderer {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         SerializationHelper.writeSafeUTF(out, suffix);
         out.writeBoolean(useUnitAsSuffix);
-        out.writeObject(unit);
-        out.writeObject(renderedUnit);
+        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
+        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -182,6 +182,19 @@ public class PlainRenderer extends ConvertingRenderer {
             useUnitAsSuffix = in.readBoolean();
             unit = (Unit<?>) in.readObject();
             renderedUnit = (Unit<?>) in.readObject();
+        }else if (ver == 4){
+        	suffix = SerializationHelper.readSafeUTF(in);
+            useUnitAsSuffix = in.readBoolean();
+            try{
+            	unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            }catch(Exception e){
+            	unit = Unit.ONE;
+            }
+            try{
+            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            }catch(Exception e){
+            	renderedUnit = Unit.ONE;
+            }
         }
     }
     
