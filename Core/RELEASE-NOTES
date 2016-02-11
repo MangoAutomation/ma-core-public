@@ -8,6 +8,7 @@
 * Added env property runtime.realTimeTimer.defaultTaskQueueSize to allow optionally queuing up tasks of the same type
 * Added env property runtime.realTimeTimer.flushTaskQueueOnReject to optionally flush the stale tasks from the queue
 * Raising events for High priority thread pool's rejected tasks
+* Fixed bug where copying a running data source would result in the points not actually being running
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach

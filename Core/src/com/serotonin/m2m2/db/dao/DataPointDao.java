@@ -30,6 +30,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
@@ -1035,6 +1036,40 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         return vo;
     }
 
+    @Override
+    public int copy(final int existingId, final String newXid, final String newName) {
+        TransactionCallback<Integer> callback = new TransactionCallback<Integer>() {
+            @Override
+            public Integer doInTransaction(TransactionStatus status) {
+                DataPointVO dataPoint = get(existingId);
+
+                // Copy the vo
+                DataPointVO copy = dataPoint.copy();
+                copy.setId(Common.NEW_ID);
+                copy.setXid(generateUniqueXid());
+                copy.setName(dataPoint.getName());
+                copy.setDeviceName(dataPoint.getDeviceName());
+                copy.setDataSourceId(dataPoint.getDataSourceId());
+                copy.setEnabled(dataPoint.isEnabled());
+                copy.getComments().clear();
+
+                // Copy the event detectors
+                for (PointEventDetectorVO ped : getEventDetectors(dataPoint)) {
+                    ped.setId(Common.NEW_ID);
+                    ped.njbSetDataPoint(copy);
+                }
+
+                //dataPointDao.saveDataPoint(dataPointCopy);
+                Common.runtimeManager.saveDataPoint(copy);
+
+                // Copy permissions. 
+                return copy.getId();
+            }
+        };
+
+        return getTransactionTemplate().execute(callback);
+    }
+    
     /**
      * Load the datasource info into the DataPoint
      * 

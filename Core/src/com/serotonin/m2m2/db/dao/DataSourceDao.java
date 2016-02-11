@@ -231,7 +231,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                         ped.njbSetDataPoint(dataPointCopy);
                     }
 
-                    dataPointDao.saveDataPoint(dataPointCopy);
+                    //dataPointDao.saveDataPoint(dataPointCopy);
+                    Common.runtimeManager.saveDataPoint(dataPointCopy);
                 }
 
                 return dataSourceCopy.getId();
@@ -261,8 +262,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                 dataSourceCopy.setXid(xid);
                 dataSourceCopy.setEnabled(false);
                 dataSourceCopy.setName(name);
-                saveDataSource(dataSourceCopy);
-
+                Common.runtimeManager.saveDataSource(dataSourceCopy);
+                
                 // Copy the points.
                 for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
                     DataPointVO dataPointCopy = dataPoint.copy();
@@ -280,7 +281,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                         ped.njbSetDataPoint(dataPointCopy);
                     }
 
-                    dataPointDao.saveDataPoint(dataPointCopy);
+                    Common.runtimeManager.saveDataPoint(dataPointCopy);
                 }
 
                 return dataSourceCopy.getId();
