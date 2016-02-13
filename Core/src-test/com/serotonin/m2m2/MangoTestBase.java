@@ -39,9 +39,9 @@ public class MangoTestBase {
         		TimeUnit.SECONDS, 
         		new SynchronousQueue<Runnable>(), 
         		new MangoThreadFactory("high", Thread.MAX_PRIORITY),
+        		new RejectedRunnableEventGenerator(),
         		Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1),
         		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false));
-        executor.setRejectedExecutionHandler(new RejectedRunnableEventGenerator());
         Common.timer.init(executor);
 		
 		
