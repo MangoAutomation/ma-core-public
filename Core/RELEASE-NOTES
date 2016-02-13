@@ -10,6 +10,8 @@
 * Raising events for High priority thread pool's rejected tasks
 * Fixed bug where copying a running data source would result in the points not actually being running
 * Fixed bug where the PlainRenderer would fail to render some units
+* Improved performance of the UserEventCache that caches events for the logged in Users
+* Improved performance of the EventManager's active events list
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach

@@ -5,12 +5,15 @@
 package com.serotonin.m2m2.rt.event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,6 +26,12 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
 /**
+ * Cache for events for each user, used to improve event access performance for logged in users at 
+ * the expense of memory use.
+ * 
+ * If a user has not accessed their cache in timeToLive ms then the entry is cleaned up.
+ * Stale entries are discarded every timeInterval.
+ * 
  * @author Terry Packer
  *
  */
@@ -35,100 +44,26 @@ public class UserEventCache implements TimeoutClient{
     private TimerTask timerTask;
     private volatile Thread jobThread; //So we don't run multiple cleanups at once
     
-    protected class UserEventCacheEntry {
-        public long lastAccessed = System.currentTimeMillis();
-        public CopyOnWriteArrayList<EventInstance> events;
-        
-        protected UserEventCacheEntry(CopyOnWriteArrayList<EventInstance> events) {
-            this.events = events;
-        }
-        
-        public void addEvent(EventInstance event){
-        	this.events.add(event);
-        	this.lastAccessed = System.currentTimeMillis();
-        }
-
-		/**
-		 * @param evt
-		 */
-		public void replace(EventInstance evt) {
-        	for(int i=0; i<events.size(); i++){
-        		EventInstance ue  = events.get(i);
-        		if(ue.getId() == evt.getId()){
-        			events.add(i, ue);
-        			events.remove(i+1);
-        			break;
-        		}
-        	}
-        	this.lastAccessed = System.currentTimeMillis();
-		}
-
-		/**
-		 * @param evt
-		 */
-		public void remove(EventInstance evt) {
-        	for(int i=0; i<events.size(); i++){
-        		EventInstance ue  = events.get(i);
-        		if(ue.getId() == evt.getId()){
-        			events.remove(i);
-        			break;
-        		}
-        	}
-        	this.lastAccessed = System.currentTimeMillis();
-        }
-
-		public void purgeBefore(long time){
-			List<EventInstance> toRemove = new ArrayList<EventInstance>();
-			for(EventInstance e : events){
-				if(e.getActiveTimestamp() < time){
-					toRemove.add(e);
-				}
-			}
-			events.removeAll(toRemove);
-		}
-		public void purgeBefore(long time, int alarmLevel){
-			List<EventInstance> toRemove = new ArrayList<EventInstance>();
-			for(EventInstance e : events){
-				if((e.getActiveTimestamp() < time)&&(e.getAlarmLevel() == alarmLevel)){
-					toRemove.add(e);
-				}
-			}
-			events.removeAll(toRemove);
-		}
-		public void purgeBefore(long time, String typeName){
-			List<EventInstance> toRemove = new ArrayList<EventInstance>();
-			for(EventInstance e : events){
-				if((e.getActiveTimestamp() < time)&&(e.getEventType().getEventType().equals(typeName))){
-					toRemove.add(e);
-				}
-			}
-			events.removeAll(toRemove);
-		}
-		/**
-		 * Dump our entire cache
-		 */
-		public void purge() {
-			this.events.clear();
-			this.lastAccessed = System.currentTimeMillis();
-		}
-    }
-    
     /**
      * 
      * @param timeToLive
      * @param timeInterval
-     * @param max
      */
     public UserEventCache(long timeToLive, final long timeInterval) {
         this.timeToLive = timeToLive;
-        
-        cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
+        this. cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
         this.dao = new EventDao();
-        
-        timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
+        this.timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
+    }
+
+    public UserEventCache(long timeToLive, final long timeInterval, EventDao dao) {
+        this.timeToLive = timeToLive;
+        this. cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
+        this.dao = dao;
+        this.timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
     }
     
-
+    
     /**
      * Add event for a user
      * @param userId
@@ -173,12 +108,10 @@ public class UserEventCache implements TimeoutClient{
         UserEventCacheEntry c = cacheMap.get(userId);
         if (c == null){
             List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
-            CopyOnWriteArrayList<EventInstance> list = new CopyOnWriteArrayList<EventInstance>(userEvents);
-        	cacheMap.put(userId, new UserEventCacheEntry(list));
+        	cacheMap.put(userId, new UserEventCacheEntry(userEvents));
         	return userEvents;
         }else {
-            c.lastAccessed = System.currentTimeMillis();
-            return c.events;
+            return c.getEvents();
         }
     }
     
@@ -269,4 +202,142 @@ public class UserEventCache implements TimeoutClient{
         if (timerTask != null)
             timerTask.cancel();  
 	}
+	
+    private class UserEventCacheEntry {
+    	
+        private volatile long lastAccessed = System.currentTimeMillis();
+        private List<EventInstance> events;
+        private ReadWriteLock lock;
+        
+        protected UserEventCacheEntry(List<EventInstance> events) {
+            this.events = events;
+            this.lock = new ReentrantReadWriteLock();
+        }
+        
+        /**
+		 * @return
+		 */
+		public List<EventInstance> getEvents() {
+			this.lock.readLock().lock();
+        	try{
+        		//Make a copy
+        		return Collections.unmodifiableList(this.events);
+        	}finally{
+        		this.lock.readLock().unlock();
+        		this.lastAccessed = System.currentTimeMillis();
+        	}
+		}
+
+		public void addEvent(EventInstance event){
+        	this.lock.writeLock().lock();
+        	try{
+        		this.events.add(event);
+        	}finally{
+        		this.lock.writeLock().unlock();
+        		this.lastAccessed = System.currentTimeMillis();
+        	}
+        }
+
+		/**
+		 * @param evt
+		 */
+		public void replace(EventInstance evt) {
+			this.lock.writeLock().lock();
+			try{
+				ListIterator<EventInstance> it = this.events.listIterator();
+	        	while(it.hasNext()){
+	        		EventInstance ue  = it.next();
+	        		if(ue.getId() == evt.getId()){
+	        			it.set(evt);
+	        			break;
+	        		}
+	        	}
+			}finally{
+				this.lock.writeLock().unlock();
+				this.lastAccessed = System.currentTimeMillis();
+			}
+        	
+		}
+
+		/**
+		 * @param evt
+		 */
+		public void remove(EventInstance evt) {
+			this.lock.writeLock().lock();
+			try{
+				ListIterator<EventInstance> it = this.events.listIterator();
+	        	while(it.hasNext()){
+	        		EventInstance ue  = it.next();
+	        		if(ue.getId() == evt.getId()){
+	        			it.remove();
+	        			break;
+	        		}
+	        	}
+			}finally{
+				this.lock.writeLock().unlock();
+				this.lastAccessed = System.currentTimeMillis();
+			}
+        }
+
+		public void purgeBefore(long time){
+			this.lock.writeLock().lock();
+			try{
+				ListIterator<EventInstance> it = this.events.listIterator();
+	        	while(it.hasNext()){
+	        		EventInstance ue  = it.next();
+	        		if(ue.getActiveTimestamp() < time){
+	        			it.remove();
+	        		}
+	        	}
+			}finally{
+				this.lock.writeLock().unlock();
+				this.lastAccessed = System.currentTimeMillis();
+			}
+			
+		}
+		public void purgeBefore(long time, int alarmLevel){
+			this.lock.writeLock().lock();
+			try{
+				ListIterator<EventInstance> it = this.events.listIterator();
+	        	while(it.hasNext()){
+	        		EventInstance ue  = it.next();
+	        		if((ue.getActiveTimestamp() < time)&&(ue.getAlarmLevel() == alarmLevel)){
+	        			it.remove();
+	        		}
+	        	}
+			}finally{
+        		this.lock.writeLock().unlock();
+        		this.lastAccessed = System.currentTimeMillis();
+        	}
+		}
+		public void purgeBefore(long time, String typeName){
+			
+			this.lock.writeLock().lock();
+			try{
+				ListIterator<EventInstance> it = this.events.listIterator();
+	        	while(it.hasNext()){
+	        		EventInstance ue  = it.next();
+	        		if((ue.getActiveTimestamp() < time)&&(ue.getEventType().getEventType().equals(typeName))){
+	        			it.remove();
+	        		}
+	        	}
+			}finally{
+        		this.lock.writeLock().unlock();
+        		this.lastAccessed = System.currentTimeMillis();
+        	}
+		}
+		/**
+		 * Dump our entire cache
+		 */
+		public void purge() {
+			this.lock.writeLock().lock();
+			try{
+				this.events.clear();
+			}finally{
+        		this.lock.writeLock().unlock();
+        		this.lastAccessed = System.currentTimeMillis();
+        	}
+		}
+    }
+	
 }
