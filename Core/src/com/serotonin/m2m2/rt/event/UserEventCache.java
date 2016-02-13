@@ -210,7 +210,8 @@ public class UserEventCache implements TimeoutClient{
         private ReadWriteLock lock;
         
         protected UserEventCacheEntry(List<EventInstance> events) {
-            this.events = events;
+        	//Make a local copy, we don't know what will go on with the list outside our little world.
+            this.events = new ArrayList<>(events);
             this.lock = new ReentrantReadWriteLock();
         }
         

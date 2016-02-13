@@ -457,8 +457,7 @@ abstract public class BaseDwr {
 
 				// Sort into lists for the different types
 
-				List<EventInstance> events = Common.eventManager
-						.getAllActiveUserEvents(user.getId());
+				List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
 				int currentUnsilencedAlarmCount = events.size();
 				int lifeSafetyTotal = 0;
 				EventInstance lifeSafetyEvent = null;
