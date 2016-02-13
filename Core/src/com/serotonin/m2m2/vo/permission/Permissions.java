@@ -250,7 +250,7 @@ public class Permissions {
             	return false;
             return hasDataPointReadPermission(user, point);
         }else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE)){
-        	DataSourceVO<?> ds = new DataSourceDao().get(eventType.getDataSourceId());
+        	DataSourceVO<?> ds = DataSourceDao.instance.get(eventType.getDataSourceId());
         	if(ds == null)
         		return false;
         	return hasDataSourcePermission(user, ds);

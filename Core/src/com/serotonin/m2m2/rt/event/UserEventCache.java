@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.rt.event;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -222,7 +221,7 @@ public class UserEventCache implements TimeoutClient{
 			this.lock.readLock().lock();
         	try{
         		//Make a copy
-        		return Collections.unmodifiableList(this.events);
+        		return new ArrayList<>(this.events);
         	}finally{
         		this.lock.readLock().unlock();
         		this.lastAccessed = System.currentTimeMillis();
