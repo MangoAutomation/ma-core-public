@@ -22,6 +22,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.RejectedTaskHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
@@ -129,7 +130,24 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             // There is another poll still running, so abort this one.
             LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
                     + " aborted because its start time of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
-            incrementUnsuccessfulPolls(fireTime);
+    		final long pollTime = fireTime;
+            Common.backgroundProcessing.addWorkItem(new WorkItem(){
+
+				@Override
+				public void execute() {
+					incrementUnsuccessfulPolls(pollTime);
+				}
+
+				@Override
+				public int getPriority() {
+					return PRIORITY_MEDIUM;
+				}
+
+				@Override
+				public String getDescription() {
+					return "Poll Aborted Notifier";
+				}
+    		});
             return;
         }
         
@@ -210,7 +228,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
      * @see com.serotonin.m2m2.util.timeout.RejectedTaskHandler#rejected(com.serotonin.timer.RejectedTaskReason)
      */
     @Override
-    public void rejected(RejectedTaskReason reason){
+    public void rejected(final RejectedTaskReason reason){
     	
     	LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(reason.getScheduledExecutionTime())
                 + " aborted because " + reason.getDescription());
@@ -218,7 +236,25 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     	//Raise Event that Task Was Rejected
     	switch(reason.getCode()){
     	case RejectedTaskReason.CURRENTLY_RUNNING:
-    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+    	case RejectedTaskReason.TASK_QUEUE_FULL:
+    		Common.backgroundProcessing.addWorkItem(new WorkItem(){
+
+				@Override
+				public void execute() {
+					incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+				}
+
+				@Override
+				public int getPriority() {
+					return PRIORITY_MEDIUM;
+				}
+
+				@Override
+				public String getDescription() {
+					return "Poll Aborted Notifier";
+				}
+    		});
+    		
     		break;
     	case RejectedTaskReason.POOL_FULL:
     		//Aborted a poll
@@ -227,12 +263,26 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     		SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_REJECTED_WORK_ITEM), 
             		reason.getScheduledExecutionTime(), false, new TranslatableMessage("event.system.rejectedHighPriorityTaskPoolFull", "Data Source: " + vo.getName()));
     		break;
-    	case RejectedTaskReason.TASK_QUEUE_FULL:
-    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-    		break;
     	default:
-    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+    		Common.backgroundProcessing.addWorkItem(new WorkItem(){
+
+				@Override
+				public void execute() {
+					incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+				}
+
+				@Override
+				public int getPriority() {
+					return PRIORITY_MEDIUM;
+				}
+
+				@Override
+				public String getDescription() {
+					return "Poll Aborted Notifier";
+				}
+    		});
     		LOG.error("Task rejected for unknownReason: " + reason.getCode() + " - " + reason.getDescription());
+    		break;
     	}
     }
     
