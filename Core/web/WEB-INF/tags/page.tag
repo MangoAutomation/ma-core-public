@@ -111,6 +111,9 @@
   </c:if>
   <c:forEach items="<%= Common.moduleScripts %>" var="modScript">
     <tag:versionedJavascript  src="/${modScript}" /></c:forEach>
+  <c:choose>
+    <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
+  </c:choose>
 </head>
 
 <body class="${theme}">
@@ -156,5 +159,8 @@
 <!-- Include the Export Dialog -->
 <jsp:include page="/WEB-INF/snippet/exportDialog.jsp"/>
 
+<c:choose>
+  <c:when test="${!empty siteAnalyticsBody}">${siteAnalyticsBody}</c:when>
+</c:choose>
 </body>
 </html>

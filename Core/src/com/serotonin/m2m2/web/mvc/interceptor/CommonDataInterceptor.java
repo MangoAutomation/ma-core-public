@@ -29,6 +29,8 @@ public class CommonDataInterceptor implements HandlerInterceptor {
         ILifecycle lifecycle = Providers.get(ILifecycle.class);
     	if(lifecycle.getStartupProgress() >= 100f){
     		request.setAttribute("instanceDescription", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+    		request.setAttribute("siteAnalyticsHead", SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
+    		request.setAttribute("siteAnalyticsBody", SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
     	}
     	request.setAttribute("NEW_ID", Common.NEW_ID);
         

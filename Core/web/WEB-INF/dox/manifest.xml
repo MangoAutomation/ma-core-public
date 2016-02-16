@@ -30,6 +30,8 @@
   <item id="eventHandlers" key="dox.eventHandlers" filename="eventHandlers.htm"/>
   
   <item id="emailSettings" key="dox.emailSettings" filename="emailSettings.htm"/>
+
+  <item id="siteAnalyticsSettings" key="dox.siteAnalyticsSettings" filename="analyticsSettings.htm"/>
   
   <item id="httpSettings" key="dox.httpSettings" filename="httpSettings.htm"/>
 

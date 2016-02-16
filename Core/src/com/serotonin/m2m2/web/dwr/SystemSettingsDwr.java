@@ -255,6 +255,10 @@ public class SystemSettingsDwr extends BaseDwr {
         //Virtual Serial Ports
         settings.put("virtualSerialPorts", VirtualSerialPortConfigDao.instance.getAll());
         
+        //Site analytics
+        settings.put(SystemSettingsDao.SITE_ANALYTICS_HEAD, SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
+        settings.put(SystemSettingsDao.SITE_ANALYTICS_BODY, SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
+        
         return settings;
     }
 
@@ -328,6 +332,23 @@ public class SystemSettingsDwr extends BaseDwr {
         return response;
     }
 
+    @DwrPermission(admin = true)
+    public ProcessResult saveSiteAnalytics(String siteAnalyticsHead, String siteAnalyticsBody) {
+        
+    	ProcessResult response = new ProcessResult();
+    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+
+    	//TODO Add some validation, not sure what yet
+    	
+    	//If valid then save all
+    	if(!response.getHasMessages()){
+    		systemSettingsDao.setValue(SystemSettingsDao.SITE_ANALYTICS_HEAD, siteAnalyticsHead);
+	        systemSettingsDao.setValue(SystemSettingsDao.SITE_ANALYTICS_BODY, siteAnalyticsBody);
+	    }
+        
+        return response;
+    }
+    
     @DwrPermission(admin = true)
     public ProcessResult saveThreadPoolSettings(int highPriorityCorePoolSize, int highPriorityMaxPoolSize, 
     		int medPriorityCorePoolSize, int lowPriorityCorePoolSize) {

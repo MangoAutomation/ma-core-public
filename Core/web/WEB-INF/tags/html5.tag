@@ -59,6 +59,9 @@
         </c:choose>
         
         <tag:versionedJavascript src="/resources/modernizr-2.8.3.min.js"/>
+      <c:choose>
+        <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
+      </c:choose>
     </head>
     <body class="mango">
         <!--[if lt IE 8]>
@@ -102,5 +105,8 @@
             <!-- / JSP scripts fragment -->
           </c:otherwise>
         </c:choose>
+      <c:choose>
+        <c:when test="${!empty siteAnalyticsBody}">${siteAnalyticsBody}</c:when>
+      </c:choose>
     </body>
 </html>

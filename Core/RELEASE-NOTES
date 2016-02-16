@@ -12,6 +12,7 @@
 * Fixed bug where the PlainRenderer would fail to render some units
 * Improved performance of the UserEventCache that caches events for the logged in Users
 * Improved performance of the EventManager's active events list
+* Added system settings to allow Site Analytics code to be added into the HTML of all pages
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach

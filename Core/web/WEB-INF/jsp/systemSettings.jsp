@@ -147,6 +147,11 @@
            $set("<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.MED_PRI_CORE_POOL_SIZE %>"/>);                
            $set("<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>", settings.<c:out value="<%= SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE %>"/>);                
 
+           //Site Analytics
+           $set("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>", settings.<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>);                
+           $set("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>", settings.<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>);                
+           
+           
            displayVirtualSerialPorts(settings.virtualSerialPorts)
             
             //
@@ -326,6 +331,24 @@
             });
         setUserMessage("threadPoolMessage");
         setDisabled("saveThreadPoolSettingsBtn", true);
+    }
+    
+    function saveSiteAnalytics() {
+        setUserMessage("siteAnalyticsMessages");
+        setDisabled("siteAnalyticsBtn", true);
+        hideContextualMessages("siteAnalyticsTab")
+        SystemSettingsDwr.saveSiteAnalytics(
+            $get("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>"),
+            $get("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>"),
+            function(response) {
+            	setDisabled("siteAnalyticsBtn", false);
+            	if(response.hasMessages){
+            		showDwrMessages(response.messages);
+            	}else{
+            		setUserMessage("siteAnalyticsMessages", "<fmt:message key="systemSettings.siteAnalytics.saved"/>");
+            	}
+            });
+
     }
     
     function updateAlarmLevel(eventType, eventSubtype, alarmLevel) {
@@ -829,10 +852,35 @@
     </table>
   </tag:labelledSection>
   
+  <tag:labelledSection labelKey="systemSettings.siteAnalytics" closed="true">
+    <table id="siteAnalyticsTab">
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.siteAnalytics.headTag"/></td>
+        <td class="formField">
+          <textarea id="<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>" cols="100" rows="5">
+          </textarea>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="systemSettings.siteAnalytics.bodyTag"/></td>
+        <td class="formField">
+          <textarea id="<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>" cols="100" rows="5">
+          </textarea>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" align="center">
+          <input id="siteAnalyticsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveSiteAnalytics()"/>
+          <tag:help id="siteAnalyticsSettings"/>
+        </td>
+      </tr>
+      <tr><td colspan="2" id="siteAnalyticsMessages" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
   
   <tag:labelledSection labelKey="systemSettings.comm.virtual.serialPorts" closed="true">
   <table><tbody id="virtualSerialPortGenericMessages"></tbody></table>
-  <div class="borderDiv marR" style="widthxx: 250px; float: left;">
+  <div class="borderDiv marR" style="width: 250px; float: left;">
     <table>
       <tr>
         <td>

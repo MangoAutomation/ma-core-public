@@ -137,6 +137,11 @@ public class SystemSettingsDao extends BaseDao {
     
     public static final String LOW_PRI_CORE_POOL_SIZE = "lowPriorityThreadCorePoolSize";
     public static final String LOW_PRI_MAX_POOL_SIZE = "lowPriorityThreadMaximumPoolSize";
+    
+    //Site analytics
+    public static final String SITE_ANALYTICS_HEAD = "siteAnalyticsHead";
+    public static final String SITE_ANALYTICS_BODY = "siteAnalyticsBody";
+    
 
     // Value cache
     private static final Map<String, String> cache = new HashMap<>();
