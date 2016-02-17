@@ -162,7 +162,8 @@ public class ImageChartServlet extends BaseInfoServlet {
                         //Get the Color if there wasn't one provided
                         if(colour == null){
                         	try{
-                        		colour = ColorUtils.toColor(dp.getChartColour());
+                        		if(dp.getChartColour() != null)
+                        			colour = ColorUtils.toColor(dp.getChartColour());
                         	}catch(InvalidArgumentException e){
                         		//Munch it
                         	}
