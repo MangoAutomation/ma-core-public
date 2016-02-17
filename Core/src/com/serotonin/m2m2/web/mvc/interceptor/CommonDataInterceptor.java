@@ -13,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
 import com.serotonin.provider.Providers;
 
@@ -29,8 +30,11 @@ public class CommonDataInterceptor implements HandlerInterceptor {
         ILifecycle lifecycle = Providers.get(ILifecycle.class);
     	if(lifecycle.getStartupProgress() >= 100f){
     		request.setAttribute("instanceDescription", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
-    		request.setAttribute("siteAnalyticsHead", SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
-    		request.setAttribute("siteAnalyticsBody", SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
+    		//Only output the site analytics if we are NOT on the system settings page
+    		if(!request.getRequestURL().toString().endsWith(ModuleRegistry.SYSTEM_SETTINGS_URL)){
+	    		request.setAttribute("siteAnalyticsHead", SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
+	    		request.setAttribute("siteAnalyticsBody", SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
+    		}
     	}
     	request.setAttribute("NEW_ID", Common.NEW_ID);
         

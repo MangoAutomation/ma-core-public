@@ -47,7 +47,6 @@ import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
 import com.serotonin.m2m2.web.mvc.controller.StartupController;
 import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
 import com.serotonin.m2m2.web.mvc.controller.UsersController;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModelDefinition;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 
 /**
@@ -56,6 +55,9 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
  * @author Matthew Lohbihler
  */
 public class ModuleRegistry {
+	
+	public static final String SYSTEM_SETTINGS_URL = "/system_settings.shtm";
+	
     private static final Object LOCK = new Object();
     private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
 
@@ -454,7 +456,7 @@ public class ModuleRegistry {
         preDefaults.add(createMenuItemDefinition("publishersMi", Visibility.ADMINISTRATOR, "header.publishers",
                 "transmit", "/publishers.shtm"));
         preDefaults.add(createMenuItemDefinition("systemSettingsMi", Visibility.ADMINISTRATOR, "header.systemSettings",
-                "application_form", "/system_settings.shtm"));
+                "application_form", SYSTEM_SETTINGS_URL));
         preDefaults.add(createMenuItemDefinition("modulesMi", Visibility.ADMINISTRATOR, "header.modules", "puzzle",
                 "/modules.shtm"));
         preDefaults.add(createMenuItemDefinition("emportMi", Visibility.ADMINISTRATOR, "header.emport", "emport",
