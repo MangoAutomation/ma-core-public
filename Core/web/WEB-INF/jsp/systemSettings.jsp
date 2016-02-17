@@ -870,6 +870,7 @@
       </tr>
       <tr>
         <td colspan="2" align="center">
+          <input id="siteAnalyticsTestBtn" type="button" value="<fmt:message key='common.test'/>" onclick="window.open('/data_point_details.shtm');"/>
           <input id="siteAnalyticsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveSiteAnalytics()"/>
           <tag:help id="siteAnalyticsSettings"/>
         </td>
