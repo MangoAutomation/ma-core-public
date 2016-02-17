@@ -46,6 +46,7 @@ public class RangeRenderer extends ConvertingRenderer {
     
     public RangeRenderer() {
         super();
+        setDefaults();
     }
     
     /**
@@ -58,7 +59,6 @@ public class RangeRenderer extends ConvertingRenderer {
     
     @Override
     protected void setDefaults() {
-        super.setDefaults();
         format = "";
         rangeValues = new ArrayList<RangeValue>();
     }
@@ -154,8 +154,6 @@ public class RangeRenderer extends ConvertingRenderer {
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-        
-        setDefaults();
         
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {

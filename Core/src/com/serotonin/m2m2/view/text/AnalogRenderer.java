@@ -48,6 +48,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     
     public AnalogRenderer() {
         super();
+        setDefaults();
     }
 
     /**
@@ -74,7 +75,6 @@ public class AnalogRenderer extends ConvertingRenderer {
     
     @Override
     protected void setDefaults() {
-        super.setDefaults();
         format = "0.00";
         suffix = "";
     }
@@ -156,8 +156,6 @@ public class AnalogRenderer extends ConvertingRenderer {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-
-        setDefaults();
         
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {

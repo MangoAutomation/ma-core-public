@@ -45,6 +45,7 @@ public class PlainRenderer extends ConvertingRenderer {
     
     public PlainRenderer() {
         super();
+        setDefaults();
     }
     
     /**
@@ -67,7 +68,6 @@ public class PlainRenderer extends ConvertingRenderer {
     
     @Override
     protected void setDefaults() {
-        super.setDefaults();
         suffix = "";
     }
 
@@ -162,8 +162,6 @@ public class PlainRenderer extends ConvertingRenderer {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-        
-        setDefaults();
 
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
