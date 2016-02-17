@@ -669,13 +669,16 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includePointValueCount = 0;
             }
             else if (handlerType == TYPE_PROCESS) {
@@ -699,13 +702,16 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includePointValueCount = 0;
             }
             else if (handlerType == TYPE_PROCESS) {
@@ -729,13 +735,16 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includeSystemInfo = in.readBoolean();
                 includePointValueCount = 0;
             }
@@ -759,13 +768,16 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includeSystemInfo = in.readBoolean();
                 includePointValueCount = in.readInt();
             }
@@ -789,13 +801,16 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includeSystemInfo = in.readBoolean();
                 includePointValueCount = in.readInt();
                 includeLogfile = in.readBoolean();

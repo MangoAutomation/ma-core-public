@@ -6,6 +6,10 @@ package com.serotonin.m2m2.web.dwr.beans;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
+import java.util.ListIterator;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -156,6 +160,35 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
 		return true;
 	}
     
-    
+	/**
+	 * Clean a list of beans by removing any entries with dead references.
+	 * @param list
+	 */
+    public static void cleanRecipientList(List<RecipientListEntryBean> list){
+    	if(list == null)
+    		return;
+    	
+    	ListIterator<RecipientListEntryBean> it = list.listIterator();
+    	MailingListDao mlDao = new MailingListDao();
+    	
+    	while(it.hasNext()){
+    		RecipientListEntryBean bean = it.next();
+    		switch(bean.recipientType){
+    		case EmailRecipient.TYPE_ADDRESS:
+    			if(StringUtils.isEmpty(bean.referenceAddress))
+    				it.remove();
+    			break;
+    		case EmailRecipient.TYPE_MAILING_LIST:
+    			if(mlDao.getMailingList(bean.referenceId) == null)
+    				it.remove();
+    			break;
+    		case EmailRecipient.TYPE_USER:
+    			if(UserDao.instance.getUser(bean.referenceId) == null)
+    				it.remove();
+    			break;
+    		}
+    	}
+    	
+    }
     
 }
