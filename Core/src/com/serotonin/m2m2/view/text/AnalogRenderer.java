@@ -146,15 +146,12 @@ public class AnalogRenderer extends ConvertingRenderer {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         SerializationHelper.writeSafeUTF(out, format);
         SerializationHelper.writeSafeUTF(out, suffix);
-        out.writeBoolean(useUnitAsSuffix);
-        out.writeObject(unit);
-        out.writeObject(renderedUnit);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -166,7 +163,6 @@ public class AnalogRenderer extends ConvertingRenderer {
         if (ver == 1) {
             format = SerializationHelper.readSafeUTF(in);
             suffix = SerializationHelper.readSafeUTF(in);
-            useUnitAsSuffix = false;
         }
         else if (ver == 2) {
             format = SerializationHelper.readSafeUTF(in);
@@ -179,6 +175,9 @@ public class AnalogRenderer extends ConvertingRenderer {
             useUnitAsSuffix = in.readBoolean();
             unit = (Unit<?>) in.readObject();
             renderedUnit = (Unit<?>) in.readObject();
+        }else if (ver == 4){
+        	format = SerializationHelper.readSafeUTF(in);
+            suffix = SerializationHelper.readSafeUTF(in);
         }
     }
     

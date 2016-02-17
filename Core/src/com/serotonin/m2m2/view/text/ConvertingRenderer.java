@@ -17,6 +17,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.util.SerializationHelper;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
@@ -67,14 +68,31 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     }
 
     private static final long serialVersionUID = -1L;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
+        out.writeBoolean(useUnitAsSuffix);
+        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
+        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
-        in.readInt(); // Read the version. Value is currently not used.
+        int ver = in.readInt(); // Read the version.
+        //Version 1 did nothing
+        if(ver == 2){
+            useUnitAsSuffix = in.readBoolean();
+            try{
+            	unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            }catch(Exception e){
+            	unit = Unit.ONE;
+            }
+            try{
+            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            }catch(Exception e){
+            	renderedUnit = Unit.ONE;
+            }
+       }
     }
 
     @Override
