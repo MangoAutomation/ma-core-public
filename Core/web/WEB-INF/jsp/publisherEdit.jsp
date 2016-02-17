@@ -26,8 +26,10 @@
         hideContextualMessages($("publisherProperties"));
         if (response.hasMessages)
             showDwrMessages(response.messages);
-        else
+        else{
             showMessage("message", "<fmt:message key="publisherEdit.saved"/>");
+            $set('publisherId', response.data.id);
+        }
     }
     
     function sendSnapshotChanged() {
@@ -72,7 +74,9 @@
                 <fmt:message key="publisherEdit.generalProperties"/> <tag:help id="generalPublisherProperties"/>
               </td>
             </tr>
-            
+            <tr>
+              <td colspan="2"><input type="hidden" id="publisherId" value="${publisher.id}"/></td>
+            </tr>
             <tr>
               <td class="formLabelRequired"><fmt:message key="publisherEdit.name"/></td>
               <td class="formField"><input type="text" id="name" value="${publisher.name}"/></td>
