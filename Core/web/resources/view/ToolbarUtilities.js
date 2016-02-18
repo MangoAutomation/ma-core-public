@@ -3,8 +3,8 @@
  * @author Terry Packer
  */
 
-define(['jquery', 'view/BaseUIComponent'], 
-		function($, BaseUIComponent){
+define(['jquery', 'view/BaseUIComponent', 'view/HTML5SoundPlayer'], 
+		function($, BaseUIComponent, HTML5SoundPlayer){
 "use strict";
 
 function ToolbarUtilities(){
@@ -42,6 +42,11 @@ ToolbarUtilities.prototype.criticalLabel = null;
  * Label text for Life Safety Events
  */
 ToolbarUtilities.prototype.lifeSafetyLabel = null;
+
+/**
+ * Sound Player for Alarms
+ */
+ToolbarUtilities.prototype.soundPlayer = null;
 
 
 /**
@@ -87,11 +92,13 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
         break;
         }
         self.renderEventLevel(level);
+        self.updateSoundPlayer();
     }, function(){}, function(){}, function(){});
     
     for (var i = 0; i < this.eventsActiveSummary.length; i++) {
         this.renderEventLevel(this.eventsActiveSummary[i]);
     }
+    this.updateSoundPlayer();
 };
 
 /**
@@ -189,6 +196,55 @@ ToolbarUtilities.prototype.setLevelProps = function(level) {
     }
 };
 
+/**
+ * Setup the Sound Player
+ */
+ToolbarUtilities.prototype.setupSoundPlayer = function(muted){
+	var a = document.createElement('audio');
+	if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
+		this.soundPlayer = new HTML5SoundPlayer({mute: muted});
+	}else{
+		//Create empty player that does nothing
+		this.soundPlayer = {
+			play: function(level){},
+			stop: function(level){},
+			mute: function(mute){},
+			isMute: function(){return true;}
+		};
+	}
+};
+
+/**
+ * Check to see if we need to stop, play or play different sound
+ */
+ToolbarUtilities.prototype.updateSoundPlayer = function(){
+	
+	//Check the active event summaries in order of high to low
+	// Playing a sound for the highest level event
+	var playing = false;
+	var level = this.getEventLevel({alarmLevel: 'LIFE_SAFETY'});
+	if(level.unsilencedCount > 0){
+		this.soundPlayer.play('level4');
+		return;
+	}
+	level = this.getEventLevel({alarmLevel: 'CRITICAL'});
+	if(level.unsilencedCount > 0){
+		this.soundPlayer.play('level3');
+		return;
+	}
+	level = this.getEventLevel({alarmLevel: 'URGENT'});
+	if(level.unsilencedCount > 0){
+		this.soundPlayer.play('level2');
+		return;
+	}
+	level = this.getEventLevel({alarmLevel: 'INFORMATION'});
+	if(level.unsilencedCount > 0){
+		this.soundPlayer.play('level1');
+		return;
+	}
+	
+	this.soundPlayer.stop();
+};
 
 return ToolbarUtilities;
 

@@ -14,6 +14,9 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'
 			toolbarUtilities.setupTranslations()).then(MangoAPI.firstArrayArg)
 	.done(function(user, activeEvents){
 		
+		//Setup the Sound Player
+		toolbarUtilities.setupSoundPlayer(user.muted);
+		
 		//Setup the Mute Icon
 		var userMutedIcon = $('#userMutedIcon');
 		if(user.muted === true){
@@ -27,6 +30,10 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'
 		}
 		userMutedIcon.on('click', function(){
 			toolbarUtilities.api.toggleUserMute(user.username).done(function(response){
+				
+				//Toggle the mute
+				toolbarUtilities.soundPlayer.setMute(response.muted);
+				
 				//Flip the icon to the current state
 				if(response.muted === true){
 					userMutedIcon.attr('src', '/images/sound_mute.png');

@@ -4,7 +4,6 @@
 --%><%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@tag import="com.serotonin.m2m2.Common"%>
 <%@attribute name="showHeader"%>
-
 <c:if test="${!empty showHeader && showHeader == false}"><c:set var="tbstyle">style="display:none;"</c:set></c:if>
 <div id="mainHeader" data-dojo-type="dijit/layout/BorderContainer" ${tbstyle}>
 	<div id="mainHeader_leadingRegion"

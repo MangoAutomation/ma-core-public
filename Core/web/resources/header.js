@@ -161,90 +161,172 @@ function helpImpl(documentId) {
 
 //
 // Sound related stuff
-if (typeof(soundManager) != "undefined") {
-    soundManager.debugMode = false;
-    soundManager.onloadFinished = false;
-    soundManager.onload = function() {
-        soundManager.createSound({ id:'level1', url:'audio/information.mp3' });
-        soundManager.createSound({ id:'level2', url:'audio/urgent.mp3' });
-        soundManager.createSound({ id:'level3', url:'audio/critical.mp3' });
-        soundManager.createSound({ id:'level4', url:'audio/lifesafety.mp3' });
-        soundManager.onloadFinished = true;
-    };
-}
 
-function SoundPlayer() {
-    this.soundId;
-    this.mute = false;
-    this.timeoutId;
-    var self = this;
-    
-    this.play = function(soundId) {
-        this.stop();
-        this.soundId = soundId;
-        if (!this.mute)
-        	this._repeat();
-    };
-    
-    this.stop = function() {
-        if (this.soundId) {
-            var sid = this.soundId;
-            this.soundId = null;
-            this._stopRepeat(sid);
-        }
-    };
-    
-    this.isMute = function() {
-        return this.mute;
-    };
-    
-    this.setMute = function(muted) {
-    	if (muted != this.mute) {
-	        this.mute = muted;
+//Test for HTML5 Support
+var a = document.createElement('audio');
+if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
+
+	//Has HTML 5
+	function Html5SoundPlayer() {
+		
+		var self = this;
+		
+		this.level1 = new Audio('/audio/information.mp3');
+		this.level1.addEventListener("ended", function(){self._repeatDelay();});
+		this.level2 = new Audio('/audio/urgent.mp3');
+		this.level2.addEventListener("ended", function(){self._repeatDelay();});
+		this.level3 = new Audio('/audio/critical.mp3');
+		this.level3.addEventListener("ended", function(){self._repeatDelay();});
+		this.level4 = new Audio('/audio/lifesafety.mp3');
+		this.level4.addEventListener("ended", function(){self._repeatDelay();});
+		
+		this.onLoadFinished = true;
+		
+	    this.soundId;
+	    this.mute = false;
+	    this.timeoutId;
+	    
+	    
+	    this.play = function(soundId) {
+	        this.stop();
+	        this.soundId = soundId;
+	        if (!this.mute)
+	        	this._repeat();
+	    };
+	    
+	    this.stop = function() {
 	        if (this.soundId) {
-		        if (muted)
-		            this._stopRepeat(this.soundId);
-		        else
-		            this._repeat();
+	            var sid = this.soundId;
+	            this.soundId = null;
+	            this._stopRepeat(sid);
 	        }
-    	}
-    };
-    
-    this._stopRepeat = function(sId) {
-        soundManager.stop(sId);
-        clearTimeout(this.timeoutId);
-    };
-    
-    this._repeat = function() {
-        if (soundManager.onloadFinished) {
-            if (self.soundId && !self.mute) {
-                var snd = soundManager.getSoundById(self.soundId);
-                if (snd) {
-                    if (snd.readyState == 0 || snd.readyState == 1) {
-                        if (snd.readyState == 0)
-                            // Load the sound
-                            snd.load(snd.options);
-                        // Wait for the sound to load.
-                        setTimeout(self._repeat, 500);
-                    }
-                    else if (snd.readyState == 3)
-                        // The sound exists, so play it.
-                        soundManager.play(self.soundId, { onfinish: self._repeatDelay } );
-                }
-            }
-        }
-        else
-            // Wait for the sound manager to load.
-            setTimeout(self._repeat, 500);
-    };
-    
-    this._repeatDelay = function() {
-        if (self.soundId && !self.mute)
-            self.timeoutId = setTimeout(self._repeat, 10000);
-    };
-};
-mango.soundPlayer = new SoundPlayer();
-
+	    };
+	    
+	    this.isMute = function() {
+	        return this.mute;
+	    };
+	    
+	    this.setMute = function(muted) {
+	    	if (muted != this.mute) {
+		        this.mute = muted;
+		        if (this.soundId) {
+			        if (muted)
+			            this._stopRepeat(this.soundId);
+			        else
+			            this._repeat();
+		        }
+	    	}
+	    };
+	    
+	    this._stopRepeat = function(sId) {
+	        //soundManager.stop(sId);
+	        clearTimeout(this.timeoutId);
+	    };
+	    
+	    this._repeat = function() {
+	        if (self.onLoadFinished === true) {
+	            if (self.soundId && !self.mute) {
+	            	self[self.soundId].play();
+	                
+	            }
+	        }
+	        else
+	            // Wait for the sound manager to load.
+	            setTimeout(self._repeat, 500);
+	    };
+	    
+	    this._repeatDelay = function() {
+	        if (self.soundId && !self.mute)
+	            self.timeoutId = setTimeout(self._repeat, 10000);
+	    };
+	};
+	mango.soundPlayer = new Html5SoundPlayer();
+	
+}else{
+	if (typeof(soundManager) != "undefined") {
+		soundManager.url = '/';
+	    soundManager.debugMode = false;
+	    soundManager.onloadFinished = false;
+	    soundManager.onload = function() {
+	        soundManager.createSound({ id:'level1', url:'/audio/information.mp3' });
+	        soundManager.createSound({ id:'level2', url:'/audio/urgent.mp3' });
+	        soundManager.createSound({ id:'level3', url:'/audio/critical.mp3' });
+	        soundManager.createSound({ id:'level4', url:'/audio/lifesafety.mp3' });
+	        soundManager.onloadFinished = true;
+	    };
+	}
+	function SoundManagerSoundPlayer() {
+	    this.soundId;
+	    this.mute = false;
+	    this.timeoutId;
+	    var self = this;
+	    
+	    this.play = function(soundId) {
+	        this.stop();
+	        this.soundId = soundId;
+	        if (!this.mute)
+	        	this._repeat();
+	    };
+	    
+	    this.stop = function() {
+	        if (this.soundId) {
+	            var sid = this.soundId;
+	            this.soundId = null;
+	            this._stopRepeat(sid);
+	        }
+	    };
+	    
+	    this.isMute = function() {
+	        return this.mute;
+	    };
+	    
+	    this.setMute = function(muted) {
+	    	if (muted != this.mute) {
+		        this.mute = muted;
+		        if (this.soundId) {
+			        if (muted)
+			            this._stopRepeat(this.soundId);
+			        else
+			            this._repeat();
+		        }
+	    	}
+	    };
+	    
+	    this._stopRepeat = function(sId) {
+	        soundManager.stop(sId);
+	        clearTimeout(this.timeoutId);
+	    };
+	    
+	    this._repeat = function() {
+	        if (soundManager.onloadFinished) {
+	            if (self.soundId && !self.mute) {
+	                var snd = soundManager.getSoundById(self.soundId);
+	                if (snd) {
+	                    if (snd.readyState == 0 || snd.readyState == 1) {
+	                        if (snd.readyState == 0)
+	                            // Load the sound
+	                            snd.load(snd.options);
+	                        // Wait for the sound to load.
+	                        setTimeout(self._repeat, 500);
+	                    }
+	                    else if (snd.readyState == 3)
+	                        // The sound exists, so play it.
+	                        soundManager.play(self.soundId, { onfinish: self._repeatDelay } );
+	                }
+	            }
+	        }
+	        else
+	            // Wait for the sound manager to load.
+	            setTimeout(self._repeat, 500);
+	    };
+	    
+	    this._repeatDelay = function() {
+	        if (self.soundId && !self.mute)
+	            self.timeoutId = setTimeout(self._repeat, 10000);
+	    };
+	};
+	mango.soundPlayer = new SoundManagerSoundPlayer();
+}
 //
 // Browser detection
 var BrowserDetect = {
