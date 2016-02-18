@@ -72,7 +72,7 @@
   <!-- For Brewers Dashboard -->
   <category name="com.infiniteautomation.brewersdashboard.rt"><level value="debug"/></category>
   <!-- For BACnet4J -->
-  <category name="com.serotonin.backnet4j"><level value="debug"/></category>
+  <category name="com.serotonin.bacnet4j"><level value="debug"/></category>
     
   <root>
     <level value="error"/>
