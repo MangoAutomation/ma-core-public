@@ -120,7 +120,8 @@ define([ 'jquery' ], function($, BaseUIComponent) {
 	 * Stop repeating
 	 */
 	HTML5SoundPlayer.prototype._stopRepeat = function(sId) {
-		this[this.soundId].stop();
+		this[sId].pause();
+		this[sId].currentTime = 0;
 		clearTimeout(this.timeoutId);
 	};
 

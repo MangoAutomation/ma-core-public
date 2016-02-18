@@ -182,7 +182,7 @@ if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
 		
 		this.onLoadFinished = true;
 		
-	    this.soundId;
+	    this.soundId = null;
 	    this.mute = false;
 	    this.timeoutId;
 	    
@@ -195,7 +195,7 @@ if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
 	    };
 	    
 	    this.stop = function() {
-	        if (this.soundId) {
+	        if (this.soundId != null) {
 	            var sid = this.soundId;
 	            this.soundId = null;
 	            this._stopRepeat(sid);
@@ -219,8 +219,9 @@ if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
 	    };
 	    
 	    this._stopRepeat = function(sId) {
-	        //soundManager.stop(sId);
-	        clearTimeout(this.timeoutId);
+	        self[sId].pause();
+	        self[sId].currentTime = 0;
+	        clearTimeout(self.timeoutId);
 	    };
 	    
 	    this._repeat = function() {
