@@ -24,23 +24,14 @@ for (var i = scriptTags.length - 1; i >= 0; i--) {
 var config = {
     baseUrl : '/resources',
     paths: {
-        'mango': '/mango-javascript/mango-2.0',
-        'mango-1.0': '/modules/dashboards/web/js/mango/v1',
-        'mango-1.1': '/modules/dashboards/web/js/mango-1.1',
-        'mango-2.0': '/mango-javascript/mango-2.0',
-        'mango/mobile': '/resources/mango/mobile',
+        'mango': '../mango-javascript/mango-2.0',
+        'mango-1.0': '../modules/dashboards/web/js/mango/v1',
+        'mango-1.1': '../modules/dashboards/web/js/mango-1.1',
+        'mango-2.0': '../mango-javascript/mango-2.0',
+        'mango-3.0': '../modules/dashboards/web/js/mango-3.0',
+        'mango/mobile': './mango/mobile',
         'jquery': 'jquery/jquery-1.11.2.min',
         'jquery-ui/jquery-ui': 'jquery-ui/jquery-ui.min',
-        'amcharts.funnel'   : 'amcharts/funnel',
-        'amcharts.gauge'    : 'amcharts/gauge',
-        'amcharts.pie'      : 'amcharts/pie',
-        'amcharts.radar'    : 'amcharts/radar',
-        'amcharts.serial'   : 'amcharts/serial',
-        'amcharts.xy'       : 'amcharts/xy',
-        'amcharts.themes.chalk' : 'amcharts/themes/chalk',
-        'amcharts.themes.light' : 'amcharts/themes/light',
-        'amcharts.themes.dark' : 'amcharts/themes/dark',
-        'amcharts.themes.black' : 'amcharts/themes/black',        
         'bootstrap': 'bootstrap/js/bootstrap.min',
         'moment': 'moment-with-locales.min',
         'moment-timezone': 'moment-timezone-with-data.min',
@@ -48,76 +39,85 @@ var config = {
         'jstz': 'jstz-1.0.4.min',
         'jquery.mousewheel': 'jquery.mousewheel.min',
         'jquery.select2': 'select2/js/select2.full.min',
-        'jquery.notify': 'notify-combined.min'
+        'jquery.notify': 'notify-combined.min',
+        'angular': 'angular.min',
+        'angular-resource': 'angular-resource.min'
     },
     shim: {
         "bootstrap" : {
             "deps" : ['jquery']
         },
-        'amcharts.funnel'   : {
+        'amcharts/funnel': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.gauge'    : {
+        'amcharts/gauge': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.pie'      : {
+        'amcharts/pie': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.radar'    : {
+        'amcharts/radar': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.serial'   : {
+        'amcharts/serial': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.xy'       : {
+        'amcharts/xy': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
             init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.themes.chalk'	: {
+        'amcharts/gantt': {
+            deps: ['amcharts/serial'],
+            exports: 'AmCharts',
+            init: function() {
+                AmCharts.isReady = true;
+            }
+        },
+        'amcharts/themes/chalk': {
         	deps: ['amcharts/amcharts'],
         	exports: 'AmCharts',
         	init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.themes.light'	: {
+        'amcharts/themes/light': {
         	deps: ['amcharts/amcharts'],
         	exports: 'AmCharts',
         	init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.themes.dark'	: {
+        'amcharts/themes/dark': {
         	deps: ['amcharts/amcharts'],
         	exports: 'AmCharts',
         	init: function() {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts.themes.black'	: {
+        'amcharts/themes/black': {
         	deps: ['amcharts/amcharts'],
         	exports: 'AmCharts',
         	init: function() {
@@ -126,7 +126,7 @@ var config = {
         },
         'amcharts/exporting/amexport': {
             deps: ['amcharts/amcharts'],
-            exports: 'AmCharts'
+    		exports: 'AmCharts'
         },
         'amcharts/exporting/filesaver': {
             deps: ['amcharts/amcharts']
@@ -137,7 +137,13 @@ var config = {
         'jquery.mousewheel': {"deps" : ['jquery']},
         'jquery.select2': {"deps" : ['jquery']},
         'jquery.notify': {"deps" : ['jquery']},
-        'jquery-ui/jquery-ui': {"deps" : ['jquery']}
+        'jquery-ui/jquery-ui': {"deps" : ['jquery']},
+        'angular': {
+            exports: 'angular'
+        },
+        'angular-resource': {
+            deps: ['angular']
+        }
     },
     map: {
         '*': {
@@ -152,7 +158,11 @@ if (loader === 'RequireJS') {
     config.paths.dojox = 'amd/dojox';
     
     // export require to global scope
-    root.require = config;
+    if (root.require && root.require.config) {
+    	require.config(config);
+    } else {
+    	root.require = config;
+    }
 }
 else if (loader === 'Dojo') {
     config.tlmSiblingOfDojo = false;
