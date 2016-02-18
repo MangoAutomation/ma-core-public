@@ -48,9 +48,9 @@ public class MailingListDao extends BaseDao {
     }
 
     public MailingList getMailingList(int id) {
-        MailingList ml = queryForObject(MAILING_LIST_SELECT + "where id=?", new Object[] { id },
-                new MailingListRowMapper());
-        setRelationalData(ml);
+        MailingList ml = queryForObject(MAILING_LIST_SELECT + "where id=?", new Object[] { id }, new MailingListRowMapper(), null);
+        if(ml != null)
+        	setRelationalData(ml);
         return ml;
     }
 
