@@ -169,23 +169,76 @@ if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
 	//Has HTML 5
 	function Html5SoundPlayer() {
 		
-		var self = this;
-		
-		this.level1 = new Audio('/audio/information.mp3');
-		this.level1.addEventListener("ended", function(){self._repeatDelay();});
-		this.level2 = new Audio('/audio/urgent.mp3');
-		this.level2.addEventListener("ended", function(){self._repeatDelay();});
-		this.level3 = new Audio('/audio/critical.mp3');
-		this.level3.addEventListener("ended", function(){self._repeatDelay();});
-		this.level4 = new Audio('/audio/lifesafety.mp3');
-		this.level4.addEventListener("ended", function(){self._repeatDelay();});
-		
-		this.onLoadFinished = true;
+	    //Set to true when sound is successfully loaded
+	    this.hasLevel1 = false;
+	    this.hasLevel2 = false;
+	    this.hasLevel3 = false;
+	    this.hasLevel4 = false;
+	    
+	    //Set to true when sound has completed its load attempt
+	    this.level1Ready = false;
+	    this.level2Ready = false;
+	    this.level3Ready = false;
+	    this.level4Ready = false;
 		
 	    this.soundId = null;
 	    this.mute = false;
 	    this.timeoutId;
 	    
+		var self = this;
+		
+		this.level1 = new Audio();
+		this.level1.addEventListener("ended", function(){self._repeatDelay();});
+		this.level1.addEventListener('error', function(evt){
+			console.log('Level1 Sound Failed to load');
+			self.hasLevel1 = false;
+			self.level1Ready = true;
+		});
+		this.level1.addEventListener('loadeddata', function(evt){
+			self.hasLevel1 = true;
+			self.level1Ready = true;
+		});
+		this.level1.src = '/audio/information.mp3';
+		
+		this.level2 = new Audio();
+		this.level2.addEventListener("ended", function(){self._repeatDelay();});
+		this.level2.addEventListener('error', function(evt){
+			console.log('Level2 Sound Failed to load');
+			self.hasLevel2 = false;
+			self.level2Ready = true;
+		});
+		this.level2.addEventListener('loadeddata', function(evt){
+			self.hasLevel2 = true;
+			self.level2Ready = true;
+		});
+		this.level2.src = '/audio/urgent.mp3';
+		
+		this.level3 = new Audio();
+		this.level3.addEventListener("ended", function(){self._repeatDelay();});
+		this.level3.addEventListener('error', function(evt){
+			console.log('Level3 Sound Failed to load');
+			self.hasLevel3 = false;
+			self.level3Ready = true;
+		});
+		this.level3.addEventListener('loadeddata', function(evt){
+			self.hasLevel3 = true;
+			self.level3Ready = true;
+		});
+		this.level3.src = '/audio/critical.mp3';
+		
+		
+		this.level4 = new Audio();
+		this.level4.addEventListener("ended", function(){self._repeatDelay();});
+		this.level4.addEventListener('error', function(evt){
+			console.log('Level4 Sound Failed to load');
+			self.hasLevel4 = false;
+			self.level4Ready = true;
+		});
+		this.level4.addEventListener('loadeddata', function(evt){
+			self.hasLevel4 = true;
+			self.level4Ready = true;
+		});
+		this.level4.src = '/audio/lifesafety.mp3';
 	    
 	    this.play = function(soundId) {
 	        this.stop();
@@ -219,16 +272,17 @@ if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
 	    };
 	    
 	    this._stopRepeat = function(sId) {
-	        self[sId].pause();
-	        self[sId].currentTime = 0;
+	    	if(self.playerReady() && self.hasSound(sId)){
+		        self[sId].pause();
+		        self[sId].currentTime = 0;
+	    	}
 	        clearTimeout(self.timeoutId);
 	    };
 	    
 	    this._repeat = function() {
-	        if (self.onLoadFinished === true) {
-	            if (self.soundId && !self.mute) {
+	        if (self.playerReady() === true) {
+	            if (self.soundId && !self.mute && self.hasSound(self.soundId)) {
 	            	self[self.soundId].play();
-	                
 	            }
 	        }
 	        else
@@ -240,6 +294,25 @@ if(!!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''))){
 	        if (self.soundId && !self.mute)
 	            self.timeoutId = setTimeout(self._repeat, 10000);
 	    };
+	    
+	    this.hasSound = function(soundId){
+	    	switch(soundId){
+	    	case 'level1':
+	    		return this.hasLevel1;
+	    	case 'level2':
+	    		return this.hasLevel2;
+	    	case 'level3':
+	    		return this.hasLevel3;
+	    	case 'level4':
+	    		return this.hasLevel4;
+	    	default:
+	    	return false;
+	    	}
+	    };
+	    
+	    this.playerReady = function(){
+	    	return (this.level1Ready && this.level2Ready && this.level3Ready && this.level4Ready)
+	    }
 	};
 	mango.soundPlayer = new Html5SoundPlayer();
 	
