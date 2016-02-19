@@ -68,6 +68,7 @@ public class PlainRenderer extends ConvertingRenderer {
     
     @Override
     protected void setDefaults() {
+    	super.setDefaults();
         suffix = "";
     }
 

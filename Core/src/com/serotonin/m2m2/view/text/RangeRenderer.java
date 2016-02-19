@@ -59,6 +59,7 @@ public class RangeRenderer extends ConvertingRenderer {
     
     @Override
     protected void setDefaults() {
+    	super.setDefaults();
         format = "";
         rangeValues = new ArrayList<RangeValue>();
     }
