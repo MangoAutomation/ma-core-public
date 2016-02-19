@@ -1,4 +1,4 @@
-*Version 2.7.3*
+*Version 2.7.4*
 * Adding multi-threading to data source initialization
 * Change to allow i-frame embedding of Mango hosted pages on Mango Hosted pages
 * Change to ensure NONE level events do not make it into the User's Live events list
@@ -15,6 +15,7 @@
 * Added system settings to allow Site Analytics code to be added into the HTML of all pages
 * Fixed bug where deleting a user linked to an email event handler would break the event handler
 * Adding support for HTML5 Audio to play Alarm sounds on all pages
+* Performance enhancements to improve maximum poll rates for data sources 
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach

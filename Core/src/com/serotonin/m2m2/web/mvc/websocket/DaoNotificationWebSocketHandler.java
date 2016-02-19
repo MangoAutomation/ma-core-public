@@ -4,9 +4,10 @@
  */
 package com.serotonin.m2m2.web.mvc.websocket;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,17 +24,28 @@ import com.serotonin.m2m2.vo.User;
 public abstract class DaoNotificationWebSocketHandler<T extends AbstractVO<T>> extends MangoWebSocketHandler {
     private static final Log LOG = LogFactory.getLog(DaoNotificationWebSocketHandler.class);
     
-    final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<WebSocketSession>());
+    final Set<WebSocketSession> sessions = new HashSet<WebSocketSession>();
+    final ReadWriteLock lock = new ReentrantReadWriteLock();
     
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
     	super.afterConnectionEstablished(session);
-        sessions.add(session);
+    	lock.writeLock().lock();
+    	try{
+    		sessions.add(session);
+    	}finally{
+    		lock.writeLock().unlock();
+    	}
     }
     
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        sessions.remove(session);
+    	lock.writeLock().lock();
+    	try{
+    		sessions.remove(session);
+    	}finally{
+    		lock.writeLock().unlock();
+    	}
     }
     
     /**
@@ -50,11 +62,16 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractVO<T>> e
      * @param initiatorId random string to identify who initiated the event
      */
     public void notify(String action, T vo, String initiatorId) {
-        for (WebSocketSession session : sessions) {
-            if (hasPermission(getUser(session), vo)) {
-                notify(session, action, vo, initiatorId);
-            }
-        }
+    	lock.readLock().lock();
+    	try{
+	        for (WebSocketSession session : sessions) {
+	            if (hasPermission(getUser(session), vo)) {
+	                notify(session, action, vo, initiatorId);
+	            }
+	        }
+    	}finally{
+    		lock.readLock().unlock();
+    	}
     }
     
     abstract protected boolean hasPermission(User user, T vo);
