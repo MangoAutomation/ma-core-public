@@ -20,6 +20,9 @@ if [ ! -r "$MA_HOME"/bin/ma.sh ]; then
 fi
 export MA_HOME
 
+#Create a logs directory if it doesn't exist
+mkdir "$MA_HOME"/logs/ >&/dev/null
+
 case "$1" in
     start)
         echo MA_HOME is "$MA_HOME"
