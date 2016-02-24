@@ -157,10 +157,11 @@ if (loader === 'RequireJS') {
     config.paths.dijit = 'amd/dijit';
     config.paths.dojox = 'amd/dojox';
     
-    // export require to global scope
-    if (root.require && root.require.config) {
-    	require.config(config);
+    if (root.require && typeof root.require.config == 'function') {
+    	// RequireJS already loaded, call config function
+    	root.require.config(config);
     } else {
+        // export config to global scope
     	root.require = config;
     }
 }
@@ -173,9 +174,45 @@ else if (loader === 'Dojo') {
         // $ is defined by DWR and is used in Mango legacy scripts
         $.noConflict();
     };
+    // reconfigure dojo packages to point relative to baseUrl
+    config.packages = [{
+		name:'dojo',
+		location:'./dojo'
+	},{
+		name:'dijit',
+		location:'./dijit'
+	},{
+		name:'dojox',
+		location:'./dojox'
+	}];
+
+    config.paths['baseUrl'] = '.';
+    config.paths['amcharts/amcharts'] = './shims/amcharts/amcharts';
+    config.paths['amcharts/funnel'] = './shims/amcharts/funnel';
+    config.paths['amcharts/gantt'] = './shims/amcharts/gantt';
+    config.paths['amcharts/gauge'] = './shims/amcharts/gauge';
+    config.paths['amcharts/pie'] = './shims/amcharts/pie';
+    config.paths['amcharts/radar'] = './shims/amcharts/radar';
+    config.paths['amcharts/serial'] = './shims/amcharts/serial';
+    config.paths['amcharts/xy'] = './shims/amcharts/xy';
+    config.paths['amcharts/themes/black'] = './shims/amcharts/themes/black';
+    config.paths['amcharts/themes/chalk'] = './shims/amcharts/themes/chalk';
+    config.paths['amcharts/themes/dark'] = './shims/amcharts/themes/dark';
+    config.paths['amcharts/themes/light'] = './shims/amcharts/themes/light';
+    config.paths['amcharts/exporting/amexport'] = './shims/amcharts/exporting/amexport';
+    config.paths['amcharts/exporting/filesaver'] = './shims/amcharts/exporting/filesaver';
+    config.paths['amcharts/exporting/jspdf.plugin.addimage'] = './shims/amcharts/exporting/jspdf.plugin.addimage';
     
-    // export dojoConfig to global scope
-    root.dojoConfig = config;
+    config.paths['angular'] = './shims/angular';
+    config.paths['angular-resource'] = './shims/angular-resource';
+
+    if (typeof root.require == 'function') {
+    	// dojo loader already loaded, call config function
+    	root.require(config);
+    } else {
+    	// export dojoConfig to global scope
+        root.dojoConfig = config;
+    }
 }
 
 })(this); // execute anonymous function
