@@ -70,8 +70,9 @@ require(['jquery', 'mango/api', 'view/ToolbarUtilities', 'es5-shim', 'domReady!'
 		
 		//Setup the save home URL Icon
 		$('#saveHome').on('click', function(){
-			toolbarUtilities.api.setHomeURL(user.username, window.location.pathname).done(function(response){
-				user.homeUrl = window.location.pathname;
+			var userHomeUrl = window.location.href;
+			toolbarUtilities.api.setHomeURL(user.username, userHomeUrl).done(function(response){
+				user.homeUrl = userHomeUrl;
 				toolbarUtilities.showSuccess(toolbarUtilities.tr('header.homeUrlSaved'));
 			}).fail(toolbarUtilities.showError);
 		});
