@@ -139,6 +139,7 @@ var config = {
         'jquery.notify': {"deps" : ['jquery']},
         'jquery-ui/jquery-ui': {"deps" : ['jquery']},
         'angular': {
+            deps: ['jquery'],
             exports: 'angular'
         },
         'angular-resource': {
