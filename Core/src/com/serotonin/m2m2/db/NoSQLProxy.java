@@ -26,7 +26,7 @@ abstract public class NoSQLProxy {
 	 * @return Absolute path to databases directory ending in a slash
 	 */
 	public static String getDatabasePath() {
-		return Common.MA_HOME+ "/databases/";
+		return Common.envProps.getString("db.nosql.location", Common.MA_HOME+ "/databases/");
 	}
 	/**
 	 * Create a Dao for general NoSQL Storage

@@ -1,3 +1,12 @@
+*Version 2.7.6*
+* Adding db.nosql env properties to allow setting the location of the NoSQL data store
+* Fixed bug where HTML5 pages didn't save URL parameters on a User's home URL
+* Fixed bug where OSX could have problems with XHR requests from the UI
+* Added tooltips to all icons on HTML5 page toolbar
+* Adding Angular support for new Mango Angular Directives
+* Startup script change to create logs directory on first run to capture script output
+* Fixed charting for Safari and iOS via AmCharts
+
 *Version 2.7.4*
 * Adding multi-threading to data source initialization
 * Change to allow i-frame embedding of Mango hosted pages on Mango Hosted pages
