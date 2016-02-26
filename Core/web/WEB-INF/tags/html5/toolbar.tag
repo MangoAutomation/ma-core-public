@@ -10,7 +10,7 @@
 <nav>
   <c:if test="${!empty sessionUser}">
     <c:forEach items="<%= ModuleRegistry.getMenuItems().get(MenuItemDefinition.Visibility.USER) %>" var="mi">
-      <m2m2:menuItem def="${mi}"/>
+      <m2m2:html5menuItem def="${mi}"/>
     </c:forEach>
           
     <c:if test="${sessionUser.dataSourcePermission}">
@@ -28,7 +28,7 @@
       <c:if test="${!empty adminItems}">
         <img src="/images/menu_separator.png"/> 
         <c:forEach items="${adminItems}" var="mi">
-          <m2m2:menuItem def="${mi}"/>
+          <m2m2:html5menuItem def="${mi}"/>
         </c:forEach>
       </c:if>
     </c:if>
@@ -37,7 +37,7 @@
     <c:if test="${!empty anonItems }">
       <img src="/images/menu_separator.png"/>
       <c:forEach items="${anonItems}" var="mi">
-        <m2m2:menuItem def="${mi}"/>
+        <m2m2:html5menuItem def="${mi}"/>
       </c:forEach>
     </c:if>
   </c:if>
