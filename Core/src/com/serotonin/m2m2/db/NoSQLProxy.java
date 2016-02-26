@@ -8,6 +8,7 @@ import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 import com.serotonin.util.DirectoryUtils;
+import com.serotonin.util.StringUtils;
 
 abstract public class NoSQLProxy {
     public abstract void initialize();
@@ -26,7 +27,7 @@ abstract public class NoSQLProxy {
 	 * @return Absolute path to databases directory ending in a slash
 	 */
 	public static String getDatabasePath() {
-		return Common.envProps.getString("db.nosql.location", Common.MA_HOME+ "/databases/");
+		return StringUtils.replaceMacros(Common.envProps.getString("db.nosql.location", Common.MA_HOME+ "/databases/"), System.getProperties());
 	}
 	/**
 	 * Create a Dao for general NoSQL Storage
