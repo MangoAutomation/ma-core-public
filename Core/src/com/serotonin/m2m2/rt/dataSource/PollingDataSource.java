@@ -52,7 +52,6 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 
     private TimerTask timerTask;
     private volatile Thread jobThread;
-    private long jobThreadStartTime;
 
     private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
@@ -111,22 +110,9 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     @Override
     public void scheduleTimeout(long fireTime) {
     	long startTs = System.currentTimeMillis();
-    	//TODO Remove when done testing.
-    	//System.out.println("Scheduled: " + fireTime + " time: " + startTs + " task: " + this.timerTask.getTaskId() + " dspoll");
-    	if(jobThreadStartTime == fireTime){
-    		LOG.warn("Poll at same time: " + fireTime);
-    	}
-    	//End remove when done testing
     	
     	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
     	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
-        	//Get the stack trace
-//        	StackTraceElement[] trace = oldJobThread.getStackTrace();
-//        	StringBuilder builder = new StringBuilder("\n");
-//        	for(StackTraceElement e : trace){
-//        		builder.append(e.getClassName() + "." + e.getMethodName() + " " + e.getLineNumber() + "\n");
-//        	}
-        	
             // There is another poll still running, so abort this one.
             LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
                     + " aborted because its start time of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
@@ -155,7 +141,6 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 
         try {
             jobThread = Thread.currentThread();
-            jobThreadStartTime = fireTime;
             
             // Check if there were changes to the data points list.
             updateChangedPoints(fireTime);
@@ -230,9 +215,6 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     @Override
     public void rejected(final RejectedTaskReason reason){
     	
-    	LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(reason.getScheduledExecutionTime())
-                + " aborted because " + reason.getDescription());
-    	
     	//Raise Event that Task Was Rejected
     	switch(reason.getCode()){
     	case RejectedTaskReason.CURRENTLY_RUNNING:
@@ -241,6 +223,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 
 				@Override
 				public void execute() {
+			    	LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(reason.getScheduledExecutionTime())
+			                + " aborted because " + reason.getDescription());
 					incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
 				}
 
