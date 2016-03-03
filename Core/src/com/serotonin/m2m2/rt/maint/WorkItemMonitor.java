@@ -61,9 +61,11 @@ public class WorkItemMonitor extends TimerTask {
     
     private final int mb = 1024*1024;
     
+    private boolean running;
+    
     private WorkItemMonitor() {
         super(new FixedRateTrigger(TIMEOUT, TIMEOUT));
-
+        this.running = true;
         Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityServiceQueueSize);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(mediumPriorityServiceQueueSize);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(scheduledTimerTaskCount);
@@ -83,14 +85,20 @@ public class WorkItemMonitor extends TimerTask {
 
     @Override
     public void run(long fireTime) {
+    	if(!running)
+    		return;
         check();
     }
 
     public void check() {
-        highPriorityServiceQueueSize
-                .setValue(((ThreadPoolExecutor) Common.timer.getExecutorService()).getActiveCount());
-        mediumPriorityServiceQueueSize.setValue(Common.backgroundProcessing.getMediumPriorityServiceQueueSize());
-        scheduledTimerTaskCount.setValue(Common.timer.size());
+    	
+    	if(Common.timer != null){
+    		highPriorityServiceQueueSize.setValue(((ThreadPoolExecutor) Common.timer.getExecutorService()).getActiveCount());
+    		scheduledTimerTaskCount.setValue(Common.timer.size());
+    	}
+    	if(Common.backgroundProcessing != null)
+    		mediumPriorityServiceQueueSize.setValue(Common.backgroundProcessing.getMediumPriorityServiceQueueSize());
+       
 
         // Check the stack heights
         int max = 0;
@@ -106,13 +114,24 @@ public class WorkItemMonitor extends TimerTask {
         threadCount.setValue(count);
         maxStackHeight.setValue(max);
 
-        dbActiveConnections.setValue(Common.databaseProxy.getActiveConnections());
-        dbIdleConnections.setValue(Common.databaseProxy.getIdleConnections());
+        if(Common.databaseProxy != null){
+	        dbActiveConnections.setValue(Common.databaseProxy.getActiveConnections());
+	        dbIdleConnections.setValue(Common.databaseProxy.getIdleConnections());
+        }
         
         //In MB
         Runtime rt = Runtime.getRuntime();
         javaMaxMemory.setValue((int)(rt.maxMemory()/mb));
         javaUsedMemory.setValue((int)(rt.totalMemory()/mb) -(int)(rt.freeMemory()/mb));   
         javaFreeMemory.setValue(javaMaxMemory.intValue() - javaUsedMemory.intValue());
+    }
+    
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.TimerTask#cancel()
+     */
+    @Override
+    public boolean cancel() {
+    	this.running = false;
+    	return super.cancel();
     }
 }
