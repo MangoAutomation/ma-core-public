@@ -73,12 +73,14 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			//REST api Restrictions
 			.antMatchers(HttpMethod.GET, "/rest/v1/login/*").permitAll()
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/login/*").permitAll() //For CORS reqeusts
+			.antMatchers(HttpMethod.GET, "/rest/v1/translations/public/*").permitAll() //For public translations
+			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/translations/public/*").permitAll() //For public translations
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.POST, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.PUT, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.DELETE, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.GET, "/rest/v1/**").authenticated(); //Since we are currently checking credentials in the REST Code we can use this for now
-
+			
 		//CSRF Headers https://spring.io/blog/2015/01/12/the-login-page-angular-js-and-spring-security-part-ii
 		http.authorizeRequests().anyRequest().authenticated().and().addFilterAfter(new CsrfHeaderFilter(), CsrfFilter.class)
 			.csrf().csrfTokenRepository(csrfTokenRepository());
