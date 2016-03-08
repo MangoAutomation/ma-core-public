@@ -148,9 +148,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             i++;
         }
 
-        for (String prop : extraProperties) {
-            selectAll += "," + prop;
-        }
+        if(extraProperties != null)
+	        for (String prop : extraProperties) {
+	            selectAll += "," + prop;
+	        }
 
         //Add the table prefix to the queries if necessary
         if (this.tablePrefix.equals("")) {
