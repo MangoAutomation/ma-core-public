@@ -59,6 +59,13 @@ public class DataSourceGroupTerminator {
 		
 		//Compute the size of the subGroup that each thread will use.
 		int subGroupSize = this.group.size() / this.threadPoolSize;
+		int lastGroup;
+		if(subGroupSize == 0){
+			subGroupSize = 1;
+			lastGroup = this.group.size() - 1;
+		}else{
+			lastGroup = this.threadPoolSize - 1;
+		}
 		
 		if(this.useMetrics)
 			LOG.info("Terminating " + this.group.size() + " " + this.startPriority.name() + " priority data sources in " + this.threadPoolSize + " threads.");
@@ -67,7 +74,7 @@ public class DataSourceGroupTerminator {
 		//Add and Start the tasks 
 		int endPos;
 		for(int i=0; i<this.threadPoolSize; i++){
-			if(i==this.threadPoolSize-1){
+			if(i==lastGroup){
 				//Last group may be larger
 				endPos = this.group.size();
 			}else{
@@ -79,6 +86,10 @@ public class DataSourceGroupTerminator {
 				this.runningTasks.add(currentSubgroup);
 			}
 			Common.timer.execute(currentSubgroup);
+			
+			//When we have more threads than groups
+			if(i >= this.group.size() -1)
+				break;
 		}
 		
 		//Wait here until all threads are finished
@@ -87,7 +98,7 @@ public class DataSourceGroupTerminator {
 		}
 		
 		if(this.useMetrics)
-			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (System.currentTimeMillis() - startTs));
+			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (System.currentTimeMillis() - startTs) + "ms");
 
 		return;
 	}
