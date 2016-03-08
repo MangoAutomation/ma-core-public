@@ -979,18 +979,15 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     while (true) {
                         try {
 
-                            StopWatch stopWatch = null;
-
+                            Long time = null;
                             if (inserts.length > 10) {
-                                stopWatch = new StopWatch("Batch Write Speed");
-                                stopWatch.start();
+                            	time = System.currentTimeMillis();
                             }
 
                             ejt.update(sb.toString(), params);
 
-                            if (stopWatch != null) {
-                                stopWatch.stop();
-                                long elapsed = stopWatch.getElapsedTime();
+                            if (time != null) {
+                                long elapsed = System.currentTimeMillis() - time;
                                 if (elapsed > 0) {
                                     double writesPerSecond = ((double) inserts.length / (double) elapsed) * 1000d;
                                     BATCH_WRITE_SPEED_MONITOR.setValue((int) writesPerSecond);
