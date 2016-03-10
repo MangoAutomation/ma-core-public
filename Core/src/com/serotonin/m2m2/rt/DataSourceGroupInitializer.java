@@ -106,7 +106,7 @@ public class DataSourceGroupInitializer {
 		}
 		
 		if(this.useMetrics)
-			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (System.currentTimeMillis() - startTs));
+			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (System.currentTimeMillis() - startTs) + "ms");
 
 		return polling;
 	}
