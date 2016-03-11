@@ -73,8 +73,14 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeBoolean(useUnitAsSuffix);
-        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
-        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
+        if(unit != null)
+        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
+        else
+        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(Unit.ONE));
+        if(renderedUnit != null)
+        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
+        else
+        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(Unit.ONE));
     }
 
     private void readObject(ObjectInputStream in) throws IOException {

@@ -387,9 +387,10 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
         }
 
-        if (textRenderer == null)
+        if (textRenderer == null){
             response.addContextualMessage("textRenderer", "validate.required");
-
+        }
+        
         if (defaultCacheSize < 0)
             response.addContextualMessage("defaultCacheSize", "validate.cannotBeNegative");
 
