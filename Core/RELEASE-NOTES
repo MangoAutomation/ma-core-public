@@ -1,6 +1,7 @@
 *Version 2.7.8*
 * NoSQL Database env.property to change file access type for improved performance on various systems.
 * Fixed bug in multi-threaded startup that would fail to initialze some data sources if the number of threads used was greater than the number of running data sources.
+* Added JSON Data for custom data storage
 
 *Version 2.7.6*
 * Adding db.nosql env properties to allow setting the location of the NoSQL data store
