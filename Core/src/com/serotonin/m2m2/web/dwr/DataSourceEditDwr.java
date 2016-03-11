@@ -112,15 +112,22 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         	throw new ShouldNeverHappenException("Please Save Data Source First.");
         
         if(pointId == Common.NEW_ID){
-        	 dp = new DataPointVO();
-             dp.setId(pointId);
-             dp.setXid(DataPointDao.instance.generateUniqueXid());
-             dp.setDataSourceId(ds.getId());
-             dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
-             dp.setDeviceName(ds.getName());
-             dp.setPointLocator(ds.createPointLocator());
-             dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
-             dp.defaultTextRenderer();
+        	String deviceName;
+            if(dp != null){
+           	 	deviceName = dp.getDeviceName();
+            }else{
+            	deviceName = ds.getName();
+            }
+            dp = new DataPointVO();
+            dp.setXid(DataPointDao.instance.generateUniqueXid());
+       	 	dp.setDeviceName(deviceName);
+            dp.setId(pointId);
+            dp.setDataSourceId(ds.getId());
+            dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
+           
+            dp.setPointLocator(ds.createPointLocator());
+            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+            dp.defaultTextRenderer();
         }else{
         	//Only get a new point if it doesn't match our editing point as there are modifications we want to 
         	// retain in the user's editing point
