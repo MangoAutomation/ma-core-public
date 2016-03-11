@@ -258,6 +258,22 @@ create table publishers (
 );
 alter table publishers add constraint publishersUn1 unique (xid);
 
+
+--
+--
+-- JsonData
+--
+CREATE TABLE jsonData (
+  	id int not null identity,
+	xid nvarchar(50) not null,
+	name nvarchar(255) not null,
+	readPermission varchar(255),
+  	editPermission varchar(255),
+  	data clob,
+    primary key (id)
+)engine=InnoDB;
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
+
 --
 --
 -- Compound events detectors

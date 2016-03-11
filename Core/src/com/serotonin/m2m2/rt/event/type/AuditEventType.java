@@ -42,6 +42,7 @@ public class AuditEventType extends EventType {
     public static final String TYPE_TEMPLATE = "TEMPLATE";
     public static final String TYPE_USER_COMMENT = "USER_COMMENT";
     public static final String TYPE_USER = "USER";
+    public static final String TYPE_JSON_DATA = "JSON_DATA";
     
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
@@ -54,6 +55,7 @@ public class AuditEventType extends EventType {
         addEventType(TYPE_TEMPLATE, "event.audit.template");
         addEventType(TYPE_USER_COMMENT, "event.audit.userComment");
         addEventType(TYPE_USER, "event.audit.user");
+        addEventType(TYPE_JSON_DATA, "event.audit.jsonData");
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey());

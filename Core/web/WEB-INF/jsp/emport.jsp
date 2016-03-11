@@ -225,6 +225,7 @@
           <input type="checkbox" name="exportElement" id="systemSettings" value="systemSettings"/> <label for="systemSettings"><fmt:message key="header.systemSettings"/></label><br/>
           <input type="checkbox" name="exportElement" id="templates" value="templates"/> <label for="templates"><fmt:message key="header.pointPropertyTemplates"/></label><br/>
           <input type="checkbox" name="exportElement" id="virtualSerialPorts" value="virtualSerialPorts"/> <label for="virtualSerialPorts"><fmt:message key="header.virtualSerialPorts"/></label><br/>
+          <input type="checkbox" name="exportElement" id="jsonData" value="jsonData"/> <label for="jsonData"><fmt:message key="header.jsonData"/></label><br/>
           
         </td>
         <td>

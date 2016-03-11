@@ -153,7 +153,7 @@ public class Common {
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 11;
+        return 12;
     }
 
     /**

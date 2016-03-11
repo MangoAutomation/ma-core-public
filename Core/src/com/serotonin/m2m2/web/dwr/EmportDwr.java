@@ -22,6 +22,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -50,6 +51,7 @@ public class EmportDwr extends BaseDwr {
     public static final String SYSTEM_SETTINGS = "systemSettings";
     public static final String TEMPLATES = "templates";
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
+    public static final String JSON_DATA = "jsonData";
     
 
     @DwrPermission(admin = true)
@@ -76,7 +78,10 @@ public class EmportDwr extends BaseDwr {
             data.put(TEMPLATES, TemplateDao.instance.getAll());
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
-
+        if (ArrayUtils.contains(exportElements, JSON_DATA))
+            data.put(JSON_DATA, JsonDataDao.instance.getAll());
+        
+        
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if (ArrayUtils.contains(exportElements, def.getElementId()))
                 data.put(def.getElementId(), def.getExportData());
