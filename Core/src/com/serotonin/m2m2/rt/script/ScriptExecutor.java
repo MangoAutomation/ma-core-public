@@ -43,7 +43,7 @@ public class ScriptExecutor {
             DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getKey());
             if (point == null)
                 throw new DataPointStateException(contextEntry.getKey(), new TranslatableMessage(
-                        "event.meta.pointMissing"));
+                        "event.meta.pointMissing", contextEntry.getValue(), contextEntry.getKey()));
             converted.put(contextEntry.getValue(), point);
         }
 
@@ -62,7 +62,7 @@ public class ScriptExecutor {
             DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getDataPointId());
             if (point == null)
                 throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
-                        "event.meta.pointMissing"));
+                        "event.meta.pointMissing", contextEntry.getVariableName(), contextEntry.getDataPointId()));
             converted.put(contextEntry.getVariableName(), point);
         }
 
