@@ -42,6 +42,11 @@
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
 
+    <!-- Create a zip of the core without modules -->
+    <subant target="public-release">
+        <property name="core.deploy.paths" value="${core.deploy.path}/${maven-pom.version}/" />
+        <fileset dir="${coreHome}" includes="build.xml"/>
+    </subant>
 
     <!-- Compile the default core public modules into the core -->
    	<property name="public-modules" value="ASCII File Data Source,Graphical views,Internal Data Source,JSP Views,Log4J reset,Maintenance Events,Mango API,Point Data Import,PointLinks,Reports,Scheduled Events,Serial Data Source,SQL console,SST Graphics,SST Theme,Virtual Data Source,VMStat data source,Watchlist"/>
@@ -80,10 +85,10 @@
         </sequential>
     </for>
 
-
-
+    <!-- Create a Zip of the Core with base modules -->
     <subant target="public-release">
         <property name="core.deploy.paths" value="${core.deploy.path}/${maven-pom.version}/" />
+        <property name="fullName" value="m2m2-fullCore-${maven-pom.version}/" />
         <fileset dir="${coreHome}" includes="build.xml"/>
     </subant>
 
