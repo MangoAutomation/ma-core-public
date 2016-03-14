@@ -94,11 +94,12 @@ public class ImageChartUtils {
                 else if (nts.getPlotType() == DataPointVO.PlotTypes.LINE)
                     renderer = new XYLineAndShapeRenderer(true, false);
                 else {
-                	XYCardinalSplineRenderer spline = new XYCardinalSplineRenderer(.5d, 16);
+                	//XYCardinalSplineRenderer spline = new XYCardinalSplineRenderer(.5d, 16);
                 	//XYSmoothLineAndShapeRenderer spline = new XYSmoothLineAndShapeRenderer();
                 	//XYSplineRenderer spline = new XYSplineRenderer();
-                    spline.setBaseShapesVisible(false);
-                    renderer = spline;
+                    //spline.setBaseShapesVisible(false);
+                    //renderer = spline;
+                	renderer = new XYLineAndShapeRenderer(true, false);
                 }
 
                 if (nts.getPaint() != null)
