@@ -95,6 +95,8 @@ public class ImageChartUtils {
                     renderer = new XYLineAndShapeRenderer(true, false);
                 else {
                 	XYCardinalSplineRenderer spline = new XYCardinalSplineRenderer(.5d, 16);
+                	//XYSmoothLineAndShapeRenderer spline = new XYSmoothLineAndShapeRenderer();
+                	//XYSplineRenderer spline = new XYSplineRenderer();
                     spline.setBaseShapesVisible(false);
                     renderer = spline;
                 }
