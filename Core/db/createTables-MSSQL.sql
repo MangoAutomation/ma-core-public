@@ -258,7 +258,7 @@ create table publishers (
 );
 alter table publishers add constraint publishersUn1 unique (xid);
 
-
+`
 --
 --
 -- JsonData
@@ -269,7 +269,7 @@ CREATE TABLE jsonData (
 	name nvarchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),
-  	data clob,
+  	data ntext,
     primary key (id)
 )engine=InnoDB;
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);

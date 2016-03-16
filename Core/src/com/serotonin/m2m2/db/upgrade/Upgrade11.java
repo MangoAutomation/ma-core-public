@@ -34,7 +34,7 @@ public class Upgrade11 extends DBUpgrade {
     }
 
     private final String[] mssqlScript = { //
-    	"CREATE TABLE jsonData (id int not null identity, xid nvarchar(50) not null, name nvarchar(255) not null, readPermission varchar(255), editPermission varchar(255), data clob, primary key (id) )engine=InnoDB;",
+    	"CREATE TABLE jsonData (id int not null identity, xid nvarchar(50) not null, name nvarchar(255) not null, readPermission varchar(255), editPermission varchar(255), data ntext, primary key (id) )engine=InnoDB;",
     	"ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);"
     };
     private final String[] derbyScript = { //
@@ -42,12 +42,12 @@ public class Upgrade11 extends DBUpgrade {
     	"ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);"
     };    
     private final String[] mysqlScript = { //
-    	"CREATE TABLE jsonData (id int not null auto_increment,xid varchar(50) not null, name varchar(255) not null, readPermission varchar(255), editPermission varchar(255), data clob, primary key (id))engine=InnoDB;",
+    	"CREATE TABLE jsonData (id int not null auto_increment,xid varchar(50) not null, name varchar(255) not null, readPermission varchar(255), editPermission varchar(255), data longtext, primary key (id))engine=InnoDB;",
     	"ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);"
     };    
 
     private final String[] h2Script = { //
-    	"CREATE TABLE jsonData (id int not null auto_increment, xid varchar(50) not null, name varchar(255) not null, readPermission varchar(255), editPermission varchar(255), data clob, primary key (id));",
+    	"CREATE TABLE jsonData (id int not null auto_increment, xid varchar(50) not null, name varchar(255) not null, readPermission varchar(255), editPermission varchar(255), data longtext, primary key (id));",
     	"ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);"
     };
 

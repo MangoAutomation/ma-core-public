@@ -275,7 +275,7 @@ CREATE TABLE jsonData (
 	name varchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),
-  	data clob,
+  	data longtext,
     primary key (id)
 )engine=InnoDB;
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
