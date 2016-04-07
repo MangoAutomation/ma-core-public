@@ -38,6 +38,6 @@ echo Using Java at %EXECJAVA%
 
 rem | Put the whole lib folder on CP because we cannot do h2*.jar...
 rem | Add -webAllowOthers if you will be using the web console from an origin other than localhost
-"%EXECJAVA%" -cp "%MA_HOME%\lib\*" org.h2.tools.Server -web -webPort "%H2_PORT%" -baseDir "%MA_HOME%\databases"
+"%EXECJAVA%" -cp "%MA_HOME%\lib\*" org.h2.tools.Server -web -webPort "%H2_PORT%" -baseDir "%MA_HOME%\"
 
 :end

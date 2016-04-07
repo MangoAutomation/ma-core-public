@@ -25,4 +25,4 @@ if [ ! -r "$MA_HOME"/bin/h2-web-console.sh ]; then
 fi
 
 # Add -webAllowOthers to use the web console from an origin other than localhost
-java -cp ../lib/h2*.jar org.h2.tools.Server -web -webPort "$H2_PORT" -baseDir "$MA_HOME"/databases
+java -cp ../lib/h2*.jar org.h2.tools.Server -web -webPort "$H2_PORT" -baseDir "$MA_HOME"/
