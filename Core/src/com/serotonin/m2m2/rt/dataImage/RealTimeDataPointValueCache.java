@@ -44,9 +44,10 @@ public class RealTimeDataPointValueCache {
 	private static final Log LOG = LogFactory.getLog(DataPointRT.class);
 
 	private final List<RealTimeDataPointValue> realTimeData = new CopyOnWriteArrayList<RealTimeDataPointValue>();
+	private boolean cleared;
+	
 	//Singleton Instance
 	public static final RealTimeDataPointValueCache instance = new RealTimeDataPointValueCache();
-	
 	
 
 	/**
@@ -60,12 +61,14 @@ public class RealTimeDataPointValueCache {
 		PointFolder root = ph.getRoot();
 		//Fill the cache now
 		fillCache(root,realTimeData);
+    	cleared = false;
     	
 		//Register so we know when it changes
         PointHierarchyEventDispatcher.addListener(new PointHierarchyListener() {
             @Override
             public void pointHierarchyCleared() {
             	realTimeData.clear();
+            	cleared = true;
             }
 
             @Override
@@ -102,6 +105,14 @@ public class RealTimeDataPointValueCache {
 	 * @return
 	 */
 	public List<RealTimeDataPointValue> getUserView(String permissions){
+		if(cleared){
+        	//Reload
+        	PointHierarchy ph = createPointHierarchy(Common.getTranslations());
+    		PointFolder root = ph.getRoot();
+    		//Fill the cache now
+    		fillCache(root,realTimeData);
+    		cleared = false;
+		}
 		List<RealTimeDataPointValue> results = new ArrayList<RealTimeDataPointValue>();
 
 		for(RealTimeDataPointValue rtdpv : this.realTimeData){
@@ -147,9 +158,7 @@ public class RealTimeDataPointValueCache {
 			List<RealTimeDataPointValue> cache) {
 		for(DataPointSummary summary : folder.getPoints()){
 			//Here we can add all points or just running ones
-			DataPointRT runningPoint = Common.runtimeManager.getDataPoint(summary.getId());
-			if(runningPoint != null)
-				cache.add(new RealTimeDataPointValue(runningPoint,PointHierarchy.getPath(summary.getId(), root)));
+			cache.add(new RealTimeDataPointValue(summary,PointHierarchy.getPath(summary.getId(), root)));
 		}
 		for(PointFolder subFolder : folder.getSubfolders()){
 			recursivelyFillCache(root, subFolder, cache);
