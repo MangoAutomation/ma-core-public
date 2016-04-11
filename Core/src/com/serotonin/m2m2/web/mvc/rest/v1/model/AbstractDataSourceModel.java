@@ -88,6 +88,14 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 		this.data.setPurgeType(TimePeriodType.convertFrom(settings.getFrequency().getType()));
 	}
 	
+	@JsonGetter("editPermission")
+	public String getEditPermission(){
+		return this.data.getEditPermission();
+	}
+	@JsonSetter("editPermission")
+	public void setEditPermission(String editPermission){
+		this.data.setEditPermission(editPermission);
+	}
 	
 	/*
 	 * (non-Javadoc)
