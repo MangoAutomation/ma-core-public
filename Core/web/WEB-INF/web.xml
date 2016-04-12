@@ -178,7 +178,6 @@
   	<url-pattern>/dwr/utils.js</url-pattern>
 	<url-pattern>/exception/*</url-pattern>
   	<url-pattern>/images/*</url-pattern>
-  	<url-pattern>/mango-javascript/*</url-pattern>
   	<url-pattern>/modules/*</url-pattern>
  	<url-pattern>/protected/*</url-pattern>
   	<url-pattern>/resources/*</url-pattern>
