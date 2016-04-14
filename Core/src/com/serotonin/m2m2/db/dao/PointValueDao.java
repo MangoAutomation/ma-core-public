@@ -28,9 +28,6 @@ import com.serotonin.m2m2.vo.pair.LongPair;
 
 public interface PointValueDao {
 	
-	
-	
-	
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
@@ -41,31 +38,109 @@ public interface PointValueDao {
      */
     public void savePointValueAsync(int pointId, PointValueTime pointValue, SetPointSource source);
 
+    /**
+     * Get the point values >= since
+     * @param pointId
+     * @param since
+     * @return
+     */
     public List<PointValueTime> getPointValues(int pointId, long since);
 
+    /**
+     * Get point values >= from and < to
+     * @param pointId
+     * @param from
+     * @param to
+     * @return
+     */
     public List<PointValueTime> getPointValuesBetween(int pointId, long from, long to);
 
+    /**
+     * Get point values in reverse time order
+     * @param pointId
+     * @param limit
+     * @return
+     */
     public List<PointValueTime> getLatestPointValues(int pointId, int limit);
 
+    /**
+     * Get point values < before in reverse time order
+     * @param pointId
+     * @param limit
+     * @param before
+     * @return
+     */
     public List<PointValueTime> getLatestPointValues(int pointId, int limit, long before);
 
+    /**
+     * Get the latest point value for this point
+     * @param pointId
+     * @return null or value
+     */
     public PointValueTime getLatestPointValue(int pointId);
 
+    /**
+     * Get the first point value < time
+     * @param pointId
+     * @param time
+     * @return null or value
+     */
     public PointValueTime getPointValueBefore(int pointId, long time);
 
+    /**
+     * Get the point value at or just after this time
+     * @param pointId
+     * @param time
+     * @return
+     */
     public PointValueTime getPointValueAfter(int pointId, long time);
 
+    /**
+     * Get the point value (if any) at this time.
+     * @param pointId
+     * @param time
+     * @return null or value
+     */
     public PointValueTime getPointValueAt(int pointId, long time);
 
+    /**
+     * Get point values >= from and < to
+     * @param pointId
+     * @param from
+     * @param to
+     * @return
+     */
     public void getPointValuesBetween(int pointId, long from, long to, MappedRowCallback<PointValueTime> callback);
 
+    /**
+     * Get point values >= from and < to
+     * @param pointId
+     * @param from
+     * @param to
+     * @return ordered list for all values by time
+     */
     public void getPointValuesBetween(List<Integer> pointIds, long from, long to,
             MappedRowCallback<IdPointValueTime> callback);
 
+    /**
+     * Delete values < time
+     * @param pointId
+     * @param time
+     * @return
+     */
     public long deletePointValuesBefore(int pointId, long time);
 
+    /**
+     * Delete all values
+     * @param pointId
+     * @return
+     */
     public long deletePointValues(int pointId);
 
+    /**
+     * Delete values for all points
+     * @return
+     */
     public long deleteAllPointData();
 
     /**
@@ -74,19 +149,46 @@ public interface PointValueDao {
      */
     public long deleteOrphanedPointValues();
 
+    /**
+     * SQL Specific to delete annotations if they are stored elsewhere
+     */
     public void deleteOrphanedPointValueAnnotations();
 
-    //NOT USING in Mango (legacy from M2M)
-    //public void compressTables();
-
+    /**
+     * Count the values >= from and < to
+     * @param pointId
+     * @param from
+     * @param to
+     * @return
+     */
     public long dateRangeCount(int pointId, long from, long to);
 
+    /**
+     * Get the earliest timestamp for this point
+     * @param pointId
+     * @return
+     */
     public long getInceptionDate(int pointId);
 
+    /**
+     * Return the earliest point value's time for all point IDs
+     * @param pointIds
+     * @return earliest ts or 0
+     */
     public long getStartTime(List<Integer> pointIds);
 
+    /**
+     * Return the latest point value's time for all point IDs
+     * @param pointIds
+     * @return latest time or -1l
+     */
     public long getEndTime(List<Integer> pointIds);
 
+    /**
+     * Return the latest and earliest point value times for this list of IDs
+     * @param pointIds
+     * @return null if none exists
+     */
     public LongPair getStartAndEndTime(List<Integer> pointIds);
 
     public List<Long> getFiledataIds(int pointId);
