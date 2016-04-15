@@ -6,7 +6,13 @@
 
 
 
-<span class="smallTitle"><fmt:message key="filter.current" /></span>
+<span class="smallTitle"><fmt:message key="filter.current" />
+   <img class="ptr bulkPermissionsHelp"
+   src="/images/help.png"
+   title="<fmt:message key="permissions.bulkdEditDataPoint" />" 
+   alt="<fmt:message key="permissions.bulkdEditDataPoint" />"
+  />
+</span>
 <div style="padding-bottom:10px;">
   <div id="filter-grid" style="height:120px; border: 0px" ></div>
 </div>
@@ -18,7 +24,7 @@
 <div id="permissions">
   <span class="smallTitle">
   <fmt:message key="permissions.bulkApply" />
-  <img id="bulkPermissionsHelp" class="ptr"
+  <img class="ptr bulkPermissionsHelp"
    src="/images/help.png"
    title="<fmt:message key="permissions.bulkdEditDataPoint" />" 
    alt="<fmt:message key="permissions.bulkdEditDataPoint" />"

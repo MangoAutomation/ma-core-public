@@ -88,7 +88,7 @@ UsersView.prototype.setupView = function(){
 	
 	//Setup the users Help Link
 	$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp.bind(this));
-	$('#bulkPermissionsHelp').on('click', {helpId: 'bulkDataPointPermissions'}, this.showHelp.bind(this));
+	$('.bulkPermissionsHelp').on('click', {helpId: 'bulkDataPointPermissions'}, this.showHelp.bind(this));
 	
  
 	this.timezoneStore = new Rest({
