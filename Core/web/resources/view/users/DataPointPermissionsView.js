@@ -3,12 +3,12 @@
  * @author Terry Packer
  */
 
-define(['jquery', 'view/BaseUIComponent', 'dstore/Rest', 'dstore/Memory',
-        'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 
+define(['jquery', 'view/BaseUIComponent', 'dstore/Rest', 'dstore/RequestFixed', 'dojo/store/Memory', 'dstore/Memory',
+        'dojo/data/ObjectStore', 'dijit/form/Select', 'dijit/form/FilteringSelect', 'dstore/legacy/DstoreAdapter', 
         'dojo/_base/declare', 'dgrid/OnDemandGrid', 'dgrid/Editor', 'dgrid/extensions/ColumnResizer',
         'dgrid/extensions/DijitRegistry'], 
-		function($, BaseUIComponent, Rest, Memory,
-				FilteringSelect, DstoreAdapter, declare, OnDemandGrid, Editor, ColumnResizer, DijitRegistry){
+		function($, BaseUIComponent, Rest, Request, DojoMemory, Memory, ObjectStore,
+				Select, FilteringSelect, DstoreAdapter, declare, OnDemandGrid, Editor, ColumnResizer, DijitRegistry){
 "use strict";
 
 function DataPointPermissionsView(){
@@ -31,55 +31,84 @@ DataPointPermissionsView.prototype.setupView = function(){
 	this.filterStore = new Memory({
 		data: [{
 			id: 0,
-			enabled: true,
- 			xid: null,
- 			name: null,
- 			deviceName: null,
- 			dataSourceName: null,
- 			setPermission: null,
- 			readPermission: null,
+			enabled: 'or',
+ 			xid: "*",
+ 			name: "",
+ 			deviceName: "",
+ 			dataSourceName: "",
+ 			setPermission: "",
+ 			readPermission: "",
  		},{
 			id: 1,
-			enabled: false,
- 			xid: null,
- 			name: null,
- 			deviceName: null,
- 			dataSourceName: null,
- 			setPermission: null,
- 			readPermission: null,
+			enabled: 'disabled',
+ 			xid: "",
+ 			name: "",
+ 			deviceName: "",
+ 			dataSourceName: "",
+ 			setPermission: "",
+ 			readPermission: "",
  		},{
 			id: 2,
-			enabled: false,
- 			xid: null,
- 			name: null,
- 			deviceName: null,
- 			dataSourceName: null,
- 			setPermission: null,
- 			readPermission: null,
+			enabled: 'disabled',
+ 			xid: "",
+ 			name: "",
+ 			deviceName: "",
+ 			dataSourceName: "",
+ 			setPermission: "",
+ 			readPermission: "",
  		},{
 			id: 3,
-			enabled: false,
- 			xid: null,
- 			name: null,
- 			deviceName: null,
- 			dataSourceName: null,
- 			setPermission: null,
- 			readPermission: null,
+			enabled: 'disabled',
+ 			xid: "",
+ 			name: "",
+ 			deviceName: "",
+ 			dataSourceName: "",
+ 			setPermission: "",
+ 			readPermission: "",
  		}]
 	});
 	
+	var filterOptionsData = [
+					{ id: 'disabled', name: 'Disabled', order: 1 },
+					{ id: 'and', name: 'And', order: 2 },
+					{ id: 'or', name: 'Or', order: 3}
+				];
+	var filterOptionsStore = new DojoMemory({ data: filterOptionsData });
+	var filterOptionsDataStore = new ObjectStore({
+		objectStore: filterOptionsStore,
+		labelProperty: 'name'
+	});
+
+	var thisView = this;
 	this.filterGrid = new (declare([OnDemandGrid, Editor, ColumnResizer, DijitRegistry]))({
 	    collection: this.filterStore,
 	    columns: {
 	    	enabled: {
-	    		label: 'Filter Enabled',
-	    		editor: 'checkbox',
+	    		label: 'Filter State',
+	    		editor: Select,
+	    		editorArgs: {
+	    			store: filterOptionsDataStore,
+	    			sortByLabel: false
+	    		},
 	    		editOn: 'click',
 	    		autoSave: true,
 	        	sortable: false,
+	        	renderCell: function(object, value, node, options) {
+	        		$(node).text(filterOptionsStore.get(value).name);
+	        	}
 	    	},
 	        xid: {
 	        	label: this.tr('filter.byDataPointXid'),
+	        	renderHeaderCell: function(node){
+	        		$(node).text(this.label);
+	        		var cb = $('<input />', { title: 'Check to enable', type: 'checkbox', id: 'cb-xid', value: name, style: 'margin-left: 5px', checked: 'checked'});
+	        		cb.change(thisView.filterAttributeChanged.bind(thisView));
+	        		cb.appendTo(node);
+	        		return;
+	        	},
+	        	canEdit: function(){
+	        		return $('#cb-' + this.field).is(':checked');
+	        	},
 	        	editor: 'text',
 	        	editOn: 'click',
 	        	autoSave: true,
@@ -87,6 +116,16 @@ DataPointPermissionsView.prototype.setupView = function(){
 	        },
 	        name: {
 	        	label: this.tr('filter.byDataPointName'),
+	        	renderHeaderCell: function(node){
+	        		$(node).text(this.label);
+	        		var cb = $('<input />', { title: 'Check to enable', type: 'checkbox', id: 'cb-name', value: name, style: 'margin-left: 5px'});
+	        		cb.change(thisView.filterAttributeChanged.bind(thisView));
+	        		cb.appendTo(node);
+	        		return;
+	        	},
+	        	canEdit: function(){
+	        		return $('#cb-' + this.field).is(':checked');
+	        	},
 	        	editor: 'text',
 	        	editOn: 'click',
 	        	autoSave: true,
@@ -94,6 +133,16 @@ DataPointPermissionsView.prototype.setupView = function(){
 	        },
 	        deviceName: {
 	        	label: this.tr('filter.byDeviceName'),
+	        	renderHeaderCell: function(node){
+	        		$(node).text(this.label);
+	        		var cb = $('<input />', { title: 'Check to enable', type: 'checkbox', id: 'cb-deviceName', value: name, style: 'margin-left: 5px'});
+	        		cb.change(thisView.filterAttributeChanged.bind(thisView));
+	        		cb.appendTo(node);
+	        		return;
+	        	},
+	        	canEdit: function(){
+	        		return $('#cb-' + this.field).is(':checked');
+	        	},
 	        	editor: 'text',
 	        	editOn: 'click',
 	        	autoSave: true,
@@ -101,13 +150,33 @@ DataPointPermissionsView.prototype.setupView = function(){
 	        },
 	        dataSourceName: {
 	            label: this.tr('filter.byDataSourceName'),
+	            renderHeaderCell: function(node){
+	        		$(node).text(this.label);
+	        		var cb = $('<input />', { title: 'Check to enable', type: 'checkbox', id: 'cb-dataSourceName', value: name, style: 'margin-left: 5px'});
+	        		cb.change(thisView.filterAttributeChanged.bind(thisView));
+	        		cb.appendTo(node);
+	        		return;
+	        	},
+	        	canEdit: function(){
+	        		return $('#cb-' + this.field).is(':checked');
+	        	},
 	            editor: 'text',
 	        	editOn: 'click',
 	        	autoSave: true,
 	        	sortable: false,
 	        },
-	        setPermission:{
+	        setPermission: {
 	        	label: this.tr('filter.bySetPermissions'),
+	        	renderHeaderCell: function(node){
+	        		$(node).text(this.label);
+	        		var cb = $('<input />', { title: 'Check to enable', type: 'checkbox', id: 'cb-setPermission', value: name, style: 'margin-left: 5px'});
+	        		cb.change(thisView.filterAttributeChanged.bind(thisView));
+	        		cb.appendTo(node);
+	        		return;
+	        	},
+	        	canEdit: function(){
+	        		return $('#cb-' + this.field).is(':checked');
+	        	},
 	        	editor: 'text',
 	        	editOn: 'click',
 	        	autoSave: true,
@@ -115,6 +184,16 @@ DataPointPermissionsView.prototype.setupView = function(){
 	        },
 	        readPermission: {
 	        	label: this.tr('filter.byReadPermissions'),
+	        	renderHeaderCell: function(node){
+	        		$(node).text(this.label);
+	        		var cb = $('<input />', { title: 'Check to enable', type: 'checkbox', id: 'cb-readPermission', value: name, style: 'margin-left: 5px'});
+	        		cb.change(thisView.filterAttributeChanged.bind(thisView));
+	        		cb.appendTo(node);
+	        		return;
+	        	},
+	        	canEdit: function(){
+	        		return $('#cb-' + this.field).is(':checked');
+	        	},
 	        	editor: 'text',
 	        	editOn: 'click',
 	        	autoSave: true,
@@ -126,10 +205,14 @@ DataPointPermissionsView.prototype.setupView = function(){
 	this.filterGrid.on('dgrid-datachange', this.filterChanged.bind(this));
 	
 	this.baseURL = '/rest/v1/data-points';
-	this.pointsStore = new Rest({
+	this.pointsStore = new (declare([Rest, Request]))({
 	    target: this.baseURL,
 	    idProperty: 'xid'
 	});
+//	this.pointsStore = new Request({
+//	    target: this.baseURL,
+//	    idProperty: 'xid'
+//	});
 	
 	this.sortedPointsStore = this.pointsStore.sort([{property: 'dataSourceXid', descending: true}]);
 	
@@ -150,14 +233,31 @@ DataPointPermissionsView.prototype.setupView = function(){
 	        },
 	        setPermission:{
 	        	label: this.tr('filter.bySetPermissions'),
-	        	//editor: 'text', //TODO Re-enable when the point models are all working right
-	        	//editOn: 'click',
-	        	//autoSave: true,
+	        	renderCell: function(object, value, node, options){
+	        		if(value === null)
+	        			$(node).html('<b>null</b>');
+	        		else
+	        			$(node).text(value);
+	        	},
+	        	//Inline editing when we are confident the data 
+	        	// point PUT REST endpoint is complete
+	        	//editor: 'text',
+	        	//editOn: 'dblclick',
+	        	//autoSave: true
+	        	
 	        },
 	        readPermission: {
 	        	label: this.tr('filter.byReadPermissions'),
+	        	renderCell: function(object, value, node, options){
+	        		if(value === null)
+	        			$(node).html('<b>null</b>');
+	        		else
+	        			$(node).text(value);
+	        	},
+	        	//Inline editing when we are confident the data 
+	        	// point PUT REST endpoint is complete
 	        	//editor: 'text',
-	        	//editOn: 'click',
+	        	//editOn: 'dblclick',
 	        	//autoSave: true,
 	        },
 	    },
@@ -185,33 +285,60 @@ DataPointPermissionsView.prototype.setupView = function(){
 };
 
 /**
+ * 
+ */
+DataPointPermissionsView.prototype.filterAttributeChanged = function(event){
+	this.filterChanged(); //Trigger re-load
+};
+
+/**
  * Filter has been modified
  */
 DataPointPermissionsView.prototype.filterChanged = function(event){
-	
-	//Get new info
-	var columnId = event.cell.column.id;
-	var rowId = event.cell.row.id;
-	var cellValue = event.value; 
+	//Set to not use update if no event
+	var rowId = -1;
+	var columnId;	
+	var cellValue; 
+	if(typeof event != 'undefined'){
+		//Get new info
+		columnId = event.cell.column.id;
+		rowId = event.cell.row.id;
+		cellValue = event.value; 
+	}
 	
 	//Get all active filters
 	var filters = this.filterStore.filter();
-	var totalFilter = new this.pointsStore.Filter();
-	
+	var totalFilter = null;
+	var my = this;
 	//Build the total filter
 	filters.forEach(function(filter){
 		if(filter.id == rowId)
 			filter[columnId] = cellValue; //Update with new info from event
 		for(var prop in filter){
 			//Don't add extra info
-			if((prop != 'enabled')&&(prop != 'id')&&(filter.enabled === true)){
-				if((filter[prop] !== null)&&(filter[prop] !== "")){
-					//totalFilter[prop] = new Regex(filter[prop]);
-					totalFilter = totalFilter.match(prop, filter[prop]);
+			if((prop != 'enabled')&&(prop != 'id')&&(filter.enabled !== 'disabled')){
+				//Only use enabled filter properties
+				if($('#cb-' + prop).is(':checked') === true){
+					if(totalFilter === null){
+						totalFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+					}else{
+						//totalFilter[prop] = new Regex(filter[prop]);
+						var newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+						if(filter.enabled === 'or')
+							totalFilter = my.pointsStore.Filter().or(totalFilter, newFilter);
+						else if(filter.enabled === 'and')
+							totalFilter = my.pointsStore.Filter().and(totalFilter, newFilter);
+					}
 				}
 			}
 		}
 	});
+	
+	//Just in case we don't have any criteria
+	if(totalFilter === null)
+		 totalFilter = new this.pointsStore.Filter();
+	
+	console.log(totalFilter);
 	
 	this.currentFilter = totalFilter;
 	var filteredStore = this.pointsStore.filter(totalFilter);
