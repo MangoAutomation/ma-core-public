@@ -513,10 +513,10 @@ public class Common {
             String algorithm = m.group(1);
             String hash = m.group(2);
             
-            // not possible for password to start with $ if its a legacy encoded password
-            // as they are Base64 encoded
             if ("BCRYPT".equals(algorithm)) {
                 return BCrypt.checkpw(password, hash);
+            } else if ("NONE".equals(algorithm)) {
+               return hash.equals(password);
             } else {
                 return hash.equals(encrypt(password, algorithm));
             }
