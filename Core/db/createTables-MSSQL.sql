@@ -29,7 +29,7 @@ alter table templates add constraint templatesUn1 unique (xid);
 create table users (
   id int not null identity,
   username nvarchar(40) not null,
-  password nvarchar(30) not null,
+  password nvarchar(255) not null,
   email nvarchar(255) not null,
   phone nvarchar(40),
   disabled char(1) not null,

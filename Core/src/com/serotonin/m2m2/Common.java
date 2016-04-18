@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -36,6 +38,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -153,7 +156,7 @@ public class Common {
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 12;
+        return 13;
     }
 
     /**
@@ -446,12 +449,27 @@ public class Common {
     
     //
     // Misc
-    public synchronized static String encrypt(String plaintext) {
+    
+    /**
+     * Uses BCrypt by default
+     * @param plaintext
+     * @return
+     */
+    public static String encrypt(String plaintext) {
+        String alg = envProps.getString("security.hashAlgorithm", "BCRYPT");
+        String hash = encrypt(plaintext, alg);
+        return "{" + alg + "}" + hash;
+    }
+    
+    public static String encrypt(String plaintext, String alg) {
         try {
-            String alg = envProps.getString("security.hashAlgorithm", "SHA");
             if ("NONE".equals(alg))
                 return plaintext;
-
+            
+            if ("BCRYPT".equals(alg)) {
+                return BCrypt.hashpw(plaintext, BCrypt.gensalt());
+            }
+            
             MessageDigest md = MessageDigest.getInstance(alg);
             if (md == null)
                 throw new ShouldNeverHappenException("MessageDigest algorithm " + alg
@@ -465,6 +483,41 @@ public class Common {
         catch (NoSuchAlgorithmException e) {
             // Should never happen, so just wrap in a runtime exception and rethrow
             throw new ShouldNeverHappenException(e);
+        }
+    }
+    
+    public static boolean checkPassword(String plaintext, String hashed) {
+        return checkPassword(plaintext, hashed, false);
+    }
+    
+    private static final Pattern EXTRACT_ALGORITHM_HASH = Pattern.compile("^\\{(.*?)\\}(.*)");
+    
+    public static boolean checkPassword(String password, String storedHash, boolean passwordEncrypted) {
+        try {
+            if (password == null || storedHash == null)
+                return false;
+            
+            if (passwordEncrypted) {
+                return storedHash.equals(password);
+            }
+            
+            Matcher m = EXTRACT_ALGORITHM_HASH.matcher(storedHash);
+            if (!m.matches()) {
+                return false;
+            }
+            String algorithm = m.group(1);
+            String hash = m.group(2);
+            
+            if ("BCRYPT".equals(algorithm)) {
+                return BCrypt.checkpw(password, hash);
+            } else if ("NONE".equals(algorithm)) {
+               return hash.equals(password);
+            } else {
+                return hash.equals(encrypt(password, algorithm));
+            }
+            
+        } catch (Throwable t) {
+            return false;
         }
     }
 
