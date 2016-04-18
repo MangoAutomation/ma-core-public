@@ -33,7 +33,7 @@ alter table templates add constraint templatesUn1 unique (xid);
 create table users (
   id int not null auto_increment,
   username varchar(40) not null,
-  password varchar(30) not null,
+  password varchar(255) not null,
   email varchar(255) not null,
   phone varchar(40),
   disabled char(1) not null,

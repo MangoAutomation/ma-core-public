@@ -30,7 +30,7 @@ ALTER TABLE templates ADD CONSTRAINT templatesUn1 UNIQUE (xid);
 CREATE TABLE users (
   id SERIAL,
   username varchar(40) NOT NULL,
-  password varchar(30) NOT NULL,
+  password varchar(255) NOT NULL,
   email varchar(255) NOT NULL,
   phone varchar(40),
   disabled character(1) NOT NULL,
