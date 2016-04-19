@@ -486,7 +486,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>1.4.12</version>
+			<version>1.5.0</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
