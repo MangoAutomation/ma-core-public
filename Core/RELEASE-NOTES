@@ -4,6 +4,7 @@
 * Change H2 we console startup script to use same location as Mango's H2 database
 * Added robots.txt to stop web crawling
 * Changed data point permissions editing area to support more complex queries and null vs empty permissions
+* Added support for Apache Cassandra point value storage (CassandraDB module required)
 
 *Version 2.7.10*
 * Fixing bug in upgrade and create-tables scripts for MySQL
