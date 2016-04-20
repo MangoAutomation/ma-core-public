@@ -21,12 +21,13 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
-public class SetPointHandlerRT extends EventHandlerRT implements SetPointSource {
+public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
     private static final Log LOG = LogFactory.getLog(SetPointHandlerRT.class);
 
-    public SetPointHandlerRT(EventHandlerVO vo) {
-        this.vo = vo;
+    public SetPointHandlerRT(SetPointEventHandlerVO vo) {
+        super(vo);
     }
 
     @Override

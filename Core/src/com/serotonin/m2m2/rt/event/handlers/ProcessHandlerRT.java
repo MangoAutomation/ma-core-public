@@ -8,14 +8,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.maint.work.ProcessWorkItem;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
 
 /**
  * @author Matthew Lohbihler
  */
-public class ProcessHandlerRT extends EventHandlerRT {
-    public ProcessHandlerRT(EventHandlerVO vo) {
-        this.vo = vo;
+public class ProcessHandlerRT extends EventHandlerRT<ProcessEventHandlerVO> {
+    public ProcessHandlerRT(ProcessEventHandlerVO vo) {
+        super(vo);
     }
 
     @Override

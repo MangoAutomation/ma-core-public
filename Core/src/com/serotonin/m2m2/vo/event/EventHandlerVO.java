@@ -13,7 +13,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -31,10 +30,6 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -43,6 +38,12 @@ import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 
+/**
+ * This class is now only used to upgrade old detectors
+ * @author Terry Packer
+ *
+ */
+@Deprecated
 public class EventHandlerVO implements Serializable, ChangeComparable<EventHandlerVO>, JsonSerializable {
     public static final String XID_PREFIX = "EH_";
 
@@ -117,17 +118,6 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
     private String inactiveProcessCommand;
     private int inactiveProcessTimeout = 15;
 
-    public EventHandlerRT createRuntime() {
-        switch (handlerType) {
-        case TYPE_SET_POINT:
-            return new SetPointHandlerRT(this);
-        case TYPE_EMAIL:
-            return new EmailHandlerRT(this);
-        case TYPE_PROCESS:
-            return new ProcessHandlerRT(this);
-        }
-        throw new ShouldNeverHappenException("Unknown handler type: " + handlerType);
-    }
 
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(alias))

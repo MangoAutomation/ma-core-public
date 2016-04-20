@@ -7,8 +7,10 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class EventHandlerImporter extends Importer {
@@ -22,10 +24,21 @@ public class EventHandlerImporter extends Importer {
         if (StringUtils.isBlank(xid))
             xid = ctx.getEventDao().generateUniqueXid();
 
-        EventHandlerVO handler = ctx.getEventDao().getEventHandler(xid);
+        AbstractEventHandlerVO handler = ctx.getEventDao().getEventHandler(xid);
         if (handler == null) {
-            handler = new EventHandlerVO();
-            handler.setXid(xid);
+        	String typeStr = json.getString("handlerType");
+        	if (StringUtils.isBlank(typeStr))
+                addFailureMessage("emport.eventHandler.missingType", xid, ModuleRegistry.getEventHandlerDefinitionTypes());
+            else {
+                EventHandlerDefinition def = ModuleRegistry.getEventHandlerDefinition(typeStr);
+                if (def == null)
+                    addFailureMessage("emport.eventHandler.invalidType", xid, typeStr,
+                            ModuleRegistry.getEventHandlerDefinitionTypes());
+                else {
+                    handler = def.baseCreateEventHandlerVO();
+                    handler.setXid(xid);
+                }
+            }
         }
 
         try {

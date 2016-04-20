@@ -32,7 +32,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.util.ILifecycle;
 
@@ -798,13 +798,13 @@ public class EventManager implements ILifecycle {
 	}
 
 	private void setHandlers(EventInstance evt) {
-		List<EventHandlerVO> vos = eventDao
+		List<AbstractEventHandlerVO> vos = eventDao
 				.getEventHandlers(evt.getEventType());
-		List<EventHandlerRT> rts = null;
-		for (EventHandlerVO vo : vos) {
+		List<EventHandlerRT<?>> rts = null;
+		for (AbstractEventHandlerVO vo : vos) {
 			if (!vo.isDisabled()) {
 				if (rts == null)
-					rts = new ArrayList<EventHandlerRT>();
+					rts = new ArrayList<EventHandlerRT<?>>();
 				rts.add(vo.createRuntime());
 			}
 		}
@@ -815,7 +815,7 @@ public class EventManager implements ILifecycle {
 	private void handleRaiseEvent(EventInstance evt,
 			Set<String> defaultAddresses) {
 		if (evt.getHandlers() != null) {
-			for (EventHandlerRT h : evt.getHandlers()) {
+			for (EventHandlerRT<?> h : evt.getHandlers()) {
 				h.eventRaised(evt);
 
 				// If this is an email handler, remove any addresses to which it
@@ -839,7 +839,7 @@ public class EventManager implements ILifecycle {
 
 	private void handleInactiveEvent(EventInstance evt) {
 		if (evt.getHandlers() != null) {
-			for (EventHandlerRT h : evt.getHandlers())
+			for (EventHandlerRT<?> h : evt.getHandlers())
 				h.eventInactive(evt);
 		}
 	}

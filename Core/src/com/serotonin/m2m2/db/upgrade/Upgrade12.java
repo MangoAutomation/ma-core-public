@@ -26,6 +26,8 @@ public class Upgrade12 extends DBUpgrade {
     	String[] mysqlScript = {
 	        "ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL;",
 	        "UPDATE users SET password  = CONCAT('{" + hashAlgorithm + "}', password);",
+	        
+	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);"
 	   
 	    	"ALTER TABLE dataPoints ADD INDEX nameIndex (name ASC);",
 	    	"ALTER TABLE dataPoints ADD INDEX deviceNameIndex (deviceName ASC);",
@@ -39,6 +41,8 @@ public class Upgrade12 extends DBUpgrade {
 	        "ALTER TABLE users ALTER COLUMN password SET DATA TYPE VARCHAR(255);",
 	        "UPDATE users SET password  = '{" + hashAlgorithm + "}' || password;",
 	    
+	    	"ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);
+
 	   		"CREATE INDEX nameIndex on dataPoints (name ASC);",
 	   		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
 	   		"CREATE INDEX pointFolderIndex on dataPoints (pointFolderId ASC);",
@@ -50,6 +54,8 @@ public class Upgrade12 extends DBUpgrade {
 	    String[] h2Script = {
 	        "ALTER TABLE users ALTER COLUMN password VARCHAR(255) NOT NULL;",
 	        "UPDATE users SET password  = CONCAT('{" + hashAlgorithm + "}', password);",
+	        
+	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);"
 	
 	    	"CREATE INDEX nameIndex on dataPoints (`name` ASC);",
 	    	"CREATE INDEX deviceNameIndex on dataPoints (`deviceName` ASC);",
@@ -62,6 +68,8 @@ public class Upgrade12 extends DBUpgrade {
 	   	String[] mssqlScript = {
 	        "ALTER TABLE users ALTER COLUMN password nvarchar(255) NOT NULL;",
 	        "UPDATE users SET password  = CONCAT('{" + hashAlgorithm + "}', password);",
+	        
+	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType nvarchar(40);"
 	        
 	   		"CREATE INDEX nameIndex on dataPoints (name ASC);",
 	   		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
@@ -79,7 +87,47 @@ public class Upgrade12 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mysqlScript);
         runScript(scripts);
+        
+        upgradeEventHandlers();
+        
+        //Now make column not null
+        scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), new String[] {
+            "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType NOT NULL;",
+        });
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {
+            "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
+        });
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {
+            "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType nvarchar(40) NOT NULL;",
+        });
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {
+            "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
+        });
+        runScript(scripts);
 
+    }
+
+	/**
+	 * Upgrade a handler in the DB
+	 * @param handler
+	 */
+    void upgradeEventHandler(AbstractEventHandlerVO handler) {
+        ejt.update("update eventHandlers set xid=?, alias=?, eventHandlerType=?, data=? where id=?", new Object[] { handler.getXid(),
+                handler.getAlias(), handler.getDefinition().getEventHandlerTypeName(), SerializationHelper.writeObject(handler), handler.getId() }, new int[] {
+                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.INTEGER });
+    }
+	
+    @SuppressWarnings("deprecation")
+	class EventHandlerRowMapper implements RowMapper<EventHandlerVO> {
+		@Override
+        public EventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            EventHandlerVO h = (EventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(4));
+            h.setId(rs.getInt(1));
+            h.setXid(rs.getString(2));
+            h.setAlias(rs.getString(3));
+            return h;
+        }
     }
 
     @Override

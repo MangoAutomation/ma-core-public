@@ -6,11 +6,16 @@ package com.serotonin.m2m2.rt.event.handlers;
 
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.event.EventInstance;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
-abstract public class EventHandlerRT {
-    protected EventHandlerVO vo;
+abstract public class EventHandlerRT<T extends AbstractEventHandlerVO> {
+	
+    protected T vo;
 
+    public EventHandlerRT(T vo){
+    	this.vo = vo;
+    }
+    
     /**
      * Not all events that are raised are made active. It depends on the event's alarm level and duplicate handling.
      * 
