@@ -74,7 +74,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     
     @Override
     public TranslatableMessage getConnectionDescription() {
-    	if (StringUtils.isBlank(cronPattern))
+    	if (!StringUtils.isBlank(cronPattern))
         	return new TranslatableMessage("common.default", cronPattern);
         else
             return Common.getPeriodDescription(updatePeriodType, updatePeriods);

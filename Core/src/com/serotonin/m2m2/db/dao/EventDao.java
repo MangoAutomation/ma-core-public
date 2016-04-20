@@ -675,7 +675,7 @@ public class EventDao extends BaseDao {
     void insertEventHandler(String typeName, String subtypeName, int typeRef1, int typeRef2, AbstractEventHandlerVO handler) {
         handler.setId(doInsert("insert into eventHandlers " //
                 + "  (xid, alias, eventHandlerType, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2, data) " //
-                + "values (?,?,?,?,?,?,?)", new Object[] { handler.getXid(), handler.getAlias(), handler.getDefinition().getEventHandlerTypeName(), typeName, subtypeName,
+                + "values (?,?,?,?,?,?,?,?)", new Object[] { handler.getXid(), handler.getAlias(), handler.getDefinition().getEventHandlerTypeName(), typeName, subtypeName,
                 typeRef1, typeRef2, SerializationHelper.writeObject(handler) }, new int[] { Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BINARY }));
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);

@@ -102,6 +102,11 @@ public abstract class AbstractEventHandlerVO implements Serializable, ChangeComp
         return "event.audit.eventHandler";
     }
 
+	//For DWR Use
+	public String getHandlerType(){
+		return this.definition.getEventHandlerTypeName();
+	}
+	
     public void validate(ProcessResult response) {
     }
 
