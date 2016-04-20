@@ -660,3 +660,17 @@ table.dijit {
 /** User permission styles **/
 .userPerms td { padding: 2px 5px; }
 .permUser { font-weight: bold; color: #699D2E; }
+
+/* cron pattern css */
+
+.cron-interval {
+    display: inline-block;
+}
+
+.cron-interval label {
+    margin-bottom: 0
+}
+
+.cron-interval label, .cron-interval select {
+    display: block;
+}

@@ -225,7 +225,7 @@
   </div>
   <div class="cron-interval">
     <label for="cron-month"><fmt:message key="dateAndTime.month"/></label>
-    <select name="month" if="cron-month" multiple>
+    <select name="month" if="cron-month" multiple id="cron-month">
       <option value="*"><fmt:message key="cronPicker.every"/></option>
       <option value="0/2"><fmt:message key="cronPicker.everyX"><fmt:param value="2"/></fmt:message></option>
       <option value="0/3"><fmt:message key="cronPicker.everyX"><fmt:param value="3"/></fmt:message></option>

@@ -11,6 +11,7 @@
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="${dwrClasses},TemplateDwr" onload="init">
   <jsp:attribute name="styles">
+  <script src="/resources/loaderConfig.js" data-loader="Dojo"></script>
   <style type="text/css">
     .mangoForm ul { margin: 0; padding: 0; }
     .mangoForm ul li { margin-bottom: 5px; list-style: none; }
@@ -23,13 +24,11 @@
   </style>
   
   <script type="text/javascript">
-	  //Collect the table js interface
-	  var dojoConfig = {packages:[{name: "deltamation", location: "/resources/deltamation"}]};
-	  
+  	  //Remove DGrid
+	  delete dojoConfig.map['*'].dgrid;
 	  function init() {
 		  initDataSourceEdit();  //TODO Move to after add button clicked
 	  };
-
   </script>
   </jsp:attribute>
   

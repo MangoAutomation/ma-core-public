@@ -5,7 +5,93 @@
 --%><%@attribute name="descriptionKey" required="true" rtexprvalue="true" %><%--
 --%><%@attribute name="helpId" rtexprvalue="true" %><%--
 --%><%@attribute name="extraPanels" fragment="true" %><%--
+--%><%@tag import="com.serotonin.m2m2.Common"%><%--
 --%>
+<script type="text/javascript">
+require(['jquery',
+         'view/CronPicker'],
+function($, CronPicker) {
+  'use strict';
+  var cronPicker = new CronPicker({
+      $input: $('#cronPattern'),
+      $picker: $('.cron-picker')
+  });
+  
+  $('#quantize').on('change', function(event){
+	  if(event.target.checked === true){
+		 //Disable the Cron Pattern and enable the update periods
+		 $('#cronPattern').val('');
+		 $('#cronPattern').prop('disabled', true);
+		 $('#cronPattern').css('background', '#dddddd');
+		 $('#clearCronBtn').prop('disabled', true);
+		 $('#setToPollPeriodBtn').prop('disabled', true);		 
+		 
+		 $('#updatePeriodType').prop('disabled', false);
+		 $('#updatePeriods').prop('disabled', false);
+		 $('#updatePeriodType').css('background', '');
+		 $('#updatePeriods').css('background', '');		 
+	 }else{
+		 //Enable the Cron Pattern
+		 $('#cronPattern').prop('disabled', false);
+		 $('#cronPattern').css('background', '');
+		 $('#clearCronBtn').prop('disabled', true);
+		 $('#setToPollPeriodBtn').prop('disabled', true);
+	 }
+  });
+  
+  //Set to disable the time periods if there is a value in the picker
+  $('#cronPattern').on('change', function(event){
+	 if((event.target.value === '')||(event.target.value === null)){
+		 $('#updatePeriodType').prop('disabled', false);
+		 $('#updatePeriods').prop('disabled', false);
+		 $('#updatePeriodType').css('background', '');
+		 $('#updatePeriods').css('background', '');		 
+	 }else{
+		 $('#updatePeriodType').prop('disabled', true);
+		 $('#updatePeriodType').css('background', '#dddddd');
+		 $('#updatePeriods').prop('disabled', true);
+		 $('#updatePeriods').css('background', '#dddddd');
+	 }
+  });
+  //Clear the cron value
+  $('#clearCronBtn').on('click', function(){
+	  $('#cronPattern').val('').change();
+  })
+  //Create the cron value
+  $('#setToPollPeriodBtn').on('click', function(){
+	  var type = $('#updatePeriodType').val();
+	  switch(type){
+	  default:
+		  alert('Not possible via cron patterns.');
+	  break;
+	  case '<%= Integer.toString(Common.TimePeriods.SECONDS) %>':
+		  var pattern = '0/' +  $('#updatePeriods').val() + ' * * * * ?';
+		  $('#cronPattern').val(pattern).change();
+	  break;
+	  case '<%= Integer.toString(Common.TimePeriods.MINUTES) %>':
+		  var pattern = '* 0/' +  $('#updatePeriods').val() + ' * * * ?';
+		  $('#cronPattern').val(pattern).change();
+	  break;
+	  case '<%= Integer.toString(Common.TimePeriods.HOURS) %>':
+		  var pattern = '* * 0/' + $('#updatePeriods').val() + ' * * ?';
+		  $('#cronPattern').val(pattern).change();
+	  break;
+	  case '<%= Integer.toString(Common.TimePeriods.DAYS) %>':
+		  var pattern = '* * * 0/' +  $('#updatePeriods').val() + ' * ?';
+		  $('#cronPattern').val(pattern).change();
+	  break;
+	  }
+  });
+  
+  //Trigger changes for quantize and cron pattern if necessary
+  var cronPattern = '${dataSource.cronPattern}';
+  if(cronPattern !== '')
+	  $('#cronPattern').change();
+  var quantize = ${dataSource.quantize};
+  if(quantize === true)
+	  $('#quantize').change();
+});
+</script>
 <div id="dataSourcePropertiesTab">
 <input type="hidden" id="dataSource.enabled" value="${dataSource.enabled}"/>
 <table>
@@ -81,7 +167,14 @@
           </tr>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.cronPattern"/></td>
-            <td class="formField"><input type="text" id="cronPattern" value="${dataSource.cronPattern}" class="formLong" /></td>
+            <td class="formField">
+              <div class="label-clear">
+                <input id="cronPattern" type="text" name="cronPattern" value="${dataSource.cronPattern}">
+                <button id="clearCronBtn">Clear</button>
+                <button id="setToPollPeriodBtn">Set to Poll Period</button>
+                <jsp:include page="/WEB-INF/snippet/view/misc/cronPicker.jsp"/>
+               </div>
+            </td>
           </tr>
                     
           <jsp:doBody/>

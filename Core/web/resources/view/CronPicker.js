@@ -152,6 +152,8 @@ CronPicker.prototype.sort = function(selections) {
 
 CronPicker.prototype.getField = function(field) {
     var value = this._pattern[field];
+    if(typeof value === 'undefined')
+        value = ['*'];
     this.expandRanges(value);
     this.removeDuplicates(value);
     this.sort(value);
