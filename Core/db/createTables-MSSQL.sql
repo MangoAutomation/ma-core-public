@@ -231,6 +231,7 @@ create table eventHandlers (
   id int not null identity,
   xid nvarchar(50) not null,
   alias nvarchar(255),
+  eventHandlerType nvarchar(40) not null,
   
   -- Event type, see events
   eventTypeName nvarchar(32) not null,

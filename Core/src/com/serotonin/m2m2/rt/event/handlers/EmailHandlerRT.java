@@ -44,7 +44,7 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
 import com.serotonin.m2m2.web.taglib.Functions;
@@ -53,7 +53,7 @@ import com.serotonin.web.mail.EmailAttachment;
 import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailInline;
 
-public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient<EventInstance> {
+public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implements ModelTimeoutClient<EventInstance> {
     private static final Log LOG = LogFactory.getLog(EmailHandlerRT.class);
 
     private TimerTask escalationTask;
@@ -87,8 +87,8 @@ public class EmailHandlerRT extends EventHandlerRT implements ModelTimeoutClient
      */
     private Set<String> inactiveRecipients;
 
-    public EmailHandlerRT(EventHandlerVO vo) {
-        this.vo = vo;
+    public EmailHandlerRT(EmailEventHandlerVO vo) {
+        super(vo);
     }
 
     public Set<String> getActiveRecipients() {

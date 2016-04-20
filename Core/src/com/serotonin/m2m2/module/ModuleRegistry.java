@@ -25,8 +25,11 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
+import com.serotonin.m2m2.module.definitions.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.LegacyPointDetailsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.ProcessEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
@@ -69,6 +72,7 @@ public class ModuleRegistry {
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
     private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
     private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
+    private static Map<String, EventHandlerDefinition> EVENT_HANDLER_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
 
@@ -272,7 +276,7 @@ public class ModuleRegistry {
     
     //
     //
-    // Template special handling
+    // Model special handling
     //
     public static ModelDefinition getModelDefinition(String type) {
         ensureModelDefinitions();
@@ -305,6 +309,46 @@ public class ModuleRegistry {
                     	map.put(def.getModelTypeName(), def);
                     }
                     MODEL_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // Model special handling
+    //
+    public static EventHandlerDefinition getEventHandlerDefinition(String type) {
+        ensureEventHandlerDefinitions();
+        return EVENT_HANDLER_DEFINITIONS.get(type);
+    }
+    
+    public static List<EventHandlerDefinition> getEventHandlerDefinitions(){
+    	ensureEventHandlerDefinitions();
+        return new ArrayList<EventHandlerDefinition>(EVENT_HANDLER_DEFINITIONS.values());
+    }
+
+    public static Set<String> getEventHandlerDefinitionTypes() {
+    	ensureEventHandlerDefinitions();
+        return EVENT_HANDLER_DEFINITIONS.keySet();
+    }
+
+    private static void ensureEventHandlerDefinitions() {
+        if (EVENT_HANDLER_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (EVENT_HANDLER_DEFINITIONS == null) {
+                    Map<String, EventHandlerDefinition> map = new HashMap<String, EventHandlerDefinition>();
+                    for(EventHandlerDefinition def : Module.getDefinitions(preDefaults, EventHandlerDefinition.class)){
+                    	map.put(def.getEventHandlerTypeName(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (EventHandlerDefinition def : module.getDefinitions(EventHandlerDefinition.class))
+                            map.put(def.getEventHandlerTypeName(), def);
+                    }
+                    for(EventHandlerDefinition def : Module.getDefinitions(postDefaults, EventHandlerDefinition.class)){
+                    	map.put(def.getEventHandlerTypeName(), def);
+                    }
+                    EVENT_HANDLER_DEFINITIONS = map;
                 }
             }
         }
@@ -432,6 +476,11 @@ public class ModuleRegistry {
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());
+        
+        //Add in Core Event Handlers
+        preDefaults.add(new EmailEventHandlerDefinition());
+        preDefaults.add(new ProcessEventHandlerDefinition());
+        preDefaults.add(new SetPointEventHandlerDefinition());
         
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",

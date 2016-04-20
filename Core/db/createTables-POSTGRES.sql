@@ -233,6 +233,7 @@ CREATE TABLE eventHandlers (
   id SERIAL,
   xid varchar(50) NOT NULL,
   alias varchar(255),
+  eventHandlerType varchar(40) NOT NULL,
   
   -- Event type, see events
   eventTypeName varchar(32) NOT NULL,

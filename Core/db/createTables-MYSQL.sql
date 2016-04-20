@@ -238,6 +238,7 @@ create table eventHandlers (
   id int not null auto_increment,
   xid varchar(50) not null,
   alias varchar(255),
+  eventHandlerType varchar(40) NOT NULL,
   
   -- Event type, see events
   eventTypeName varchar(32) not null,

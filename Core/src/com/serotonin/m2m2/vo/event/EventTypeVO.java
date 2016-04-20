@@ -35,7 +35,7 @@ public class EventTypeVO {
      */
     private int typeRef2;
     private TranslatableMessage description;
-    private List<EventHandlerVO> handlers;
+    private List<AbstractEventHandlerVO> handlers;
     private int alarmLevel;
     private String eventDetectorKey;
     private int duplicateHandling;
@@ -119,11 +119,11 @@ public class EventTypeVO {
         this.description = description;
     }
 
-    public List<EventHandlerVO> getHandlers() {
+    public List<AbstractEventHandlerVO> getHandlers() {
         return handlers;
     }
 
-    public void setHandlers(List<EventHandlerVO> handlers) {
+    public void setHandlers(List<AbstractEventHandlerVO> handlers) {
         this.handlers = handlers;
     }
 

@@ -27,6 +27,9 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.EmailEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.ProcessEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -36,9 +39,12 @@ import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
+import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -220,8 +226,8 @@ public class EventHandlersDwr extends BaseDwr {
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, int targetPointId,
             int activeAction, String activeValueToSet, int activePointId, int inactiveAction,
             String inactiveValueToSet, int inactivePointId) {
-        EventHandlerVO handler = new EventHandlerVO();
-        handler.setHandlerType(EventHandlerVO.TYPE_SET_POINT);
+        SetPointEventHandlerVO handler = new SetPointEventHandlerVO();
+        handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(SetPointEventHandlerDefinition.TYPE_NAME));
         handler.setTargetPointId(targetPointId);
         handler.setActiveAction(activeAction);
         handler.setActiveValueToSet(activeValueToSet);
@@ -239,8 +245,8 @@ public class EventHandlersDwr extends BaseDwr {
             int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
             boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo, 
             int includePointValueCount, boolean includeLogfile) {
-        EventHandlerVO handler = new EventHandlerVO();
-        handler.setHandlerType(EventHandlerVO.TYPE_EMAIL);
+        EmailEventHandlerVO handler = new EmailEventHandlerVO();
+        handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
         handler.setActiveRecipients(activeRecipients);
         handler.setSendEscalation(sendEscalation);
         handler.setEscalationDelayType(escalationDelayType);
@@ -259,8 +265,8 @@ public class EventHandlersDwr extends BaseDwr {
     public ProcessResult saveProcessEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, String activeProcessCommand,
             int activeProcessTimeout, String inactiveProcessCommand, int inactiveProcessTimeout) {
-        EventHandlerVO handler = new EventHandlerVO();
-        handler.setHandlerType(EventHandlerVO.TYPE_PROCESS);
+        ProcessEventHandlerVO handler = new ProcessEventHandlerVO();
+        handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(ProcessEventHandlerDefinition.TYPE_NAME));
         handler.setActiveProcessCommand(activeProcessCommand);
         handler.setActiveProcessTimeout(activeProcessTimeout);
         handler.setInactiveProcessCommand(inactiveProcessCommand);
@@ -269,7 +275,7 @@ public class EventHandlersDwr extends BaseDwr {
     }
 
     private ProcessResult save(String eventType, String eventSubtype, int eventTypeRef1, int eventTypeRef2,
-            EventHandlerVO vo, int handlerId, String xid, String alias, boolean disabled) {
+            AbstractEventHandlerVO vo, int handlerId, String xid, String alias, boolean disabled) {
         EventTypeVO type = new EventTypeVO(eventType, eventSubtype, eventTypeRef1, eventTypeRef2);
         Permissions.ensureEventTypePermission(Common.getUser(), type);
         EventDao eventDao = new EventDao();

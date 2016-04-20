@@ -35,6 +35,22 @@ public class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<T>> ex
 		this.data.setUpdatePeriodType(TimePeriodType.convertFrom(pollPeriod.getType()));
 	}
 
+	@JsonGetter(value="quantize")
+	public boolean isQuantize(){
+		return this.data.isQuantize();
+	}
+	@JsonSetter(value="quantize")
+	public void setQuantize(boolean quantize){
+		this.data.setQuantize(quantize);
+	}
+	@JsonGetter(value="cronPattern")
+	public String getCronPattern(){
+		return this.data.getCronPattern();
+	}
+	@JsonSetter(value="cronPattern")
+	public void setCronPattern(String cronPattern){
+		this.data.setCronPattern(cronPattern);
+	}
 
 	
 }

@@ -70,7 +70,7 @@ public class EventInstance{
      */
     private List<UserComment> eventComments;
 
-    private List<EventHandlerRT> handlers;
+    private List<EventHandlerRT<?>> handlers;
 
     private long acknowledgedTimestamp;
     private int acknowledgedByUserId;
@@ -248,11 +248,11 @@ public class EventInstance{
         return rtnCause;
     }
 
-    public List<EventHandlerRT> getHandlers() {
+    public List<EventHandlerRT<?>> getHandlers() {
         return handlers;
     }
 
-    public void setHandlers(List<EventHandlerRT> handlers) {
+    public void setHandlers(List<EventHandlerRT<?>> handlers) {
         this.handlers = handlers;
     }
 
