@@ -6,7 +6,13 @@
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
-<%@page import="com.serotonin.m2m2.vo.event.EventHandlerVO"%>
+<%@page import="com.serotonin.m2m2.module.definitions.EmailEventHandlerDefinition"%>
+<%@page import="com.serotonin.m2m2.vo.event.EmailEventHandlerVO"%>
+<%@page import="com.serotonin.m2m2.module.definitions.SetPointEventHandlerDefinition"%>
+<%@page import="com.serotonin.m2m2.vo.event.SetPointEventHandlerVO"%>
+<%@page import="com.serotonin.m2m2.module.definitions.ProcessEventHandlerDefinition"%>
+<%@page import="com.serotonin.m2m2.vo.event.ProcessEventHandlerVO"%>
+
 <%@page import="com.serotonin.m2m2.DataTypes"%>
 <c:set var="NEW_ID"><%= Common.NEW_ID %></c:set>
 
@@ -349,9 +355,9 @@
     function createHandlerItem(handler) {
         makeNonTreeItem(handler);
         var img = "images/cog_wrench.png";
-        if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>)
+        if (handler.handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>')
             img = "images/cog_email.png";
-        else if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>)
+        else if (handler.handlerType == '<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>')
             img = "images/cog_process.png";
         var item = {
                 name: "<img src='"+ img +"'/> <span id='"+ handler.id +"Msg'>"+ handler.message +"</span>",
@@ -395,12 +401,12 @@
             $set("xid", handler.xid);
             $set("alias", handler.alias);
             $set("disabled", handler.disabled);
-            if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
+            if (handler.handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>') {
                 targetPointSelector.set('value',handler.targetPointId);
                 $set("activeAction", handler.activeAction);
                 $set("inactiveAction", handler.inactiveAction);
             }
-            else if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>) {
+            else if (handler.handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>') {
                 emailRecipients.updateRecipientList(handler.activeRecipients);
                 $set("sendEscalation", handler.sendEscalation);
                 $set("escalationDelayType", handler.escalationDelayType);
@@ -413,7 +419,7 @@
                 $set("includePointValueCount", handler.includePointValueCount);
                 inactiveRecipients.updateRecipientList(handler.inactiveRecipients);
             }
-            else if (handler.handlerType == <c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>) {
+            else if (handler.handlerType == '<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
                 $set("activeProcessCommand", handler.activeProcessCommand);
                 $set("activeProcessTimeout", handler.activeProcessTimeout);
                 $set("inactiveProcessCommand", handler.inactiveProcessCommand);
@@ -429,8 +435,8 @@
             $set("xid", "");
             $set("alias", "");
             $set("disabled", false);
-            $set("activeAction", <c:out value="<%= EventHandlerVO.SET_ACTION_NONE %>"/>);
-            $set("inactiveAction", <c:out value="<%= EventHandlerVO.SET_ACTION_NONE %>"/>);
+            $set("activeAction", <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>);
+            $set("inactiveAction", <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>);
             $set("sendEscalation", false);
             $set("escalationDelayType", <c:out value="<%= Common.TimePeriods.HOURS %>"/>);
             $set("escalationDelay", 1);
@@ -518,11 +524,11 @@
     
     function activeActionChanged() {
         var action = $get("activeAction");
-        if (action == <c:out value="<%= EventHandlerVO.SET_ACTION_POINT_VALUE %>"/>) {
+        if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>) {
             show("activePointIdRow");
             hide("activeValueToSetRow");
         }
-        else if (action == <c:out value="<%= EventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>) {
+        else if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>) {
             hide("activePointIdRow");
             show("activeValueToSetRow");
         }
@@ -534,11 +540,11 @@
     
     function inactiveActionChanged() {
         var action = $get("inactiveAction");
-        if (action == <c:out value="<%= EventHandlerVO.SET_ACTION_POINT_VALUE %>"/>) {
+        if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>) {
             show("inactivePointIdRow");
             hide("inactiveValueToSetRow");
         }
-        else if (action == <c:out value="<%= EventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>) {
+        else if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>) {
             hide("inactivePointIdRow");
             show("inactiveValueToSetRow");
         }
@@ -577,7 +583,7 @@
         var alias = $get("alias");
         var disabled = $get("disabled");
         var eventType = $$(selectedEventTypeNode.item, "object");
-        if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>) {
+        if (handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>') {
             var emailList = emailRecipients.createRecipientArray();
             var escalList = escalRecipients.createRecipientArray();
             var inactiveList = inactiveRecipients.createRecipientArray();
@@ -586,13 +592,13 @@
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
                     $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), saveEventHandlerCB);
         }
-        else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>) {
+        else if (handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>') {
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, targetPointSelector.value,
                     $get("activeAction"), $get("setPointValueActive"), activePointSelector.value, $get("inactiveAction"), 
                     $get("setPointValueInactive"), inactivePointSelector.value, saveEventHandlerCB);
         }
-        else if (handlerType == <c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>) {
+        else if ('handlerType == <c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
             EventHandlersDwr.saveProcessEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, $get("activeProcessCommand"),
                     $get("activeProcessTimeout"), $get("inactiveProcessCommand"), $get("inactiveProcessTimeout"), 
@@ -692,9 +698,9 @@
               <td class="formLabelRequired"><fmt:message key="eventHandlers.type"/></td>
               <td class="formField">
                 <select id="handlerTypeSelect" onchange="handlerTypeChanged()">
-                  <option value="<c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>"><fmt:message key="eventHandlers.type.email"/></option>
-                  <option value="<c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>"><fmt:message key="eventHandlers.type.setPoint"/></option>
-                  <option value="<c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>"><fmt:message key="eventHandlers.type.process"/></option>
+                  <option value="<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>"><fmt:message key="eventHandlers.type.email"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>"><fmt:message key="eventHandlers.type.setPoint"/></option>
+                  <option value="<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>"><fmt:message key="eventHandlers.type.process"/></option>
                 </select>
                 <tag:img id="handler1Img" png="cog_wrench" title="eventHandlers.type.setPointHandler" style="display:none;"/>
                 <tag:img id="handler2Img" png="cog_email" title="eventHandlers.type.emailHandler" style="display:none;"/>
@@ -720,7 +726,7 @@
             <tr><td class="horzSeparator" colspan="2"></td></tr>
           </table>
           
-          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_SET_POINT %>"/>" style="display:none; width: 100%">
+          <table id="handler<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>" style="display:none; width: 100%">
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.target"/></td>
               <td class="formField">
@@ -732,9 +738,9 @@
               <td class="formLabelRequired"><fmt:message key="eventHandlers.activeAction"/></td>
               <td class="formField">
                 <select id="activeAction" onchange="activeActionChanged()">
-                  <option value="<c:out value="<%= EventHandlerVO.SET_ACTION_NONE %>"/>"><fmt:message key="eventHandlers.action.none"/></option>
-                  <option value="<c:out value="<%= EventHandlerVO.SET_ACTION_POINT_VALUE %>"/>"><fmt:message key="eventHandlers.action.point"/></option>
-                  <option value="<c:out value="<%= EventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>"><fmt:message key="eventHandlers.action.static"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>"><fmt:message key="eventHandlers.action.none"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>"><fmt:message key="eventHandlers.action.point"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>"><fmt:message key="eventHandlers.action.static"/></option>
                 </select>
               </td>
             </tr>
@@ -753,9 +759,9 @@
               <td class="formLabelRequired"><fmt:message key="eventHandlers.inactiveAction"/></td>
               <td class="formField">
                 <select id="inactiveAction" onchange="inactiveActionChanged()">
-                  <option value="<c:out value="<%= EventHandlerVO.SET_ACTION_NONE %>"/>"><fmt:message key="eventHandlers.action.none"/></option>
-                  <option value="<c:out value="<%= EventHandlerVO.SET_ACTION_POINT_VALUE %>"/>"><fmt:message key="eventHandlers.action.point"/></option>
-                  <option value="<c:out value="<%= EventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>"><fmt:message key="eventHandlers.action.static"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>"><fmt:message key="eventHandlers.action.none"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>"><fmt:message key="eventHandlers.action.point"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>"><fmt:message key="eventHandlers.action.static"/></option>
                 </select>
               </td>
             </tr>
@@ -771,7 +777,7 @@
             </tr>
           </table>
             
-          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_EMAIL %>"/>" style="display:none; width: 100%">
+          <table id="handler<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>" style="display:none; width: 100%">
             <tbody id="emailRecipients"></tbody>
             
             <tr><td class="horzSeparator" colspan="2"></td></tr>
@@ -818,7 +824,7 @@
             
           </table>
           
-          <table id="handler<c:out value="<%= EventHandlerVO.TYPE_PROCESS %>"/>" style="display:none; width: 100%">
+          <table id="handler<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>" style="display:none; width: 100%">
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.activeCommand"/></td>
               <td class="formField">
