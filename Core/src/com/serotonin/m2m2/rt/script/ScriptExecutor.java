@@ -32,9 +32,12 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  * @author Matthew Lohbihler
  */
 public class ScriptExecutor {
+	
     protected static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
     protected static final String SCRIPT_SUFFIX = "\r\n}\r\n__scriptExecutor__();";
 
+    protected static final boolean useMetrics = Common.envProps.getBoolean("runtime.javascript.metrics", false);
+    
     @Deprecated //Use convertScriptContext Instead
     public Map<String, IDataPointValueSource> convertContext(List<IntStringPair> context)
             throws DataPointStateException {
@@ -89,8 +92,9 @@ public class ScriptExecutor {
             ScriptPermissions permissions, 
             PrintWriter scriptWriter, ScriptLog log) throws ScriptException, ResultTypeException {
 
-    	StopWatch stopWatch = new Log4JStopWatch();
-		stopWatch.start();
+    	StopWatch stopWatch = null;
+    	if(useMetrics)
+    		stopWatch = new Log4JStopWatch();
 
     	// Create the script engine.
         ScriptEngine engine = ScriptUtils.newEngine();
@@ -112,7 +116,8 @@ public class ScriptExecutor {
         }
 
         PointValueTime value = getResult(engine, result, dataTypeId, timestamp);
-        stopWatch.stop("execute()");
+        if(useMetrics)
+        	stopWatch.stop("execute(String)");
         return value;
     }
 

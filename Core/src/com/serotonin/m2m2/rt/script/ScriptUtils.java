@@ -13,6 +13,9 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -28,10 +31,14 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 
 public class ScriptUtils {
-    public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
+    
+	public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
     public static final String TIMESTAMP_CONTEXT_KEY = "TIMESTAMP";
 
+    private static final boolean useMetrics = Common.envProps.getBoolean("runtime.javascript.metrics", false);
+
+    
     public static ScriptEngine newEngine() {
         ScriptEngineManager manager = new ScriptEngineManager();
         return manager.getEngineByName("js");
@@ -46,7 +53,11 @@ public class ScriptUtils {
     }
 
     public static Object execute(ScriptEngine engine, String script, ScriptContext sctx) throws ScriptError {
-        try {
+    	StopWatch stopWatch = null;
+    	if(useMetrics)
+    		stopWatch = new Log4JStopWatch();
+    	
+    	try {
             Object result;
             if (sctx == null)
                 result = engine.eval(script);
@@ -56,6 +67,9 @@ public class ScriptUtils {
         }
         catch (ScriptException e) {
             throw ScriptError.create(e);
+        }finally{
+        	if(useMetrics)
+        		stopWatch.stop("execute(Engine, Script)");
         }
     }
 
@@ -64,13 +78,20 @@ public class ScriptUtils {
     }
 
     public static Object execute(CompiledScript script, ScriptContext sctx) throws ScriptError {
-        try {
+    	StopWatch stopWatch = null;
+    	if(useMetrics)
+    		stopWatch = new Log4JStopWatch();
+    	
+    	try {
             if (sctx == null)
                 return script.eval();
             return script.eval(sctx);
         }
         catch (ScriptException e) {
             throw ScriptError.create(e);
+        }finally{
+        	if(useMetrics)
+        		stopWatch.stop("execute(CompiledScript)");
         }
     }
 
@@ -79,12 +100,19 @@ public class ScriptUtils {
     }
 
     public static CompiledScript compile(ScriptEngine engine, String script) throws ScriptError {
-        if (engine instanceof Compilable) {
+    	StopWatch stopWatch = null;
+    	if(useMetrics)
+    		stopWatch = new Log4JStopWatch();
+    	
+    	if (engine instanceof Compilable) {
             try {
                 return ((Compilable) engine).compile(script);
             }
             catch (ScriptException e) {
                 throw ScriptError.create(e);
+            }finally{
+            	if(useMetrics)
+            		stopWatch.stop("compile(ScriptEngine,String)");
             }
         }
         throw new RuntimeException("Engine is not Compilable: " + engine.getClass().getName());
