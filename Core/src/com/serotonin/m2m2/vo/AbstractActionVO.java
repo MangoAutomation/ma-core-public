@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -13,8 +12,6 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 
 /**
  * 
@@ -35,21 +32,6 @@ public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends 
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.util.ChangeComparable#addProperties(java.util.List)
-     */
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        super.addProperties(list);
-        AuditEventType.addPropertyMessage(list, "common.enabled", enabled);
-       
-    }
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, VO from) {
-        super.addPropertyChanges(list, from);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.enabled", from.enabled, enabled);
     }
     
     @Override

@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,6 +34,8 @@ import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
+import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -43,8 +46,10 @@ import net.jazdw.rql.parser.ASTNode;
  * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
  * @author Jared Wiltshire
  */
-public abstract class AbstractBasicDao<T> extends BaseDao {
+public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
+    
+    protected DaoNotificationWebSocketHandler<T> handler;
     
     public static final String WHERE = " WHERE ";
     public static final String OR = " OR ";
@@ -98,8 +103,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	return "id";
     }
 	
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties, String extraSQL){
-    	this(tablePrefix, extraProperties, false, extraSQL);
+    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties, String extraSQL){
+    	this(handler, tablePrefix, extraProperties, false, extraSQL);
     }
 	
 	/**
@@ -107,8 +112,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * Do not include the . at the end of the prefix
      * @param tablePrefix
      */
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL){
-    	this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
+    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL){
+       this.handler = handler;
+       
+       this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
        Map<String,IntStringPair> propMap = getPropertiesMap();
        if(propMap == null)
     	   this.propertiesMap = new HashMap<String, IntStringPair>();
@@ -344,6 +351,129 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * @return row mapper
      */
     public abstract RowMapper<T> getRowMapper();
+
+	public void delete(int id){
+		 T vo = get(id);
+        if (vo != null) {
+            ejt.update(DELETE, vo.getId());
+        }
+        handler.notify("delete", vo, null);
+	}
+	
+    public void delete(int id, String initiatorId) {
+        T vo = get(id);
+        if (vo != null) {
+            ejt.update(DELETE, vo.getId());
+        }
+        handler.notify("delete", vo, initiatorId);
+    }
+    
+    public void delete(T vo) {
+        if (vo != null) {
+            ejt.update(DELETE, vo.getId());
+        }
+        handler.notify("delete", vo, null);
+    }
+    
+    public void delete(T vo, String initiatorId) {
+        if (vo != null) {
+            ejt.update(DELETE, vo.getId());
+        }
+        handler.notify("delete", vo, initiatorId);
+    }
+ 
+ 	/**
+	 * Persist the vo or if it already exists update it
+	 * 
+	 * @param vo
+	 *            to save
+	 */
+	public void save(T vo) {
+		if (vo.getId() == Common.NEW_ID) {
+			insert(vo);
+		} else {
+			update(vo);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param vo
+	 * @param initiatorId
+	 */
+    public void save(T vo, String initiatorId) {
+        if (vo.getId() == Common.NEW_ID) {
+            insert(vo, initiatorId);
+        }
+        else {
+            update(vo, initiatorId);
+        }
+    }
+
+	/**
+	 * Insert a new vo and assign the ID
+	 * 
+	 * @param vo
+	 *            to insert
+	 */
+	protected void insert(T vo) {
+		int id = -1;
+		if (insertStatementPropertyTypes == null)
+			id = ejt.doInsert(INSERT, voToObjectArray(vo));
+		else
+			id = ejt.doInsert(INSERT, voToObjectArray(vo),
+					insertStatementPropertyTypes);
+		vo.setId(id);
+        handler.notify("add", vo, null);
+	}
+	
+    protected void insert(T vo, String initiatorId) {
+		int id = -1;
+		if (insertStatementPropertyTypes == null)
+			id = ejt.doInsert(INSERT, voToObjectArray(vo));
+		else
+			id = ejt.doInsert(INSERT, voToObjectArray(vo),
+					insertStatementPropertyTypes);
+		vo.setId(id);
+        handler.notify("add", vo, initiatorId);
+    }
+
+	/**
+	 * Update a vo
+	 *
+	 * @param vo
+	 *            to update
+	 */
+	protected void update(T vo) {
+		List<Object> list = new ArrayList<>();
+		list.addAll(Arrays.asList(voToObjectArray(vo)));
+		list.add(vo.getId());
+
+		if (updateStatementPropertyTypes == null)
+			ejt.update(UPDATE, list.toArray());
+		else
+			ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+
+        handler.notify("update", vo, null);
+	}
+	
+	/**
+	 * 
+	 * @param vo
+	 * @param initiatorId
+	 */
+    protected void update(T vo, String initiatorId) {
+		List<Object> list = new ArrayList<>();
+		list.addAll(Arrays.asList(voToObjectArray(vo)));
+		list.add(vo.getId());
+
+		if (updateStatementPropertyTypes == null)
+			ejt.update(UPDATE, list.toArray());
+		else
+			ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+
+        handler.notify("update", vo, initiatorId);
+    }
 
     /**
      * Return a VO with FKs populated

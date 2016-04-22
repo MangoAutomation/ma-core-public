@@ -28,6 +28,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 
 /**
  * Provides an API to retrieve, update and save
@@ -52,8 +53,8 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     //Provide Arguments for Mapped Property members to be sorted by (Not really sure if this is necessary)
     protected final Map<String,PropertyArguments> propertyArgumentsMap = getPropertyArgumentsMap();
     
-    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL) {
-        super(tablePrefix, extraProperties, useSubQuery, extraSQL);
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL) {
+        super(handler, tablePrefix, extraProperties, useSubQuery, extraSQL);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
@@ -65,16 +66,16 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param extraProperties - Properties from other tables
      * @param extraSQL - Any additional query pieces
      */
-    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
-        this(typeName, tablePrefix, extraProperties, false, extraSQL);
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
+        this(handler, typeName, tablePrefix, extraProperties, false, extraSQL);
     }
 
     /**
      * 
      * @param typeName - Audit Event Type Name
      */
-    protected AbstractDao(String typeName) {
-        this(typeName, null, new String[0], null);
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName) {
+        this(handler, typeName, null, new String[0], null);
     }
 
     /**
@@ -144,37 +145,6 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      */
     public boolean isXidUnique(String xid, int excludeId) {
         return isXidUnique(xid, excludeId, tableName);
-    }
-
-    /**
-     * Delete the vo from the db
-     * 
-     * @param id
-     */
-    public void delete(int id) {
-        T vo = get(id);
-        delete(vo);
-    }
-    
-    /**
-     * Delete the vo from the db
-     * 
-     * @param vo
-     */
-    protected void delete(T vo) {
-        if (vo != null) {
-            ejt.update(DELETE, vo.getId());
-            AuditEventType.raiseDeletedEvent(this.typeName, vo);
-        }
-    }
-
-    /**
-     * Deletes a machine and also any associated data points
-     * 
-     * @param id
-     */
-    public void deleteIncludingPoints(int id) {
-        delete(id);
     }
 
     /**
@@ -248,33 +218,43 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param vo
      *            to save
      */
+    @Override
     public void save(T vo) {
-        if (vo.getId() == Common.NEW_ID) {
-            insert(vo);
-        }
-        else {
-            update(vo);
-        }
+    	save(vo, null);
     }
 
+	/**
+	 * 
+	 * @param vo
+	 * @param initiatorId
+	 */
+    public void save(T vo, String initiatorId) {
+        if (vo.getId() == Common.NEW_ID) {
+            insert(vo, initiatorId);
+        }
+        else {
+            update(vo, initiatorId);
+        }
+    }
+    
     /**
      * Insert a new vo and assign the ID
      * 
      * @param vo
      *            to insert
      */
+    @Override
     protected void insert(T vo) {
+    	insert(vo, null);
+    }
+    @Override
+    protected void insert(T vo, String initiatorId) {
         if (vo.getXid() == null) {
             vo.setXid(generateUniqueXid());
         }
-        int id = -1;
-        if (insertStatementPropertyTypes == null)
-            id = ejt.doInsert(INSERT, voToObjectArray(vo));
-        else
-            id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
-        vo.setId(id);
+        super.insert(vo, initiatorId);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
-    }
+    }    
 
     /**
      * Update a vo
@@ -282,17 +262,14 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param vo
      *            to update
      */
+    @Override
     protected void update(T vo) {
-        List<Object> list = new ArrayList<>();
-        list.addAll(Arrays.asList(voToObjectArray(vo)));
-        list.add(vo.getId());
-
+    	update(vo, null);
+    }
+    @Override
+    protected void update(T vo, String initiatorId){
         T old = get(vo.getId());
-        if (updateStatementPropertyTypes == null)
-            ejt.update(UPDATE, list.toArray());
-        else
-            ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-
+        super.update(vo);
         AuditEventType.raiseChangedEvent(this.typeName, old, vo);
     }
 

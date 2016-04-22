@@ -143,7 +143,7 @@ public class EventManager implements ILifecycle {
 			}
 		}
 
-		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)) {
+		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
 			eventDao.insertUserEvents(evt.getId(), eventUserIds, evt.isAlarm());
 			if (autoAckMessage == null && evt.isAlarm())
 				lastAlarmTimestamp = System.currentTimeMillis();
@@ -798,10 +798,10 @@ public class EventManager implements ILifecycle {
 	}
 
 	private void setHandlers(EventInstance evt) {
-		List<AbstractEventHandlerVO> vos = eventDao
+		List<AbstractEventHandlerVO<?>> vos = eventDao
 				.getEventHandlers(evt.getEventType());
 		List<EventHandlerRT<?>> rts = null;
-		for (AbstractEventHandlerVO vo : vos) {
+		for (AbstractEventHandlerVO<?> vo : vos) {
 			if (!vo.isDisabled()) {
 				if (rts == null)
 					rts = new ArrayList<EventHandlerRT<?>>();

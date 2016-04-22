@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.PageQueryStream;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.QueryStream;
@@ -33,7 +34,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
  * @author Terry Packer
  *
  */
-public abstract class MangoVoRestController<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends MangoRestController{
+public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends MangoRestController{
 
 	protected DAO dao;
 	

@@ -34,7 +34,6 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
@@ -284,80 +283,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @Override
     public String getTypeKey() {
         return "event.audit.dataPoint";
-    }
-
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        super.addProperties(list);
-        //xid, name and enabled handled in superclasses
-        AuditEventType.addExportCodeMessage(list, "pointEdit.logging.type", LOGGING_TYPE_CODES, loggingType);
-        AuditEventType.addPeriodMessage(list, "pointEdit.logging.period", intervalLoggingPeriodType,
-                intervalLoggingPeriod);
-        AuditEventType.addExportCodeMessage(list, "pointEdit.logging.valueType", INTERVAL_LOGGING_TYPE_CODES,
-                intervalLoggingType);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.tolerance", tolerance);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.purgeOverride", purgeOverride);
-        AuditEventType.addPeriodMessage(list, "pointEdit.logging.purge", purgeType, purgePeriod);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.defaultCache", defaultCacheSize);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.discard", discardExtremeValues);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.discardLow", discardLowLimit);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.engineeringUnits", engineeringUnits);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.chartColour", chartColour);
-        AuditEventType.addExportCodeMessage(list, "pointEdit.plotType", PLOT_TYPE_CODES, plotType);
-
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.overrideIntervalLoggingSamples",
-                overrideIntervalLoggingSamples);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.intervalLoggingSampleWindowSize",
-                intervalLoggingSampleWindowSize);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.permission.read", readPermission);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.permission.set", setPermission);
-
-        pointLocator.addProperties(list);
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, DataPointVO from) {
-        super.addPropertyChanges(list, from);
-        //xid, name and enabled handled in superclasses
-
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.logging.type", LOGGING_TYPE_CODES,
-                from.loggingType, loggingType);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "pointEdit.logging.period", from.intervalLoggingPeriodType,
-                from.intervalLoggingPeriod, intervalLoggingPeriodType, intervalLoggingPeriod);
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.logging.valueType",
-                INTERVAL_LOGGING_TYPE_CODES, from.intervalLoggingType, intervalLoggingType);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.tolerance", from.tolerance, tolerance);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.purgeOverride", from.purgeOverride,
-                purgeOverride);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "pointEdit.logging.purge", from.purgeType, from.purgePeriod,
-                purgeType, purgePeriod);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.defaultCache", from.defaultCacheSize,
-                defaultCacheSize);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.discard", from.discardExtremeValues,
-                discardExtremeValues);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.discardLow", from.discardLowLimit,
-                discardLowLimit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.discardHigh", from.discardHighLimit,
-                discardHighLimit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.engineeringUnits", from.engineeringUnits,
-                engineeringUnits);
-        AuditEventType
-                .maybeAddPropertyChangeMessage(list, "pointEdit.props.chartColour", from.chartColour, chartColour);
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.plotType", PLOT_TYPE_CODES, from.plotType,
-                plotType);
-
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.overrideIntervalLoggingSamples",
-                from.overrideIntervalLoggingSamples, overrideIntervalLoggingSamples);
-
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.intervalLoggingSampleWindowSize",
-                from.intervalLoggingSampleWindowSize, intervalLoggingSampleWindowSize);
-
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.permission.read", from.readPermission,
-                readPermission);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.permission.set", from.setPermission,
-                setPermission);
-
-        pointLocator.addPropertyChanges(list, from.pointLocator);
     }
 
     @Override

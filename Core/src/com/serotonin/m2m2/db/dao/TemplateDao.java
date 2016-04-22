@@ -22,6 +22,7 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -39,7 +40,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 	 * @param typeName
 	 */
 	protected TemplateDao() {
-		super(AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, new String());
+		super(MangoWebSocketConfiguration.templateHandler, AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, new String());
 	}
 
 	/* (non-Javadoc)

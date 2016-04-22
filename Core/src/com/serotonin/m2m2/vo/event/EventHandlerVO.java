@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,16 +24,11 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 
@@ -44,7 +38,7 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Deprecated
-public class EventHandlerVO implements Serializable, ChangeComparable<EventHandlerVO>, JsonSerializable {
+public class EventHandlerVO implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "EH_";
 
     public static final int TYPE_SET_POINT = 1;
@@ -157,7 +151,6 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
         this.targetPointId = targetPointId;
     }
 
-    @Override
     public int getId() {
         return id;
     }
@@ -365,11 +358,6 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
         this.inactiveProcessTimeout = inactiveProcessTimeout;
     }
 
-    @Override
-    public String getTypeKey() {
-        return "event.audit.eventHandler";
-    }
-
     public void validate(ProcessResult response) {
         if (handlerType == TYPE_SET_POINT) {
             DataPointVO dp = new DataPointDao().getDataPoint(targetPointId);
@@ -465,138 +453,6 @@ public class EventHandlerVO implements Serializable, ChangeComparable<EventHandl
             if (!StringUtils.isBlank(inactiveProcessCommand) && inactiveProcessTimeout <= 0)
                 response.addGenericMessage("validate.greaterThanZero");
         }
-    }
-
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        DataPointDao dataPointDao = new DataPointDao();
-        AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.alias", alias);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.type", getTypeMessage(handlerType));
-        AuditEventType.addPropertyMessage(list, "common.disabled", disabled);
-        
-        if (handlerType == TYPE_SET_POINT) {
-            AuditEventType.addPropertyMessage(list, "eventHandlers.target",
-                    dataPointDao.getExtendedPointName(targetPointId));
-            AuditEventType.addPropertyMessage(list, "eventHandlers.activeAction", getSetActionMessage(activeAction));
-            if (activeAction == SET_ACTION_POINT_VALUE)
-                AuditEventType.addPropertyMessage(list, "eventHandlers.action.point",
-                        dataPointDao.getExtendedPointName(activePointId));
-            else if (activeAction == SET_ACTION_STATIC_VALUE)
-                AuditEventType.addPropertyMessage(list, "eventHandlers.action.static", activeValueToSet);
-
-            AuditEventType
-                    .addPropertyMessage(list, "eventHandlers.inactiveAction", getSetActionMessage(inactiveAction));
-            if (inactiveAction == SET_ACTION_POINT_VALUE)
-                AuditEventType.addPropertyMessage(list, "eventHandlers.action.point",
-                        dataPointDao.getExtendedPointName(inactivePointId));
-            else if (inactiveAction == SET_ACTION_STATIC_VALUE)
-                AuditEventType.addPropertyMessage(list, "eventHandlers.action.static", inactiveValueToSet);
-        }
-        else if (handlerType == TYPE_EMAIL) {
-            AuditEventType.addPropertyMessage(list, "eventHandlers.emailRecipients",
-                    createRecipientMessage(activeRecipients));
-            AuditEventType.addPropertyMessage(list, "eventHandlers.escal", sendEscalation);
-            if (sendEscalation) {
-                AuditEventType
-                        .addPeriodMessage(list, "eventHandlers.escalPeriod", escalationDelayType, escalationDelay);
-                AuditEventType.addPropertyMessage(list, "eventHandlers.escalRecipients",
-                        createRecipientMessage(escalationRecipients));
-            }
-            AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveNotif", sendInactive);
-            if (sendInactive) {
-                AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveOverride", inactiveOverride);
-                if (inactiveOverride)
-                    AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveRecipients",
-                            createRecipientMessage(inactiveRecipients));
-            }
-            AuditEventType.addPropertyMessage(list, "eventHandlers.includeSystemInfo", includeSystemInfo);
-            AuditEventType.addPropertyMessage(list, "eventHandlers.includePointValueCount", includePointValueCount);
-            AuditEventType.addPropertyMessage(list, "eventHandlers.includeLogfile", includeLogfile);
-        }
-        else if (handlerType == TYPE_PROCESS) {
-            AuditEventType.addPropertyMessage(list, "eventHandlers.activeCommand", activeProcessCommand);
-            AuditEventType.addPropertyMessage(list, "eventHandlers.activeTimeout", activeProcessTimeout);
-            AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveCommand", inactiveProcessCommand);
-            AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveTimeout", inactiveProcessTimeout);
-        }
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, EventHandlerVO from) {
-        DataPointDao dataPointDao = new DataPointDao();
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.alias", from.alias, alias);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.disabled", from.disabled, disabled);
-        if (handlerType == TYPE_SET_POINT) {
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.target",
-                    dataPointDao.getExtendedPointName(from.targetPointId),
-                    dataPointDao.getExtendedPointName(targetPointId));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeAction",
-                    getSetActionMessage(from.activeAction), getSetActionMessage(activeAction));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.point",
-                    dataPointDao.getExtendedPointName(from.activePointId),
-                    dataPointDao.getExtendedPointName(activePointId));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.static", from.activeValueToSet,
-                    activeValueToSet);
-
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveAction",
-                    getSetActionMessage(from.inactiveAction), getSetActionMessage(inactiveAction));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.point",
-                    dataPointDao.getExtendedPointName(from.inactivePointId),
-                    dataPointDao.getExtendedPointName(inactivePointId));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.static", from.inactiveValueToSet,
-                    inactiveValueToSet);
-        }
-        else if (handlerType == TYPE_EMAIL) {
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.emailRecipients",
-                    createRecipientMessage(from.activeRecipients), createRecipientMessage(activeRecipients));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.escal", from.sendEscalation,
-                    sendEscalation);
-            AuditEventType.maybeAddPeriodChangeMessage(list, "eventHandlers.escalPeriod", from.escalationDelayType,
-                    from.escalationDelay, escalationDelayType, escalationDelay);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.escalRecipients",
-                    createRecipientMessage(from.escalationRecipients), createRecipientMessage(escalationRecipients));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveNotif", from.sendInactive,
-                    sendInactive);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveOverride", from.inactiveOverride,
-                    inactiveOverride);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveRecipients",
-                    createRecipientMessage(from.inactiveRecipients), createRecipientMessage(inactiveRecipients));
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includeSystemInfo", from.includeSystemInfo, includeSystemInfo);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includePointValueCount", from.includePointValueCount, includePointValueCount);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includeLogfile", from.includeLogfile, includeLogfile);
-        }
-        else if (handlerType == TYPE_PROCESS) {
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeCommand",
-                    from.activeProcessCommand, activeProcessCommand);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeTimeout",
-                    from.activeProcessTimeout, activeProcessTimeout);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveCommand",
-                    from.inactiveProcessCommand, inactiveProcessCommand);
-            AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveTimeout",
-                    from.inactiveProcessTimeout, inactiveProcessTimeout);
-        }
-    }
-
-    private static TranslatableMessage createRecipientMessage(List<RecipientListEntryBean> recipients) {
-        MailingListDao mailingListDao = new MailingListDao();
-        UserDao userDao = new UserDao();
-        ArrayList<TranslatableMessage> params = new ArrayList<TranslatableMessage>();
-        for (RecipientListEntryBean recip : recipients) {
-            TranslatableMessage msg;
-            if (recip.getRecipientType() == EmailRecipient.TYPE_MAILING_LIST)
-                msg = new TranslatableMessage("event.audit.recip.mailingList", mailingListDao.getMailingList(
-                        recip.getReferenceId()).getName());
-            else if (recip.getRecipientType() == EmailRecipient.TYPE_USER)
-                msg = new TranslatableMessage("event.audit.recip.user", userDao.getUser(recip.getReferenceId())
-                        .getUsername());
-            else
-                msg = new TranslatableMessage("event.audit.recip.address", recip.getReferenceAddress());
-            params.add(msg);
-        }
-
-        return new TranslatableMessage("event.audit.recip.list." + params.size(), params.toArray());
     }
 
     //

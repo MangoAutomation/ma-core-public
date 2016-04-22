@@ -10,12 +10,13 @@ import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class BaseSqlQuery<T> {
+public class BaseSqlQuery<T  extends AbstractBasicVO> {
 	protected AbstractBasicDao<T> dao;
 	
 	protected String selectSql;

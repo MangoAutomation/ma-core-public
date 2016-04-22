@@ -38,6 +38,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.util.SerializationHelper;
 
 public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
@@ -49,7 +50,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     public static final DataSourceDao instance = new DataSourceDao();
 
     public DataSourceDao() {
-        super(AuditEventType.TYPE_DATA_SOURCE);
+        super(MangoWebSocketConfiguration.dataSourceHandler, AuditEventType.TYPE_DATA_SOURCE);
     }
 
     public List<DataSourceVO<?>> getDataSources() {

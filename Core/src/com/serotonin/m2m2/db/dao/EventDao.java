@@ -15,6 +15,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -25,6 +27,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -37,23 +40,49 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.util.JsonSerializableUtility;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.web.dwr.EventsDwr;
 import com.serotonin.util.SerializationHelper;
 
 public class EventDao extends BaseDao {
+	private static final Log LOG = LogFactory.getLog(EventDao.class);
 	
 	public static final EventDao instance = new EventDao();
 	
     private static final int MAX_PENDING_EVENTS = 100;
 
     public void saveEvent(EventInstance event) {
-        if (event.getId() == Common.NEW_ID)
-            insertEvent(event);
-        else
-            updateEvent(event);
+    	if(event.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)){
+    		AuditEventInstanceVO vo = new AuditEventInstanceVO();
+    		AuditEventType type = (AuditEventType)event.getEventType();
+    		vo.setTypeName(type.getEventSubtype());
+    		vo.setAlarmLevel(event.getAlarmLevel());
+    		if(type.getRaisingUser() != null)
+    			vo.setUserId(type.getRaisingUser().getId());
+    		else
+    			vo.setUserId(Common.NEW_ID);
+    		vo.setChangeType(type.getChangeType());
+    		vo.setObjectId(type.getReferenceId1());
+    		vo.setTimestamp(event.getActiveTimestamp());
+    		try {
+				vo.setContext(JsonSerializableUtility.convertMapToJsonObject(event.getContext()));
+			} catch (JsonException e) {
+				LOG.error(e.getMessage(), e);
+			}
+    		vo.setMessage(event.getMessage());
+    		AuditEventDao.instance.save(vo);
+    		//Save for use in the cache
+    		type.setReferenceId2(vo.getId());
+    	}else{
+	        if (event.getId() == Common.NEW_ID)
+	            insertEvent(event);
+	        else
+	            updateEvent(event);
+    	}
     }
 
     private static final String EVENT_INSERT = //
@@ -291,7 +320,7 @@ public class EventDao extends BaseDao {
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
             type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else if (typeName.equals(EventType.EventTypeNames.AUDIT))
-            type = new AuditEventType(subtypeName, rs.getInt(offset + 2));
+        	throw new ShouldNeverHappenException("Audit events should not be here.");
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null)
@@ -585,16 +614,16 @@ public class EventDao extends BaseDao {
 
     private static final String EVENT_HANDLER_SELECT = "select id, xid, alias, eventHandlerType, data from eventHandlers ";
 
-    public List<AbstractEventHandlerVO> getEventHandlers(EventType type) {
+    public List<AbstractEventHandlerVO<?>> getEventHandlers(EventType type) {
         return getEventHandlers(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
                 type.getReferenceId2());
     }
 
-    public List<AbstractEventHandlerVO> getEventHandlers(EventTypeVO type) {
+    public List<AbstractEventHandlerVO<?>> getEventHandlers(EventTypeVO type) {
         return getEventHandlers(type.getType(), type.getSubtype(), type.getTypeRef1(), type.getTypeRef2());
     }
 
-    public List<AbstractEventHandlerVO> getEventHandlers() {
+    public List<AbstractEventHandlerVO<?>> getEventHandlers() {
         return query(EVENT_HANDLER_SELECT, new EventHandlerRowMapper());
     }
 
@@ -612,7 +641,7 @@ public class EventDao extends BaseDao {
             + "  and (eventTypeRef1=? or eventTypeRef1=0)" //
             + "  and (eventTypeRef2=? or eventTypeRef2=0)";
 
-    private List<AbstractEventHandlerVO> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
+    private List<AbstractEventHandlerVO<?>> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
         if (subtypeName == null)
             return query(EVENT_HANDLER_SELECT_NULLSUB, new Object[] { typeName, ref1, ref2 },
                     new EventHandlerRowMapper());
@@ -620,20 +649,20 @@ public class EventDao extends BaseDao {
                 new EventHandlerRowMapper());
     }
 
-    public AbstractEventHandlerVO getEventHandler(int eventHandlerId) {
+    public AbstractEventHandlerVO<?> getEventHandler(int eventHandlerId) {
         return queryForObject(EVENT_HANDLER_SELECT + "where id=?", new Object[] { eventHandlerId },
                 new EventHandlerRowMapper());
     }
 
-    public AbstractEventHandlerVO getEventHandler(String xid) {
+    public AbstractEventHandlerVO<?> getEventHandler(String xid) {
         return queryForObject(EVENT_HANDLER_SELECT + "where xid=?", new Object[] { xid }, new EventHandlerRowMapper(),
                 null);
     }
 
-    class EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO> {
+    class EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO<?>> {
         @Override
-        public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-        	AbstractEventHandlerVO h = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+        public AbstractEventHandlerVO<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
+        	AbstractEventHandlerVO<?> h = (AbstractEventHandlerVO<?>) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             h.setId(rs.getInt(1));
             h.setXid(rs.getString(2));
             h.setAlias(rs.getString(3));
@@ -642,21 +671,21 @@ public class EventDao extends BaseDao {
         }
     }
 
-    public AbstractEventHandlerVO saveEventHandler(final EventType type, final AbstractEventHandlerVO handler) {
+    public AbstractEventHandlerVO<?> saveEventHandler(final EventType type, final AbstractEventHandlerVO<?> handler) {
         if (type == null)
             return saveEventHandler("?", null, 0, 0, handler);
         return saveEventHandler(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
                 type.getReferenceId2(), handler);
     }
 
-    public AbstractEventHandlerVO saveEventHandler(final EventTypeVO type, final AbstractEventHandlerVO handler) {
+    public AbstractEventHandlerVO<?> saveEventHandler(final EventTypeVO type, final AbstractEventHandlerVO<?> handler) {
         if (type == null)
             return saveEventHandler("?", null, 0, 0, handler);
         return saveEventHandler(type.getType(), type.getSubtype(), type.getTypeRef1(), type.getTypeRef2(), handler);
     }
 
-    private AbstractEventHandlerVO saveEventHandler(final String typeName, final String subtypeName, final int typeRef1,
-            final int typeRef2, final AbstractEventHandlerVO handler) {
+    private AbstractEventHandlerVO<?> saveEventHandler(final String typeName, final String subtypeName, final int typeRef1,
+            final int typeRef2, final AbstractEventHandlerVO<?> handler) {
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
@@ -678,8 +707,8 @@ public class EventDao extends BaseDao {
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
     }
 
-    void updateEventHandler(AbstractEventHandlerVO handler) {
-    	AbstractEventHandlerVO old = getEventHandler(handler.getId());
+    void updateEventHandler(AbstractEventHandlerVO<?> handler) {
+    	AbstractEventHandlerVO<?> old = getEventHandler(handler.getId());
         ejt.update("update eventHandlers set xid=?, alias=?, data=? where id=?", new Object[] { handler.getXid(),
                 handler.getAlias(), SerializationHelper.writeObject(handler), handler.getId() }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.INTEGER });
@@ -687,7 +716,7 @@ public class EventDao extends BaseDao {
     }
 
     public void deleteEventHandler(final int handlerId) {
-    	AbstractEventHandlerVO handler = getEventHandler(handlerId);
+    	AbstractEventHandlerVO<?> handler = getEventHandler(handlerId);
         ejt.update("delete from eventHandlers where id=?", new Object[] { handlerId });
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
     }

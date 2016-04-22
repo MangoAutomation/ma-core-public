@@ -254,6 +254,23 @@ create table eventHandlers (
 ) engine=InnoDB;
 alter table eventHandlers add constraint eventHandlersUn1 unique (xid);
 
+--
+--
+-- Audit Table
+-- 
+CREATE TABLE audit (
+  id int NOT NULL auto_increment,
+  typeName varchar(32) NOT NULL,
+  alarmLevel int NOT NULL,
+  userId int NOT NULL,
+  changeType int NOT NULL,
+  objectId int NOT NULL,
+  ts bigint NOT NULL,
+  context longtext,
+  message varchar(255),
+  PRIMARY KEY (id)
+)engine=InnoDB;
+CREATE INDEX audit_performance1 ON audit (`ts` ASC);
 
 --
 --

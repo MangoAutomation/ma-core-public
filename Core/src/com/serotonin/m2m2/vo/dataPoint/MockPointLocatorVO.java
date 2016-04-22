@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.vo.dataPoint;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -82,24 +81,6 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
 	 */
 	@Override
 	public void validate(ProcessResult response) {
-		// TODO Implement when needed for testing
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.ChangeComparableObject#addProperties(java.util.List)
-	 */
-	@Override
-	public void addProperties(List<TranslatableMessage> list) {
-		// TODO Implement when needed for testing
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.ChangeComparableObject#addPropertyChanges(java.util.List, java.lang.Object)
-	 */
-	@Override
-	public void addPropertyChanges(List<TranslatableMessage> list, Object o) {
 		// TODO Implement when needed for testing
 		
 	}

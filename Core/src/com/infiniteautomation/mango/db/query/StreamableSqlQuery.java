@@ -16,12 +16,13 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
+public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery<T>{
 	
 	private static final Log LOG = LogFactory.getLog(StreamableSqlQuery.class);
 	

@@ -247,6 +247,23 @@ create table eventHandlers (
 );
 alter table eventHandlers add constraint eventHandlersUn1 unique (xid);
 
+--
+--
+-- Audit Table
+-- 
+CREATE TABLE audit (
+  id int NOT NULL identity,
+  typeName nvarchar(32) NOT NULL,
+  alarmLevel int NOT NULL,
+  userId int NOT NULL,
+  changeType int NOT NULL,
+  objectId int NOT NULL,
+  ts bigint NOT NULL,
+  context ntext,
+  message nvarchar(255),
+  PRIMARY KEY (id)
+);
+CREATE INDEX audit_performance1 ON audit (`ts` ASC);
 
 --
 --

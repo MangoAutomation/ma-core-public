@@ -7,14 +7,11 @@ package com.serotonin.m2m2.vo.template;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.TemplateDefinition;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractVO;
 
@@ -78,23 +75,6 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
         writer.writeEntry("templateType", this.getDefinition().getTemplateTypeName());
     }
 
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        super.addProperties(list);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.permission.read", readPermission);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.permission.set", setPermission);
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, BaseTemplateVO<?> from) {
-        super.addPropertyChanges(list, from);
- 
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.permission.read", from.readPermission,
-                readPermission);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.permission.set", from.setPermission,
-                setPermission);
-    }
-    
     //
     //
     // Serialization

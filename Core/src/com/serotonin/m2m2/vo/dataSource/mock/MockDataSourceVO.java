@@ -48,16 +48,6 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     protected void addEventTypes(List<EventTypeVO> eventTypes) {
         // no op
     }
-
-    @Override
-    protected void addPropertiesImpl(List<TranslatableMessage> list) {
-        // no op
-    }
-
-    @Override
-    protected void addPropertyChangesImpl(List<TranslatableMessage> list, MockDataSourceVO from) {
-        // no op
-    }
     
     @Override
     public AbstractDataSourceModel<MockDataSourceVO> asModel(){

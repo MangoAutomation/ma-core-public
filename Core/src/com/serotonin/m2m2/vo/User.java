@@ -39,8 +39,7 @@ import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.validation.StringValidation;
 
-public class User implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
-    private int id = Common.NEW_ID;
+public class User extends AbstractBasicVO implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
     @JsonProperty
     private String username;
     @JsonProperty
@@ -210,14 +209,6 @@ public class User implements SetPointSource, HttpSessionBindingListener, JsonSer
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getPassword() {

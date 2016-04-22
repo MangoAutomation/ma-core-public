@@ -34,7 +34,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
-import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JUnitModule;
+import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 
 /**
@@ -144,9 +144,9 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		if(Common.envProps.getBoolean("rest.indentJSON", false))
 			objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		// JUnit Module
-		JUnitModule jUnitModule = new JUnitModule();
-		objectMapper.registerModule(jUnitModule);
+		// JScience
+		JScienceModule jScienceModule = new JScienceModule();
+		objectMapper.registerModule(jScienceModule);
 
 		// Mango Core JSON Module
 		MangoCoreModule mangoCore = new MangoCoreModule();

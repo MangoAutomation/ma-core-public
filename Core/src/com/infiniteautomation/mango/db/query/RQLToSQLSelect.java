@@ -14,6 +14,7 @@ import net.jazdw.rql.parser.ASTVisitor;
 
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
  * Class to parse RQL into SQL Statements
@@ -24,7 +25,7 @@ import com.serotonin.m2m2.db.dao.AbstractBasicDao;
  * @author Terry Packer
  *
  */
-public class RQLToSQLSelect<T> implements SQLConstants, ASTVisitor<SQLStatement, SQLStatement>{
+public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, ASTVisitor<SQLStatement, SQLStatement>{
 	
 	private AbstractBasicDao<T> dao;
 	//Map of any model members to either columns or Vo members

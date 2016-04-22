@@ -61,6 +61,7 @@ import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.util.SerializationHelper;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -85,7 +86,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
      * @param typeName
      */
     public DataPointDao() {
-        super(AuditEventType.TYPE_DATA_POINT, "dp", 
+        super(MangoWebSocketConfiguration.dataPointHandler, AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
         		true,
                 "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need

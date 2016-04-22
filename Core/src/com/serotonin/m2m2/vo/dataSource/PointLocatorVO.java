@@ -9,11 +9,10 @@ import java.io.Serializable;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
-import com.serotonin.m2m2.util.ChangeComparableObject;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
-public interface PointLocatorVO extends Serializable, ChangeComparableObject {
+public interface PointLocatorVO extends Serializable {
     /**
      * One of the com.serotonin.m2m2.DataTypes
      */

@@ -26,7 +26,6 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
@@ -228,35 +227,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
     public String getTypeKey() {
         return "event.audit.dataSource";
     }
-
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        super.addProperties(list);
-        AuditEventType.addPropertyMessage(list, "dsEdit.logging.purgeOverride", purgeOverride);
-        AuditEventType.addPeriodMessage(list, "dsEdit.logging.purge", purgeType, purgePeriod);
-        AuditEventType.addPropertyMessage(list, "dsEdit.permission.edit", editPermission);
-
-        addPropertiesImpl(list);
-    }
-
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void addPropertyChanges(List<TranslatableMessage> list, DataSourceVO<?> from) {
-        super.addPropertyChanges(list, from);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.logging.purgeOverride", from.isPurgeOverride(),
-                purgeOverride);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.logging.purge", from.getPurgeType(),
-                from.getPurgePeriod(), purgeType, purgePeriod);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.permission.edit", from.getEditPermission(),
-                editPermission);
-
-        addPropertyChangesImpl(list, (T) from);
-    }
-
-    abstract protected void addPropertiesImpl(List<TranslatableMessage> list);
-
-    abstract protected void addPropertyChangesImpl(List<TranslatableMessage> list, T from);
 
     //
     //

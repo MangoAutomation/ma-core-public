@@ -15,7 +15,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -37,17 +36,19 @@ import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PositiveCusumDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.SmoothnessDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.StateChangeCountDetectorRT;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class PointEventDetectorVO extends SimpleEventDetectorVO implements Cloneable, JsonSerializable,
-        ChangeComparable<PointEventDetectorVO> {
-    public static final String XID_PREFIX = "PED_";
+public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetectorVO>{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static final String XID_PREFIX = "PED_";
 
     public static final int TYPE_ANALOG_HIGH_LIMIT = 1;
     public static final int TYPE_ANALOG_LOW_LIMIT = 2;
@@ -340,37 +341,9 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         }
     }
 
-    @Override
+    //@Override
     public String getTypeKey() {
         return "event.audit.pointEventDetector";
-    }
-
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "pointEdit.detectors.alias", alias);
-        AuditEventType.addPropertyMessage(list, "pointEdit.detectors.type", getDef().getNameKey());
-        AuditEventType.addPropertyMessage(list, "common.alarmLevel", AlarmLevels.getAlarmLevelMessage(alarmLevel));
-        AuditEventType.addPropertyMessage(list, "common.configuration", getConfigurationDescription());
-        AuditEventType.addPropertyMessage(list, "pointEdit.detectors.weight", weight);
-        //TODO Add remaining property messages???
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, PointEventDetectorVO from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.detectors.alias", from.alias, alias);
-        if (from.detectorType != detectorType)
-            AuditEventType.addPropertyChangeMessage(list, "pointEdit.detectors.type", from.getDef().getNameKey(),
-                    getDef().getNameKey());
-        AuditEventType.maybeAddAlarmLevelChangeMessage(list, "common.alarmLevel", from.alarmLevel, alarmLevel);
-        if (from.limit != limit || from.duration != duration || from.durationType != durationType
-                || from.binaryState != binaryState || from.multistateState != multistateState
-                || from.changeCount != changeCount || from.alphanumericState != alphanumericState)
-            AuditEventType.maybeAddPropertyChangeMessage(list, "common.configuration",
-                    from.getConfigurationDescription(), getConfigurationDescription());
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.detectors.weight", from.weight, weight);
-        //TODO Add remaining property messages???
     }
 
     public DataPointVO njbGetDataPoint() {
@@ -389,7 +362,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO implements Clone
         this.alarmLevel = alarmLevel;
     }
 
-    @Override
+    //@Override
     public int getId() {
         return id;
     }

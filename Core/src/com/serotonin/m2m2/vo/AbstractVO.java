@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,8 +22,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
@@ -34,7 +31,7 @@ import com.serotonin.validation.StringValidation;
  * 
  * @author Jared Wiltshire
  */
-public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializable, ChangeComparable<T>,
+public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicVO implements Serializable,
         JsonSerializable, Cloneable {
     /**
      * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
@@ -45,8 +42,6 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
     /*
      * Mango properties
      */
-
-    protected int id = Common.NEW_ID;
     protected String xid;
     protected String name;
 
@@ -112,41 +107,15 @@ public abstract class AbstractVO<T extends AbstractVO<T>> implements Serializabl
      * ChangeComparable
      */
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.m2m2.util.ChangeComparable#addProperties(java.util.List)
+    /**
+     * Get the Audit Message Key
+     * @return
      */
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "common.name", name);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.m2m2.util.ChangeComparable#addPropertyChanges(java.util.List, java.lang.Object)
-     */
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, T from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.name", from.name, name);
-    }
+    public abstract String getTypeKey();
 
     /*
      * Getters and setters
      */
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getXid() {
         return xid;
     }
