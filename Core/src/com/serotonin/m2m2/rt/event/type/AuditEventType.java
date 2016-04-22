@@ -5,10 +5,15 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -21,17 +26,21 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.util.ChangeComparable;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.ExportNames;
+import com.serotonin.m2m2.util.JsonSerializableUtility;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 
 public class AuditEventType extends EventType {
     //
     //
     // Static stuff
     //
+	private static final Log LOG = LogFactory.getLog(AuditEventType.class);
+	
     private static final String AUDIT_SETTINGS_PREFIX = "auditEventAlarmLevel.";
 
     public static final String TYPE_DATA_SOURCE = "DATA_SOURCE";
@@ -83,28 +92,50 @@ public class AuditEventType extends EventType {
         dao.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel);
     }
 
-    public static void raiseAddedEvent(String auditEventType, ChangeComparable<?> o) {
-        List<TranslatableMessage> list = new ArrayList<TranslatableMessage>();
-        o.addProperties(list);
-        raiseEvent(auditEventType, o, "event.audit.added", list.toArray());
+    public static void raiseAddedEvent(String auditEventType, AbstractVO<?> o) {
+        Map<String, Object> context = new HashMap<String, Object>();
+        JsonSerializableUtility scanner = new JsonSerializableUtility();
+        try {
+			context = scanner.findValues(o);
+		} catch (IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | JsonException | IOException e) {
+			LOG.error(e.getMessage(), e);
+		}
+    	
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.added", context);
     }
 
-    public static <T> void raiseChangedEvent(String auditEventType, T from, ChangeComparable<T> to) {
-        List<TranslatableMessage> changes = new ArrayList<TranslatableMessage>();
-        to.addPropertyChanges(changes, from);
-        if (changes.size() == 0)
-            // If the object wasn't in fact changed, don't raise an event.
-            return;
-        raiseEvent(auditEventType, to, "event.audit.changed", changes.toArray());
+    public static void raiseChangedEvent(String auditEventType, AbstractVO<?> from, AbstractVO<?> to) {
+    	Map<String, Object> context = new HashMap<String, Object>();
+    	
+    	//Find the annotated properties
+    	JsonSerializableUtility scanner = new JsonSerializableUtility();
+    	try {
+    		context = scanner.findChanges(from,to);
+    		if (context.size() == 0)
+                // If the object wasn't in fact changed, don't raise an event.
+                return;
+		} catch (IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | JsonException | IOException e) {
+			LOG.error(e.getMessage(), e);
+		}
+        
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.changed", context);
     }
 
-    public static void raiseDeletedEvent(String auditEventType, ChangeComparable<?> o) {
-        List<TranslatableMessage> list = new ArrayList<TranslatableMessage>();
-        o.addProperties(list);
-        raiseEvent(auditEventType, o, "event.audit.deleted", list.toArray());
+    public static void raiseDeletedEvent(String auditEventType, AbstractVO<?> o) {
+        Map<String, Object> context = new HashMap<String, Object>();
+        JsonSerializableUtility scanner = new JsonSerializableUtility();
+        try {
+			context = scanner.findValues(o);
+		} catch (IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | JsonException | IOException e) {
+			LOG.error(e.getMessage(), e);
+		}
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.deleted", context);
     }
 
-    private static void raiseEvent(String auditEventType, ChangeComparable<?> o, String key, Object[] props) {
+    private static void raiseEvent(int changeType, String auditEventType, AbstractVO<?> to, String key, Map<String, Object> context) {
         User user = Common.getUser();
         Object username;
         if (user != null)
@@ -117,16 +148,16 @@ public class AuditEventType extends EventType {
                 username = new TranslatableMessage(descKey);
         }
 
-        TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(o.getTypeKey()),
-                o.getId(), new TranslatableMessage("event.audit.propertyList." + props.length, props));
-
-        AuditEventType type = new AuditEventType(auditEventType, o.getId());
+        TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
+                to.getId());
+        
+        AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
         type.setRaisingUser(user);
 
         Common.eventManager.raiseEvent(type, System.currentTimeMillis(), false, getEventType(type.getAuditEventType())
-                .getAlarmLevel(), message, null);
+                .getAlarmLevel(), message, context);
     }
-
+    
     //
     //
     // Utility methods for other classes
@@ -230,13 +261,16 @@ public class AuditEventType extends EventType {
     private String auditEventType;
     private int referenceId;
     private User raisingUser;
+    private int changeType;
+    private int auditEventId;
 
     public AuditEventType() {
         // Required for reflection.
     }
 
-    public AuditEventType(String auditEventType, int referenceId) {
+    public AuditEventType(String auditEventType, int changeType, int referenceId) {
         this.auditEventType = auditEventType;
+        this.changeType = changeType;
         this.referenceId = referenceId;
     }
 
@@ -269,11 +303,22 @@ public class AuditEventType extends EventType {
         return referenceId;
     }
 
+    public void setReferenceId2(int auditEventId){
+    	this.auditEventId = auditEventId;
+    }
     @Override
     public int getReferenceId2() {
-        return 0;
+        return auditEventId;
     }
 
+    public int getChangeType(){
+    	return changeType;
+    }
+    
+    public User getRaisingUser(){
+    	return this.raisingUser;
+    }
+    
     public void setRaisingUser(User raisingUser) {
         this.raisingUser = raisingUser;
     }
@@ -313,7 +358,7 @@ public class AuditEventType extends EventType {
             return false;
         return true;
     }
-
+    
     //
     //
     // Serialization

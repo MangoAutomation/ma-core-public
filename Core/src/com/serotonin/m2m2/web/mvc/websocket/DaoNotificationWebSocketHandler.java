@@ -15,13 +15,12 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Jared Wiltshire
  */
-public abstract class DaoNotificationWebSocketHandler<T extends AbstractVO<T>> extends MangoWebSocketHandler {
+public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketHandler {
     private static final Log LOG = LogFactory.getLog(DaoNotificationWebSocketHandler.class);
     
     final Set<WebSocketSession> sessions = new HashSet<WebSocketSession>();

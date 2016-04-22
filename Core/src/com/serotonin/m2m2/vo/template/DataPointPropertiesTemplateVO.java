@@ -7,7 +7,6 @@ package com.serotonin.m2m2.vo.template;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,8 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -262,97 +259,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 	public void setChartRenderer(ChartRenderer chartRenderer) {
 		this.chartRenderer = chartRenderer;
 	}
-
-	@Override
-	public void addProperties(List<TranslatableMessage> list) {
-        super.addProperties(list);
-        //xid, name and enabled handled in superclass
-        
-        /* Point Locator Properties */
-        AuditEventType.addPropertyMessage(list, "pointEdit.template.defaultTemplate", defaultTemplate);
-        AuditEventType.addExportCodeMessage(list, "pointEdit.template.dataType", DataTypes.CODES, dataTypeId);
-
-        
-        /* Point Properties */
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.chartColour", chartColour);
-        AuditEventType.addExportCodeMessage(list, "pointEdit.plotType", DataPointVO.PLOT_TYPE_CODES, plotType);
-
-        /* Logging Properties */
-        AuditEventType.addExportCodeMessage(list, "pointEdit.logging.type", DataPointVO.LOGGING_TYPE_CODES, loggingType);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.tolerance", tolerance);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.discard", discardExtremeValues);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.discardLow", discardLowLimit);
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.discardHigh", discardHighLimit);
-        AuditEventType.addPeriodMessage(list, "pointEdit.logging.period", intervalLoggingPeriodType,
-                intervalLoggingPeriod);
-        AuditEventType.addExportCodeMessage(list, "pointEdit.logging.valueType", DataPointVO.INTERVAL_LOGGING_TYPE_CODES,
-                intervalLoggingType);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.overrideIntervalLoggingSamples",
-                overrideIntervalLoggingSamples);
-        AuditEventType.addPropertyMessage(list, "pointEdit.props.intervalLoggingSampleWindowSize",
-                intervalLoggingSampleWindowSize);	        
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.defaultCache", defaultCacheSize);
-        
-        /* Purge Override Settings */
-        AuditEventType.addPropertyMessage(list, "pointEdit.logging.purgeOverride", purgeOverride);
-        AuditEventType.addPeriodMessage(list, "pointEdit.logging.purge", purgeType, purgePeriod);
-
-        // These were not in the Data Point VO method...
-        /* Text Renderer properties */
-        /* Chart Renderer properties */
-        /* Event Detectors */
-
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, BaseTemplateVO<?> fromVo) {
-        super.addPropertyChanges(list, fromVo);
-        //template type, xid, name and enabled handled in superclasses
-        DataPointPropertiesTemplateVO from = (DataPointPropertiesTemplateVO)fromVo;
-        
-        /* Point Locator Properties */
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.template.defaultTemplate", from.defaultTemplate, defaultTemplate);
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.plotType", DataTypes.CODES, from.dataTypeId, dataTypeId);
-
-        
-        /* Point Properties */
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.chartColour", from.chartColour, chartColour);
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.plotType", DataPointVO.PLOT_TYPE_CODES, from.plotType,plotType);
-
-        /* Logging Properties */
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.logging.type", DataPointVO.LOGGING_TYPE_CODES,
-                from.loggingType, loggingType);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.tolerance", from.tolerance, tolerance);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.discard", from.discardExtremeValues,
-                discardExtremeValues);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.discardLow", from.discardLowLimit,
-                discardLowLimit);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.discardHigh", from.discardHighLimit,
-                discardHighLimit);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "pointEdit.logging.period", from.intervalLoggingPeriodType,
-                from.intervalLoggingPeriod, intervalLoggingPeriodType, intervalLoggingPeriod);
-        AuditEventType.maybeAddExportCodeChangeMessage(list, "pointEdit.logging.valueType",
-        		DataPointVO.INTERVAL_LOGGING_TYPE_CODES, from.intervalLoggingType, intervalLoggingType);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.overrideIntervalLoggingSamples",
-                from.overrideIntervalLoggingSamples, overrideIntervalLoggingSamples);
-
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.props.intervalLoggingSampleWindowSize",
-                from.intervalLoggingSampleWindowSize, intervalLoggingSampleWindowSize);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.defaultCache", from.defaultCacheSize,
-                defaultCacheSize);
-
-        /* Purge Override Settings */
-        AuditEventType.maybeAddPropertyChangeMessage(list, "pointEdit.logging.purgeOverride", from.purgeOverride,
-                purgeOverride);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "pointEdit.logging.purge", from.purgeType, from.purgePeriod,
-                purgeType, purgePeriod);
-        
-        // These were not in the Data Point VO method...
-        /* Text Renderer properties */
-        /* Chart Renderer properties */
-        /* Event Detectors */
-
-    }
     
     @Override
     public void validate(ProcessResult response) {

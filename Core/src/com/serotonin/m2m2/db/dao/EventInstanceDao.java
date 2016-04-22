@@ -32,6 +32,7 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 
 /**
  * @author Terry Packer
@@ -45,7 +46,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	 * @param typeName
 	 */
 	private EventInstanceDao() {
-		super(null,"evt",
+		super(MangoWebSocketConfiguration.eventInstanceHandler, null,"evt",
 				new String[]{
 					"u.username",
 					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
@@ -404,7 +405,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
             type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else if (typeName.equals(EventType.EventTypeNames.AUDIT))
-            type = new AuditEventType(subtypeName, rs.getInt(offset + 2));
+           throw new ShouldNeverHappenException("AUDIT events should not exist here.");
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null)

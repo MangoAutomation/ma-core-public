@@ -7,7 +7,6 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.json.JsonException;
@@ -17,23 +16,18 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ExportCodes;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 
 /**
  * @author Terry Packer
  *
  */
-public class EmailEventHandlerVO extends AbstractEventHandlerVO{
+public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandlerVO>{
 
     public static final int RECIPIENT_TYPE_ACTIVE = 1;
     public static final int RECIPIENT_TYPE_ESCALATION = 2;
@@ -166,57 +160,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO{
         }
 	}
     
-	@Override
-    public void addProperties(List<TranslatableMessage> list) {
-		super.addProperties(list);
-		AuditEventType.addPropertyMessage(list, "eventHandlers.emailRecipients",
-                createRecipientMessage(activeRecipients));
-        AuditEventType.addPropertyMessage(list, "eventHandlers.escal", sendEscalation);
-        if (sendEscalation) {
-            AuditEventType
-                    .addPeriodMessage(list, "eventHandlers.escalPeriod", escalationDelayType, escalationDelay);
-            AuditEventType.addPropertyMessage(list, "eventHandlers.escalRecipients",
-                    createRecipientMessage(escalationRecipients));
-        }
-        AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveNotif", sendInactive);
-        if (sendInactive) {
-            AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveOverride", inactiveOverride);
-            if (inactiveOverride)
-                AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveRecipients",
-                        createRecipientMessage(inactiveRecipients));
-        }
-        AuditEventType.addPropertyMessage(list, "eventHandlers.includeSystemInfo", includeSystemInfo);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.includePointValueCount", includePointValueCount);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.includeLogfile", includeLogfile);
-	}
-	
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, AbstractEventHandlerVO vo) {
-    	super.addPropertyChanges(list, vo);
-        
-    	EmailEventHandlerVO from = (EmailEventHandlerVO)vo;
-    	
-    	AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.emailRecipients",
-                createRecipientMessage(from.activeRecipients), createRecipientMessage(activeRecipients));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.escal", from.sendEscalation,
-                sendEscalation);
-        AuditEventType.maybeAddPeriodChangeMessage(list, "eventHandlers.escalPeriod", from.escalationDelayType,
-                from.escalationDelay, escalationDelayType, escalationDelay);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.escalRecipients",
-                createRecipientMessage(from.escalationRecipients), createRecipientMessage(escalationRecipients));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveNotif", from.sendInactive,
-                sendInactive);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveOverride", from.inactiveOverride,
-                inactiveOverride);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveRecipients",
-                createRecipientMessage(from.inactiveRecipients), createRecipientMessage(inactiveRecipients));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includeSystemInfo", from.includeSystemInfo, includeSystemInfo);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includePointValueCount", from.includePointValueCount, includePointValueCount);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.includeLogfile", from.includeLogfile, includeLogfile);
-
-    }
-	
-	
 	//
     //
     // Serialization
@@ -347,25 +290,5 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO{
     @Override
     public EventHandlerRT<EmailEventHandlerVO> createRuntime(){
     	return new EmailHandlerRT(this);
-    }
-    
-    private static TranslatableMessage createRecipientMessage(List<RecipientListEntryBean> recipients) {
-        MailingListDao mailingListDao = new MailingListDao();
-        UserDao userDao = new UserDao();
-        ArrayList<TranslatableMessage> params = new ArrayList<TranslatableMessage>();
-        for (RecipientListEntryBean recip : recipients) {
-            TranslatableMessage msg;
-            if (recip.getRecipientType() == EmailRecipient.TYPE_MAILING_LIST)
-                msg = new TranslatableMessage("event.audit.recip.mailingList", mailingListDao.getMailingList(
-                        recip.getReferenceId()).getName());
-            else if (recip.getRecipientType() == EmailRecipient.TYPE_USER)
-                msg = new TranslatableMessage("event.audit.recip.user", userDao.getUser(recip.getReferenceId())
-                        .getUsername());
-            else
-                msg = new TranslatableMessage("event.audit.recip.address", recip.getReferenceAddress());
-            params.add(msg);
-        }
-
-        return new TranslatableMessage("event.audit.recip.list." + params.size(), params.toArray());
     }
 }

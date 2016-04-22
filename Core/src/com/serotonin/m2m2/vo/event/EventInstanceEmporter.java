@@ -10,14 +10,10 @@ import java.util.List;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.joda.time.DateTime;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter;
 
 /**

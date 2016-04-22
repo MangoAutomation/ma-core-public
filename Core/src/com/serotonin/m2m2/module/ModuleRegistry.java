@@ -51,6 +51,8 @@ import com.serotonin.m2m2.web.mvc.controller.StartupController;
 import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
 import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.audit.AuditEventInstanceModelDefinition;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.DataPointModelDefinition;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.jsondata.JsonDataModelDefinition;
 
 /**
@@ -471,6 +473,9 @@ public class ModuleRegistry {
         //Add in core Models
         preDefaults.add(new RestErrorModelDefinition());
         preDefaults.add(new JsonDataModelDefinition());
+        preDefaults.add(new AuditEventInstanceModelDefinition());
+        preDefaults.add(new DataPointModelDefinition());
+        
         //TODO Add env property to load the Demo Swagger Endpoint then re-enable the demo controller
         //preDefaults.add(new DemoModelDefinition());
 

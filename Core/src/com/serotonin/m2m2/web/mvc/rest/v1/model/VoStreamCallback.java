@@ -7,13 +7,14 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 import java.io.IOException;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 
 /**
  * @author Terry Packer
  *
  */
-public class VoStreamCallback<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStreamCallback<VO> {
+public class VoStreamCallback<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStreamCallback<VO> {
 
 	protected MangoVoRestController<VO, MODEL, DAO> controller;
 	

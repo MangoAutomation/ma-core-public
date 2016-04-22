@@ -7,32 +7,25 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.util.ChangeComparable;
+import com.serotonin.m2m2.vo.AbstractVO;
 
-public abstract class AbstractEventHandlerVO implements Serializable, ChangeComparable<AbstractEventHandlerVO>, JsonSerializable {
+public abstract class AbstractEventHandlerVO<T extends AbstractVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
 
-    // Common fields
-    private int id = Common.NEW_ID;
-    private String xid;
     @JsonProperty
     private String alias;
     @JsonProperty
@@ -54,23 +47,6 @@ public abstract class AbstractEventHandlerVO implements Serializable, ChangeComp
 
     private TranslatableMessage getTypeMessage() {
         return new TranslatableMessage(this.definition.getDescriptionKey());
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getXid() {
-        return xid;
-    }
-
-    public void setXid(String xid) {
-        this.xid = xid;
     }
 
     public String getAlias() {
@@ -108,21 +84,7 @@ public abstract class AbstractEventHandlerVO implements Serializable, ChangeComp
 	}
 	
     public void validate(ProcessResult response) {
-    }
-
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.alias", alias);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.type", getTypeMessage());
-        AuditEventType.addPropertyMessage(list, "common.disabled", disabled);
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, AbstractEventHandlerVO from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.alias", from.alias, alias);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.disabled", from.disabled, disabled);
+    	super.validate(response);
     }
 
     //
@@ -148,12 +110,16 @@ public abstract class AbstractEventHandlerVO implements Serializable, ChangeComp
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("eventType", new EventDao().getEventHandlerType(id));
+        super.jsonWrite(writer);
+    	writer.writeEntry("eventType", new EventDao().getEventHandlerType(id));
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+        //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
+    	throw new ShouldNeverHappenException("Un-implemented");
+    	
     }
 }

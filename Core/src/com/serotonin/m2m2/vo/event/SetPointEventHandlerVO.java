@@ -7,7 +7,6 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -20,7 +19,6 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
@@ -29,7 +27,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public class SetPointEventHandlerVO extends AbstractEventHandlerVO{
+public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEventHandlerVO>{
 
     public static final int SET_ACTION_NONE = 0;
     public static final int SET_ACTION_POINT_VALUE = 1;
@@ -174,54 +172,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO{
                     response.addGenericMessage("eventHandlers.invalidInactiveSourceType");
             }
         }
-    }
-    
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-    	super.addProperties(list);
-    	
-        DataPointDao dataPointDao = new DataPointDao();
-        AuditEventType.addPropertyMessage(list, "eventHandlers.target",
-                dataPointDao.getExtendedPointName(targetPointId));
-        AuditEventType.addPropertyMessage(list, "eventHandlers.activeAction", getSetActionMessage(activeAction));
-        if (activeAction == SET_ACTION_POINT_VALUE)
-            AuditEventType.addPropertyMessage(list, "eventHandlers.action.point",
-                    dataPointDao.getExtendedPointName(activePointId));
-        else if (activeAction == SET_ACTION_STATIC_VALUE)
-            AuditEventType.addPropertyMessage(list, "eventHandlers.action.static", activeValueToSet);
-
-        AuditEventType
-                .addPropertyMessage(list, "eventHandlers.inactiveAction", getSetActionMessage(inactiveAction));
-        if (inactiveAction == SET_ACTION_POINT_VALUE)
-            AuditEventType.addPropertyMessage(list, "eventHandlers.action.point",
-                    dataPointDao.getExtendedPointName(inactivePointId));
-        else if (inactiveAction == SET_ACTION_STATIC_VALUE)
-            AuditEventType.addPropertyMessage(list, "eventHandlers.action.static", inactiveValueToSet);
-
-    }
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, AbstractEventHandlerVO vo) {
-    	super.addPropertyChanges(list, vo);
-    	SetPointEventHandlerVO from = (SetPointEventHandlerVO)vo;
-    	DataPointDao dataPointDao = new DataPointDao();
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.target",
-                dataPointDao.getExtendedPointName(from.targetPointId),
-                dataPointDao.getExtendedPointName(targetPointId));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeAction",
-                getSetActionMessage(from.activeAction), getSetActionMessage(activeAction));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.point",
-                dataPointDao.getExtendedPointName(from.activePointId),
-                dataPointDao.getExtendedPointName(activePointId));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.static", from.activeValueToSet,
-                activeValueToSet);
-
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveAction",
-                getSetActionMessage(from.inactiveAction), getSetActionMessage(inactiveAction));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.point",
-                dataPointDao.getExtendedPointName(from.inactivePointId),
-                dataPointDao.getExtendedPointName(inactivePointId));
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.action.static", from.inactiveValueToSet,
-                inactiveValueToSet);
     }
     
     //

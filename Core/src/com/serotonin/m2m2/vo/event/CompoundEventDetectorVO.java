@@ -15,7 +15,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -26,9 +25,8 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.compound.CompoundEventDetectorRT;
 import com.serotonin.m2m2.rt.event.compound.ConditionParseException;
 import com.serotonin.m2m2.rt.event.compound.LogicalOperator;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.util.ChangeComparable;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -39,8 +37,13 @@ import com.serotonin.web.i18n.LocalizableMessage;
 /**
  * @author Matthew Lohbihler
  */
-public class CompoundEventDetectorVO implements ChangeComparable<CompoundEventDetectorVO>, JsonSerializable {
-    public static final String XID_PREFIX = "CED_";
+public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO<T> {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static final String XID_PREFIX = "CED_";
 
     private int id = Common.NEW_ID;
     private String xid;
@@ -63,7 +66,7 @@ public class CompoundEventDetectorVO implements ChangeComparable<CompoundEventDe
                 "common.default", name), alarmLevel);
     }
 
-    @Override
+    //@Override
     public String getTypeKey() {
         return "event.audit.compoundEventDetector";
     }
@@ -125,31 +128,11 @@ public class CompoundEventDetectorVO implements ChangeComparable<CompoundEventDe
         }
     }
 
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-        AuditEventType.addPropertyMessage(list, "common.xid", xid);
-        AuditEventType.addPropertyMessage(list, "compoundDetectors.name", name);
-        AuditEventType.addPropertyMessage(list, "common.alarmLevel", AlarmLevels.getAlarmLevelMessage(alarmLevel));
-        AuditEventType.addPropertyMessage(list, "common.rtn", returnToNormal);
-        AuditEventType.addPropertyMessage(list, "common.disabled", disabled);
-        AuditEventType.addPropertyMessage(list, "compoundDetectors.condition", condition);
-    }
-
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, CompoundEventDetectorVO from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.xid", from.xid, xid);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "compoundDetectors.name", from.name, name);
-        AuditEventType.maybeAddAlarmLevelChangeMessage(list, "common.alarmLevel", from.alarmLevel, alarmLevel);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.rtn", from.returnToNormal, returnToNormal);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "common.disabled", from.disabled, disabled);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "compoundDetectors.condition", from.condition, condition);
-    }
-
     public CompoundEventDetectorRT createRuntime() {
         return new CompoundEventDetectorRT(this);
     }
 
-    @Override
+    //@Override
     public int getId() {
         return id;
     }

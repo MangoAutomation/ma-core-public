@@ -7,7 +7,6 @@ package com.serotonin.m2m2.vo.dataSource;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,7 +19,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.util.SerializationHelper;
 
@@ -97,37 +95,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
             }
         }
     }
-    
-    @Override
-    protected void addPropertiesImpl(List<TranslatableMessage> list) {
-        AuditEventType.addPropertyMessage(list, "dsEdit.quantize", quantize);
-        AuditEventType.addPropertyMessage(list, "dsEdit.cronPattern", cronPattern);
-        AuditEventType.addPeriodMessage(list, "dsEdit.updatePeriod", updatePeriodType, updatePeriods);
-        addSubclassPropertiesImpl(list);
-    }
-    
-    @SuppressWarnings("unchecked")
-	@Override
-    protected void addPropertyChangesImpl(List<TranslatableMessage> list, PollingDataSourceVO<T> from) {
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.quantize", from.quantize, quantize);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.cronPattern", from.cronPattern, cronPattern);
-    	AuditEventType.maybeAddPeriodChangeMessage(list, "dsEdit.updatePeriod", from.updatePeriodType,
-                from.updatePeriods, updatePeriodType, updatePeriods);
-        addSubclassPropertyChangesImpl(list, (T) from);
-    }
-    
-    /**
-     * Audit any property changes
-     * @param list
-     * @param from
-     */
-    protected abstract void addSubclassPropertyChangesImpl(List<TranslatableMessage> list, T from);
-    /**
-     * Audit properties
-     * @param list
-     */
-    protected abstract void addSubclassPropertiesImpl(List<TranslatableMessage> list);
-    
+        
     private static final long serialVersionUID = -1;
     private static final int version = 1;
 

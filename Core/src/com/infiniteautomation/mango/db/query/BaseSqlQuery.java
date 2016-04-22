@@ -10,12 +10,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class BaseSqlQuery<T> {
+public class BaseSqlQuery<T  extends AbstractBasicVO> {
 	private static final Log LOG = LogFactory.getLog(BaseSqlQuery.class);
 
 	protected AbstractBasicDao<T> dao;

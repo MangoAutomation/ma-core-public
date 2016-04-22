@@ -6,7 +6,6 @@ package com.serotonin.m2m2.vo.json;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -18,7 +17,6 @@ import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -72,23 +70,7 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 			response.addMessage("jsonData", new TranslatableMessage("common.default", e.getMessage()));
 		}
 	}
-	
-	
-    @Override
-    public final void addProperties(List<TranslatableMessage> list) {
-    	super.addProperties(list);
-        AuditEventType.addPropertyMessage(list, "jsonData.data", jsonData);
-        AuditEventType.addPropertyMessage(list, "jsonData.readPermission", readPermission);
-        AuditEventType.addPropertyMessage(list, "jsonData.editPermission", editPermission);
-    }
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, JsonDataVO from) {
-    	super.addPropertyChanges(list,from);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "jsonData.data", from.jsonData, jsonData);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "jsonData.readPermission", from.readPermission, readPermission);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "jsonData.editPermission", from.editPermission, editPermission);
-    }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);

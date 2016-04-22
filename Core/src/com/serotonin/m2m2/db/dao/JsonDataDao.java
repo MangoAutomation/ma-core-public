@@ -29,7 +29,7 @@ import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
  * @author Terry Packer
  *
  */
-public class JsonDataDao extends WebSocketNotifyingDao<JsonDataVO>{
+public class JsonDataDao extends AbstractDao<JsonDataVO>{
 
 	public static final JsonDataDao instance = new JsonDataDao();
 	

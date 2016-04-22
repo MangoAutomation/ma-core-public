@@ -19,6 +19,7 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.web.taglib.Functions;
 
 /**
@@ -35,7 +36,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	public static final UserCommentDao instance = new UserCommentDao();
 
 	private UserCommentDao(){
-		super(AuditEventType.TYPE_USER_COMMENT, "uc", 
+		super(MangoWebSocketConfiguration.userCommentHandler, AuditEventType.TYPE_USER_COMMENT, "uc", 
 				new String[]{ "u.username" },
 				"left join users u on uc.userId = u.id"
 			);

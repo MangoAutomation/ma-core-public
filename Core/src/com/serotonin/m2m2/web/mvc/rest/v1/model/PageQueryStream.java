@@ -10,6 +10,7 @@ import net.jazdw.rql.parser.ASTNode;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 
@@ -17,7 +18,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
  * @author Terry Packer
  *
  */
-public class PageQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStream<VO,MODEL, DAO> implements QueryDataPageStream<VO>{
+public class PageQueryStream<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStream<VO,MODEL, DAO> implements QueryDataPageStream<VO>{
 
 	protected QueryStreamCallback<Long> countCallback;
 

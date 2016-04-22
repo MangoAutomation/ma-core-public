@@ -6,10 +6,10 @@ package com.serotonin.m2m2.vo.event;
 
 import java.util.List;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -35,7 +35,7 @@ public class EventTypeVO {
      */
     private int typeRef2;
     private TranslatableMessage description;
-    private List<AbstractEventHandlerVO> handlers;
+    private List<AbstractEventHandlerVO<?>> handlers;
     private int alarmLevel;
     private String eventDetectorKey;
     private int duplicateHandling;
@@ -70,7 +70,7 @@ public class EventTypeVO {
         if (type.equals(EventType.EventTypeNames.PUBLISHER))
             return new PublisherEventType(typeRef1, typeRef2);
         if (type.equals(EventType.EventTypeNames.AUDIT))
-            return new AuditEventType(subtype, typeRef1);
+            throw new ShouldNeverHappenException("No audit events should be here.");
 
         EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(type);
         if (def != null)
@@ -119,11 +119,11 @@ public class EventTypeVO {
         this.description = description;
     }
 
-    public List<AbstractEventHandlerVO> getHandlers() {
+    public List<AbstractEventHandlerVO<?>> getHandlers() {
         return handlers;
     }
 
-    public void setHandlers(List<AbstractEventHandlerVO> handlers) {
+    public void setHandlers(List<AbstractEventHandlerVO<?>> handlers) {
         this.handlers = handlers;
     }
 

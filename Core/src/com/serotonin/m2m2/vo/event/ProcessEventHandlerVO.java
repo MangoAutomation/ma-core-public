@@ -7,7 +7,6 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,17 +15,15 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.util.SerializationHelper;
 
 /**
  * @author Terry Packer
  *
  */
-public class ProcessEventHandlerVO extends AbstractEventHandlerVO{
+public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHandlerVO>{
 
 	private String activeProcessCommand;
     private int activeProcessTimeout = 15;
@@ -76,30 +73,6 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO{
 
         if (!StringUtils.isBlank(inactiveProcessCommand) && inactiveProcessTimeout <= 0)
             response.addGenericMessage("validate.greaterThanZero");
-    }
-    
-    @Override
-    public void addProperties(List<TranslatableMessage> list) {
-    	super.addProperties(list);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.activeCommand", activeProcessCommand);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.activeTimeout", activeProcessTimeout);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveCommand", inactiveProcessCommand);
-        AuditEventType.addPropertyMessage(list, "eventHandlers.inactiveTimeout", inactiveProcessTimeout);
-    }
-    
-    @Override
-    public void addPropertyChanges(List<TranslatableMessage> list, AbstractEventHandlerVO vo) {
-        super.addPropertyChanges(list, vo);
-        
-        ProcessEventHandlerVO from = (ProcessEventHandlerVO)vo;
-    	AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeCommand",
-                from.activeProcessCommand, activeProcessCommand);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.activeTimeout",
-                from.activeProcessTimeout, activeProcessTimeout);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveCommand",
-                from.inactiveProcessCommand, inactiveProcessCommand);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "eventHandlers.inactiveTimeout",
-                from.inactiveProcessTimeout, inactiveProcessTimeout);
     }
     
     //

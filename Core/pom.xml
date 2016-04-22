@@ -531,7 +531,13 @@
 			<artifactId>rql-parser</artifactId>
 			<version>0.3.2</version>
 		</dependency>
-
+		<!-- For FFT Transforms -->
+		<dependency>
+			<groupId>com.github.wendykierp</groupId>
+			<artifactId>JTransforms</artifactId>
+			<version>3.1</version>
+			<classifier>with-dependencies</classifier>
+		</dependency>
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -562,13 +568,6 @@
 			<artifactId>hamcrest-all</artifactId>
 			<version>1.3</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<!-- For FFT Transforms -->
-			<groupId>com.github.wendykierp</groupId>
-			<artifactId>JTransforms</artifactId>
-			<version>3.1</version>
-			<classifier>with-dependencies</classifier>
 		</dependency>
 	</dependencies>
 	<parent>

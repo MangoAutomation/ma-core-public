@@ -192,7 +192,7 @@ abstract public class EventType implements JsonSerializable {
      * 
      * @return
      */
-    public boolean excludeUser(@SuppressWarnings("unused") User user) {
+    public boolean excludeUser(User user) {
         return false;
     }
 
