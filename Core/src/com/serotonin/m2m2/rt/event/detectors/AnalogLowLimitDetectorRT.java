@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
 
 /**
  * The AnalogLowLimitDetector is used to detect occurances of point values below the given low limit for a given
@@ -28,7 +28,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * 
  * @author Matthew Lohbihler
  */
-public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
+public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogLowLimitDetectorVO> {
     private final Log log = LogFactory.getLog(AnalogLowLimitDetectorRT.class);
 
     /**
@@ -46,8 +46,8 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
      */
     private boolean eventActive;
 
-    public AnalogLowLimitDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public AnalogLowLimitDetectorRT(AnalogLowLimitDetectorVO vo) {
+    	super(vo);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
         String name = vo.njbGetDataPoint().getName();
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         
-        if(vo.isBinaryState()){
+        if(vo.isNotLower()){
         	//Is not lower
             if (durationDescription == null)
                 return new TranslatableMessage("event.detector.lowLimitNotLower", name, prettyLimit);
@@ -94,7 +94,7 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         double newDouble = newValue.getDoubleValue();
         
-        if(vo.isBinaryState()){
+        if(vo.isNotLower()){
         	//Not Lower than
             if (newDouble >= vo.getLimit()) {
                 if (!lowLimitActive) {
@@ -104,8 +104,8 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
             }
             else {
             	//Are we using a reset value
-            	if(vo.getMultistateState() == 1){
-	                if ((lowLimitActive)&&(newDouble <= vo.getWeight())) {
+            	if(vo.isUseResetLimit()){
+	                if ((lowLimitActive)&&(newDouble <= vo.getResetLimit())) {
 	                    lowLimitInactiveTime = newValue.getTime();
 	                    changeLowLimitActive();
 	                }
@@ -126,8 +126,8 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT {
             }
             else {
             	//Are we using a reset value
-            	if(vo.getMultistateState() == 1){
-	                if ((lowLimitActive)&&(newDouble >= vo.getWeight())) {
+            	if(vo.isUseResetLimit()){
+	                if ((lowLimitActive)&&(newDouble >= vo.getResetLimit())) {
                         lowLimitInactiveTime = newValue.getTime();
                         changeLowLimitActive();
 	                }

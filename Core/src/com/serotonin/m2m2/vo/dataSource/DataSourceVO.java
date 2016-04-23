@@ -19,6 +19,8 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -360,4 +362,11 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
         return value;
     }
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<DataSourceVO<?>> getDao() {
+		return DataSourceDao.instance;
+	}
 }

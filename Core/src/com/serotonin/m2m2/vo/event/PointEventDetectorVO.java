@@ -18,30 +18,22 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.detectors.AlphanumericRegexStateDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.AnalogHighLimitDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.AnalogLowLimitDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.AnalogRangeDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.MultistateStateDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.NegativeCusumDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.NoChangeDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.NoUpdateDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.PointChangeDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.PositiveCusumDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.SmoothnessDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.StateChangeCountDetectorRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 
+/**
+ * @author Terry Packer
+ *
+ */
+@Deprecated
 public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetectorVO>{
     /**
 	 * 
@@ -146,40 +138,8 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
         return null;
     }
 
-    public PointEventDetectorRT createRuntime() {
-        switch (detectorType) {
-        case TYPE_ANALOG_HIGH_LIMIT:
-            return new AnalogHighLimitDetectorRT(this);
-        case TYPE_ANALOG_LOW_LIMIT:
-            return new AnalogLowLimitDetectorRT(this);
-        case TYPE_BINARY_STATE:
-            return new BinaryStateDetectorRT(this);
-        case TYPE_MULTISTATE_STATE:
-            return new MultistateStateDetectorRT(this);
-        case TYPE_POINT_CHANGE:
-            return new PointChangeDetectorRT(this);
-        case TYPE_STATE_CHANGE_COUNT:
-            return new StateChangeCountDetectorRT(this);
-        case TYPE_NO_CHANGE:
-            return new NoChangeDetectorRT(this);
-        case TYPE_NO_UPDATE:
-            return new NoUpdateDetectorRT(this);
-        case TYPE_ALPHANUMERIC_STATE:
-            return new AlphanumericStateDetectorRT(this);
-        case TYPE_ALPHANUMERIC_REGEX_STATE:
-            return new AlphanumericRegexStateDetectorRT(this);
-        case TYPE_POSITIVE_CUSUM:
-            return new PositiveCusumDetectorRT(this);
-        case TYPE_NEGATIVE_CUSUM:
-            return new NegativeCusumDetectorRT(this);
-        case TYPE_ANALOG_RANGE:
-            return new AnalogRangeDetectorRT(this);
-            //        case TYPE_ANALOG_CHANGE:
-            //        	return new AnalogChangeDetectorRT(this);
-        case TYPE_SMOOTHNESS:
-            return new SmoothnessDetectorRT(this);
-        }
-        throw new ShouldNeverHappenException("Unknown detector type: " + detectorType);
+    public PointEventDetectorRT<?> createRuntime() {
+        throw new ShouldNeverHappenException("Deprecated.");
     }
 
     public boolean isRtnApplicable() {
@@ -695,4 +655,12 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     public String getEventDetectorKey() {
         return SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX + id;
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<PointEventDetectorVO> getDao() {
+		return null;
+	}
 }

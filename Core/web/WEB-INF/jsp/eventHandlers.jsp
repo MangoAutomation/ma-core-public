@@ -6,11 +6,11 @@
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.Common"%>
-<%@page import="com.serotonin.m2m2.module.definitions.EmailEventHandlerDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition"%>
 <%@page import="com.serotonin.m2m2.vo.event.EmailEventHandlerVO"%>
-<%@page import="com.serotonin.m2m2.module.definitions.SetPointEventHandlerDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition"%>
 <%@page import="com.serotonin.m2m2.vo.event.SetPointEventHandlerVO"%>
-<%@page import="com.serotonin.m2m2.module.definitions.ProcessEventHandlerDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition"%>
 <%@page import="com.serotonin.m2m2.vo.event.ProcessEventHandlerVO"%>
 
 <%@page import="com.serotonin.m2m2.DataTypes"%>

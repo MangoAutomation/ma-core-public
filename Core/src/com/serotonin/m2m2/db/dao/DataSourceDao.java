@@ -37,7 +37,7 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.util.SerializationHelper;
 
@@ -227,7 +227,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                     dataPointCopy.getComments().clear();
 
                     // Copy the event detectors
-                    for (PointEventDetectorVO ped : dataPointCopy.getEventDetectors()) {
+                    for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
                         ped.setId(Common.NEW_ID);
                         ped.njbSetDataPoint(dataPointCopy);
                     }
@@ -277,7 +277,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                     dataPointCopy.getComments().clear();
 
                     // Copy the event detectors
-                    for (PointEventDetectorVO ped : dataPointCopy.getEventDetectors()) {
+                    for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
                         ped.setId(Common.NEW_ID);
                         ped.njbSetDataPoint(dataPointCopy);
                     }

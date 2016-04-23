@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -17,6 +18,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -134,5 +136,13 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
     public EventHandlerRT<ProcessEventHandlerVO> createRuntime(){
     	return new ProcessHandlerRT(this);
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.AbstractEventHandlerVO#asModel()
+	 */
+	@Override
+	public AbstractEventHandlerModel<?> asModel() {
+		throw new ShouldNeverHappenException("Un-implemented.");
+	}
 
 }

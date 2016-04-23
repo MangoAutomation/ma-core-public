@@ -11,12 +11,14 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -35,6 +37,9 @@ import com.serotonin.web.dwr.DwrResponseI18n;
 import com.serotonin.web.i18n.LocalizableMessage;
 
 /**
+ * This class is not working yet, its left here for the time when 
+ * we decide to use Compound detectors.
+ * 
  * @author Matthew Lohbihler
  */
 public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO<T> {
@@ -103,12 +108,12 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
                     if (!Permissions.hasDataSourcePermission(user, dss.get(dp.getDataSourceId())))
                         continue;
 
-                    for (PointEventDetectorVO ped : dp.getEventDetectors()) {
-                        if (ped.getEventDetectorKey().equals(key) && ped.isRtnApplicable()) {
-                            found = true;
-                            break;
-                        }
-                    }
+//                    for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
+//                        if (ped.getEventDetectorKey().equals(key) && ped.isRtnApplicable()) {
+//                            found = true;
+//                            break;
+//                        }
+//                    }
 
                     if (found)
                         break;
@@ -209,4 +214,12 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
                         AlarmLevels.CODES.getCodeList());
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<T> getDao() {
+		throw new ShouldNeverHappenException("Un-implemented.");
+	}
 }

@@ -10,6 +10,8 @@ import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketConfigurer;
 import com.serotonin.m2m2.web.mvc.websocket.publisher.AuditEventWebSocketHandler;
 import com.serotonin.m2m2.web.mvc.websocket.publisher.DataPointWebSocketHandler;
 import com.serotonin.m2m2.web.mvc.websocket.publisher.DataSourceWebSocketHandler;
+import com.serotonin.m2m2.web.mvc.websocket.publisher.EventDetectorWebSocketHandler;
+import com.serotonin.m2m2.web.mvc.websocket.publisher.EventHandlerWebSocketHandler;
 import com.serotonin.m2m2.web.mvc.websocket.publisher.EventInstanceWebSocketHandler;
 import com.serotonin.m2m2.web.mvc.websocket.publisher.JsonDataWebSocketHandler;
 import com.serotonin.m2m2.web.mvc.websocket.publisher.TemplateWebSocketHandler;
@@ -37,6 +39,8 @@ public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer {
     public static final EventInstanceWebSocketHandler eventInstanceHandler = new EventInstanceWebSocketHandler();
     public static final DataPointWebSocketHandler dataPointHandler = new DataPointWebSocketHandler();
     public static final DataSourceWebSocketHandler dataSourceHandler = new DataSourceWebSocketHandler();
+    public static final EventDetectorWebSocketHandler eventDetectorHandler = new EventDetectorWebSocketHandler();
+    public static final EventHandlerWebSocketHandler eventHandlerHandler = new EventHandlerWebSocketHandler();
     
     
 	@Override

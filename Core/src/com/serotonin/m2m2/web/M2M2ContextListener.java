@@ -86,7 +86,7 @@ public class M2M2ContextListener implements ServletContextListener {
         
         ctx.setAttribute("constants.AuditEventType.TYPE_DATA_SOURCE", AuditEventType.TYPE_DATA_SOURCE);
         ctx.setAttribute("constants.AuditEventType.TYPE_DATA_POINT", AuditEventType.TYPE_DATA_POINT);
-        ctx.setAttribute("constants.AuditEventType.TYPE_POINT_EVENT_DETECTOR", AuditEventType.TYPE_POINT_EVENT_DETECTOR);
+        ctx.setAttribute("constants.AuditEventType.TYPE_EVENT_DETECTOR", AuditEventType.TYPE_EVENT_DETECTOR);
         ctx.setAttribute("constants.AuditEventType.TYPE_EVENT_HANDLER", AuditEventType.TYPE_EVENT_HANDLER);
 
         ctx.setAttribute("constants.UserComment.TYPE_EVENT", UserComment.TYPE_EVENT);

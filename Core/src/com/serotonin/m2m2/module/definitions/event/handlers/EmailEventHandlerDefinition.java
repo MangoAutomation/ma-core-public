@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.module.definitions;
+package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -37,7 +37,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition{
 	 * @see com.serotonin.m2m2.module.EventHandlerDefinition#createEventHandlerVO()
 	 */
 	@Override
-	protected AbstractEventHandlerVO createEventHandlerVO() {
+	protected AbstractEventHandlerVO<?> createEventHandlerVO() {
 		return new EmailEventHandlerVO();
 	}
 

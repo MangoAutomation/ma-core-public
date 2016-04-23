@@ -33,7 +33,7 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
@@ -140,7 +140,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
                     dp.setDataSourceId(vo.getId());
                     dp.setDataSourceTypeName(vo.getDefinition().getDataSourceTypeName());
                     dp.setDeviceName(vo.getName());
-                    dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+                    dp.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
                     dp.defaultTextRenderer();
                     dp.setXid(DataPointDao.instance.generateUniqueXid());
                     dp.setPointLocator(vo.createPointLocator());

@@ -43,7 +43,7 @@ import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -428,10 +428,10 @@ public class RuntimeManager {
             point.defaultTextRenderer();
 
         // Event detectors
-        Iterator<PointEventDetectorVO> peds = point.getEventDetectors().iterator();
+        Iterator<AbstractPointEventDetectorVO<?>> peds = point.getEventDetectors().iterator();
         while (peds.hasNext()) {
-            PointEventDetectorVO ped = peds.next();
-            if (!ped.getDef().supports(dataType))
+        	AbstractPointEventDetectorVO<?> ped = peds.next();
+            if (!ped.supports(dataType))
                 // Remove the detector.
                 peds.remove();
         }

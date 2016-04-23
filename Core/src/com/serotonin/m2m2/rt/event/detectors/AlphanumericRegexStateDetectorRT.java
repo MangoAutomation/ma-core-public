@@ -9,18 +9,20 @@ import java.util.regex.Pattern;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO;
 
-public class AlphanumericRegexStateDetectorRT extends StateDetectorRT { 
-    public AlphanumericRegexStateDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+public class AlphanumericRegexStateDetectorRT extends StateDetectorRT<AlphanumericRegexStateDetectorVO> { 
+    
+	public AlphanumericRegexStateDetectorRT(AlphanumericRegexStateDetectorVO vo) {
+        super(vo);
     }
 
     @Override
     public TranslatableMessage getMessage() {
         String name = vo.njbGetDataPoint().getName();
         String prettyText = vo.njbGetDataPoint().getTextRenderer()
-                .getText(vo.getAlphanumericState(), TextRenderer.HINT_SPECIFIC);
+                .getText(vo.getState(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
 
         if (durationDescription != null)
@@ -32,7 +34,7 @@ public class AlphanumericRegexStateDetectorRT extends StateDetectorRT {
     protected boolean stateDetected(PointValueTime newValue) {
         String newAlpha = newValue.getStringValue();
         if(newAlpha != null)
-        	return Pattern.compile(vo.getAlphanumericState()).matcher(newAlpha).find();
+        	return Pattern.compile(vo.getState()).matcher(newAlpha).find();
         return false;
     }
 }

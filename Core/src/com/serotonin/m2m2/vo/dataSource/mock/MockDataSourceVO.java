@@ -2,6 +2,7 @@ package com.serotonin.m2m2.vo.dataSource.mock;
 
 import java.util.List;
 
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
@@ -53,5 +54,14 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     public AbstractDataSourceModel<MockDataSourceVO> asModel(){
     	return new MockDataSourceModel(this);
     }
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<DataSourceVO<?>> getDao() {
+		return null;
+	}
     
 }

@@ -39,7 +39,7 @@ import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;

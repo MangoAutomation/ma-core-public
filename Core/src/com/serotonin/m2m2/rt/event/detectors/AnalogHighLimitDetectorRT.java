@@ -7,7 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 
 /**
  * The AnalogHighLimitDetector is used to detect occurrences of point values exceeding the given high limit for a given
@@ -24,7 +24,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * 
  * @author Matthew Lohbihler
  */
-public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
+public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogHighLimitDetectorVO> {
     /**
      * State field. Whether the high limit is currently active or not. This field is used to prevent multiple events
      * being raised during the duration of a single high limit exceed.
@@ -40,8 +40,8 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
      */
     private boolean eventActive;
 
-    public AnalogHighLimitDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public AnalogHighLimitDetectorRT(AnalogHighLimitDetectorVO vo) {
+    	super(vo);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
-        if(vo.isBinaryState()){
+        if(vo.isNotHigher()){
         	//Not Higher than 
             if (durationDescription == null)
                 return new TranslatableMessage("event.detector.highLimitNotHigher", name, prettyLimit);
@@ -86,7 +86,7 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         double newDouble = newValue.getDoubleValue();
-        if(vo.isBinaryState()){
+        if(vo.isNotHigher()){
         	//Is Not Higher
             if (newDouble <= vo.getLimit()) {
                 if (!highLimitActive) {
@@ -96,8 +96,8 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
             }
             else {
             	//Are we using a reset value
-            	if(vo.getMultistateState() == 1){
-                    if ((highLimitActive)&&(newDouble >= vo.getWeight())) {
+            	if(vo.isUseResetLimit()){
+                    if ((highLimitActive)&&(newDouble >= vo.getResetLimit())) {
                         highLimitInactiveTime = newValue.getTime();
                         changeHighLimitActive();
                     }
@@ -119,9 +119,9 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
             }
             else {
             	//Are we using a reset value
-            	if(vo.getMultistateState() == 1){
+            	if(vo.isUseResetLimit()){
                 	//Turn off alarm if we are active and below the Reset value
-                    if ((highLimitActive) &&(newDouble <= vo.getWeight())){
+                    if ((highLimitActive) &&(newDouble <= vo.getResetLimit())){
                         highLimitInactiveTime = newValue.getTime();
                         changeHighLimitActive();
                     }
@@ -132,10 +132,8 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT {
                         changeHighLimitActive();
                     }
             	}
-
             }
         }
-
     }
 
     @Override

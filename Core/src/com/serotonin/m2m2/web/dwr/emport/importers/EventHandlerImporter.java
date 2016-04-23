@@ -22,9 +22,9 @@ public class EventHandlerImporter extends Importer {
     protected void importImpl() {
         String xid = json.getString("xid");
         if (StringUtils.isBlank(xid))
-            xid = ctx.getEventDao().generateUniqueXid();
+            xid = ctx.getEventHandlerDao().generateUniqueXid();
 
-        AbstractEventHandlerVO handler = ctx.getEventDao().getEventHandler(xid);
+        AbstractEventHandlerVO<?> handler = ctx.getEventHandlerDao().getEventHandler(xid);
         if (handler == null) {
         	String typeStr = json.getString("handlerType");
         	if (StringUtils.isBlank(typeStr))
@@ -58,10 +58,10 @@ public class EventHandlerImporter extends Importer {
 
                 if (!isnew) {
                     // Check if the event type has changed.
-                    EventType oldEventType = ctx.getEventDao().getEventHandlerType(handler.getId());
+                    EventType oldEventType = ctx.getEventHandlerDao().getEventHandlerType(handler.getId());
                     if (!oldEventType.equals(eventType)) {
                         // Event type has changed. Delete the old one.
-                        ctx.getEventDao().deleteEventHandler(handler.getId());
+                        ctx.getEventHandlerDao().deleteEventHandler(handler.getId());
 
                         // Call it new
                         handler.setId(Common.NEW_ID);
@@ -70,7 +70,7 @@ public class EventHandlerImporter extends Importer {
                 }
 
                 // Save it.
-                ctx.getEventDao().saveEventHandler(eventType, handler);
+                ctx.getEventHandlerDao().saveEventHandler(eventType, handler);
                 addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
             }
         }

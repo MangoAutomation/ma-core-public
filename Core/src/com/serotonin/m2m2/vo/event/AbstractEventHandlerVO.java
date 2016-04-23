@@ -10,22 +10,25 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
+import com.serotonin.validation.StringValidation;
 
-public abstract class AbstractEventHandlerVO<T extends AbstractVO<T>> extends AbstractVO<T> {
+public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>> extends AbstractVO<AbstractEventHandlerVO<?>> {
     public static final String XID_PREFIX = "EH_";
 
+    //TODO Replace this with superclass name,enabled when we redo the UI
+    // caution about JSON emport
     @JsonProperty
     private String alias;
     @JsonProperty
@@ -38,10 +41,16 @@ public abstract class AbstractEventHandlerVO<T extends AbstractVO<T>> extends Ab
      * @return
      */
     public abstract EventHandlerRT<?> createRuntime();
+    
+    /**
+     * Return a model of this
+     * @return
+     */
+    public abstract AbstractEventHandlerModel<?> asModel();
 
     public TranslatableMessage getMessage() {
-        if (!StringUtils.isBlank(alias))
-            return new TranslatableMessage("common.default", alias);
+        if (!StringUtils.isBlank(name))
+            return new TranslatableMessage("common.default", name);
         return getTypeMessage();
     }
 
@@ -78,15 +87,24 @@ public abstract class AbstractEventHandlerVO<T extends AbstractVO<T>> extends Ab
         return "event.audit.eventHandler";
     }
 
-	//For DWR Use
 	public String getHandlerType(){
 		return this.definition.getEventHandlerTypeName();
 	}
 	
     public void validate(ProcessResult response) {
-    	super.validate(response);
+    	//Not using name so don't super validate
+    	if (StringUtils.isBlank(xid))
+            response.addContextualMessage("xid", "validate.required");
+        else if (StringValidation.isLengthGreaterThan(xid, 50))
+            response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+        else if (!isXidUnique(xid, id))
+            response.addContextualMessage("xid", "validate.xidUsed");
     }
 
+    @Override
+    protected EventHandlerDao getDao(){
+    	return EventHandlerDao.instance;
+    }
     //
     //
     // Serialization
@@ -110,16 +128,13 @@ public abstract class AbstractEventHandlerVO<T extends AbstractVO<T>> extends Ab
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        super.jsonWrite(writer);
-    	writer.writeEntry("eventType", new EventDao().getEventHandlerType(id));
+    	writer.writeEntry("eventType", EventHandlerDao.instance.getEventHandlerType(id));
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
-    	throw new ShouldNeverHappenException("Un-implemented");
-    	
+    	//Don't read xid
     }
 }

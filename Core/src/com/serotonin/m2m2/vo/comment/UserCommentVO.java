@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.vo.comment;
 
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -108,5 +110,13 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
             response.addContextualMessage("commentType", "validate.invalidValueWithAcceptable", COMMENT_TYPE_CODES.getCodeList());
 
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<UserCommentVO> getDao() {
+		return UserCommentDao.instance;
+	}
 
 }

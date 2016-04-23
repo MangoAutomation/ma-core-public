@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.module.TemplateDefinition;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -24,7 +25,6 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
 	public static final String XID_PREFIX = "TPL_";
 	public interface TemplateTypes {
 		int DATA_POINT_PROPERTIES = 1;
-		
 	}
     
 	public static final ExportCodes TEMPLATE_TYPE_CODES = new ExportCodes();
@@ -68,6 +68,10 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
 		this.setPermission = setPermission;
 	}
 
+	@Override
+	protected TemplateDao getDao() {
+		return TemplateDao.instance;
+	}
         
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {

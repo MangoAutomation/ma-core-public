@@ -168,32 +168,19 @@ create table pointValueAnnotations (
   primary key (pointValueId)
 ) engine=InnoDB;
 
-
 --
 --
--- Point event detectors
+-- Event detectors
 --
-create table pointEventDetectors (
-  id int not null auto_increment,
-  xid varchar(50) not null,
-  alias varchar(255),
-  dataPointId int not null,
-  detectorType int not null,
-  alarmLevel int not null,
-  stateLimit double,
-  duration int,
-  durationType int,
-  binaryState char(1),
-  multistateState int,
-  changeCount int,
-  alphanumericState varchar(128),
-  weight double,
-  primary key (id)
-) engine=InnoDB;
-alter table pointEventDetectors add constraint pointEventDetectorsUn1 unique (xid, dataPointId);
-alter table pointEventDetectors add constraint pointEventDetectorsFk1 foreign key (dataPointId) 
-  references dataPoints(id);
-
+CREATE TABLE eventDetectors (
+  id int NOT NULL auto_increment,
+  xid varchar(50) NOT NULL,
+  typeName varchar(32) NOT NULL,
+  sourceId int NOT NULL,
+  data longtext NOT NULL,
+  PRIMARY KEY (id)
+)engine=InnoDB;
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 
 --
 --

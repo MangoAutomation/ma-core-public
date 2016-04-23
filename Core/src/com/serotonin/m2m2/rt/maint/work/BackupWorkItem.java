@@ -20,7 +20,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -183,7 +183,7 @@ public class BackupWorkItem implements WorkItem {
         data.put(EmportDwr.USERS, new UserDao().getUsers());
         data.put(EmportDwr.MAILING_LISTS, new MailingListDao().getMailingLists());
         data.put(EmportDwr.PUBLISHERS, new PublisherDao().getPublishers());
-        data.put(EmportDwr.EVENT_HANDLERS, new EventDao().getEventHandlers());
+        data.put(EmportDwr.EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         data.put(EmportDwr.POINT_HIERARCHY, new DataPointDao().getPointHierarchy(true).getRoot().getSubfolders());
         data.put(EmportDwr.SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettingsForExport());
         

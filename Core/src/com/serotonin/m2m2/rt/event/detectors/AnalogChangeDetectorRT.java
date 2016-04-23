@@ -7,7 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 
 /**
  * TODO This class is a work in progress and IS NOT USABLE in its current state. 
@@ -39,7 +39,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * 
  * @author Terry Packer
  */
-public class AnalogChangeDetectorRT extends TimeoutDetectorRT {
+public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetectorVO> {
 
     /**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being
@@ -53,8 +53,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT {
      */
 	private Double cumulativeChange;
 	
-    public AnalogChangeDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public AnalogChangeDetectorRT(AnalogChangeDetectorVO vo) {
+        super(vo);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT {
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
-        if(vo.isBinaryState()){
+        if(vo.isNotHigher()){
         	//Not Higher than 
             if (durationDescription == null)
                 return new TranslatableMessage("event.detector.highLimitNotHigher", name, prettyLimit);
@@ -89,7 +89,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT {
     	//Track the cumulative change, ( over a given time period if required )
     	this.cumulativeChange = this.cumulativeChange + (newValue.getDoubleValue() - oldValue.getDoubleValue());
     	
-    	if(this.cumulativeChange > this.vo.getWeight()){
+    	if(this.cumulativeChange > this.vo.getLimit()){
     		//Fire Event and 
     	}
     }

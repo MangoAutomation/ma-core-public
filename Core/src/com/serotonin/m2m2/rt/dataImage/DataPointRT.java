@@ -28,7 +28,7 @@ import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.AnalogStatistics;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
@@ -45,7 +45,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     // Runtime data.
     private volatile PointValueTime pointValue;
     private final PointValueCache valueCache;
-    private List<PointEventDetectorRT> detectors;
+    private List<PointEventDetectorRT<?>> detectors;
     private final Map<String, Object> attributes = new HashMap<String, Object>();
 
     // Interval logging data.
@@ -486,7 +486,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         return vo;
     }
 
-    public List<PointEventDetectorRT> getEventDetectors(){
+    public List<PointEventDetectorRT<?>> getEventDetectors(){
     	return this.detectors;
     }
     
@@ -609,11 +609,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
             toleranceOrigin = pointValue.getDoubleValue();
 
         // Add point event listeners
-        for (PointEventDetectorVO ped : vo.getEventDetectors()) {
+        for (AbstractPointEventDetectorVO<?> ped : vo.getEventDetectors()) {
             if (detectors == null)
-                detectors = new ArrayList<PointEventDetectorRT>();
+                detectors = new ArrayList<PointEventDetectorRT<?>>();
 
-            PointEventDetectorRT pedRT = ped.createRuntime();
+            PointEventDetectorRT<?> pedRT = (PointEventDetectorRT<?>) ped.createRuntime();
             detectors.add(pedRT);
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
@@ -627,7 +627,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         terminateIntervalLogging();
 
         if (detectors != null) {
-            for (PointEventDetectorRT pedRT : detectors) {
+            for (PointEventDetectorRT<?> pedRT : detectors) {
                 Common.runtimeManager.removeDataPointListener(vo.getId(), pedRT);
                 pedRT.terminate();
             }

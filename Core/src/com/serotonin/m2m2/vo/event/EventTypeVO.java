@@ -6,10 +6,10 @@ package com.serotonin.m2m2.vo.event;
 
 import java.util.List;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -70,7 +70,7 @@ public class EventTypeVO {
         if (type.equals(EventType.EventTypeNames.PUBLISHER))
             return new PublisherEventType(typeRef1, typeRef2);
         if (type.equals(EventType.EventTypeNames.AUDIT))
-            throw new ShouldNeverHappenException("No audit events should be here.");
+        	return new AuditEventType(subtype, -1, typeRef1); //TODO allow tracking the various types of audit events...
 
         EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(type);
         if (def != null)

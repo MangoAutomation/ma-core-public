@@ -28,10 +28,14 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.EventDetectorDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -43,7 +47,8 @@ import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
@@ -148,7 +153,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private TextRenderer textRenderer;
     @JsonProperty
     private ChartRenderer chartRenderer;
-    private List<PointEventDetectorVO> eventDetectors = new ArrayList<>();
+    private List<AbstractPointEventDetectorVO<?>> eventDetectors = new ArrayList<>();
     private List<UserComment> comments;
     @JsonProperty
     private int defaultCacheSize = 1;
@@ -466,11 +471,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.chartRenderer = chartRenderer;
     }
 
-    public List<PointEventDetectorVO> getEventDetectors() {
+    public List<AbstractPointEventDetectorVO<?>> getEventDetectors() {
         return eventDetectors;
     }
 
-    public void setEventDetectors(List<PointEventDetectorVO> eventDetectors) {
+    public void setEventDetectors(List<AbstractPointEventDetectorVO<?>> eventDetectors) {
         this.eventDetectors = eventDetectors;
     }
 
@@ -1397,8 +1402,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
 
                 // Use the ped xid to lookup an existing ped.
-                PointEventDetectorVO ped = null;
-                for (PointEventDetectorVO existing : eventDetectors) {
+                AbstractEventDetectorVO<?> ped = null;
+                for (AbstractPointEventDetectorVO<?> existing : eventDetectors) {
                     if (StringUtils.equals(pedXid, existing.getXid())) {
                         ped = existing;
                         break;
@@ -1406,12 +1411,24 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 }
 
                 if (ped == null) {
+                	String typeStr = pedObject.getString("type");
+                	if(typeStr == null)
+                		throw new TranslatableJsonException("emport.error.ped.missingAttr", "type");
+                    EventDetectorDefinition def = ModuleRegistry.getEventDetectorDefinition(typeStr);
+                    if (def == null)
+                        throw new TranslatableJsonException("emport.error.ped.invalid", "type", typeStr,
+                                ModuleRegistry.getEventDetectorDefinitionTypes());
+                    else {
+                        ped = def.baseCreateEventDetectorVO();
+                        ped.setDefinition(def);
+                    }
+
                     // Create a new one
-                    ped = new PointEventDetectorVO();
                     ped.setId(Common.NEW_ID);
                     ped.setXid(pedXid);
-                    ped.njbSetDataPoint(this);
-                    eventDetectors.add(ped);
+                    AbstractPointEventDetectorVO<?> dped = (AbstractPointEventDetectorVO<?>)ped;
+                    dped.njbSetDataPoint(this);
+                    eventDetectors.add(dped);
                 }
 
                 reader.readInto(ped, pedObject);
@@ -1455,4 +1472,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             throw new TranslatableJsonException("emport.error.parseError", item);
         }
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<DataPointVO> getDao() {
+		return DataPointDao.instance;
+	}
 }

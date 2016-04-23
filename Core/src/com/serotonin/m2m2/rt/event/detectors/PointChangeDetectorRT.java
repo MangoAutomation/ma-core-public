@@ -9,15 +9,20 @@ import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO;
 
-public class PointChangeDetectorRT extends PointEventDetectorRT {
-    private DataValue oldValue;
+/**
+ * Detect changes in a data point
+ *
+ */
+public class PointChangeDetectorRT extends PointEventDetectorRT<PointChangeDetectorVO> {
+    
+	private DataValue oldValue;
     private DataValue newValue;
     private TranslatableMessage annotation;
 
-    public PointChangeDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public PointChangeDetectorRT(PointChangeDetectorVO vo) {
+    	super(vo);
     }
 
     @Override

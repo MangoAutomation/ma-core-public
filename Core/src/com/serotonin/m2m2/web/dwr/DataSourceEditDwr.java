@@ -28,7 +28,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.BasicDataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
@@ -126,7 +126,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
            
             dp.setPointLocator(ds.createPointLocator());
-            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+            dp.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
             dp.defaultTextRenderer();
         }else{
         	//Only get a new point if it doesn't match our editing point as there are modifications we want to 
@@ -200,7 +200,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             }
 
             //Should really be done elsewhere
-            dp.setEventDetectors(new ArrayList<PointEventDetectorVO>());
+            dp.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
 
         }
         else {

@@ -11,9 +11,9 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
@@ -28,6 +28,7 @@ public class ImportContext {
     private final EventDao eventDao = new EventDao();
     private final MailingListDao mailingListDao = new MailingListDao();
     private final PublisherDao publisherDao = new PublisherDao();
+    private final EventHandlerDao eventHandlerDao = EventHandlerDao.instance;
 
     private final JsonReader reader;
     private final ProcessResult result;
@@ -76,6 +77,12 @@ public class ImportContext {
     public PublisherDao getPublisherDao() {
         return publisherDao;
     }
+	/**
+	 * @return
+	 */
+	public EventHandlerDao getEventHandlerDao() {
+		return eventHandlerDao;
+	}
 
     public void copyValidationMessages(ProcessResult voResponse, String key, String desc) {
         for (ProcessMessage msg : voResponse.getMessages())

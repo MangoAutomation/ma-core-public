@@ -6,12 +6,20 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class DifferenceDetectorRT extends TimeDelayedEventDetectorRT {
+abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeDelayedEventDetectorRT<T> {
     /**
+	 * @param vo
+	 */
+	public DifferenceDetectorRT(T vo) {
+		super(vo);
+	}
+
+	/**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being
      * raised during the duration of a single state detection.
      */

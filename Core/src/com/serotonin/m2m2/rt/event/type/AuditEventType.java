@@ -45,13 +45,14 @@ public class AuditEventType extends EventType {
 
     public static final String TYPE_DATA_SOURCE = "DATA_SOURCE";
     public static final String TYPE_DATA_POINT = "DATA_POINT";
-    public static final String TYPE_POINT_EVENT_DETECTOR = "POINT_EVENT_DETECTOR";
     public static final String TYPE_EVENT_HANDLER = "EVENT_HANDLER";
     public static final String TYPE_COMPOUND_EVENT_DETECTOR = "COMPOUND_EVENT_DETECTOR";
     public static final String TYPE_TEMPLATE = "TEMPLATE";
     public static final String TYPE_USER_COMMENT = "USER_COMMENT";
     public static final String TYPE_USER = "USER";
     public static final String TYPE_JSON_DATA = "JSON_DATA";
+    public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";
+    
     
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
@@ -59,12 +60,13 @@ public class AuditEventType extends EventType {
     public static void initialize() {
         addEventType(TYPE_DATA_SOURCE, "event.audit.dataSource");
         addEventType(TYPE_DATA_POINT, "event.audit.dataPoint");
-        addEventType(TYPE_POINT_EVENT_DETECTOR, "event.audit.pointEventDetector");
         addEventType(TYPE_EVENT_HANDLER, "event.audit.eventHandler");
         addEventType(TYPE_TEMPLATE, "event.audit.template");
         addEventType(TYPE_USER_COMMENT, "event.audit.userComment");
         addEventType(TYPE_USER, "event.audit.user");
         addEventType(TYPE_JSON_DATA, "event.audit.jsonData");
+        addEventType(TYPE_EVENT_DETECTOR, "event.audit.eventDetector");
+        
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey());
