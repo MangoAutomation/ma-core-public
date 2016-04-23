@@ -6,14 +6,15 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.NoUpdateDetectorVO;
 
 /**
  * @author Matthew Lohbihler
  */
-public class NoUpdateDetectorRT extends DifferenceDetectorRT {
-    public NoUpdateDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+public class NoUpdateDetectorRT extends DifferenceDetectorRT<NoUpdateDetectorVO> {
+    
+	public NoUpdateDetectorRT(NoUpdateDetectorVO vo) {
+        super(vo);
     }
 
     @Override

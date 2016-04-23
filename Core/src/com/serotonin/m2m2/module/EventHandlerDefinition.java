@@ -35,14 +35,14 @@ public abstract class EventHandlerDefinition extends ModuleElementDefinition{
      * 
      * @return a new instance of the event handler.
      */
-    abstract protected AbstractEventHandlerVO createEventHandlerVO();
+    abstract protected AbstractEventHandlerVO<?> createEventHandlerVO();
 
     
     /**
      * Used by MA core code to create a new event handler instances as required. Should not be used by client code.
      */
-    public final AbstractEventHandlerVO baseCreateEventHandlerVO() {
-        AbstractEventHandlerVO handler = createEventHandlerVO();
+    public final AbstractEventHandlerVO<?> baseCreateEventHandlerVO() {
+        AbstractEventHandlerVO<?> handler = createEventHandlerVO();
         handler.setDefinition(this);
         return handler;
     }

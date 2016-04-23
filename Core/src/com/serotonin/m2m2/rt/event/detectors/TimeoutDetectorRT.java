@@ -10,6 +10,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
+import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 import com.serotonin.timer.TimerTask;
 
 /**
@@ -18,8 +19,15 @@ import com.serotonin.timer.TimerTask;
  * 
  * @author Matthew Lohbihler
  */
-abstract public class TimeoutDetectorRT extends PointEventDetectorRT implements TimeoutClient {
+abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends PointEventDetectorRT<T> implements TimeoutClient {
     /**
+	 * @param vo
+	 */
+	public TimeoutDetectorRT(T vo) {
+		super(vo);
+	}
+
+	/**
      * Internal configuration field. The millisecond version of the duration fields.
      */
     private long durationMS;

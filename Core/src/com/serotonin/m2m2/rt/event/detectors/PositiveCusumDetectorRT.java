@@ -7,7 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
 
 /**
  * The PositiveCusumDetector is used to detect occurrences of point values exceeding the given CUSUM limit for a given
@@ -16,7 +16,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * 
  * @author Matthew Lohbihler
  */
-public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT {
+public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<PositiveCusumDetectorVO> {
     /**
      * State field. The current positive CUSUM for the point.
      */
@@ -37,8 +37,8 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT {
      */
     private boolean eventActive;
 
-    public PositiveCusumDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public PositiveCusumDetectorRT(PositiveCusumDetectorVO vo) {
+        super(vo);
     }
 
     @Override

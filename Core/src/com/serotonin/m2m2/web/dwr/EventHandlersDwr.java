@@ -19,7 +19,7 @@ import org.directwebremoting.WebContextFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -27,9 +27,9 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.EmailEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.ProcessEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -42,9 +42,9 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -61,7 +61,6 @@ public class EventHandlersDwr extends BaseDwr {
         User user = Common.getUser();
         Permissions.ensureDataSourcePermission(user);
 
-        EventDao eventDao = new EventDao();
         Map<String, Object> model = new HashMap<>();
 
         // Get the data sources.
@@ -88,9 +87,9 @@ public class EventHandlersDwr extends BaseDwr {
                 source.setId(dp.getId());
                 source.setName(dp.getExtendedName());
 
-                for (PointEventDetectorVO ped : dp.getEventDetectors()) {
+                for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
                     EventTypeVO dpet = ped.getEventType();
-                    dpet.setHandlers(eventDao.getEventHandlers(dpet));
+                    dpet.setHandlers(EventHandlerDao.instance.getEventHandlers(dpet));
                     source.getEventTypes().add(dpet);
                 }
 
@@ -110,7 +109,7 @@ public class EventHandlersDwr extends BaseDwr {
                 source.setName(ds.getName());
 
                 for (EventTypeVO dset : ds.getEventTypes()) {
-                    dset.setHandlers(eventDao.getEventHandlers(dset));
+                    dset.setHandlers(EventHandlerDao.instance.getEventHandlers(dset));
                     source.getEventTypes().add(dset);
                 }
 
@@ -125,7 +124,7 @@ public class EventHandlersDwr extends BaseDwr {
                 List<EventTypeVO> vos = def.getEventTypeVOs();
 
                 for (EventTypeVO vo : vos)
-                    vo.setHandlers(eventDao.getEventHandlers(vo));
+                    vo.setHandlers(EventHandlerDao.instance.getEventHandlers(vo));
 
                 Map<String, Object> info = new HashMap<>();
                 info.put("vos", vos);
@@ -147,7 +146,7 @@ public class EventHandlersDwr extends BaseDwr {
                     source.setName(p.getName());
 
                     for (EventTypeVO pet : p.getEventTypes()) {
-                        pet.setHandlers(eventDao.getEventHandlers(pet));
+                        pet.setHandlers(EventHandlerDao.instance.getEventHandlers(pet));
                         source.getEventTypes().add(pet);
                     }
 
@@ -159,7 +158,7 @@ public class EventHandlersDwr extends BaseDwr {
             // Get the system events
             List<EventTypeVO> systemEvents = new ArrayList<>();
             for (EventTypeVO sets : SystemEventType.EVENT_TYPES) {
-                sets.setHandlers(eventDao.getEventHandlers(sets));
+                sets.setHandlers(EventHandlerDao.instance.getEventHandlers(sets));
                 systemEvents.add(sets);
             }
             model.put("systemEvents", systemEvents);
@@ -167,7 +166,7 @@ public class EventHandlersDwr extends BaseDwr {
             // Get the audit events
             List<EventTypeVO> auditEvents = new ArrayList<>();
             for (EventTypeVO aets : AuditEventType.EVENT_TYPES) {
-                aets.setHandlers(eventDao.getEventHandlers(aets));
+                aets.setHandlers(EventHandlerDao.instance.getEventHandlers(aets));
                 auditEvents.add(aets);
             }
             model.put("auditEvents", auditEvents);
@@ -179,7 +178,7 @@ public class EventHandlersDwr extends BaseDwr {
                     List<EventTypeVO> vos = def.getEventTypeVOs();
 
                     for (EventTypeVO vo : vos)
-                        vo.setHandlers(eventDao.getEventHandlers(vo));
+                        vo.setHandlers(EventHandlerDao.instance.getEventHandlers(vo));
 
                     Map<String, Object> info = new HashMap<>();
                     info.put("vos", vos);
@@ -275,13 +274,12 @@ public class EventHandlersDwr extends BaseDwr {
     }
 
     private ProcessResult save(String eventType, String eventSubtype, int eventTypeRef1, int eventTypeRef2,
-            AbstractEventHandlerVO vo, int handlerId, String xid, String alias, boolean disabled) {
+            AbstractEventHandlerVO<?> vo, int handlerId, String xid, String alias, boolean disabled) {
         EventTypeVO type = new EventTypeVO(eventType, eventSubtype, eventTypeRef1, eventTypeRef2);
         Permissions.ensureEventTypePermission(Common.getUser(), type);
-        EventDao eventDao = new EventDao();
 
         vo.setId(handlerId);
-        vo.setXid(StringUtils.isBlank(xid) ? eventDao.generateUniqueXid() : xid);
+        vo.setXid(StringUtils.isBlank(xid) ? EventHandlerDao.instance.generateUniqueXid() : xid);
         vo.setAlias(alias);
         vo.setDisabled(disabled);
 
@@ -289,7 +287,7 @@ public class EventHandlersDwr extends BaseDwr {
         vo.validate(response);
 
         if (!response.getHasMessages()) {
-            eventDao.saveEventHandler(type, vo);
+        	EventHandlerDao.instance.saveEventHandler(type, vo);
             response.addData("handler", vo);
         }
 
@@ -298,9 +296,8 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void deleteEventHandler(int handlerId) {
-        EventDao eventDao = new EventDao();
-        Permissions.ensureEventTypePermission(Common.getUser(), eventDao.getEventHandlerType(handlerId));
-        eventDao.deleteEventHandler(handlerId);
+        Permissions.ensureEventTypePermission(Common.getUser(), EventHandlerDao.instance.getEventHandlerType(handlerId));
+        EventHandlerDao.instance.deleteEventHandler(handlerId);
     }
 
     @DwrPermission(user = true)

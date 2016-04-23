@@ -168,6 +168,19 @@ CREATE TABLE pointValueAnnotations (
   PRIMARY KEY (pointValueId)
 );
 
+--
+--
+-- Event detectors
+--
+CREATE TABLE eventDetectors (
+  id SERIAL,
+  xid varchar(50) NOT NULL,
+  typeName varchar(32) NOT NULL,
+  sourceId int NOT NULL,
+  data longtext NOT NULL,
+  PRIMARY KEY (id)
+);
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 
 --
 --
@@ -254,7 +267,7 @@ ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersUn1 UNIQUE (xid);
 -- Audit Table
 -- 
 CREATE TABLE audit (
-  id int NOT NULL auto_increment,
+  id SERIAL,
   typeName varchar(32) NOT NULL,
   alarmLevel int NOT NULL,
   userId int NOT NULL,

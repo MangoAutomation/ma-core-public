@@ -15,10 +15,17 @@ import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
-abstract public class PointEventDetectorRT implements DataPointListener {
-    protected PointEventDetectorVO vo;
+abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorVO<T>> extends AbstractEventDetectorRT<T> implements DataPointListener {
+    
+	/**
+	 * @param vo
+	 */
+	public PointEventDetectorRT(T vo) {
+		super(vo);
+	}
+
 
     protected EventType getEventType() {
         DataPointEventType et = new DataPointEventType(vo.njbGetDataPoint().getId(), vo.getId());
@@ -48,9 +55,6 @@ abstract public class PointEventDetectorRT implements DataPointListener {
         return context;
     }
 
-    public PointEventDetectorVO getVO(){
-    	return this.vo;
-    }
     
     abstract protected TranslatableMessage getMessage();
 

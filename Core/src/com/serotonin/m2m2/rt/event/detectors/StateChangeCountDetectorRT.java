@@ -12,9 +12,9 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
 
-public class StateChangeCountDetectorRT extends TimeoutDetectorRT {
+public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCountDetectorVO> {
     private final Log log = LogFactory.getLog(StateChangeCountDetectorRT.class);
 
     /**
@@ -30,8 +30,8 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT {
     private boolean eventActive;
     private long eventActiveTime;
 
-    public StateChangeCountDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public StateChangeCountDetectorRT(StateChangeCountDetectorVO vo) {
+        super(vo);
     }
 
     @Override

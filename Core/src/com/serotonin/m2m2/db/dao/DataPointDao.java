@@ -447,31 +447,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     //
     // Event detectors
     //
-    public int getDataPointIdFromDetectorId(int pedId) {
-        return ejt.queryForInt("select dataPointId from pointEventDetectors where id=?", new Object[] { pedId }, 0);
-    }
-
-    public String getDetectorXid(int pedId) {
-        return queryForObject("select xid from pointEventDetectors where id=?", new Object[] { pedId }, String.class,
-                null);
-    }
-
-    public int getDetectorId(String pedXid, int dataPointId) {
-        return ejt.queryForInt("select id from pointEventDetectors where xid=? and dataPointId=?", new Object[] {
-                pedXid, dataPointId }, -1);
-    }
-
-    public String generateEventDetectorUniqueXid(int dataPointId) {
-        String xid = Common.generateXid(PointEventDetectorVO.XID_PREFIX);
-        while (!isEventDetectorXidUnique(dataPointId, xid, -1))
-            xid = Common.generateXid(PointEventDetectorVO.XID_PREFIX);
-        return xid;
-    }
-
-    public boolean isEventDetectorXidUnique(int dataPointId, String xid, int excludeId) {
-        return ejt.queryForInt("select count(*) from pointEventDetectors where dataPointId=? and xid=? and id<>?",
-                new Object[] { dataPointId, xid, excludeId }, 0) == 0;
-    }
 
     public void setEventDetectors(DataPointVO dp) {
         dp.setEventDetectors(getEventDetectors(dp));
@@ -529,57 +504,26 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<PointEventDetectorVO> existingDetectors = getEventDetectors(dp);
+        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(dp.getId());
 
         // Insert or update each detector in the point.
-        for (PointEventDetectorVO ped : dp.getEventDetectors()) {
-            if (ped.getId() < 0) {
-                // Insert the record.
-                ped.setId(ejt.doInsert(
-                        "insert into pointEventDetectors "
-                                + "  (xid, alias, dataPointId, detectorType, alarmLevel, stateLimit, duration, durationType, "
-                                + "  binaryState, multistateState, changeCount, alphanumericState, weight) "
-                                + "values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                        new Object[] { ped.getXid(), ped.getAlias(), dp.getId(), ped.getDetectorType(),
-                                ped.getAlarmLevel(), ped.getLimit(), ped.getDuration(), ped.getDurationType(),
-                                boolToChar(ped.isBinaryState()), ped.getMultistateState(), ped.getChangeCount(),
-                                ped.getAlphanumericState(), ped.getWeight() }, new int[] { Types.VARCHAR,
-                                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE,
-                                Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
-                                Types.VARCHAR, Types.DOUBLE }));
-                AuditEventType.raiseAddedEvent(AuditEventType.TYPE_POINT_EVENT_DETECTOR, ped);
+        for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
+            if (ped.getId() > 0){
+            	//Remove from list
+            	removeFromList(existingDetectors, ped.getId());
             }
-            else {
-                PointEventDetectorVO old = removeFromList(existingDetectors, ped.getId());
-
-                ejt.update(
-                        "update pointEventDetectors set xid=?, alias=?, alarmLevel=?, stateLimit=?, duration=?, "
-                                + "  durationType=?, binaryState=?, multistateState=?, changeCount=?, alphanumericState=?, "
-                                + "  weight=? " + "where id=?",
-                        new Object[] { ped.getXid(), ped.getAlias(), ped.getAlarmLevel(), ped.getLimit(),
-                                ped.getDuration(), ped.getDurationType(), boolToChar(ped.isBinaryState()),
-                                ped.getMultistateState(), ped.getChangeCount(), ped.getAlphanumericState(),
-                                ped.getWeight(), ped.getId() }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                                Types.INTEGER, Types.DOUBLE, Types.INTEGER, Types.INTEGER, Types.VARCHAR,
-                                Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.DOUBLE, Types.INTEGER });
-
-                AuditEventType.raiseChangedEvent(AuditEventType.TYPE_POINT_EVENT_DETECTOR, old, ped);
-            }
+        	EventDetectorDao.instance.save(ped);
         }
 
         // Delete detectors for any remaining ids in the list of existing
         // detectors.
-        for (PointEventDetectorVO ped : existingDetectors) {
-            ejt.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
-                    new Object[] { EventType.EventTypeNames.DATA_POINT, dp.getId(), ped.getId() });
-            ejt.update("delete from pointEventDetectors where id=?", new Object[] { ped.getId() });
-
-            AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_POINT_EVENT_DETECTOR, ped);
+        for (AbstractEventDetectorVO<?> ped : existingDetectors) {
+        	EventDetectorDao.instance.delete(ped);
         }
     }
 
-    private PointEventDetectorVO removeFromList(List<PointEventDetectorVO> list, int id) {
-        for (PointEventDetectorVO ped : list) {
+    private AbstractEventDetectorVO<?> removeFromList(List<AbstractEventDetectorVO<?>> list, int id) {
+        for (AbstractEventDetectorVO<?> ped : list) {
             if (ped.getId() == id) {
                 list.remove(ped);
                 return ped;
@@ -1100,7 +1044,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     }
 
     @Override
-    public int copy(final int existingId, final String newXid, final String newName) {
+	public int copy(final int existingId, final String newXid, final String newName) {
         TransactionCallback<Integer> callback = new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
@@ -1117,7 +1061,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 copy.getComments().clear();
 
                 // Copy the event detectors
-                for (PointEventDetectorVO ped : getEventDetectors(dataPoint)) {
+                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(dataPoint.getId());
+                List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
+                
+                for (AbstractEventDetectorVO<?> ed : existing) {
+                	AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
                     ped.setId(Common.NEW_ID);
                     ped.njbSetDataPoint(copy);
                 }

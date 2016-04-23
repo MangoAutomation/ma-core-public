@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.module.definitions;
+package com.serotonin.m2m2.module.definitions.permissions;
 
 import java.util.ArrayList;
 import java.util.List;

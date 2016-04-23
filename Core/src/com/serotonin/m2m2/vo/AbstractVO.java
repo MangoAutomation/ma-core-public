@@ -11,6 +11,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -19,7 +21,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.MapWrap;
@@ -33,6 +35,9 @@ import com.serotonin.validation.StringValidation;
  */
 public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicVO implements Serializable,
         JsonSerializable, Cloneable {
+	
+	private static final Log LOG = LogFactory.getLog(AbstractVO.class);
+	
     /**
      * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
      * been expunged by the version handling in the readObject method.
@@ -45,6 +50,12 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
     protected String xid;
     protected String name;
 
+    /**
+     * Get the Dao for this Object
+     * @return
+     */
+    protected abstract AbstractDao<T> getDao();
+    
     /*
      * (non-Javadoc)
      * 
@@ -146,7 +157,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
             response.addContextualMessage("xid", "validate.required");
         else if (StringValidation.isLengthGreaterThan(xid, 50))
             response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
-        else if (!new DataPointDao().isXidUnique(xid, id))
+        else if (!isXidUnique(xid, id))
             response.addContextualMessage("xid", "validate.xidUsed");
 
         if (StringUtils.isBlank(name))
@@ -155,6 +166,15 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
             response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
     }
 
+    protected boolean isXidUnique(String xid, int id){
+    	AbstractDao<T> dao = getDao();
+    	if(dao == null){
+    		LOG.warn("No dao provided to validate XID uniqueness.");
+    		return true;
+    	}
+    	return dao.isXidUnique(xid,id);
+    }
+    
     /**
      * Check if a vo is newly created
      * 

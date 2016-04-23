@@ -23,7 +23,7 @@ import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -673,7 +673,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         DataPointDao dataPointDao = new DataPointDao();
-        writer.writeEntry("eventType", new EventDao().getEventHandlerType(id));
+        writer.writeEntry("eventType", EventHandlerDao.instance.getEventHandlerType(id));
 
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", TYPE_CODES.getCode(handlerType));

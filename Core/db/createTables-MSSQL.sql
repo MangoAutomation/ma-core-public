@@ -165,33 +165,19 @@ create table pointValueAnnotations (
   primary key (pointValueId)
 );
   
-
-
 --
 --
--- Point event detectors
+-- Event detectors
 --
-create table pointEventDetectors (
-  id int not null identity,
-  xid nvarchar(50) not null,
-  alias nvarchar(255),
-  dataPointId int not null,
-  detectorType int not null,
-  alarmLevel int not null,
-  stateLimit float,
-  duration int,
-  durationType int,
-  binaryState char(1),
-  multistateState int,
-  changeCount int,
-  alphanumericState nvarchar(128),
-  weight float,
-  primary key (id)
+CREATE TABLE eventDetectors (
+  id int NOT NULL identity,
+  xid nvarchar(50) NOT NULL,
+  typeName nvarchar(32) NOT NULL,
+  sourceId int NOT NULL,
+  data ntext NOT NULL,
+  PRIMARY KEY (id)
 );
-alter table pointEventDetectors add constraint pointEventDetectorsUn1 unique (xid, dataPointId);
-alter table pointEventDetectors add constraint pointEventDetectorsFk1 foreign key (dataPointId) 
-  references dataPoints(id);
-
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 
 --
 --

@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.module.definitions;
+package com.serotonin.m2m2.module.definitions.permissions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +13,16 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  * @author Terry Packer
  *
  */
-public class EventsViewPermissionDefinition extends PermissionDefinition{
-
-	public static final String PERMISSION = "alarms.view";
+public class SuperadminPermissionDefinition extends PermissionDefinition{
+	public static final String GROUP_NAME = "superadmin";
+	public static final String PERMISSION = "permissions.superadmin";
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.PermissionDefinition#getPermissionKey()
 	 */
 	@Override
 	public String getPermissionKey() {
-		return "alarms.permission.view";
+		return "permissions.superadmin";
 	}
 
 	/* (non-Javadoc)
@@ -39,7 +39,7 @@ public class EventsViewPermissionDefinition extends PermissionDefinition{
 	@Override
 	public List<String> getDefaultGroups() {
 		List<String> groups = new ArrayList<String>();
-		groups.add("user");
+		groups.add(GROUP_NAME);
 		return groups;
 	}
 }

@@ -18,5 +18,7 @@ public class SchemaDefinition {
 	public static final String TEMPLATES_TABLE = "templates";
 	public static final String USER_COMMENTS_TABLE = "userComments";
 	public static final String JSON_DATA_TABLE = "jsonData";
+	public static final String EVENT_HANDLER_TABLE = "eventHandlers";
+	public static final String EVENT_DETECTOR_TABLE = "eventDetectors";
 	
 }

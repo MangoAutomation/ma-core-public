@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -798,8 +799,7 @@ public class EventManager implements ILifecycle {
 	}
 
 	private void setHandlers(EventInstance evt) {
-		List<AbstractEventHandlerVO<?>> vos = eventDao
-				.getEventHandlers(evt.getEventType());
+		List<AbstractEventHandlerVO<?>> vos = EventHandlerDao.instance.getEventHandlers(evt.getEventType());
 		List<EventHandlerRT<?>> rts = null;
 		for (AbstractEventHandlerVO<?> vo : vos) {
 			if (!vo.isDisabled()) {

@@ -13,7 +13,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -45,7 +45,7 @@ public class DataPointImporter extends Importer {
                 vo.setDataSourceId(dsvo.getId());
                 vo.setDataSourceXid(dsxid);
                 vo.setPointLocator(dsvo.createPointLocator());
-                vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+                vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
                 //Not needed as it will be set via the template or JSON or it exists in the DB already: vo.setTextRenderer(new PlainRenderer());
                 ProcessResult response = new ProcessResult();
                 DataSourceTypePointsLimit.checkLimit(vo.getDataSourceTypeName(), response);

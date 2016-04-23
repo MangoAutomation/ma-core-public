@@ -25,12 +25,27 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
-import com.serotonin.m2m2.module.definitions.EmailEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.EventsViewPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.LegacyPointDetailsViewPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.ProcessEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.SetPointEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.UsersViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.BinaryStateEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.MultistateStateEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.NegativeCusumEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.NoChangeEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.NoUpdateEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.PointChangeEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.PositiveCusumEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -75,6 +90,7 @@ public class ModuleRegistry {
     private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
     private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
     private static Map<String, EventHandlerDefinition> EVENT_HANDLER_DEFINITIONS;
+    private static Map<String, EventDetectorDefinition> EVENT_DETECTOR_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
 
@@ -318,7 +334,7 @@ public class ModuleRegistry {
     
     //
     //
-    // Model special handling
+    // Event Handler special handling
     //
     public static EventHandlerDefinition getEventHandlerDefinition(String type) {
         ensureEventHandlerDefinitions();
@@ -351,6 +367,46 @@ public class ModuleRegistry {
                     	map.put(def.getEventHandlerTypeName(), def);
                     }
                     EVENT_HANDLER_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // Model special handling
+    //
+    public static EventDetectorDefinition getEventDetectorDefinition(String type) {
+        ensureEventDetectorDefinitions();
+        return EVENT_DETECTOR_DEFINITIONS.get(type);
+    }
+    
+    public static List<EventDetectorDefinition> getEventDetectorDefinitions(){
+    	ensureEventDetectorDefinitions();
+        return new ArrayList<EventDetectorDefinition>(EVENT_DETECTOR_DEFINITIONS.values());
+    }
+
+    public static Set<String> getEventDetectorDefinitionTypes() {
+    	ensureEventDetectorDefinitions();
+        return EVENT_DETECTOR_DEFINITIONS.keySet();
+    }
+
+    private static void ensureEventDetectorDefinitions() {
+        if (EVENT_DETECTOR_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (EVENT_DETECTOR_DEFINITIONS == null) {
+                    Map<String, EventDetectorDefinition> map = new HashMap<String, EventDetectorDefinition>();
+                    for(EventDetectorDefinition def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
+                    	map.put(def.getEventDetectorTypeName(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (EventDetectorDefinition def : module.getDefinitions(EventDetectorDefinition.class))
+                            map.put(def.getEventDetectorTypeName(), def);
+                    }
+                    for(EventDetectorDefinition def : Module.getDefinitions(postDefaults, EventDetectorDefinition.class)){
+                    	map.put(def.getEventDetectorTypeName(), def);
+                    }
+                    EVENT_DETECTOR_DEFINITIONS = map;
                 }
             }
         }
@@ -486,6 +542,23 @@ public class ModuleRegistry {
         preDefaults.add(new EmailEventHandlerDefinition());
         preDefaults.add(new ProcessEventHandlerDefinition());
         preDefaults.add(new SetPointEventHandlerDefinition());
+        
+        //Add in Core Event Detectors
+        preDefaults.add(new AlphanumericRegexStateEventDetectorDefinition());
+        preDefaults.add(new AlphanumericStateEventDetectorDefinition());
+        preDefaults.add(new AnalogChangeEventDetectorDefinition());
+        preDefaults.add(new AnalogHighLimitEventDetectorDefinition());
+        preDefaults.add(new AnalogLowLimitEventDetectorDefinition());
+        preDefaults.add(new AnalogRangeEventDetectorDefinition());
+        preDefaults.add(new BinaryStateEventDetectorDefinition());
+        preDefaults.add(new MultistateStateEventDetectorDefinition());
+        preDefaults.add(new NegativeCusumEventDetectorDefinition());
+        preDefaults.add(new NoChangeEventDetectorDefinition());
+        preDefaults.add(new PointChangeEventDetectorDefinition());
+        preDefaults.add(new PositiveCusumEventDetectorDefinition());
+        preDefaults.add(new SmoothnessEventDetectorDefinition());
+        preDefaults.add(new StateChangeCountEventDetectorDefinition());
+        preDefaults.add(new NoUpdateEventDetectorDefinition());
         
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",

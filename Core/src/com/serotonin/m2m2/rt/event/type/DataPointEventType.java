@@ -11,6 +11,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 public class DataPointEventType extends EventType {
@@ -119,6 +120,6 @@ public class DataPointEventType extends EventType {
         super.jsonWrite(writer);
         DataPointDao dataPointDao = new DataPointDao();
         writer.writeEntry("dataPointXID", dataPointDao.getDataPoint(dataPointId).getXid());
-        writer.writeEntry("detectorXID", dataPointDao.getDetectorXid(pointEventDetectorId));
+        writer.writeEntry("detectorXID", EventDetectorDao.instance.getXid(pointEventDetectorId));
     }
 }

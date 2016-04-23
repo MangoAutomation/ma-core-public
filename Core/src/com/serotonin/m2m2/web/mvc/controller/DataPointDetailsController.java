@@ -18,6 +18,7 @@ import org.springframework.web.servlet.View;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
 import com.serotonin.m2m2.view.chart.ImageFlipbookRenderer;
@@ -57,7 +58,7 @@ public class DataPointDetailsController implements UrlHandler {
             }
             else {
                 int pedid = Integer.parseInt(pedStr);
-                id = dataPointDao.getDataPointIdFromDetectorId(pedid);
+                id = EventDetectorDao.instance.getSourceId(pedid);
             }
         }
         else

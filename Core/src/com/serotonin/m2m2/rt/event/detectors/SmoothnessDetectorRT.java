@@ -7,7 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO;
 import com.serotonin.util.queue.ObjectQueue;
 
 /**
@@ -17,7 +17,7 @@ import com.serotonin.util.queue.ObjectQueue;
  * 
  * @author Matthew Lohbihler
  */
-public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT {
+public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessDetectorVO> {
     /**
      * State field. The current boxcar.
      */
@@ -38,8 +38,8 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT {
      */
     private boolean eventActive;
 
-    public SmoothnessDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public SmoothnessDetectorRT(SmoothnessDetectorVO vo) {
+    	super(vo);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT {
         boxcar.push(newDouble);
 
         // Trim the boxcar to the max size
-        while (boxcar.size() > vo.getChangeCount())
+        while (boxcar.size() > vo.getBoxcar())
             boxcar.pop();
 
         // Calculate the smoothness

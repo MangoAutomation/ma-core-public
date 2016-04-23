@@ -7,7 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.NegativeCusumDetectorVO;
 
 /**
  * The NegativeCusumDetectorRT is used to detect occurances of point values below the given CUSUM limit for a given
@@ -16,7 +16,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
  * 
  * @author Matthew Lohbihler
  */
-public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT {
+public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<NegativeCusumDetectorVO> {
     /**
      * State field. The current negative CUSUM for the point.
      */
@@ -37,8 +37,8 @@ public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT {
      */
     private boolean eventActive;
 
-    public NegativeCusumDetectorRT(PointEventDetectorVO vo) {
-        this.vo = vo;
+    public NegativeCusumDetectorRT(NegativeCusumDetectorVO vo) {
+        super(vo);
     }
 
     @Override

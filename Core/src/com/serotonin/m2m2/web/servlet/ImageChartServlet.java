@@ -28,6 +28,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
@@ -36,7 +38,9 @@ import com.serotonin.m2m2.util.chart.NumericTimeSeries;
 import com.serotonin.m2m2.util.chart.PointTimeSeriesCollection;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
 import com.serotonin.util.ColorUtils;
 
 public class ImageChartServlet extends BaseInfoServlet {
@@ -218,11 +222,11 @@ public class ImageChartServlet extends BaseInfoServlet {
 
             if (pointCount == 1) {
                 // Only one point. Check for limits to draw as markers.
-                for (PointEventDetectorVO ped : markerPoint.getEventDetectors()) {
-                    if (ped.getDetectorType() == PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT)
-                        ptsc.addRangeMarker(new ValueMarker(ped.getLimit(), lowLimitPaint, limitStroke));
-                    else if (ped.getDetectorType() == PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT)
-                        ptsc.addRangeMarker(new ValueMarker(ped.getLimit(), highLimitPaint, limitStroke));
+                for (AbstractPointEventDetectorVO<?> ped : markerPoint.getEventDetectors()) {
+                    if (ped.getDefinition().getEventDetectorTypeName().equals(AnalogLowLimitEventDetectorDefinition.TYPE_NAME))
+                        ptsc.addRangeMarker(new ValueMarker(((AnalogLowLimitDetectorVO)ped).getLimit(), lowLimitPaint, limitStroke));
+                    else if (ped.getDefinition().getEventDetectorTypeName().equals(AnalogHighLimitEventDetectorDefinition.TYPE_NAME))
+                        ptsc.addRangeMarker(new ValueMarker(((AnalogHighLimitDetectorVO)ped).getLimit(), highLimitPaint, limitStroke));
                 }
             }
 

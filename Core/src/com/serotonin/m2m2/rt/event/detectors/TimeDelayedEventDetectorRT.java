@@ -6,14 +6,23 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
 /**
  * This is a base class for all subclasses that need to schedule timeouts for them to become active.
  * 
  * @author Matthew Lohbihler
  */
-abstract public class TimeDelayedEventDetectorRT extends TimeoutDetectorRT {
-    synchronized protected void scheduleJob() {
+abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeoutDetectorRT<T> {
+    
+	/**
+	 * @param vo
+	 */
+	public TimeDelayedEventDetectorRT(T vo) {
+		super(vo);
+	}
+
+	synchronized protected void scheduleJob() {
         if (getDurationMS() > 0)
             scheduleJob(System.currentTimeMillis() + getDurationMS());
         else

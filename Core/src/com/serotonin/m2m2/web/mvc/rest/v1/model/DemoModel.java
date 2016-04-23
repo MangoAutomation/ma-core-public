@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
@@ -128,6 +129,14 @@ public class DemoModel extends AbstractVoModel<Demo>{
 		@Override
 		public String getTypeKey() {
 			return "DEMO";
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+		 */
+		@Override
+		protected AbstractDao<Demo> getDao() {
+			return null;
 		}
 		
 	}

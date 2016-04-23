@@ -103,5 +103,12 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 	public String getTypeKey() {
 		return "event.audit.jsonData";
 	}
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected JsonDataDao getDao() {
+		return JsonDataDao.instance;
+	}
 
 }

@@ -3,7 +3,22 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<%@page import="com.serotonin.m2m2.vo.event.PointEventDetectorVO"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.BinaryStateEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.MultistateStateEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.NegativeCusumEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.NoChangeEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.NoUpdateEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.PointChangeEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.PositiveCusumEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition"%>
+
 <div>
   <table>
     <tr><td colspan="2">
@@ -30,7 +45,7 @@
   <table id="eventDetectorTable" style="width:95%;"></table>
 
   <table style="display:none;">
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>">
+    <tbody id="detectorType<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -88,7 +103,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>">
+    <tbody id="detectorType<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -147,7 +162,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_BINARY_STATE %>">
+    <tbody id="detectorType<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -191,7 +206,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_MULTISTATE_STATE %>">
+    <tbody id="detectorType<%= MultistateStateEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -230,7 +245,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_POINT_CHANGE %>">
+    <tbody id="detectorType<%= PointChangeEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -258,7 +273,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_STATE_CHANGE_COUNT %>">
+    <tbody id="detectorType<%= StateChangeCountEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -297,7 +312,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_NO_CHANGE %>">
+    <tbody id="detectorType<%= NoChangeEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -332,7 +347,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_NO_UPDATE %>">
+    <tbody id="detectorType<%= NoUpdateEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -367,7 +382,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ALPHANUMERIC_STATE %>">
+    <tbody id="detectorType<%= AlphanumericStateEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -406,7 +421,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE %>">
+    <tbody id="detectorType<%= AlphanumericRegexStateEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -445,7 +460,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_POSITIVE_CUSUM %>">
+    <tbody id="detectorType<%= PositiveCusumEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -488,7 +503,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_NEGATIVE_CUSUM %>">
+    <tbody id="detectorType<%= NegativeCusumEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -530,7 +545,7 @@
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>">
+    <tbody id="detectorType<%= AnalogRangeEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -582,7 +597,7 @@
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
-    <tbody id="detectorType<%= PointEventDetectorVO.TYPE_SMOOTHNESS %>">
+    <tbody id="detectorType<%= SmoothnessEventDetectorDefinition.TYPE_NAME %>">
       <tr><td class="horzSeparator" colspan="2"></td></tr>
       <tr>
         <td class="formLabelRequired">
@@ -636,8 +651,8 @@
           var options = [];
           for(var i=0; i<response.data.options.length; i++){
               options.push({
-                  label: mangoMsg[response.data.options[i].nameKey],
-                  value: response.data.options[i].id,
+                  label: mangoMsg[response.data.options[i].key],
+                  value: response.data.options[i].value,
               })
           }
           pointEventDetectorEditor.eventDetectorSelect.options = [];
@@ -671,8 +686,8 @@
           var options = [];
           for(var i=0; i<response.data.options.length; i++){
               options.push({
-                  label: mangoMsg[response.data.options[i].nameKey],
-                  value: response.data.options[i].id,
+                  label: mangoMsg[response.data.options[i].key],
+                  value: response.data.options[i].value,
               })
           }
           pointEventDetectorEditor.eventDetectorSelect.options = [];
@@ -739,7 +754,7 @@
           $("eventDetectorTable").appendChild(content);
           
           // Set the values in the content controls.
-          if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
+          if (detector.detectorType == '<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
@@ -750,7 +765,7 @@
                   changeUseResetLimit(true, detector.id);
               }
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
+          else if (detector.detectorType == '<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
@@ -761,60 +776,60 @@
                   changeUseResetLimit(true, detector.id);
               }
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_BINARY_STATE %>) {
+          else if (detector.detectorType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_MULTISTATE_STATE %>) {
+          else if (detector.detectorType == '<%= MultistateStateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.multistateState);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_POINT_CHANGE %>) {}
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_STATE_CHANGE_COUNT %>) {
+          else if (detector.detectorType == '<%= PointChangeEventDetectorDefinition.TYPE_NAME %>') {}
+          else if (detector.detectorType == '<%= StateChangeCountEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"ChangeCount", detector.changeCount);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_NO_CHANGE %>) {
+          else if (detector.detectorType == '<%= NoChangeEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_NO_UPDATE %>) {
+          else if (detector.detectorType == '<%= NoUpdateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_STATE %>) {
+          else if (detector.detectorType == '<%= AlphanumericStateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.alphanumericState);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE %>) {
+          else if (detector.detectorType == '<%= AlphanumericRegexStateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.alphanumericState);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_POSITIVE_CUSUM %>) {
+          else if (detector.detectorType == '<%= PositiveCusumEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Weight", detector.weight);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_NEGATIVE_CUSUM %>) {
+          else if (detector.detectorType == '<%= NegativeCusumEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Weight", detector.weight);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>) {
+          else if (detector.detectorType == '<%= AnalogRangeEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Weight", detector.weight);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
               $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
           }
-          else if (detector.detectorType == <%= PointEventDetectorVO.TYPE_SMOOTHNESS %>) {
+          else if (detector.detectorType == '<%= SmoothnessEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"ChangeCount", detector.changeCount);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
@@ -864,7 +879,7 @@
               var alias = $get("eventDetector"+ pedId +"Alias");
               var alarmLevel = parseInt($get("eventDetector"+ pedId +"AlarmLevel"));
               
-              if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT %>) {
+              if (pedType == '<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
@@ -898,7 +913,7 @@
                               weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT %>) {
+              else if (pedType == '<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
@@ -931,7 +946,7 @@
                               weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_BINARY_STATE %>) {
+              else if (pedType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -946,7 +961,7 @@
                               alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_MULTISTATE_STATE %>) {
+              else if (pedType == '<%= MultistateStateEventDetectorDefinition.TYPE_NAME %>') {
                   var state = parseInt($get("eventDetector"+ pedId +"State"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -963,11 +978,11 @@
                               alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_POINT_CHANGE %>) {
+              else if (pedType == '<%= PointChangeEventDetectorDefinition.TYPE_NAME %>') {
                   saveCBCount++;
                   DataPointEditDwr.updatePointChangeDetector(pedId, xid, alias, alarmLevel, saveCB);
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_STATE_CHANGE_COUNT %>) {
+              else if (pedType == '<%= StateChangeCountEventDetectorDefinition.TYPE_NAME %>') {
                   var count = parseInt($get("eventDetector"+ pedId +"ChangeCount"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -986,7 +1001,7 @@
                               alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_NO_CHANGE %>) {
+              else if (pedType == '<%= NoChangeEventDetectorDefinition.TYPE_NAME %>') {
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
                   
@@ -1000,7 +1015,7 @@
                               saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_NO_UPDATE %>) {
+              else if (pedType == '<%= NoUpdateEventDetectorDefinition.TYPE_NAME %>') {
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
                   
@@ -1014,7 +1029,7 @@
                               saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_STATE %>) {
+              else if (pedType == '<%= AlphanumericStateEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -1031,7 +1046,7 @@
                               alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE %>) {
+              else if (pedType == '<%= AlphanumericRegexStateEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
@@ -1048,7 +1063,7 @@
                               alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_POSITIVE_CUSUM %>) {
+              else if (pedType == '<%= PositiveCusumEventDetectorDefinition.TYPE_NAME %>') {
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
@@ -1068,7 +1083,7 @@
                               durationType, alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_NEGATIVE_CUSUM %>) {
+              else if (pedType == '<%= NegativeCusumEventDetectorDefinition.TYPE_NAME %>') {
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
@@ -1088,7 +1103,7 @@
                               durationType, alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_ANALOG_RANGE %>) {
+              else if (pedType == '<%= AnalogRangeEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
@@ -1109,7 +1124,7 @@
                               durationType, alarmLevel, saveCB);
                   }
               }
-              else if (pedType == <%= PointEventDetectorVO.TYPE_SMOOTHNESS %>) {
+              else if (pedType == '<%= SmoothnessEventDetectorDefinition.TYPE_NAME %>') {
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var boxcar = parseInt($get("eventDetector"+ pedId +"ChangeCount"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));

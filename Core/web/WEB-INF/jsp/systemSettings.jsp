@@ -5,7 +5,7 @@
 <%@page import="com.serotonin.m2m2.db.DatabaseProxy"%>
 <%@page import="com.serotonin.m2m2.rt.maint.DataPurge"%>
 <%@page import="com.serotonin.m2m2.module.SystemSettingsDefinition"%>
-<%@page import="com.serotonin.m2m2.module.definitions.SuperadminPermissionDefinition" %>
+<%@page import="com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition" %>
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@page import="com.serotonin.m2m2.db.dao.SystemSettingsDao"%>
 <%@page import="com.serotonin.m2m2.Common"%>

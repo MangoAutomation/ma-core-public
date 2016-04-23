@@ -7,8 +7,10 @@ package com.serotonin.m2m2.vo.event;
 import java.util.List;
 import java.util.Map;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -415,6 +417,15 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
 	@Override
 	public String getTypeKey() {
 		return null; //TODO Currently No Audit Events for this
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<EventInstanceVO> getDao() {
+		throw new ShouldNeverHappenException("Un-implemented");
 	}
 
 }

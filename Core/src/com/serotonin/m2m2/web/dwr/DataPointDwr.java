@@ -18,11 +18,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.EventDetectorDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
@@ -35,7 +38,8 @@ import com.serotonin.m2m2.vo.DataPointNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dojo.DojoMemoryStoreListItem;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
@@ -128,7 +132,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             vo.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
             vo.setDataSourceXid(ds.getXid());
             vo.setDeviceName(ds.getName());
-            vo.setEventDetectors(new ArrayList<PointEventDetectorVO>(0));
+            vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
             vo.defaultTextRenderer();
         }
         else {
@@ -287,10 +291,19 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @DwrPermission(user = true)
     public ProcessResult getEventDetectorOptions(int dataTypeId) {
         ProcessResult response = new ProcessResult();
-        List<ImplDefinition> list = PointEventDetectorVO.getImplementations(dataTypeId);
+        List<EventDetectorDefinition> definitions = ModuleRegistry.getEventDetectorDefinitions();
+        List<StringStringPair> list = new ArrayList<StringStringPair>();
+        for(EventDetectorDefinition definition : definitions){
+        	AbstractEventDetectorVO<?> vo = definition.baseCreateEventDetectorVO();
+        	if(vo instanceof AbstractPointEventDetectorVO){
+	        	AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)vo;
+	        	if(ped.supports(dataTypeId)){
+	        		list.add(new StringStringPair(definition.getDescriptionKey(), definition.getEventDetectorTypeName()));
+	        	}
+        	}
+        }
         response.addData("options", list);
         return response;
-
     }
 
     /**

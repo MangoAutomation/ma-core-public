@@ -21,7 +21,7 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
@@ -69,7 +69,7 @@ public class EmportDwr extends BaseDwr {
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
             data.put(PUBLISHERS, new PublisherDao().getPublishers());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
-            data.put(EVENT_HANDLERS, new EventDao().getEventHandlers());
+            data.put(EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
             data.put(POINT_HIERARCHY, new DataPointDao().getPointHierarchy(true).getRoot().getSubfolders());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))

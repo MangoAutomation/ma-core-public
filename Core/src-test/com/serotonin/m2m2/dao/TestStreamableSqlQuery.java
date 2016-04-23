@@ -116,6 +116,14 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 		public void setTestData(String testData) {
 			this.testData = testData;
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+		 */
+		@Override
+		protected AbstractDao<StreamTestData> getDao() {
+			return null;
+		}
 	}
 	
 	class StreamTestDao extends AbstractDao<StreamTestData> {
