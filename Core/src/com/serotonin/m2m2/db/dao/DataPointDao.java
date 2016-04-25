@@ -400,8 +400,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public void setEventDetectors(DataPointVO dp) {
     	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(dp.getId());
     	List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
-    	for(AbstractEventDetectorVO<?> ed : detectors)
-    		peds.add((AbstractPointEventDetectorVO<?>) ed);
+    	for(AbstractEventDetectorVO<?> ed : detectors){
+    		AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
+    		ped.njbSetDataPoint(dp);
+    		peds.add(ped);
+    	}
         dp.setEventDetectors(peds);
     }
 

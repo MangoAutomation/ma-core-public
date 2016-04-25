@@ -170,7 +170,6 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
             ejt.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
                     new Object[] { vo.getEventType().getType(), vo.getSourceId(), vo.getId() });
 
-            //TODO Use EventHandlerDao when there is one for auditing purposes
             AuditEventType.raiseDeletedEvent(this.typeName, vo);
         }
     }
