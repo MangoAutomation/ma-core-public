@@ -8,7 +8,7 @@ import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
-abstract public class EventHandlerRT<T extends AbstractEventHandlerVO> {
+abstract public class EventHandlerRT<T extends AbstractEventHandlerVO<?>> {
 	
     protected T vo;
 

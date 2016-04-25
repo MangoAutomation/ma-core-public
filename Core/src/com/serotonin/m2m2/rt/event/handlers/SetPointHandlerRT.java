@@ -20,7 +20,6 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
-import com.serotonin.m2m2.vo.event.EventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
 public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
@@ -32,7 +31,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
     @Override
     public void eventRaised(EventInstance evt) {
-        if (vo.getActiveAction() == EventHandlerVO.SET_ACTION_NONE)
+        if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_NONE)
             return;
 
         // Validate that the target point is available.
@@ -50,7 +49,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         int targetDataType = targetPoint.getVO().getPointLocator().getDataTypeId();
 
         DataValue value;
-        if (vo.getActiveAction() == EventHandlerVO.SET_ACTION_POINT_VALUE) {
+        if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
             // Get the source data point.
             DataPointRT sourcePoint = Common.runtimeManager.getDataPoint(vo.getActivePointId());
             if (sourcePoint == null) {
@@ -71,7 +70,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
             value = valueTime.getValue();
         }
-        else if (vo.getActiveAction() == EventHandlerVO.SET_ACTION_STATIC_VALUE) {
+        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE) {
             value = DataValue.stringToValue(vo.getActiveValueToSet(), targetDataType);
         }
         else
@@ -84,7 +83,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
     @Override
     public void eventInactive(EventInstance evt) {
-        if (vo.getInactiveAction() == EventHandlerVO.SET_ACTION_NONE)
+        if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_NONE)
             return;
 
         // Validate that the target point is available.
@@ -102,7 +101,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         int targetDataType = targetPoint.getVO().getPointLocator().getDataTypeId();
 
         DataValue value;
-        if (vo.getInactiveAction() == EventHandlerVO.SET_ACTION_POINT_VALUE) {
+        if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
             // Get the source data point.
             DataPointRT sourcePoint = Common.runtimeManager.getDataPoint(vo.getInactivePointId());
             if (sourcePoint == null) {
@@ -123,7 +122,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
             value = valueTime.getValue();
         }
-        else if (vo.getInactiveAction() == EventHandlerVO.SET_ACTION_STATIC_VALUE)
+        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE)
             value = DataValue.stringToValue(vo.getInactiveValueToSet(), targetDataType);
         else
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getInactiveAction());
