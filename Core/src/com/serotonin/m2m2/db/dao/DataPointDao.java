@@ -42,7 +42,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -55,7 +54,8 @@ import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
@@ -184,16 +184,15 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
     	private static final int EVENT_DETECTOR_FIRST_COLUMN = 26;
-    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(null, EVENT_DETECTOR_FIRST_COLUMN-1);
+    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN-1);
     	static final String DATA_POINT_SELECT_STARTUP = //
         	    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
         	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
         	            + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
         	            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
-        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.alias, ped.detectorType, ped.alarmLevel, ped.stateLimit, " //
-        	            + "  ped.duration, ped.durationType, ped.binaryState, ped.multistateState, ped.changeCount, ped.alphanumericState, ped.weight "//
+        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.typeName, ped.sourceId, ped.data, " //
         	            + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
-        	            + "  left outer join pointEventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
+        	            + "  left outer join eventDetectors ped on dp.id = ped.sourceId where dp.dataSourceId=?";
     	
 		@Override
 		public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
@@ -205,7 +204,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 					addEventDetector(result.get(id), rs);
 				else {
 					DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-					dpvo.setEventDetectors(new ArrayList<PointEventDetectorVO>());
+					dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
 					result.put(id, dpvo);
 					addEventDetector(dpvo, rs);
 				}
@@ -216,9 +215,10 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 		private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
 			if(rs.getObject(EVENT_DETECTOR_FIRST_COLUMN) == null)
 				return;
-			PointEventDetectorVO edvo = eventRowMapper.mapRow(rs, rs.getRow());
-			edvo.njbSetDataPoint(dpvo);
-			dpvo.getEventDetectors().add(edvo);
+			AbstractEventDetectorVO<?> edvo = eventRowMapper.mapRow(rs, rs.getRow());
+			AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) edvo;
+			ped.njbSetDataPoint(dpvo);
+			dpvo.getEventDetectors().add(ped);
 		}
     }
 
@@ -449,58 +449,16 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     //
 
     public void setEventDetectors(DataPointVO dp) {
-        dp.setEventDetectors(getEventDetectors(dp));
+    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(dp.getId());
+    	List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
+    	for(AbstractEventDetectorVO<?> ed : detectors){
+    		AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
+    		ped.njbSetDataPoint(dp);
+    		peds.add(ped);
+    	}
+        dp.setEventDetectors(peds);
     }
 
-    private List<PointEventDetectorVO> getEventDetectors(DataPointVO dp) {
-        return query(
-                "select id, xid, alias, detectorType, alarmLevel, stateLimit, duration, durationType, binaryState, "
-                        + "  multistateState, changeCount, alphanumericState, weight " + "from pointEventDetectors "
-                        + "where dataPointId=? " + "order by id", new Object[] { dp.getId() },
-                new EventDetectorRowMapper(dp));
-    }
-
-    public PointEventDetectorVO getEventDetector(int id) {
-        return ejt.queryForObject(
-                "select id, xid, alias, detectorType, alarmLevel, stateLimit, duration, durationType, binaryState, "
-                        + "  multistateState, changeCount, alphanumericState, weight " + "from pointEventDetectors "
-                        + "where id=? ", new Object[] { id }, new EventDetectorRowMapper(null));
-    }
-
-    class EventDetectorRowMapper implements RowMapper<PointEventDetectorVO> {
-        private final DataPointVO dp;
-        private final int initialColumn;
-
-        public EventDetectorRowMapper(DataPointVO dp) {
-            this(dp, 0);
-        }
-        
-        public EventDetectorRowMapper(DataPointVO dp, int initialColumn) {
-        	this.dp = dp;
-        	this.initialColumn = initialColumn;
-        }
-
-        @Override
-        public PointEventDetectorVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            PointEventDetectorVO detector = new PointEventDetectorVO();
-            int i = initialColumn;
-            detector.setId(rs.getInt(++i));
-            detector.setXid(rs.getString(++i));
-            detector.setAlias(rs.getString(++i));
-            detector.setDetectorType(rs.getInt(++i));
-            detector.setAlarmLevel(rs.getInt(++i));
-            detector.setLimit(rs.getDouble(++i));
-            detector.setDuration(rs.getInt(++i));
-            detector.setDurationType(rs.getInt(++i));
-            detector.setBinaryState(charToBool(rs.getString(++i)));
-            detector.setMultistateState(rs.getInt(++i));
-            detector.setChangeCount(rs.getInt(++i));
-            detector.setAlphanumericState(rs.getString(++i));
-            detector.setWeight(rs.getDouble(++i));
-            detector.njbSetDataPoint(dp);
-            return detector;
-        }
-    }
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
@@ -1069,8 +1027,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                     ped.setId(Common.NEW_ID);
                     ped.njbSetDataPoint(copy);
                 }
-
-                //dataPointDao.saveDataPoint(dataPointCopy);
+                copy.setEventDetectors(detectors);
+                
                 Common.runtimeManager.saveDataPoint(copy);
 
                 // Copy permissions. 

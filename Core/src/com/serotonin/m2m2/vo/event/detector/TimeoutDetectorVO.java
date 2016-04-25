@@ -32,8 +32,6 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
 	private int duration;
     private int durationType = Common.TimePeriods.SECONDS;
     
-    
-    
     public int getDuration() {
 		return duration;
 	}
