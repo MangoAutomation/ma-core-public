@@ -16,11 +16,14 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  */
 public class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<T>> extends AbstractDataSourceModel<PollingDataSourceVO<T>>{
 
+	protected T data;
+	
 	/**
 	 * @param data
 	 */
-	public AbstractPollingDataSourceModel(PollingDataSourceVO<T> data) {
+	public AbstractPollingDataSourceModel(T data) {
 		super(data);
+
 	}
 
 	@JsonGetter(value="pollPeriod")
