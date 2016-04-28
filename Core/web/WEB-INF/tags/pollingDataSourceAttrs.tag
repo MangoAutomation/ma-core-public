@@ -34,8 +34,8 @@ function($, CronPicker) {
 		 //Enable the Cron Pattern
 		 $('#cronPattern').prop('disabled', false);
 		 $('#cronPattern').css('background', '');
-		 $('#clearCronBtn').prop('disabled', true);
-		 $('#setToPollPeriodBtn').prop('disabled', true);
+		 $('#clearCronBtn').prop('disabled', false);
+		 $('#setToPollPeriodBtn').prop('disabled', false);
 	 }
   });
   
