@@ -24,7 +24,20 @@ function($, CronPicker) {
 		 $('#cronPattern').prop('disabled', true);
 		 $('#cronPattern').css('background', '#dddddd');
 		 $('#clearCronBtn').prop('disabled', true);
-		 $('#setToPollPeriodBtn').prop('disabled', true);		 
+		 $('#setToPollPeriodBtn').prop('disabled', true);
+		 $('#cron-second').prop('disabled', true);
+		 $('#cron-second').css('background', '#dddddd');
+		 $('#cron-minute').prop('disabled', true);
+		 $('#cron-minute').css('background', '#dddddd');
+		 $('#cron-hour').prop('disabled', true);
+		 $('#cron-hour').css('background', '#dddddd');
+		 $('#cron-day-of-month').prop('disabled', true);
+		 $('#cron-day-of-month').css('background', '#dddddd');
+		 $('#cron-month').prop('disabled', true);
+		 $('#cron-month').css('background', '#dddddd');
+		 $('#cron-day-of-week').prop('disabled', true);
+		 $('#cron-day-of-week').css('background', '#dddddd');
+		 
 		 
 		 $('#updatePeriodType').prop('disabled', false);
 		 $('#updatePeriods').prop('disabled', false);
@@ -36,6 +49,18 @@ function($, CronPicker) {
 		 $('#cronPattern').css('background', '');
 		 $('#clearCronBtn').prop('disabled', false);
 		 $('#setToPollPeriodBtn').prop('disabled', false);
+		 $('#cron-second').prop('disabled', false);
+		 $('#cron-second').css('background', '');
+		 $('#cron-minute').prop('disabled', false);
+		 $('#cron-minute').css('background', '');
+		 $('#cron-hour').prop('disabled', false);
+		 $('#cron-hour').css('background', '');
+		 $('#cron-day-of-month').prop('disabled', false);
+		 $('#cron-day-of-month').css('background', '');
+		 $('#cron-month').prop('disabled', false);
+		 $('#cron-month').css('background', '');
+		 $('#cron-day-of-week').prop('disabled', false);
+		 $('#cron-day-of-week').css('background', '');
 	 }
   });
   
