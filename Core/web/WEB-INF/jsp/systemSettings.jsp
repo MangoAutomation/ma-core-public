@@ -700,16 +700,18 @@
     		xid: $get('virtualSerialPortXid'),
     		type: $get('virtualSerialPortType'),
     		portName: $get('virtualSerialPortName'),
-    		
-    		//Type Specific section
-    		address: $get('virtualSerialPortAddress'),
-    		port: $get('virtualSerialPortPort'),
-    		timeout: $get('virtualSerialPortTimeout')
+    		port: $get('virtualSerialPortPort')
     	};
     	
-    	startImageFader("saveVirtualSerialPortImg", true);
- 		
-    	SystemSettingsDwr.saveSerialSocketBridge(port, function(result){
+    	if(port.type == 2) {
+ 			port.address = $get('virtualSerialPortAddress');
+    		port.timeout = $get('virtualSerialPortTimeout');
+    	} else if(port.type == 3) {
+ 			port.bufferSize = $get("virtualSerialPortBufferSize");
+ 			port.timeout = $get('virtualSerialPortTimeout');
+ 		}
+    	
+    	var saveCallback = function(result){
     		if (result.hasMessages)
                 showDwrMessages(result.messages, "virtualSerialPortValidationMessages");
             else {
@@ -729,18 +731,26 @@
                 stopImageFader("saveVirtualSerialPortImg");
             	editingVirtualSerialPortXid = -1;
             }
- 		});
+ 		};
     	
-
+    	startImageFader("saveVirtualSerialPortImg", true); 		
+    	if(port.type == 2)
+    		SystemSettingsDwr.saveSerialSocketBridge(port, saveCallback);
+    	else if(port.type == 3)
+    		SystemSettingsDwr.saveSerialServerSocketBridge(port, saveCallback);
+    	else {
+    		alert("Error: invalid virtual port type, cannot save.");
+    		stopImageFader("saveVirtualSerialPortImg");
+    	}
     }
+    
     function removeVirtualSerialPort(){
     	hide("virtualSerialPortGenericMessages");
     	hide("virtualSerialPortValidationMessages");
     	
     	startImageFader("deleteImg");
     	var port = virtualPorts[editingVirtualSerialPortXid];
-    	startImageFader("removeVirtualSerialPortImg", true);
-    	SystemSettingsDwr.removeSerialSocketBridge(port, function(result){
+    	var callback = function(result){
     		
     		if (result.hasMessages)
                 showDwrMessages(result.messages, "virtualSerialPortValidationMessages");
@@ -758,7 +768,16 @@
                  displayVirtualSerialPorts(result.data.ports);
                  editingVirtualSerialPortXid = -1;
              }
-    	});   
+    	};
+    	startImageFader("removeVirtualSerialPortImg", true);
+    	if(port.type == 2)
+    		SystemSettingsDwr.removeSerialSocketBridge(port, callback);
+    	else if(port.type == 3)
+    		SystemSettingsDwr.removeSerialServerSocketBridge(port, callback);
+    	else {
+    		alert("Error: invalid virtual port type, cannot save.");
+    		stopImageFader("removeVirtualSerialPortImg");
+    	}
     }
     
     function showVirtualCommPort(xid){
@@ -775,23 +794,43 @@
     		$set('virtualSerialPortAddress', 'localhost');
     		$set('virtualSerialPortPort', 9000);
     		$set('virtualSerialPortTimeout', 0);
+    		$set('virtualSerialPortBufferSize', 1024);
     		show('virtualSerialPortConfigDiv');
-    		hide("removeVirtualSerialPortImg")
+    		hide('removeVirtualSerialPortImg');
+    		show('virtualSerialConfig-address-row');
+    		hide('virtualSerialConfig-bufferSize-row');
     	}else{
     		stopImageFader($("dv"+ xid +"Img"));
     		var port = virtualPorts[xid];
     		$set('virtualSerialPortXid', port.xid);
     		$set('virtualSerialPortName', port.portName);
-    		//Not yet set('virtualSerialPortType');
+    		$set('virtualSerialPortType', port.type);
     		$set('virtualSerialPortAddress', port.address);
     		$set('virtualSerialPortPort', port.port);
     		$set('virtualSerialPortTimeout', port.timeout);
+    		$set('virtualSerialPortBufferSize', port.bufferSize);
     		startImageFader($("dv"+ xid +"Img"));
     		show('virtualSerialPortConfigDiv');
-    		show("removeVirtualSerialPortImg")
+    		show('removeVirtualSerialPortImg');
+    		if(port.type == 2) {
+    			show('virtualSerialConfig-address-row');
+    			hide('virtualSerialConfig-bufferSize-row');
+    		} else if(port.type == 3) {
+        		hide('virtualSerialConfig-address-row');
+        		show('virtualSerialConfig-bufferSize-row');
+    		}
     	}
-    	
-    	
+    }
+    
+    function updateVirtualSerialPortOptions() {
+    	var type = $get('virtualSerialPortType');
+    	if(type == 2) {
+			show('virtualSerialConfig-address-row');
+			hide('virtualSerialConfig-bufferSize-row');
+		} else if(type == 3) {
+    		hide('virtualSerialConfig-address-row');
+    		show('virtualSerialConfig-bufferSize-row');
+		}
     }
     
   </script>
@@ -921,14 +960,21 @@
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialPorts.types"/></td>
         <td class="formField">
-          <select id="virtualSerialPortType" disabled>
+          <select id="virtualSerialPortType" onchange="updateVirtualSerialPortOptions()">
             <option value="2" selected>
               <fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialSocketBridge"/>
+            </option>
+            <option value="3">
+              <fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialServerSocketBridge"/>
             </option>
           </select>
         </td>
       </tr>
-       <tr>
+      <tr id="virtualSerialConfig-bufferSize-row">
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialServerSocketBridgeSettings.bufferSize"/></td>
+        <td class="formField"><input id="virtualSerialPortBufferSize" type="text" value="1024"/></td>
+      </tr>     
+      <tr id="virtualSerialConfig-address-row">
         <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.address"/></td>
         <td class="formField"><input id="virtualSerialPortAddress" type="text" value="localhost"/></td>
       </tr>     

@@ -16,7 +16,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.io.serial.virtual.SerialServerSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig.SerialPortTypes;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;
@@ -811,7 +814,15 @@ public class SystemSettingsDwr extends BaseDwr {
     
     @DwrPermission(admin = true)
     public ProcessResult saveSerialSocketBridge(SerialSocketBridgeConfig config) {
-    	
+    	return saveVirtualSerialPortConfig(config);
+    }
+    
+    @DwrPermission(admin = true)
+    public ProcessResult saveSerialServerSocketBridge(SerialServerSocketBridgeConfig config) {
+    	return saveVirtualSerialPortConfig(config);
+    }
+    
+    private ProcessResult saveVirtualSerialPortConfig(VirtualSerialPortConfig config) {
     	ProcessResult response = new ProcessResult();
     	
     	//If we don't have a unique XID then we need to generate one
@@ -830,7 +841,15 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public ProcessResult removeSerialSocketBridge(SerialSocketBridgeConfig config) {
-    	
+    	return removeVirtualSerialPortConfig(config);
+    }
+    
+    @DwrPermission(admin = true)
+    public ProcessResult removeSerialServerSocketBridge(SerialServerSocketBridgeConfig config) {
+    	return removeVirtualSerialPortConfig(config);
+    }
+    
+    private ProcessResult removeVirtualSerialPortConfig(VirtualSerialPortConfig config) {
     	ProcessResult response = new ProcessResult();
     	response.addData("ports", VirtualSerialPortConfigDao.instance.remove(config));
     	

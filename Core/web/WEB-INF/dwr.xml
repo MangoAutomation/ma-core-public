@@ -242,7 +242,9 @@
       <param name="include" value="portName,type"/>
     </convert>  
     <convert converter="bean" match="com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig">
-    </convert>  
+    </convert>
+    <convert converter="bean" match="com.infiniteautomation.mango.io.serial.virtual.SerialServerSocketBridgeConfig">
+    </convert>
         
     <convert converter="bean" match="com.serotonin.m2m2.rt.console.LogEvent" />
     <convert converter="bean" match="com.serotonin.m2m2.rt.script.ScriptContextVariable" />
