@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
+ * @author Phillip Dunlap
+ */
 package com.infiniteautomation.mango.io.serial.virtual;
 
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;

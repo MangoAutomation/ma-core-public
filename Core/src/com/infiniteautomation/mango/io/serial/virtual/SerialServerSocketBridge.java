@@ -40,7 +40,6 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 	private SerialServerSocketThread serverThread;
 	private SerialServerSocketBridgeOutputStream serialOutputStream;
 	private SerialServerSocketBridgeInputStream serialInputStream;
-	private SerialEventLauncher sel;
 	
 	
 	/**
@@ -84,10 +83,6 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 	public void closeImpl() throws SerialPortException {
 		if(this.serverThread != null) {
 			this.serverThread.shutdown();
-			if(this.sel != null) {
-				this.sel.shutdown();
-				this.sel = null;
-			}
 			Exception ex = null;
 			try {
 				//unblock the accept() method
@@ -135,8 +130,6 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 		try {
 			serialOutputStream.connect(getSocketOutputStream());
 			serialInputStream.connect(getSocketInputStream());
-			sel = new SerialEventLauncher(serialInputStream, this);
-			Common.timer.execute(sel);
 		} catch(Exception e) {
 			throw new ShouldNeverHappenException("Failed to connect streams.");
 		}
@@ -187,10 +180,13 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 		
 		private SerialServerSocketBridge bridge;
 		private volatile boolean running = true;
+		private volatile boolean socketRunning = false;
+		private final SerialServerSocketBridgeInputStream stream;
 		
 		public SerialServerSocketThread(SerialServerSocketBridge bridge){
 			super("Serial Server Socket Thread: " + bridge.getCommPortId());
 			this.bridge = bridge;
+			this.stream = (SerialServerSocketBridgeInputStream)bridge.getInputStream();
 		}
 		
 		/* (non-Javadoc)
@@ -207,7 +203,29 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 							this.bridge.socket = socket;
 							this.bridge.socket.setSoTimeout(this.bridge.timeout);
 							this.bridge.connect();
+							socketRunning = true;
+							while(socketRunning) {
+								try {
+									int available = stream.bufferRead();
+									if(available != -1) {
+										SerialPortProxyEvent spe = new SerialPortProxyEvent(Common.timer.currentTimeMillis());
+										for(SerialPortProxyEventListener l : this.bridge.listeners) {
+											l.serialEvent(spe);
+										}
+									} else {
+										//No connection, disconnected.
+										socketRunning = false;
+										this.bridge.disconnect();
+									}
+								} catch(SerialServerSocketConnectionClosedException | SocketException e) {
+									socketRunning = false;
+									this.bridge.disconnect();
+								} catch(IOException e) {
+									LOG.error("IOException buffer reading for " + this.bridge.getCommPortId(), e);
+								}
+							}
 						} else {
+							//Should be unreachable?
 							socket.close();
 						}
 					} catch(SocketException e) {
@@ -224,62 +242,20 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 				} catch (IOException e) {
 					LOG.error(e.getMessage(), e);
 				}
-//				if(this.bridge.socket != null){
-//					try {
-//						this.bridge.socket.close();
-//						this.bridge.socket = null;
-//					} catch (IOException e) {
-//						LOG.error(e.getMessage(), e);
-//					}
-//				}
+				if(this.bridge.socket != null){
+					try {
+						this.bridge.socket.close();
+						this.bridge.socket = null;
+					} catch (IOException e) {
+						LOG.error(e.getMessage(), e);
+					}
+				}
 			}
 		}
 		
 		public void shutdown(){
 			this.running = false;
+			this.socketRunning = false;
 		}
 	}
-	
-	//Because there is no event system for sockets, we will pretend there is by using blocking read calls
-	class SerialEventLauncher implements Runnable {
-		private volatile boolean running = true;
-		private final SerialServerSocketBridgeInputStream stream;
-		private final SerialServerSocketBridge listenedTo;
-		
-		public SerialEventLauncher(SerialServerSocketBridgeInputStream stream, SerialServerSocketBridge listenedTo) {
-			this.stream = stream;
-			this.listenedTo = listenedTo;
-		}
-		
-		public void shutdown() {
-			this.running = false;
-		}
-
-		@Override
-		public void run() {
-			while(running) {
-				try {
-					int available = stream.bufferRead();
-					if(available != -1) {
-						SerialPortProxyEvent spe = new SerialPortProxyEvent(Common.timer.currentTimeMillis());
-						for(SerialPortProxyEventListener l : listenedTo.listeners) {
-							l.serialEvent(spe);
-						}
-					} else {
-						//Nobody connected to the socket yet, take a break
-						try {
-							Thread.sleep(500);
-						} catch(Exception e) {}
-					}
-				} catch(SerialServerSocketConnectionClosedException | SocketException e) {
-					running = false;
-					listenedTo.disconnect();
-				} catch(IOException e) {
-					LOG.error("IOException buffer reading for " + listenedTo.getCommPortId(), e);
-				}
-			}
-		}
-		
-	}
-	
 }
