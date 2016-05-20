@@ -18,7 +18,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig.SerialPortTypes;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.io.serial.CommPortConfigException;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
@@ -120,10 +122,9 @@ public class SerialPortManager {
             
             //Collect any Virtual Comm Ports from the DB and load them in
             @SuppressWarnings("unchecked")
-			List<SerialSocketBridgeConfig> list = (List<SerialSocketBridgeConfig>) SystemSettingsDao.getJsonObject(VIRTUAL_SERIAL_PORT_KEY,
-                    new TypeDefinition(List.class, SerialSocketBridgeConfig.class));
+			List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.instance.getAll();
             if (list != null){
-            	for(SerialSocketBridgeConfig config : list){
+            	for(VirtualSerialPortConfig config : list){
             		freePorts.add(new VirtualSerialPortIdentifier(config));
             	}
             }
@@ -204,6 +205,7 @@ public class SerialPortManager {
 				port = new JsscSerialPortProxy(portId, baudRate, flowControlIn, flowControlOut, dataBits, stopBits, parity);
 				break;
 			case SerialPortTypes.SERIAL_SOCKET_BRIDGE:
+			case SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE:
 				VirtualSerialPortIdentifier bridgeId = (VirtualSerialPortIdentifier)portId;
 				port = bridgeId.getProxy();
 				break;

@@ -52,6 +52,9 @@ public class VirtualSerialPortConfigResolver implements TypeResolver {
         if (type == VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE)
             return SerialSocketBridgeConfig.class;   
         
+        if (type == VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE)
+        	return SerialServerSocketBridgeConfig.class;
+        
         return SerialSocketBridgeConfig.class;
     }
 }
