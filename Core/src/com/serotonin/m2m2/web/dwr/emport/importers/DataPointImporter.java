@@ -77,6 +77,10 @@ public class DataPointImporter extends Importer {
                 if (StringUtils.isBlank(vo.getName()))
                     vo.setName(xid);
 
+                // If the chart colour is null provide default of '' to handle legacy code that sets colour to null
+                if(vo.getChartColour() == null)
+                	vo.setChartColour("");
+                
                 // Now validate it. Use a new response object so we can distinguish errors in this vo from
                 // other errors.
                 ProcessResult voResponse = new ProcessResult();
