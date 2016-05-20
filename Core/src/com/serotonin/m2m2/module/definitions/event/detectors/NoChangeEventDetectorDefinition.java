@@ -15,7 +15,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  */
 public class NoChangeEventDetectorDefinition extends EventDetectorDefinition{
 
-	public static final String TYPE_NAME = "POINT_NOCHANGE";
+	public static final String TYPE_NAME = "NO_CHANGE";
 		
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getEventDetectorSubTypeName()

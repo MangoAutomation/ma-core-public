@@ -15,7 +15,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  */
 public class AnalogLowLimitEventDetectorDefinition extends EventDetectorDefinition{
 
-	public static final String TYPE_NAME = "POINT_ANALOG_LOW_LIMIT";
+	public static final String TYPE_NAME = "LOW_LIMIT";
 		
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getEventDetectorSubTypeName()

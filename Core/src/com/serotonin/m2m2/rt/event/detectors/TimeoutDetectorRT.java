@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import java.util.Date;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -85,7 +86,25 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
     }
 
     abstract protected void scheduleTimeoutImpl(long fireTime);
-
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		System.out.println("IMPORTANT TO DO RIGHT");
+		//TODO Watch use of XIDs as they are not enforced to be unique in legacy versions...
+		return this.hashCode() + "ED";
+	}
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
+	
     synchronized private void cancelTask() {
         if (task != null) {
             task.cancel();

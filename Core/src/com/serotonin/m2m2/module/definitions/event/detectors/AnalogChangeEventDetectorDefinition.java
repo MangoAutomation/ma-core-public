@@ -15,7 +15,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  */
 public class AnalogChangeEventDetectorDefinition extends EventDetectorDefinition{
 
-	public static final String TYPE_NAME = "POINT_ANALOG_CHANGE";
+	public static final String TYPE_NAME = "ANALOG_CHANGE";
 		
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getEventDetectorSubTypeName()

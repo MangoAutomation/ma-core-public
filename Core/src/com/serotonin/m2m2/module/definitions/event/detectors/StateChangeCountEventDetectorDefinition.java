@@ -15,7 +15,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  */
 public class StateChangeCountEventDetectorDefinition extends EventDetectorDefinition{
 
-	public static final String TYPE_NAME = "POINT_STATE_CHANGE_COUNT";
+	public static final String TYPE_NAME = "STATE_CHANGE_COUNT";
 		
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getEventDetectorSubTypeName()

@@ -15,7 +15,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  */
 public class AlphanumericStateEventDetectorDefinition extends EventDetectorDefinition{
 
-	public static final String TYPE_NAME = "POINT_ALPHA_STATE";
+	public static final String TYPE_NAME = "ALPHANUMERIC_STATE";
 		
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getEventDetectorSubTypeName()

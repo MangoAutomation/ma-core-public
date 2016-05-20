@@ -4,13 +4,17 @@
  */
 package com.serotonin.m2m2;
 
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
-import com.serotonin.m2m2.util.timeout.RejectedRunnableEventGenerator;
+import com.serotonin.provider.Providers;
+import com.serotonin.provider.TimerProvider;
+import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
+import com.serotonin.timer.RealTimeTimer;
 import com.serotonin.util.properties.ReloadingProperties;
 
 /**
@@ -39,12 +43,23 @@ public class MangoTestBase {
         		TimeUnit.SECONDS, 
         		new SynchronousQueue<Runnable>(), 
         		new MangoThreadFactory("high", Thread.MAX_PRIORITY),
-        		new RejectedRunnableEventGenerator(),
-        		Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1),
+        		new RejectedExecutionHandler() {
+					
+					@Override
+					public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+						System.out.println("Rejected task: " + r);
+					}
+				},
         		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false));
-        Common.timer.init(executor);
-		
-		
+        
+        final RealTimeTimer timer = new OrderedRealTimeTimer();
+        timer.init(executor);
+        Providers.add(TimerProvider.class, new TimerProvider<RealTimeTimer>() {
+            @Override
+            public RealTimeTimer getTimer() {
+                return timer;
+            }
+        });		
 	}
 	
 	

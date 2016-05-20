@@ -627,7 +627,7 @@ public class RuntimeManager {
     //
     // Point values
     public void setDataPointValue(int dataPointId, DataValue value, SetPointSource source) {
-        setDataPointValue(dataPointId, new PointValueTime(value, System.currentTimeMillis()), source);
+        setDataPointValue(dataPointId, new PointValueTime(value, Common.backgroundProcessing.currentTimeMillis()), source);
     }
 
     public void setDataPointValue(int dataPointId, PointValueTime valueTime, SetPointSource source) {
@@ -690,7 +690,7 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
-        long before = DateUtils.minus(System.currentTimeMillis(), periodType, periodCount);
+        long before = DateUtils.minus(Common.backgroundProcessing.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(dataPointId, before);
     }
 

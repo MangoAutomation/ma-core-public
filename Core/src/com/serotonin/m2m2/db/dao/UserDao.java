@@ -168,7 +168,7 @@ public class UserDao extends AbstractBasicDao<User> {
     }
 
     public void recordLogin(int userId) {
-        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { System.currentTimeMillis(), userId });
+        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { Common.backgroundProcessing.currentTimeMillis(), userId });
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {

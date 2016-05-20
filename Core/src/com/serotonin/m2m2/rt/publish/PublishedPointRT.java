@@ -60,6 +60,10 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         parent.pointTerminated(this);
     }
 
+    public String getListenerName(){
+    	return "Published Point With Id" + vo.getDataPointId();
+    }
+    
     public T getVo() {
         return vo;
     }

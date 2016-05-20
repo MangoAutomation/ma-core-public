@@ -13,8 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
-import com.serotonin.timer.OneTimeTrigger;
-import com.serotonin.timer.TimerTask;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 
 /**
  * This class is used at startup to initialize data sources in parallel.
@@ -50,10 +49,10 @@ public class DataSourceGroupTerminator {
 	 */
 	public void terminate() {
 
-		long startTs = System.currentTimeMillis();
+		long startTs = Common.backgroundProcessing.currentTimeMillis();
 		if(this.group == null){
 			if(this.useMetrics)
-				LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (System.currentTimeMillis() - startTs));
+				LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs));
 			return;
 		}
 		
@@ -85,7 +84,7 @@ public class DataSourceGroupTerminator {
 			synchronized(this.runningTasks){
 				this.runningTasks.add(currentSubgroup);
 			}
-			Common.timer.execute(currentSubgroup);
+			Common.backgroundProcessing.execute(currentSubgroup);
 			
 			//When we have more threads than groups
 			if(i >= this.group.size() -1)
@@ -98,7 +97,7 @@ public class DataSourceGroupTerminator {
 		}
 		
 		if(this.useMetrics)
-			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (System.currentTimeMillis() - startTs) + "ms");
+			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs) + "ms");
 
 		return;
 	}
@@ -118,7 +117,7 @@ public class DataSourceGroupTerminator {
 	 * @author Terry Packer
 	 *
 	 */
-	class DataSourceSubGroupTerminator extends TimerTask{
+	class DataSourceSubGroupTerminator extends HighPriorityTask{
 		
 		private final Log LOG = LogFactory.getLog(DataSourceSubGroupTerminator.class);
 		
@@ -126,7 +125,7 @@ public class DataSourceGroupTerminator {
 		private DataSourceGroupTerminator parent;
 		
 		public DataSourceSubGroupTerminator(List<DataSourceRT> subgroup, DataSourceGroupTerminator parent){
-			super(new OneTimeTrigger(0));
+			super("Datasource subgroup terminator", null, 0);
 			this.subgroup = subgroup;
 			this.parent = parent;
 		}

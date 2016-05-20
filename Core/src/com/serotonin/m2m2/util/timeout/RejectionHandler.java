@@ -10,7 +10,7 @@ import com.serotonin.timer.RejectedTaskReason;
  * @author Terry Packer
  *
  */
-public interface RejectedTaskHandler {
+public interface RejectionHandler {
 
 	/**
 	 * Task was rejected

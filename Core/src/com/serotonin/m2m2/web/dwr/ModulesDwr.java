@@ -43,6 +43,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.provider.Providers;
@@ -170,7 +171,7 @@ public class ModulesDwr extends BaseDwr {
             synchronized (this) {
                 if (UPGRADE_DOWNLOADER == null) {
                     UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart);
-                    Common.timer.execute(UPGRADE_DOWNLOADER);
+                    Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
                 }
                 else
                     return Common.translate("modules.versionCheck.occupied");
@@ -242,7 +243,7 @@ public class ModulesDwr extends BaseDwr {
         return jsonReader.read();
     }
 
-    class UpgradeDownloader implements Runnable {
+    class UpgradeDownloader extends HighPriorityTask {
     	
         private final List<StringStringPair> modules;
         private final boolean backup;
@@ -255,13 +256,14 @@ public class ModulesDwr extends BaseDwr {
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
 
         public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart) {
+        	super("Upgrade downloader", "UpgradeDownloader", 0);
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;
         }
 
         @Override
-        public void run() {
+        public void run(long runtime) {
         	LOG.info("UpgradeDownloader started");
         	
             if (backup) {

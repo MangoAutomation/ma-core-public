@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -355,11 +354,10 @@ public class SystemSettingsDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
         
         SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
         
         if(highPriorityCorePoolSize > 0){
         	systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
-        	executor.setCorePoolSize(highPriorityCorePoolSize);
+        	Common.backgroundProcessing.setHighPriorityServiceCorePoolSize(highPriorityCorePoolSize);
         }else{
         	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
         }
@@ -370,7 +368,7 @@ public class SystemSettingsDwr extends BaseDwr {
         	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }else{
             systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, highPriorityMaxPoolSize);
-            executor.setMaximumPoolSize(highPriorityMaxPoolSize);
+            Common.backgroundProcessing.setHighPriorityServiceMaximumPoolSize(highPriorityMaxPoolSize);
         }
         
         //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
@@ -561,7 +559,7 @@ public class SystemSettingsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public void purgeNow() {
         DataPurge dataPurge = new DataPurge();
-        dataPurge.execute(System.currentTimeMillis());
+        dataPurge.execute(Common.backgroundProcessing.currentTimeMillis());
     }
 
     @DwrPermission(admin = true)

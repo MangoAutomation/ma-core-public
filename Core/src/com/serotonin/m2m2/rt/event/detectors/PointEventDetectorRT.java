@@ -60,6 +60,10 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
 
     public abstract boolean isEventActive();
 
+    @Override
+    public String getListenerName(){
+    	return vo.getXid();
+    }
     //
     //
     // Lifecycle interface

@@ -31,12 +31,14 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
 public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutClient {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
+    private static final String prefix = "INTVL_LOG-";
 
     // Configuration data.
     private final DataPointVO vo;
@@ -236,7 +238,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
                 return;
         }
 
-        if (newValue.getTime() > System.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
+        if (newValue.getTime() > Common.backgroundProcessing.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             LOG.warn("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getStringValue()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime(), new Exception());
@@ -356,7 +358,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
             	
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                intervalStartTime = System.currentTimeMillis();
+                intervalStartTime = Common.backgroundProcessing.currentTimeMillis();
                 averagingValues = new ArrayList<IValueTime>();
             }
         }
@@ -450,6 +452,30 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         }
     }
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "Interval logging: " + this.vo.getXid();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return prefix + this.vo.getXid();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
+	
     //
     // / Purging
     //
@@ -546,6 +572,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
     }
 
     class EventNotifyWorkItem implements WorkItem {
+    	private final String prefix = "EN-";
     	private final String sourceXid;
         private final DataPointListener listener;
         private final PointValueTime oldValue;
@@ -583,7 +610,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
         @Override
         public int getPriority() {
-            return WorkItem.PRIORITY_MEDIUM;
+            return WorkItem.PRIORITY_HIGH;
         }
 
 		/* (non-Javadoc)
@@ -591,7 +618,23 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 		 */
 		@Override
 		public String getDescription() {
-			return "Point with xid: " + sourceXid + " changed, telling: " + listener.getClass().getCanonicalName();
+			return "Point event for: " + sourceXid + ", telling: " + listener.getListenerName();
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return prefix + sourceXid;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 		}
     }
 
@@ -664,4 +707,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+	}
+
+
 }

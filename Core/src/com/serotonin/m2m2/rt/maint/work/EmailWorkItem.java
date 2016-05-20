@@ -20,6 +20,7 @@ import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailSender;
 
 /**
+ * 
  * @author Matthew Lohbihler
  * 
  */
@@ -97,7 +98,7 @@ public class EmailWorkItem implements WorkItem {
                 to += addr.getAddress();
             }
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_EMAIL_SEND_FAILURE),
-                    System.currentTimeMillis(), false,
+                    Common.backgroundProcessing.currentTimeMillis(), false,
                     new TranslatableMessage("event.email.failure", subject, to, e.getMessage()));
         }
         finally {
@@ -115,4 +116,21 @@ public class EmailWorkItem implements WorkItem {
 	public String getDescription() {
 		return "Sending email from " + this.fromAddress.toString() + " about " + this.subject; 
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
+	
 }

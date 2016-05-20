@@ -193,7 +193,7 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     public void raiseFailureEvent(LocalizableMessage message) {
     	//TODO Implement
 //        SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_COMPOUND_DETECTOR_FAILURE, vo.getId());
-//        SystemEventType.raiseEvent(eventType, System.currentTimeMillis(), false, message);
+//        SystemEventType.raiseEvent(eventType, Common.backgroundProcessing.currentTimeMillis(), false, message);
 //        vo.setDisabled(true);
 //        new CompoundEventDetectorDao().saveCompoundEventDetector(vo);
         
@@ -259,15 +259,15 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
         // Evaluate the current state.
         currentState = condition.evaluate();
         if (currentState)
-            raiseEvent(System.currentTimeMillis());
+            raiseEvent(Common.backgroundProcessing.currentTimeMillis());
         else
-            returnToNormal(System.currentTimeMillis());
+            returnToNormal(Common.backgroundProcessing.currentTimeMillis());
     }
 
     public void terminate() {
         if (condition != null)
             condition.terminate(this);
-        returnToNormal(System.currentTimeMillis());
+        returnToNormal(Common.backgroundProcessing.currentTimeMillis());
     }
 
     public void joinTermination() {

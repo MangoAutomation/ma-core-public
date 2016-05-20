@@ -156,7 +156,7 @@ public class AuditEventType extends EventType {
         AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
         type.setRaisingUser(user);
 
-        Common.eventManager.raiseEvent(type, System.currentTimeMillis(), false, getEventType(type.getAuditEventType())
+        Common.eventManager.raiseEvent(type, Common.backgroundProcessing.currentTimeMillis(), false, getEventType(type.getAuditEventType())
                 .getAlarmLevel(), message, context);
     }
     

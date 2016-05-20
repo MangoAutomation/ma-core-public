@@ -5,6 +5,12 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 public interface DataPointListener {
+	
+	/**
+	 * For use in tracking who is listening to whom
+	 */
+	String getListenerName();
+	
     /**
      * This method is called for all existing listeners when the point is initialized. Note that it is not called for
      * listeners that have begun listening to an already-initialized point.

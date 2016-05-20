@@ -20,7 +20,6 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.perf4j.StopWatch;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
@@ -981,13 +980,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
                             Long time = null;
                             if (inserts.length > 10) {
-                            	time = System.currentTimeMillis();
+                            	time = Common.backgroundProcessing.currentTimeMillis();
                             }
 
                             ejt.update(sb.toString(), params);
 
                             if (time != null) {
-                                long elapsed = System.currentTimeMillis() - time;
+                                long elapsed = Common.backgroundProcessing.currentTimeMillis() - time;
                                 if (elapsed > 0) {
                                     double writesPerSecond = ((double) inserts.length / (double) elapsed) * 1000d;
                                     BATCH_WRITE_SPEED_MONITOR.setValue((int) writesPerSecond);
@@ -1043,6 +1042,21 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public String getDescription() {
 			return "Batch Writing from batch of size: " + ENTRIES.size(); 
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
 		}
     }
 
@@ -1261,6 +1275,22 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public String getDescription() {
 			return "Batch Updating from batch of size: " + ENTRIES.size();
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
 		}
     }
 

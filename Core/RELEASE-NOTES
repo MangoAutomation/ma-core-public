@@ -2,6 +2,10 @@
 * Upgrade core-private for new login process
 * Adding quantization and cron pattern options for all eligible polling data sources
 * Adding runtime.javascript.metrics. env property to log javascript execution times of the ScriptEngine
+* Adding support to expose metrics for OrderedRealTimeTimer tasks, rework timing system
+* Modularize Event Detectors
+* Modularize Event Handlers
+* User passwords upgraded
 
 *Version 2.7.12*
 * ETag Support

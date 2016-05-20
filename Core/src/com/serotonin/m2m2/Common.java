@@ -61,6 +61,7 @@ import com.serotonin.m2m2.util.DocumentationManifest;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
+import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
@@ -69,8 +70,6 @@ import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.filter.LoggedInFilter;
 import com.serotonin.monitor.MonitoredValues;
 import com.serotonin.timer.CronTimerTrigger;
-import com.serotonin.timer.OrderedRealTimeTimer;
-import com.serotonin.timer.RealTimeTimer;
 import com.serotonin.util.StringUtils;
 import com.serotonin.util.properties.ReloadingProperties;
 
@@ -99,6 +98,7 @@ public class Common {
     public static Configuration freemarkerConfiguration;
     public static DatabaseProxy databaseProxy;
     public static BackgroundProcessing backgroundProcessing;
+    public static TaskRejectionHandler rejectionHandler;
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
     public static SerialPortManager serialPortManager;
@@ -114,7 +114,6 @@ public class Common {
     public static final List<ImageSet> imageSets = new ArrayList<ImageSet>();
     public static final List<DynamicImage> dynamicImages = new ArrayList<DynamicImage>();
 
-    public static final RealTimeTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
 

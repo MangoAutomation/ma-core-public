@@ -10,6 +10,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.LicenseDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.license.ModuleLicense;
+import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -18,7 +19,7 @@ import com.serotonin.timer.TimerTask;
  */
 public abstract class TimedModuleLicense extends LicenseDefinition {
 
-	protected TimerTask task;
+	protected RejectableTimerTask task;
 
 	protected ExpiryAction action;
 	protected long timeoutRecheckPeriod; //Check for action every so often
@@ -59,7 +60,7 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
             ERRORS.clear();
             if(shouldScheduleTimeout()&&(this.task == null)){
             	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy HH:mm:ss");
-            	Date shutdownTime = new Date(System.currentTimeMillis() + this.runtime);
+            	Date shutdownTime = new Date(Common.backgroundProcessing.currentTimeMillis() + this.runtime);
             	final String shutdownString = sdf.format(shutdownTime);
     			
             	
@@ -77,7 +78,7 @@ public abstract class TimedModuleLicense extends LicenseDefinition {
         				shutdownString
         				);
         		
-                Common.timer.schedule(task);
+                Common.backgroundProcessing.schedule(task);
             }else{
             	if(task != null)
 	        		task.cancel();

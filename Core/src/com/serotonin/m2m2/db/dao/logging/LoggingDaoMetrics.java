@@ -10,7 +10,6 @@ import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 
 import com.serotonin.m2m2.rt.console.LogEvent;
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 
 /**
  * @author Terry Packer

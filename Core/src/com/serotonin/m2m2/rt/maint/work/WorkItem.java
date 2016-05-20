@@ -41,4 +41,17 @@ public interface WorkItem {
      */
     public String getDescription();
     
+    /**
+     * Get the id to bundle similar tasks in an ordered queue
+     * returning null indicates no ordering necessary
+     * @return
+     */
+    public String getTaskId();
+    
+    /**
+     * How many tasks can be scheduled and waiting to run in the Ordered Timer
+     * @return
+     */
+    public int getQueueSize();
+    
 }

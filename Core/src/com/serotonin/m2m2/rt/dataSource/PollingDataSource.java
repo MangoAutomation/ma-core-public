@@ -21,9 +21,6 @@ import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
-import com.serotonin.m2m2.rt.event.type.SystemEventType;
-import com.serotonin.m2m2.rt.maint.work.WorkItem;
-import com.serotonin.m2m2.util.timeout.RejectedTaskHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -33,11 +30,12 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient,RejectedTaskHandler {
-	
-    private final Log LOG = LogFactory.getLog(PollingDataSource.class);
-    private Object terminationLock;
+abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient {
 
+    private final Log LOG = LogFactory.getLog(PollingDataSource.class);
+    private static final String prefix = "POLLINGDS-";
+    private Object terminationLock;
+    
     private final DataSourceVO<?> vo;
     protected List<DataPointRT> dataPoints = new ArrayList<DataPointRT>();
     protected boolean pointListChanged = false;
@@ -105,38 +103,41 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         int eventId = vo.getPollAbortedExceptionEventId();
         if(eventId >= 0)
         	this.raiseEvent(eventId, time, true, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName(), unsuccessful));
+
+        //Save this as an aborted poll with time -1
+        this.latestPollTimes.add(new LongLongPair(time, -1));
+        //Trim the Queue
+        while(this.latestPollTimes.size() >= 10)
+        	this.latestPollTimes.poll();
     }
 
     @Override
-    public void scheduleTimeout(long fireTime) {
-    	long startTs = System.currentTimeMillis();
+    public void scheduleTimeout(final long fireTime) {
+    	final long startTs = Common.backgroundProcessing.currentTimeMillis();
     	
     	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
-    	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
+    	if(jobThread != null){
+    		// TODO Review this change as it can allow 2 polls to run (but not with OrdredRealTimeTimer) (cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)
             // There is another poll still running, so abort this one.
-            LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
-                    + " aborted because its start time of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
-    		final long pollTime = fireTime;
-            Common.backgroundProcessing.addWorkItem(new WorkItem(){
-
-				@Override
-				public void execute() {
-					incrementUnsuccessfulPolls(pollTime);
-				}
-
-				@Override
-				public int getPriority() {
-					return PRIORITY_MEDIUM;
-				}
-
-				@Override
-				public String getDescription() {
-					return "Poll Aborted Notifier";
-				}
-    		});
+    		if(LOG.isDebugEnabled())
+    			LOG.debug(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
+                    + " with start time of " + Functions.getFullMilliSecondTime(startTs) + " aborted because a poll is currently running.");
+    		incrementUnsuccessfulPolls(fireTime);
             return;
         }
-        
+    	
+    	//If we have a queue of tasks in the timer it would be possible for our fire time to be too far in the past
+    	//TODO Decide if we really want to abort it at this time
+		if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
+	        // There is another poll still running, so abort this one.
+			if(LOG.isDebugEnabled())
+				LOG.debug(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
+	                + " with start time of " + Functions.getFullMilliSecondTime(startTs) + " aborted because its running too late.");
+			incrementUnsuccessfulPolls(fireTime);
+	        return;
+    	}
+
+    	
         incrementSuccessfulPolls(fireTime);
 
         try {
@@ -148,7 +149,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             doPollNoSync(fireTime);
             
             //Save the poll time and duration
-            this.latestPollTimes.add(new LongLongPair(fireTime, System.currentTimeMillis() - startTs));
+            this.latestPollTimes.add(new LongLongPair(fireTime, Common.backgroundProcessing.currentTimeMillis() - startTs));
             //Trim the Queue
             while(this.latestPollTimes.size() >= 10)
             	this.latestPollTimes.poll();
@@ -214,60 +215,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
      */
     @Override
     public void rejected(final RejectedTaskReason reason){
-    	
-    	//Raise Event that Task Was Rejected
-    	switch(reason.getCode()){
-    	case RejectedTaskReason.CURRENTLY_RUNNING:
-    	case RejectedTaskReason.TASK_QUEUE_FULL:
-    		Common.backgroundProcessing.addWorkItem(new WorkItem(){
-
-				@Override
-				public void execute() {
-			    	LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(reason.getScheduledExecutionTime())
-			                + " aborted because " + reason.getDescription());
-					incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-				}
-
-				@Override
-				public int getPriority() {
-					return PRIORITY_MEDIUM;
-				}
-
-				@Override
-				public String getDescription() {
-					return "Poll Aborted Notifier";
-				}
-    		});
-    		
-    		break;
-    	case RejectedTaskReason.POOL_FULL:
-    		//Aborted a poll
-    		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-    		//Raise System Event that Pool is full
-    		SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_REJECTED_WORK_ITEM), 
-            		reason.getScheduledExecutionTime(), false, new TranslatableMessage("event.system.rejectedHighPriorityTaskPoolFull", "Data Source: " + vo.getName()));
-    		break;
-    	default:
-    		Common.backgroundProcessing.addWorkItem(new WorkItem(){
-
-				@Override
-				public void execute() {
-					incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-				}
-
-				@Override
-				public int getPriority() {
-					return PRIORITY_MEDIUM;
-				}
-
-				@Override
-				public String getDescription() {
-					return "Poll Aborted Notifier";
-				}
-    		});
-    		LOG.error("Task rejected for unknownReason: " + reason.getCode() + " - " + reason.getDescription());
-    		break;
-    	}
+		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+		Common.rejectionHandler.rejectedHighPriorityTask(reason);
     }
     
     //
@@ -280,15 +229,16 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
             long delay = 0;
             if (quantize){
                 // Quantize the start.
-            	long now = System.currentTimeMillis();
+            	long now = Common.backgroundProcessing.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
-                LOG.debug("First poll should be at: " + (now + delay));
+                if(LOG.isDebugEnabled())
+                	LOG.debug("First poll should be at: " + (now + delay));
             }
-            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this, this);
+            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this);
         }
         else {
             try {
-                timerTask = new TimeoutTask(new CronTimerTrigger(cronPattern), this, this);
+                timerTask = new TimeoutTask(new CronTimerTrigger(cronPattern), this);
             }
             catch (ParseException e) {
                 // Should not happen
@@ -343,6 +293,9 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     
     /**
      * Get the latest poll times and durations.  Use sparingly as this will block the polling thread
+     * 
+     * Note that a poll duration of -1 means it was aborted
+     * 
      * @return
      */
     public List<LongLongPair> getLatestPollTimes(){
@@ -353,4 +306,24 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 		}
     	return latestTimes;
     }
+    
+    @Override
+    public String getThreadName(){
+    	return "Polling Data Source: " + this.vo.getXid();
+    }
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+     */
+    @Override
+    public String getTaskId() {
+    	return prefix + vo.getXid();
+    }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
 }

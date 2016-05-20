@@ -139,7 +139,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         
         final User user = Common.getUser();
         if (user != null) {        
-        	final long now = System.currentTimeMillis();
+        	final long now = Common.backgroundProcessing.currentTimeMillis();
         	final ResultSetCounter counter = new ResultSetCounter();
         	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
             DojoQueryCallback<EventInstanceVO> callback = new DojoQueryCallback<EventInstanceVO>(false) {

@@ -419,6 +419,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             	//Remove from list
             	removeFromList(existingDetectors, ped.getId());
             }
+            ped.setSourceId(dp.getId());
         	EventDetectorDao.instance.save(ped);
         }
 

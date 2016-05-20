@@ -17,7 +17,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 public class SetPointWorkItem implements WorkItem {
     private static final ThreadLocal<List<String>> threadLocal = new ThreadLocal<List<String>>();
     private static final int MAX_RECURSION = 10;
-
+    private static final String prefix = "SETPNT-";
     private final int targetPointId;
     private final PointValueTime pvt;
     private final SetPointSource source;
@@ -69,4 +69,22 @@ public class SetPointWorkItem implements WorkItem {
     public String getDescription(){
     	return "Setting point with ID: " + Integer.toString(this.targetPointId) + " via " +  source.getSetPointSourceType() + "-" + Integer.toString(source.getSetPointSourceId());
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return prefix + targetPointId;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
+
 }

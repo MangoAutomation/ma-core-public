@@ -279,23 +279,27 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
             String pollTime;
             for(LongLongPair poll : list){
             	StringBuilder duration = new StringBuilder();
+
             	pollTime = Functions.getFullMilliSecondTime(poll.getKey());
-            	//Format Duration Nicely
-            	Period period = new Period(poll.getValue());
-            	if(period.getHours() >= 1){
-            		duration.append(translate("common.duration.hours",period.getHours()));
-            		duration.append(SPACE);
+            	if(poll.getValue() >= 0){
+	            	//Format Duration Nicely
+	            	Period period = new Period(poll.getValue());
+	            	if(period.getHours() >= 1){
+	            		duration.append(translate("common.duration.hours",period.getHours()));
+	            		duration.append(SPACE);
+	            	}
+	            	if(period.getMinutes() >= 1){
+	            		duration.append(translate("common.duration.minutes",period.getMinutes()));
+	            		duration.append(SPACE);
+	            	}
+	            	if(period.getSeconds() >= 1){
+	            		duration.append(translate("common.duration.seconds",period.getSeconds()));
+	            		duration.append(SPACE);
+	            	}
+	            	duration.append(translate("common.duration.millis", period.getMillis()));
+            	}else{
+            		duration.append(translate("event.ds.pollAborted"));
             	}
-            	if(period.getMinutes() >= 1){
-            		duration.append(translate("common.duration.minutes",period.getMinutes()));
-            		duration.append(SPACE);
-            	}
-            	if(period.getSeconds() >= 1){
-            		duration.append(translate("common.duration.seconds",period.getSeconds()));
-            		duration.append(SPACE);
-            	}
-            	duration.append(translate("common.duration.millis", period.getMillis()));
-            	
             	StringStringPair pair = new StringStringPair(pollTime, duration.toString());
             	times.add(pair);
             }

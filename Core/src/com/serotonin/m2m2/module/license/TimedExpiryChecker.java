@@ -1,5 +1,6 @@
 package com.serotonin.m2m2.module.license;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.license.ModuleLicense;
 
@@ -11,7 +12,7 @@ public class TimedExpiryChecker implements LicenseEnforcement{
 
     public TimedExpiryChecker(String moduleName, int licensePeriod, ExpiryAction onExpire) {
         license = ModuleRegistry.getModule(moduleName).license();
-        expiryTime = System.currentTimeMillis() + licensePeriod;
+        expiryTime = Common.backgroundProcessing.currentTimeMillis() + licensePeriod;
         this.onExpire = onExpire;
     }
 
@@ -25,7 +26,7 @@ public class TimedExpiryChecker implements LicenseEnforcement{
             return true;
 
         // Check if owner has expired.
-        if (expiryTime < System.currentTimeMillis()) {
+        if (expiryTime < Common.backgroundProcessing.currentTimeMillis()) {
             // Synchronize to ensure this works in a multi-threaded environment.
             synchronized (this) {
                 // Now that we're sync'ed, check the expired flag again.

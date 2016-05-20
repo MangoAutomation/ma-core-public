@@ -7,11 +7,12 @@ package com.serotonin.m2m2.module.license;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
 
 /**
@@ -21,7 +22,7 @@ import com.serotonin.timer.TimerTrigger;
  * @author Terry Packer
  *
  */
-public class TimedLicenseEnforcementChecker extends TimerTask{
+public class TimedLicenseEnforcementChecker extends RejectableTimerTask{
 
 	private final Log LOG = LogFactory.getLog(TimedLicenseEnforcementChecker.class);
 	
@@ -39,7 +40,7 @@ public class TimedLicenseEnforcementChecker extends TimerTask{
 	 * @param name
 	 */
 	public TimedLicenseEnforcementChecker(TimerTrigger trigger, String name, TimedModuleLicense license, TimedExpiryChecker checker, String messageKey, String shutdownString) {
-		super(trigger, name);
+		super(trigger, name, null, 0);
 		
 		this.license = license;
 		this.tec = checker;
@@ -66,7 +67,7 @@ public class TimedLicenseEnforcementChecker extends TimerTask{
 			
 			if(license.modifyTaskWhenSystemReady(this)){
 				alarmRaised = true;
-    			SystemEventType.raiseEvent(eventType, System.currentTimeMillis(), true,
+    			SystemEventType.raiseEvent(eventType, Common.backgroundProcessing.currentTimeMillis(), true,
     	                new TranslatableMessage(messageKey, shutdownString));
     			LOG.warn(license.getModule().getName() + " is unlicensed, system will shutdown at " + shutdownString);
 			}

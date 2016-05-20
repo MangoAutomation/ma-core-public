@@ -356,5 +356,29 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 		}
 		return null;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.ModelTimeoutClient#getName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "Email handler " + vo.getXid(); 
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.ModelTimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return "EmailHandler: " + this.vo.getXid();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
     
 }
