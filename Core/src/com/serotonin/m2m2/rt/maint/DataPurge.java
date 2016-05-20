@@ -28,10 +28,10 @@ import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.DateUtils;
+import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.timer.CronTimerTrigger;
-import com.serotonin.timer.TimerTask;
 
 public class DataPurge {
 	
@@ -48,7 +48,7 @@ public class DataPurge {
 
     public static void schedule() {
         try {
-            Common.timer.schedule(new DataPurgeTask());
+            Common.backgroundProcessing.schedule(new DataPurgeTask());
         }
         catch (ParseException e) {
             throw new ShouldNeverHappenException(e);
@@ -247,12 +247,12 @@ public class DataPurge {
         
     }
 
-    static class DataPurgeTask extends TimerTask {
+    static class DataPurgeTask extends RejectableTimerTask {
         DataPurgeTask() throws ParseException {
             // Test trigger for running every 5 minutes.
             //super(new CronTimerTrigger("0 0/5 * * * ?"));
             // Trigger to run at 3:05am every day
-            super(new CronTimerTrigger("0 5 3 * * ?"));
+            super(new CronTimerTrigger("0 5 3 * * ?"), "Data purge task", "DataPurge", 0);
         }
 
         @Override

@@ -12,13 +12,13 @@ import com.infiniteautomation.mango.monitor.DoubleMonitor;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 import com.serotonin.timer.FixedRateTrigger;
-import com.serotonin.timer.TimerTask;
 
-public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
+public class WorkItemMonitor extends RejectableTimerTask implements ValueMonitorOwner {
     private static final long TIMEOUT = 1000 * 10; // Run every ten seconds.
 
     /**
@@ -26,7 +26,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
      * this job is true.
      */
     public static void start() {
-        Common.timer.schedule(new WorkItemMonitor());
+        Common.backgroundProcessing.schedule(new WorkItemMonitor());
     }
 
     public static final String MAX_STACK_HEIGHT_MONITOR_ID = WorkItemMonitor.class.getName() + ".maxStackHeight";
@@ -104,7 +104,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     private boolean running;
     
     private WorkItemMonitor() {
-        super(new FixedRateTrigger(TIMEOUT, TIMEOUT));
+        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Work item monitor");
         this.running = true;
         
         Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityActive);

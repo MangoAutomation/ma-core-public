@@ -4,10 +4,12 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.NegativeCusumDetectorVO;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * The NegativeCusumDetectorRT is used to detect occurances of point values below the given CUSUM limit for a given
@@ -122,4 +124,20 @@ public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<Negative
             // Deactive the event.
             returnToNormal(negativeCusumInactiveTime);
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "NegativeCusum Detector " + this.vo.getXid();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+	}
 }

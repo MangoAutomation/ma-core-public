@@ -112,4 +112,17 @@ public class DataPointEventMulticaster implements DataPointListener {
 
 	@Override
 	public void pointLogged(PointValueTime value) { }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#getListenerName()
+	 */
+	@Override
+	public String getListenerName() {
+		String path = "";
+		if(a != null)
+			path += a.getListenerName();
+		if(b != null)
+			path += "," + b.getListenerName();
+		return path;
+	}
 }

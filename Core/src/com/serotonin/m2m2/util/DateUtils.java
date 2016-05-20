@@ -156,7 +156,7 @@ public class DateUtils {
     }
 
     public static void main(String[] args) {
-        long time = System.currentTimeMillis();
+        long time = Common.backgroundProcessing.currentTimeMillis();
         System.out.println(new DateTime(time));
         System.out.println(new DateTime(next(time, Common.TimePeriods.SECONDS)));
         System.out.println(new DateTime(next(time, Common.TimePeriods.MINUTES)));

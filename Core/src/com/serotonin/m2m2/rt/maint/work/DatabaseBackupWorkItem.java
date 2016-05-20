@@ -233,9 +233,9 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	 * @author tpacker
 	 *
 	 */
-	static class DatabaseBackupTask extends TimerTask {
+	static class DatabaseBackupTask extends RejectableTimerTask {
 		DatabaseBackupTask(String cronTrigger) throws ParseException {
-			super(new CronTimerTrigger(cronTrigger));
+			super(new CronTimerTrigger(cronTrigger), "Database backup");
 		}
 
 		@Override
@@ -266,7 +266,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 			} catch (Exception e) {
 				LOG.error(e);
 				SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-						System.currentTimeMillis(), false,
+						Common.backgroundProcessing.currentTimeMillis(), false,
 						new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));
 
 			}
@@ -517,5 +517,20 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				sqlFile.delete();
 		}
 		return status;
+	}
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return TASK_ID;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.defaultTaskQueueSize;
 	}
 }

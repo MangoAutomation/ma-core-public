@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.dwr.beans;
 
+import com.serotonin.m2m2.Common;
+
 /**
  * Checks every 10 seconds to see if it's last query time is older than one minute. If so, the shutOff method is called.
  * 
@@ -27,7 +29,7 @@ abstract public class AutoShutOff extends Thread {
     }
 
     public void update() {
-        lastQuery = System.currentTimeMillis();
+        lastQuery = Common.backgroundProcessing.currentTimeMillis();
     }
 
     @Override
@@ -35,7 +37,7 @@ abstract public class AutoShutOff extends Thread {
         running = true;
 
         while (running) {
-            if (System.currentTimeMillis() - lastQuery > timeout) {
+            if (Common.backgroundProcessing.currentTimeMillis() - lastQuery > timeout) {
                 running = false;
                 shutOff();
                 break;

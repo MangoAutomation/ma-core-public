@@ -12,8 +12,10 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.adapter.jetty.JettyWebSocketSession;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * Class to test and disconnect WebSocket sessions if the Client goes away without notifying us
@@ -67,6 +69,38 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 			}
 		}
 		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "Mango ping pong tracker";
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 	}
 	
 }

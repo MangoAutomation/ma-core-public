@@ -31,7 +31,7 @@ public class FixedRateTest {
         long period = 5000;
         long delay = period - (System.currentTimeMillis() % period);
         FixedRateTrigger trigger = new FixedRateTrigger(delay, period);
-        TimerTask task = new TimerTask(trigger, null, null, 0, false) {
+        TimerTask task = new TimerTask(trigger, "Test Timer Task") {
             @Override
             public void run(long runtime) {
                 System.out.println("executed at " + new Date(runtime));

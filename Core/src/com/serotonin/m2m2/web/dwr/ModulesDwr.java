@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Properties;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -51,6 +51,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.provider.Providers;
@@ -196,7 +197,7 @@ public class ModulesDwr extends BaseDwr {
 	        if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
 	                if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
 	                    UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart);
-	                    Common.timer.execute(UPGRADE_DOWNLOADER);
+	                    Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
 	                }
 	                else
 	                    return Common.translate("modules.versionCheck.occupied");
@@ -347,7 +348,7 @@ public class ModulesDwr extends BaseDwr {
         return jsonReader.read();
     }
 
-    public static class UpgradeDownloader implements Runnable {
+    public static class UpgradeDownloader extends HighPriorityTask {
     	
         private final List<StringStringPair> modules;
         private final boolean backup;
@@ -361,17 +362,20 @@ public class ModulesDwr extends BaseDwr {
         private volatile boolean cancelled = false;
 
         public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart) {
+        	super("Upgrade downloader");
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;
         }
         
-        public void cancel() {
+        @Override
+        public boolean cancel() {
         	this.cancelled = true;
+        	return super.cancel();
         }
 
         @Override
-        public void run() {
+        public void run(long runtime) {
         	LOG.info("UpgradeDownloader started");
         	
             if (backup) {

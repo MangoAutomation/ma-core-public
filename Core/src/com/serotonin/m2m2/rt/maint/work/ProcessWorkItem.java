@@ -45,7 +45,7 @@ public class ProcessWorkItem implements WorkItem {
         }
         catch (IOException e) {
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_PROCESS_FAILURE),
-                    System.currentTimeMillis(), false,
+                    Common.backgroundProcessing.currentTimeMillis(), false,
                     new TranslatableMessage("event.process.failure", command, e.getMessage()));
         }
     }
@@ -55,6 +55,22 @@ public class ProcessWorkItem implements WorkItem {
 		return "Process: " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
 	}
     
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
+	
     public static StringStringPair executeProcessCommand(String command, int timeoutSeconds) throws IOException {
         Process process = Runtime.getRuntime().exec(command);
 
@@ -147,7 +163,22 @@ public class ProcessWorkItem implements WorkItem {
     	public String getDescription() {
     		return "ProcessTimeout : " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
     	}
-        
+    	
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+		}
     }
 
     static class InputReader implements WorkItem {
@@ -207,6 +238,21 @@ public class ProcessWorkItem implements WorkItem {
     		return "Input Reader: " + state;
     	}
         
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+		}
     }
     //    
     // public static void main(String[] args) throws Exception {

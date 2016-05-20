@@ -24,14 +24,19 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
+import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
+import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.OrderedRealTimeTimer;
+import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
+import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
@@ -44,21 +49,14 @@ import com.serotonin.util.ILifecycle;
 public class BackgroundProcessing implements ILifecycle {
     final Log log = LogFactory.getLog(BackgroundProcessing.class);
     
+    //Private access to our timer
+    private OrderedRealTimeTimer timer;
+    private OrderedThreadPoolExecutor highPriorityService;
+    
     //Lower Limits on Pool Sizes for Mango To Run
     public static final int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
     public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
     public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
-    
-    //Used to determine the given size of all Task Queues
-    //TODO Remove this and replace with varying size queues
-    // depending on the type of task.  This was placed 
-    // here so we can release 3.0.0 with other features 
-    // and not have to worry about the various problems/testing
-    // for all the different tasks.
-    public static int defaultTaskQueueSize;
-    
-    private OrderedRealTimeTimer timer;
-    private OrderedThreadPoolExecutor highPriorityService;
     
     private ThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
@@ -73,48 +71,51 @@ public class BackgroundProcessing implements ILifecycle {
         }
     }
 
+
+    /**
+     * Execute a high priority task as soon as possible
+     * @param task
+     */
+    public void execute(HighPriorityTask task){
+    	this.timer.execute(task);
+    }
+    
+	/**
+	 * Schedule a timeout task to run
+	 * @param task
+	 */
+	public void schedule(TimeoutTask task) {
+		this.timer.schedule(task);
+	}
+    
+	/**
+	 * Schedule a timer task to run
+	 * @param task
+	 */
+	public void schedule(RejectableTimerTask task) {
+		this.timer.schedule(task);
+	}
+    		
+    /**
+     * add a work item int our queue
+     * @param item
+     */
     public void addWorkItem(final WorkItem item) {
-        Runnable runnable = new WorkItemRunnable() {
-            @Override
-            public void run() {
-                try {
-                    item.execute();
-                }
-                catch (Throwable t) {
-                	log.error("Error in work item", t);
-                }
-            }
-
-            @Override
-            public String toString() {
-                return item.getDescription();
-            }
-
-			@Override
-			public Class<?> getWorkItemClass() {
-				return item.getClass();
-			}
-
-			@Override
-			public String getDescription() {
-				return item.getDescription();
-			}
-        };
         try{
-	        if (item.getPriority() == WorkItem.PRIORITY_HIGH)
-	            Common.timer.execute(runnable);
-	        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM)
-	            mediumPriorityService.execute(runnable);
-	        else
-	            lowPriorityService.execute(runnable);
+	        if (item.getPriority() == WorkItem.PRIORITY_HIGH){
+	        	timer.execute(new HighPriorityWorkItemRunnable(item));
+	        }
+	        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM){
+	            mediumPriorityService.execute(new WorkItemRunnable(item));
+	        }
+	        else{
+	            lowPriorityService.execute(new WorkItemRunnable(item));
+	        }
         }catch(RejectedExecutionException e){
-        	// Notify the event manager of the problem
-            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_REJECTED_WORK_ITEM), 
-            		System.currentTimeMillis(), false, new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()));
-        	throw e;
+        	log.fatal(new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()).translate(Common.getTranslations()), e);
         }
     }
-
+    
     /**
      * Return the count of all scheduled tasks ever
      * @return
@@ -138,25 +139,53 @@ public class BackgroundProcessing implements ILifecycle {
     	return this.highPriorityService.getLargestPoolSize();
     }    
     
+    public List<OrderedTaskInfo> getOrderedQueueStats(){
+    	return this.highPriorityService.getOrderedQueueInfo();
+    }
+    
+    /**
+     * Set the core pool size for the high priority service.
+     * The new size must be greater than the lowest allowable limit 
+     * defined by HIGH_PRI_MAX_POOL_SIZE_MIN
+     * @param size
+     */
+    public void setHighPriorityServiceCorePoolSize(int size){
+    	if(size > HIGH_PRI_MAX_POOL_SIZE_MIN)
+    		highPriorityService.setCorePoolSize(size);
+    }
+
+    /**
+     * Set the maximum pool size for the high priority service.
+     * The new size must be larger than the core pool size for this change to take 
+     * effect.
+     * @param size
+     */
+    public void setHighPriorityServiceMaximumPoolSize(int size){
+		if(highPriorityService.getCorePoolSize() < size)
+			highPriorityService.setMaximumPoolSize(size);
+    }
+    public int getHighPriorityServiceMaximumPoolSize(){
+    	return highPriorityService.getMaximumPoolSize();
+    }
+    
+    public Map<String, Integer> getHighPriorityServiceQueueClassCounts() {
+    	Iterator<TimerTask> iter = timer.getTasks().iterator();
+    	Map<String, Integer> classCounts = new HashMap<>();
+    	while(iter.hasNext()){
+    		TimerTask task = iter.next();
+    		Integer count = classCounts.get(task.getName());
+            if (count == null)
+                count = 0;
+            count++;
+            classCounts.put(task.getName(), count);
+    	}
+    	return classCounts;
+    }
+
     public int getMediumPriorityServiceQueueSize() {
         return mediumPriorityService.getQueue().size();
     }
 
-    public Map<String, Integer> getHighPriorityServiceQueueClassCounts() {
-    	Iterator<TimerTask> iter = Common.timer.getTasks().iterator();
-    	Map<String, Integer> classCounts = new HashMap<>();
-    	while(iter.hasNext()){
-    		TimerTask task = iter.next();
-    		String s = task.getClass().getCanonicalName();
-    		Integer count = classCounts.get(s);
-            if (count == null)
-                count = 0;
-            count++;
-            classCounts.put(s, count);
-    	}
-    	return classCounts;
-    }
-    
     public Map<String, Integer> getMediumPriorityServiceQueueClassCounts() {
         return getClassCounts(mediumPriorityService);
     }
@@ -164,29 +193,13 @@ public class BackgroundProcessing implements ILifecycle {
     public Map<String, Integer> getLowPriorityServiceQueueClassCounts() {
         return getClassCounts(lowPriorityService);
     }
-    
-    private Map<String, Integer> getClassCounts(ThreadPoolExecutor e) {
-        Map<String, Integer> classCounts = new HashMap<>();
-        Iterator<Runnable> iter = e.getQueue().iterator();
-        while (iter.hasNext()) {
-            Runnable r = iter.next();
-            String s = r.toString();
-            Integer count = classCounts.get(s);
-            if (count == null)
-                count = 0;
-            count++;
-            classCounts.put(s, count);
-        }
-        return classCounts;
-    }
 
     public List<WorkItemModel> getHighPriorityServiceItems(){
     	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
-    	Iterator<TimerTask> iter = Common.timer.getTasks().iterator();
+    	Iterator<TimerTask> iter = timer.getTasks().iterator();
     	while(iter.hasNext()){
     		TimerTask task = iter.next();
-    		String name = task.getClass().getCanonicalName();
-    		list.add(new WorkItemModel(name, task.toString(), "HIGH"));
+    		list.add(new WorkItemModel(task.getClass().getCanonicalName(), task.getName(), "HIGH"));
     	}
     	return list;
     }
@@ -234,14 +247,6 @@ public class BackgroundProcessing implements ILifecycle {
     	return this.mediumPriorityService.getLargestPoolSize();
     }    
     
-    public List<WorkItemModel> getLowPriorityServiceQueueItems(){
-    	return getQueueItems(lowPriorityService, "LOW");
-    }
-    
-    public int getLowPriorityServiceQueueSize() {
-        return lowPriorityService.getQueue().size();
-    }
-    
     /**
      * Set the Core Pool Size, in the medium priority queue this 
      * results in the maximum number of threads that will be run 
@@ -279,38 +284,66 @@ public class BackgroundProcessing implements ILifecycle {
     	return this.lowPriorityService.getLargestPoolSize();
     }  
     
+    public int getLowPriorityServiceQueueSize() {
+        return lowPriorityService.getQueue().size();
+    }
+    
+    public List<WorkItemModel> getLowPriorityServiceQueueItems(){
+    	return getQueueItems(lowPriorityService, "LOW");
+    }
+    
+    private Map<String, Integer> getClassCounts(ThreadPoolExecutor e) {
+        Map<String, Integer> classCounts = new HashMap<>();
+        Iterator<Runnable> iter = e.getQueue().iterator();
+        while (iter.hasNext()) {
+            Runnable r = iter.next();
+            String s = r.toString();
+            Integer count = classCounts.get(s);
+            if (count == null)
+                count = 0;
+            count++;
+            classCounts.put(s, count);
+        }
+        return classCounts;
+    }
+    
     private List<WorkItemModel> getQueueItems(ThreadPoolExecutor e, String priority){
     	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
     	Iterator<Runnable> iter = e.getQueue().iterator();
     	while (iter.hasNext()) {
             Runnable r = iter.next();
             WorkItemRunnable wir = (WorkItemRunnable)r;
-            list.add(new WorkItemModel(wir.getWorkItemClass().getCanonicalName(), wir.getDescription(), priority));
+            list.add(new WorkItemModel(wir.getWorkItem().getClass().getCanonicalName(), wir.getWorkItem().getDescription(), priority));
         }
     	return list;
     }
+    
     @Override
     public void initialize() {
     	
-    	//Global Default for now
-    	defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
-    	
-    	//Adjust the RealTime timer pool now
-    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-    	
-    	//Sanity check to ensure the pool sizes are appropriate
-    	if(maxPoolSize < HIGH_PRI_MAX_POOL_SIZE_MIN)
-    		maxPoolSize = HIGH_PRI_MAX_POOL_SIZE_MIN;
-    	if(maxPoolSize < corePoolSize)
-    		maxPoolSize = corePoolSize;
-    	ThreadPoolExecutor executor = (ThreadPoolExecutor) Common.timer.getExecutorService();
-    	executor.setCorePoolSize(corePoolSize);
-    	executor.setMaximumPoolSize(maxPoolSize);
-    	
+    	try {
+        	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
+        	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
+        	//Adjust the RealTime timer pool now
+        	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+        	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+        	
+        	//Sanity check to ensure the pool sizes are appropriate
+        	if(maxPoolSize < HIGH_PRI_MAX_POOL_SIZE_MIN)
+        		maxPoolSize = HIGH_PRI_MAX_POOL_SIZE_MIN;
+        	if(maxPoolSize < corePoolSize)
+        		maxPoolSize = corePoolSize;
+
+        	this.highPriorityService.setCorePoolSize(corePoolSize);
+        	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
+        }
+        catch (ProviderNotFoundException e) {
+            throw new ShouldNeverHappenException(e);
+        }
+     	
     	//Pull our settings from the System Settings
-    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
-    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
+    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
     	
     	//Sanity check to ensure the pool sizes are appropriate
     	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
@@ -318,7 +351,7 @@ public class BackgroundProcessing implements ILifecycle {
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
         mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium", Thread.NORM_PRIORITY));
+                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2));
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
@@ -429,13 +462,93 @@ public class BackgroundProcessing implements ILifecycle {
      * @author Terry Packer
      *
      */
-    abstract class WorkItemRunnable implements Runnable{
+    class HighPriorityWorkItemRunnable extends Task{
 
-    	public abstract Class<?> getWorkItemClass();
+    	WorkItem item;
     	
-    	public abstract String getDescription();
+    	/**
+		 * @param name
+		 */
+		public HighPriorityWorkItemRunnable(WorkItem item) {
+			super(item.getDescription(), item.getTaskId(), item.getQueueSize());
+			this.item = item;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.timer.Task#run(long)
+		 */
+		@Override
+		public void run(long runtime) {
+            try {
+                item.execute();
+            }
+            catch (Throwable t) {
+            	log.error("Error in work item", t);
+            }
+        }
+		
+		public WorkItem getWorkItem(){
+			return this.item;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return item.getDescription();
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		}
+    }
+
+    /**
+     * Helper class to get more info on Work Items while queued up
+     * @author Terry Packer
+     *
+     */
+    class WorkItemRunnable implements Runnable{
+    	
+    	public WorkItemRunnable(WorkItem item){
+    		this.item = item;
+    	}
+    	WorkItem item;
+    	
+    	@Override
+        public void run() {
+            try {
+                item.execute();
+            }
+            catch (Throwable t) {
+            	log.error("Error in work item", t);
+            }
+        }
+
+		public WorkItem getWorkItem(){
+			return this.item;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return item.getDescription();
+		}
+		public Class<?> getWorkItemClass() {
+			return item.getClass();
+		}
+
+		public String getDescription() {
+			return item.getDescription();
+		}
     	
     }
     
-
 }

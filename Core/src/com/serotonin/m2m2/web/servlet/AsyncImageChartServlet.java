@@ -36,6 +36,10 @@ import com.serotonin.m2m2.view.quantize.NumericDataQuantizer;
 import com.serotonin.m2m2.view.quantize.TimeSeriesQuantizerCallback;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.pair.LongPair;
+import com.serotonin.provider.ProviderNotFoundException;
+import com.serotonin.provider.Providers;
+import com.serotonin.provider.TimerProvider;
+import com.serotonin.timer.RealTimeTimer;
 import com.serotonin.timer.sync.Synchronizer;
 import com.serotonin.m2m2.util.ColorUtils;
 
@@ -91,7 +95,7 @@ public class AsyncImageChartServlet extends BaseInfoServlet {
                 pointIdStart = 4;
             }
             else {
-                from = System.currentTimeMillis() - Long.parseLong(imageBits[1]);
+                from = Common.backgroundProcessing.currentTimeMillis() - Long.parseLong(imageBits[1]);
                 to = -1;
                 pointIdStart = 2;
             }
@@ -154,7 +158,8 @@ public class AsyncImageChartServlet extends BaseInfoServlet {
             for (PointDataRetriever pdr : tasks.getTasks())
                 pdr.setRange(start, end);
 
-            tasks.executeAndWait(Common.timer);
+            //Get the timer
+            tasks.executeAndWait(Providers.get(TimerProvider.class).getTimer());
 
             PointTimeSeriesCollection ptsc = new PointTimeSeriesCollection(timeZone);
             for (PointDataRetriever pdr : tasks.getTasks())

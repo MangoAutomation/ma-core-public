@@ -33,12 +33,14 @@ import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.DateUtils;
+import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
 import com.serotonin.timer.CronTimerTrigger;
-import com.serotonin.timer.TimerTask;
 
 public class BackupWorkItem implements WorkItem {
     private static final Log LOG = LogFactory.getLog(BackupWorkItem.class);
+    private static final String TASK_ID = "CONFIG_BACKUP";
+    
     public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; //Used to for filename and property value for last run
     public static final SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
     
@@ -66,7 +68,7 @@ public class BackupWorkItem implements WorkItem {
     		
     		String cronTrigger = "0 " + minute + " " + hour + " * * ?"; 
     		task = new BackupSettingsTask(cronTrigger);
-            Common.timer.schedule(task);
+            Common.backgroundProcessing.schedule(task);
         }
         catch (ParseException e) {
             throw new ShouldNeverHappenException(e);
@@ -133,7 +135,7 @@ public class BackupWorkItem implements WorkItem {
 					if(!file.createNewFile()){
 						LOG.warn("Unable to create backup file: " + fullFilePath);
 			            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-			                    System.currentTimeMillis(), false,
+			                    Common.backgroundProcessing.currentTimeMillis(), false,
 			                    new TranslatableMessage("event.backup.failure", fullFilePath, "Unable to create backup file"));
 	
 						return;
@@ -168,7 +170,7 @@ public class BackupWorkItem implements WorkItem {
 			}catch(Exception e){
 				LOG.warn(e);
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-	                    System.currentTimeMillis(), false,
+	                    Common.backgroundProcessing.currentTimeMillis(), false,
 	                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
 			}
 		}
@@ -206,9 +208,9 @@ public class BackupWorkItem implements WorkItem {
 	 * @author tpacker
 	 *
 	 */
-    static class BackupSettingsTask extends TimerTask {
+    static class BackupSettingsTask extends RejectableTimerTask {
     	BackupSettingsTask(String cronTrigger) throws ParseException {
-            super(new CronTimerTrigger(cronTrigger));
+            super(new CronTimerTrigger(cronTrigger), "Settings backup", "SettingsBackup", 0);
         }
 
         @Override
@@ -237,7 +239,7 @@ public class BackupWorkItem implements WorkItem {
         	}catch(Exception e){
         		LOG.error(e);
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-	                    System.currentTimeMillis(), false,
+	                    Common.backgroundProcessing.currentTimeMillis(), false,
 	                    new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));
 
         	}
@@ -251,5 +253,19 @@ public class BackupWorkItem implements WorkItem {
 	public String getDescription() {
 		return "Backing up system configuration to: " + this.backupLocation;
 	}
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return TASK_ID;
+	}
 	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
 }

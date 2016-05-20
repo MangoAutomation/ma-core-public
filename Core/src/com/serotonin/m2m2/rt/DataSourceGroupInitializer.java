@@ -12,9 +12,8 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.timer.OneTimeTrigger;
-import com.serotonin.timer.TimerTask;
 
 /**
  * This class is used at startup to initialize data sources in parallel.
@@ -55,10 +54,10 @@ public class DataSourceGroupInitializer {
 	 */
 	public List<DataSourceVO<?>> initialize() {
 		
-		long startTs = System.currentTimeMillis();
+		long startTs = Common.backgroundProcessing.currentTimeMillis();
 		if(this.group == null){
 			if(this.useMetrics)
-				LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (System.currentTimeMillis() - startTs));
+				LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs));
 			return polling;
 		}
 		
@@ -93,7 +92,7 @@ public class DataSourceGroupInitializer {
 			synchronized(this.runningTasks){
 				this.runningTasks.add(currentSubgroup);
 			}
-			Common.timer.execute(currentSubgroup);
+			Common.backgroundProcessing.execute(currentSubgroup);
 			
 			//When we have more threads than groups
 			if(i >= this.group.size() -1)
@@ -106,7 +105,7 @@ public class DataSourceGroupInitializer {
 		}
 		
 		if(this.useMetrics)
-			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (System.currentTimeMillis() - startTs) + "ms");
+			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs) + "ms");
 
 		return polling;
 	}
@@ -127,7 +126,7 @@ public class DataSourceGroupInitializer {
 	 * @author Terry Packer
 	 *
 	 */
-	class DataSourceSubGroupInitializer extends TimerTask{
+	class DataSourceSubGroupInitializer extends HighPriorityTask{
 		
 		private final Log LOG = LogFactory.getLog(DataSourceSubGroupInitializer.class);
 		
@@ -135,7 +134,7 @@ public class DataSourceGroupInitializer {
 		private DataSourceGroupInitializer parent;
 		
 		public DataSourceSubGroupInitializer(List<DataSourceVO<?>> subgroup, DataSourceGroupInitializer parent){
-			super(new OneTimeTrigger(0));
+			super("Datasource subgroup initializer");
 			this.subgroup = subgroup;
 			this.parent = parent;
 		}

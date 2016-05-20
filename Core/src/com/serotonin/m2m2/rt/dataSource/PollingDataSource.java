@@ -33,6 +33,7 @@ import com.serotonin.timer.TimerTask;
 abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> implements TimeoutClient,RejectedTaskHandler {
 	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
+    private static final String prefix = "POLLINGDS-";
     private Object terminationLock;
 
     protected List<DataPointRT> dataPoints = new ArrayList<>();
@@ -132,7 +133,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             doPollNoSync(fireTime);
             
             //Save the poll time and duration
-            this.latestPollTimes.add(new LongLongPair(fireTime, System.currentTimeMillis() - startTs));
+            this.latestPollTimes.add(new LongLongPair(fireTime, Common.backgroundProcessing.currentTimeMillis() - startTs));
             //Trim the Queue
             while(this.latestPollTimes.size() > 10)
             	this.latestPollTimes.poll();
@@ -211,9 +212,10 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             long delay = 0;
             if (quantize){
                 // Quantize the start.
-            	long now = System.currentTimeMillis();
+            	long now = Common.backgroundProcessing.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
-                LOG.debug("First poll should be at: " + (now + delay));
+                if(LOG.isDebugEnabled())
+                	LOG.debug("First poll should be at: " + (now + delay));
             }
             timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this, this);
         }
@@ -297,4 +299,24 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 		}
     	return latestTimes;
     }
+    
+    @Override
+    public String getThreadName(){
+    	return "Polling Data Source: " + this.vo.getXid();
+    }
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+     */
+    @Override
+    public String getTaskId() {
+    	return prefix + vo.getXid();
+    }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.defaultTaskQueueSize;
+	}
 }

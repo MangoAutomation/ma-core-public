@@ -1068,6 +1068,21 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		public String getDescription() {
 			return "Batch Writing from batch of size: " + ENTRIES.size(); 
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
+		}
     }
 
     //
@@ -1285,6 +1300,22 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public String getDescription() {
 			return "Batch Updating from batch of size: " + ENTRIES.size();
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
 		}
     }
 

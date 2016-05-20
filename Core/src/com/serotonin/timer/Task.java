@@ -76,11 +76,18 @@ public abstract class Task{
 
     private final ReadWriteLock cancelLock = new ReentrantReadWriteLock();
     
-    public Task(String name, String id, int queueSize, boolean queueable){
+    public Task(String name, String id, int queueSize){
     	this.name = name;
     	this.id = id;
     	this.queueSize = queueSize;
-    	this.queueable = queueable;
+    	this.queueable = true;
+    }
+    
+    public Task(String name, String id){
+    	this.name = name;
+    	this.id = id;
+    	this.queueSize = 0;
+    	this.queueable = false;
     }
 
     public boolean isCompleteBeforeCancel() {

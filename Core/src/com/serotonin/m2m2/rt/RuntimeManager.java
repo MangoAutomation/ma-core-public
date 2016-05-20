@@ -658,7 +658,7 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
-        long before = DateUtils.minus(System.currentTimeMillis(), periodType, periodCount);
+        long before = DateUtils.minus(Common.backgroundProcessing.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(dataPointId, before);
     }
 

@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
@@ -84,7 +85,7 @@ public class PublishQueue<T extends PublishedPointVO> {
     }
 
     private void sizeCheck() {
-        long now = System.currentTimeMillis();
+        long now = Common.backgroundProcessing.currentTimeMillis();
         if (lastSizeCheck + SIZE_CHECK_DELAY < now) {
             lastSizeCheck = now;
             int size = queue.size();

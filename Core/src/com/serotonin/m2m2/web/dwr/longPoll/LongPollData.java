@@ -9,6 +9,7 @@ import java.io.Serializable;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.dwr.BaseDwr;
 
 /**
@@ -37,7 +38,7 @@ public class LongPollData implements HttpSessionBindingListener, Serializable {
     }
 
     public void updateTimestamp() {
-        timestamp = System.currentTimeMillis();
+        timestamp = Common.backgroundProcessing.currentTimeMillis();
     }
 
     public long getTimestamp() {

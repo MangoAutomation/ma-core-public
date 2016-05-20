@@ -157,7 +157,7 @@ public class EventManager implements ILifecycle {
 		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
 			eventDao.insertUserEvents(evt.getId(), eventUserIds, true);
 			if (autoAckMessage == null)
-				lastAlarmTimestamp = System.currentTimeMillis();
+				lastAlarmTimestamp = Common.backgroundProcessing.currentTimeMillis();
 		}
 
 		if (evt.isRtnApplicable()){
@@ -229,7 +229,7 @@ public class EventManager implements ILifecycle {
 	}
 
 	private boolean isRecent(EventType type, TranslatableMessage message) {
-		long cutoff = System.currentTimeMillis() - RECENT_EVENT_PERIOD;
+		long cutoff = Common.backgroundProcessing.currentTimeMillis() - RECENT_EVENT_PERIOD;
 		
 		recentEventsLock.writeLock().lock();
 		try{
@@ -534,7 +534,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 
-		deactivateEvents(dataPointEvents, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+		deactivateEvents(dataPointEvents, Common.backgroundProcessing.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		recentEventsLock.writeLock().lock();
 		try{
@@ -570,7 +570,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 
-		deactivateEvents(dataSourceEvents, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+		deactivateEvents(dataSourceEvents, Common.backgroundProcessing.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		recentEventsLock.writeLock().lock();
 		try{
@@ -606,7 +606,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 		
-		deactivateEvents(publisherEvents, System.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+		deactivateEvents(publisherEvents, Common.backgroundProcessing.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		recentEventsLock.writeLock().lock();
 		try{
@@ -685,7 +685,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 		
-		lastAlarmTimestamp = System.currentTimeMillis();
+		lastAlarmTimestamp = Common.backgroundProcessing.currentTimeMillis();
 		resetHighestAlarmLevel(lastAlarmTimestamp);
 	}
 
@@ -856,7 +856,8 @@ public class EventManager implements ILifecycle {
 	
 	
     class EventNotifyWorkItem implements WorkItem {
-
+    	private static final String prefix = "EVENT_EVENT_NOTIFY";
+    	
     	private final User user;
     	private final UserEventListener listener;
     	private final EventInstance event;
@@ -908,6 +909,22 @@ public class EventManager implements ILifecycle {
 			else if(returnToNormal)
 				type = "return to normal";
 			return "Event " + type + " Notification for user: " + user.getUsername() ;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return prefix + user.getId() + "-"  + event.getId();
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return Common.defaultTaskQueueSize;
 		}
     }
 }
