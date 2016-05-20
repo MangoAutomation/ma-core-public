@@ -174,7 +174,7 @@ CREATE TABLE eventDetectors (
   data ntext NOT NULL,
   PRIMARY KEY (id)
 );
-ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, sourceId);
 
 --
 --
