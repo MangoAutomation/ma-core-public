@@ -10,7 +10,7 @@ import java.util.List;
  * @author Terry Packer
  *
  */
-public class SQLLimitOffset extends SQLConstants{
+public class SQLLimitOffset implements SQLConstants{
 	
 	protected List<Object> args;
 	

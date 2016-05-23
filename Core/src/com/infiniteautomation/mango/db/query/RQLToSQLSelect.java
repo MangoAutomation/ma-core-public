@@ -24,7 +24,7 @@ import com.serotonin.m2m2.db.dao.AbstractBasicDao;
  * @author Terry Packer
  *
  */
-public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLStatement, SQLStatement>{
+public class RQLToSQLSelect<T> implements SQLConstants, ASTVisitor<SQLStatement, SQLStatement>{
 	
 	public static final int EQUAL_TO = 1;
 	public static final int NOT_EQUAL_TO = 2;

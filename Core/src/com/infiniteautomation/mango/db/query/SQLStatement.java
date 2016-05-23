@@ -13,7 +13,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public class SQLStatement extends SQLConstants{
+public class SQLStatement implements SQLConstants{
 
 	protected StringBuilder selectSql;
 	protected StringBuilder joins;

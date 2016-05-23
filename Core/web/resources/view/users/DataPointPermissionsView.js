@@ -74,7 +74,6 @@ DataPointPermissionsView.prototype.setupView = function(){
 					{ id: 'or', name: this.tr('common.logic.or'), order: 3},
 					{ id: 'not-and', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.and'), order: 4},
 					{ id: 'not-or', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.or'), order: 5}
-					
 				];
 	var filterOptionsStore = new DojoMemory({ data: filterOptionsData });
 	var filterOptionsDataStore = new ObjectStore({

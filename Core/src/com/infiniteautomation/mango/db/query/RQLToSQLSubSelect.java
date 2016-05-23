@@ -17,17 +17,7 @@ import net.jazdw.rql.parser.ASTVisitor;
  * @author Terry Packer
  *
  */
-public class RQLToSQLSubSelect<T> extends SQLConstants implements ASTVisitor<SQLSubQuery, SQLSubQuery>{
-	
-	public static final int EQUAL_TO = 1;
-	public static final int NOT_EQUAL_TO = 2;
-	public static final int LESS_THAN = 3;
-	public static final int LESS_THAN_EQUAL_TO = 4;
-	public static final int GREATER_THAN = 5;
-	public static final int GREATER_THAN_EQUAL_TO = 6;
-	public static final int IN = 7;
-	public static final int LIKE = 8;
-	public static final int CONTAINS = 9;
+public class RQLToSQLSubSelect<T> implements SQLConstants, ASTVisitor<SQLSubQuery, SQLSubQuery>{
 	
 	private AbstractBasicDao<T> dao;
 	//Map of any model members to either columns or Vo members

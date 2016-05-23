@@ -9,13 +9,14 @@ import java.util.List;
 
 import com.infiniteautomation.mango.db.query.ComparisonEnum;
 import com.infiniteautomation.mango.db.query.RQLToSQLParseException;
+import com.infiniteautomation.mango.db.query.SQLConstants;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 
 /**
  * @author Terry Packer
  *
  */
-public class GenericSQLColumnQueryAppender implements SQLColumnQueryAppender{
+public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQueryAppender{
 
 	
 	/* (non-Javadoc)

@@ -16,7 +16,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public class WhereClause extends SQLConstants{
+public class WhereClause implements SQLConstants{
 	
 	boolean built; //Have we been built yet
 	//In some situations when we filter in memory 
