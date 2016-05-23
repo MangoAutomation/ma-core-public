@@ -20,6 +20,7 @@ public enum ComparisonEnum {
 	GREATER_THAN_EQUAL_TO,
 	IN,
 	LIKE,
+	NOT_LIKE,
 	CONTAINS;
 	
 	public static ComparisonEnum convertTo(String comparison){
@@ -39,6 +40,8 @@ public enum ComparisonEnum {
         case "match":
         case "like":
         	return LIKE;
+        case "not like":
+        	return NOT_LIKE;
         case "in":
         	return IN;
 		}

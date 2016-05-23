@@ -69,9 +69,11 @@ DataPointPermissionsView.prototype.setupView = function(){
 	});
 	
 	var filterOptionsData = [
-					{ id: 'disabled', name: 'Disabled', order: 1 },
-					{ id: 'and', name: 'And', order: 2 },
-					{ id: 'or', name: 'Or', order: 3}
+					{ id: 'disabled', name: this.tr('common.disabled'), order: 1 },
+					{ id: 'and', name: this.tr('common.logic.and'), order: 2 },
+					{ id: 'or', name: this.tr('common.logic.or'), order: 3},
+					{ id: 'not-and', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.and'), order: 4},
+					{ id: 'not-or', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.or'), order: 5}
 				];
 	var filterOptionsStore = new DojoMemory({ data: filterOptionsData });
 	var filterOptionsDataStore = new ObjectStore({
@@ -319,14 +321,21 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 			if((prop != 'enabled')&&(prop != 'id')&&(filter.enabled !== 'disabled')){
 				//Only use enabled filter properties
 				if($('#cb-' + prop).is(':checked') === true){
-					if(totalFilter === null){
-						totalFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+					if((totalFilter === null)){
+						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
+							totalFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
+						else
+							totalFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
 					}else{
-						//totalFilter[prop] = new Regex(filter[prop]);
-						var newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
-						if(filter.enabled === 'or')
+						var newFilter;
+						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
+							newFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
+						else
+							newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+						
+						if((filter.enabled === 'or')||(filter.enabled === 'not-or'))
 							totalFilter = my.pointsStore.Filter().or(totalFilter, newFilter);
-						else if(filter.enabled === 'and')
+						else if((filter.enabled === 'and')||(filter.enabled === 'not-and'))
 							totalFilter = my.pointsStore.Filter().and(totalFilter, newFilter);
 					}
 				}

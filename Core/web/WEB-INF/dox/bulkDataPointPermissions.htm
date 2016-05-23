@@ -10,14 +10,14 @@ filters to find desired points.
 
 <h2>Creating a Filter</h2>
 <p>
-Filters are applied if the <b>Filter State</b> column is not set to <i>Disabled</i>.  Multiple filters can be applied at the same time. Items in the results 
-must match all enabled filters. Filters can use either % or * as wildcards, all other characters are treated as is.  Using the value <i>null</i> will match 
-null values, but using the value <i>*null*</i> will match a string that contains the text 'null'.
+Filters are applied if the <b>Filter State</b> column is set to anything besides <i>Disabled</i>.  Multiple filters can be applied at the same time. Items in the results 
+will match all enabled filters. Filter allow pattern matching of strings and can use either % or * as wildcards, all other characters are treated as is.
+Using the value <i>null</i> will match null values, but using the value <i>*null*</i> will match a string that contains the text 'null'.
 </p>
 <p>
 Each Filter row can be applied as a boolean <i>And</i> or a boolean <i>Or</i> by setting the <b>Filter State</b> accordingly.  
 <i>And</i> operations require a point to match all of the required filter parameters of that filter.  <i>Or</i> operators allow matching only one 
-of the enabled filter parameters.
+of the enabled filter parameters.  Additionally the filter row can be applied using inverse criteria by selecting <i>Not And</i> or <i>Not Or</i>.
 </p>
 <p>Each <b>filter parameter</b> can be disabled or enabled for the current request by checking the check box in the column header.  
 Disabling the parameter excludes it from the query entirely. To edit the value of the filter parameter, click in the cell 

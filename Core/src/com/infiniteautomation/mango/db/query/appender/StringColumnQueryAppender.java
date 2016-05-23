@@ -21,9 +21,11 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 	
 	private final static String DERBY_CHAR = "(CHAR(";
 	private final static String DERBY_LIKE = ") LIKE ? ) ";
+	private final static String DERBY_NOT_LIKE = ") NOT LIKE ? ) ";
 	
 	private final static String H2_LOWER = "LOWER(";
 	private final static String H2_LIKE = ") LIKE ? ";
+	private final static String H2_NOT_LIKE = ") NOT LIKE ? ";
 	
 	/* (non-Javadoc)
 	 * @see com.infiniteautomation.mango.db.query.SQLColumnQueryAppender#appendSQL(com.infiniteautomation.mango.db.query.SQLQueryColumn, java.lang.StringBuilder, java.lang.StringBuilder, java.util.List, java.util.List)
@@ -99,6 +101,43 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 				likeArgs.add(arg);
 			}
 			selectArgs.addAll(likeArgs);
+			return;
+		case NOT_LIKE:
+			 switch (Common.databaseProxy.getType()) {
+            case MYSQL:
+            case POSTGRES:
+            case MSSQL:
+            case H2:
+	            selectSql.append(H2_LOWER);
+	           	selectSql.append(column.getName());
+	           	selectSql.append(H2_NOT_LIKE);
+	
+	           	countSql.append(H2_LOWER);
+	           	countSql.append(column.getName());
+	           	countSql.append(H2_NOT_LIKE);
+            break;
+            case DERBY:
+            	selectSql.append(DERBY_CHAR);
+	           	selectSql.append(column.getName());
+	           	selectSql.append(DERBY_NOT_LIKE);
+	
+	           	countSql.append(DERBY_CHAR);
+	           	countSql.append(column.getName());
+	           	countSql.append(DERBY_NOT_LIKE);
+            break;
+            default:
+            	throw new RQLToSQLParseException("No case for converting LIKE expressing for database of type: " + Common.databaseProxy.getType());
+           }
+			List<Object> notLikeArgs = new ArrayList<Object>();
+			for(Object o : columnArgs){
+				String arg = (String)o;
+				arg = arg.replace(STAR, PERCENT);
+				//TODO Do we want to be case specific?
+				//We use LOWER in the queries so drop the case here
+				arg = arg.toLowerCase();
+				notLikeArgs.add(arg);
+			}
+			selectArgs.addAll(notLikeArgs);
 			return;
 		case NOT_EQUAL_TO:
 			appendSQL(column.getName(), NOT_EQUAL_TO_SQL, selectSql, countSql);

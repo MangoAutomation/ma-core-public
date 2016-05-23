@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -109,7 +110,13 @@ public class RQLToSQLSelect<T  extends AbstractBasicVO> implements ASTVisitor<SQ
         	return statement;
         case "match":
         case "like":
-        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.LIKE);
+        	String pattern = (String)node.getArgument(1);
+        	if(pattern.startsWith("^")){
+        		List<Object> args = new ArrayList<Object>();
+        		args.add(pattern.substring(1));
+        		statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), args, ComparisonEnum.NOT_LIKE);
+        	}else
+        		statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.LIKE);
         	return statement;
         case "in":
         	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.IN);
