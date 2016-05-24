@@ -25,8 +25,8 @@
     
     
   </style>
-  <tag:versionedJavascript src="/resources/stores.js" />
-  <tag:versionedJavascript src="/resources/view/eventInstance/eventInstanceView.js" />
+  <script type="text/javascript" src="/resources/stores.js"></script>
+  <script type="text/javascript" src="/resources/view/eventInstance/eventInstanceView.js"></script>
 
   <script type="text/javascript">
   var databaseType = '<c:out value="<%= Common.databaseProxy.getType() %>"></c:out>';

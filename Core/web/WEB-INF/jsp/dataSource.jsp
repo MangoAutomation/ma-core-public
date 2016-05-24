@@ -42,10 +42,10 @@
     </script>
     <%--Create a javascript flag to indicate that we have the REST API available --%>
 
-    <tag:versionedJavascript src="/resources/stores.js"/>
+    <script type="text/javascript" src="/resources/stores.js"></script>
     <!-- Import the scripts for the table -->
- 	<tag:versionedJavascript src="/resources/view/dataSource/dataSource.js"/>
-    <tag:versionedJavascript src="/resources/view/dataPoint/allDataPoints.js"/>
+ 	<script type="text/javascript" src="/resources/view/dataSource/dataSource.js"></script>
+    <script type="text/javascript" src="/resources/view/dataPoint/allDataPoints.js"></script>
 
     <div data-dojo-type="dijit/layout/TabContainer" data-dojo-props="doLayout: false"  style="height: auto;">
         <!-- All Data Sources Table -->

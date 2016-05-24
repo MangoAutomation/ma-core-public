@@ -80,11 +80,6 @@
           <param-value>text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml,application/json,text/javascript,application/x-javascript</param-value>
         </init-param>
   </filter>
-  
-  <filter>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <filter-class>com.serotonin.m2m2.web.filter.UrlRewriteFilter</filter-class>
-  </filter>
 
   <filter>
     <description>Filter to ensure we properly decode/encode URLs for the REST API</description>
@@ -99,7 +94,6 @@
         <param-value>true</param-value>
     </init-param>
 </filter>
-
   
   <!-- 
     Filter mappings.
@@ -120,20 +114,6 @@
   <filter-mapping>
     <filter-name>GzipFilter</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping>
-  
-  <filter-mapping>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <url-pattern>*.js</url-pattern>
-    <url-pattern>*.css</url-pattern>
-    <url-pattern>*.ico</url-pattern>
-    <url-pattern>*.png</url-pattern>
-    <url-pattern>*.jpeg</url-pattern>
-    <url-pattern>*.jpg</url-pattern>
-    <url-pattern>*.gif</url-pattern>
-    <url-pattern>*.woff2</url-pattern>
-    <url-pattern>*.woff</url-pattern>
-    <url-pattern>*.ttf</url-pattern>
   </filter-mapping>
   
   <filter-mapping>
@@ -182,6 +162,7 @@
  	<url-pattern>/protected/*</url-pattern>
   	<url-pattern>/resources/*</url-pattern>
 	<url-pattern>/swagger/*</url-pattern>  	
+	<url-pattern>/mango-javascript/*</url-pattern>
   </filter-mapping>
   
   <!-- 
