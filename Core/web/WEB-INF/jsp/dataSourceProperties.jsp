@@ -12,12 +12,12 @@
 </c:if>
 
 <c:forEach items="${dwrClasses}" var="dwrname">
-  <tag:versionedJavascript  src="/dwr/interface/${dwrname}.js" /></c:forEach>
+  <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>
 
 <c:forEach items="<%= Common.moduleScripts %>" var="modScript">
-  <tag:versionedJavascript  src="/${modScript}" /></c:forEach>
+  <script type="text/javascript" src="/${modScript}"></script></c:forEach>
 
-  <tag:versionedJavascript src="/resources/dataSourceProperties.js" />
+  <script type="text/javascript" src="/resources/dataSourceProperties.js"></script>
   
     <script type="text/javascript">      
       function init(){
@@ -77,8 +77,8 @@
       <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${dataSource.definition.module.name}/${dataSource.definition.editPagePath}</c:set>
       <jsp:include page="${incpage}"/>
       <!-- Import the Table and Scripts -->
-      <tag:versionedJavascript src="/resources/stores.js"/>
-      <tag:versionedJavascript src="/resources/view/dataPoint/dataPoint.js"/>
+      <script type="text/javascript"  src="/resources/stores.js"></script>
+      <script type="text/javascript"  src="/resources/view/dataPoint/dataPoint.js"></script>
       
       <div style="display: none;"><jsp:include page="/WEB-INF/snippet/view/dataPoint/dataPointTable.jsp"/></div>
       

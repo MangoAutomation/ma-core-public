@@ -194,8 +194,8 @@
   <table class="wide">
     <tr>
       <td valign="top" align="right">
-        <fmt:message key="pointDetails.goto"/>:&nbsp;
-        <div style="display:inline;"><div id="picker"></div></div>
+        <fmt:message key="pointDetails.goto"/>:
+        <div style="display:inline; padding-left:5px;"><div id="picker"></div></div>
         
         <c:if test="${!empty prevId}">
           <tag:img png="bullet_go_left" title="pagination.previous"

@@ -5,7 +5,7 @@
 
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
-<tag:versionedJavascript  src="/resources/view/pointValue/pointValueEmport.js" />
+<script type="text/javascript" src="/resources/view/pointValue/pointValueEmport.js"></script>
 
 <script type="text/javascript">
 	//Add in our local keys

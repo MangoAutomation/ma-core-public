@@ -48,45 +48,40 @@
   </c:if>
   
   <!-- Style -->
-<%--   <link rel="icon" href="<%= Common.applicationFavicon %>"/> --%>
-  <tag:versionedIcon href="<%= Common.applicationFavicon %>"/>
-  
-  <tag:versionedShortcutIcon href="<%= Common.applicationFavicon %>"/>
+  <link rel="icon" href="<%= Common.applicationFavicon %>"/>
+  <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
 
-<%--     Changing these to versioned StyleSheets will require handling .png images as they are part of the theme --%>
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>   
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/>   
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/>   
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>  
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/> 
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/> 
   <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css"/>
-
-  <tag:versionedCss href="/resources/common.css"/>
+  <link rel="stylesheet" type="text/css" href="/resources/common.css"/>
   
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
-    <tag:versionedCss href="/${modStyle}" /></c:forEach>
+    <link rel="stylesheet" type="text/css" href="/${modStyle}"/></c:forEach>
   <c:forEach items="${css}" var="modStyle">
-    <tag:versionedCss href="${modStyle}"/></c:forEach>
+    <link rel="stylesheet" type="text/css" href="${modStyle}"/></c:forEach>
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
   <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
-  
-  <tag:versionedJavascript  src="/dwr/engine.js" />
-  <tag:versionedJavascript  src="/dwr/util.js" />
-  <tag:versionedJavascript  src="/dwr/interface/MiscDwr.js" />
-  <tag:versionedJavascript  src="/resources/soundmanager2-nodebug-jsmin.js" />
-  <tag:versionedJavascript  src="/resources/jquery/jquery-1.11.2.js" />
-  <tag:versionedJavascript  src="/resources/notify-combined.min.js" />
-  <tag:versionedJavascript  src="/resources/common.js" />
+  <script type="text/javascript" src="/dwr/engine.js"></script>
+  <script type="text/javascript" src="/dwr/util.js"></script>
+  <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
+  <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js"></script>
+  <script type="text/javascript" src="/resources/common.js"></script>
+  <script type="text/javascript"  src="/resources/jquery/jquery-1.11.2.js"></script>
+  <script type="text/javascript"  src="/resources/notify-combined.min.js"></script>
 
   <c:forEach items="${dwr}" var="dwrname">
-    <tag:versionedJavascript  src="/dwr/interface/${dwrname}.js" /></c:forEach>
+    <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>
   <c:forEach items="${js}" var="jspath">
-    <tag:versionedJavascript  src="${jspath}" /></c:forEach>
+    <script type="text/javascript" src="${jspath}"></script></c:forEach>
   <script type="text/javascript">
     mango.i18n = <sst:convert obj="${clientSideMessages}"/>;
   </script>
   <c:if test="${!simple}">
-    <tag:versionedJavascript  src="/resources/header.js" />
+    <script type="text/javascript" src="/resources/header.js"></script>
     <script type="text/javascript">
       dwr.util.setEscapeHtml(false);
       <c:if test="${!empty sessionUser}">
@@ -112,7 +107,7 @@
     </script>
   </c:if>
   <c:forEach items="<%= Common.moduleScripts %>" var="modScript">
-    <tag:versionedJavascript  src="/${modScript}" /></c:forEach>
+    <script type="text/javascript" src="/${modScript}"></script></c:forEach>
   <c:choose>
     <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
   </c:choose>
