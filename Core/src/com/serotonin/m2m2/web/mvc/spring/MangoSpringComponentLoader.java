@@ -35,6 +35,7 @@ public class MangoSpringComponentLoader {
 		
 		if(enableRest){
 			annotationContext.register(MangoRestSpringConfiguration.class);
+			annotationContext.register(MangoWebSocketConfiguration.class);
 		}
 		
 		if(enableSwagger&&enableRest){

@@ -46,6 +46,16 @@ import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandler
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.AuditEventWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.DataPointWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.DataSourceWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.EventDetectorWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.EventHandlerWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.EventInstanceWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.JsonDataWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.TemplateWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.UserCommentWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -534,6 +544,18 @@ public class ModuleRegistry {
         
         //TODO Add env property to load the Demo Swagger Endpoint then re-enable the demo controller
         //preDefaults.add(new DemoModelDefinition());
+        
+        //Add in core Web Sockets 
+        preDefaults.add(new AuditEventWebSocketDefinition());
+        preDefaults.add(new DataPointWebSocketDefinition());
+        preDefaults.add(new DataSourceWebSocketDefinition());
+        preDefaults.add(new EventDetectorWebSocketDefinition());
+        preDefaults.add(new EventHandlerWebSocketDefinition());
+        preDefaults.add(new EventInstanceWebSocketDefinition());
+        preDefaults.add(new JsonDataWebSocketDefinition());
+        preDefaults.add(new TemplateWebSocketDefinition());
+        preDefaults.add(new UserCommentWebSocketDefinition());
+        preDefaults.add(new UserWebSocketDefinition());
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());

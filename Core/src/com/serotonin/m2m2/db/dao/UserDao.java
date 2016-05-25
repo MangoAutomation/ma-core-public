@@ -21,9 +21,9 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
-import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.web.taglib.Functions;
 
 public class UserDao extends AbstractBasicDao<User> {
@@ -37,7 +37,7 @@ public class UserDao extends AbstractBasicDao<User> {
 	 * @param extraSQL
 	 */
 	public UserDao() {
-		super(MangoWebSocketConfiguration.userHandler, null, new String[0], null);
+		super(UserWebSocketDefinition.handler, null, new String[0], null);
 	}
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);

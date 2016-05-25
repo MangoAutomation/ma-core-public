@@ -4,52 +4,56 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import java.util.List;
 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
+
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketConfigurer;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.AuditEventWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.DataPointWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.DataSourceWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.EventDetectorWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.EventHandlerWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.EventInstanceWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.JsonDataWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.TemplateWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.UserCommentWebSocketHandler;
-import com.serotonin.m2m2.web.mvc.websocket.publisher.UserWebSocketHandler;
 
 /**
- * This class is for use in Mango 2.8.x and until then is only used as a reference for the singleton WebSocketHandlers
  * 
- * TODO add CORS allowed origins in env.properties and set here
- * TODO collect WebSocketHandlers module definitions and register here
+ * Web Socket Configuration
+ * 
+ * CORS allowed origins in env.properties are set here
+ * WebSocketHandlers module definitions are registered here
  * 
  * @author Terry Packer
  *
  */
-//@Configuration
-//@EnableWebSocket
+@Configuration
+@EnableWebSocket
 public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer {
-    
-	public static final JsonDataWebSocketHandler jsonDataHandler = new JsonDataWebSocketHandler();
-    public static final AuditEventWebSocketHandler auditHandler = new AuditEventWebSocketHandler();
-    public static final TemplateWebSocketHandler templateHandler = new TemplateWebSocketHandler();
-    public static final UserCommentWebSocketHandler userCommentHandler = new UserCommentWebSocketHandler();
-    public static final UserWebSocketHandler userHandler = new UserWebSocketHandler();
-    public static final EventInstanceWebSocketHandler eventInstanceHandler = new EventInstanceWebSocketHandler();
-    public static final DataPointWebSocketHandler dataPointHandler = new DataPointWebSocketHandler();
-    public static final DataSourceWebSocketHandler dataSourceHandler = new DataSourceWebSocketHandler();
-    public static final EventDetectorWebSocketHandler eventDetectorHandler = new EventDetectorWebSocketHandler();
-    public static final EventHandlerWebSocketHandler eventHandlerHandler = new EventHandlerWebSocketHandler();
-    
     
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		
-//		registry.addHandler(jsonDataHandler, "/v1/websocket/json-data")
-//		.setHandshakeHandler(handshakeHandler())
-//		.addInterceptors(new MangoWebSocketHandshakeInterceptor());
+
+		//Setup Allowed Origins for CORS requests
+		boolean hasOrigins = false;
+		String[] origins = null;
+		if(Common.envProps.getBoolean("rest.cors.enabled", false)){
+			hasOrigins = true;
+			origins = Common.envProps.getStringArray("rest.cors.allowedOrigins", ",", new String[0]);
+		}
+
+		List<WebSocketDefinition> defs = ModuleRegistry.getDefinitions(WebSocketDefinition.class);
+		for(WebSocketDefinition def : defs){
+			WebSocketHandler handler = def.getHandler();
+			if(def.perConnection())
+				handler = new PerConnectionWebSocketHandler(def.getHandler().getClass());
+			WebSocketHandlerRegistration registration = registry.addHandler(handler, def.getUrl())
+					.setHandshakeHandler(handshakeHandler())
+					.addInterceptors(handshakeIterceptor());
+			if(hasOrigins)
+				registration.setAllowedOrigins(origins);
+		}
 		
 	}
-
 }

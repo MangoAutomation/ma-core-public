@@ -9,6 +9,7 @@ import org.eclipse.jetty.websocket.api.WebSocketPolicy;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
@@ -29,4 +30,14 @@ public abstract class MangoWebSocketConfigurer implements WebSocketConfigurer{
         return new DefaultHandshakeHandler(
                 new JettyRequestUpgradeStrategy(factory));
     }
+	
+
+
+	/**
+	 * Get the interceptor to fill in the session
+	 * @return
+	 */
+	protected HandshakeInterceptor handshakeIterceptor() {
+		return new MangoWebSocketHandshakeInterceptor();
+	}
 }
