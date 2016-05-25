@@ -13,7 +13,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -25,9 +28,12 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.websocket.PublisherWebSocketDefinition;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -36,9 +42,17 @@ import com.serotonin.util.SerializationHelper;
 /**
  * @author Matthew Lohbihler
  */
-public class PublisherDao extends BaseDao {
+public class PublisherDao extends AbstractDao<PublisherVO<?>> {
+	
+	public static final PublisherDao instance = new PublisherDao();
+	
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
+    private PublisherDao(){
+    	super(PublisherWebSocketDefinition.handler, AuditEventType.TYPE_PUBLISHER);
+    }
+    
+    
     public String generateUniqueXid() {
         return generateUniqueXid(PublisherVO.XID_PREFIX, "publishers");
     }
@@ -115,21 +129,27 @@ public class PublisherDao extends BaseDao {
         }
     }
 
-    public void savePublisher(final PublisherVO<? extends PublishedPointVO> vo) {
+    @SuppressWarnings("deprecation")
+	public void savePublisher(final PublisherVO<? extends PublishedPointVO> vo) {
         // Decide whether to insert or update.
-        if (vo.getId() == Common.NEW_ID)
+        if (vo.getId() == Common.NEW_ID){
             vo.setId(doInsert(
                     "insert into publishers (xid, publisherType, data) values (?,?,?)",
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
                             SerializationHelper.writeObjectToArray(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
                     		Types.BLOB})); //TP Edit Nov 2013 had to change from BINARY to BLOB... Did we upgrade Derby version since this code was last touched?
-        else
+            AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
+        }else{
+        	PublisherVO<?> old = getPublisher(vo.getId());
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
                     SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
                     Types.INTEGER });
+            AuditEventType.raiseChangedEvent(AuditEventType.TYPE_PUBLISHER, old, vo);
+        }
     }
 
     public void deletePublisher(final int publisherId) {
+    	PublisherVO<?> vo = getPublisher(publisherId);
         final ExtendedJdbcTemplate ejt2 = ejt;
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
@@ -139,6 +159,7 @@ public class PublisherDao extends BaseDao {
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
             }
         });
+        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
     }
 
     public void deletePublisherType(final String publisherType) {
@@ -180,4 +201,75 @@ public class PublisherDao extends BaseDao {
         }
         return count;
     }
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
+	 */
+	@Override
+	protected String getXidPrefix() {
+		return PublisherVO.XID_PREFIX;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
+	 */
+	@Override
+	public PublisherVO<?> getNewVo() {
+        throw new ShouldNeverHappenException("Unable to create generic publisher, must supply a type");
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
+	 */
+	@Override
+	protected String getTableName() {
+		return SchemaDefinition.PUBLISHERS_TABLE;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractBasicVO)
+	 */
+	@Override
+	protected Object[] voToObjectArray(PublisherVO<?> vo) {
+		return new Object[] { 
+				vo.getXid(), 
+				vo.getDefinition().getPublisherTypeName(),
+                SerializationHelper.writeObjectToArray(vo)};
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+	 */
+	@Override
+	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+    	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+    	map.put("id", Types.INTEGER);
+    	map.put("xid", Types.VARCHAR);
+    	map.put("publisherType", Types.VARCHAR);
+    	map.put("data", Types.BINARY);
+    	return map;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
+	 */
+	@Override
+	protected Map<String, IntStringPair> getPropertiesMap() {
+		return new HashMap<>();
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
+	 */
+	@Override
+	public RowMapper<PublisherVO<?>> getRowMapper() {
+		return new PublisherRowMapper();
+	}
 }

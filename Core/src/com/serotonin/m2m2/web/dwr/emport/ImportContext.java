@@ -27,7 +27,7 @@ public class ImportContext {
     private final DataPointDao dataPointDao = new DataPointDao();
     private final EventDao eventDao = new EventDao();
     private final MailingListDao mailingListDao = new MailingListDao();
-    private final PublisherDao publisherDao = new PublisherDao();
+    private final PublisherDao publisherDao = PublisherDao.instance;
     private final EventHandlerDao eventHandlerDao = EventHandlerDao.instance;
 
     private final JsonReader reader;

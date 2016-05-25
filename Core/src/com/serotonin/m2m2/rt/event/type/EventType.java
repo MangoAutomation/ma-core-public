@@ -273,7 +273,7 @@ abstract public class EventType implements JsonSerializable {
         String xid = json.getString(name);
         if (xid == null)
             throw new TranslatableJsonException("emport.error.eventType.missing.reference", name);
-        PublisherVO<?> pb = new PublisherDao().getPublisher(xid);
+        PublisherVO<?> pb = PublisherDao.instance.getPublisher(xid);
         if (pb == null)
             throw new TranslatableJsonException("emport.error.eventType.invalid.reference", name, xid);
         return pb;

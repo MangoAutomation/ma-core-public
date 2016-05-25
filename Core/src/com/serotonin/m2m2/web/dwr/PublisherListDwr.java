@@ -32,7 +32,7 @@ public class PublisherListDwr extends BaseDwr {
         StringStringPairComparator.sort(translatedTypes);
 
         response.addData("types", translatedTypes);
-        response.addData("publishers", new PublisherDao().getPublishers(new PublisherDao.PublisherNameComparator()));
+        response.addData("publishers", PublisherDao.instance.getPublishers(new PublisherDao.PublisherNameComparator()));
 
         return response;
     }

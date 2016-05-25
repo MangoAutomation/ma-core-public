@@ -14,6 +14,8 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.SuperclassModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.email.EmailRecipientModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 
 /**
  * Module to extend Jackson JSON rendering
@@ -38,8 +40,10 @@ public class MangoCoreModule extends SimpleModule {
 		this.addDeserializer(AbstractDataSourceModel.class, new DataSourceModelDeserializer());
 		this.addDeserializer(PointLocatorModel.class, new PointLocatorModelDeserializer());
 		this.addDeserializer(SuperclassModel.class, new SuperclassModelDeserializer());
-		
 		this.addDeserializer(EmailRecipientModel.class, new EmailRecipientModelDeserializer());
+		this.addDeserializer(AbstractPublisherModel.class, new PublisherModelDeserializer());
+		this.addDeserializer(AbstractPublishedPointModel.class, new PublishedPointModelDeserializer());
+		
 		//Setup the Deserializer's from the Module Registry
 		List<RestJsonDeserializerDefinition> defs = ModuleRegistry.getDefinitions(RestJsonDeserializerDefinition.class);
 		for(RestJsonDeserializerDefinition def : defs){

@@ -34,7 +34,7 @@ public class PublisherTypePointsLimit implements LicenseEnforcement {
                 }
 
                 if (pointLimit != -1) {
-                    int count = new PublisherDao().countPointsForPublisherType(publisherType, publisher.getId());
+                    int count = PublisherDao.instance.countPointsForPublisherType(publisherType, publisher.getId());
                     count += publisher.getPoints().size();
 
                     // Apply count restriction.

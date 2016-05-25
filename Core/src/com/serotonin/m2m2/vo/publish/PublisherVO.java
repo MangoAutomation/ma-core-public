@@ -25,6 +25,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -35,16 +36,25 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherVO<T extends PublishedPointVO> implements Serializable, JsonSerializable {
+abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<?>> implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "PUB_";
+
+    
+    /**
+     * Return the Model Representation of the Publisher
+     * @return
+     */
+    abstract public AbstractPublisherModel<?,?> asModel();
 
     abstract public TranslatableMessage getConfigDescription();
 
@@ -83,16 +93,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
         return new TranslatableMessage(getDefinition().getDescriptionKey());
     }
 
-    public boolean isNew() {
-        return id == Common.NEW_ID;
-    }
-
-    private int id = Common.NEW_ID;
-    private String xid;
-    @JsonProperty
-    private String name;
-    @JsonProperty
-    private boolean enabled;
     protected List<T> points = new ArrayList<>();
     @JsonProperty
     private boolean changesOnly;
@@ -112,38 +112,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
 
     public void setDefinition(PublisherDefinition definition) {
         this.definition = definition;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getXid() {
-        return xid;
-    }
-
-    public void setXid(String xid) {
-        this.xid = xid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public List<T> getPoints() {
@@ -210,7 +178,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
 
         if (StringUtils.isBlank(xid))
             response.addContextualMessage("xid", "validate.required");
-        else if (!new PublisherDao().isXidUnique(xid, id))
+        else if (!PublisherDao.instance.isXidUnique(xid, id))
             response.addContextualMessage("xid", "validate.xidUsed");
         else if (StringValidation.isLengthGreaterThan(xid, 50))
             response.addContextualMessage("xid", "validate.notLongerThan", 50);
@@ -243,8 +211,8 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
     // Editing customization
     //
     /*
-     * Allows the data source to provide custom context data to its own editing page. Can be used for things like lists
-     * of comm ports and such. See DataSourceEditController.
+     * Allows the publisher to provide custom context data to its own editing page. Can be used for things like lists
+     * of comm ports and such.
      */
     public void addEditContext(Map<String, Object> model) {
         // No op. Override as required.
@@ -301,7 +269,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("xid", xid);
+        super.jsonWrite(writer);
         writer.writeEntry("type", definition.getPublisherTypeName());
         writer.writeEntry("points", points);
         writer.writeEntry("snapshotSendPeriodType", Common.TIME_PERIOD_CODES.getCode(snapshotSendPeriodType));
@@ -309,7 +277,12 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        JsonArray arr = jsonObject.getJsonArray("points");
+        
+        //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
+        name = jsonObject.getString("name");
+        enabled = jsonObject.getBoolean("enabled");
+        
+    	JsonArray arr = jsonObject.getJsonArray("points");
         if (arr != null) {
             points.clear();
             for (JsonValue jv : arr) {
@@ -327,4 +300,22 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
                         Common.TIME_PERIOD_CODES.getCodeList());
         }
     }
+    
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<PublisherVO<?>> getDao() {
+		return PublisherDao.instance;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getTypeKey()
+	 */
+	@Override
+	public String getTypeKey() {
+		return "event.audit.publisher";
+	}
 }

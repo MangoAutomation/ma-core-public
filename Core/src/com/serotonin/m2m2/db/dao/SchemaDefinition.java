@@ -20,5 +20,6 @@ public class SchemaDefinition {
 	public static final String JSON_DATA_TABLE = "jsonData";
 	public static final String EVENT_HANDLER_TABLE = "eventHandlers";
 	public static final String EVENT_DETECTOR_TABLE = "eventDetectors";
+	public static final String PUBLISHERS_TABLE = "publishers";
 	
 }

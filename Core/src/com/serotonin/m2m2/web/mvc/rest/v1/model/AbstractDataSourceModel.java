@@ -54,6 +54,7 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
         }
         return alarmCodeLevels;
 	}
+	
 	@JsonSetter(value="alarmLevels")
 	public void setAlarmLevels(Map<String,String> alarmCodeLevels) throws TranslatableJsonException{
 		if (alarmCodeLevels != null) {

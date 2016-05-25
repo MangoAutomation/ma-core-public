@@ -53,6 +53,7 @@ import com.serotonin.m2m2.module.definitions.websocket.EventDetectorWebSocketDef
 import com.serotonin.m2m2.module.definitions.websocket.EventHandlerWebSocketDefinition;
 import com.serotonin.m2m2.module.definitions.websocket.EventInstanceWebSocketDefinition;
 import com.serotonin.m2m2.module.definitions.websocket.JsonDataWebSocketDefinition;
+import com.serotonin.m2m2.module.definitions.websocket.PublisherWebSocketDefinition;
 import com.serotonin.m2m2.module.definitions.websocket.TemplateWebSocketDefinition;
 import com.serotonin.m2m2.module.definitions.websocket.UserCommentWebSocketDefinition;
 import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
@@ -556,6 +557,7 @@ public class ModuleRegistry {
         preDefaults.add(new TemplateWebSocketDefinition());
         preDefaults.add(new UserCommentWebSocketDefinition());
         preDefaults.add(new UserWebSocketDefinition());
+        preDefaults.add(new PublisherWebSocketDefinition());
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());

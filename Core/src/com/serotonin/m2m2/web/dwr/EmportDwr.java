@@ -67,7 +67,7 @@ public class EmportDwr extends BaseDwr {
         if (ArrayUtils.contains(exportElements, MAILING_LISTS))
             data.put(MAILING_LISTS, new MailingListDao().getMailingLists());
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
-            data.put(PUBLISHERS, new PublisherDao().getPublishers());
+            data.put(PUBLISHERS, PublisherDao.instance.getPublishers());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
             data.put(EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
