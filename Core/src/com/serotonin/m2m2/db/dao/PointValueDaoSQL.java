@@ -686,12 +686,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long deletePointValuesWithMismatchedType(int dataPointId, int dataType) {
-        return deletePointValues("delete from pointValues where dataPointId=? and dataType<>?", new Object[] {
-                dataPointId, dataType }, 0, 0);
-    }
-
-    @Override
     public long deleteOrphanedPointValues() {
         return deletePointValues("DELETE FROM pointValues WHERE dataPointId NOT IN (SELECT ID FROM dataPoints)", null,
                 5000, 100000);
