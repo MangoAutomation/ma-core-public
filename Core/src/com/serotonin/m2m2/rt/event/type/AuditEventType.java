@@ -51,8 +51,7 @@ public class AuditEventType extends EventType {
     public static final String TYPE_USER_COMMENT = "USER_COMMENT";
     public static final String TYPE_USER = "USER";
     public static final String TYPE_JSON_DATA = "JSON_DATA";
-    public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";
-    
+    public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";    
     
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();

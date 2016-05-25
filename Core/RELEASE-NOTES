@@ -38,6 +38,8 @@
 * Fix for aborted polls on polling data sources in systems with large amounts of alarms
 * Bugfix to allow migration of JSON data SQL table
 * Bugfix to prevent importing databaseSchemaVersion in JSON, causing database upgrade errors
+* Adding User Audit Events
+* Adding Publisher Audit Events
 
 *Version 2.7.10*
 * Fixing bug in upgrade and create-tables scripts for MySQL
