@@ -15,7 +15,7 @@
  var currentPoint;
  var pointListColumnFunctions;
  var pointListOptions;
- var currentDsId; 
+ var currentDsId;
  
  function setCurrentDsId(dsId){
 	 currentDsId = dsId;
@@ -217,32 +217,6 @@
      }
  }
  
-
-// function togglePoint(pointId) {
-//     startImageFader("toggleImg"+ pointId, true);
-//     DataSourceEditDwr.togglePoint(pointId, function(response) {
-//         stopImageFader("toggleImg"+ response.data.id);
-//         writePointList(response.data.points);
-//     });
-// }
- 
-  
-// function writePointList(points) {
-//     if (typeof writePointListImpl == 'function') writePointListImpl(points);
-//     
-//     if (!points)
-//         return;
-//     show("pointProperties");
-//     show("alarmsTable");
-//     show("dsStatusImg");
-//     
-//     if (currentPoint)
-//         stopImageFader("editImg"+ currentPoint.id);
-//     dwr.util.removeAllRows("pointsList");
-//     dwr.util.addRows("pointsList", points, pointListColumnFunctions, pointListOptions);
-// }
- 
- 
  /**
   * Method for legacy modules to add a point
   */
@@ -275,7 +249,7 @@
 	 
 	 //Load in the proper values
 	 var locator = point.pointLocator;
-	 
+	 	 
 	 //Notify that the Data Type may have been changed
 	 if(typeof dataTypeChanged == 'function')
 		dataTypeChanged(locator.dataTypeId);
@@ -290,27 +264,6 @@
 		 var myEdit = dijit.byId("dataSourcePropertiesTabContainer");
 		 myEdit.selectChild('dataPointDetails-tab');
 	 }
-
-
-//     currentPoint = point;
-//     display("pointDeleteImg", point.id != mango.newId);
-//     var locator = currentPoint.pointLocator;
-//     
-//     $set("name", currentPoint.name);
-//     $set("xid", currentPoint.xid);
-//     var cancel;
-//     if (typeof editPointCBImpl == 'function') 
-//         cancel = editPointCBImpl(locator);
-//     if (!cancel) {
-//         var img = "editImg"+ point.id;
-//         startImageFader(img);
-//         show("pointDetails");
-//         
-//         require(["dojo/_base/html", "dojo/dom-style"], function(html, domStyle){
-//             var position = html.position(img, true);
-//             domStyle.set("pointDetails", "top", position.y +"px");
-//         });
-//     }
  }
 
 
@@ -388,9 +341,16 @@ function deletePoint() {
      
      startImageFader("pointSaveImg", true);
      hideContextualMessages("pointDetails");
-
+     
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
+     
+     if(currentPoint.pointLocator.dataTypeId !== dataPoints.currentDataTypeId){
+    	 if(!confirm("Changing the data type will delete all point values.")){
+    		 stopImageFader("pointSaveImg");
+    		 return;
+    	 }
+     }
      
      //Perform check on point here
      DataPointEditDwr.ensureEditingPointMatch(currentPoint.id, function(response){
@@ -414,13 +374,7 @@ function deletePoint() {
              //Do not allow editing.
              alert(response.data.message);
          }
-         
-         
      });
-
-     
-
-
  }
  
  function collectPointSettings(callback){

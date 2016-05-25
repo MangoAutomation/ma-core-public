@@ -348,18 +348,6 @@ public class PointValueDaoMetrics implements PointValueDao{
 	}
 
 	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesWithMismatchedType(int, int)
-	 */
-	@Override
-	public long deletePointValuesWithMismatchedType(int id, int dataTypeId) {
-		StopWatch stopWatch = new Log4JStopWatch();
-		stopWatch.start();
-		long value = dao.deletePointValuesWithMismatchedType(id,dataTypeId);
-		stopWatch.stop("deletePointValuesWithMismatchedType(id,dataTypeId) (" + id + ", " + dataTypeId + ")");
-    	return value;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#updatePointValueAsync(int, com.serotonin.m2m2.rt.dataImage.PointValueIdTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
 	 */
 	@Override
