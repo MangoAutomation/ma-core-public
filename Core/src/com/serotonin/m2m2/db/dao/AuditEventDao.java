@@ -21,8 +21,8 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.definitions.websocket.AuditEventWebSocketDefinition;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
-import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 
 /**
  * @author Terry Packer
@@ -38,7 +38,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 	 * @param extraSQL
 	 */
 	private AuditEventDao() {
-		super(MangoWebSocketConfiguration.auditHandler, "aud", new String[0], null);
+		super(AuditEventWebSocketDefinition.handler, "aud", new String[0], null);
 	}
 	
 	/* (non-Javadoc)

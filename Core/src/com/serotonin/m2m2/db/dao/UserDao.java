@@ -22,10 +22,10 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
-import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 import com.serotonin.web.taglib.Functions;
 
 public class UserDao extends AbstractDao<User> {
@@ -39,7 +39,7 @@ public class UserDao extends AbstractDao<User> {
 	 * @param extraSQL
 	 */
 	public UserDao() {
-		super(MangoWebSocketConfiguration.userHandler, AuditEventType.TYPE_USER);
+		super(UserWebSocketDefinition.handler, AuditEventType.TYPE_USER);
 	}
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);
@@ -171,7 +171,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void recordLogin(int userId) {
-        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { System.currentTimeMillis(), userId });
+        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { Common.backgroundProcessing.currentTimeMillis(), userId });
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {

@@ -347,6 +347,14 @@ public class BackgroundProcessing implements ILifecycle {
     }
     
     /**
+     * Get the timer's current time
+     * @return
+     */
+    public long currentTimeMillis(){
+    	return Common.timer.currentTimeMillis();
+    }
+    
+    /**
      * Helper class to get more info on Work Items while queued up
      * @author Terry Packer
      *

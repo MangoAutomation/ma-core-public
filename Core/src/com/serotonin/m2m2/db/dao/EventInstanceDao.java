@@ -24,7 +24,7 @@ import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.module.definitions.websocket.EventInstanceWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -32,7 +32,6 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 
 /**
  * @author Terry Packer
@@ -46,7 +45,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	 * @param typeName
 	 */
 	private EventInstanceDao() {
-		super(MangoWebSocketConfiguration.eventInstanceHandler, null,"evt",
+		super(EventInstanceWebSocketDefinition.handler, null,"evt",
 				new String[]{
 					"u.username",
 					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",

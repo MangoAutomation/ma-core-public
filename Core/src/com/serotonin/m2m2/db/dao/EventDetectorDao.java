@@ -20,9 +20,9 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.definitions.websocket.EventDetectorWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
-import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration;
 
 /**
  * @author Terry Packer
@@ -33,7 +33,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	public static final EventDetectorDao instance = new EventDetectorDao();
 	
 	private EventDetectorDao(){
-		super(MangoWebSocketConfiguration.eventDetectorHandler, AuditEventType.TYPE_EVENT_DETECTOR, "edt", new String[0], null);
+		super(EventDetectorWebSocketDefinition.handler, AuditEventType.TYPE_EVENT_DETECTOR, "edt", new String[0], null);
 	}
 	
 	/* (non-Javadoc)

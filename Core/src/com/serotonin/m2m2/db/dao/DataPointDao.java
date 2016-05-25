@@ -45,6 +45,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.module.definitions.websocket.DataPointWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
@@ -86,7 +87,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
      * @param typeName
      */
     public DataPointDao() {
-        super(MangoWebSocketConfiguration.dataPointHandler, AuditEventType.TYPE_DATA_POINT, "dp", 
+        super(DataPointWebSocketDefinition.handler, AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
         		true,
                 "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
@@ -465,6 +466,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             	//Remove from list
             	removeFromList(existingDetectors, ped.getId());
             }
+            ped.setSourceId(dp.getId());
         	EventDetectorDao.instance.save(ped);
         }
 

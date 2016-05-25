@@ -22,6 +22,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -134,6 +135,19 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new HtmlHttpMessageConverter());
 	}
 
+	@Override
+	public void addCorsMappings(CorsRegistry registry){
+		if(Common.envProps.getBoolean("rest.cors.enabled", false)){
+			registry.addMapping("/rest/*")
+			.allowedOrigins(Common.envProps.getStringArray("rest.cors.allowedOrigins", ",", new String[0]))
+			.allowedMethods(Common.envProps.getStringArray("rest.cors.allowedMethods", ",", new String[0]))
+			.allowedHeaders(Common.envProps.getStringArray("rest.cors.allowedHeaders", ",", new String[0]))
+			.exposedHeaders(Common.envProps.getStringArray("rest.cors.exposedHeaders", ",", new String[0]))
+			.allowCredentials(Common.envProps.getBoolean("rest.cors.allowCredentials", false))
+			.maxAge(Common.envProps.getLong("rest.cors.maxAge", 0));
+		}
+	}
+	
 	/**
 	 * 
 	 * @return
