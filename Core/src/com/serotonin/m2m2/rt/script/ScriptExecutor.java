@@ -20,13 +20,14 @@ import javax.script.ScriptException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Matthew Lohbihler
@@ -37,21 +38,6 @@ public class ScriptExecutor {
     protected static final String SCRIPT_SUFFIX = "\r\n}\r\n__scriptExecutor__();";
 
     protected static final boolean useMetrics = Common.envProps.getBoolean("runtime.javascript.metrics", false);
-    
-    @Deprecated //Use convertScriptContext Instead
-    public Map<String, IDataPointValueSource> convertContext(List<IntStringPair> context)
-            throws DataPointStateException {
-        Map<String, IDataPointValueSource> converted = new HashMap<String, IDataPointValueSource>();
-        for (IntStringPair contextEntry : context) {
-            DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getKey());
-            if (point == null)
-                throw new DataPointStateException(contextEntry.getKey(), new TranslatableMessage(
-                        "event.meta.pointMissing", contextEntry.getValue(), contextEntry.getKey()));
-            converted.put(contextEntry.getValue(), point);
-        }
-
-        return converted;
-    }
 
     /**
      * @param context
@@ -63,9 +49,15 @@ public class ScriptExecutor {
         Map<String, IDataPointValueSource> converted = new HashMap<String, IDataPointValueSource>();
         for (ScriptContextVariable contextEntry : context) {
             DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getDataPointId());
-            if (point == null)
-                throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
-                        "event.meta.pointMissing", contextEntry.getVariableName(), contextEntry.getDataPointId()));
+            if (point == null){
+            	DataPointVO vo = DataPointDao.instance.get(contextEntry.getDataPointId());
+            	if(vo == null)
+            		throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
+                        "event.script.contextPointMissing", contextEntry.getVariableName(), contextEntry.getDataPointId()));
+            	else
+            		throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
+                            "event.script.contextPointDisabled", contextEntry.getVariableName(), contextEntry.getDataPointId()));
+            }
             converted.put(contextEntry.getVariableName(), point);
         }
 
