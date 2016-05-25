@@ -57,6 +57,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	private String xid;
 	private String readPermission;
 	private String setPermission;
+	private int dataTypeId;
 	
 	
 	public RealTimeDataPointValue(DataPointSummary summary, List<String> paths){
@@ -85,6 +86,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 			this.path = this.path + part + "/";
 		}
 		
+		this.dataTypeId = vo.getPointLocator().getDataTypeId();
 		this.pointType = vo.getPointLocator().getDataTypeMessage().translate(Common.getTranslations());
 		this.xid = vo.getXid();
 		this.readPermission = vo.getReadPermission();
@@ -239,5 +241,12 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	@Override
 	public void pointBackdated(PointValueTime value) { }
 	
+	public int getDataPointId(){
+		return this.dataPointId;
+	}
+	
+	public int getDataTypeId(){
+		return this.dataTypeId;
+	}
 	
 }
