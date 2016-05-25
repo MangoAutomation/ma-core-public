@@ -23,6 +23,7 @@
 * Adding rolling process logs for use in modules
 * Upgrade all DAOs to be able to publish modification results to WebSockets
 * Adding Audit system to be able to restore configuration to a known state/date
+* Adding env property runtime.javascript.metrics to log execution timing of scripts
 
 *Version 2.7.12*
 * ETag Support for caching pages
