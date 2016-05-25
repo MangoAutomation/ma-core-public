@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +23,12 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.web.taglib.Functions;
 
-public class UserDao extends AbstractBasicDao<User> {
+public class UserDao extends AbstractDao<User> {
 	
 	public static final UserDao instance = new UserDao();
 	
@@ -37,7 +39,7 @@ public class UserDao extends AbstractBasicDao<User> {
 	 * @param extraSQL
 	 */
 	public UserDao() {
-		super(UserWebSocketDefinition.handler, null, new String[0], null);
+		super(UserWebSocketDefinition.handler, AuditEventType.TYPE_USER);
 	}
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);
@@ -113,7 +115,7 @@ public class UserDao extends AbstractBasicDao<User> {
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
         user.setId(id);
-        //TODO Make User Change Comparable... AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
+        AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -129,7 +131,7 @@ public class UserDao extends AbstractBasicDao<User> {
             user.setHomeUrl("");
         if (user.getTimezone() == null)
             user.setTimezone("");
-
+        User old = getUser(user.getId());
         try {
             ejt.update(
                     USER_UPDATE,
@@ -140,8 +142,7 @@ public class UserDao extends AbstractBasicDao<User> {
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.INTEGER });
-            //TODO Make User Change Comparable... AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, user);
-
+            AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         }
         catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -151,6 +152,7 @@ public class UserDao extends AbstractBasicDao<User> {
     }
 
     public void deleteUser(final int userId) {
+    	User user = getUser(userId);
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @SuppressWarnings("synthetic-access")
             @Override
@@ -165,6 +167,7 @@ public class UserDao extends AbstractBasicDao<User> {
                 //TODO Make User Change Comparable... AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
             }
         });
+        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
     }
 
     public void recordLogin(int userId) {
@@ -172,11 +175,17 @@ public class UserDao extends AbstractBasicDao<User> {
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
+    	User old = getUser(userId);
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
+        User user = getUser(userId);
+        AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
     }
 
     public void saveMuted(int userId, boolean muted) {
+    	User old = getUser(userId);
         ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
+        User user = getUser(userId);
+        AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
     }
 
     //
@@ -261,8 +270,23 @@ public class UserDao extends AbstractBasicDao<User> {
 	 */
 	@Override
 	protected Map<String, IntStringPair> getPropertiesMap() {
-		// TODO Auto-generated method stub
-		return null;
+		return new HashMap<>();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
+	 */
+	@Override
+	protected String getXidPrefix() {
+		return "";
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
+	 */
+	@Override
+	public User getNewVo() {
+		return new User();
 	}
 
 }

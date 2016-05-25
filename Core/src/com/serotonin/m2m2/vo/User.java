@@ -23,6 +23,8 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
@@ -39,8 +41,9 @@ import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.validation.StringValidation;
 
-public class User extends AbstractBasicVO implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
-    @JsonProperty
+public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
+	
+	@JsonProperty
     private String username;
     @JsonProperty
     private String password;
@@ -458,4 +461,25 @@ public class User extends AbstractBasicVO implements SetPointSource, HttpSession
 		}
 		
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+	 */
+	@Override
+	protected AbstractDao<User> getDao() {
+		return UserDao.instance;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#getTypeKey()
+	 */
+	@Override
+	public String getTypeKey() {
+		return "event.audit.user";
+	}
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1L;
 }
