@@ -345,7 +345,8 @@ function deletePoint() {
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
      
-     if(currentPoint.pointLocator.dataTypeId !== dataPoints.currentDataTypeId){
+     //Notify if we are changing the data type
+     if((currentPoint.id !== -1) && (currentPoint.pointLocator.dataTypeId !== dataPoints.currentDataTypeId)){
     	 if(!confirm("Changing the data type will delete all point values.")){
     		 stopImageFader("pointSaveImg");
     		 return;
