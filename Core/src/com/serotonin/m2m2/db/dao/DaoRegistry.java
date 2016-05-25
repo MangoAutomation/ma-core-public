@@ -25,6 +25,6 @@ public class DaoRegistry {
 	public static DataPointDao dataPointDao = new DataPointDao();
 	public static UserDao userDao = new UserDao();
 	public static PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
-	public static PublisherDao publisherDao = new PublisherDao();
+	public static PublisherDao publisherDao = PublisherDao.instance;
 	
 }

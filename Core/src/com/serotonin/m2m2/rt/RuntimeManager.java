@@ -710,12 +710,12 @@ public class RuntimeManager {
     }
 
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-        return new PublisherDao().getPublisher(publisherId);
+        return PublisherDao.instance.getPublisher(publisherId);
     }
 
     public void deletePublisher(int publisherId) {
         stopPublisher(publisherId);
-        new PublisherDao().deletePublisher(publisherId);
+        PublisherDao.instance.deletePublisher(publisherId);
         Common.eventManager.cancelEventsForPublisher(publisherId);
     }
 
@@ -724,7 +724,7 @@ public class RuntimeManager {
         stopPublisher(vo.getId());
 
         // In case this is a new publisher, we need to save to the database first so that it has a proper id.
-        new PublisherDao().savePublisher(vo);
+        PublisherDao.instance.savePublisher(vo);
 
         // If the publisher is enabled, start it.
         if (vo.isEnabled())

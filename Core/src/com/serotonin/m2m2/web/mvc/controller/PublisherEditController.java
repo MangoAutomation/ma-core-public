@@ -69,7 +69,7 @@ public class PublisherEditController extends ParameterizableViewController {
             if (def == null)
                 return new ModelAndView(new RedirectView(errorViewName));
             publisherVO = def.baseCreatePublisherVO();
-            publisherVO.setXid(new PublisherDao().generateUniqueXid());
+            publisherVO.setXid(PublisherDao.instance.generateUniqueXid());
         }
         else {
             // An existing configuration.

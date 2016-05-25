@@ -144,6 +144,7 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
     }
 
 	/**
+	 * Return the model class for the data source
 	 * @return
 	 */
 	public abstract Class<? extends AbstractDataSourceModel<?>> getModelClass();

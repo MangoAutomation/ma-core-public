@@ -138,7 +138,7 @@ public class EventHandlersDwr extends BaseDwr {
         if (Permissions.hasAdmin(user)) {
             // Get the publishers
             List<EventSourceBean> publishers = new ArrayList<>();
-            for (PublisherVO<? extends PublishedPointVO> p : new PublisherDao()
+            for (PublisherVO<? extends PublishedPointVO> p : PublisherDao.instance
                     .getPublishers(new PublisherDao.PublisherNameComparator())) {
                 if (p.getEventTypes().size() > 0) {
                     EventSourceBean source = new EventSourceBean();
