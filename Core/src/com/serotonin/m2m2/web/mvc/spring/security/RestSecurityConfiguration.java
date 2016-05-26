@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +21,8 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserDetailsService;
 
@@ -31,7 +35,7 @@ import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserDetailsService;
 @Configuration
 @EnableWebSecurity
 public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
-	//private static final Log LOG = LogFactory.getLog(RestSecurityConfiguration.class);
+	private static final Log LOG = LogFactory.getLog(RestSecurityConfiguration.class);
 	
 	@Override
 	public void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -60,15 +64,22 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			//We are letting the legacy permissions system handle these pages for now
 			.antMatchers(HttpMethod.GET, "/**/*.shtm").permitAll()
 			.antMatchers(HttpMethod.POST, "/**/*.shtm").permitAll()
-			.antMatchers(HttpMethod.GET, "/*.shtm").permitAll()
-			
-			//Allow all access for legacy login
-			.antMatchers(HttpMethod.GET, "/login*").permitAll() 
-			.antMatchers(HttpMethod.POST, "/login*").permitAll()
-			
+			.antMatchers(HttpMethod.GET, "/*.shtm").permitAll();
+		
+	        //Now add all defined login pages
+	        for(DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)){
+	        	try{
+		        	String uri = def.getLoginPageUri(null, null);
+		        	LOG.info("URL: " + uri);
+		        	if(uri != null)
+		        		http.authorizeRequests().antMatchers(uri).permitAll();
+	        	}catch(Exception e){
+	        		LOG.error("Problem setting login page definition for class: " + def.getClass().getCanonicalName() + " because " + e.getMessage());
+	        	}
+	        }
 			
 			//Allow Startup REST Endpoint
-			.antMatchers(HttpMethod.GET, "/status**").permitAll()
+	        http.authorizeRequests().antMatchers(HttpMethod.GET, "/status**").permitAll()
 			
 			//REST api Restrictions
 			.antMatchers(HttpMethod.GET, "/rest/v1/login/*").permitAll()

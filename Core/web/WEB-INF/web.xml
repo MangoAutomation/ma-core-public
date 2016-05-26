@@ -27,13 +27,6 @@
   <!-- 
     Filter definitions.
    -->
-  <!-- Spring Security -->
-  <filter>
-	<filter-name>springSecurityFilterChain</filter-name>
-	<filter-class>org.springframework.web.filter.DelegatingFilterProxy
-	</filter-class>
-  </filter>
-
   <filter>
     <filter-name>CharacterSet</filter-name>
     <filter-class>com.serotonin.web.filter.CharacterSetFilter</filter-class>
@@ -98,14 +91,6 @@
   <!-- 
     Filter mappings.
    -->
-  <filter-mapping>
-    <filter-name>springSecurityFilterChain</filter-name>
-    <url-pattern>/rest/v1/*</url-pattern>
-<!--     To ensure we are within the Security Context if we Login via legacy Servlet -->
-    <url-pattern>/login.htm</url-pattern>
-    <url-pattern>*.shtm</url-pattern>
-  </filter-mapping>
-  
   <filter-mapping>
     <filter-name>CharacterEncodingFilter</filter-name>
     <url-pattern>/rest/*</url-pattern>
