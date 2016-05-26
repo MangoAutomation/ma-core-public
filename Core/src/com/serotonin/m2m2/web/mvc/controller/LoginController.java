@@ -92,7 +92,7 @@ public class LoginController {
     	}catch(TranslatableException e){
     		
     		//Add the error
-    		errors.reject(e.getTranslatableMessage().getKey(), e.getLocalizedMessage());
+    		errors.reject(e.getTranslatableMessage().getKey(), e.getTranslatableMessage().getArgs(), e.getTranslatableMessage().getKey());
     		
            return initForm(request, response, login, errors);
     	}
