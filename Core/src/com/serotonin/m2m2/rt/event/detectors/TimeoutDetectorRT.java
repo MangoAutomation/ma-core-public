@@ -92,9 +92,8 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
 	 */
 	@Override
 	public String getTaskId() {
-		System.out.println("IMPORTANT TO DO RIGHT");
-		//TODO Watch use of XIDs as they are not enforced to be unique in legacy versions...
-		return this.hashCode() + "ED";
+		//Watch use of XIDs as they are only enforced to be unique with a source id
+		return "TED-" + this.vo.getXid() + "-" + this.vo.getSourceId();
 	}
     
 	/* (non-Javadoc)
