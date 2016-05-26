@@ -137,18 +137,7 @@ abstract public class DatabaseProxy {
                     sourceProxy.terminate();
                 }
                 else {
-                    // New database. Create a default user.
-                    User user = new User();
-                    user.setId(Common.NEW_ID);
-                    user.setUsername("admin");
-                    user.setPassword(Common.encrypt("admin"));
-                    user.setEmail("admin@yourMangoDomain.com");
-                    user.setPhone("");
-                    user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
-                    user.setDisabled(false);
-                    new UserDao().saveUser(user);
-
-                    SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+                     SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
 
                     // Record the current version.
                     systemSettingsDao.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
@@ -164,6 +153,17 @@ abstract public class DatabaseProxy {
                     Providers.get(ILifecycle.class).addStartupTask(new Runnable() {
                         @Override
                         public void run() {
+                        	// New database. Create a default user.
+                            User user = new User();
+                            user.setId(Common.NEW_ID);
+                            user.setUsername("admin");
+                            user.setPassword(Common.encrypt("admin"));
+                            user.setEmail("admin@yourMangoDomain.com");
+                            user.setPhone("");
+                            user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
+                            user.setDisabled(false);
+                            UserDao.instance.saveUser(user);
+                        	
                             DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
                             factory.saveDefaultTemplates();
                             
