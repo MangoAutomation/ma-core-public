@@ -6,6 +6,7 @@
 * Modularize Event Detectors
 * Modularize Event Handlers
 * User passwords upgraded
+* Fixing bug where schema versions were being exported and allowed to be imported via JSON.
 
 *Version 2.7.12*
 * ETag Support

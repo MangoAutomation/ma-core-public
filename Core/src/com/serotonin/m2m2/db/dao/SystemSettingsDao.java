@@ -397,8 +397,8 @@ public class SystemSettingsDao extends BaseDao {
             public void processRow(ResultSet rs) throws SQLException {
             	String settingName = rs.getString(1);
 
-            	//Don't export any passwords
-            	if(!settingName.toLowerCase().contains("password")){
+            	//Don't export any passwords or schema numbers
+            	if((!settingName.toLowerCase().contains("password")&&!settingName.startsWith(SystemSettingsDao.DATABASE_SCHEMA_VERSION))){
             		String settingValue = rs.getString(2);
                 	//Convert Numbers to Integers
                 	try{

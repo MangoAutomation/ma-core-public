@@ -41,7 +41,8 @@ public class SystemSettingsImporter extends Importer{
             //Finish reading it in.
 			for(String key : json.keySet()){
 				JsonValue value = json.get(key);
-				if(value != null)
+				//Don't import null values or database schemas
+				if((value != null)&&(!key.startsWith(SystemSettingsDao.DATABASE_SCHEMA_VERSION)))
 					settings.put(key, value.toNative());
 			}
 
