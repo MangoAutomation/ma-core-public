@@ -260,7 +260,6 @@ CREATE TABLE publishers (
   publisherType varchar(40) NOT NULL,
   data longblob NOT NULL,
   rtdata longblob,
-  tags longtext,
   PRIMARY KEY (id)
 );
 ALTER TABLE publishers ADD CONSTRAINT publishersUn1 UNIQUE (xid);
