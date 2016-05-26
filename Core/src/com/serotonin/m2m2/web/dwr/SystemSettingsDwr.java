@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.infiniteautomation.mango.io.serial.virtual.SerialServerSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
-import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig.SerialPortTypes;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;

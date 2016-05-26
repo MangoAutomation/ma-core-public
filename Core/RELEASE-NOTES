@@ -1,3 +1,12 @@
+*Version 2.8.0*
+* Upgrade core-private for new login process
+* Adding quantization and cron pattern options for all eligible polling data sources
+* Adding runtime.javascript.metrics. env property to log javascript execution times of the ScriptEngine
+* Modularize Event Detectors
+* Modularize Event Handlers
+* User passwords upgraded
+* Fixing bug where schema versions were being exported and allowed to be imported via JSON.
+
 *Version 2.7.14*
 * Using Sub Queries for Data Point RQL Queries
 * Improved aborted poll handling, will only raise 1 event on the first aborted poll and only log the count every 5 minutes
