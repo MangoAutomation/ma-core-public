@@ -16,6 +16,7 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.email.PostEmailRunnable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailSender;
 
@@ -132,5 +133,19 @@ public class EmailWorkItem implements WorkItem {
 	public int getQueueSize() {
 		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return true;
+	}
 	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) { }
+
 }

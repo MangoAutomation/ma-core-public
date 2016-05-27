@@ -87,7 +87,7 @@ public class WorkItemMonitor extends RejectableTimerTask {
     private boolean running;
     
     private WorkItemMonitor() {
-        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Work item monitor", "WorkItemMonitor", 0);
+        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Work item monitor", "WorkItemMonitor", 0, true);
         this.running = true;
         Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityActive);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityScheduled);

@@ -18,6 +18,7 @@ import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * @author Matthew Lohbihler
@@ -60,7 +61,8 @@ public class ProcessWorkItem implements WorkItem {
 	 */
 	@Override
 	public String getTaskId() {
-		return null;
+		//TODO Better handling by sending in an XID as this is always unique for work items...
+		return "ProcessWorkItem-" + this.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -70,6 +72,21 @@ public class ProcessWorkItem implements WorkItem {
 	public int getQueueSize() {
 		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) { }
+
 	
     public static StringStringPair executeProcessCommand(String command, int timeoutSeconds) throws IOException {
         Process process = Runtime.getRuntime().exec(command);
@@ -169,7 +186,7 @@ public class ProcessWorkItem implements WorkItem {
 		 */
 		@Override
 		public String getTaskId() {
-			return null;
+			return "ProcessTimeout-" + this.hashCode();
 		}
 
 		/* (non-Javadoc)
@@ -179,6 +196,20 @@ public class ProcessWorkItem implements WorkItem {
 		public int getQueueSize() {
 			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+		 */
+		@Override
+		public boolean isQueueable() {
+			return false;
+		}
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { }
+
     }
 
     static class InputReader implements WorkItem {
@@ -243,7 +274,7 @@ public class ProcessWorkItem implements WorkItem {
 		 */
 		@Override
 		public String getTaskId() {
-			return null;
+			return "ProcessInputReader" + this.hashCode();
 		}
 
 		/* (non-Javadoc)
@@ -253,6 +284,21 @@ public class ProcessWorkItem implements WorkItem {
 		public int getQueueSize() {
 			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+		 */
+		@Override
+		public boolean isQueueable() {
+			return false;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { }
+
     }
     //    
     // public static void main(String[] args) throws Exception {
@@ -285,9 +331,5 @@ public class ProcessWorkItem implements WorkItem {
     // System.out.println("out: "+ out.getInput());
     // System.out.println("err: "+ err.getInput());
     // }
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-	 */
 
 }

@@ -24,7 +24,7 @@ public class ModelTimeoutTask<T> extends RejectableTimerTask {
     }
 
     public ModelTimeoutTask(TimerTrigger trigger, ModelTimeoutClient<T> client, T model) {
-        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize());
+        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize(), client.isQueueable());
         this.client = client;
         this.model = model;
         Common.backgroundProcessing.schedule(this);

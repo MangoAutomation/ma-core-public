@@ -256,7 +256,7 @@ public class ModulesDwr extends BaseDwr {
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
 
         public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart) {
-        	super("Upgrade downloader", "UpgradeDownloader", 0);
+        	super("Upgrade downloader", "UpgradeDownloader", 0, true);
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;

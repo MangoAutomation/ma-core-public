@@ -134,7 +134,7 @@ public class DataSourceGroupInitializer {
 		private DataSourceGroupInitializer parent;
 		
 		public DataSourceSubGroupInitializer(List<DataSourceVO<?>> subgroup, DataSourceGroupInitializer parent){
-			super("Datasource subgroup initializer", null, 0);
+			super("Datasource subgroup initializer", "DSSI", 0, false);
 			this.subgroup = subgroup;
 			this.parent = parent;
 		}

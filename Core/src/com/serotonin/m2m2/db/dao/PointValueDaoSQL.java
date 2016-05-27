@@ -50,6 +50,7 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.pair.LongPair;
 import com.serotonin.monitor.IntegerMonitor;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
@@ -1043,7 +1044,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		 */
 		@Override
 		public String getTaskId() {
-			return null;
+			return "BWB";
 		}
 		/* (non-Javadoc)
 		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
@@ -1051,6 +1052,23 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public int getQueueSize() {
 			return 0;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+		 */
+		@Override
+		public boolean isQueueable() {
+			return false;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { 
+			instances.remove(this);
+            INSTANCES_MONITOR.setValue(instances.size());
 		}
     }
 
@@ -1276,7 +1294,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		 */
 		@Override
 		public String getTaskId() {
-			return null;
+			return "BUB";
 		}
 		
 		/* (non-Javadoc)
@@ -1285,6 +1303,23 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public int getQueueSize() {
 			return 0;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+		 */
+		@Override
+		public boolean isQueueable() {
+			return false;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { 
+			instances.remove(this);
+            INSTANCES_MONITOR.setValue(instances.size());
 		}
     }
 

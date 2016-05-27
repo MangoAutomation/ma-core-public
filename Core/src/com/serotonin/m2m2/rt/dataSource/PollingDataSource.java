@@ -326,4 +326,11 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
 	public int getQueueSize() {
 		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 	}
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return true;
+	}
 }

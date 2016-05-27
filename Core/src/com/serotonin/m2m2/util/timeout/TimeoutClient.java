@@ -20,9 +20,9 @@ public interface TimeoutClient {
     String getThreadName();
     
     /**
-     * Get an ID for Ordered Tasks to keep them in order in the queue
+     * Get an ID for Ordered Tasks to keep them in order in the queue and track failures
      * 
-     * @return String ID or null for no ordering
+     * @return String ID 
      */
     String getTaskId();
     
@@ -39,4 +39,10 @@ public interface TimeoutClient {
      * @param reason
      */
     void rejected(RejectedTaskReason reason);
+
+	/**
+	 * Is this task able to be queued against tasks with the same ID or should it be run immediately?
+	 * @return
+	 */
+	boolean isQueueable();
 }

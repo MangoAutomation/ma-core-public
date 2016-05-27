@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.maint.work;
 
+import com.serotonin.timer.RejectedTaskReason;
+
 /**
  * @author Matthew Lohbihler
  * 
@@ -53,5 +55,18 @@ public interface WorkItem {
      * @return
      */
     public int getQueueSize();
+    
+    /**
+     * Is this item queueable against other items with the same task id
+     */
+    public boolean isQueueable();
+    
+    /**
+     * If any special handling needs to be done about the rejection, handle it in this method.
+     * General task failure tracking is already handled by the core.
+     * 
+     * @param reason
+     */
+    public void rejected(RejectedTaskReason reason);
     
 }

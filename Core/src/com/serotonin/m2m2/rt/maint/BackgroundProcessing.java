@@ -314,18 +314,6 @@ public class BackgroundProcessing implements ILifecycle {
     	try {
         	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
         	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-        	//Adjust the RealTime timer pool now
-        	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-        	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-        	
-        	//Sanity check to ensure the pool sizes are appropriate
-        	if(maxPoolSize < HIGH_PRI_MAX_POOL_SIZE_MIN)
-        		maxPoolSize = HIGH_PRI_MAX_POOL_SIZE_MIN;
-        	if(maxPoolSize < corePoolSize)
-        		maxPoolSize = corePoolSize;
-
-        	this.highPriorityService.setCorePoolSize(corePoolSize);
-        	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
@@ -447,7 +435,7 @@ public class BackgroundProcessing implements ILifecycle {
 		 * @param name
 		 */
 		public HighPriorityWorkItemRunnable(WorkItem item) {
-			super(item.getDescription(), item.getTaskId(), item.getQueueSize());
+			super(item.getDescription(), item.getTaskId(), item.getQueueSize(), item.isQueueable());
 			this.item = item;
 		}
 
@@ -481,6 +469,7 @@ public class BackgroundProcessing implements ILifecycle {
 		 */
 		@Override
 		public void rejected(RejectedTaskReason reason) {
+			item.rejected(reason);
 			Common.rejectionHandler.rejectedHighPriorityTask(reason);
 		}
     }

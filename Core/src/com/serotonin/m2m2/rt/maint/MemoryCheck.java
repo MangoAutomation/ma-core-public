@@ -27,7 +27,7 @@ public class MemoryCheck extends RejectableTimerTask {
     }
 
     public MemoryCheck() {
-        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Memory check task", "MemCheck", 0);
+        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Memory check task", "MemCheck", 0, true);
     }
 
     @Override

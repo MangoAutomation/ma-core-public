@@ -125,7 +125,7 @@ public class DataSourceGroupTerminator {
 		private DataSourceGroupTerminator parent;
 		
 		public DataSourceSubGroupTerminator(List<DataSourceRT> subgroup, DataSourceGroupTerminator parent){
-			super("Datasource subgroup terminator", null, 0);
+			super("Datasource subgroup terminator", "DSSGT", 0, false);
 			this.subgroup = subgroup;
 			this.parent = parent;
 		}

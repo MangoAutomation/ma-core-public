@@ -36,7 +36,7 @@ public class UpgradeCheck extends RejectableTimerTask {
             EventType.DuplicateHandling.IGNORE);
 
     public UpgradeCheck() {
-        super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT), "Upgrade check task", "UpgradeCheck", 0);
+        super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT), "Upgrade check task", "UpgradeCheck", 0, true);
     }
 
     @Override

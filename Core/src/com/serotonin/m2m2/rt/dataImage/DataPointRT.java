@@ -626,7 +626,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 		 */
 		@Override
 		public String getTaskId() {
-			return prefix + sourceXid;
+			//So there is one task for each listener
+			return prefix + sourceXid + "-" + listener.hashCode();
 		}
 		
 		/* (non-Javadoc)
@@ -636,6 +637,20 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 		public int getQueueSize() {
 			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+		 */
+		@Override
+		public boolean isQueueable() {
+			return true;
+		}
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { }
+
     }
 
     //
@@ -716,5 +731,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 		Common.rejectionHandler.rejectedHighPriorityTask(reason);
 	}
 
-
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return true;
+	}
 }

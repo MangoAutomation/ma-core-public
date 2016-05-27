@@ -14,12 +14,12 @@ abstract public class ProgressiveTask extends HighPriorityTask {
     protected boolean completed = false;
     private ProgressiveTaskListener listener;
 
-    public ProgressiveTask(String name, String id, int queueSize){
-    	super(name, id, queueSize);
+    public ProgressiveTask(String name, String id, int queueSize, boolean queueable){
+    	super(name, id, queueSize, queueable);
     }
     
-    public ProgressiveTask(String name, String id, int queueSize, ProgressiveTaskListener l) {
-    	super(name, id, queueSize);
+    public ProgressiveTask(String name, String id, int queueSize, boolean queueable, ProgressiveTaskListener l) {
+    	super(name, id, queueSize, queueable);
     	listener = l;
     }
 

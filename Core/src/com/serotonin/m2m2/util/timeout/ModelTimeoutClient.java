@@ -13,8 +13,7 @@ public interface ModelTimeoutClient<T> {
     String getThreadName();
     
     /**
-     * Get the ID for the task if it is to be ordered,
-     * null otherwise
+     * Get the ID for the task for ordering and failure tracking
      * @return
      */
     String getTaskId();
@@ -24,4 +23,10 @@ public interface ModelTimeoutClient<T> {
      * @return
      */
     int getQueueSize();
+    
+	/**
+	 * Is this task able to be queued against tasks with the same ID or should it be run immediately?
+	 * @return
+	 */
+	boolean isQueueable();
 }

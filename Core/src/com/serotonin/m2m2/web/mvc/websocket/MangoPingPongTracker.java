@@ -84,7 +84,7 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 	 */
 	@Override
 	public String getTaskId() {
-		return null;
+		return "MangoPingPongTracker";
 	}
 
 	/* (non-Javadoc)
@@ -101,6 +101,14 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 	@Override
 	public int getQueueSize() {
 		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return false;
 	}
 	
 }

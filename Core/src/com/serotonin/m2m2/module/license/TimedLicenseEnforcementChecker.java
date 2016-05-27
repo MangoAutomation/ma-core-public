@@ -40,7 +40,7 @@ public class TimedLicenseEnforcementChecker extends RejectableTimerTask{
 	 * @param name
 	 */
 	public TimedLicenseEnforcementChecker(TimerTrigger trigger, String name, TimedModuleLicense license, TimedExpiryChecker checker, String messageKey, String shutdownString) {
-		super(trigger, name, null, 0);
+		super(trigger, name, "CoreTimedLicenseChecker", 0, false);
 		
 		this.license = license;
 		this.tec = checker;

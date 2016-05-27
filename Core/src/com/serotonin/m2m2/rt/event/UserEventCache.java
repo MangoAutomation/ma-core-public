@@ -198,7 +198,11 @@ public class UserEventCache implements TimeoutClient{
 		}
 	}
 	
-
+	public void terminate(){
+        if (timerTask != null)
+            timerTask.cancel();  
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
 	 */
@@ -215,9 +219,28 @@ public class UserEventCache implements TimeoutClient{
 		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 	}
 	
-	public void terminate(){
-        if (timerTask != null)
-            timerTask.cancel();  
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return "UserEventCacheCleaner";
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return false;
 	}
 	
     private class UserEventCacheEntry {
@@ -357,20 +380,4 @@ public class UserEventCache implements TimeoutClient{
         	}
 		}
     }
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
-	}
 }

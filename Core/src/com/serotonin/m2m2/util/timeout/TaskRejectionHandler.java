@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
 
 /**
@@ -36,6 +37,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	private long staleTaskStatsPeriod = 100000000;
 	
 	/* Period to wait before logging another rejection for a given task */
+	//TODO Make this configurable
 	private int logPeriod = 1000;
 	
 	/* Map of rejected tasks and thier stats */
@@ -46,7 +48,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 * Create the task rejection handler
 	 */
 	public TaskRejectionHandler(){
-		super(new FixedRateTrigger(0, 10000), "TaskRejectionHandler cleaner", null, 0);
+		super(new FixedRateTrigger(0, 10000), "TaskRejectionHandler cleaner", "TRH-Cleaner", 0, false);
 		this.highPriorityStatsMap = new ConcurrentHashMap<String, RejectedTaskStats>();
 	}
 
@@ -57,7 +59,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	public void rejectedHighPriorityTask(RejectedTaskReason reason){
 		
 		String id = reason.getTask().getId();
-
+			
 		RejectedTaskStats stats = this.highPriorityStatsMap.get(id);
 		if(stats == null){
 			stats = new RejectedTaskStats(id, reason.getTask().getName(), this.logPeriod);
@@ -77,14 +79,14 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 */
 	@Override
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-		log.fatal("SHOULD NOT HAPPEN: " + r.toString());
-//		//TODO Types of WorkItem, Runnable and ScheduledRunnable can also be rejected here so we must handle those too for now
-//		if(r instanceof TaskWrapper){
-//			TaskWrapper wrapper = (TaskWrapper)r;
-//			wrapper.getTask().rejected(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask().getName(), wrapper.getTask(), e));
-//		}else{
-//			LOG.debug("Task rejected: " + r.toString());
-//		}
+		if(r instanceof TaskWrapper){
+			TaskWrapper wrapper = (TaskWrapper)r;
+			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
+			wrapper.getTask().rejected(reason);
+			this.rejectedHighPriorityTask(reason);
+		}else{
+			log.fatal("SHOULD NOT HAPPEN: " + r.toString());
+		}
 	}
 	
 	/**

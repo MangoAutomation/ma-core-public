@@ -26,8 +26,8 @@ public abstract class RejectableTimerTask extends TimerTask{
 	 * @param id - Unique String ID for task to build queue and provide Status Information 
 	 * @param queueSize
 	 */
-	public RejectableTimerTask(TimerTrigger trigger, String name, String id, int queueSize) {
-		super(trigger, name, id, queueSize);
+	public RejectableTimerTask(TimerTrigger trigger, String name, String id, int queueSize, boolean queueable) {
+		super(trigger, name, id, queueSize, queueable);
 	}
 
 	/* (non-Javadoc)

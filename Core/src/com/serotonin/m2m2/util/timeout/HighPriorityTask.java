@@ -15,11 +15,14 @@ import com.serotonin.timer.Task;
 public abstract class HighPriorityTask extends Task{
 
 	/**
+	 * 
 	 * @param name
-	 * @param id
+	 * @param id - Non null String identifier for rejection tracking and ordering
+	 * @param queueSize
+	 * @param queueable
 	 */
-	public HighPriorityTask(String name, String id, int queueSize) {
-		super(name, id, queueSize);
+	public HighPriorityTask(String name, String id, int queueSize, boolean queueable) {
+		super(name, id, queueSize, queueable);
 	}
 
 	/* (non-Javadoc)

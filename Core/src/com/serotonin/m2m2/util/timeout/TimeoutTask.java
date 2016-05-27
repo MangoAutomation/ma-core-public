@@ -36,7 +36,7 @@ public class TimeoutTask extends TimerTask {
     }
 
     public TimeoutTask(TimerTrigger trigger, TimeoutClient client) {
-        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize());
+        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize(), client.isQueueable());
         this.client = client;
         Common.backgroundProcessing.schedule(this);
     }
@@ -48,7 +48,7 @@ public class TimeoutTask extends TimerTask {
      * @param timer
      */
     public TimeoutTask(TimerTrigger trigger, TimeoutClient client, AbstractTimer timer) {
-        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize());
+        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize(), client.isQueueable());
         this.client = client;
         timer.schedule(this);
     }

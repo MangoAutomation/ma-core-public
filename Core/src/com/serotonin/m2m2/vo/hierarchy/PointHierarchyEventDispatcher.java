@@ -36,7 +36,7 @@ public class PointHierarchyEventDispatcher {
         private final PointFolder root;
 
         public DispatcherExecution(PointHierarchyListener l, PointFolder root) {
-            super("Point hierarchy event dispatcher", null, 0);
+            super("Point hierarchy event dispatcher", "PointHierarchyDispatcher", 0, false);
         	this.l = l;
             this.root = root;
         }

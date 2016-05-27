@@ -48,7 +48,7 @@ public class SystemSettingsEventDispatcher {
         private final int operation;
 
         public DispatcherExecution(SystemSettingsListener l,String key,  Object oldValue, Object newValue, int operation) {
-        	super("System settings event dispatcher", null, 0);
+        	super("System settings event dispatcher", "SystemSettingsEventDispatcher", 0, false);
         	this.l = l;
             this.key = key;
             this.oldValue = oldValue;

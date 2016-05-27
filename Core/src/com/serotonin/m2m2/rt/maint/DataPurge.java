@@ -242,7 +242,7 @@ public class DataPurge {
             // Test trigger for running every 5 minutes.
             //super(new CronTimerTrigger("0 0/5 * * * ?"));
             // Trigger to run at 3:05am every day
-            super(new CronTimerTrigger("0 5 3 * * ?"), "Data purge task", "DataPurge", 0);
+            super(new CronTimerTrigger("0 5 3 * * ?"), "Data purge task", "DataPurge", 0, true);
         }
 
         @Override

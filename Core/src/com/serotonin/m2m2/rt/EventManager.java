@@ -35,6 +35,7 @@ import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.ILifecycle;
 
 /**
@@ -916,5 +917,19 @@ public class EventManager implements ILifecycle {
 		public int getQueueSize() {
 			return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+		 */
+		@Override
+		public boolean isQueueable() {
+			return true;
+		}
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { }
+
     }
 }

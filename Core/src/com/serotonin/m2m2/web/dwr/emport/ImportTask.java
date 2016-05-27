@@ -50,7 +50,7 @@ public class ImportTask extends ProgressiveTask {
     private final List<ImportItem> importItems = new ArrayList<ImportItem>();
 
     public ImportTask(JsonObject root, Translations translations, User user) {
-    	super("JSON import task", "JsonImport", 0);
+    	super("JSON import task", "JsonImport", 0, true);
     	
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);

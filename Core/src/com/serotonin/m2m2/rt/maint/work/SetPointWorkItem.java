@@ -10,6 +10,7 @@ import java.util.List;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * @author Matthew Lohbihler
@@ -86,5 +87,20 @@ public class SetPointWorkItem implements WorkItem {
 	public int getQueueSize() {
 		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#isQueueable()
+	 */
+	@Override
+	public boolean isQueueable() {
+		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) { }
+
 
 }
