@@ -97,8 +97,11 @@ public class Common {
     public static ReloadingProperties envProps;
     public static Configuration freemarkerConfiguration;
     public static DatabaseProxy databaseProxy;
+    
     public static BackgroundProcessing backgroundProcessing;
-    public static TaskRejectionHandler rejectionHandler;
+    public static TaskRejectionHandler highPriorityRejectionHandler = new TaskRejectionHandler();
+    public static TaskRejectionHandler mediumPriorityRejectionHandler = new TaskRejectionHandler();
+    
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
     public static SerialPortManager serialPortManager;

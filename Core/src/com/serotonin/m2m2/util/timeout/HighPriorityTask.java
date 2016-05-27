@@ -30,6 +30,6 @@ public abstract class HighPriorityTask extends Task{
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 }

@@ -120,7 +120,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 
 }

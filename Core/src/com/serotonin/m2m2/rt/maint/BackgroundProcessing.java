@@ -27,6 +27,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
+import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
 import com.serotonin.provider.ProviderNotFoundException;
@@ -37,6 +38,7 @@ import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.Task;
+import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
@@ -58,7 +60,7 @@ public class BackgroundProcessing implements ILifecycle {
     public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
     public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
     
-    private ThreadPoolExecutor mediumPriorityService;
+    private OrderedThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
 
 
@@ -93,10 +95,10 @@ public class BackgroundProcessing implements ILifecycle {
     public void addWorkItem(final WorkItem item) {
         try{
 	        if (item.getPriority() == WorkItem.PRIORITY_HIGH){
-	        	timer.execute(new HighPriorityWorkItemRunnable(item));
+	        	timer.execute(new OrderedWorkItemRunnable(item, Common.highPriorityRejectionHandler));
 	        }
 	        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM){
-	            mediumPriorityService.execute(new WorkItemRunnable(item));
+	            mediumPriorityService.execute(new TaskWrapper(new OrderedWorkItemRunnable(item, Common.mediumPriorityRejectionHandler), this.timer.currentTimeMillis()));
 	        }
 	        else{
 	            lowPriorityService.execute(new WorkItemRunnable(item));
@@ -129,7 +131,7 @@ public class BackgroundProcessing implements ILifecycle {
     	return this.highPriorityService.getLargestPoolSize();
     }    
     
-    public List<OrderedTaskInfo> getOrderedQueueStats(){
+    public List<OrderedTaskInfo> getHighPriorityOrderedQueueStats(){
     	return this.highPriorityService.getOrderedQueueInfo();
     }
     
@@ -235,8 +237,11 @@ public class BackgroundProcessing implements ILifecycle {
     
     public int getMediumPriorityServiceLargestPoolSize(){
     	return this.mediumPriorityService.getLargestPoolSize();
-    }    
+    }
     
+    public List<OrderedTaskInfo> getMediumPriorityOrderedQueueStats(){
+    	return this.mediumPriorityService.getOrderedQueueInfo();
+    }
     /**
      * Set the Core Pool Size, in the medium priority queue this 
      * results in the maximum number of threads that will be run 
@@ -328,8 +333,15 @@ public class BackgroundProcessing implements ILifecycle {
     		maxPoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
-        mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2));
+        mediumPriorityService = new OrderedThreadPoolExecutor(
+        		corePoolSize,
+        		maxPoolSize,
+        		60L,
+        		TimeUnit.SECONDS,
+                new LinkedBlockingQueue<Runnable>(),
+                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+        		Common.mediumPriorityRejectionHandler,
+        		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false));
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
@@ -427,16 +439,18 @@ public class BackgroundProcessing implements ILifecycle {
      * @author Terry Packer
      *
      */
-    class HighPriorityWorkItemRunnable extends Task{
+    class OrderedWorkItemRunnable extends Task{
 
-    	WorkItem item;
+    	final WorkItem item;
+    	final TaskRejectionHandler rejectionHandler;
     	
     	/**
 		 * @param name
 		 */
-		public HighPriorityWorkItemRunnable(WorkItem item) {
+		public OrderedWorkItemRunnable(WorkItem item,  TaskRejectionHandler rejectionHandler) {
 			super(item.getDescription(), item.getTaskId(), item.getQueueSize(), item.isQueueable());
 			this.item = item;
+			this.rejectionHandler = rejectionHandler;
 		}
 
 		/* (non-Javadoc)
@@ -463,17 +477,17 @@ public class BackgroundProcessing implements ILifecycle {
 		public String toString() {
 			return item.getDescription();
 		}
-
+		
 		/* (non-Javadoc)
 		 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
 		 */
 		@Override
 		public void rejected(RejectedTaskReason reason) {
 			item.rejected(reason);
-			Common.rejectionHandler.rejectedHighPriorityTask(reason);
+			rejectionHandler.rejected(reason);
 		}
     }
-
+    
     /**
      * Helper class to get more info on Work Items while queued up
      * @author Terry Packer

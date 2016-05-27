@@ -48,6 +48,6 @@ public class BinaryStateDetectorRT extends StateDetectorRT<BinaryStateDetectorVO
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 }

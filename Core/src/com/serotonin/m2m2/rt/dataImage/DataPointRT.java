@@ -610,7 +610,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 
         @Override
         public int getPriority() {
-            return WorkItem.PRIORITY_HIGH;
+            return WorkItem.PRIORITY_MEDIUM;
         }
 
 		/* (non-Javadoc)
@@ -728,7 +728,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 
 	/* (non-Javadoc)

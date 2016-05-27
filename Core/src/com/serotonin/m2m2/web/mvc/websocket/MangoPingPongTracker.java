@@ -92,7 +92,7 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 
 	/* (non-Javadoc)

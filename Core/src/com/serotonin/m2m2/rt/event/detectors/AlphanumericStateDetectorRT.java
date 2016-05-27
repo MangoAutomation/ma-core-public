@@ -53,6 +53,6 @@ public class AlphanumericStateDetectorRT extends StateDetectorRT<AlphanumericSta
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 }

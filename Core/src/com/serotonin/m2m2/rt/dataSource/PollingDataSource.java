@@ -216,7 +216,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     @Override
     public void rejected(final RejectedTaskReason reason){
 		incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
     }
     
     //

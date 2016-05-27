@@ -43,6 +43,6 @@ public class NoUpdateDetectorRT extends DifferenceDetectorRT<NoUpdateDetectorVO>
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 }

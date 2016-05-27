@@ -272,7 +272,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 	
 	/*

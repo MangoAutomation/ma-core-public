@@ -48,6 +48,6 @@ public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDe
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 }

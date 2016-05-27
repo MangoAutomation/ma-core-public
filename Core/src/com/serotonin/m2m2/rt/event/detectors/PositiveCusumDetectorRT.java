@@ -138,6 +138,6 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.highPriorityRejectionHandler.rejected(reason);
 	}
 }

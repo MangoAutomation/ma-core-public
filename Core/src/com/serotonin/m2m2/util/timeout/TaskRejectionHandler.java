@@ -41,7 +41,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	private int logPeriod = 1000;
 	
 	/* Map of rejected tasks and thier stats */
-	private final Map<String, RejectedTaskStats> highPriorityStatsMap;
+	private final Map<String, RejectedTaskStats> statsMap;
 	
 	/**
 	 * TODO Do we want a task ID?
@@ -49,21 +49,21 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 */
 	public TaskRejectionHandler(){
 		super(new FixedRateTrigger(0, 10000), "TaskRejectionHandler cleaner", "TRH-Cleaner", 0, false);
-		this.highPriorityStatsMap = new ConcurrentHashMap<String, RejectedTaskStats>();
+		this.statsMap = new ConcurrentHashMap<String, RejectedTaskStats>();
 	}
 
 	/**
 	 * Task was rejected, track its statistics and provide logging
 	 * @param reason
 	 */
-	public void rejectedHighPriorityTask(RejectedTaskReason reason){
+	public void rejected(RejectedTaskReason reason){
 		
 		String id = reason.getTask().getId();
 			
-		RejectedTaskStats stats = this.highPriorityStatsMap.get(id);
+		RejectedTaskStats stats = this.statsMap.get(id);
 		if(stats == null){
 			stats = new RejectedTaskStats(id, reason.getTask().getName(), this.logPeriod);
-			this.highPriorityStatsMap.put(id, stats);
+			this.statsMap.put(id, stats);
 		}
 
 		//Is it time to
@@ -83,7 +83,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 			TaskWrapper wrapper = (TaskWrapper)r;
 			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
 			wrapper.getTask().rejected(reason);
-			this.rejectedHighPriorityTask(reason);
+			this.rejected(reason);
 		}else{
 			log.fatal("SHOULD NOT HAPPEN: " + r.toString());
 		}
@@ -93,11 +93,11 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 * Get a list of the current rejection stats
 	 * @return
 	 */
-	public List<RejectedTaskStats> getRejectedHighPriorityTaskStats(){
-		List<RejectedTaskStats> all = new ArrayList<RejectedTaskStats>(this.highPriorityStatsMap.size());
-		Iterator<String> it = this.highPriorityStatsMap.keySet().iterator();
+	public List<RejectedTaskStats> getTaskStats(){
+		List<RejectedTaskStats> all = new ArrayList<RejectedTaskStats>(this.statsMap.size());
+		Iterator<String> it = this.statsMap.keySet().iterator();
 		while(it.hasNext())
-			all.add(this.highPriorityStatsMap.get(it.next()));
+			all.add(this.statsMap.get(it.next()));
 		
 		return all;
 	}
@@ -108,22 +108,12 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	@Override
 	public void run(long runtime) {
 		long now = Common.backgroundProcessing.currentTimeMillis();
-		Iterator<String> it = this.highPriorityStatsMap.keySet().iterator();
+		Iterator<String> it = this.statsMap.keySet().iterator();
 		while(it.hasNext()){
-			RejectedTaskStats stats = this.highPriorityStatsMap.get(it.next());
+			RejectedTaskStats stats = this.statsMap.get(it.next());
 			if(now > stats.getLastAccess() + this.staleTaskStatsPeriod)
 				it.remove();
 		}
 		
 	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		//TODO We have processor time, maybe clean here?
-		this.rejectedHighPriorityTask(reason);
-	}
-	
 }
