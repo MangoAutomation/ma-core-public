@@ -30,27 +30,22 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.timer.CronTimerTrigger;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.StringUtils;
 
 public class DatabaseBackupWorkItem implements WorkItem {
 	private static final Log LOG = LogFactory.getLog(DatabaseBackupWorkItem.class);
-	public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; // Used
-																			// to
-																			// for
-																			// filename
-																			// and
-																			// property
-																			// value
-																			// for
-																			// last
-																			// run
+	// Used for filename and property value for last run
+	public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; 
 	public static final SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
 
 	// Lock to ensure we don't clobber files by running a backup
 	// during another one.
 	public static final Object lock = new Object();
 
+	private static final String TASK_ID = "DatabaseBackupTask";
+	
 	private static DatabaseBackupTask task; // Static holder to re-schedule task
 											// if necessary
 	private String backupLocation; // Location of backup directory on disk
@@ -233,7 +228,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	 * @author tpacker
 	 *
 	 */
-	static class DatabaseBackupTask extends RejectableTimerTask {
+	static class DatabaseBackupTask extends TimerTask {
 		DatabaseBackupTask(String cronTrigger) throws ParseException {
 			super(new CronTimerTrigger(cronTrigger), "Database backup");
 		}
@@ -532,5 +527,14 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	@Override
 	public int getQueueSize() {
 		return Common.defaultTaskQueueSize;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -8,13 +8,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.TimerTask;
 
 /**
  * @author Matthew Lohbihler
  */
-public class MemoryCheck extends RejectableTimerTask {
+public class MemoryCheck extends TimerTask {
     private static final Log log = LogFactory.getLog(MemoryCheck.class);
     private static final long TIMEOUT = 1000 * 5; // Run every five seconds.
 

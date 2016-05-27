@@ -34,7 +34,6 @@ import com.serotonin.m2m2.web.dwr.emport.importers.SystemSettingsImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.TemplateImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.UserImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.VirtualSerialPortImporter;
-import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * @author Matthew Lohbihler
@@ -49,8 +48,14 @@ public class ImportTask extends ProgressiveTask {
     private final List<Importer> importers = new ArrayList<Importer>();
     private final List<ImportItem> importItems = new ArrayList<ImportItem>();
 
+    /**
+     * Create an ordered task that can be queue to run one after another
+     * @param root
+     * @param translations
+     * @param user
+     */
     public ImportTask(JsonObject root, Translations translations, User user) {
-    	super("JSON import task", "JsonImport", 0);
+    	super("JSON import task", "JsonImport", Common.defaultTaskQueueSize);
     	
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
@@ -215,12 +220,4 @@ public class ImportTask extends ProgressiveTask {
         	msg = e.getClass().getCanonicalName();
         importContext.getResult().addGenericMessage("common.default", msg);
     }
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
-	}
 }

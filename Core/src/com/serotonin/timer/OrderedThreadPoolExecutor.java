@@ -146,18 +146,16 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	}
 	
 	/**
-	 * Execute a task that should be ordered
+	 * Execute a task that should may be ordered.  Tasks with null ID are run immediately and
+	 * potentially in parallel to other tasks of the same type.
 	 * @param worker
 	 * @param key
 	 * @param executionTime for the worker
 	 */
 	public void execute(TaskWrapper worker) {
 
-		//No ordering
+		//No ordering ie, the ID is null
 		if(worker.task.id == null){
-			throw new RuntimeException(worker.task.name + ": Needs non-null id");
-		}
-		if(!worker.task.queueable){
 			execute((Runnable)worker);
 			return;
 		}

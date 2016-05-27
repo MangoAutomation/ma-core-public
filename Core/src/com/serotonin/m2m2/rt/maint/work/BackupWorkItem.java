@@ -33,9 +33,10 @@ import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
 import com.serotonin.timer.CronTimerTrigger;
+import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.TimerTask;
 
 public class BackupWorkItem implements WorkItem {
     private static final Log LOG = LogFactory.getLog(BackupWorkItem.class);
@@ -208,7 +209,7 @@ public class BackupWorkItem implements WorkItem {
 	 * @author tpacker
 	 *
 	 */
-    static class BackupSettingsTask extends RejectableTimerTask {
+    static class BackupSettingsTask extends TimerTask {
     	BackupSettingsTask(String cronTrigger) throws ParseException {
             super(new CronTimerTrigger(cronTrigger), "Settings backup", "SettingsBackup", 0);
         }
@@ -266,6 +267,13 @@ public class BackupWorkItem implements WorkItem {
 	 */
 	@Override
 	public int getQueueSize() {
-		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+		return 0;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) { }
+
 }

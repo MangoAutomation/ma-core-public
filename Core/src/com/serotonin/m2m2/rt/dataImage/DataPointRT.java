@@ -39,7 +39,7 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
-public final class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutClient {
+public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
     private static final String prefix = "INTVL_LOG-";
@@ -402,9 +402,9 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             }
             //Are we using a custom timer?
             if(this.timer == null)
-	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), this);
+	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
             else
-	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), this, this.timer);
+	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
             	
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
@@ -420,6 +420,31 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
                 }
             }
         }
+    }
+    
+    private TimeoutClient createIntervalLoggingTimeoutClient(){
+        return  new TimeoutClient(){
+
+			@Override
+			public void scheduleTimeout(long fireTime) {
+				scheduleTimeoutImpl(fireTime);
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+			 */
+			@Override
+			public String getTaskId() {
+				return prefix + vo.getXid();
+			}
+			
+			
+			@Override
+			public String getThreadName() {
+				return "Interval logging: " + vo.getXid();
+			}
+        	
+        };
     }
 
     private void terminateIntervalLogging() {
@@ -461,8 +486,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         }
     }
 
-    @Override
-    public void scheduleTimeout(long fireTime) {
+    public void scheduleTimeoutImpl(long fireTime) {
         synchronized (intervalLoggingLock) {
             DataValue value;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.INSTANT)
@@ -513,30 +537,6 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             }
         }
     }
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
-	 */
-	@Override
-	public String getThreadName() {
-		return "Interval logging: " + this.vo.getXid();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return prefix + this.vo.getXid();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-	 */
-	@Override
-	public int getQueueSize() {
-		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
-	}
 	
     //
     // / Purging
@@ -700,7 +700,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
 		 */
 		@Override
 		public String getTaskId() {
-			return prefix + sourceXid;
+			//So there is one task for each listener
+			return prefix + sourceXid + "-" + listener.hashCode();
 		}
 		
 		/* (non-Javadoc)
@@ -710,6 +711,15 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
 		public int getQueueSize() {
 			return Common.defaultTaskQueueSize;
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			//No special handling, tracking/logging is handled by the WorkItemRunnable
+		}
+
     }
 
     //
@@ -792,14 +802,5 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
 			copy.add(pvt);
 		return copy;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
-	}
-
 
 }

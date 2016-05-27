@@ -10,11 +10,9 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
-import com.serotonin.timer.RejectedTaskReason;
 
 public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCountDetectorVO> {
     private final Log log = LogFactory.getLog(StateChangeCountDetectorRT.class);
@@ -149,15 +147,8 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
 	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
 	 */
 	@Override
-	public String getThreadName() {
+	public String getThreadNameImpl() {
 		return "StateChangeCounter " + this.vo.getXid();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
-	}
 }

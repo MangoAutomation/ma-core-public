@@ -13,8 +13,8 @@ public interface ModelTimeoutClient<T> {
     String getThreadName();
     
     /**
-     * Get the ID for the task if it is to be ordered,
-     * null otherwise
+     * Get the ID for the task for ordering and failure tracking,
+     * Task ID of null means no order/queue and run in parallel
      * @return
      */
     String getTaskId();
@@ -24,4 +24,5 @@ public interface ModelTimeoutClient<T> {
      * @return
      */
     int getQueueSize();
+
 }

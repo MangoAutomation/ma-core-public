@@ -26,7 +26,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
-import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
+import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.provider.ProviderNotFoundException;
@@ -52,6 +52,7 @@ public class BackgroundProcessing implements ILifecycle {
     //Private access to our timer
     private OrderedRealTimeTimer timer;
     private OrderedThreadPoolExecutor highPriorityService;
+    private TaskRejectionHandler rejectionHandler;
     
     //Lower Limits on Pool Sizes for Mango To Run
     public static final int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
@@ -92,7 +93,7 @@ public class BackgroundProcessing implements ILifecycle {
 	 * Schedule a timer task to run
 	 * @param task
 	 */
-	public void schedule(RejectableTimerTask task) {
+	public void schedule(TimerTask task) {
 		this.timer.schedule(task);
 	}
     		
@@ -115,6 +116,16 @@ public class BackgroundProcessing implements ILifecycle {
         	log.fatal(new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()).translate(Common.getTranslations()), e);
         }
     }
+    
+    /**
+     * A high priority task was rejected, track it
+     * @param reason
+     */
+    public void rejectedHighPriorityTask(RejectedTaskReason reason){
+    	rejectionHandler.rejectedHighPriorityTask(reason);
+    }
+    
+    
     
     /**
      * Return the count of all scheduled tasks ever
@@ -324,18 +335,7 @@ public class BackgroundProcessing implements ILifecycle {
     	try {
         	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
         	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-        	//Adjust the RealTime timer pool now
-        	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-        	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-        	
-        	//Sanity check to ensure the pool sizes are appropriate
-        	if(maxPoolSize < HIGH_PRI_MAX_POOL_SIZE_MIN)
-        		maxPoolSize = HIGH_PRI_MAX_POOL_SIZE_MIN;
-        	if(maxPoolSize < corePoolSize)
-        		maxPoolSize = corePoolSize;
-
-        	this.highPriorityService.setCorePoolSize(corePoolSize);
-        	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
+        	this.rejectionHandler = new TaskRejectionHandler();
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
@@ -504,7 +504,8 @@ public class BackgroundProcessing implements ILifecycle {
 		 */
 		@Override
 		public void rejected(RejectedTaskReason reason) {
-			Common.rejectionHandler.rejectedHighPriorityTask(reason);
+			item.rejected(reason);
+			rejectionHandler.rejectedHighPriorityTask(reason);
 		}
     }
 

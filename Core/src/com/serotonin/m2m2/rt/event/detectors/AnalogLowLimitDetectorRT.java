@@ -7,12 +7,10 @@ package com.serotonin.m2m2.rt.event.detectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
-import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * The AnalogLowLimitDetector is used to detect occurances of point values below the given low limit for a given
@@ -179,15 +177,8 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogL
 	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
 	 */
 	@Override
-	public String getThreadName() {
+	public String getThreadNameImpl() {
 		return "AnalogLowLimit Detector " + this.vo.getXid();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
-	}
 }

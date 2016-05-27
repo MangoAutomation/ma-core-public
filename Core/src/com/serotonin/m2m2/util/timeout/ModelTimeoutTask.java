@@ -8,9 +8,10 @@ import java.util.Date;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.OneTimeTrigger;
+import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
 
-public class ModelTimeoutTask<T> extends RejectableTimerTask {
+public class ModelTimeoutTask<T> extends TimerTask {
 	
     private final ModelTimeoutClient<T> client;
     private final T model;

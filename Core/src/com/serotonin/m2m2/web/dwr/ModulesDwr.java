@@ -361,8 +361,14 @@ public class ModulesDwr extends BaseDwr {
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
         private volatile boolean cancelled = false;
 
+        /**
+         * Only allow 1 to be scheduled all others will be rejected
+         * @param modules
+         * @param backup
+         * @param restart
+         */
         public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart) {
-        	super("Upgrade downloader");
+        	super("Upgrade downloader", "UpgradeDownloader", 0);
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;

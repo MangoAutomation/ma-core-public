@@ -31,7 +31,7 @@ import com.serotonin.timer.TimerTask;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherRT<T extends PublishedPointVO> implements TimeoutClient {
+abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutClient {
     public static final int POINT_DISABLED_EVENT = 1;
     public static final int QUEUE_SIZE_WARNING_EVENT = 2;
 
@@ -268,21 +268,5 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
 	public String getTaskId() {
 		return "PUB-" + vo.getXid();
 	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-	 */
-	@Override
-	public int getQueueSize() {
-		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
-	}
-    
+
 }

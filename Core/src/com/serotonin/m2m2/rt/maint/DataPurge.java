@@ -28,10 +28,10 @@ import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.timer.CronTimerTrigger;
+import com.serotonin.timer.TimerTask;
 
 public class DataPurge {
 	
@@ -40,7 +40,6 @@ public class DataPurge {
     private final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = DataPointDao.instance;
-    private final DataSourceDao dataSourceDao = DataSourceDao.instance;
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
     private long deletedSamples;
     private long deletedFiles;
@@ -110,7 +109,7 @@ public class DataPurge {
             }
             else {
                 // Check the data source level.
-                DataSourceVO<?> ds = dataSourceDao.getDataSource(dataPoint.getDataSourceId());
+                DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();
@@ -247,7 +246,7 @@ public class DataPurge {
         
     }
 
-    static class DataPurgeTask extends RejectableTimerTask {
+    static class DataPurgeTask extends TimerTask {
         DataPurgeTask() throws ParseException {
             // Test trigger for running every 5 minutes.
             //super(new CronTimerTrigger("0 0/5 * * * ?"));

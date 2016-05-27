@@ -6,7 +6,6 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import java.util.Date;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -20,12 +19,36 @@ import com.serotonin.timer.TimerTask;
  * 
  * @author Matthew Lohbihler
  */
-abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends PointEventDetectorRT<T> implements TimeoutClient {
+abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends PointEventDetectorRT<T> {
     /**
 	 * @param vo
 	 */
 	public TimeoutDetectorRT(T vo) {
 		super(vo);
+		timeoutClient = new TimeoutClient(){
+
+			@Override
+			public void scheduleTimeout(long fireTime) {
+				scheduleTimeoutImpl(fireTime);
+		        task = null;
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+			 */
+			@Override
+			public String getTaskId() {
+				//Watch use of XIDs as they are only enforced to be unique with a source id
+				//return "TED-" + this.vo.getXid() + "-" + this.vo.getSourceId();
+				return "TED-" + Integer.toString(vo.hashCode());
+			}
+			
+			@Override
+			public String getThreadName() {
+				return getThreadNameImpl();
+			}
+			
+		};
 	}
 
 	/**
@@ -38,6 +61,11 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
      */
     private TranslatableMessage durationDescription;
 
+    /**
+     * My Timeout Client
+     */
+    private TimeoutClient timeoutClient;
+    
     /**
      * Internal configuration field. The unique name for this event producer to be used in the scheduler (if required).
      */
@@ -72,38 +100,20 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
     protected void scheduleJob(long timeout) {
         if (task != null)
             cancelTask();
-        task = new TimeoutTask(new Date(timeout), this);
+        task = new TimeoutTask(new Date(timeout), this.timeoutClient);
     }
 
     protected void unscheduleJob() {
         cancelTask();
     }
 
-    @Override
-    synchronized public final void scheduleTimeout(long fireTime) {
-        scheduleTimeoutImpl(fireTime);
-        task = null;
-    }
-
     abstract protected void scheduleTimeoutImpl(long fireTime);
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		System.out.println("IMPORTANT TO DO RIGHT");
-		//TODO Watch use of XIDs as they are not enforced to be unique in legacy versions...
-		return this.hashCode() + "ED";
-	}
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-	 */
-	@Override
-	public int getQueueSize() {
-		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
-	}
+
+    /**
+     * Get the name of the Thread for Tracking/Reporting
+     * @return
+     */
+    abstract protected String getThreadNameImpl();
 	
     synchronized private void cancelTask() {
         if (task != null) {

@@ -1,21 +1,13 @@
 package com.serotonin.timer;
 
+import com.serotonin.m2m2.Common;
 
 public abstract class TimerTask extends Task{
     
 	TimerTrigger trigger;
 	
-	//TODO Uncomment when done with Mango implementation
-//	public TimerTask(TimerTrigger trigger) {
-//        this(trigger, null, null, 0);
-//    }
-//
-//    public TimerTask(TimerTrigger trigger, String name) {
-//    	this(trigger, name, null, 0);
-//    }
-	
 	public TimerTask(TimerTrigger trigger, String name){
-		super(name, null);
+		super(name);
         if (trigger == null)
             throw new NullPointerException();
         this.trigger = trigger;
@@ -44,4 +36,12 @@ public abstract class TimerTask extends Task{
     AbstractTimer getTimer() {
         return trigger.getTimer();
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.timer.TimerTask#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		Common.backgroundProcessing.rejectedHighPriorityTask(reason);
+	}
 }

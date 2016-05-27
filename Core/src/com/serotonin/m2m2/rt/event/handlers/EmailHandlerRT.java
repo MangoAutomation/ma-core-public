@@ -385,7 +385,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 	 */
 	@Override
 	public int getQueueSize() {
-		return Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 0);
+		return Common.defaultTaskQueueSize;
 	}
     
 }

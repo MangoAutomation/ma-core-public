@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
 
 /**
@@ -77,14 +78,14 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 */
 	@Override
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-		log.fatal("SHOULD NOT HAPPEN: " + r.toString());
-//		//TODO Types of WorkItem, Runnable and ScheduledRunnable can also be rejected here so we must handle those too for now
-//		if(r instanceof TaskWrapper){
-//			TaskWrapper wrapper = (TaskWrapper)r;
-//			wrapper.getTask().rejected(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask().getName(), wrapper.getTask(), e));
-//		}else{
-//			LOG.debug("Task rejected: " + r.toString());
-//		}
+		if(r instanceof TaskWrapper){
+			TaskWrapper wrapper = (TaskWrapper)r;
+			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
+			wrapper.getTask().rejected(reason);
+			this.rejectedHighPriorityTask(reason);
+		}else{
+			log.fatal("SHOULD NOT HAPPEN: " + r.toString());
+		}
 	}
 	
 	/**

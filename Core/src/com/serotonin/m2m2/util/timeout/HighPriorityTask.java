@@ -19,13 +19,15 @@ public abstract class HighPriorityTask extends Task{
 	 * @param name
 	 */
 	public HighPriorityTask(String name){
-		this(name, null, 0);
+		super(name);
 	}
 	
 	/**
 	 * For tasks that should be queued
 	 * @param name
-	 * @param id
+	 * @param id - Non null String identifier for rejection tracking and ordering
+	 * @param queueSize
+	 * @param queueable
 	 */
 	public HighPriorityTask(String name, String id, int queueSize) {
 		super(name, id, queueSize);
@@ -36,6 +38,6 @@ public abstract class HighPriorityTask extends Task{
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		Common.rejectionHandler.rejectedHighPriorityTask(reason);
+		Common.backgroundProcessing.rejectedHighPriorityTask(reason);
 	}
 }

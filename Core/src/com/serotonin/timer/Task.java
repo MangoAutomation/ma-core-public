@@ -64,11 +64,6 @@ public abstract class Task{
     final int queueSize;
     
     /**
-     * Is this task queueble or should it be run immediately every time
-     */
-    final boolean queueable;
-    
-    /**
      * Indicates that if the task is running at the moment it is cancelled, the cancellation should wait until the task
      * is done. This is useful if the task uses resources that need to be shut down before the timer is shutdown.
      */
@@ -76,19 +71,29 @@ public abstract class Task{
 
     private final ReadWriteLock cancelLock = new ReentrantReadWriteLock();
     
+    /**
+     * Create a non-ordered Task
+     * @param name
+     */
+    public Task(String name){
+    	this.name = name;
+    	this.id = null;
+    	this.queueSize = 0;
+    }
+    
+    /**
+     * Ordred Task that is queuable
+     * @param name
+     * @param id
+     * @param queueSize
+     */
     public Task(String name, String id, int queueSize){
     	this.name = name;
     	this.id = id;
     	this.queueSize = queueSize;
-    	this.queueable = true;
     }
     
-    public Task(String name, String id){
-    	this.name = name;
-    	this.id = id;
-    	this.queueSize = 0;
-    	this.queueable = false;
-    }
+
 
     public boolean isCompleteBeforeCancel() {
         return completeBeforeCancel;
@@ -195,7 +200,8 @@ public abstract class Task{
     }
     
     /**
-     * Get the unique ID for the task, used for tracking etc.  
+     * Get the unique ID for the task, used for tracking etc. 
+     * If this is null, the task cannot be queued 
      * @return
      */
     public String getId(){
@@ -209,14 +215,5 @@ public abstract class Task{
     public int getQueueSize(){
     	return this.queueSize;
     }
-    
-    /**
-     * Is this task to be run immediately and never
-     * queued against instances of itself?
-     * 
-     * @return
-     */
-    public boolean isQueueable(){
-    	return queueable;
-    }
+
 }

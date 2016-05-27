@@ -12,13 +12,13 @@ import com.infiniteautomation.mango.monitor.DoubleMonitor;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.util.timeout.RejectableTimerTask;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.TimerTask;
 
-public class WorkItemMonitor extends RejectableTimerTask implements ValueMonitorOwner {
+public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     private static final long TIMEOUT = 1000 * 10; // Run every ten seconds.
 
     /**
@@ -104,7 +104,7 @@ public class WorkItemMonitor extends RejectableTimerTask implements ValueMonitor
     private boolean running;
     
     private WorkItemMonitor() {
-        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Work item monitor");
+        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Work item monitor", "WorkItemMonitor", 0);
         this.running = true;
         
         Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityActive);

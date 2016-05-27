@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.maint.work;
 
+import com.serotonin.timer.RejectedTaskReason;
+
 /**
  * @author Matthew Lohbihler
  * 
@@ -22,7 +24,7 @@ public interface WorkItem {
     int PRIORITY_MEDIUM = 2;
 
     /**
-     * Uses a single thread to execute processes sequentially. Assumes that processes can wait indefinately to run
+     * Uses a single thread to execute processes sequentially. Assumes that processes can wait indefinitely to run
      * without consequence.
      */
     int PRIORITY_LOW = 3;
@@ -51,8 +53,18 @@ public interface WorkItem {
     
     /**
      * How many tasks can be scheduled and waiting to run in the Ordered Timer
+     * 0 means that only 1 item can be run all others will be discarded if the task is Ordered
      * @return
      */
     public int getQueueSize();
+
+    
+    /**
+     * If any special handling needs to be done about the rejection, handle it in this method.
+     * General task failure tracking is already handled by the core.
+     * 
+     * @param reason
+     */
+    public void rejected(RejectedTaskReason reason);
     
 }
