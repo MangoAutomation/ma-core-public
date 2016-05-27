@@ -15,15 +15,15 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  *
  */
 public class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<T>> extends AbstractDataSourceModel<PollingDataSourceVO<T>>{
-
-	protected T data;
+	
+	private T data;
 	
 	/**
 	 * @param data
 	 */
 	public AbstractPollingDataSourceModel(T data) {
 		super(data);
-
+		this.data = data;
 	}
 
 	@JsonGetter(value="pollPeriod")
@@ -54,6 +54,5 @@ public class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<T>> ex
 	public void setCronPattern(String cronPattern){
 		this.data.setCronPattern(cronPattern);
 	}
-
 	
 }
