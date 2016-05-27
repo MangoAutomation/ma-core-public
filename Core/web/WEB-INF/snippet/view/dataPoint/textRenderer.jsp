@@ -82,7 +82,7 @@
     <tbody id="multistateValuesRow" style="display:none;">
       <tr>
         <td colspan="2">
-          <table>
+          <table id="multistateRendererTable">
             <tr>
               <th><fmt:message key="pointEdit.text.key"/></th>
               <th><fmt:message key="pointEdit.text.text"/></th>
