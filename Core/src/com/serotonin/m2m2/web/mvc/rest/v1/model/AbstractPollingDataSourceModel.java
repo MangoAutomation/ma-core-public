@@ -16,7 +16,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  */
 public class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<T>> extends AbstractDataSourceModel<PollingDataSourceVO<T>>{
 	
-	private T data;
+	protected T data;
 	
 	/**
 	 * @param data
