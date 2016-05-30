@@ -420,8 +420,11 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
         // Delete detectors for any remaining ids in the list of existing
         // detectors.
-        for (AbstractEventDetectorVO<?> ped : existingDetectors) {
-        	EventDetectorDao.instance.delete(ped);
+        for (AbstractEventDetectorVO<?> ed : existingDetectors) {
+        	//Set the data point so the detector can get its event type when it is deleted
+        	AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
+        	ped.njbSetDataPoint(dp);
+        	EventDetectorDao.instance.delete(ed);
         }
     }
 
