@@ -117,7 +117,7 @@ public class EventManager implements ILifecycle {
 		List<Integer> eventUserIds = new ArrayList<Integer>();
 		Set<String> emailUsers = new HashSet<String>();
 
-		//So none level events don't make it into the cache as they are already acknowledged
+		//So none level events don't make it into the cache or get sent out as notifications
 		if(evt.isAlarm()){
 			for (User user : userDao.getActiveUsers()) {
 				// Do not create an event for this user if the event type says the
@@ -188,8 +188,8 @@ public class EventManager implements ILifecycle {
 			// Call raiseEvent handlers.
 			handleRaiseEvent(evt, emailUsers);
 
-			if (log.isDebugEnabled())
-				log.debug("Event raised: type=" + type + ", message="
+			if (log.isTraceEnabled())
+				log.trace("Event raised: type=" + type + ", message="
 						+ message.translate(Common.getTranslations()));
 		}
 	}
@@ -264,12 +264,14 @@ public class EventManager implements ILifecycle {
 				if (Permissions.hasEventTypePermission(user, type)) {
 					//Notify All User Event Listeners of the new event
 					for(UserEventListener l : this.userEventListeners){
-						if(l.getUserId() == user.getId()){
+						if((l.getUserId() == user.getId() && evt.isAlarm())){
 							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
 	
 						}
 					}
-					this.userEventCache.updateEvent(user.getId(), evt);
+					//Only alarms make it into the cache
+					if(evt.isAlarm())
+						this.userEventCache.updateEvent(user.getId(), evt);
 				}
 				
 			}
