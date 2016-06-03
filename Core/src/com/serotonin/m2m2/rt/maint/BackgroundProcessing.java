@@ -63,6 +63,15 @@ public class BackgroundProcessing implements ILifecycle {
     private OrderedThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
 
+    public BackgroundProcessing(){
+    	try {
+        	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
+        	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
+        }
+        catch (ProviderNotFoundException e) {
+            throw new ShouldNeverHappenException(e);
+        }
+    }
 
     /**
      * Execute a high priority task as soon as possible
@@ -315,14 +324,6 @@ public class BackgroundProcessing implements ILifecycle {
     
     @Override
     public void initialize() {
-    	
-    	try {
-        	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
-        	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-        }
-        catch (ProviderNotFoundException e) {
-            throw new ShouldNeverHappenException(e);
-        }
      	
     	//Pull our settings from the System Settings
     	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
