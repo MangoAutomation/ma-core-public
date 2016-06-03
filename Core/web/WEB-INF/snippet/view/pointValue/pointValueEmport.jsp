@@ -7,6 +7,15 @@
 
 <tag:versionedJavascript  src="/resources/view/pointValue/pointValueEmport.js" />
 
+<script type="text/javascript">
+	//Add in our local keys
+	mangoMsg['emport.filename'] = '<fmt:message key="emport.filename"/>';
+	mangoMsg['emport.added'] = '<fmt:message key="emport.added"/>';
+	mangoMsg['emport.removed'] = '<fmt:message key="emport.removed"/>';
+	mangoMsg['emport.errors'] = '<fmt:message key="emport.errors"/>';
+
+</script>
+
 <div id="pointValueEmport">
   <div id="pointValueEmportContent" class="dijitDialogPaneContentArea">
     <form id="msForm" method="post" action="/upload.shtm" enctype="multipart/form-data">

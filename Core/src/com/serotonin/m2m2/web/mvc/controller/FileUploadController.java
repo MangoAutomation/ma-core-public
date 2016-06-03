@@ -164,7 +164,8 @@ public class FileUploadController implements UrlHandler {
             model.put("errorMessages", errorMessages);
         }
 
-        model.put("rowsImported", emporter.getRowsProcessed());
+        model.put("rowsImported", emporter.getRowsAdded());
+        model.put("rowsDeleted", emporter.getRowsDeleted());
         model.put("rowsWithErrors", emporter.getRowErrors());
     }
 	

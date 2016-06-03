@@ -85,9 +85,10 @@ function(Dialog, Uploader, Button, FileList, dom, on, lang, domConstruct, OnDema
     
     var uploaderStatus = new OnDemandGrid({
         columns: {
-            filename: "Filename",
-            rowsImported: "Rows Imported",
-            rowsWithErrors: "Row Errors"
+            filename: mangoTranslate('emport.filename'),
+            rowsImported: mangoTranslate('emport.added'),
+            rowsDeleted: mangoTranslate('emport.removed'),
+            rowsWithErrors: mangoTranslate('emport.errors')
         }
     }, "uploaderStatus");
     

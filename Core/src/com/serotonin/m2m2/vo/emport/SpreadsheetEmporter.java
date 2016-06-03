@@ -46,6 +46,8 @@ public class SpreadsheetEmporter {
     protected List<TranslatableMessage> errorMessages;
     
     private int rowsProcessed;
+    private int rowsAdded;
+    private int rowsDeleted;
     private int rowErrors;
     private int rowNum; // current row
     
@@ -119,6 +121,8 @@ public class SpreadsheetEmporter {
         }
         rowsProcessed = 0;
         rowErrors = 0;
+        rowsAdded = 0;
+        rowsDeleted = 0;
         errorMessages = new ArrayList<TranslatableMessage>();
         
         for (AbstractSheetEmporter sheetEmporter : sheetEmporters) {
@@ -203,6 +207,8 @@ public class SpreadsheetEmporter {
             }
 
         }
+        rowsAdded += sheetEmporter.getRowsAdded();
+        rowsDeleted += sheetEmporter.getRowsDeleted();
     }
     
     /**
@@ -561,7 +567,15 @@ public class SpreadsheetEmporter {
     public int getRowsProcessed() {
         return rowsProcessed;
     }
-
+    
+    public int getRowsAdded(){
+    	return rowsAdded;
+    }
+    
+    public int getRowsDeleted(){
+    	return rowsDeleted;
+    }
+    
     public int getRowErrors() {
         return rowErrors;
     }
