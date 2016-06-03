@@ -189,9 +189,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
             } 
             else {
                 try {
-                	Common.runtimeManager.purgeDataPointValue(dp.getId(), time.getTime());
-                	//long cnt =
-                	//TODO add functionality to count the deleted points
+                	this.rowsDeleted += Common.runtimeManager.purgeDataPointValue(dp.getId(), time.getTime());
                 }catch (Exception e) {
                     if(e instanceof DataIntegrityViolationException)
                         throw new SpreadsheetException(rowData.getRowNum(), "emport.error.unableToDeleteDueToConstraints");
@@ -200,81 +198,71 @@ public class PointValueEmporter extends AbstractSheetEmporter{
                 }
             }
             return; //Done now
-    	}
+    	}else if(add){
     	
-    	
-    	//Cell Value
-    	Cell cell;
-    	cell = rowData.getCell(cellNum++);
-    	//Create a data value
-    	DataValue dataValue;
-    	switch(dp.getPointLocator().getDataTypeId()){
-		case DataTypes.ALPHANUMERIC:
-			dataValue = new AlphanumericValue(cell.getStringCellValue());
-			break;
-		case DataTypes.BINARY:
-			
-			switch(cell.getCellType()){
-				case Cell.CELL_TYPE_BOOLEAN:
-					dataValue = new BinaryValue(new Boolean(cell.getBooleanCellValue()));
+	    	//Cell Value
+	    	Cell cell;
+	    	cell = rowData.getCell(cellNum++);
+	    	//Create a data value
+	    	DataValue dataValue;
+	    	switch(dp.getPointLocator().getDataTypeId()){
+			case DataTypes.ALPHANUMERIC:
+				dataValue = new AlphanumericValue(cell.getStringCellValue());
 				break;
-				case Cell.CELL_TYPE_NUMERIC:
-					if(cell.getNumericCellValue() == 0)
-						dataValue = new BinaryValue(new Boolean(false));
-					else
-						dataValue = new BinaryValue(new Boolean(true));
-				break;	
-				case Cell.CELL_TYPE_STRING:
-					if(cell.getStringCellValue().equalsIgnoreCase("false"))
-						dataValue = new BinaryValue(new Boolean(false));
-					else
-						dataValue = new BinaryValue(new Boolean(true));
+			case DataTypes.BINARY:
+				
+				switch(cell.getCellType()){
+					case Cell.CELL_TYPE_BOOLEAN:
+						dataValue = new BinaryValue(new Boolean(cell.getBooleanCellValue()));
 					break;
-				default:
-					throw new SpreadsheetException(rowData.getRowNum(), "common.default", "Invalid cell type for extracting boolean");
-			}
+					case Cell.CELL_TYPE_NUMERIC:
+						if(cell.getNumericCellValue() == 0)
+							dataValue = new BinaryValue(new Boolean(false));
+						else
+							dataValue = new BinaryValue(new Boolean(true));
+					break;	
+					case Cell.CELL_TYPE_STRING:
+						if(cell.getStringCellValue().equalsIgnoreCase("false"))
+							dataValue = new BinaryValue(new Boolean(false));
+						else
+							dataValue = new BinaryValue(new Boolean(true));
+						break;
+					default:
+						throw new SpreadsheetException(rowData.getRowNum(), "common.default", "Invalid cell type for extracting boolean");
+				}
+				break;
+			case DataTypes.MULTISTATE:
+				dataValue = new MultistateValue((int)cell.getNumericCellValue());
+				break;
+			case DataTypes.NUMERIC:
+				dataValue = new NumericValue(cell.getNumericCellValue());
 			break;
-		case DataTypes.MULTISTATE:
-			dataValue = new MultistateValue((int)cell.getNumericCellValue());
-			break;
-		case DataTypes.NUMERIC:
-			dataValue = new NumericValue(cell.getNumericCellValue());
-		break;
-		default:
-			throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.unsupportedDataType", dp.getPointLocator().getDataTypeId());
-    	}
-    	
-    	
-     	//Cell Rendered Value (Not using yet)
-    	cellNum++;
-    	
-    	//Cell Annotation
-    	Cell annotationRow = rowData.getCell(cellNum++);
-    	if(annotationRow != null){
-    	   	String annotation = annotationRow.getStringCellValue();
-    	    //TODO These methods here do not allow updating the Annotation. We need to be a set point source for that to work
-    		TranslatableMessage sourceMessage = new TranslatableMessage("common.default",annotation);
-    		pvt = new AnnotatedPointValueTime(dataValue, time.getTime(), sourceMessage);
-    	}else{
-    		pvt = new PointValueTime(dataValue,time.getTime());
-    	}
-    	
-    	
-    	if(add){
- 	    	//Save to cache if running
+			default:
+				throw new SpreadsheetException(rowData.getRowNum(), "emport.spreadsheet.unsupportedDataType", dp.getPointLocator().getDataTypeId());
+	    	}
+	    	
+	    	
+	     	//Cell Rendered Value (Not using yet)
+	    	cellNum++;
+	    	
+	    	//Cell Annotation
+	    	Cell annotationRow = rowData.getCell(cellNum++);
+	    	if(annotationRow != null){
+	    	   	String annotation = annotationRow.getStringCellValue();
+	    	    //TODO These methods here do not allow updating the Annotation. We need to be a set point source for that to work
+	    		TranslatableMessage sourceMessage = new TranslatableMessage("common.default",annotation);
+	    		pvt = new AnnotatedPointValueTime(dataValue, time.getTime(), sourceMessage);
+	    	}else{
+	    		pvt = new PointValueTime(dataValue,time.getTime());
+	    	}
+	    	//Save to cache if running
 	    	if(dpRt != null)
 	    		dpRt.savePointValueDirectToCache(pvt, null, true, true);
 	    	else{
 	    		pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
 	    	}
-    	}else{
-    		//Update the point value
-	    	if(dpRt != null)
-	    		dpRt.updatePointValueInCache(pvt, null, true, true);
-	    	else{
-	    		pointValueDao.updatePointValueAsync(dp.getId(),pvt,null);
-	    	}
-
+	    	//Increment our counter
+	    	this.rowsAdded++;
     	}
     }    
     

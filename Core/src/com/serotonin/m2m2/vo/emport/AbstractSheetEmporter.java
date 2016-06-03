@@ -24,6 +24,8 @@ public abstract class AbstractSheetEmporter {
     protected Sheet sheet;
     protected CellStyle dateStyle;
     protected CellStyle percentStyle;
+    protected int rowsAdded = 0;
+    protected int rowsDeleted = 0;
     
     /**
      * Returns the name of the sheet
@@ -101,5 +103,16 @@ public abstract class AbstractSheetEmporter {
 	 */
 	public int incrementRowNum(){
 		return this.rowNum++;
+	}
+
+	/**
+	 * @return
+	 */
+	public int getRowsAdded() {
+		return this.rowsAdded;
+	}
+	
+	public int getRowsDeleted(){
+		return this.rowsDeleted;
 	}
 }
