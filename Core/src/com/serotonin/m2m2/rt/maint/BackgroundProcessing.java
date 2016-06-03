@@ -375,7 +375,7 @@ public class BackgroundProcessing implements ILifecycle {
         try {
             // With 5 second waits and a worst case of both of both high and low priority jobs that just won't finish,
             // this thread will wait a maximum of 6 minutes.
-            int rewaits = 36;
+            int rewaits = Common.envProps.getInt("runtime.shutdown.medLowTimeout", 36);
             while (rewaits > 0) {
                 if (!medDone && mediumPriorityService.awaitTermination(5, TimeUnit.SECONDS))
                     medDone = true;
