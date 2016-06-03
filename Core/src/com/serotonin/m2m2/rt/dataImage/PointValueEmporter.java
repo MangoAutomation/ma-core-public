@@ -269,6 +269,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	        pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
 	    	    }
 	    	}
+
 	    	//Increment our counter
 	    	this.rowsAdded++;
     	}
