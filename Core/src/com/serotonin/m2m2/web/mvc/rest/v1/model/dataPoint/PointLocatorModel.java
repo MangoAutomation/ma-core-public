@@ -5,9 +5,11 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
+import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
@@ -64,4 +66,15 @@ public abstract class PointLocatorModel<T extends PointLocatorVO> extends Abstra
     public void setRelinquishable(boolean relinquishable){
     	
     }
+	
+	/**
+	 * Return the data point defaulter for this point.
+	 * Override as necessary
+	 * @see DataPointDefaulter
+	 * @return
+	 */
+	@JsonIgnore
+	public DataPointDefaulter getDataPointDefaulter(){
+		return null;
+	}
 }
