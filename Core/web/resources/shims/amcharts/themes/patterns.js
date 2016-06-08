@@ -1,4 +1,4 @@
 define(['../amcharts'], function(AmCharts) {
-	require(['baseUrl/amcharts/exporting/filesaver']);
+	require(['baseUrl/amcharts/themes/patterns']);
 	return AmCharts;
 });
