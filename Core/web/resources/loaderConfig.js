@@ -41,7 +41,8 @@ var config = {
         'jquery.select2': 'select2/js/select2.full.min',
         'jquery.notify': 'notify-combined.min',
         'angular': 'angular.min',
-        'angular-resource': 'angular-resource.min'
+        'angular-resource': 'angular-resource.min',
+        'amcharts/plugins/export/export': 'amcharts/plugins/export/export.min'
     },
     shim: {
         "bootstrap" : {
@@ -124,15 +125,16 @@ var config = {
                 AmCharts.isReady = true;
             }
         },
-        'amcharts/exporting/amexport': {
+        'amcharts/themes/patterns': {
+            deps: ['amcharts/amcharts'],
+            exports: 'AmCharts',
+            init: function() {
+                AmCharts.isReady = true;
+            }
+        },
+        'amcharts/plugins/export/export': {
             deps: ['amcharts/amcharts'],
     		exports: 'AmCharts'
-        },
-        'amcharts/exporting/filesaver': {
-            deps: ['amcharts/amcharts']
-        },
-        'amcharts/exporting/jspdf.plugin.addimage': {
-            deps: ['amcharts/exporting/jspdf']
         },
         'jquery.mousewheel': {"deps" : ['jquery']},
         'jquery.select2': {"deps" : ['jquery']},
