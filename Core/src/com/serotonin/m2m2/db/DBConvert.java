@@ -72,7 +72,6 @@ public class DBConvert {
         tableNames.add("dataPoints");
         tableNames.add("pointValues");
         tableNames.add("pointValueAnnotations");
-        tableNames.add("pointEventDetectors");
         tableNames.add("events");
         tableNames.add("userEvents");
         tableNames.add("eventHandlers");
