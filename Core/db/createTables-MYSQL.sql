@@ -261,6 +261,7 @@ create table publishers (
   publisherType varchar(40) not null,
   data longblob not null,
   rtdata longblob,
+  tags longtext,
   primary key (id)
 ) engine=InnoDB;
 alter table publishers add constraint publishersUn1 unique (xid);
