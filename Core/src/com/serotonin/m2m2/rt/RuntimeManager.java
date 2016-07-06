@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -50,7 +51,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 public class RuntimeManager {
     private static final Log LOG = LogFactory.getLog(RuntimeManager.class);
 
-    private final List<DataSourceRT> runningDataSources = new CopyOnWriteArrayList<DataSourceRT>();
+    private final Map<Integer, DataSourceRT> runningDataSources = new ConcurrentHashMap<Integer, DataSourceRT>();
 
     /**
      * Provides a quick lookup map of the running data points.
@@ -183,7 +184,8 @@ public class RuntimeManager {
 
         // Stop data sources in reverse start priority order.
         Map<DataSourceDefinition.StartPriority, List<DataSourceRT>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceRT>>();
-        for (DataSourceRT rt : runningDataSources) {
+        for (Entry<Integer, DataSourceRT> entry : runningDataSources.entrySet()) {
+            DataSourceRT rt = entry.getValue();
             List<DataSourceRT> priorityList = priorityMap.get(rt.getVo().getDefinition().getStartPriority());
             if (priorityList == null) {
                 priorityList = new ArrayList<DataSourceRT>();
@@ -208,7 +210,8 @@ public class RuntimeManager {
     }
 
     public void joinTermination() {
-        for (DataSourceRT dataSource : runningDataSources) {
+        for (Entry<Integer, DataSourceRT> entry : runningDataSources.entrySet()) {
+            DataSourceRT dataSource = entry.getValue();
             try {
                 dataSource.joinTermination();
             }
@@ -235,11 +238,7 @@ public class RuntimeManager {
     // Data sources
     //
     public DataSourceRT getRunningDataSource(int dataSourceId) {
-        for (DataSourceRT dataSource : runningDataSources) {
-            if (dataSource.getId() == dataSourceId)
-                return dataSource;
-        }
-        return null;
+        return runningDataSources.get(dataSourceId);
     }
 
     public boolean isDataSourceRunning(int dataSourceId) {
@@ -330,7 +329,7 @@ public class RuntimeManager {
 
         // Add it to the list of running data sources.
         synchronized(runningDataSources) {
-        	runningDataSources.add(dataSource);
+        	runningDataSources.put(dataSource.getId(), dataSource);
         }
         
         // Add the enabled points to the data source.
@@ -368,7 +367,7 @@ public class RuntimeManager {
 	                    stopDataPoint(p.getId());
 	            }
 	
-	            runningDataSources.remove(dataSource);
+	            runningDataSources.remove(dataSource.getId());
 	            dataSource.terminate();
 	
 	            dataSource.joinTermination();
@@ -394,7 +393,7 @@ public class RuntimeManager {
                     stopDataPointShutdown(p.getId());
             }
             synchronized (runningDataSources) {
-            	runningDataSources.remove(dataSource);
+            	runningDataSources.remove(dataSource.getId());
             }
             
             dataSource.terminate();
