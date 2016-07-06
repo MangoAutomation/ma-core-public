@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -23,24 +24,52 @@ public class PointValueCache {
     private final int dataPointId;
     private final int defaultSize;
     private final PointValueDao dao;
+    private int maxSize = 0;
 
     /**
      * IMPORTANT: The list object should never be written to! The implementation here is for performance. Never call
      * methods like add() or remove() on the cache object. Further, since the cache object can be replaced from time to
      * time, always use a local copy of the variable for read purposes.
      */
-    private List<PointValueTime> cache = new ArrayList<PointValueTime>();
+    private List<PointValueTime> cache;
 
-    public PointValueCache(int dataPointId, int defaultSize) {
+    public PointValueCache(int dataPointId, int defaultSize, List<PointValueTime> cache) {
         this.dataPointId = dataPointId;
         this.defaultSize = defaultSize;
+        
         dao = DaoRegistry.pointValueDao;
-
-        if (defaultSize > 0)
-            refreshCache(defaultSize);
+        
+        if (cache == null) {
+            this.cache = new ArrayList<>();
+            if (defaultSize > 0) {
+                refreshCache(defaultSize);
+            }
+        } else {
+            if (cache.size() > defaultSize) {
+                // dont keep excess point values hanging around
+                this.cache = new ArrayList<>(cache.subList(0, defaultSize));
+            } else {
+                this.cache = cache;
+            }
+            this.maxSize = defaultSize;
+        }
     }
-
-    private int maxSize = 0;
+    
+    void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
+        dao.savePointValueAsync(dataPointId, pvt, source);
+    }
+    
+    PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
+        return dao.savePointValueSync(dataPointId, pvt, source);
+    }
+    
+    void updatePointValueAsync(PointValueTime pvt, SetPointSource source) {
+        dao.updatePointValueAsync(dataPointId, pvt, source);
+    }
+    
+    PointValueTime updatePointValueSync(PointValueTime pvt, SetPointSource source) {
+        return dao.updatePointValueSync(dataPointId, pvt, source);
+    }
 
     /**
      * Update a value in the system
@@ -55,9 +84,9 @@ public class PointValueCache {
     	
         if (logValue) {
             if (async)
-                dao.updatePointValueAsync(dataPointId, pvt, source);
+                updatePointValueAsync(pvt, source);
             else
-                pvt = dao.updatePointValueSync(dataPointId, pvt, source);
+                pvt = updatePointValueSync(pvt, source);
         }
     	
         
@@ -70,26 +99,26 @@ public class PointValueCache {
         if (newCache.size() == 0)
             return; //Empty anyway
         else {
-        	for(PointValueTime cachedValue : newCache){
-        		if(cachedValue.getTime() == pvt.getTime()){
-        			cachedValue = pvt; //Replace it and break out
-        			break;
-        		}
-        	}
+            ListIterator<PointValueTime> it = newCache.listIterator();
+            while (it.hasNext()) {
+                PointValueTime cachedValue = it.next();
+                if(cachedValue.getTime() == pvt.getTime()){
+                    it.set(pvt); //Replace it and break out
+                    break;
+                }
+            }
         }
 
         cache = newCache;
     	return;
     }
     
-    
-    
     public void savePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async) {
         if (logValue) {
             if (async)
-                dao.savePointValueAsync(dataPointId, pvt, source);
+                savePointValueAsync(pvt, source);
             else
-                pvt = dao.savePointValueSync(dataPointId, pvt, source);
+                pvt = savePointValueSync(pvt, source);
         }
 
         List<PointValueTime> c = cache;
@@ -121,7 +150,7 @@ public class PointValueCache {
      */
     void logPointValueAsync(PointValueTime pointValue, SetPointSource source) {
         // Save the new value and get a point value time back that has the id and annotations set, as appropriate.
-        dao.savePointValueAsync(dataPointId, pointValue, source);
+        savePointValueAsync(pointValue, source);
     }
 
     public PointValueTime getLatestPointValue() {

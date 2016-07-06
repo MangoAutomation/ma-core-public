@@ -17,6 +17,8 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -28,18 +30,20 @@ import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.AnalogStatistics;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
-public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutClient {
+public final class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutClient {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
 
     // Configuration data.
     private final DataPointVO vo;
+    private final DataSourceVO<?> dsVo;
     private final PointLocatorRT pointLocator;
 
     // Runtime data.
@@ -64,10 +68,15 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
      */
     private double toleranceOrigin;
 
-    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator) {
+    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
         this.vo = vo;
+        this.dsVo = dsVo;
         this.pointLocator = pointLocator;
-        valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize());
+        if (DaoRegistry.pointValueDao instanceof EnhancedPointValueDao) {
+            valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache);
+        } else {
+            valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
+        }
     }
 
     /**
@@ -76,10 +85,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
      * @param pointLocator
      * @param timer
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, AbstractTimer timer) {
-        this.vo = vo;
-        this.pointLocator = pointLocator;
-        valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize());
+    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
+        this(vo, pointLocator, dsVo, initialCache);
         this.timer = timer;
     }
     
@@ -482,6 +489,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle, TimeoutCl
         return vo.getDataSourceId();
     }
 
+    public DataSourceVO<?> getDataSourceVO() {
+        return dsVo;
+    }
+    
     public DataPointVO getVO() {
         return vo;
     }

@@ -16,7 +16,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
@@ -26,6 +28,7 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter;
 import com.serotonin.m2m2.vo.emport.SpreadsheetException;
 import com.serotonin.m2m2.vo.export.ExportDataValue;
@@ -265,7 +268,12 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	if(dpRt != null)
 	    		dpRt.savePointValueDirectToCache(pvt, null, true, true);
 	    	else{
-	    		pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
+	    	    if (pointValueDao instanceof EnhancedPointValueDao) {
+	    	        DataSourceVO<?> ds = getDataSource(dp.getDataSourceId());
+	    	        ((EnhancedPointValueDao) pointValueDao).savePointValueAsync(dp, ds, pvt,null);
+	    	    } else {
+	    	        pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
+	    	    }
 	    	}
     	}else{
     		//Update the point value
@@ -276,7 +284,19 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	}
 
     	}
-    }    
+    }
+    
+    Map<Integer, DataSourceVO<?>> cachedDataSources = new HashMap<>();
+    
+    DataSourceVO<?> getDataSource(int dataSourceId) {
+        DataSourceVO<?> ds = cachedDataSources.get(dataSourceId);
+        if (ds == null) {
+            ds = DaoRegistry.dataSourceDao.get(dataSourceId);
+            if (ds != null)
+                cachedDataSources.put(dataSourceId, ds);
+        }
+        return ds;
+    }
     
     
     /* (non-Javadoc)

@@ -24,6 +24,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -274,37 +275,8 @@ public class RuntimeManager {
     }
 
     private boolean initializeDataSource(DataSourceVO<?> vo) {
-    	long startTime = System.nanoTime();
-
         synchronized (runningDataSources) {
-            // If the data source is already running, just quit.
-            if (isDataSourceRunning(vo.getId()))
-                return false;
-
-            // Ensure that the data source is enabled.
-            Assert.isTrue(vo.isEnabled());
-
-            // Create and initialize the runtime version of the data source.
-            DataSourceRT dataSource = vo.createDataSourceRT();
-            dataSource.initialize();
-
-            // Add it to the list of running data sources.
-            runningDataSources.add(dataSource);
-            
-            // Add the enabled points to the data source.
-            List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPoints(vo.getId(), null);
-            for (DataPointVO dataPoint : dataSourcePoints) {
-                if (dataPoint.isEnabled())
-                    startDataPoint(dataPoint);
-            }
-
-            LOG.info("Data source '" + vo.getName() + "' initialized");
-
-        	long endTime = System.nanoTime();
-
-        	long duration = endTime - startTime;
-        	LOG.info("Data source '" + vo.getName() + "' took " + (double)duration/(double)1000000 + "ms to start");
-            return true;
+            return initializeDataSourceStartup(vo);
         }
     }
 
@@ -331,12 +303,45 @@ public class RuntimeManager {
         synchronized(runningDataSources) {
         	runningDataSources.put(dataSource.getId(), dataSource);
         }
-        
+
         // Add the enabled points to the data source.
         List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPoints(vo.getId(), null);
+        
+        Map<Integer, List<PointValueTime>> latestValuesMap = null;
+        if (DaoRegistry.pointValueDao instanceof EnhancedPointValueDao) {
+            EnhancedPointValueDao pvDao = (EnhancedPointValueDao) DaoRegistry.pointValueDao;
+            
+            // XXX Find the maximum cache size for all point in the datasource
+            // This number of values will be retrieved for all points in the datasource
+            // If even one point has a high cache size this *may* cause issues
+            int maxCacheSize = 0;
+            for (DataPointVO dataPoint : dataSourcePoints) {
+                if (dataPoint.getDefaultCacheSize() > maxCacheSize)
+                    maxCacheSize = dataPoint.getDefaultCacheSize();
+            }
+            
+            try {
+                latestValuesMap = pvDao.getLatestPointValuesForDataSource(vo, maxCacheSize);
+            } catch (Exception e) {
+                LOG.error("Failed to get latest point values for datasource " + vo.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
+            }
+        }
+        
         for (DataPointVO dataPoint : dataSourcePoints) {
-            if (dataPoint.isEnabled())
-                startDataPointStartup(dataPoint);
+            if (dataPoint.isEnabled()) {
+                List<PointValueTime> latestValuesForPoint = null;
+                if (latestValuesMap != null) {
+                    latestValuesForPoint = latestValuesMap.get(dataPoint.getId());
+                    if (latestValuesForPoint == null) {
+                        latestValuesForPoint = Collections.emptyList();
+                    }
+                }
+                try {
+                    startDataPointStartup(dataPoint, latestValuesForPoint);
+                } catch (Exception e) {
+                    LOG.error("Failed to start data point " + dataPoint.getXid(), e);
+                }
+            }
         }
 
         LOG.info("Data source '" + vo.getName() + "' initialized");
@@ -438,7 +443,7 @@ public class RuntimeManager {
         DaoRegistry.dataPointDao.saveDataPoint(point);
 
         if (point.isEnabled())
-            startDataPoint(point);
+            startDataPoint(point, null);
     }
 
     public void deleteDataPoint(DataPointVO point) {
@@ -448,64 +453,25 @@ public class RuntimeManager {
         Common.eventManager.cancelEventsForDataPoint(point.getId());
     }
 
-    private void startDataPoint(DataPointVO vo) {
+    private void startDataPoint(DataPointVO vo, List<PointValueTime> initialCache) {
         synchronized (dataPoints) {
-            Assert.isTrue(vo.isEnabled());
-
-            // Only add the data point if its data source is enabled.
-            DataSourceRT ds = getRunningDataSource(vo.getDataSourceId());
-            if (ds != null) {
-                // Change the VO into a data point implementation.
-                DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime());
-
-                // Add/update it in the data image.
-                dataPoints.put(dataPoint.getId(), dataPoint);
-
-                // Initialize it.
-                dataPoint.initialize();
-                
-                //If we are a polling data source then we need to wait to start our interval logging
-                // until the first poll due to quantization
-                boolean isPolling = ds instanceof PollingDataSource;
-                
-                //If we are not polling go ahead and start the interval logging, otherwise we will let the data source do it on the first poll
-                if(!isPolling)
-                	dataPoint.initializeIntervalLogging(0l, false);
-                
-                DataPointListener l = getDataPointListeners(vo.getId());
-                if (l != null)
-                    l.pointInitialized();
-
-                // Add/update it in the data source.
-                try{
-                	ds.addDataPoint(dataPoint);
-                }catch(Exception e){
-                	//This can happen if there is a corrupt DB with a point for a different 
-                	// data source type linked to this data source...
-                	LOG.error("Failed to start point with xid: " + dataPoint.getVO().getXid()
-                			+ " disabling point."
-                			, e);
-                	//TODO Fire Alarm to warn user.
-                	//Common.eventManager.raiseEvent(type, time, rtnApplicable, alarmLevel, message, context);
-                	dataPoint.getVO().setEnabled(false);
-                	saveDataPoint(dataPoint.getVO()); //Stop it
-                }
-            }
+            startDataPointStartup(vo, initialCache);
         }
     }
 
     /**
      * Only to be used at startup as synchronization has been reduced for performance
      * @param vo
+     * @param latestValue 
      */
-    private void startDataPointStartup(DataPointVO vo) {
+    private void startDataPointStartup(DataPointVO vo, List<PointValueTime> initialCache) {
         Assert.isTrue(vo.isEnabled());
 
         // Only add the data point if its data source is enabled.
         DataSourceRT ds = getRunningDataSource(vo.getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
-            DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime());
+            DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime(), ds.getVo(), initialCache);
 
             // Add/update it in the data image.
             synchronized (dataPoints) {
@@ -595,7 +561,7 @@ public class RuntimeManager {
     
     public void restartDataPoint(DataPointVO vo){
     	this.stopDataPoint(vo.getId());
-    	this.startDataPoint(vo);
+    	this.startDataPoint(vo, null);
     }
     
     public boolean isDataPointRunning(int dataPointId) {
