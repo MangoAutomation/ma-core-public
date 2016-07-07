@@ -80,7 +80,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     public void incrementSuccessfulPolls(long time) {
         successfulPolls.incrementAndGet();
         boolean lastPollSuccessful = this.lastPollSuccessful.getAndSet(true);
-        if (lastPollSuccessful) {
+        if (!lastPollSuccessful) {
 	        // Return event to normal
 	        int eventId = vo.getPollAbortedExceptionEventId();
 	        if(eventId >= 0) {
