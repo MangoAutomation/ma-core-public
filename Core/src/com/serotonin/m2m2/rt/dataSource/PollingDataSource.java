@@ -114,8 +114,10 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
     	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
             // There is another poll still running, so abort this one.
-            LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
+    	    if (LOG.isWarnEnabled()) {
+    	        LOG.warn(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
                     + " aborted because its start time of " + Functions.getFullMilliSecondTime(startTs) + " is more than the time allocated for in its poll period."); //+ builder.toString());
+    	    }
     		final long pollTime = fireTime;
             Common.backgroundProcessing.addWorkItem(new WorkItem(){
 
