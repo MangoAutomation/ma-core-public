@@ -39,6 +39,15 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
 		this.data = data;
 	}
 	
+    @JsonGetter("id")
+    public int getId(){
+        return this.data.getId();
+    }
+    
+    @JsonSetter("id")
+    public void setId(){ }//No Op 
+    
+	
 	@JsonGetter(value="alarmLevels")
 	public Map<String,String> getAlarmLevels(){
 		ExportCodes eventCodes = this.data.getEventCodes();
