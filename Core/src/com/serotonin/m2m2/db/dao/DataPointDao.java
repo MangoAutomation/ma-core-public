@@ -18,8 +18,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import net.jazdw.rql.parser.ASTNode;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -49,7 +50,6 @@ import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -57,11 +57,8 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.util.SerializationHelper;
-
-import net.jazdw.rql.parser.ASTNode;
 
 /**
  * This class is a Half-Breed between the legacy Dao and the new type that extends AbstractDao.
@@ -1363,48 +1360,5 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			return count;
 		}
 	}
-	
-	private static class DeviceAndPermission {
-	    String deviceName;
-	    String permission;
-	}
-	
-	private static class DeviceAndPermissionCallback implements MappedRowCallback<DeviceAndPermission> {
-	    User user;
-        HashSet<String> results;
 
-        DeviceAndPermissionCallback(User user) {
-	        this.user = user;
-	        this.results = new HashSet<>();
-	    }
-	    
-        @Override
-        public void row(DeviceAndPermission item, int index) {
-            if (Permissions.hasPermission(user, item.permission)) {
-                results.add(item.deviceName);
-            }
-        }
-    }
-	
-	private final static RowMapper<DeviceAndPermission> DEVICE_AND_PERMISSION_MAPPER = new RowMapper<DeviceAndPermission>() {
-        @Override
-        public DeviceAndPermission mapRow(ResultSet rs, int rowNum) throws SQLException {
-            DeviceAndPermission dp = new DeviceAndPermission();
-            dp.deviceName = rs.getString(1);
-            dp.permission = rs.getString(2);
-            return dp;
-        }
-	};
-
-	public Set<String> getDeviceNames(User user) {
-	    DeviceAndPermissionCallback callback = new DeviceAndPermissionCallback(user);
-	    query("SELECT DISTINCT deviceName, readPermission FROM datapoints", new Object[] {}, DEVICE_AND_PERMISSION_MAPPER, callback);
-	    return callback.results;
-	}
-
-	public Set<String> getDeviceNames(User user, int dataSourceId) {
-	    DeviceAndPermissionCallback callback = new DeviceAndPermissionCallback(user);
-	    query("SELECT DISTINCT deviceName, readPermission FROM datapoints WHERE dataSourceId=?", new Object[] {dataSourceId}, DEVICE_AND_PERMISSION_MAPPER, callback);
-	    return callback.results;
-	}
 }
