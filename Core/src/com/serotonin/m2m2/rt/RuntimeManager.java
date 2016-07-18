@@ -333,7 +333,7 @@ public class RuntimeManager {
                 if (latestValuesMap != null) {
                     latestValuesForPoint = latestValuesMap.get(dataPoint.getId());
                     if (latestValuesForPoint == null) {
-                        latestValuesForPoint = Collections.emptyList();
+                        latestValuesForPoint = new ArrayList<>();
                     }
                 }
                 try {
