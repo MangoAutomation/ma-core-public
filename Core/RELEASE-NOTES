@@ -35,6 +35,11 @@
 * Adding env property runtime.javascript.metrics to log execution timing of scripts
 * Making WebSocket definitions modular
 * Adding CORS support for core as env.properties
+* Bugfix to prevent importing databaseSchemaVersion in JSON, causing database upgrade errors
+* Adding User Audit Events
+* Adding Publisher Audit Events
+* Bugfix to allow migration of JSON data SQL table
+* Reduced logging for aborted polls on polling data sources in systems with large amounts of alarms
 
 *Version 2.7.12*
 * ETag Support for caching pages
@@ -44,13 +49,10 @@
 * Changed data point permissions editing area to support more complex queries and null vs empty permissions
 * Added support for Apache Cassandra point value storage (CassandraDB module required)
 * Improved startup times on some databases with provisions made for improving all databases
+* Support for more complex queries when assigning permissions to data points
 * Adding a Serial Server socket bridge to accept incoming sockets and forward to serial ports
 * Retrieve running data sources more efficiently
 * Fix for aborted polls on polling data sources in systems with large amounts of alarms
-* Bugfix to allow migration of JSON data SQL table
-* Bugfix to prevent importing databaseSchemaVersion in JSON, causing database upgrade errors
-* Adding User Audit Events
-* Adding Publisher Audit Events
 
 *Version 2.7.10*
 * Fixing bug in upgrade and create-tables scripts for MySQL
