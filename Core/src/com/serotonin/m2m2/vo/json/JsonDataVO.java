@@ -35,20 +35,12 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 	private static final long serialVersionUID = 1L;
 
 	private Object jsonData;
+
 	@JsonProperty
-    private String dataPath;
-    @JsonProperty
 	private String readPermission;
 	@JsonProperty
 	private String editPermission;
-
-    public String getDataPath() {
-        return dataPath;
-    }
-    public void setDataPath(String dataPath) {
-        this.dataPath = dataPath;
-    }
-
+	
 	public Object getJsonData() {
 		return jsonData;
 	}
