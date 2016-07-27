@@ -29,6 +29,16 @@ public class JsonDataModel extends AbstractVoModel<JsonDataVO>{
 		super(new JsonDataVO());
 	}
 	
+	@JsonGetter("dataPath")
+    public String getDataPath() {
+        return data.getDataPath();
+    }
+	
+	@JsonSetter("dataPath")
+    public void setDataPath(String dataPath) {
+	    this.data.setDataPath(dataPath);
+    }
+
 	@JsonGetter("readPermission")
 	public String getReadPermission(){
 		return this.data.getReadPermission();
