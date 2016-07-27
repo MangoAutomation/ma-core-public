@@ -18,6 +18,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -83,6 +84,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
      * To allow simulation of points using a timer implementation
      * @param vo
      * @param pointLocator
+     * @param Data Source
+     * @param initial cache
      * @param timer
      */
     public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
@@ -90,7 +93,34 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         this.timer = timer;
     }
     
-    //
+    /**
+     * For Legacy compatibility in 2.7.12
+     * 
+     * TODO Remove in 2.7.8 and fix modules
+     * 
+	 * @param DataPoint
+	 * @param Point Locator RT
+	 */
+	public DataPointRT(DataPointVO dp, PointLocatorRT rt) {
+		this(dp, rt, DataSourceDao.instance.get(dp.getDataSourceId()), null);
+	}
+
+    /**
+     * For Legacy compatibility in 2.7.12
+     * 
+     * TODO Remove in 2.7.8 and fix modules
+     * 
+     * To allow simulation of points using a timer implementation
+     * @param vo
+     * @param pointLocator
+     * @param timer
+     */
+    public DataPointRT(DataPointVO dp, PointLocatorRT pointLocator, AbstractTimer timer) {
+        this(dp, pointLocator, DataSourceDao.instance.get(dp.getDataSourceId()), null);
+        this.timer = timer;
+    }
+	
+	//
     //
     // Single value
     //
