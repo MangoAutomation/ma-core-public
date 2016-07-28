@@ -365,6 +365,10 @@ footer {
 .mango .dgrid-grid .dgrid-loading {
     margin-top: 5px;
     text-align: center;
+	z-index: 1002;
+	background: url(/images/throbber.gif) no-repeat 32px 32px;
+	background-position: center;
+	height: 50px;   
 }
 
 .mango .dgrid-grid .dgrid-header {

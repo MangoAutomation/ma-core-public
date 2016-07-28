@@ -15,10 +15,16 @@ must match all enabled filters. Filters can use either % or * as wildcards, all 
 null values, but using the value <i>*null*</i> will match a string that contains the text 'null'.
 </p>
 <p>
-Each Filter row can be applied as a boolean <i>And</i> or a boolean <i>Or</i> by setting the <b>Filter State</b> accordingly.  
+Each Filter row can be applied as a boolean operator by setting the <b>Filter State</b> accordingly.
 <i>And</i> operations require a point to match all of the required filter parameters of that filter.  <i>Or</i> operators allow matching only one 
 of the enabled filter parameters.
 </p>
+<ul>
+<li><b>And</b> requires the point to match all columns of the filter</li>
+<li><b>Or</b> requires the point to match one column of the filter</li>
+<li><b>Disabled</b> no columns of the filter are applied</li>
+</ul>
+
 <p>Each <b>filter parameter</b> can be disabled or enabled for the current request by checking the check box in the column header.  
 Disabling the parameter excludes it from the query entirely. To edit the value of the filter parameter, click in the cell 
 for the corresponding filter and start typing.  Hitting <i>enter</i> will close the editor and update the filter results.  
@@ -28,5 +34,7 @@ Filter cells <b>cannot</b> be edited if they are disabled.
 <h2>Applying Permissions</h2>
 <p>
 Permissions can be applied by adding one or more groups separated by commas into the box and then clicking <b>Apply permissions</b>.  To clear all permissions for the 
-points in view click the <b>Clear permissions</b> button.
+points in view click the <b>Clear permissions</b> button.  Permissions will not be applied twice and trailing commas will be removed.  The total number of data points 
+whose permissions are modified will be returned.  For example if your filter shows 10 points but 5 of them already have the permission 'user' then applying the permission 
+'user' to that filter group will only modify the 5 points without that permission.
 </p>

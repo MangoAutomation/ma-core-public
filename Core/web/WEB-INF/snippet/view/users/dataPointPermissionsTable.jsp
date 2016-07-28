@@ -30,31 +30,40 @@
    alt="<fmt:message key="permissions.bulkdEditDataPoint" />"
   />
   </span>
-
- <div class="formItem">
-  <label class="formLabelRequired" style="width:110px" for="setPermission"><fmt:message key="pointEdit.props.permission.set"/></label>
-  <div class="formField">
-    <button id="applySetPermission"><fmt:message key="permissions.apply"/></button>
-    <button id="clearSetPermission"><fmt:message key="permissions.clear"/></button>
-    <input id="setPermissions" type="text"/>
-    <img id="setPermissionsViewer" class="ptr" 
-      src="/images/bullet_down.png" 
-      title="<fmt:message key="users.permissions" />" 
-      alt="<fmt:message key="users.permissions" />"
-    />
+  <span id="permissionAction" class="smallTitle" style="display:none; color:red">
+   <img
+     src="/images/throbber.gif" 
+     title="<fmt:message key="common.updating" />" 
+     alt="<fmt:message key="common.updating" />"
+   />
+   <fmt:message key="common.updating" />
+  </span>
+  <div id="permissionButtons">
+	 <div class="formItem">
+	  <label class="formLabelRequired" style="width:110px" for="setPermission"><fmt:message key="pointEdit.props.permission.set"/></label>
+	  <div class="formField">
+	    <button id="applySetPermission"><fmt:message key="permissions.apply"/></button>
+	    <button id="clearSetPermission"><fmt:message key="permissions.clear"/></button>
+	    <input id="setPermissions" type="text"/>
+	    <img id="setPermissionsViewer" class="ptr" 
+	      src="/images/bullet_down.png" 
+	      title="<fmt:message key="users.permissions" />" 
+	      alt="<fmt:message key="users.permissions" />"
+	    />
+	   </div>
+	 </div>
+	 <div class="formItem">
+	    <label class="formLabelRequired" style="width:110px" for="readPermission"><fmt:message key="pointEdit.props.permission.read"/></label>
+	    <div class="formField">
+	      <button id="applyReadPermission"><fmt:message key="permissions.apply"/></button>
+	      <button id="clearReadPermission"><fmt:message key="permissions.clear"/></button>
+	      <input id="readPermissions" type="text"/>
+	      <img id="readPermissionsViewer" class="ptr" 
+	        src="/images/bullet_down.png" 
+	        title="<fmt:message key="users.permissions" />" 
+	        alt="<fmt:message key="users.permissions" />"
+	      />
+	    </div>
+	 </div>
    </div>
- </div>
- <div class="formItem">
-    <label class="formLabelRequired" style="width:110px" for="readPermission"><fmt:message key="pointEdit.props.permission.read"/></label>
-    <div class="formField">
-      <button id="applyReadPermission"><fmt:message key="permissions.apply"/></button>
-      <button id="clearReadPermission"><fmt:message key="permissions.clear"/></button>
-      <input id="readPermissions" type="text"/>
-      <img id="readPermissionsViewer" class="ptr" 
-        src="/images/bullet_down.png" 
-        title="<fmt:message key="users.permissions" />" 
-        alt="<fmt:message key="users.permissions" />"
-      />
-    </div>
- </div>
 </div>
