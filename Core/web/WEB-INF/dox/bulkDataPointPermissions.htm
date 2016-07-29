@@ -10,9 +10,9 @@ filters to find desired points.
 
 <h2>Creating a Filter</h2>
 <p>
-Filters are applied if the <b>Filter State</b> column is not set to <i>Disabled</i>.  Multiple filters can be applied at the same time. Items in the results 
-must match all enabled filters. Filters can use either % or * as wildcards, all other characters are treated as is.  Using the value <i>null</i> will match 
-null values, but using the value <i>*null*</i> will match a string that contains the text 'null'.
+Filters are applied if the <b>Filter State</b> column is not set to <i>Disabled</i>.  Multiple filters can be applied at the same time and 
+each filter row is logical OR'ed with the row above it. Filters can use either % or * as wildcards, all other characters are treated as is.
+Using the value <i>null</i> will match null values, but using the value <i>*null*</i> will match a string that contains the text 'null'.
 </p>
 <p>
 Each Filter row can be applied as a boolean operator by setting the <b>Filter State</b> accordingly.

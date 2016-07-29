@@ -310,34 +310,45 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 	var filters = this.filterStore.filter();
 	var totalFilter = null;
 	var my = this;
-	//Build the total filter
+	//Build the total filter which is of the form:
+	// (filter1_row1[&|]filter2_row1)|(filter1_row2[&|]filter2_row2)
 	filters.forEach(function(filter){
 		if(filter.id == rowId)
 			filter[columnId] = cellValue; //Update with new info from event
+		if(filter.enabled === 'disabled')
+			return true; //Skip this one
+		var rowFilter = null; //Setup a filter for this row
 		for(var prop in filter){
 			//Don't add extra info
 			if((prop != 'enabled')&&(prop != 'id')&&(filter.enabled !== 'disabled')){
 				//Only use enabled filter properties
 				if($('#cb-' + prop).is(':checked') === true){
-					if(totalFilter === null){
-						totalFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+					if(rowFilter === null){
+						rowFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
 					}else{
-						//totalFilter[prop] = new Regex(filter[prop]);
+						//Create the filter
 						var newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+						//Apply it to our row
 						if(filter.enabled === 'or')
-							totalFilter = my.pointsStore.Filter().or(totalFilter, newFilter);
+							rowFilter = my.pointsStore.Filter().or(rowFilter, newFilter);
 						else if(filter.enabled === 'and')
-							totalFilter = my.pointsStore.Filter().and(totalFilter, newFilter);
+							rowFilter = my.pointsStore.Filter().and(rowFilter, newFilter);
 					}
 				}
 			}
 		}
+		//Compile the total filter
+		if(totalFilter == null)
+			totalFilter = rowFilter;
+		else
+			totalFilter = my.pointsStore.Filter().or(totalFilter, rowFilter);
 	});
 	
 	//Just in case we don't have any criteria
 	if(totalFilter === null)
 		 totalFilter = new this.pointsStore.Filter();
 	
+	//For debugging
 	//console.log(totalFilter);
 	
 	this.currentFilter = totalFilter;
