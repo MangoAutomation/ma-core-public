@@ -361,7 +361,11 @@ footer {
  * to give them higher priority over default dgrid styles which are
  * re-included by dgrid. Keep the .mango selector until dgrid is fixed.
  */
-.mango .dgrid-grid .dgrid-no-data,
+.mango .dgrid-grid .dgrid-no-data {
+    margin-top: 5px;
+    text-align: center;
+}
+
 .mango .dgrid-grid .dgrid-loading {
     margin-top: 5px;
     text-align: center;
