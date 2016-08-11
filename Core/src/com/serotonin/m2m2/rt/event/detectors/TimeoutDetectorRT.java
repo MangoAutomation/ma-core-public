@@ -40,7 +40,7 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
     /**
      * Internal configuration field. The unique name for this event producer to be used in the scheduler (if required).
      */
-    private TimerTask task;
+    protected TimerTask task;
 
     @Override
     public void initialize() {

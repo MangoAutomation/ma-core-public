@@ -92,7 +92,7 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
                 raiseEvent(stateActiveTime + getDurationMS(), createEventContext());
             else {
                 // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
-                log.warn("Call to set event active when state is not active. Ignoring.");
+                log.warn("XID: " + this.vo.getXid() + " Call to set event active when state is not active. Ignoring.");
                 eventActive = false;
             }
         }

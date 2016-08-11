@@ -73,6 +73,8 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     @Override
     public void scheduleTimeoutImpl(long fireTime) {
+    	if((this.task != null) && (this.task.isCancelled()))
+    		return;
         setEventActive(true);
     }
 }
