@@ -46,8 +46,20 @@ public class MangoUserAuthenticationProvider implements AuthenticationProvider{
 		if(u == null)
 			throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
 		
-		//TODO Create a new Token
-		//TODO Setup Spring Security to accept our Roles as is (ie. new Voter)
+		return createToken(u);
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.authentication.AuthenticationProvider#supports(java.lang.Class)
+	 */
+	@Override
+	public boolean supports(Class<?> authentication) {
+		//TODO Expand on this later to support multiple Authentication Types
+		return true;
+	}
+
+	public static UsernamePasswordAuthenticationToken createToken(User u){
 		String [] roles = u.getPermissions().split(",");
 		List<GrantedAuthority> permissions = new ArrayList<GrantedAuthority>(roles.length);
 		
@@ -60,14 +72,5 @@ public class MangoUserAuthenticationProvider implements AuthenticationProvider{
 		//Set User object as the Principle in our Token
 		return new UsernamePasswordAuthenticationToken(u, u.getPassword(), permissions);
 	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.security.authentication.AuthenticationProvider#supports(java.lang.Class)
-	 */
-	@Override
-	public boolean supports(Class<?> authentication) {
-		//TODO Expand on this later to support multiple Authentication Types
-		return true;
-	}
-
+	
 }
