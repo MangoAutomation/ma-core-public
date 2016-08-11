@@ -20,7 +20,6 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.perf4j.StopWatch;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
@@ -29,6 +28,7 @@ import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -50,7 +50,6 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.pair.LongPair;
-import com.serotonin.monitor.IntegerMonitor;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
@@ -877,12 +876,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         private static final int MAX_INSTANCES = 5;
         private static int MAX_ROWS = 1000;
         private static final IntegerMonitor ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_MONITOR_ID,
-                "internal.monitor.BATCH_ENTRIES");
+        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"));
         private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_MONITOR_ID,
-                "internal.monitor.BATCH_INSTANCES");
+        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"));
         //TODO Create DoubleMonitor but will need to upgrade the Internal data source to do this
         private static final IntegerMonitor BATCH_WRITE_SPEED_MONITOR = new IntegerMonitor(
-                BATCH_WRITE_SPEED_MONITOR_ID, "internal.monitor.BATCH_WRITE_SPEED_MONITOR");
+                BATCH_WRITE_SPEED_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"));
 
         private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
 
@@ -975,13 +974,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
                             Long time = null;
                             if (inserts.length > 10) {
-                            	time = System.currentTimeMillis();
+                            	time = Common.backgroundProcessing.currentTimeMillis();
                             }
 
                             ejt.update(sb.toString(), params);
 
                             if (time != null) {
-                                long elapsed = System.currentTimeMillis() - time;
+                                long elapsed = Common.backgroundProcessing.currentTimeMillis() - time;
                                 if (elapsed > 0) {
                                     double writesPerSecond = ((double) inserts.length / (double) elapsed) * 1000d;
                                     BATCH_WRITE_SPEED_MONITOR.setValue((int) writesPerSecond);
@@ -1084,9 +1083,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         private static final int MAX_INSTANCES = 5;
         private static int MAX_ROWS = 1000;
         private static final IntegerMonitor ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_UPDATE_MONITOR_ID,
-                "internal.monitor.BATCH_ENTRIES");
+        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"));
         private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_UPDATE_MONITOR_ID,
-                "internal.monitor.BATCH_INSTANCES");
+        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"));
 
         private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
 

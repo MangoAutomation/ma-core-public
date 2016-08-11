@@ -43,6 +43,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
+import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonContext;
@@ -68,7 +69,6 @@ import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.filter.LoggedInFilter;
 import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserAuthenticationProvider;
-import com.serotonin.monitor.MonitoredValues;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.timer.RealTimeTimer;
@@ -84,11 +84,6 @@ public class Common {
     // Note the start time of the application.
     public static final long START_TIME = System.currentTimeMillis();
 
-    /**
-     * @deprecated Use MA_HOME instead
-     */
-    @Deprecated
-    public static String M2M2_HOME;
     public static String MA_HOME;
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);

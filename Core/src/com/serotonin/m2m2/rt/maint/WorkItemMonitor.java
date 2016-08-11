@@ -5,10 +5,10 @@
 package com.serotonin.m2m2.rt.maint;
 
 import java.util.Collection;
-import java.util.concurrent.ThreadPoolExecutor;
 
+import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.serotonin.m2m2.Common;
-import com.serotonin.monitor.IntegerMonitor;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -23,41 +23,65 @@ public class WorkItemMonitor extends TimerTask {
         Common.timer.schedule(new WorkItemMonitor());
     }
 
-    public static final String SCHEDULED_TASK_MONITOR_ID = WorkItemMonitor.class.getName() + ".scheduledTimerTaskCount";
-    public static final String MEDIUM_PROIRITY_MONITOR_ID = WorkItemMonitor.class.getName()
-            + ".mediumPriorityServiceQueueSize";
-    public static final String HIGH_PROIRITY_MONITOR_ID = WorkItemMonitor.class.getName()
-            + ".highPriorityServiceQueueSize";
     public static final String MAX_STACK_HEIGHT_MONITOR_ID = WorkItemMonitor.class.getName() + ".maxStackHeight";
     public static final String THREAD_COUNT_MONITOR_ID = WorkItemMonitor.class.getName() + ".threadCount";
     public static final String DB_ACTIVE_CONNECTIONS_MONITOR_ID = WorkItemMonitor.class.getName()
             + ".dbActiveConnections";
     public static final String DB_IDLE_CONNECTIONS_MONITOR_ID = WorkItemMonitor.class.getName() + ".dbIdleConnections";
 
-    private final IntegerMonitor highPriorityServiceQueueSize = new IntegerMonitor(HIGH_PROIRITY_MONITOR_ID,
-            "internal.monitor.MONITOR_HIGH");
-    private final IntegerMonitor mediumPriorityServiceQueueSize = new IntegerMonitor(MEDIUM_PROIRITY_MONITOR_ID,
-            "internal.monitor.MONITOR_MEDIUM");
-    private final IntegerMonitor scheduledTimerTaskCount = new IntegerMonitor(SCHEDULED_TASK_MONITOR_ID,
-            "internal.monitor.MONITOR_SCHEDULED");
+    /* High Priority Active */
+    public static final String HIGH_PROIRITY_ACTIVE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.highPriorityActive";
+    private final IntegerMonitor highPriorityActive = 
+    		new IntegerMonitor(HIGH_PROIRITY_ACTIVE_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_HIGH_ACTIVE"));
+    /* High Priority Scheduled */
+    public static final String HIGH_PRIORITY_SCHEDULED_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.highPriorityScheduled";
+    private final IntegerMonitor highPriorityScheduled = 
+    		new IntegerMonitor(HIGH_PRIORITY_SCHEDULED_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_HIGH_SCHEDULED"));
+    /* High Priority Waiting */
+    public static final String HIGH_PROIRITY_WAITING_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.highPriorityWaiting";
+    private final IntegerMonitor highPriorityWaiting = 
+    		new IntegerMonitor(HIGH_PROIRITY_WAITING_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_HIGH_WAITING"));
+
+    
+    /* Medium Priority Active */
+    public static final String MEDIUM_PROIRITY_ACTIVE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.mediumPriorityActive";
+    private final IntegerMonitor mediumPriorityActive = 
+    		new IntegerMonitor(MEDIUM_PROIRITY_ACTIVE_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_MEDIUM_ACTIVE"));
+    /* Medium Priority Waiting */
+    public static final String MEDIUM_PROIRITY_WAITING_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.mediumPriorityWaiting";
+    private final IntegerMonitor mediumPriorityWaiting = 
+    		new IntegerMonitor(MEDIUM_PROIRITY_WAITING_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_MEDIUM_WAITING"));
+
+    /* Low Priority Active */
+    public static final String LOW_PROIRITY_ACTIVE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.lowPriorityActive";
+    private final IntegerMonitor lowPriorityActive = 
+    		new IntegerMonitor(LOW_PROIRITY_ACTIVE_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_LOW_ACTIVE"));
+    /* Low Priority Waiting */
+    public static final String LOW_PROIRITY_WAITING_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.lowPriorityWaiting";
+    private final IntegerMonitor lowPriorityWaiting = 
+    		new IntegerMonitor(LOW_PROIRITY_WAITING_MONITOR_ID, new TranslatableMessage("internal.monitor.MONITOR_LOW_WAITING"));
+    
+    /* Thread info */
     private final IntegerMonitor maxStackHeight = new IntegerMonitor(MAX_STACK_HEIGHT_MONITOR_ID,
-            "internal.monitor.MONITOR_STACK_HEIGHT");
+    		new TranslatableMessage("internal.monitor.MONITOR_STACK_HEIGHT"));
     private final IntegerMonitor threadCount = new IntegerMonitor(THREAD_COUNT_MONITOR_ID,
-            "internal.monitor.MONITOR_THREAD_COUNT");
+    		new TranslatableMessage("internal.monitor.MONITOR_THREAD_COUNT"));
+    
+    /* DB Info */
     private final IntegerMonitor dbActiveConnections = new IntegerMonitor(DB_ACTIVE_CONNECTIONS_MONITOR_ID,
-            "internal.monitor.DB_ACTIVE_CONNECTIONS");
+    		new TranslatableMessage("internal.monitor.DB_ACTIVE_CONNECTIONS"));
     private final IntegerMonitor dbIdleConnections = new IntegerMonitor(DB_IDLE_CONNECTIONS_MONITOR_ID,
-            "internal.monitor.DB_IDLE_CONNECTIONS");
+    		new TranslatableMessage("internal.monitor.DB_IDLE_CONNECTIONS"));
 
 
     private final IntegerMonitor javaMaxMemory = new IntegerMonitor("java.lang.Runtime.maxMemory",
-            "java.monitor.JAVA_MAX_MEMORY");
+    		new TranslatableMessage("java.monitor.JAVA_MAX_MEMORY"));
     private final IntegerMonitor javaUsedMemory = new IntegerMonitor("java.lang.Runtime.usedMemory",
-            "java.monitor.JAVA_USED_MEMORY");
+    		new TranslatableMessage("java.monitor.JAVA_USED_MEMORY"));
     private final IntegerMonitor javaFreeMemory = new IntegerMonitor("java.lang.Runtime.freeMemory",
-            "java.monitor.JAVA_FREE_MEMORY");
+    		new TranslatableMessage("java.monitor.JAVA_FREE_MEMORY"));
     private final IntegerMonitor javaAvailableProcessors = new IntegerMonitor("java.lang.Runtime.availableProcessors",
-            "java.monitor.JAVA_PROCESSORS");
+    		new TranslatableMessage("java.monitor.JAVA_PROCESSORS"));
     
     private final int mb = 1024*1024;
     
@@ -66,9 +90,16 @@ public class WorkItemMonitor extends TimerTask {
     private WorkItemMonitor() {
         super(new FixedRateTrigger(TIMEOUT, TIMEOUT));
         this.running = true;
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityServiceQueueSize);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(mediumPriorityServiceQueueSize);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(scheduledTimerTaskCount);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityActive);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityScheduled);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityWaiting);
+
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(mediumPriorityActive);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(mediumPriorityWaiting);
+
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(lowPriorityActive);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(lowPriorityWaiting);
+        
         Common.MONITORED_VALUES.addIfMissingStatMonitor(maxStackHeight);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(threadCount);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(dbActiveConnections);
@@ -92,13 +123,19 @@ public class WorkItemMonitor extends TimerTask {
 
     public void check() {
     	
-    	if(Common.timer != null){
-    		highPriorityServiceQueueSize.setValue(((ThreadPoolExecutor) Common.timer.getExecutorService()).getActiveCount());
-    		scheduledTimerTaskCount.setValue(Common.timer.size());
+    	if(Common.backgroundProcessing != null){
+    		highPriorityActive.setValue(Common.backgroundProcessing.getHighPriorityServiceActiveCount());
+    		highPriorityScheduled.setValue(Common.backgroundProcessing.getHighPriorityServiceScheduledTaskCount());
+    		highPriorityWaiting.setValue(Common.backgroundProcessing.getHighPriorityServiceQueueSize());
+    		
+    		mediumPriorityActive.setValue(Common.backgroundProcessing.getMediumPriorityServiceActiveCount());
+    		mediumPriorityWaiting.setValue(Common.backgroundProcessing.getMediumPriorityServiceQueueSize());
+
+    		lowPriorityActive.setValue(Common.backgroundProcessing.getLowPriorityServiceActiveCount());
+    		lowPriorityWaiting.setValue(Common.backgroundProcessing.getLowPriorityServiceQueueSize());
     	}
-    	if(Common.backgroundProcessing != null)
-    		mediumPriorityServiceQueueSize.setValue(Common.backgroundProcessing.getMediumPriorityServiceQueueSize());
-       
+    	
+    	
 
         // Check the stack heights
         int max = 0;

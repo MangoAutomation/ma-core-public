@@ -20,12 +20,18 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
+import com.serotonin.provider.ProviderNotFoundException;
+import com.serotonin.provider.Providers;
+import com.serotonin.provider.TimerProvider;
+import com.serotonin.timer.OrderedRealTimeTimer;
+import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
@@ -43,8 +49,21 @@ public class BackgroundProcessing implements ILifecycle {
     public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
     public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
     
+    private OrderedRealTimeTimer timer;
+    private OrderedThreadPoolExecutor highPriorityService;
+    
     private ThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
+    
+    public BackgroundProcessing(){
+    	try {
+        	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
+        	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
+        }
+        catch (ProviderNotFoundException e) {
+            throw new ShouldNeverHappenException(e);
+        }
+    }
 
     public void addWorkItem(final WorkItem item) {
         Runnable runnable = new WorkItemRunnable() {
@@ -88,6 +107,29 @@ public class BackgroundProcessing implements ILifecycle {
         }
     }
 
+    /**
+     * Return the count of all scheduled tasks ever
+     * @return
+     */
+    public int getHighPriorityServiceScheduledTaskCount(){
+    	return this.timer.size();
+    }
+    
+    public int getHighPriorityServiceQueueSize(){
+    	return highPriorityService.getQueue().size();
+    }
+    
+    public int getHighPriorityServiceActiveCount(){
+    	return highPriorityService.getActiveCount();
+    }
+    
+    public int getHighPriorityServiceCorePoolSize(){
+    	return highPriorityService.getCorePoolSize();
+    }
+    public int getHighPriorityServiceLargestPoolSize(){
+    	return this.highPriorityService.getLargestPoolSize();
+    }    
+    
     public int getMediumPriorityServiceQueueSize() {
         return mediumPriorityService.getQueue().size();
     }
@@ -186,6 +228,10 @@ public class BackgroundProcessing implements ILifecycle {
     
     public List<WorkItemModel> getLowPriorityServiceQueueItems(){
     	return getQueueItems(lowPriorityService, "LOW");
+    }
+    
+    public int getLowPriorityServiceQueueSize() {
+        return lowPriorityService.getQueue().size();
     }
     
     /**
