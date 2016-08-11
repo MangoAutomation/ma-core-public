@@ -64,6 +64,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.filter.LoggedInFilter;
+import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserAuthenticationProvider;
 import com.serotonin.monitor.MonitoredValues;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
@@ -333,6 +334,10 @@ public class Common {
     }
 
     public static void setUser(HttpServletRequest request, User user) {
+    	
+    	//Update the security context
+	    SecurityContextHolder.getContext().setAuthentication(MangoUserAuthenticationProvider.createToken(user));
+	    //For legacy also update the session
         request.getSession().setAttribute(SESSION_USER, user);
     }
 
