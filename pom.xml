@@ -8,8 +8,8 @@
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
-  <!-- previous jetty version: 7.4.5.v20110725, 9.2.0.v20140526, 9.2.2.v20140723 9.2.6.v20141205 9.2.11.v20150529 9.2.12.v20150709 9.3.5.v20151012(this version has websocket fix) -->
-  <jettyVersion>9.2.12.v20150709</jettyVersion>
+  <!-- previous jetty version: 7.4.5.v20110725, 9.2.0.v20140526, 9.2.2.v20140723 9.2.6.v20141205 9.2.11.v20150529 9.2.12.v20150709 9.3.5.v20151012(this version has websocket fix) 9.2.12.v20150709-->
+  <jettyVersion>9.3.11.v20160721</jettyVersion>
   <!-- previous spring version: 3.1.1.RELEASE,3.1.2.RELEASE, 4.0.5.RELEASE 
    for websockets support -->
   <springVersion>4.2.2.RELEASE</springVersion>
