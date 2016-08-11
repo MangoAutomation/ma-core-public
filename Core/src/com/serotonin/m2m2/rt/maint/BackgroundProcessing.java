@@ -337,34 +337,47 @@ public class BackgroundProcessing implements ILifecycle {
         boolean lowDone = false;
         if(lowPriorityService == null)
         	lowDone = true;
-
+        
+        if(lowDone && medDone)
+        	return;
+        
         try {
             // With 5 second waits and a worst case of both of both high and low priority jobs that just won't finish,
             // this thread will wait a maximum of 6 minutes.
-            int rewaits = 36;
+            int rewaits = Common.envProps.getInt("runtime.shutdown.medLowTimeout", 60);
             while (rewaits > 0) {
-                if (!medDone && mediumPriorityService.awaitTermination(5, TimeUnit.SECONDS))
+                if (!medDone && mediumPriorityService.awaitTermination(1, TimeUnit.SECONDS))
                     medDone = true;
-                if (!lowDone && lowPriorityService.awaitTermination(5, TimeUnit.SECONDS))
+                if (!lowDone && lowPriorityService.awaitTermination(1, TimeUnit.SECONDS))
                     lowDone = true;
 
                 if (lowDone && medDone)
                     break;
 
-                if (!lowDone && !medDone)
-                    log.info("BackgroundProcessing waiting for medium (" + mediumPriorityService.getActiveCount() + ","
-                            + mediumPriorityService.getQueue().size() + ") and low priority tasks to complete");
-                else if (!medDone)
-                    log.info("BackgroundProcessing waiting for medium priority tasks ("
-                            + mediumPriorityService.getActiveCount() + "," + mediumPriorityService.getQueue().size()
-                            + ") to complete");
-                else
-                    log.info("BackgroundProcessing waiting for low priority tasks ("
-                            + lowPriorityService.getActiveCount() + "," + lowPriorityService.getQueue().size()
-                            + ") to complete");
+                if ((!lowDone && !medDone)&&(rewaits % 5 == 0))
+                    log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + mediumPriorityService.getActiveCount() +
+                            " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.\n" + 
+                            "BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
+                            " active and " +lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
+                else if ((!medDone)&&(rewaits % 5 == 0))
+                    log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + mediumPriorityService.getActiveCount() +
+                            " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.");
+                else if(rewaits % 5 == 0)
+                    log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
+                            " active and " +lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
 
                 rewaits--;
             }
+            List<Runnable> medTasks = mediumPriorityService.shutdownNow();
+            if(medTasks.size() == 0)
+            	log.info("All medium priority tasks exited gracefully.");
+            else
+            	log.info(medTasks.size() + " medium priority tasks forcefully terminated.");
+            List<Runnable> lowTasks = lowPriorityService.shutdownNow();
+            if(lowTasks.size() == 0)
+            	log.info("All low priority tasks exited gracefully.");
+            else
+            	log.info(lowTasks.size() + " low priority tasks forcefully terminated.");
         }
         catch (InterruptedException e) {
             log.info("", e);
@@ -397,7 +410,7 @@ public class BackgroundProcessing implements ILifecycle {
      * @return
      */
     public long currentTimeMillis(){
-    	return Common.timer.currentTimeMillis();
+    	return this.timer.currentTimeMillis();
     }
     
     /**
