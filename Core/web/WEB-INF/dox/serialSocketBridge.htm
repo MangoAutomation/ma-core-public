@@ -2,11 +2,16 @@
     Copyright (C) 2015 Infinite Automation Systems Inc. All rights reserved.
     @author Terry Packer
 -->
-<h1>Mango Serial Socket Bridge</h1>
-<p>The <b>Serial Socket Bridge</b> is a type of virtual serial port that allows Mango to transmit/receive serial data over a TCP/IP network.  
- The bridge acts as a client that will connect to an open TCP/IP port on a host.  The bridge will show up in the Comm port listings for applicable data sources.
+<h1>Mango Serial Socket Bridges</h1>
+<p>A <b>Serial to socket bridge</b> is a type of virtual serial port that allows Mango to transmit/receive serial data over a TCP/IP network.</p>
+<h2>Serial client settings </h2>
+<p> The bridge acts as a client that will connect to an open TCP/IP port on a host.  The bridge will show up with the <b>Serial port id</b> in the Comm port listings for applicable data sources.
 By setting the <b>host</b> and <b>port</b> Mango will attempt to open up a TCP/IP socket and transmit data and receive messages. The <b>timeout</b> setting is referred to as the SO_TIMEOUT 
 and is the timeout in milliseconds that Mango will wait during read operations.  The timeout cannot be less than 0 and a timeout of 0 is interpreted as an infinite timeout. 
 </p>
-
-
+<h2>Serial server settings </h2>
+<p> The bridge acts as a server that will accept TCP/IP connections on the local host's port.  The bridge will show up with the <b>Serial port id</b> in the Comm port listings for applicable data sources.
+By setting the <b>port</b> Mango will attempt to open up a TCP/IP server socket and wait for incoming connections. The <b>timeout</b> setting is referred to as the SO_TIMEOUT 
+and is the timeout in milliseconds that Mango will wait during read operations.  The timeout cannot be less than 0 and a timeout of 0 is interpreted as an infinite timeout. 
+The <b>Buffer Size</b> setting determines how much the socket will read before transmitting onto the serial port.
+</p>

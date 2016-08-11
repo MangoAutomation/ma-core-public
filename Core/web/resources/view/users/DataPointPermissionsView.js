@@ -71,9 +71,7 @@ DataPointPermissionsView.prototype.setupView = function(){
 	var filterOptionsData = [
 					{ id: 'disabled', name: this.tr('common.disabled'), order: 1 },
 					{ id: 'and', name: this.tr('common.logic.and'), order: 2 },
-					{ id: 'or', name: this.tr('common.logic.or'), order: 3},
-					{ id: 'not-and', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.and'), order: 4},
-					{ id: 'not-or', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.or'), order: 5}
+					{ id: 'or', name: this.tr('common.logic.or'), order: 3}
 				];
 	var filterOptionsStore = new DojoMemory({ data: filterOptionsData });
 	var filterOptionsDataStore = new ObjectStore({
@@ -316,38 +314,41 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 	filters.forEach(function(filter){
 		if(filter.id == rowId)
 			filter[columnId] = cellValue; //Update with new info from event
+		if(filter.enabled === 'disabled')
+			return true; //Skip this one
+		var rowFilter = null; //Setup a filter for this row
 		for(var prop in filter){
 			//Don't add extra info
 			if((prop != 'enabled')&&(prop != 'id')&&(filter.enabled !== 'disabled')){
 				//Only use enabled filter properties
 				if($('#cb-' + prop).is(':checked') === true){
-					if((totalFilter === null)){
-						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
-							totalFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
-						else
-							totalFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+					if(rowFilter === null){
+						rowFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
 					}else{
-						var newFilter;
-						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
-							newFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
-						else
-							newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
-						
-						if((filter.enabled === 'or')||(filter.enabled === 'not-or'))
-							totalFilter = my.pointsStore.Filter().or(totalFilter, newFilter);
-						else if((filter.enabled === 'and')||(filter.enabled === 'not-and'))
-							totalFilter = my.pointsStore.Filter().and(totalFilter, newFilter);
+						//Create the filter
+						var newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+						//Apply it to our row
+						if(filter.enabled === 'or')
+							rowFilter = my.pointsStore.Filter().or(rowFilter, newFilter);
+						else if(filter.enabled === 'and')
+							rowFilter = my.pointsStore.Filter().and(rowFilter, newFilter);
 					}
 				}
 			}
 		}
+		//Compile the total filter
+		if(totalFilter == null)
+			totalFilter = rowFilter;
+		else
+			totalFilter = my.pointsStore.Filter().or(totalFilter, rowFilter);
 	});
 	
 	//Just in case we don't have any criteria
 	if(totalFilter === null)
 		 totalFilter = new this.pointsStore.Filter();
 	
-	console.log(totalFilter);
+	//For debugging
+	//console.log(totalFilter);
 	
 	this.currentFilter = totalFilter;
 	var filteredStore = this.pointsStore.filter(totalFilter);
@@ -377,10 +378,17 @@ DataPointPermissionsView.prototype.applyPermissions = function(event){
 				$('#readPermissions').notify(this.tr('validate.invalidValue'));
 				return;
 			}
+			//Disable buttons
+			this.disableButtons();
 			this.api.applyBulkPointReadPermissions(permissions, this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
 				self.showSuccess(self.tr('permissions.bulkPermissionsApplied', appliedCount));
 				self.pointsGrid.refresh();
-			}).fail(this.showError);
+				//Enable buttons
+				self.enableButtons();
+			}).fail(function(error){
+				self.enableButtons();
+				self.showError(error);
+			});
 			break;
 		case 'set':
 			permissions = $('#setPermissions').val();
@@ -388,10 +396,17 @@ DataPointPermissionsView.prototype.applyPermissions = function(event){
 				$('#setPermissions').notify(this.tr('validate.invalidValue'));
 				return;
 			}
+			//Disable buttons
+			this.disableButtons();
 			this.api.applyBulkPointSetPermissions(permissions, this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
 				self.showSuccess(self.tr('permissions.bulkPermissionsApplied', appliedCount));
 				self.pointsGrid.refresh();
-			}).fail(this.showError);
+				//Enable buttons
+				self.enableButtons();
+			}).fail(function(error){
+				self.enableButtons();
+				self.showError(error);
+			});
 			break;
 		}
 
@@ -410,22 +425,61 @@ DataPointPermissionsView.prototype.clearPermissions = function(event){
 		var self = this;
 		switch(event.data.type){
 		case 'read':
+			//Disable buttons
+			this.disableButtons();
 			this.api.clearBulkPointReadPermissions(this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
 				self.showSuccess(self.tr('permissions.bulkPermissionsCleared', appliedCount));
 				self.pointsGrid.refresh();
-			}).fail(this.showError);
+				//Enable buttons
+				self.enableButtons();
+			}).fail(function(error){
+				self.enableButtons();
+				self.showError(error);
+			});
 			break;
 		case 'set':
+			//Disable buttons
+			this.disableButtons();
 			this.api.clearBulkPointSetPermissions(this.pointsStore._renderFilterParams(this.currentFilter)[0]).done(function(appliedCount){
 				self.showSuccess(self.tr('permissions.bulkPermissionsCleared', appliedCount));
 				self.pointsGrid.refresh();
-			}).fail(this.showError);
+				//Enable buttons
+				self.enableButtons();
+			}).fail(function(error){
+				self.enableButtons();
+				self.showError(error);
+			});
 			break;
 		}
 
 	}
 };
 
+/**
+ * Disable all the edit buttons
+ */
+DataPointPermissionsView.prototype.disableButtons = function(){
+	//Show loading
+	$('#permissionAction').css('display', 'block');
+	$('#permissionButtons').hide();
+	
+	$('#applyReadPermission').prop('disabled', true);
+	$('#clearReadPermission').prop('disabled', true);
+	$('#applySetPermission').prop('disabled', true);
+	$('#clearSetPermission').prop('disabled', true);
+};
+/**
+ * Enable all the edit buttons
+ */
+DataPointPermissionsView.prototype.enableButtons = function(){
+	$('#applyReadPermission').prop('disabled', false);
+	$('#clearReadPermission').prop('disabled', false);
+	$('#applySetPermission').prop('disabled', false);
+	$('#clearSetPermission').prop('disabled', false);
+	//Hide loading
+	$('#permissionAction').css('display', 'none');
+	$('#permissionButtons').show();
+};
 
 return DataPointPermissionsView;
 	

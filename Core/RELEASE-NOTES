@@ -9,12 +9,18 @@
 * Fixing bug where schema versions were being exported and allowed to be imported via JSON.
 
 *Version 2.7.12*
-* ETag Support
+* ETag Support for caching pages
 * Fixes to improve keeping Realtime Cache Up-to-date with Mango Point States
-* Change H2 we console startup script to use same location as Mango's H2 database
+* Change H2 web console startup script to use same location as Mango's H2 database
 * Added robots.txt to stop web crawling
 * Changed data point permissions editing area to support more complex queries and null vs empty permissions
 * Added support for Apache Cassandra point value storage (CassandraDB module required)
+* Improved startup times on some databases with provisions made for improving all databases
+* Adding a Serial Server socket bridge to accept incoming sockets and forward to serial ports
+* Retrieve running data sources more efficiently
+* Fix for aborted polls on polling data sources in systems with large amounts of alarms
+* Bugfix to allow migration of JSON data SQL table
+* Bugfix to prevent importing databaseSchemaVersion in JSON, causing database upgrade errors
 
 *Version 2.7.10*
 * Fixing bug in upgrade and create-tables scripts for MySQL

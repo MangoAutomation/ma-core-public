@@ -16,6 +16,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
@@ -76,6 +77,7 @@ public class DBConvert {
         tableNames.add("eventHandlers");
         tableNames.add("publishers");
         tableNames.add("dataPointHierarchy");
+        tableNames.add(SchemaDefinition.JSON_DATA_TABLE);
         return tableNames;
     }
 

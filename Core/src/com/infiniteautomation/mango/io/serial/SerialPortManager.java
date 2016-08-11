@@ -11,20 +11,17 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
-import jssc.SerialNativeInterface;
-import jssc.SerialPortList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig.SerialPortTypes;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.io.serial.CommPortConfigException;
-import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+
+import jssc.SerialNativeInterface;
+import jssc.SerialPortList;
 
 
 /**
@@ -40,12 +37,14 @@ public class SerialPortManager {
 	private final ReadWriteLock lock;
     private final List<SerialPortIdentifier> freePorts;
     private final List<SerialPortIdentifier> ownedPorts;
+    private boolean initialized;
     
     
     public SerialPortManager(){
     	lock = new ReentrantReadWriteLock();
     	freePorts = new CopyOnWriteArrayList<SerialPortIdentifier>();
     	ownedPorts = new CopyOnWriteArrayList<SerialPortIdentifier>();
+    	initialized = false;
     }
     
     
@@ -56,6 +55,8 @@ public class SerialPortManager {
      * @throws CommPortConfigException
      */
     public List<SerialPortIdentifier> getFreeCommPorts() throws SerialPortConfigException {
+    	if(!initialized)
+    		initialize(false);
     	return freePorts;
     }
 
@@ -65,6 +66,8 @@ public class SerialPortManager {
      * @throws CommPortConfigException
      */
     public List<SerialPortIdentifier> getAllCommPorts() throws SerialPortConfigException {
+    	if(!initialized)
+    		initialize(false);
     	List<SerialPortIdentifier> allPorts = new ArrayList<SerialPortIdentifier>(freePorts);
     	allPorts.addAll(ownedPorts);
     	return allPorts;
@@ -121,14 +124,13 @@ public class SerialPortManager {
             }
             
             //Collect any Virtual Comm Ports from the DB and load them in
-            @SuppressWarnings("unchecked")
 			List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.instance.getAll();
             if (list != null){
             	for(VirtualSerialPortConfig config : list){
             		freePorts.add(new VirtualSerialPortIdentifier(config));
             	}
             }
-
+            initialized = true;
         }
         catch (UnsatisfiedLinkError e) {
             throw new SerialPortConfigException(e.getMessage());
@@ -147,6 +149,7 @@ public class SerialPortManager {
 	 * @return
 	 */
 	public boolean portOwned(String commPortId) {
+
 		//Check to see if the port is currently in use.
 		for(SerialPortIdentifier id : ownedPorts){
 			if(id.getName().equalsIgnoreCase(commPortId)){
@@ -177,6 +180,9 @@ public class SerialPortManager {
 
 		this.lock.writeLock().lock();
 		try{
+			if(!initialized)
+				initialize(false);
+
 			//Check to see if the port is currently in use.
 			for(SerialPortIdentifier id : ownedPorts){
 				if(id.getName().equalsIgnoreCase(commPortId)){
@@ -242,7 +248,9 @@ public class SerialPortManager {
 		lock.writeLock().lock();
 		
 		try{
-			
+			if(!initialized)
+				initialize(false);
+
 			//Close the port
 			if(port == null)
 				return; //Can't close a non existent port

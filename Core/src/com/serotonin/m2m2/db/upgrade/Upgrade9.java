@@ -118,10 +118,10 @@ public class Upgrade9 extends DBUpgrade {
     };
 
     private final String[] derbyScript = { //
-    		"ALTER TABLE users ADD COLUMN permissions NVARCHAR(255);", //
-            "ALTER TABLE dataSources ADD COLUMN editPermission NVARCHAR(255);", //
-            "ALTER TABLE dataPoints ADD COLUMN readPermission NVARCHAR(255);", //
-            "ALTER TABLE dataPoints ADD COLUMN setPermission NVARCHAR(255);", //
+    		"ALTER TABLE users ADD COLUMN permissions VARCHAR(255);", //
+            "ALTER TABLE dataSources ADD COLUMN editPermission VARCHAR(255);", //
+            "ALTER TABLE dataPoints ADD COLUMN readPermission VARCHAR(255);", //
+            "ALTER TABLE dataPoints ADD COLUMN setPermission VARCHAR(255);", //
             "UPDATE users SET permissions = username || ',user';", //Give all users thier own group
             "UPDATE users SET permissions = permissions || ',superadmin' WHERE admin = 'Y';", //Add superadmin to admin users
             "ALTER TABLE users DROP COLUMN admin;"

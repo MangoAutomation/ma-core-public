@@ -5,6 +5,8 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.io.ObjectStreamException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -26,6 +28,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
@@ -35,16 +40,14 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
-import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
-import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.websocket.DataPointWebSocketDefinition;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
@@ -1099,78 +1102,42 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	 * @param updateSetPermissions - true will update set, false will update read
 	 * @return
 	 */
-	public long bulkUpdatePermissions(ASTNode root, String permissions,
+	public long bulkUpdatePermissions(ASTNode root, String uncleanPermissions,
 			boolean updateSetPermissions) {
 		
+		//Anything to do?
+		if(StringUtils.isEmpty(uncleanPermissions))
+			return 0;
+		
+		//Trim off any ending commas
+		if(uncleanPermissions.endsWith(",")){
+			uncleanPermissions = uncleanPermissions.substring(0, uncleanPermissions.length()-1);
+		}
+		
+		final String newPermissions = uncleanPermissions;
 		long count;
-		DataPointRestartCallback callback = new DataPointRestartCallback();
 		
 		if(root == null){
 			//All points
-			if(updateSetPermissions)
-				count = ejt.update("UPDATE dataPoints AS dp SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
-			else
-				count = ejt.update("UPDATE dataPoints AS dp SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END ", new Object[]{permissions, permissions});
-			//Walk through all the DPs and restart them
-			this.query(this.SELECT_ALL, new Object[]{}, this.getRowMapper(), callback);
+			count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp FOR UPDATE; ", new ArrayList<Object>()), 
+					new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
 		}else{
-			//TODO Pass in The ModelMap and Modifiers on next CORE upgrade to 2.8.x
-			Map<String,String> modelMap = new HashMap<String, String>();
-			Map<String, SQLColumnQueryAppender> modifiers = new HashMap<String, SQLColumnQueryAppender>();
-			StreamableSqlQuery<DataPointVO> query = this.createQuery(root, callback, null, modelMap, modifiers);
-			SQLStatement updateStatement;
-			List<Object> selectArgs = new ArrayList<Object>();	
-
-			selectArgs.add(permissions);
-			selectArgs.add(permissions);
-			
-			if(updateSetPermissions){
-				switch(Common.databaseProxy.getType()){
-				case H2:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " );", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				case DERBY:
-				case MSSQL:
-				case MYSQL:
-				case POSTGRES:
-				default:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp, dataSources AS ds SET dp.setPermission = CASE WHEN (dp.setPermission IS NULL) THEN (?) ELSE CONCAT(dp.setPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " AND ds.id = dp.dataSourceId", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				}
-			}else{
-				switch(Common.databaseProxy.getType()){
-				case H2:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " );", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				case DERBY:
-				case MSSQL:
-				case MYSQL:
-				case POSTGRES:
-				default:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp, dataSources AS ds SET dp.readPermission = CASE WHEN (dp.readPermission IS NULL) THEN (?) ELSE CONCAT(dp.readPermission, CONCAT(',',?)) END ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " AND ds.id = dp.dataSourceId", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				}
+			switch(Common.databaseProxy.getType()){
+			case H2:					
+			case DERBY:
+			case MSSQL:
+			case MYSQL:
+			case POSTGRES:
+			default:
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT);
+				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
+				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
+						new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
+				break;
 			}
-		}
-		//For sanity
-		if(count != callback.getCount()){
-			throw new ShouldNeverHappenException("Changed more permissions than for found datapoints!");
 		}
 		
 		return count;
-		
 	}
 
 	/**
@@ -1182,96 +1149,127 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	public long bulkClearPermissions(ASTNode root, boolean updateSetPermissions) {
 
 		long count;
-		DataPointRestartCallback callback = new DataPointRestartCallback();
 		if(root == null){
 			//All points
-			if(updateSetPermissions)
-				count = ejt.update("UPDATE dataPoints AS dp SET dp.setPermission = null");
-			else
-				count = ejt.update("UPDATE dataPoints AS dp SET dp.readPermission = null");
-		
-			//Walk through all the DPs and restart them
-			this.query(this.SELECT_ALL, new Object[]{}, this.getRowMapper(), callback);
+			count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp FOR UPDATE; ", new ArrayList<Object>()), 
+					new DataPointPermissionChangeCallback(updateSetPermissions, null));
 		}else{
-			//TODO Pass in The ModelMap and Modifiers on next CORE upgrade to 2.8.x
-			Map<String,String> modelMap = new HashMap<String, String>();
-			Map<String, SQLColumnQueryAppender> modifiers = new HashMap<String, SQLColumnQueryAppender>();
-			StreamableSqlQuery<DataPointVO> query = this.createQuery(root, callback, null, modelMap, modifiers);
-			SQLStatement updateStatement;
-			List<Object> selectArgs = new ArrayList<Object>();	
-
-			if(updateSetPermissions){
-				switch(Common.databaseProxy.getType()){
-				case H2:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp SET dp.setPermission = null WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " );", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				case DERBY:
-				case MSSQL:
-				case MYSQL:
-				case POSTGRES:
-				default:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp, dataSources as ds SET dp.setPermission = null ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " AND ds.id = dp.dataSourceId", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				}
-			}else{
-				switch(Common.databaseProxy.getType()){
-				case H2:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp SET dp.readPermission = null WHERE dp.id IN (SELECT dp.id FROM dataPoints JOIN dataSources ds on ds.id = dp.dataSourceId ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " );", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				case DERBY:
-				case MSSQL:
-				case MYSQL:
-				case POSTGRES:
-				default:
-					updateStatement = new SQLStatement("UPDATE dataPoints AS dp, dataSources as ds SET dp.readPermission = null ", selectArgs, COUNT);
-					root.accept(new RQLToSQLSelect<DataPointVO>(this), updateStatement);
-					count = ejt.update(updateStatement.getSelectSql() + " AND ds.id = dp.dataSourceId", updateStatement.getSelectArgs().toArray());
-					query.query();
-					break;
-				}
+			switch(Common.databaseProxy.getType()){
+			case H2:					
+			case DERBY:
+			case MSSQL:
+			case MYSQL:
+			case POSTGRES:
+			default:
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT);
+				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
+				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
+						new DataPointPermissionChangeCallback(updateSetPermissions, null));
+				break;
 			}
 		}
-		
-		//For sanity
-		if(count != callback.getCount()){
-			throw new ShouldNeverHappenException("Changed more permissions than for found datapoints!");
-		}
-		
 		return count;
 	}
-	
-	/*
-	 * Assumes Event Detectors are not yet set
+
+	/**
+	 * Helper to create a data point permission query where the results can be modified
+	 * @author Terry Packer
+	 *
 	 */
-	class DataPointRestartCallback implements MappedRowCallback<DataPointVO>{
+	class DataPointPermissionChangePreparedStatementCreator implements PreparedStatementCreator{
 		
-		private long count;
+		final String select;
+		final Object[] args;
+		
+		public DataPointPermissionChangePreparedStatementCreator(String sql, List<Object> args){
+			this.select = sql;
+			this.args = args.toArray();
+		}
 		
 		@Override
-		public void row(DataPointVO dp, int index) {
-			count++;
-			if(Common.runtimeManager.isDataPointRunning(dp.getId())){
-				try{
-					setEventDetectors(dp);
-					Common.runtimeManager.restartDataPoint(dp);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-				}
-			}	
+		public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+			PreparedStatement stmt = con.prepareStatement(select, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+			//Set the values
+			ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args);
+			setter.setValues(stmt);
+			return stmt;
+		}
+	}
+
+	/**
+	 * Callback handler for modifying a permission via a data point query
+	 * @author Terry Packer
+	 *
+	 */
+	class DataPointPermissionChangeCallback implements PreparedStatementCallback<Integer>{
+		final String ID = "id";
+		final String SET_PERMISSION = "setPermission";
+		final String READ_PERMISSION = "readPermission";
+		
+		//count of modified data points
+		int count;
+		//Comma separated list of permissions or one permission
+		final String newPermissions;
+		//Split of permissions on comma
+		final String[] permissions;
+		//Name of permission to change (setPermission or readPermission)
+		final String permissionName;
+		
+		public DataPointPermissionChangeCallback(boolean updateSetPermissions, String newPermissions){
+			this.count = 0;
+			this.permissionName = updateSetPermissions ? SET_PERMISSION : READ_PERMISSION;
+			this.newPermissions = newPermissions;
+			this.permissions = newPermissions != null ? newPermissions.split(",") : null;
 		}
 		
-		public long getCount(){
-			return count;
+		/* (non-Javadoc)
+		 * @see org.springframework.jdbc.core.PreparedStatementCallback#doInPreparedStatement(java.sql.PreparedStatement)
+		 */
+		@Override
+		public Integer doInPreparedStatement(PreparedStatement stmt) throws SQLException, DataAccessException {
+			try{
+				stmt.execute();
+				ResultSet rs = stmt.getResultSet();
+				boolean updated;
+				while(rs.next()){
+					updated = false;
+					String existingPermissions = rs.getString(permissionName);
+					if(StringUtils.isEmpty(existingPermissions)){
+						//No permissions, only update if new permissions are not empty
+						if(newPermissions != null){
+							existingPermissions = newPermissions;
+							updated = true;
+						}
+					}else{
+						
+						if(newPermissions != null){
+							//Don't duplicate permissions
+							for(String permission : permissions)
+								if(!existingPermissions.contains(permission)){
+									existingPermissions += "," + permission;
+									updated = true;
+								}
+						}else{
+							//Set to null
+							existingPermissions = newPermissions;
+							updated = true;
+						}
+					}
+					if(updated){
+						count++;
+						rs.updateString(permissionName, existingPermissions);
+						rs.updateRow();
+						DataPointRT rt = Common.runtimeManager.getDataPoint(rs.getInt(ID));
+						if(rt != null)
+							rt.getVO().setSetPermission(existingPermissions);
+					}
+				}
+				return count;
+            }finally{
+            	if(stmt != null) { stmt.close(); }
+            }
 		}
+		
 	}
 
 }

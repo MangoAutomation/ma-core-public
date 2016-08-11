@@ -13,6 +13,7 @@
 <%@page import="com.serotonin.m2m2.rt.event.type.EventType"%>
 <%@page import="com.serotonin.m2m2.email.MangoEmailContent"%>
 <%@page import="java.util.TimeZone"%>
+<%@page import="com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig" %>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="SystemSettingsDwr" onload="init">
@@ -678,7 +679,15 @@
         dwr.util.removeAllRows("virtualCommPortsTable");
         dwr.util.addRows("virtualCommPortsTable", ports, [
                 function(p) { return "<img id='dv"+ p.xid +"Img' src='/images/item.png'/>"; },
-                function(p) { return "<a class='link ptr virtual-comm' id='"+ p.xid +"'>"+ p.portName + ' --> ' + p.address +"</a>"; }
+                function(p) { 
+                		var endpoint;
+                		if(p.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>) {
+                			endpoint = p.address + ":" + p.port + " (Client)";
+                    	} else if(p.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>) {
+                    		endpoint = "localhost:" + p.port + " (Server)";
+                 		}
+                		return "<a class='link ptr virtual-comm' id='"+ p.xid +"'>"+ p.portName + ' --> ' + endpoint + "</a>"; 
+                	}
         ]);
         
         require(["dojo/query", "dojo/on"], function(query, on) {
@@ -703,10 +712,10 @@
     		port: $get('virtualSerialPortPort')
     	};
     	
-    	if(port.type == 2) {
+    	if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>) {
  			port.address = $get('virtualSerialPortAddress');
     		port.timeout = $get('virtualSerialPortTimeout');
-    	} else if(port.type == 3) {
+    	} else if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>) {
  			port.bufferSize = $get("virtualSerialPortBufferSize");
  			port.timeout = $get('virtualSerialPortTimeout');
  		}
@@ -734,9 +743,9 @@
  		};
     	
     	startImageFader("saveVirtualSerialPortImg", true); 		
-    	if(port.type == 2)
+    	if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>)
     		SystemSettingsDwr.saveSerialSocketBridge(port, saveCallback);
-    	else if(port.type == 3)
+    	else if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>)
     		SystemSettingsDwr.saveSerialServerSocketBridge(port, saveCallback);
     	else {
     		alert("Error: invalid virtual port type, cannot save.");
@@ -748,7 +757,6 @@
     	hide("virtualSerialPortGenericMessages");
     	hide("virtualSerialPortValidationMessages");
     	
-    	startImageFader("deleteImg");
     	var port = virtualPorts[editingVirtualSerialPortXid];
     	var callback = function(result){
     		
@@ -770,9 +778,9 @@
              }
     	};
     	startImageFader("removeVirtualSerialPortImg", true);
-    	if(port.type == 2)
+    	if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>)
     		SystemSettingsDwr.removeSerialSocketBridge(port, callback);
-    	else if(port.type == 3)
+    	else if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>)
     		SystemSettingsDwr.removeSerialServerSocketBridge(port, callback);
     	else {
     		alert("Error: invalid virtual port type, cannot save.");
@@ -812,11 +820,15 @@
     		startImageFader($("dv"+ xid +"Img"));
     		show('virtualSerialPortConfigDiv');
     		show('removeVirtualSerialPortImg');
-    		if(port.type == 2) {
+    		if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>) {
+    			show('virtualSerialConfig-socketLabel');
     			show('virtualSerialConfig-address-row');
+    			hide('virtualSerialConfig-serverLabel');
     			hide('virtualSerialConfig-bufferSize-row');
-    		} else if(port.type == 3) {
-        		hide('virtualSerialConfig-address-row');
+    		} else if(port.type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>) {
+    			hide('virtualSerialConfig-socketLabel');
+    			hide('virtualSerialConfig-address-row');
+    			show('virtualSerialConfig-serverLabel');
         		show('virtualSerialConfig-bufferSize-row');
     		}
     	}
@@ -824,12 +836,16 @@
     
     function updateVirtualSerialPortOptions() {
     	var type = $get('virtualSerialPortType');
-    	if(type == 2) {
+    	if(type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>) {
 			show('virtualSerialConfig-address-row');
 			hide('virtualSerialConfig-bufferSize-row');
-		} else if(type == 3) {
+			show('virtualSerialConfig-socketLabel');
+			hide('virtualSerialConfig-serverLabel');
+		} else if(type == <c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>) {
     		hide('virtualSerialConfig-address-row');
     		show('virtualSerialConfig-bufferSize-row');
+			hide('virtualSerialConfig-socketLabel');
+			show('virtualSerialConfig-serverLabel');
 		}
     }
     
@@ -920,11 +936,11 @@
   
   <tag:labelledSection labelKey="systemSettings.comm.virtual.serialPorts" closed="true">
   <table><tbody id="virtualSerialPortGenericMessages"></tbody></table>
-  <div class="borderDiv marR" style="width: 250px; float: left;">
+  <div class="borderDiv marR" style="float: left;">
     <table>
       <tr>
         <td>
-          <span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialSocketBridge"/></span>
+          <span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialPorts.serialSocketBridges"/></span>
           <tag:help id="serialSocketBridge"/>
         </td>
         <td align="right"><tag:img png="add" onclick="showVirtualCommPort(-1)" title="common.add"/></td>
@@ -935,7 +951,10 @@
   <div id="virtualSerialPortConfigDiv" class="borderDiv" style="float:left; display:none;">
     <table>
       <tr>
-        <td><span class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings"/></span></td>
+        <td>
+          <span id="virtualSerialConfig-socketLabel" class="smallTitle"><fmt:message key="systemSettings.comm.virtual.serialClientSocketBridgeSettings"/></span>
+          <span id="virtualSerialConfig-serverLabel" class="smallTitle" style="display:none"><fmt:message key="systemSettings.comm.virtual.serialServerSocketBridgeSettings"/></span>
+        </td>
         <td align="right">
           <tag:img id="saveVirtualSerialPortImg" png="save" onclick="saveVirtualSerialPort();" title="common.save"/>
           <tag:img id="removeVirtualSerialPortImg" png="delete" onclick="removeVirtualSerialPort();" title="common.delete" style="display:none;"/>
@@ -954,17 +973,28 @@
         <td class="formField"><input id="virtualSerialPortXid" type="text" disabled/></td>
       </tr>
       <tr>
-        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.commPortId"/></td>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialClientSocketBridgeSettings.commPortId"/></td>
         <td class="formField"><input id="virtualSerialPortName" type="text"/></td>
+<!--         <td class="formField"> -->
+<!-- 	        <input id="virtualSerialPortName" type="text"/><br/>  -->
+<%-- 	        <sst:select id="commPortIds"> --%>
+<%-- 	          <c:forEach items="${commPorts}" var="port"> --%>
+<%-- 	            <sst:option value="${port.name}">${port.name}</sst:option> --%>
+<%-- 	          </c:forEach> --%>
+<%-- 	      </sst:select> --%>
+<%-- 	      <tag:img id='commPortsLoadingImg' src="/images/hourglass.png" style='display: none;'/> --%>
+<%-- 	      <tag:img src="/images/arrow-turn-090-left.png" onclick="$set('virtualSerialPortName', $get('commPortIds'))"/> --%>
+<%-- 	      <tag:img id='commPortRefreshButton' src="/images/arrow_refresh.png" onclick="reloadCommPorts('commPortIds', 'commPortsLoadingImg')" title='common.refreshCommPorts'/> --%>
+<!-- 	    </td> -->
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialPorts.types"/></td>
         <td class="formField">
           <select id="virtualSerialPortType" onchange="updateVirtualSerialPortOptions()">
-            <option value="2" selected>
-              <fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialSocketBridge"/>
+            <option value="<c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SOCKET_BRIDGE %>"/>" selected>
+              <fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialClientSocketBridge"/>
             </option>
-            <option value="3">
+            <option value="<c:out value="<%= VirtualSerialPortConfig.SerialPortTypes.SERIAL_SERVER_SOCKET_BRIDGE %>"/>">
               <fmt:message key="systemSettings.comm.virtual.serialPorts.types.serialServerSocketBridge"/>
             </option>
           </select>
@@ -975,15 +1005,15 @@
         <td class="formField"><input id="virtualSerialPortBufferSize" type="text" value="1024"/></td>
       </tr>     
       <tr id="virtualSerialConfig-address-row">
-        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.address"/></td>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialClientSocketBridgeSettings.address"/></td>
         <td class="formField"><input id="virtualSerialPortAddress" type="text" value="localhost"/></td>
       </tr>     
        <tr>
-        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.port"/></td>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialClientSocketBridgeSettings.port"/></td>
         <td class="formField"><input id="virtualSerialPortPort" type="text" value="9000"/></td>
       </tr>     
        <tr>
-        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialSocketBridgeSettings.timeout"/></td>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.comm.virtual.serialClientSocketBridgeSettings.timeout"/></td>
         <td class="formField"><input id="virtualSerialPortTimeout" type="number" value="0"/></td>
       </tr>     
    </table>
