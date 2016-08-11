@@ -22,13 +22,13 @@ public class ScriptLog {
 
     public static final ExportCodes LOG_LEVEL_CODES = new ExportCodes();
     static {
-        LOG_LEVEL_CODES.addElement(LogLevel.NONE, "NONE", "dsEdit.script.logLevel.none");
-        LOG_LEVEL_CODES.addElement(LogLevel.TRACE, "TRACE", "dsEdit.script.logLevel.trace");
-        LOG_LEVEL_CODES.addElement(LogLevel.DEBUG, "DEBUG", "dsEdit.script.logLevel.debug");
-        LOG_LEVEL_CODES.addElement(LogLevel.INFO, "INFO", "dsEdit.script.logLevel.info");
-        LOG_LEVEL_CODES.addElement(LogLevel.WARN, "WARN", "dsEdit.script.logLevel.warn");
-        LOG_LEVEL_CODES.addElement(LogLevel.ERROR, "ERROR", "dsEdit.script.logLevel.error");
-        LOG_LEVEL_CODES.addElement(LogLevel.FATAL, "FATAL", "dsEdit.script.logLevel.fatal");
+        LOG_LEVEL_CODES.addElement(LogLevel.NONE, "NONE", "common.none");
+        LOG_LEVEL_CODES.addElement(LogLevel.TRACE, "TRACE", "common.logging.trace");
+        LOG_LEVEL_CODES.addElement(LogLevel.DEBUG, "DEBUG", "common.logging.debug");
+        LOG_LEVEL_CODES.addElement(LogLevel.INFO, "INFO", "common.logging.info");
+        LOG_LEVEL_CODES.addElement(LogLevel.WARN, "WARN", "common.logging.warn");
+        LOG_LEVEL_CODES.addElement(LogLevel.ERROR, "ERROR", "common.logging.error");
+        LOG_LEVEL_CODES.addElement(LogLevel.FATAL, "FATAL", "common.logging.fatal");
     }
 	
     private static final String[] LEVEL_STRINGS = { //
