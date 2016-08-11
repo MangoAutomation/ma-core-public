@@ -28,6 +28,7 @@ import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.metrics.EventHistogram;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -48,8 +49,12 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.m2m2.util.timeout.TimeoutClient;
+import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.pair.LongPair;
+import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
@@ -63,6 +68,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     private static final String POINT_VALUE_INSERT = POINT_VALUE_INSERT_START + POINT_VALUE_INSERT_VALUES;
     private static final String POINT_VALUE_ANNOTATION_INSERT = "insert into pointValueAnnotations "
             + "(pointValueId, textPointValueShort, textPointValueLong, sourceMessage) values (?,?,?,?)";
+
+    //Batch speed tracker
+    static final EventHistogram writesPerSecond = new EventHistogram(5000, 2);
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
@@ -870,6 +878,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
 
     static class BatchWriteBehind implements WorkItem {
+        public static final TimeoutTask statusProvider = new TimeoutTask(new FixedRateTrigger(0, 5000), new BatchWriteBehind.StatusProvider());
+
         private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<PointValueDaoSQL.BatchWriteBehindEntry>();
         private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<BatchWriteBehind>();
         private static Log LOG = LogFactory.getLog(BatchWriteBehind.class);
@@ -918,18 +928,15 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         static void add(BatchWriteBehindEntry e, ExtendedJdbcTemplate ejt) {
             synchronized (ENTRIES) {
                 ENTRIES.push(e);
-                ENTRIES_MONITOR.setValue(ENTRIES.size());
                 if (ENTRIES.size() > instances.size() * SPAWN_THRESHOLD) {
                     if (instances.size() < MAX_INSTANCES) {
                         BatchWriteBehind bwb = new BatchWriteBehind(ejt);
                         instances.add(bwb);
-                        INSTANCES_MONITOR.setValue(instances.size());
                         try {
                             Common.backgroundProcessing.addWorkItem(bwb);
                         }
                         catch (RejectedExecutionException ree) {
                             instances.remove(bwb);
-                            INSTANCES_MONITOR.setValue(instances.size());
                             throw ree;
                         }
                     }
@@ -954,7 +961,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
                         inserts = new BatchWriteBehindEntry[ENTRIES.size() < MAX_ROWS ? ENTRIES.size() : MAX_ROWS];
                         ENTRIES.pop(inserts);
-                        ENTRIES_MONITOR.setValue(ENTRIES.size());
                     }
 
                     // Create the sql and parameters
@@ -970,24 +976,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
                     // Insert the data
                     int retries = 10;
+                    boolean success = false;
                     while (true) {
                         try {
-
-                            Long time = null;
-                            if (inserts.length > 10) {
-                            	time = Common.backgroundProcessing.currentTimeMillis();
-                            }
-
                             ejt.update(sb.toString(), params);
-
-                            if (time != null) {
-                                long elapsed = Common.backgroundProcessing.currentTimeMillis() - time;
-                                if (elapsed > 0) {
-                                    double writesPerSecond = ((double) inserts.length / (double) elapsed) * 1000d;
-                                    BATCH_WRITE_SPEED_MONITOR.setValue((int) writesPerSecond);
-                                }
-                            }
-
+                            success = true;
                             break;
                         }
                         catch (RuntimeException e) {
@@ -1018,11 +1011,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                             }
                         }
                     }
+                    if(inserts!=null && success){
+                        writesPerSecond.hitMultiple(inserts.length);
+                    }
                 }
             }
             finally {
                 instances.remove(this);
-                INSTANCES_MONITOR.setValue(instances.size());
             }
         }
 
@@ -1068,7 +1063,68 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public void rejected(RejectedTaskReason reason) { 
 			instances.remove(this);
-            INSTANCES_MONITOR.setValue(instances.size());
+		}
+		
+		
+		/**
+		 * Provide Status on the BWB System
+		 * @author Terry Packer
+		 *
+		 */
+		static class StatusProvider implements TimeoutClient{
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#scheduleTimeout(long)
+			 */
+			@Override
+			public void scheduleTimeout(long fireTime) {
+				//TODO Track and Process the failures
+				
+				//Update our monitors
+                BATCH_WRITE_SPEED_MONITOR.setValue(writesPerSecond.getEventCounts()[0] / 5);
+                ENTRIES_MONITOR.setValue(ENTRIES.size());
+				INSTANCES_MONITOR.setValue(instances.size());
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+			 */
+			@Override
+			public String getThreadName() {
+				return "SQL Point Value Status Provider";
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+			 */
+			@Override
+			public String getTaskId() {
+				return "SQL_PV_STATUS_PROVIDER";
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+			 */
+			@Override
+			public int getQueueSize() {
+				return 0;
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
+			 */
+			@Override
+			public void rejected(RejectedTaskReason reason) {
+				Common.highPriorityRejectionHandler.rejected(reason);
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#isQueueable()
+			 */
+			@Override
+			public boolean isQueueable() {
+				// TODO Auto-generated method stub
+				return false;
+			}
 		}
     }
 
@@ -1319,8 +1375,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public void rejected(RejectedTaskReason reason) { 
 			instances.remove(this);
-            INSTANCES_MONITOR.setValue(instances.size());
+            
 		}
-    }
-
+    }    
 }
