@@ -214,8 +214,6 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             if (dp.getTextRenderer() != null)
                 dp.getTextRenderer().validate(response);
         }
-        //Validate Locator
-        locator.validate(response, dp);
 
         if (!response.getHasMessages()) {
 
