@@ -470,8 +470,11 @@ public class RuntimeManager {
         // Only add the data point if its data source is enabled.
         DataSourceRT ds = getRunningDataSource(vo.getDataSourceId());
         if (ds != null) {
+        	//Get the listeners
+        	DataPointListener l = getDataPointListeners(vo.getId());
+        	
             // Change the VO into a data point implementation.
-            DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime(), ds.getVo(), initialCache);
+            DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime(), ds.getVo(), initialCache, l);
 
             // Add/update it in the data image.
             synchronized (dataPoints) {
@@ -489,7 +492,7 @@ public class RuntimeManager {
             if(!isPolling)
             	dataPoint.initializeIntervalLogging(0l, false);
             
-            DataPointListener l = getDataPointListeners(vo.getId());
+            //Notify listeners
             if (l != null)
                 l.pointInitialized();
 
@@ -574,7 +577,12 @@ public class RuntimeManager {
 
     public void addDataPointListener(int dataPointId, DataPointListener l) {
         DataPointListener listeners = dataPointListeners.get(dataPointId);
-        dataPointListeners.put(dataPointId, DataPointEventMulticaster.add(listeners, l));
+        DataPointListener multicaster = DataPointEventMulticaster.add(listeners, l);
+        dataPointListeners.put(dataPointId, multicaster);
+        //Also update the runtime
+        DataPointRT rt = dataPoints.get(dataPointId);
+        if(rt != null)
+        	rt.setListeners(multicaster);
     }
 
     public void removeDataPointListener(int dataPointId, DataPointListener l) {
@@ -583,6 +591,9 @@ public class RuntimeManager {
             dataPointListeners.remove(dataPointId);
         else
             dataPointListeners.put(dataPointId, listeners);
+        DataPointRT rt = dataPoints.get(dataPointId);
+        if(rt != null)
+        	rt.setListeners(listeners);
     }
 
     public DataPointListener getDataPointListeners(int dataPointId) {
