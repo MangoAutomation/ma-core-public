@@ -147,7 +147,7 @@ public class FileUploadController implements UrlHandler {
 
         if(dataType != null){
 	        if(dataType.equals("pointValue"))
-	        	emporter.doImport(input, new PointValueEmporter());
+	        	emporter.doImport(input, new PointValueEmporter(Common.translate("emport.pointValues")));
 	        else
 	        	throw new ShouldNeverHappenException("Unsupported data.");
     	}
