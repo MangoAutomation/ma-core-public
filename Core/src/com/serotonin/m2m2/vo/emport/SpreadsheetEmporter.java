@@ -587,4 +587,11 @@ public class SpreadsheetEmporter {
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
     }
+
+	/**
+	 * @return
+	 */
+	public int getMaxRowsPerSheet() {
+		return this.wb.getSpreadsheetVersion().getLastRowIndex();
+	}
 }

@@ -3,7 +3,10 @@ package com.serotonin.m2m2.web.servlet;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -123,6 +126,7 @@ public class ChartExportServlet extends HttpServlet {
                 pointValueDao.getPointValuesBetween(pointId, from, to, callback);
             }
         }
+        
 
         exportCreator.done();
     }
@@ -142,20 +146,16 @@ public class ChartExportServlet extends HttpServlet {
         PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     	// Stream the content.
-        //response.setContentType("text/csv");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         
-//        final Translations translations = Common.getTranslations();
-//        final ExportCsvStreamer exportCreator = new ExportCsvStreamer(response.getWriter(), translations);
-
-        final PointValueEmporter sheetEmporter = new PointValueEmporter();
+        final List<PointValueEmporter> sheetEmporters = new ArrayList<PointValueEmporter>();
+        final AtomicInteger sheetIndex = new AtomicInteger();
+        sheetEmporters.add(new PointValueEmporter(Common.translate("emport.pointValues") + " " + sheetIndex.get()));
         final SpreadsheetEmporter emporter = new SpreadsheetEmporter(FileType.XLSX);
 
         BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream());
         emporter.prepareExport(bos);
-        emporter.prepareSheetExport(sheetEmporter);
-
-        
+        emporter.prepareSheetExport(sheetEmporters.get(0));
         
         final ExportDataValue edv = new ExportDataValue();
         MappedRowCallback<PointValueTime> callback = new MappedRowCallback<PointValueTime>() {
@@ -167,7 +167,18 @@ public class ChartExportServlet extends HttpServlet {
                     edv.setAnnotation(((AnnotatedPointValueTime) pvt).getSourceMessage());
                 else
                     edv.setAnnotation(null);
-                sheetEmporter.exportRow(edv);
+                sheetEmporters.get(sheetIndex.get()).exportRow(edv);
+                
+                if(sheetEmporters.get(sheetIndex.get()).getRowsAdded() >= emporter.getMaxRowsPerSheet()){
+                	
+                	ExportPointInfo info = sheetEmporters.get(sheetIndex.get()).getPointInfo();
+                	sheetIndex.incrementAndGet();
+                	PointValueEmporter sheetEmporter = new PointValueEmporter(Common.translate("emport.pointValues") + " " + sheetIndex.get());
+                	sheetEmporter.setPointInfo(info);
+                	sheetEmporters.add(sheetEmporter);
+                	emporter.prepareSheetExport(sheetEmporters.get(sheetIndex.get()));
+                }
+                
             }
         };
 
@@ -179,7 +190,7 @@ public class ChartExportServlet extends HttpServlet {
                 pointInfo.setPointName(dp.getName());
                 pointInfo.setDeviceName(dp.getDeviceName());
                 pointInfo.setTextRenderer(dp.getTextRenderer());
-                sheetEmporter.setPointInfo(pointInfo);
+                sheetEmporters.get(sheetIndex.get()).setPointInfo(pointInfo);
 
                 pointValueDao.getPointValuesBetween(pointId, from, to, callback);
             }

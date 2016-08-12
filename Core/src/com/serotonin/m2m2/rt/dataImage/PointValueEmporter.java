@@ -50,18 +50,18 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     private DataPointDao dataPointDao = DataPointDao.instance;
     private PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 	
-	
-	public PointValueEmporter(){
-	}
-	
-	
+    private String name;
+    
+    public PointValueEmporter(String sheetName){
+    	this.name = sheetName;
+    }
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.emport.AbstractSheetEmporter#getSheetName()
 	 */
 	@Override
 	protected String getSheetName() {
-		return Common.translate("emport.pointValues");
+		return this.name;
 	}
 	
     private static final String[] headers = {
@@ -361,7 +361,16 @@ public class PointValueEmporter extends AbstractSheetEmporter{
         }else{
         	cell = row.createCell(cellNum++);
         }
+        
+        this.rowsAdded++;
 
     }
+
+	/**
+	 * @return
+	 */
+	public ExportPointInfo getPointInfo() {
+		return this.pointInfo;
+	}
     
 }
