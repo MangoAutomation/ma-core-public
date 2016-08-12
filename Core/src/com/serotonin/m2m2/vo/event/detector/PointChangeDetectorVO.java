@@ -41,4 +41,11 @@ public class PointChangeDetectorVO extends AbstractPointEventDetectorVO<PointCha
 		return new TranslatableMessage("event.detectorVo.change");
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO#isRtnApplicable()
+	 */
+	@Override
+	public boolean isRtnApplicable() {
+		return false;
+	}
 }
