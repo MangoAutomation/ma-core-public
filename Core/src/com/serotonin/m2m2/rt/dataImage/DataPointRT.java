@@ -18,7 +18,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -52,6 +51,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
     private final PointValueCache valueCache;
     private List<PointEventDetectorRT<?>> detectors;
     private final Map<String, Object> attributes = new HashMap<String, Object>();
+    private DataPointListener listeners;
 
     // Interval logging data.
     private PointValueTime intervalValue;
@@ -69,7 +69,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
      */
     private double toleranceOrigin;
 
-    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
+    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, DataPointListener listeners) {
         this.vo = vo;
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
@@ -78,6 +78,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         } else {
             valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
         }
+        this.listeners = listeners;
     }
 
     /**
@@ -88,35 +89,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
      * @param initial cache
      * @param timer
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
-        this(vo, pointLocator, dsVo, initialCache);
-        this.timer = timer;
-    }
-    
-    /**
-     * For Legacy compatibility in 2.7.12
-     * 
-     * TODO Remove in 2.7.8 and fix modules
-     * 
-	 * @param DataPoint
-	 * @param Point Locator RT
-	 */
-	public DataPointRT(DataPointVO dp, PointLocatorRT rt) {
-		this(dp, rt, DataSourceDao.instance.get(dp.getDataSourceId()), null);
-	}
-
-    /**
-     * For Legacy compatibility in 2.7.12
-     * 
-     * TODO Remove in 2.7.8 and fix modules
-     * 
-     * To allow simulation of points using a timer implementation
-     * @param vo
-     * @param pointLocator
-     * @param timer
-     */
-    public DataPointRT(DataPointVO dp, PointLocatorRT pointLocator, AbstractTimer timer) {
-        this(dp, pointLocator, DataSourceDao.instance.get(dp.getDataSourceId()), null);
+    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, DataPointListener listeners, AbstractTimer timer) {
+        this(vo, pointLocator, dsVo, initialCache, listeners);
         this.timer = timer;
     }
 	
@@ -273,7 +247,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
                 return;
         }
 
-        if (newValue.getTime() > System.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
+        if (newValue.getTime() > Common.backgroundProcessing.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             LOG.warn("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getStringValue()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime(), new Exception());
@@ -393,7 +367,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             	
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                intervalStartTime = System.currentTimeMillis();
+                intervalStartTime = Common.backgroundProcessing.currentTimeMillis();
                 averagingValues = new ArrayList<IValueTime>();
             }
         }
@@ -581,9 +555,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
     // /
     //
     private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate) {
-        DataPointListener l = Common.runtimeManager.getDataPointListeners(vo.getId());
-        if (l != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, set, backdate));
+        if (listeners != null)
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), listeners, oldValue, newValue, set, backdate));
     }
 
     class EventNotifyWorkItem implements WorkItem {
@@ -704,5 +677,12 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
      */
 	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
+	}
+
+	public DataPointListener getListeners(){
+		return this.listeners;
+	}
+	public void setListeners(DataPointListener listeners) {
+		this.listeners = listeners;
 	}
 }
