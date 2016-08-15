@@ -138,10 +138,10 @@ public class UrlSecurityFilter implements Filter {
 	                if (!allowed) {
 	                	String msg;
 	                	if(user == null){
-	                		msg = "Denying access to page where user isn't logged in, uri=" + uri;
+	                		msg = "Denying access to page where user isn't logged in, uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                	}else{
 	                		msg = "Denying access to page where user hasn't sufficient permission, user="
-	                                + user.getUsername() + ", uri=" + uri;
+	                                + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
 	                		return;
 	                	}
@@ -185,10 +185,10 @@ public class UrlSecurityFilter implements Filter {
 	                if (!allowed) {
 	                	String msg;
 	                	if(user == null){
-	                		msg = "Denying access to page where user isn't logged in, uri=" + uri;
+	                		msg = "Denying access to page where user isn't logged in, uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                	}else{
 	                		msg = "Denying access to page where user hasn't sufficient permission, user="
-	                                + user.getUsername() + ", uri=" + uri;
+	                                + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
 	                		return;
 	                	}
