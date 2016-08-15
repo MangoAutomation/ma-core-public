@@ -381,6 +381,10 @@ public class BackgroundProcessing implements ILifecycle {
             // this thread will wait a maximum of 6 minutes.
             int rewaits = Common.envProps.getInt("runtime.shutdown.medLowTimeout", 60);
             while (rewaits > 0) {
+                
+            	if(!medDone) rewaits--;
+                if(!lowDone) rewaits--;
+            	
                 if (!medDone && mediumPriorityService.awaitTermination(1, TimeUnit.SECONDS))
                     medDone = true;
                 if (!lowDone && lowPriorityService.awaitTermination(1, TimeUnit.SECONDS))
@@ -400,8 +404,6 @@ public class BackgroundProcessing implements ILifecycle {
                 else if(rewaits % 5 == 0)
                     log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
                             " active and " +lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
-
-                rewaits--;
             }
             List<Runnable> medTasks = mediumPriorityService.shutdownNow();
             if(medTasks.size() == 0)
