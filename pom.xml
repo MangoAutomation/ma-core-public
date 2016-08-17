@@ -16,8 +16,9 @@
   <springSecurityVersion>4.0.3.RELEASE</springSecurityVersion>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
-  <compilerSourceVersion>1.7</compilerSourceVersion>
-  <compilerTargetVersion>1.7</compilerTargetVersion>
+  <compilerSourceVersion>1.8</compilerSourceVersion>
+  <compilerTargetVersion>1.8</compilerTargetVersion>
+  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
  </properties>
  <organization>
    <name>Infinite Automation</name>
