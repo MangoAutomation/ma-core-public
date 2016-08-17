@@ -14,7 +14,7 @@
     <moduleName>${project.artifactId}</moduleName>
     <descriptionKey>${moduleName}.description</descriptionKey>
     <zipAssemblyName>m2m2-${moduleName}-${noSnapshotVer}</zipAssemblyName>
-    <core.target>${env.MA_HOME}</core.target>
+    <core.target>${MA_HOME}</core.target>
     <webDirectory>${project.build.directory}/web</webDirectory>
     <moduleTagDirectory>${webDirectory}/WEB-INF/tags/${moduleName}</moduleTagDirectory>
     <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
