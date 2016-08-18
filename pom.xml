@@ -18,7 +18,7 @@
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
   <compilerSourceVersion>1.8</compilerSourceVersion>
   <compilerTargetVersion>1.8</compilerTargetVersion>
-  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
  </properties>
  <organization>
    <name>Infinite Automation</name>
@@ -29,6 +29,20 @@
    <module>Core</module>
    <module>Modules</module>
  </modules>
+ <repositories>
+    <repository>
+        <releases>
+            <enabled>true</enabled>
+            <checksumPolicy>ignore</checksumPolicy>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+        <id>IAS Maven Repository</id>
+        <name>Mango Dependencies</name>
+        <url>http://mangoautomation.net:9902/maven-repo/</url>
+    </repository>
+ </repositories>
  <build>
     <directory>maven-target</directory>
     <pluginManagement>

@@ -105,12 +105,16 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
+		<excludes>
+			<!-- Exclude the module zips from the lib folder -->
+			<exclude>com.infiniteautomation.mango:*:zip</exclude>
+		</excludes>
       <useProjectArtifact>false</useProjectArtifact>
     </dependencySet>
     <dependencySet>
     	<outputDirectory>web/modules</outputDirectory>
     	<includes>
-    	<include>com.infiniteautomation.mango:mangoApi</include>
+    		<include>com.infiniteautomation.mango:mangoApi</include>
     	</includes>
     </dependencySet>
   </dependencySets>
