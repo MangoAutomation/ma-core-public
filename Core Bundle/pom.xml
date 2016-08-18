@@ -1,0 +1,95 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+	  <groupId>com.infiniteautomation.mango</groupId>
+	  <artifactId>mango-parent</artifactId>
+	  <version>2.8.0</version>
+	  <relativePath>../pom.xml</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>mango-bundle</artifactId>
+	<name>Mango Core Release Bundle</name>
+	<properties>
+	</properties>
+	<build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>core-zip</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptorRefs>
+                    <descriptorRef>coreZipAssembly</descriptorRef>
+                  </descriptorRefs>
+                  <finalName>ma-core-${project.parent.version}</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-jspc-maven-plugin</artifactId>
+            <version>${jettyVersion}</version>
+            <executions>
+              <execution>
+                <id>compile-jsp</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>jspc</goal>
+                </goals>
+                <configuration>
+                  <webAppSourceDirectory>${MA_HOME}/web</webAppSourceDirectory>
+                  <webXml>${MA_HOME}/web/WEB-INF/web.xml</webXml>
+                  <webXmlFragment>${project.build.directory}/web-fragment.xml</webXmlFragment>
+                  <includes>${MA_HOME}/web/**/*.jsp, ${MA_HOME}/web/**/*.jspf</includes>
+                  <excludes>WEB-INF/**</excludes>
+                  <mergeFragment>false</mergeFragment>
+                  <keepSources>true</keepSources>
+                  <generatedClasses>${project.build.directory}/work</generatedClasses>
+                  <compilerTargetVM>${compilerTargetVersion}</compilerTargetVM>
+                  <compilerSourceVM>${compilerSourceVersion}</compilerSourceVM>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>apache-jsp</artifactId>
+                <version>${jettyVersion}</version>
+              </dependency>
+              <dependency>
+                <groupId>com.infiniteautomation</groupId>
+                <artifactId>mango</artifactId>
+                <version>${project.parent.version}</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+         </plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>com.infiniteautomation</groupId>
+			<artifactId>mango</artifactId>
+			<version>2.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.infiniteautomation.mango</groupId>
+			<artifactId>ma-priv</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>mangoApi</artifactId> -->
+<!-- 			<version>1.1.9</version> -->
+<!-- 			<classifier>module-zip</classifier> -->
+<!-- 			<type>zip</type> -->
+<!-- 		</dependency> -->
+		
+	</dependencies>
+</project>
