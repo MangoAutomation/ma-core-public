@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
@@ -52,6 +53,11 @@ public class StartupContextHandler extends ResourceHandler{
 			throws IOException, ServletException {
         //Allow access to js and css files
         int requestType = PAGE;
+        if(!request.getMethod().equalsIgnoreCase("GET")){
+        	response.setHeader("Allow", "GET");
+        	response.sendError(HttpStatus.SC_METHOD_NOT_ALLOWED, "Only GET requests allowed during startup.");
+        	return;
+        }
         
         if(request.getPathInfo().endsWith(".css") || 
         		request.getPathInfo().endsWith(".js") ||
