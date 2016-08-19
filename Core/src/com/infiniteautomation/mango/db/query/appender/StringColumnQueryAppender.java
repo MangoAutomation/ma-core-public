@@ -29,7 +29,6 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 	public void appendSQL(SQLQueryColumn column,
 			StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
-
 		
 		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
 			//Catchall for null comparisons
@@ -53,6 +52,12 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 			break;
 		case IN:
 			appendIn(column.getName(), columnArgs, selectSql, countSql);
+			break;
+		case IS:
+			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
+			break;
+		case IS_NOT:
+			appendSQL(column.getName(), IS_NOT_SQL, selectSql, countSql);
 			break;
 		case LESS_THAN:
 			appendSQL(column.getName(), LESS_THAN_SQL, selectSql, countSql);

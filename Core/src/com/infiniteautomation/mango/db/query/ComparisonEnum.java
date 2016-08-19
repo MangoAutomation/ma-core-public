@@ -20,7 +20,10 @@ public enum ComparisonEnum {
 	GREATER_THAN_EQUAL_TO,
 	IN,
 	LIKE,
+	NOT_LIKE,
 	CONTAINS,
+	IS,
+	IS_NOT,
 	AND,
 	OR;
 	
@@ -41,8 +44,14 @@ public enum ComparisonEnum {
         case "match":
         case "like":
         	return LIKE;
+        case "not like":
+        	return NOT_LIKE;
         case "in":
         	return IN;
+        case "is":
+        	return IS;
+        case "is not":
+        	return IS_NOT;
         case "and":
         	return AND;
         case "or":

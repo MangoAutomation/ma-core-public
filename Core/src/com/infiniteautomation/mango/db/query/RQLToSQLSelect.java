@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -84,7 +85,24 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
         	return statement;
         case "match":
         case "like":
-        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.LIKE);
+    		//Null Check
+    		if(node.getArgument(1) == null){
+    			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.IS);
+    		}else{
+	        	String pattern = (String)node.getArgument(1);
+	        	if(pattern.startsWith("^")){
+	        		List<Object> args = new ArrayList<Object>();
+	        		String arg = pattern.substring(1);
+	        		if(arg.equalsIgnoreCase("null")){
+		        		args.add(null);
+	        			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), args, ComparisonEnum.IS_NOT);
+	        		}else{
+		        		args.add(arg);
+	        			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), args, ComparisonEnum.NOT_LIKE);
+	        		}
+	        	}else
+	        		statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.LIKE);
+    		}
         	return statement;
         case "in":
         	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.IN);

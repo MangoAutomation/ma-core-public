@@ -21,9 +21,11 @@ Each Filter row can be applied as a boolean operator by setting the <b>Filter St
 of the enabled filter parameters on that row.
 </p>
 <ul>
+<li><b>Disabled</b> no columns of the filter are applied</li>
 <li><b>And</b> requires the point to match all columns of the filter</li>
 <li><b>Or</b> requires the point to match one column of the filter</li>
-<li><b>Disabled</b> no columns of the filter are applied</li>
+<li><b>Not And</b> applies a not condition to all columns, then requires the point to match all columns of the filter</li>
+<li><b>Not Or</b> applies a not condition to all columns, then requires the point to match one column of the filter</li>
 </ul>
 
 <p>Each <b>filter parameter</b> can be disabled or enabled for the current request by checking the check box in the column header.  

@@ -69,9 +69,12 @@ DataPointPermissionsView.prototype.setupView = function(){
 	});
 	
 	var filterOptionsData = [
-					{ id: 'disabled', name: 'Disabled', order: 1 },
-					{ id: 'and', name: 'And', order: 2 },
-					{ id: 'or', name: 'Or', order: 3}
+					{ id: 'disabled', name: this.tr('common.disabled'), order: 1 },
+					{ id: 'and', name: this.tr('common.logic.and'), order: 2 },
+					{ id: 'or', name: this.tr('common.logic.or'), order: 3},
+					{ id: 'not-and', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.and'), order: 4},
+					{ id: 'not-or', name: this.tr('common.logic.not') + ' ' + this.tr('common.logic.or'), order: 5}
+					
 				];
 	var filterOptionsStore = new DojoMemory({ data: filterOptionsData });
 	var filterOptionsDataStore = new ObjectStore({
@@ -310,8 +313,7 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 	var filters = this.filterStore.filter();
 	var totalFilter = null;
 	var my = this;
-	//Build the total filter which is of the form:
-	// (filter1_row1[&|]filter2_row1)|(filter1_row2[&|]filter2_row2)
+	//Build the total filter
 	filters.forEach(function(filter){
 		if(filter.id == rowId)
 			filter[columnId] = cellValue; //Update with new info from event
@@ -324,14 +326,21 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 				//Only use enabled filter properties
 				if($('#cb-' + prop).is(':checked') === true){
 					if(rowFilter === null){
-						rowFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
+							rowFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
+						else
+							rowFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
 					}else{
 						//Create the filter
-						var newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
-						//Apply it to our row
-						if(filter.enabled === 'or')
+						var newFilter;
+						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
+							newFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
+						else
+							newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+						
+						if((filter.enabled === 'or')||(filter.enabled === 'not-or'))
 							rowFilter = my.pointsStore.Filter().or(rowFilter, newFilter);
-						else if(filter.enabled === 'and')
+						else if((filter.enabled === 'and')||(filter.enabled === 'not-and'))
 							rowFilter = my.pointsStore.Filter().and(rowFilter, newFilter);
 					}
 				}
