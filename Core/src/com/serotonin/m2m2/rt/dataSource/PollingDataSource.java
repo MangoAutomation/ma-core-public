@@ -116,8 +116,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     	final long startTs = Common.backgroundProcessing.currentTimeMillis();
     	
     	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
+    	//TODO this can't happen since we are queuing up polls instead of allowing them to run at the same time...
     	if(jobThread != null){
-    		// TODO Review this change as it can allow 2 polls to run (but not with OrdredRealTimeTimer) (cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)
             // There is another poll still running, so abort this one.
     		if(LOG.isDebugEnabled())
     			LOG.debug(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
@@ -129,7 +129,6 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     	//If we have a queue of tasks in the timer it would be possible for our fire time to be too far in the past
     	//TODO Decide if we really want to abort it at this time
 		if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
-	        // There is another poll still running, so abort this one.
 			if(LOG.isDebugEnabled())
 				LOG.debug(vo.getName() + ": poll scheduled at " + Functions.getFullMilliSecondTime(fireTime)
 	                + " with start time of " + Functions.getFullMilliSecondTime(startTs) + " aborted because its running too late.");
