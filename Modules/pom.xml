@@ -11,7 +11,7 @@
   <packaging>pom</packaging>
   <name>Mango Modules</name>
   <properties>
-    <moduleName>${project.artifactId}</moduleName>
+    <moduleName>${project.name}</moduleName>
     <descriptionKey>${moduleName}.description</descriptionKey>
     <zipAssemblyName>m2m2-${moduleName}-${noSnapshotVer}</zipAssemblyName>
     <core.target>${MA_HOME}</core.target>
@@ -191,6 +191,18 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                   <warSourceDirectory>web/tags</warSourceDirectory>
                   <warSourceIncludes>**/*.tag</warSourceIncludes>
                   <webappDirectory>${moduleTagDirectory}</webappDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>explode-tlds</id>
+                <goals>
+                  <goal>exploded</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <warSourceDirectory>web</warSourceDirectory>
+                  <warSourceIncludes>**/*.tld</warSourceIncludes>
+                  <webappDirectory>${webDirectory}/WEB-INF/modules/${moduleName}</webappDirectory>
                 </configuration>
               </execution>
               <execution>
