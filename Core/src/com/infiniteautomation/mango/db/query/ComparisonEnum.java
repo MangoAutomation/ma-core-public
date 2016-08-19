@@ -21,7 +21,9 @@ public enum ComparisonEnum {
 	IN,
 	LIKE,
 	NOT_LIKE,
-	CONTAINS;
+	CONTAINS,
+	IS,
+	IS_NOT;
 	
 	public static ComparisonEnum convertTo(String comparison){
 		switch(comparison){
@@ -44,6 +46,10 @@ public enum ComparisonEnum {
         	return NOT_LIKE;
         case "in":
         	return IN;
+        case "is":
+        	return IS;
+        case "is not":
+        	return IS_NOT;
 		}
 		throw new ShouldNeverHappenException("Comparison: " + comparison + " not supported.");
 	}
