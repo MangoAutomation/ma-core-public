@@ -113,8 +113,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         
         if(pointId == Common.NEW_ID){
         	String deviceName;
+        	String readPermission = null;
+        	String setPermission = null;
             if(dp != null){
            	 	deviceName = dp.getDeviceName();
+           	 	readPermission = dp.getReadPermission();
+           	 	setPermission = dp.getSetPermission();
             }else{
             	deviceName = ds.getName();
             }
@@ -124,6 +128,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             dp.setId(pointId);
             dp.setDataSourceId(ds.getId());
             dp.setDataSourceTypeName(ds.getDefinition().getDataSourceTypeName());
+            dp.setReadPermission(readPermission);
+            dp.setSetPermission(setPermission);
            
             dp.setPointLocator(ds.createPointLocator());
             dp.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
