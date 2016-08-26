@@ -1,12 +1,12 @@
 -==@**** Welcome ****@==-
 
-Congratulations for downloading Mango Automation! For thorough help installing and running Mango, see our article on installation in our wiki: http://infiniteautomation.com/wiki/doku.php?id=installation and feel free to post requests for help on our forum, http://infiniteautomation.com/forum/category/19/mango-automation-installation
+Congratulations for downloading Mango Automation! For thorough help installing and running Mango, see our article on installation in our documentation: http://help.infiniteautomation.com and feel free to post requests for help on our forum, http://infiniteautomation.com/forum/
 
 Here are some tips to get you up and running as fast as possible:
 
 -==@**** Installation ****@==-
 
-Mango requires at least Java JDK 1.7 (also known as JDK 7) to already have been installed on your system, and new installations are advised to use Java JDK 1.8 (JDK 8). Infinite Automation recommends using the Oracle JDK 8. 
+Mango requires at least Java JDK 1.8 (also known as JDK 8) to already have been installed on your system. Infinite Automation recommends using the Oracle JDK 8. 
 You may need to set a JAVA_HOME environmental variable pointing to your JDK folder. You may also need to add the JDK's bin/ directory to the PATH environment variable.
 
 1. Unzip the Mango zip file into any directory you like (which we'll call MA_HOME).  
@@ -20,7 +20,7 @@ You may need to set a JAVA_HOME environmental variable pointing to your JDK fold
 
 -==@**** Troubleshooting ****@==-
 
-1. Make sure you have Java JDK 1.7 or 1.8 installed and on the PATH. You can test this by typing "java -version" into your shell or command prompt.
+1. Make sure you have Java JDK 1.8 installed and on the PATH. You can test this by typing "java -version" into your shell or command prompt.
 2. JAVA_HOME is set to the Java JDK install directory.  On windows usually: C:\Program Files\Java\jdk1.X.0_XX
 3. Nothing else is using tcp/udp port 8080, or change Mango to run on a different port.  See the MA_HOME/classes/env.properties file to set the new port number, and read the instructions on how to use the overrides directory to keep your env.properties persisting.
 
