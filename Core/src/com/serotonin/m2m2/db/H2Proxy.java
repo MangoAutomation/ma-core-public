@@ -197,7 +197,7 @@ public class H2Proxy extends DatabaseProxy {
 
     @Override
     public int getIdleConnections() {
-        return -1;
+        return dataSource.getMaxConnections() - dataSource.getActiveConnections();
     }
 
     @Override
