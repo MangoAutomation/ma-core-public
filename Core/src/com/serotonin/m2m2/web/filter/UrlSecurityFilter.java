@@ -143,6 +143,7 @@ public class UrlSecurityFilter implements Filter {
 	                		msg = "Denying access to page where user hasn't sufficient permission, user="
 	                                + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
+	                		LOG.info(msg);
 	                		return;
 	                	}
 	                    LOG.info(msg);
@@ -190,6 +191,7 @@ public class UrlSecurityFilter implements Filter {
 	                		msg = "Denying access to page where user hasn't sufficient permission, user="
 	                                + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
+	                		LOG.info(msg);
 	                		return;
 	                	}
 	                    LOG.info(msg);
