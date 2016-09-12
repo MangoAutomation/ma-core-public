@@ -78,4 +78,12 @@ public class HistoricalDataPoint implements IDataPointValueSource {
     public PointValueTime getPointValueAt(long time) {
         return Common.databaseProxy.newPointValueDao().getPointValueAt(id, time);
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getWidePointValues(long, long)
+	 */
+	@Override
+	public WidePointValues getWidePointValues(long from, long to) {
+		throw new RuntimeException("Unimplemented");
+	}
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
+import com.serotonin.m2m2.rt.dataImage.WidePointValues;
 import com.serotonin.m2m2.test.data.RhinoScriptTestData;
 
 /**
@@ -115,6 +116,15 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 
 	@Override
 	public PointValueTime getPointValueAt(long time) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getWidePointValues(long, long)
+	 */
+	@Override
+	public WidePointValues getWidePointValues(long from, long to) {
 		// TODO Auto-generated method stub
 		return null;
 	}

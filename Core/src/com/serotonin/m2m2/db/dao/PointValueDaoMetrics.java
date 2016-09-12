@@ -167,6 +167,14 @@ public class PointValueDaoMetrics implements PointValueDao{
 		stopWatch.stop("getPointValuesBetween(pointId,from,to,callback) + (" + pointId + ", " + from + ", " + to + ", " + callback.toString() + ")");
 	}
 
+	@Override
+	public void wideQuery(int dataPointId, long from, long to, WidePointValueQueryCallback cb){
+		StopWatch stopWatch = new Log4JStopWatch();
+		stopWatch.start();
+		dao.wideQuery(dataPointId, from, to, cb);
+		stopWatch.stop("wideQuery(dataPointId, from, to, cb) + (" + dataPointId + ", " + from + ", " + to +")");
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#getPointValuesBetween(java.util.List, long, long, com.serotonin.db.MappedRowCallback)
 	 */

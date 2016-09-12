@@ -19,6 +19,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDao.WidePointValueQueryCallback;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -186,6 +187,56 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         return result;
     }
 
+    /*
+     * Query for previous and next values in addition to a range
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getWidePointValues(long, long)
+     */
+    @Override
+    public WidePointValues getWidePointValues(final long from, final long to){
+    	
+    	final WidePointValues result = new WidePointValues();
+    	
+    	Common.databaseProxy.newPointValueDao().wideQuery(vo.getId(), from, to, new WidePointValueQueryCallback(){
+    		
+    		/* (non-Javadoc)
+    		 * @see com.serotonin.m2m2.db.dao.PointValueDao.WidePointValueQueryCallback#before(com.serotonin.m2m2.rt.dataImage.PointValueTime)
+    		 */
+    		@Override
+    		public void before(PointValueTime before) {
+    			result.setBefore(before);
+    		}
+    		
+    		/* (non-Javadoc)
+    		 * @see com.serotonin.m2m2.db.dao.PointValueDao.WidePointValueQueryCallback#sample(com.serotonin.m2m2.rt.dataImage.PointValueTime)
+    		 */
+    		@Override
+    		public void sample(PointValueTime pvt) {
+    			result.addValue(pvt);
+    			
+    		}
+    		/* (non-Javadoc)
+    		 * @see com.serotonin.m2m2.db.dao.PointValueDao.WidePointValueQueryCallback#after(com.serotonin.m2m2.rt.dataImage.PointValueTime)
+    		 */
+    		@Override
+    		public void after(PointValueTime after) {
+    			result.setAfter(after);
+    			
+    			//Finish by inserting the cache contents
+    	        for (PointValueTime pvt : valueCache.getCacheContents()) {
+    	            if (pvt.getTime() >= from && pvt.getTime() < to) {
+    	                int index = Collections.binarySearch(result.getValues(), pvt, pvtTimeComparator);
+    	                if (index < 0)
+    	                    result.getValues().add(-index - 1, pvt);
+    	            }
+    	        }
+    			
+    		}
+    	});
+    	
+    	return result;
+    }
+    
     /**
      * This method should only be called by the data source. Other types of point setting should include a set point
      * source object so that the annotation can be logged.

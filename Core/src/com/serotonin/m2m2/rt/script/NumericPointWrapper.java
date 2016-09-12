@@ -4,12 +4,11 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import java.util.List;
-
 import javax.script.ScriptEngine;
 
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.WidePointValues;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.view.stats.AnalogStatistics;
@@ -68,15 +67,13 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to);
     }
-
+    
     public AnalogStatisticsWrapper getStats(long from, long to) {
-        PointValueTime start = point.getPointValueBefore(from);
-        List<PointValueTime> values = point.getPointValuesBetween(from, to);
-        PointValueTime end = point.getPointValueAfter(to);
-        AnalogStatistics stats = new AnalogStatistics(from, to, start, values, end);
-        AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
-        return wrapper;
-    }
+      WidePointValues wpv = point.getWidePointValues(from, to);
+      AnalogStatistics stats = new AnalogStatistics(from, to, wpv.getBefore(), wpv.getValues(), wpv.getAfter());
+      AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
+      return wrapper;
+  }
     
     @Override
 	protected void helpImpl(StringBuilder builder) {

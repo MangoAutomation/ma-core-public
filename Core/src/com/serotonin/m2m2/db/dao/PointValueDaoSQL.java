@@ -27,6 +27,8 @@ import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.metrics.EventHistogram;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
@@ -499,6 +501,43 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public List<PointValueTime> getPointValuesBetween(int dataPointId, long from, long to) {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
                 new Object[] { dataPointId, from, to }, 0);
+    }
+    
+    /* 
+     * TODO - Performance improvements
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#wideQuery(int, long, long, com.serotonin.m2m2.db.dao.PointValueDao.WidePointValueQueryCallback)
+     */
+    @Override
+    public void wideQuery(final int dataPointId, final long from, final long to, final WidePointValueQueryCallback cb) {
+
+        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				//Get the value before
+				Long valueTime = queryForObject("select max(ts) from pointValues where dataPointId=? and ts<?", new Object[] {
+		                dataPointId, from }, Long.class, null);
+		        if (valueTime == null)
+		            cb.before(null);
+		        else
+		        	cb.before(getPointValueAt(dataPointId, valueTime));
+				
+		        //Get the values
+		        getPointValuesBetween(dataPointId, from, to, new MappedRowCallback<PointValueTime>(){
+					@Override
+					public void row(PointValueTime item, int index) {
+						cb.sample(item);
+					}
+		        });
+		        
+				//Get the value after
+		        valueTime = queryForObject("select min(ts) from pointValues where dataPointId=? and ts>=?", new Object[] {
+		                dataPointId, to }, Long.class, null);
+		        if (valueTime == null)
+		            cb.after(null);
+		        cb.after(getPointValueAt(dataPointId, valueTime));
+			}
+        });
     }
 
     @Override

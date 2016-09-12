@@ -30,6 +30,7 @@ public interface IDataPointValueSource {
 
     PointValueTime getPointValueAt(long time);
 
+    WidePointValues getWidePointValues(long from, long to);
     
     int getDataTypeId();
 }

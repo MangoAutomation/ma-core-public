@@ -122,6 +122,41 @@ public interface PointValueDao {
     public void getPointValuesBetween(List<Integer> pointIds, long from, long to,
             MappedRowCallback<IdPointValueTime> callback);
 
+	/**
+	 * Query Point Values >= from and < to, provide the value before from
+	 * then the values, finally the value after to.
+	 * 
+	 * @param dataPointId
+	 * @param from
+	 * @param to
+	 * @param cb
+	 */
+	public void wideQuery(int dataPointId, long from, long to, WidePointValueQueryCallback cb);
+	
+	
+	/**
+	 * Callback for Wide Query
+	 * @author Terry Packer
+	 *
+	 */
+	public interface WidePointValueQueryCallback{
+		/**
+		 * Get the value before from
+		 * @param before
+		 */
+		public void before(PointValueTime before);
+		/**
+		 * Called for each sample in time order for the range
+		 * @param pvt
+		 */
+		public void sample(PointValueTime pvt);
+		/**
+		 * Get the value after to
+		 * @param after
+		 */
+		public void after(PointValueTime after);
+	}
+    
     /**
      * Delete values < time
      * @param pointId
