@@ -90,6 +90,7 @@ public class UrlSecurityFilter implements Filter {
                 		msg = "Denying access to page where user hasn't sufficient permission, user="
                                 + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
                 		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
+                		LOG.warn(msg);
                 		return;
                 	}
                     LOG.warn(msg);
