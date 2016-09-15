@@ -138,13 +138,12 @@ public class RQLToSQLSelect<T> implements ASTVisitor<SQLStatement, SQLStatement>
 		SQLQueryColumn column;
 		if(prop == null){
 			appender = this.columnAppenders.get(argument);
-			if(appender == null)
-				appender = this.columnAppenders.get(prop);
 			column = dao.getQueryColumn(argument);
 		}else{
 			appender = this.columnAppenders.get(prop);
-			if(appender == null)
-				appender = this.columnAppenders.get(argument);
+//TODO Enable in 2.8.0
+//			if(appender == null)
+//				appender = this.columnAppenders.get(argument);
 			column = dao.getQueryColumn(prop);
 		}
 		if(appender != null)
