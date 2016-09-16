@@ -7,6 +7,8 @@ package com.infiniteautomation.mango.db.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.jazdw.rql.parser.ASTNode;
+
 /**
  * @author Terry Packer
  *
@@ -114,7 +116,7 @@ public class SQLStatement {
 			throw new RQLToSQLParseException("Limit cannot be applied twice to a statement");
 		
 		if (args.get(0).equals(Double.POSITIVE_INFINITY)) {
-		    if (args.size() > 1) {
+		    if ((args.size() > 1) && (!(args.get(1) instanceof ASTNode))){
 		        // apply offset only
 		        this.limitOffset.append(OFFSET_SQL);
 		        this.limitArgs.add(args.get(1));
@@ -123,16 +125,19 @@ public class SQLStatement {
 		    return;
 		}
 		
-		if(args.size() > 1){
+		if ((args.size() > 1) && (!(args.get(1) instanceof ASTNode))){
             //Limit, Offset
             this.limitOffset.append(LIMIT_OFFSET_SQL);
+            this.limitArgs.add(args.get(0));
+            this.limitArgs.add(args.get(1));
 		}else{
 			//Simple Limit
 			this.limitOffset.append(LIMIT_SQL);
+			this.limitArgs.add(args.get(0));
 		}
 
         this.appliedLimit = true;
-		this.limitArgs.addAll(args);
+		
 	}
 
 	/**
