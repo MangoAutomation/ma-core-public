@@ -33,11 +33,14 @@ public class CharColumnQueryAppender extends GenericSQLColumnQueryAppender{
 		
 		List<Object> arguments = new ArrayList<Object>();
 		for(Object o : columnArgs){
-			String arg = (String)o;
-			arg = arg.toLowerCase();
-			arg = arg.replace(TRUE_L, Y);
-			arg = arg.replace(FALSE_L, N);
-			arguments.add(arg);
+			if(o instanceof Boolean){
+				arguments.add(o);
+			}else if (o instanceof String){	
+				String arg = (String)o;
+				arg = arg.replace(TRUE_L, Y);
+				arg = arg.replace(FALSE_L, N);
+				arguments.add(arg);
+			}
 		}
 		super.appendSQL(column, selectSql, countSql, selectArgs, arguments, comparison);
 	}
