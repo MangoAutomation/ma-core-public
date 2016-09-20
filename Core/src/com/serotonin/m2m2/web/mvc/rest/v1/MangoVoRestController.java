@@ -36,7 +36,6 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public abstract class MangoVoRestController<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends MangoRestController{
 
 	protected DAO dao;
-	protected VoStreamCallback<VO, MODEL, DAO> callback;
 	
 	//Map of keys -> model members to value -> Vo member/sql column
 	protected Map<String,String> modelMap;
@@ -49,30 +48,17 @@ public abstract class MangoVoRestController<VO, MODEL, DAO extends AbstractBasic
 	 */
 	public MangoVoRestController(DAO dao){
 		this.dao = dao;
-		this.callback = new VoStreamCallback<VO, MODEL, DAO>(this);
 		this.modelMap = new HashMap<String,String>();
 		this.appenders = new HashMap<String, SQLColumnQueryAppender>();
 	}
 
-	/**
-	 * Construct a Controller
-	 * @param dao
-	 * @param callback
-	 */
-	public MangoVoRestController(DAO dao, VoStreamCallback<VO, MODEL, DAO> callback){
-		this.dao = dao;
-		this.callback = callback;
-		this.modelMap = new HashMap<String,String>();
-		this.appenders = new HashMap<String, SQLColumnQueryAppender>();
-	}
-	
 	/**
 	 * Get the Query Stream for Streaming an array of data
 	 * @param query
 	 * @return
 	 */
 	protected QueryStream<VO, MODEL, DAO> getStream(ASTNode root){
-		return this.getStream(root, this.callback);
+		return this.getStream(root, new VoStreamCallback<VO, MODEL, DAO>(this));
 	}
 	
 	/**
@@ -81,7 +67,6 @@ public abstract class MangoVoRestController<VO, MODEL, DAO extends AbstractBasic
 	 * @return
 	 */
 	protected QueryStream<VO, MODEL, DAO> getStream(ASTNode root, VoStreamCallback<VO, MODEL, DAO> callback){
-
 		QueryStream<VO, MODEL, DAO> stream = new QueryStream<VO, MODEL, DAO>(dao, this, root, callback);
 		//Ensure its ready
 		stream.setupQuery();
@@ -94,7 +79,7 @@ public abstract class MangoVoRestController<VO, MODEL, DAO extends AbstractBasic
 	 * @return
 	 */
 	protected PageQueryStream<VO, MODEL, DAO> getPageStream(ASTNode root){
-		return getPageStream(root, this.callback);
+		return getPageStream(root, new VoStreamCallback<VO, MODEL, DAO>(this));
 	}
 
 	/**
