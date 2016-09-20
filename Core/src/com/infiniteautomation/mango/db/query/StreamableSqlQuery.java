@@ -83,5 +83,5 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         }
  
 		this.dao.query(countSql, countArgs.toArray(), SingleColumnRowMapper.newInstance(Long.class), countCallback);
-	}
+	}	
 }

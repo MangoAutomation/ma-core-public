@@ -4,10 +4,12 @@
  */
 package com.serotonin.m2m2;
 
+import java.io.File;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 import com.serotonin.m2m2.util.timeout.RejectedRunnableEventGenerator;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
@@ -45,6 +47,15 @@ public class MangoTestBase {
         Common.timer.init(executor);
 		
 		
+	}
+	
+	protected void configureH2Proxy(File baseTestDir){
+		Common.envProps.setDefaultValue("db.url", "jdbc:h2:" + baseTestDir.getAbsolutePath() + File.separator + "h2");
+		Common.envProps.setDefaultValue("db.location", baseTestDir.getAbsolutePath() + File.separator + "h2");
+		Common.envProps.setDefaultValue("db.nosql.location", baseTestDir.getAbsolutePath());
+		
+		Common.databaseProxy = DatabaseProxy.createDatabaseProxy();
+		Common.databaseProxy.initialize(ClassLoader.getSystemClassLoader());
 	}
 	
 	

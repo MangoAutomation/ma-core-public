@@ -75,4 +75,8 @@ public class BaseSqlQuery<T> {
         return this.dao.queryForObject(countSql, countArgs.toArray(), Long.class , new Long(0));
 	}
 	
+	public String toString(){
+		String out = "Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString();
+		return out += "\nCount: " + countSql + " \nArgs: " + countArgs.toString();
+	}
 }
