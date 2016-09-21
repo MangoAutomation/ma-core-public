@@ -6,12 +6,12 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import java.io.IOException;
 
-import net.jazdw.rql.parser.ASTNode;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -39,7 +39,7 @@ public class PageQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>> extend
 	 */
 	@Override
 	public void setupQuery(){
-		this.results = this.dao.createQuery(root, queryCallback, countCallback, controller.getModelMap(), controller.getAppenders());
+		this.results = this.dao.createQuery(root, queryCallback, countCallback, controller.getModelMap(), controller.getAppenders(), true);
 	}
 
 	/* (non-Javadoc)
@@ -49,7 +49,6 @@ public class PageQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>> extend
 	public void streamCount(JsonGenerator jgen) throws IOException {
 		this.countCallback.setJsonGenerator(jgen);
 		this.results.count();
-		
 	}
 
 	/* (non-Javadoc)

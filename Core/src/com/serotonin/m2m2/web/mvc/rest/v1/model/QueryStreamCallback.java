@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 
@@ -23,14 +24,28 @@ public class QueryStreamCallback<T> implements MappedRowCallback<T>{
 	
 	protected JsonGenerator jgen;
 	protected CSVPojoWriter<T> csvWriter;
-	protected long count;
 	
+	/**
+	 * Set the JsonGenerator, can only be done once 
+	 * per instance.
+	 * @param jgen
+	 */
 	public void setJsonGenerator(JsonGenerator jgen){
-		this.jgen = jgen;
+		if(this.jgen == null)
+			this.jgen = jgen;
+		else
+			throw new ShouldNeverHappenException("Can't re-set JsonGenerator!");
 	}
 	
+	/**
+	 * Set the CSV Writer, can only be done once per instance.
+	 * @param csvWriter
+	 */
 	public void setCsvWriter(CSVPojoWriter<T> csvWriter){
-		this.csvWriter = csvWriter;
+		if(this.csvWriter == null)
+			this.csvWriter = csvWriter;
+		else
+			throw new ShouldNeverHappenException("Can't re-set CsvWriter!");
 	}
 	
 	/* (non-Javadoc)
@@ -43,18 +58,15 @@ public class QueryStreamCallback<T> implements MappedRowCallback<T>{
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
 		}
-		
 	}
 	
 	protected void write(T vo) throws IOException{
-		if(canWrite(vo)){
-			if(this.jgen != null)
-				this.writeJson(vo);
-			else if(this.csvWriter != null)
-				this.writeCsv(vo);
-			this.count++;
-		}
+		if(this.jgen != null)
+			this.writeJson(vo);
+		else if(this.csvWriter != null)
+			this.writeCsv(vo);
 	}
+	
 	/**
 	 * Do the work of writing the VO
 	 * @param vo
@@ -68,16 +80,5 @@ public class QueryStreamCallback<T> implements MappedRowCallback<T>{
 		this.csvWriter.writeNext(vo);
 	}
 
-	/**
-	 * Allow filtering within stream outside of query.
-	 * @param vo
-	 * @return
-	 */
-	protected boolean canWrite(T vo){
-		return true;
-	}
-	
-	public long getWrittenCount(){
-		return this.count;
-	}
+
 }

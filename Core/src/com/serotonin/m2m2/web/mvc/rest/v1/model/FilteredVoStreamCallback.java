@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
@@ -13,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
  * @author Terry Packer
  *
  */
-public class VoStreamCallback<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStreamCallback<VO> {
+public class FilteredVoStreamCallback<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends FilteredQueryStreamCallback<VO> {
 
 	protected MangoVoRestController<VO, MODEL, DAO> controller;
 	
@@ -21,7 +21,7 @@ public class VoStreamCallback<VO, MODEL, DAO extends AbstractBasicDao<VO>> exten
 	 * 
 	 * @param controller
 	 */
-	public VoStreamCallback(MangoVoRestController<VO, MODEL, DAO> controller){
+	public FilteredVoStreamCallback(MangoVoRestController<VO, MODEL, DAO> controller){
 		this.controller = controller;
 	}
 	

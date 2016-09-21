@@ -385,25 +385,36 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         }
     }
 
-	
     /**
      * 
      * @param root
+     * @param selectCallback
+     * @param countCallback
+     * @param modelMap
+     * @param modifiers
+     * @param applyLimitToSelectSql
      * @return
      */
     public StreamableSqlQuery<T> createQuery(ASTNode root, MappedRowCallback<T> selectCallback,
-            MappedRowCallback<Long> countCallback, Map<String,String> modelMap, Map<String, SQLColumnQueryAppender> modifiers){
+            MappedRowCallback<Long> countCallback, Map<String,String> modelMap, 
+            Map<String, SQLColumnQueryAppender> modifiers, boolean applyLimitToSelectSql){
     	
-    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT);
+    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT, applyLimitToSelectSql);
     	if(root != null)
     		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
     		
         return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
     }
     
-    public BaseSqlQuery<T> createQuery(ASTNode root){
+    /**
+     * 
+     * @param root
+     * @param applyLimitToSelectSql
+     * @return
+     */
+    public BaseSqlQuery<T> createQuery(ASTNode root, boolean applyLimitToSelectSql){
     	
-    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT);
+    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT, applyLimitToSelectSql);
     	if(root != null)
     		root.accept(new RQLToSQLSelect<T>(this), statement);
     	

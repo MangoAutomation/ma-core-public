@@ -24,18 +24,17 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	protected MappedRowCallback<T> selectCallback;
 	protected MappedRowCallback<Long> countCallback;
 	
-	
-
 	/**
+	 * 
 	 * @param dao
-	 * @param selectSql
+	 * @param statement
 	 * @param selectCallback
-	 * @param countSql
 	 * @param countCallback
-	 * @param selectArgs
+	 * @param applyLimitToSelectSql - Should the limit/offset be applied or left off
 	 */
 	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
-			SQLStatement statement, MappedRowCallback<T> selectCallback, MappedRowCallback<Long> countCallback) {
+			SQLStatement statement, MappedRowCallback<T> selectCallback, 
+			MappedRowCallback<Long> countCallback) {
 		super(dao, statement);
 		
 		this.selectCallback = selectCallback;

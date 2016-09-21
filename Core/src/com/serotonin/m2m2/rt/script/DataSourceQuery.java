@@ -46,7 +46,7 @@ public class DataSourceQuery{
 	
 	public List<DataSourceWrapper> query(String query){
 		ASTNode root = parser.parse(query);
-		BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.instance.createQuery(root);
+		BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.instance.createQuery(root, true);
 		
 		List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
 		List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();

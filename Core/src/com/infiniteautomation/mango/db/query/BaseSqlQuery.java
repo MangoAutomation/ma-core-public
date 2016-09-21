@@ -25,6 +25,8 @@ public class BaseSqlQuery<T> {
 	
 	protected String countSql;
 	protected List<Object> countArgs;
+	
+	protected List<Object> limitOffsetArgs;
 
 	public BaseSqlQuery(AbstractBasicDao<T> dao, 
 			String selectSql, List<Object> selectArgs,
@@ -38,6 +40,12 @@ public class BaseSqlQuery<T> {
 		this.countArgs = countArgs;
 	}
 	
+	/**
+	 * 
+	 * @param dao
+	 * @param statement
+	 * @param applyLimitToSelectSql - Should we apply the limit
+	 */
 	public BaseSqlQuery(AbstractBasicDao<T> dao, 
 			SQLStatement statement){
 		this.dao = dao;
@@ -47,6 +55,8 @@ public class BaseSqlQuery<T> {
 		
 		this.countSql = statement.getCountSql();
 		this.countArgs = statement.getCountArgs();
+		
+		this.limitOffsetArgs = statement.getLimitOffsetArgs();
 	}
 	
 
@@ -73,6 +83,10 @@ public class BaseSqlQuery<T> {
         }
  
         return this.dao.queryForObject(countSql, countArgs.toArray(), Long.class , new Long(0));
+	}
+	
+	public List<Object> getLimitOffsetArgs(){
+		return this.limitOffsetArgs;
 	}
 	
 	public String toString(){

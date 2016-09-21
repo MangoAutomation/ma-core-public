@@ -35,15 +35,29 @@ public class SQLStatement {
 	private StringBuilder limitOffset;
 	private List<Object> limitArgs;
 	private boolean appliedLimit; //Only can happen once
+	private boolean applyLimit; //Do we even want to apply it to the generated SQL?
 	
 	private List<SortOption> sort;
 	
-	
-	public SQLStatement(String baseSelectStatement, String baseCountStatement){
-		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement);
+	/**
+	 * 
+	 * @param baseSelectStatement
+	 * @param baseCountStatement
+	 * @param applyLimitToSelectSql - Do we want the limit/offset applied to the generated SQL?
+	 */
+	public SQLStatement(String baseSelectStatement, String baseCountStatement, boolean applyLimitToSelectSql){
+		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement, applyLimitToSelectSql);
 	}
 	
-	public SQLStatement(String baseSelectStatement, List<Object> selectArgs, String baseCountStatement){
+	/**
+	 * 
+	 * @param baseSelectStatement
+	 * @param selectArgs
+	 * @param baseCountStatement
+	 * @param applyLimitToSelectSql - Do we want the limit/offset applied to the generated SQL?
+	 */
+	public SQLStatement(String baseSelectStatement, 
+			List<Object> selectArgs, String baseCountStatement, boolean applyLimitToSelectSql){
 		
 		this.selectSql = new StringBuilder(baseSelectStatement);
 		if(!baseSelectStatement.endsWith(SPACE))
@@ -59,6 +73,7 @@ public class SQLStatement {
 		this.limitOffset = new StringBuilder();
 		this.limitArgs = new ArrayList<Object>();
 		this.appliedLimit = false;
+		this.applyLimit = applyLimitToSelectSql;
 		
 		this.sort = new ArrayList<SortOption>();
 		
@@ -66,7 +81,6 @@ public class SQLStatement {
 	
 	public String getSelectSql() {
 		StringBuilder builder = new StringBuilder(this.selectSql.toString());
-		
 		//Apply the sort
 		if(this.sort.size() > 0){
 			builder.append(ORDER_BY);
@@ -85,7 +99,8 @@ public class SQLStatement {
 		}
 		
 		//Apply the limit
-		builder.append(limitOffset.toString());
+		if(this.applyLimit)
+			builder.append(limitOffset.toString());
 		
 		return builder.toString();
 	}
@@ -94,7 +109,8 @@ public class SQLStatement {
 		//Merge both select and limit
 		List<Object> allArgs = new ArrayList<Object>();
 		allArgs.addAll(this.selectArgs);
-		allArgs.addAll(this.limitArgs);
+		if(this.applyLimit)
+			allArgs.addAll(this.limitArgs);
 		return allArgs;
 	}
 	
@@ -140,6 +156,18 @@ public class SQLStatement {
 		
 	}
 
+	/**
+	 * Get the arguments for the limit (offset)
+	 * 
+	 * Size 1 - Limit only
+	 * Size 2 - Limit and Offset
+	 * 
+	 * @return
+	 */
+	public List<Object> getLimitOffsetArgs(){
+		return this.limitArgs;
+	}
+	
 	/**
 	 * 
 	 * Append this statement with some Sort operation

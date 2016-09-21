@@ -45,7 +45,7 @@ public class QueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>> implements
 	 * Setup the Query
 	 */
 	public void setupQuery(){
-		this.results = this.dao.createQuery(this.root, this.queryCallback, null, this.controller.getModelMap(), this.controller.getAppenders());
+		this.results = this.dao.createQuery(this.root, this.queryCallback, null, this.controller.getModelMap(), this.controller.getAppenders(), true);
 	}
 	
 	/* (non-Javadoc)

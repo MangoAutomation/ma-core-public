@@ -49,7 +49,7 @@ public class DataPointQuery{
 	 */
 	public List<DataPointWrapper> query(String query){
 		ASTNode root = parser.parse(query);
-		BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(root);
+		BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(root, true);
 		
 		List<DataPointVO> dataPoints = sqlQuery.immediateQuery();
 		

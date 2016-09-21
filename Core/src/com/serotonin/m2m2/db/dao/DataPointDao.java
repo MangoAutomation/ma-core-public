@@ -1216,7 +1216,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			case MYSQL:
 			case POSTGRES:
 			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT);
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT, true);
 				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
 				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
 						new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
@@ -1248,7 +1248,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			case MYSQL:
 			case POSTGRES:
 			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT);
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT, true);
 				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
 				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
 						new DataPointPermissionChangeCallback(updateSetPermissions, null));
