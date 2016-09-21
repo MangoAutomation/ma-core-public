@@ -23,6 +23,7 @@ public class QueryStreamCallback<T> implements MappedRowCallback<T>{
 	
 	protected JsonGenerator jgen;
 	protected CSVPojoWriter<T> csvWriter;
+	protected long count;
 	
 	public void setJsonGenerator(JsonGenerator jgen){
 		this.jgen = jgen;
@@ -46,10 +47,13 @@ public class QueryStreamCallback<T> implements MappedRowCallback<T>{
 	}
 	
 	protected void write(T vo) throws IOException{
-		if(this.jgen != null)
-			this.writeJson(vo);
-		else if(this.csvWriter != null)
-			this.writeCsv(vo);
+		if(canWrite(vo)){
+			if(this.jgen != null)
+				this.writeJson(vo);
+			else if(this.csvWriter != null)
+				this.writeCsv(vo);
+			this.count++;
+		}
 	}
 	/**
 	 * Do the work of writing the VO
@@ -64,4 +68,16 @@ public class QueryStreamCallback<T> implements MappedRowCallback<T>{
 		this.csvWriter.writeNext(vo);
 	}
 
+	/**
+	 * Allow filtering within stream outside of query.
+	 * @param vo
+	 * @return
+	 */
+	protected boolean canWrite(T vo){
+		return true;
+	}
+	
+	public long getWrittenCount(){
+		return this.count;
+	}
 }

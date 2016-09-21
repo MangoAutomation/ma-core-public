@@ -16,6 +16,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 public class VoStreamCallback<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStreamCallback<VO> {
 
 	protected MangoVoRestController<VO, MODEL, DAO> controller;
+	protected long count;
 	
 	/**
 	 * 
@@ -32,14 +33,31 @@ public class VoStreamCallback<VO, MODEL, DAO extends AbstractBasicDao<VO>> exten
 	 */
 	@Override
 	protected void writeJson(VO vo) throws IOException{
-		MODEL model = this.controller.createModel(vo);
-		this.jgen.writeObject(model);
+		if(canWrite(vo)){
+			MODEL model = this.controller.createModel(vo);
+			this.jgen.writeObject(model);
+			this.count++;
+		}
 	}
 	@Override
 	protected void writeCsv(VO vo) throws IOException{
-		MODEL model = this.controller.createModel(vo);
-		this.csvWriter.writeNext(model);
+		if(canWrite(vo)){
+			MODEL model = this.controller.createModel(vo);
+			this.csvWriter.writeNext(model);
+			this.count++;
+		}
 	}
 
-
+	/**
+	 * Can we write this VO (permissions lacking etc.)
+	 * @param vo
+	 * @return
+	 */
+	protected boolean canWrite(VO vo){
+		return true;
+	}
+	
+	public long getWrittenCount(){
+		return count;
+	}
 }
