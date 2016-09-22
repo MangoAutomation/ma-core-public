@@ -58,6 +58,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -667,8 +668,12 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             d.setName(rs.getString(++i));
             d.setDeviceName(rs.getString(++i));
             d.setPointFolderId(rs.getInt(++i));
-            d.setReadPermission(rs.getString(++i));
-            d.setSetPermission(rs.getString(++i));
+            String readPermission = rs.getString(++i);
+            d.setReadPermission(readPermission);
+            d.setReadPermissionsSet(Permissions.explodePermissionGroups(readPermission));
+            String setPermission = rs.getString(++i);
+            d.setSetPermission(setPermission);
+            d.setSetPermissionsSet(Permissions.explodePermissionGroups(setPermission));
             return d;
         }
     }

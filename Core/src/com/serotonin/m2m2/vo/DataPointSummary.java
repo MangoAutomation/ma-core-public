@@ -1,5 +1,9 @@
 package com.serotonin.m2m2.vo;
 
+import java.util.Set;
+
+import com.serotonin.m2m2.vo.permission.Permissions;
+
 public class DataPointSummary implements IDataPoint {
     private int id;
     private String xid;
@@ -8,7 +12,9 @@ public class DataPointSummary implements IDataPoint {
     private String deviceName;
     private int pointFolderId;
     private String readPermission;
+    private Set<String> readPermissionsSet;
     private String setPermission;
+    private Set<String> setPermissionsSet;
 
     public DataPointSummary() {
         // no op
@@ -22,7 +28,9 @@ public class DataPointSummary implements IDataPoint {
         deviceName = vo.getDeviceName();
         pointFolderId = vo.getPointFolderId();
         readPermission = vo.getReadPermission();
+        readPermissionsSet = Permissions.explodePermissionGroups(readPermission);
         setPermission = vo.getSetPermission();
+        setPermissionsSet = Permissions.explodePermissionGroups(setPermission);
     }
 
     @Override
@@ -102,7 +110,23 @@ public class DataPointSummary implements IDataPoint {
         this.setPermission = setPermission;
     }
 
-    @Override
+    public Set<String> getReadPermissionsSet() {
+		return readPermissionsSet;
+	}
+
+	public void setReadPermissionsSet(Set<String> readPermissionsSet) {
+		this.readPermissionsSet = readPermissionsSet;
+	}
+
+	public Set<String> getSetPermissionsSet() {
+		return setPermissionsSet;
+	}
+
+	public void setSetPermissionsSet(Set<String> setPermissionsSet) {
+		this.setPermissionsSet = setPermissionsSet;
+	}
+
+	@Override
     public String toString() {
         return "XID: " + this.xid;
     }

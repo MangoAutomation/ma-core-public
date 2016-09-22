@@ -406,8 +406,10 @@ public class Permissions {
 
         if (!StringUtils.isEmpty(groups)) {
             for (String s : groups.split(",")) {
-                if (!StringUtils.isEmpty(s))
+                if (!StringUtils.isEmpty(s)){
+                	s = s.trim();
                     set.add(s);
+                }
             }
         }
 
