@@ -366,7 +366,7 @@
     </target>
 
     <target name="deploy"
-            depends="zip"
+            depends="zip,maven-install"
             description="Copy the zip to configured places">
         <foreach list="${module.deploy.paths}"
                  target="|deploy"
@@ -471,15 +471,19 @@
     <target name="maven-install" 
         depends="jar"
         description="Install Jar in Local Maven Repository">
-        <mvn:install file="${module.target}/lib/${fullName}.jar">
-            <pom refid="maven-pom" />
-    <!--      <attach file="release/${fullName}-src.jar"
-                    type="jar"
-                    classifier="sources" />
-                <attach file="release/${fullName}-doc.jar"
-                    type="jar"
-                    classifier="javadoc" /> -->
-        </mvn:install>
+    	<if><available file="pom.xml" type="file" />
+    	        <then>
+    	            <mvn:install file="${module.target}/lib/${fullName}.jar">
+    	                <pom refid="maven-pom" />
+    	        <!--      <attach file="release/${fullName}-src.jar"
+    	                        type="jar"
+    	                        classifier="sources" />
+    	                    <attach file="release/${fullName}-doc.jar"
+    	                        type="jar"
+    	                        classifier="javadoc" /> -->
+    	            </mvn:install>
+    	        </then>
+    	    </if>
     </target>
     
     
