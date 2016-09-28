@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,11 +25,11 @@ import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.infiniteautomation.mango.db.query.SQLSubQuery;
+import com.infiniteautomation.mango.db.query.StreamableRowCallback;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 
@@ -410,8 +412,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * @param applyLimitToSelectSql
      * @return
      */
-    public StreamableSqlQuery<T> createQuery(ASTNode root, MappedRowCallback<T> selectCallback,
-            MappedRowCallback<Long> countCallback, Map<String,String> modelMap, 
+    public StreamableSqlQuery<T> createQuery(ASTNode root, StreamableRowCallback<T> selectCallback,
+    		StreamableRowCallback<Long> countCallback, Map<String,String> modelMap, 
             Map<String, SQLColumnQueryAppender> modifiers, boolean applyLimitToSelectSql){
     	
     	if(useSubQuery){
@@ -484,4 +486,23 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         throw new ShouldNeverHappenException("No column found for: " + prop);
 	}
 
+	/**
+	 * Helper to prepare a statement 
+	 * @param sql
+	 * @param args
+	 * @return
+	 * @throws SQLException
+	 */
+	public PreparedStatement createPreparedStatement(String sql, List<Object> args) throws SQLException{
+		PreparedStatement stmt = this.dataSource.getConnection().prepareStatement(sql);
+		
+		int index = 1;
+		for(Object o : args){
+			stmt.setObject(index, o);
+			index++;
+		}
+		
+		return stmt;
+	}
+	
 }

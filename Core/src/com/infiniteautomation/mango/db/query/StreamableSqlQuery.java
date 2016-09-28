@@ -4,13 +4,15 @@
  */
 package com.infiniteautomation.mango.db.query;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
 /**
@@ -21,8 +23,8 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	
 	private static final Log LOG = LogFactory.getLog(StreamableSqlQuery.class);
 	
-	protected MappedRowCallback<T> selectCallback;
-	protected MappedRowCallback<Long> countCallback;
+	protected StreamableRowCallback<T> selectCallback;
+	protected StreamableRowCallback<Long> countCallback;
 	
 	/**
 	 * 
@@ -33,8 +35,8 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	 * @param applyLimitToSelectSql - Should the limit/offset be applied or left off
 	 */
 	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
-			SQLStatement statement, MappedRowCallback<T> selectCallback, 
-			MappedRowCallback<Long> countCallback) {
+			SQLStatement statement, StreamableRowCallback<T> selectCallback, 
+			StreamableRowCallback<Long> countCallback) {
 		super(dao, statement);
 		
 		this.selectCallback = selectCallback;
@@ -51,8 +53,8 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	 * @param selectArgs
 	 */
 	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
-			String selectSql, MappedRowCallback<T> selectCallback, List<Object> selectArgs,
-			String countSql, MappedRowCallback<Long> countCallback, List<Object> countArgs) {
+			String selectSql, StreamableRowCallback<T> selectCallback, List<Object> selectArgs,
+			String countSql, StreamableRowCallback<Long> countCallback, List<Object> countArgs) {
 		super(dao, selectSql, selectArgs, countSql, countArgs);
 		
 		this.selectCallback = selectCallback;
@@ -67,7 +69,33 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         if(LOG.isDebugEnabled()){
         	LOG.debug("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString());
         }
-		this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper(), selectCallback);
+        try{
+	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs);
+	        try{
+		        ResultSet rs = statement.executeQuery();
+		        RowMapper<T> mapper = this.dao.getRowMapper();
+		        int index = 0;
+		        while(rs.next()){
+		        	try{
+		        		this.selectCallback.row(mapper.mapRow(rs, index), index);
+		        		index++;
+		        	}catch(Exception e){
+		        		LOG.error(e.getMessage(), e);
+		        		break;
+		        	}finally{
+		        		statement.cancel();
+		        	}
+		        }
+	        }catch(Exception e){
+	        	LOG.error(e.getMessage(), e);
+	        }finally{
+	        	statement.getConnection().close();
+	        	statement.close();
+	        }
+        }catch(Exception e){
+        	LOG.error(e.getMessage(), e);
+        }
+		//this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper(), selectCallback);
 	}
 	
 	/**
@@ -80,7 +108,32 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         if(LOG.isDebugEnabled()){
         	LOG.debug("Count: " + countSql + " \nArgs: " + countArgs.toString());
         }
- 
-		this.dao.query(countSql, countArgs.toArray(), SingleColumnRowMapper.newInstance(Long.class), countCallback);
+        try{
+	        PreparedStatement statement = this.dao.createPreparedStatement(countSql, countArgs);
+	        try{
+		        ResultSet rs = statement.executeQuery();
+		        RowMapper<Long> mapper = SingleColumnRowMapper.newInstance(Long.class);
+		        int index = 0;
+		        while(rs.next()){
+		        	try{
+		        		this.countCallback.row(mapper.mapRow(rs, index), index);
+		        		index++;
+		        	}catch(Exception e){
+		        		LOG.error(e.getMessage(), e);
+		        		break;
+		        	}finally{
+		        		statement.cancel();
+		        	}
+		        }
+	        }catch(Exception e){
+	        	LOG.error(e.getMessage(), e);
+	        }finally{
+	        	statement.getConnection().close();
+	        	statement.close();
+	        }
+        }catch(Exception e){
+        	LOG.error(e.getMessage(), e);
+        }
+		//this.dao.query(countSql, countArgs.toArray(), SingleColumnRowMapper.newInstance(Long.class), countCallback);
 	}	
 }
