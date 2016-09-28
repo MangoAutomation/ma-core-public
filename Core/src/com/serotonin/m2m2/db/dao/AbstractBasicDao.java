@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.jazdw.rql.parser.ASTNode;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
@@ -24,6 +22,7 @@ import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.SQLStatement;
+import com.infiniteautomation.mango.db.query.SQLSubQuery;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
@@ -31,6 +30,8 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * Provides an API to retrieve, update and save
@@ -57,6 +58,8 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     /*
      * SQL templates
      */
+    protected final String TABLE_PREFIX; //Without ending .
+    protected final String SELECT_ALL_BASE; //Without location of FROM
     protected final String SELECT_ALL;
     protected final String SELECT_ALL_SORT;
     protected final String SELECT_ALL_FIXED_SORT;
@@ -66,7 +69,9 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     protected final String INSERT;
     protected final String UPDATE;
     protected final String DELETE;
+    protected final String COUNT_BASE;
     protected final String COUNT;
+    protected final String EXTRA_SQL;
 
     public final String tableName;
 
@@ -77,6 +82,9 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     
     public final String tablePrefix;  //Select * from table as tablePrefix
   
+    //TODO Explain me
+    protected final boolean useSubQuery;
+    
     /**
      * Override as necessary
      * Can be null if no Pk Exists
@@ -86,14 +94,16 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	return "id";
     }
 	
-
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties, String extraSQL){
+    	this(tablePrefix, extraProperties, false, extraSQL);
+    }
 	
 	/**
      * Provide a table prefix to use for complex queries.  Ie. Joins
      * Do not include the . at the end of the prefix
      * @param tablePrefix
      */
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties, String extraSQL){
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL){
        Map<String,IntStringPair> propMap = getPropertiesMap();
        if(propMap == null)
     	   this.propertiesMap = new HashMap<String, IntStringPair>();
@@ -106,14 +116,15 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
        else
     	   this.propertyTypeMap = propTypeMap;
 
-    	
+    	TABLE_PREFIX = tablePrefix;
     	if(tablePrefix != null)
     		this.tablePrefix = tablePrefix + ".";
     	else
     		this.tablePrefix = "";
     	
-        tableName = getTableName();
-
+        this.tableName = getTableName();
+        this.useSubQuery = useSubQuery;
+        
 
         // generate SQL statements
         String selectAll = "SELECT ";
@@ -154,6 +165,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 	        }
 
         //Add the table prefix to the queries if necessary
+        EXTRA_SQL = extraSQL;
+        SELECT_ALL_BASE = selectAll + " FROM ";
+        COUNT_BASE = "SELECT COUNT(*) FROM ";
+        
         if (this.tablePrefix.equals("")) {
             if (extraSQL != null)
                 SELECT_ALL = selectAll + " FROM " + tableName + " " + extraSQL;
@@ -399,11 +414,20 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             MappedRowCallback<Long> countCallback, Map<String,String> modelMap, 
             Map<String, SQLColumnQueryAppender> modifiers, boolean applyLimitToSelectSql){
     	
-    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT, applyLimitToSelectSql);
-    	if(root != null)
-    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
-    		
-        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
+    	if(useSubQuery){
+    		SQLSubQuery statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
+	    	if(root != null)
+	    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
+	    		
+	        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
+
+    	}else{
+	    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT, applyLimitToSelectSql);
+	    	if(root != null)
+	    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
+	    		
+	        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
+    	}
     }
     
     /**

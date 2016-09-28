@@ -51,7 +51,13 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     
     //Provide Arguments for Mapped Property members to be sorted by (Not really sure if this is necessary)
     protected final Map<String,PropertyArguments> propertyArgumentsMap = getPropertyArgumentsMap();
-  
+    
+    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL) {
+        super(tablePrefix, extraProperties, useSubQuery, extraSQL);
+        this.xidPrefix = getXidPrefix();
+        this.typeName = typeName;
+    }
+    
     /**
      * 
      * @param typeName - Audit Event Type
@@ -60,9 +66,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param extraSQL - Any additional query pieces
      */
     protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
-        super(tablePrefix, extraProperties, extraSQL);
-        xidPrefix = getXidPrefix();
-        this.typeName = typeName;
+        this(typeName, tablePrefix, extraProperties, false, extraSQL);
     }
 
     /**

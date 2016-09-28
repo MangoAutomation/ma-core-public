@@ -135,7 +135,8 @@ create table dataPoints (
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
 alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
-
+ALTER TABLE dataPoints ADD INDEX nameIndex (name ASC);
+ALTER TABLE dataPoints ADD INDEX deviceNameIndex (deviceName ASC);
 
 -- Data point hierarchy
 CREATE TABLE dataPointHierarchy (

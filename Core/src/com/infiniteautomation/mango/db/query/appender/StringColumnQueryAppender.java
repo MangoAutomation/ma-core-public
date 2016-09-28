@@ -19,11 +19,8 @@ import com.serotonin.m2m2.Common;
 public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 
 	
-	private final static String DERBY_CHAR = "(CHAR(";
-	private final static String DERBY_LIKE = ") LIKE ? ) ";
-	
-	private final static String H2_LOWER = "LOWER(";
-	private final static String H2_LIKE = ") LIKE ? ";
+	private final static String DERBY_LIKE = " LIKE ? ";
+	private final static String H2_LIKE = " LIKE ? ";
 	
 	/* (non-Javadoc)
 	 * @see com.infiniteautomation.mango.db.query.SQLColumnQueryAppender#appendSQL(com.infiniteautomation.mango.db.query.SQLQueryColumn, java.lang.StringBuilder, java.lang.StringBuilder, java.util.List, java.util.List)
@@ -69,20 +66,16 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
              case POSTGRES:
              case MSSQL:
              case H2:
-             	selectSql.append(H2_LOWER);
             	selectSql.append(column.getName());
             	selectSql.append(H2_LIKE);
 
-            	countSql.append(H2_LOWER);
             	countSql.append(column.getName());
             	countSql.append(H2_LIKE);
              break;
              case DERBY:
-             	selectSql.append(DERBY_CHAR);
             	selectSql.append(column.getName());
             	selectSql.append(DERBY_LIKE);
 
-            	countSql.append(DERBY_CHAR);
             	countSql.append(column.getName());
             	countSql.append(DERBY_LIKE);
              break;
@@ -93,9 +86,6 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 			for(Object o : columnArgs){
 				String arg = (String)o;
 				arg = arg.replace(STAR, PERCENT);
-				//TODO Do we want to be case specific?
-				//We use LOWER in the queries so drop the case here
-				arg = arg.toLowerCase();
 				likeArgs.add(arg);
 			}
 			selectArgs.addAll(likeArgs);
@@ -109,8 +99,5 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 
 		selectArgs.addAll(columnArgs);
 		return;
-		
-		
 	}
-
 }

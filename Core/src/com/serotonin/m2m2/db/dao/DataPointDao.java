@@ -36,9 +36,13 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
+import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
+import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -86,6 +90,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public DataPointDao() {
         super(AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
+        		true,
                 "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
 
     }
@@ -1362,6 +1367,5 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             }
 		}
 		
-	}
-
+	}	
 }

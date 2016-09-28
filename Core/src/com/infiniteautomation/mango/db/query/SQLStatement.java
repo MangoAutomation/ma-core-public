@@ -15,29 +15,38 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public class SQLStatement {
 	
-	private static final String SPACE = " ";
-	private static final String WHERE = "WHERE ";
-	private static final String LIMIT_SQL = "LIMIT ?";
-    private static final String OFFSET_SQL = "OFFSET ?";
-	private static final String LIMIT_OFFSET_SQL = "LIMIT ? OFFSET ?";
-	private static final String ORDER_BY = "ORDER BY ";
-	private static final String ASC = " ASC ";
-	private static final String DESC = " DESC ";
-	private static final String COMMA = ",";
+	protected static final String SPACE = " ";
+	protected static final String WHERE = "WHERE ";
+	protected static final String LIMIT_SQL = "LIMIT ?";
+	protected static final String OFFSET_SQL = "OFFSET ?";
+	protected static final String LIMIT_OFFSET_SQL = "LIMIT ? OFFSET ?";
+	protected static final String ORDER_BY = "ORDER BY ";
+	protected static final String ASC = " ASC ";
+	protected static final String DESC = " DESC ";
+	protected static final String COMMA = ",";
 
-	private StringBuilder selectSql;
-	private List<Object> selectArgs;
+	protected StringBuilder selectSql;
+	protected StringBuilder joins;
+	protected StringBuilder selectWhere;
+	
+	protected List<Object> selectArgs;
 
-	private StringBuilder countSql;
+	protected StringBuilder countSql;
+	protected StringBuilder countWhere;
 	
-	private boolean appliedWhere;
+	protected boolean appliedWhere;
 	
-	private StringBuilder limitOffset;
-	private List<Object> limitArgs;
-	private boolean appliedLimit; //Only can happen once
-	private boolean applyLimit; //Do we even want to apply it to the generated SQL?
+	protected StringBuilder limitOffset;
+	protected List<Object> limitArgs;
+	protected boolean appliedLimit; //Only can happen once
+	protected boolean applyLimit; //Do we even want to apply it to the generated SQL?
 	
-	private List<SortOption> sort;
+	protected List<SortOption> sort;
+	
+	
+	public SQLStatement(String baseSelectStatement, String baseCountStatement, String joins, boolean applyLimitToSelectSql){
+		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement, joins, applyLimitToSelectSql);
+	}
 	
 	/**
 	 * 
@@ -46,7 +55,12 @@ public class SQLStatement {
 	 * @param applyLimitToSelectSql - Do we want the limit/offset applied to the generated SQL?
 	 */
 	public SQLStatement(String baseSelectStatement, String baseCountStatement, boolean applyLimitToSelectSql){
-		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement, applyLimitToSelectSql);
+		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement, null, applyLimitToSelectSql);
+	}
+	
+	public SQLStatement(String baseSelectStatement,
+			List<Object> selectArgs, String baseCountStatement, boolean applyLimitToSelectSql){
+		this(baseSelectStatement, selectArgs, baseCountStatement, null, applyLimitToSelectSql);
 	}
 	
 	/**
@@ -56,12 +70,18 @@ public class SQLStatement {
 	 * @param baseCountStatement
 	 * @param applyLimitToSelectSql - Do we want the limit/offset applied to the generated SQL?
 	 */
-	public SQLStatement(String baseSelectStatement, 
-			List<Object> selectArgs, String baseCountStatement, boolean applyLimitToSelectSql){
+	public SQLStatement(String baseSelectStatement,
+			List<Object> selectArgs, String baseCountStatement, String joins, boolean applyLimitToSelectSql){
 		
 		this.selectSql = new StringBuilder(baseSelectStatement);
 		if(!baseSelectStatement.endsWith(SPACE))
 			this.selectSql.append(SPACE);
+		
+		if(joins != null)
+			this.joins = new StringBuilder(joins);
+		
+		this.selectWhere = new StringBuilder(WHERE);
+		this.countWhere = new StringBuilder(WHERE);
 		
 		this.countSql = new StringBuilder(baseCountStatement);
 		if(!baseCountStatement.endsWith(SPACE))
@@ -81,7 +101,29 @@ public class SQLStatement {
 	
 	public String getSelectSql() {
 		StringBuilder builder = new StringBuilder(this.selectSql.toString());
+		
+		//Apply any Joins
+		if(this.joins != null)
+			builder.append(joins);
+		
+		//Apply the where
+		if(this.appliedWhere)
+			builder.append(this.selectWhere);
+		
 		//Apply the sort
+		this.applySort(builder);
+		
+		//Apply the limit
+		if(this.applyLimit)
+			builder.append(limitOffset.toString());
+		
+		return builder.toString();
+	}
+
+	/**
+	 * @param builder
+	 */
+	protected void applySort(StringBuilder builder) {
 		if(this.sort.size() > 0){
 			builder.append(ORDER_BY);
 			int cnt = 0;
@@ -97,12 +139,6 @@ public class SQLStatement {
 				cnt++;
 			}
 		}
-		
-		//Apply the limit
-		if(this.applyLimit)
-			builder.append(limitOffset.toString());
-		
-		return builder.toString();
 	}
 
 	public List<Object> getSelectArgs() {
@@ -116,7 +152,16 @@ public class SQLStatement {
 	
 	
 	public String getCountSql(){
-		return this.countSql.toString();
+		StringBuilder sb = new StringBuilder(this.countSql);
+		
+		//Apply Joins
+		if(this.joins != null)
+			sb.append(joins);
+		
+		//Apply Where Clause
+		if(this.appliedWhere)
+			sb.append(this.countWhere);
+		return sb.toString();
 	}
 	
 	public List<Object> getCountArgs(){
@@ -186,19 +231,16 @@ public class SQLStatement {
 	 * @return
 	 */
 	public void appendSQL(String sql, List<Object> args) {
-		if(!appliedWhere){
-			this.selectSql.append(WHERE);
-			this.countSql.append(WHERE);
+		if(!appliedWhere)
 			this.appliedWhere = true;
-		}
 		
-		this.selectSql.append(sql);
-		this.selectSql.append(SPACE);
+		this.selectWhere.append(sql);
+		this.selectWhere.append(SPACE);
+		
+		this.countWhere.append(sql);
+		this.countWhere.append(SPACE);
 		
 		this.selectArgs.addAll(args);
-		
-		this.countSql.append(sql);
-		this.countSql.append(SPACE);
 	}
 
 
@@ -209,15 +251,8 @@ public class SQLStatement {
 	 */
 	public void appendColumnQuery(SQLQueryColumn column,
 			List<Object> columnArgs, ComparisonEnum comparison) {
-		
-		if(!appliedWhere){
-			this.selectSql.append(WHERE);
-			this.countSql.append(WHERE);
+		if(!appliedWhere)
 			this.appliedWhere = true;
-		}
-		column.appendSQL(selectSql, countSql, selectArgs, columnArgs, comparison);
+		column.appendSQL(selectWhere, countWhere, selectArgs, columnArgs, comparison);
 	}
-	
-
-	
 }
