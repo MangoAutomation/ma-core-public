@@ -175,6 +175,14 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 		return new UserCommentVORowMapper();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPkColumnName()
+	 */
+	@Override
+	public String getPkColumnName() {
+		//We have no PK
+		return null;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()

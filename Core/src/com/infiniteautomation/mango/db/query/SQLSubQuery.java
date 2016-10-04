@@ -112,7 +112,7 @@ public class SQLSubQuery extends SQLStatement{
 			baseCount.append(SPACE);
 		}
 		
-		if(this.baseSelect.joins != null){
+		if((this.baseSelect.joins != null) && this.baseSelect.appliedWhere){
 			baseCount.append(this.baseSelect.joins);
 			baseCount.append(SPACE);
 		}

@@ -155,7 +155,7 @@ public class SQLStatement {
 		StringBuilder sb = new StringBuilder(this.countSql);
 		
 		//Apply Joins
-		if(this.joins != null)
+		if((this.joins != null) && this.appliedWhere)
 			sb.append(joins);
 		
 		//Apply Where Clause

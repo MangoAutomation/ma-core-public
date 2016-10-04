@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
@@ -169,9 +170,14 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         //Add the table prefix to the queries if necessary
         EXTRA_SQL = extraSQL;
         SELECT_ALL_BASE = selectAll + " FROM ";
-        COUNT_BASE = "SELECT COUNT(*) FROM ";
-        
+        String pkColumn = getPkColumnName();
+     
         if (this.tablePrefix.equals("")) {
+        	if(StringUtils.isEmpty(pkColumn))
+        		COUNT_BASE = "SELECT COUNT(*) FROM ";
+        	else
+        		COUNT_BASE = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM ";
+        	
             if (extraSQL != null)
                 SELECT_ALL = selectAll + " FROM " + tableName + " " + extraSQL;
             else
@@ -191,14 +197,27 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             INSERT = insert + ") VALUES (" + insertValues + ")";
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-            if (extraSQL != null)
-                COUNT = "SELECT COUNT(*) FROM " + tableName + " " + extraSQL;
-            else
-                COUNT = "SELECT COUNT(*) FROM " + tableName;
+            
+            if (extraSQL != null){
+            	if(StringUtils.isEmpty(pkColumn))
+            		COUNT = "SELECT COUNT(*) FROM " + tableName + " " + extraSQL;
+            	else
+            		COUNT = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM " + tableName + " " + extraSQL;
+            }else{
+            	if(StringUtils.isEmpty(pkColumn))
+            		COUNT = "SELECT COUNT(*) FROM " + tableName;
+            	else
+            		COUNT = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM " + tableName;
+            }
 
         }
         else {
             //this.tablePrefix will end in a . where the local tablePrefix shouldn't
+        	if(StringUtils.isEmpty(pkColumn))
+        		COUNT_BASE = "SELECT COUNT(*) FROM ";
+        	else
+        		COUNT_BASE = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM ";
+        	
             if (extraSQL != null)
                 SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
             else
@@ -218,10 +237,17 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             INSERT = insert + ") VALUES (" + insertValues + ")";
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-            if (extraSQL != null)
-                COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
-            else
-                COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix;
+            if (extraSQL != null){
+            	if(StringUtils.isEmpty(pkColumn))
+            		COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
+            	else
+            		COUNT = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;            		
+            }else{
+            	if(StringUtils.isEmpty(pkColumn))
+            		COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix;
+            	else
+            		COUNT = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM " + tableName + " AS " + tablePrefix;
+            }
         }
 
         //Create the Update and Insert property types lists
