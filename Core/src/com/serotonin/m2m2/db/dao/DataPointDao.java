@@ -395,7 +395,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     }
 
     public int countPointsForDataSourceType(String dataSourceType) {
-        return ejt.queryForInt("SELECT count(*) FROM dataPoints dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id "
+        return ejt.queryForInt("SELECT count(DISTINCT dp.id) FROM dataPoints dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id "
                 + "WHERE ds.dataSourceType=?", new Object[] { dataSourceType }, 0);
     }
 
