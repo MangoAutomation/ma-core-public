@@ -77,7 +77,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultAlphanumericPointTemplate.setDataTypeId(DataTypes.ALPHANUMERIC);
 		defaultAlphanumericPointTemplate.setDefaultTemplate(true);
 		defaultAlphanumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultAlphanumericPointTemplate.setChartColour("red");
+		defaultAlphanumericPointTemplate.setChartColour("");
 		defaultAlphanumericPointTemplate.setPlotType(PlotTypes.STEP);
 		defaultAlphanumericPointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
 		defaultAlphanumericPointTemplate.setDefaultCacheSize(1);
@@ -95,7 +95,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultBinaryPointTemplate.setDataTypeId(DataTypes.BINARY);
 		defaultBinaryPointTemplate.setDefaultTemplate(true);
 		defaultBinaryPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultBinaryPointTemplate.setChartColour("blue");
+		defaultBinaryPointTemplate.setChartColour("");
 		defaultBinaryPointTemplate.setPlotType(PlotTypes.STEP);
 		defaultBinaryPointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
 		defaultBinaryPointTemplate.setDefaultCacheSize(1);
@@ -118,7 +118,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultMultistatePointTemplate.setDataTypeId(DataTypes.MULTISTATE);
 		defaultMultistatePointTemplate.setDefaultTemplate(true);
 		defaultMultistatePointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultMultistatePointTemplate.setChartColour("green");
+		defaultMultistatePointTemplate.setChartColour("");
 		defaultMultistatePointTemplate.setPlotType(PlotTypes.STEP);
 		defaultMultistatePointTemplate.setLoggingType(LoggingTypes.ON_CHANGE);
 		defaultMultistatePointTemplate.setDefaultCacheSize(1);
@@ -136,7 +136,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		defaultNumericPointTemplate.setDefaultTemplate(true);
 		defaultNumericPointTemplate.setDataTypeId(DataTypes.NUMERIC);
 		defaultNumericPointTemplate.setDefinition(new DataPointPropertiesTemplateDefinition());
-		defaultNumericPointTemplate.setChartColour("black");
+		defaultNumericPointTemplate.setChartColour("");
 		defaultNumericPointTemplate.setPlotType(PlotTypes.SPLINE);
 		defaultNumericPointTemplate.setLoggingType(LoggingTypes.INTERVAL);
 		defaultNumericPointTemplate.setIntervalLoggingPeriod(1);
