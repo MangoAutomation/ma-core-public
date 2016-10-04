@@ -169,9 +169,10 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
         //Add the table prefix to the queries if necessary
         EXTRA_SQL = extraSQL;
         SELECT_ALL_BASE = selectAll + " FROM ";
-        COUNT_BASE = "SELECT COUNT(*) FROM ";
         
         if (this.tablePrefix.equals("")) {
+            COUNT_BASE = "SELECT COUNT(DISTINCT id) FROM ";
+            
             if (extraSQL != null)
                 SELECT_ALL = selectAll + " FROM " + tableName + " " + extraSQL;
             else
@@ -192,12 +193,14 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
             if (extraSQL != null)
-                COUNT = "SELECT COUNT(*) FROM " + tableName + " " + extraSQL;
+                COUNT = "SELECT COUNT(DISTINCT id) FROM " + tableName + " " + extraSQL;
             else
-                COUNT = "SELECT COUNT(*) FROM " + tableName;
+                COUNT = "SELECT COUNT(DISTINCT id) FROM " + tableName;
 
         }
         else {
+            COUNT_BASE = "SELECT COUNT(DISTINCT " + tablePrefix +".id) FROM ";
+            
             //this.tablePrefix will end in a . where the local tablePrefix shouldn't
             if (extraSQL != null)
                 SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
@@ -219,9 +222,9 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
             if (extraSQL != null)
-                COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
+                COUNT = "SELECT COUNT(DISTINCT " + tablePrefix +".id) FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
             else
-                COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix;
+                COUNT = "SELECT COUNT(DISTINCT " + tablePrefix +".id) FROM " + tableName + " AS " + tablePrefix;
         }
 
         //Create the Update and Insert property types lists

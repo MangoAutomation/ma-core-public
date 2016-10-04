@@ -153,11 +153,7 @@ public class SQLStatement {
 	
 	public String getCountSql(){
 		StringBuilder sb = new StringBuilder(this.countSql);
-		
-		//Apply Joins
-		if(this.joins != null)
-			sb.append(joins);
-		
+
 		//Apply Where Clause
 		if(this.appliedWhere)
 			sb.append(this.countWhere);
