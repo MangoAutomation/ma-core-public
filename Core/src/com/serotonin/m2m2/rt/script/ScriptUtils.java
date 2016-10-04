@@ -114,8 +114,8 @@ public class ScriptUtils {
         globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
         globalBindings.put(UnitUtility.CONTEXT_KEY, new UnitUtility());
         
-        //Holder for modifying timestamps of meta points
-        globalBindings.put(TIMESTAMP_CONTEXT_KEY, null);
+        //Holder for modifying timestamps of meta points, in Engine Scope so it can be modified by all
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put(TIMESTAMP_CONTEXT_KEY, null);
         
         engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
     }

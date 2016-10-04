@@ -127,7 +127,8 @@ public class ScriptExecutor {
      */
     protected static PointValueTime getResult(ScriptEngine engine, Object result, int dataTypeId, long timestamp) throws ResultTypeException{
         // Check if a timestamp was set
-        Object ts = engine.getBindings(ScriptContext.GLOBAL_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
+        Object ts = engine.getBindings(ScriptContext.ENGINE_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
+
         if (ts != null) {
             // Check the type of the object.
             if (ts instanceof Number)
@@ -163,7 +164,7 @@ public class ScriptExecutor {
     	ScriptUtils.prepareEngine(engine);
     	
     	ScriptUtils.wrapperContext(engine, new WrapperContext(runtime));
-        Bindings engineScope = engine.createBindings(); //new SimpleBindings();
+        Bindings engineScope = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
         //Add Permissions Required Utilities
         //TODO Bubble PointValueSetter back up to top

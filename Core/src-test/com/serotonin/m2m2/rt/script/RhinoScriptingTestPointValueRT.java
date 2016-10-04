@@ -101,8 +101,7 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public List<PointValueTime> getPointValuesBetween(long from, long to) {
-		// TODO Auto-generated method stub
-		return null;
+		return RhinoScriptTestData.getPointValuesBetween(dataTypeId, id, from, to);
 	}
 
 	/* (non-Javadoc)

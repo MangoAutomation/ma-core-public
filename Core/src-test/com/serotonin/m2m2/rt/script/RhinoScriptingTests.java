@@ -33,8 +33,10 @@ public class RhinoScriptingTests {
 	public void testAnalogStatistics() {
 
 
-		String script = "var a = p1.past(MINUTES,50);";
+		String script = "var a = p1.past(MINUTE,50);";
 		script += "return a.average;";
+		
+		//String script = "TIMESTAMP = 100; return 9;";
 
 		ScriptContextVariable p1 = new ScriptContextVariable();
 		p1.setContextUpdate(true);

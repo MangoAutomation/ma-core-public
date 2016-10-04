@@ -83,4 +83,32 @@ public class RhinoScriptTestData {
 			return null;
 	}
 
+
+
+
+	/**
+	 * @param dataTypeId
+	 * @param from
+	 * @param to
+	 */
+	public static List<PointValueTime> getPointValuesBetween(int dataTypeId, int id, long from, long to) {
+		switch(dataTypeId){
+		case DataTypes.ALPHANUMERIC:
+		case DataTypes.BINARY:
+		case DataTypes.IMAGE:
+		case DataTypes.MULTISTATE:
+		default:
+			throw new ShouldNeverHappenException("Unimplemented");
+		case DataTypes.NUMERIC:
+			List<PointValueTime> values = new ArrayList<PointValueTime>();
+			List<PointValueTime> pvts = numericPvts.get(id);
+			for(PointValueTime pvt : pvts){
+				if((pvt.getTime() > from)||(pvt.getTime() <= to))
+					values.add(pvt);
+			}
+			return values;
+		}
+		
+	}
+
 }
