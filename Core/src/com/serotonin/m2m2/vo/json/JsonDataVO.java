@@ -40,6 +40,8 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 	private String readPermission;
 	@JsonProperty
 	private String editPermission;
+	@JsonProperty
+	private boolean publicData;
 	
 	public Object getJsonData() {
 		return jsonData;
@@ -62,6 +64,13 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 		this.editPermission = editPermission;
 	}
 
+	public boolean isPublicData() {
+		return publicData;
+	}
+	public void setPublicData(boolean publicData){
+		this.publicData = publicData;
+	}
+	
 	@Override
     public void validate(ProcessResult response){
 		super.validate(response);

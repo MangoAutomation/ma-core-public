@@ -89,6 +89,7 @@ public class JsonDataDao extends WebSocketNotifyingDao<JsonDataVO>{
 			vo.getName(),
 			vo.getReadPermission(),
 			vo.getEditPermission(),
+			boolToChar(vo.isPublicData()),
 			jsonData
 		};
 	}
@@ -104,6 +105,7 @@ public class JsonDataDao extends WebSocketNotifyingDao<JsonDataVO>{
 		map.put("name", Types.VARCHAR);
 		map.put("readPermission", Types.VARCHAR);
 		map.put("editPermission", Types.VARCHAR);
+		map.put("publicData", Types.CHAR);
 		map.put("data", Types.CLOB);
 		return map;
 	}
@@ -140,6 +142,7 @@ public class JsonDataDao extends WebSocketNotifyingDao<JsonDataVO>{
 			vo.setName(rs.getString(++i));
 			vo.setReadPermission(rs.getString(++i));
 			vo.setEditPermission(rs.getString(++i));
+			vo.setPublicData(charToBool(rs.getString(++i)));
 			
 			//Read the data
 			try{

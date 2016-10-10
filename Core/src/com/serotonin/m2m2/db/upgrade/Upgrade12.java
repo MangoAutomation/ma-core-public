@@ -35,16 +35,23 @@ public class Upgrade12 extends DBUpgrade {
 
     private final String[] mysqlScript = {
     	"ALTER TABLE dataPoints ADD INDEX nameIndex (name ASC);",
-    	"ALTER TABLE dataPoints ADD INDEX deviceNameIndex (deviceName ASC);"
+    	"ALTER TABLE dataPoints ADD INDEX deviceNameIndex (deviceName ASC);",
+    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
+        "UPDATE jsonData SET publicData='N';",
+
     };
     private final String[] derbyScript = {
    		"CREATE INDEX nameIndex on dataPoints (name ASC);",
-   		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);"
+   		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
+    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
+        "UPDATE jsonData SET publicData='N';",
     };    
 
     private final String[] h2Script = {
     	"CREATE INDEX nameIndex on dataPoints (`name` ASC);",
-    	"CREATE INDEX deviceNameIndex on dataPoints (`deviceName` ASC);"	
+    	"CREATE INDEX deviceNameIndex on dataPoints (`deviceName` ASC);",	
+    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
+        "UPDATE jsonData SET publicData='N';",
     };
 
 }

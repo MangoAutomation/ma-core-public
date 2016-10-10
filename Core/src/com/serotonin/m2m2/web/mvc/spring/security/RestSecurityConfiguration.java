@@ -75,6 +75,8 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/login/*").permitAll() //For CORS reqeusts
 			.antMatchers(HttpMethod.GET, "/rest/v1/translations/public/*").permitAll() //For public translations
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/translations/public/*").permitAll() //For public translations
+			.antMatchers(HttpMethod.GET, "/rest/v1/json-data/public/*").permitAll() //For public json-data
+			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/json-data/public/*").permitAll() //For public json-data			
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.POST, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.PUT, "/rest/v1/**").authenticated()

@@ -28,6 +28,7 @@ public class JsonDataModel extends AbstractVoModel<JsonDataVO>{
 	public JsonDataModel() {
 		super(new JsonDataVO());
 	}
+
 	
 	@JsonGetter("readPermission")
 	public String getReadPermission(){
@@ -47,6 +48,16 @@ public class JsonDataModel extends AbstractVoModel<JsonDataVO>{
 	@JsonSetter("editPermission")
 	public void setSetPermission(String permission){
 		this.data.setEditPermission(permission);
+	}
+	
+	@JsonGetter("publicData")
+	public boolean isPublicData(){
+		return this.data.isPublicData();
+	}
+	
+	@JsonSetter("publicData")
+	public void setPublicData(boolean publicData){
+		this.data.setPublicData(publicData);
 	}
 	
 	@JsonGetter("jsonData")
