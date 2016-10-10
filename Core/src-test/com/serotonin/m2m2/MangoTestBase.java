@@ -53,6 +53,18 @@ public class MangoTestBase {
 		Common.envProps.setDefaultValue("db.url", "jdbc:h2:" + baseTestDir.getAbsolutePath() + File.separator + "h2");
 		Common.envProps.setDefaultValue("db.location", baseTestDir.getAbsolutePath() + File.separator + "h2");
 		Common.envProps.setDefaultValue("db.nosql.location", baseTestDir.getAbsolutePath());
+		Common.envProps.setDefaultValue("db.username", "");
+		Common.envProps.setDefaultValue("db.password", "");
+		
+		Common.databaseProxy = DatabaseProxy.createDatabaseProxy();
+		Common.databaseProxy.initialize(ClassLoader.getSystemClassLoader());
+	}
+	
+	protected void configureMySqlProxy(String host, int port, String databaseName) {
+		Common.envProps.setDefaultValue("db.type", "mysql");
+		Common.envProps.setDefaultValue("db.url", "jdbc:mysql://"+host+(port != 3306 ? ":"+port : "") + "/" + databaseName);
+		Common.envProps.setDefaultValue("db.username", "mango");
+		Common.envProps.setDefaultValue("db.password", "mango");
 		
 		Common.databaseProxy = DatabaseProxy.createDatabaseProxy();
 		Common.databaseProxy.initialize(ClassLoader.getSystemClassLoader());
