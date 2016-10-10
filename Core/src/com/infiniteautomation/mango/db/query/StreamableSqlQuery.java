@@ -71,23 +71,17 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         }
         try{
 	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs);
-	        try{
-		        ResultSet rs = statement.executeQuery();
-		        RowMapper<T> mapper = this.dao.getRowMapper();
-		        int index = 0;
+	        ResultSet rs = statement.executeQuery();
+	        RowMapper<T> mapper = this.dao.getRowMapper();
+	        int index = 0;
+        	try{
 		        while(rs.next()){
-		        	try{
-		        		this.selectCallback.row(mapper.mapRow(rs, index), index);
-		        		index++;
-		        	}catch(Exception e){
-		        		LOG.error(e.getMessage(), e);
-		        		break;
-		        	}finally{
-		        		statement.cancel();
-		        	}
+	        		this.selectCallback.row(mapper.mapRow(rs, index), index);
+	        		index++;
 		        }
 	        }catch(Exception e){
 	        	LOG.error(e.getMessage(), e);
+	        	statement.cancel();
 	        }finally{
 	        	statement.getConnection().close();
 	        	statement.close();
@@ -95,7 +89,6 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         }catch(Exception e){
         	LOG.error(e.getMessage(), e);
         }
-		//this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper(), selectCallback);
 	}
 	
 	/**
@@ -115,18 +108,12 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 		        RowMapper<Long> mapper = SingleColumnRowMapper.newInstance(Long.class);
 		        int index = 0;
 		        while(rs.next()){
-		        	try{
-		        		this.countCallback.row(mapper.mapRow(rs, index), index);
-		        		index++;
-		        	}catch(Exception e){
-		        		LOG.error(e.getMessage(), e);
-		        		break;
-		        	}finally{
-		        		statement.cancel();
-		        	}
+	        		this.countCallback.row(mapper.mapRow(rs, index), index);
+	        		index++;
 		        }
 	        }catch(Exception e){
 	        	LOG.error(e.getMessage(), e);
+	        	statement.cancel();
 	        }finally{
 	        	statement.getConnection().close();
 	        	statement.close();
