@@ -141,7 +141,8 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	private static ObjectMapper createObjectMapper() {
 		// For raw Jackson
 		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		if(Common.envProps.getBoolean("rest.indentJSON", false))
+			objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
 		// JUnit Module
 		JUnitModule jUnitModule = new JUnitModule();
