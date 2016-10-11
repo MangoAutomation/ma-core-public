@@ -37,6 +37,7 @@ public class Upgrade12 extends DBUpgrade {
     	"ALTER TABLE dataPoints ADD INDEX nameIndex (name ASC);",
     	"ALTER TABLE dataPoints ADD INDEX deviceNameIndex (deviceName ASC);",
     	"ALTER TABLE dataPoints ADD INDEX pointFolderIndex (pointFolderId ASC);",
+    	"ALTER TABLE dataPoints ADD INDEX dataSourceIndex (dataSourceId ASC);",
     	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
         "UPDATE jsonData SET publicData='N';",
 
@@ -45,6 +46,7 @@ public class Upgrade12 extends DBUpgrade {
    		"CREATE INDEX nameIndex on dataPoints (name ASC);",
    		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
    		"CREATE INDEX pointFolderIndex on dataPoints (pointFolderId ASC);",
+   		"CREATE INDEX dataSourceIndex on dataPoints (dataSourceId ASC);",
     	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
         "UPDATE jsonData SET publicData='N';",
     };    
@@ -52,7 +54,8 @@ public class Upgrade12 extends DBUpgrade {
     private final String[] h2Script = {
     	"CREATE INDEX nameIndex on dataPoints (`name` ASC);",
     	"CREATE INDEX deviceNameIndex on dataPoints (`deviceName` ASC);",
-    	"CREATE INDEX pointFolderIndex on dataPoints (`pointFolderId` ASC);",    	
+    	"CREATE INDEX pointFolderIndex on dataPoints (`pointFolderId` ASC);",
+    	"CREATE INDEX dataSourceIndex on dataPoints (`dataSourceId` ASC);", 
     	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
         "UPDATE jsonData SET publicData='N';",
     };
