@@ -124,14 +124,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             + "  ds.xid, ds.dataSourceType " //
             + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
 
-    //Query to use for data point only restrictions
-    private static final String DATA_POINT_SUB_SELECT_PART_1 = "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
-    + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
-    + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-    + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
-    + "  ds.xid, ds.dataSourceType FROM ( SELECT * FROM dataPoints AS dp WHERE ";
-    private static final String DATA_POINT_SUB_SELECT_PART_2 = " ) AS dp join dataSources ds on ds.id = dp.dataSourceId";
-    
     public List<DataPointVO> getDataPoints(Comparator<IDataPoint> comparator, boolean includeRelationalData) {
         List<DataPointVO> dps = query(DATA_POINT_SELECT, new DataPointRowMapper());
         if (includeRelationalData)
@@ -147,7 +139,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
     public List<DataPointVO> getDataPoints(int dataSourceId, Comparator<DataPointVO> comparator,
             boolean includeRelationalData) {
-        List<DataPointVO> dps = query(DATA_POINT_SUB_SELECT_PART_1 + " dp.dataSourceId=? " + DATA_POINT_SUB_SELECT_PART_2, new Object[] { dataSourceId },
+        List<DataPointVO> dps = query(DATA_POINT_SELECT+ " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
         if (includeRelationalData)
             setRelationalData(dps);
