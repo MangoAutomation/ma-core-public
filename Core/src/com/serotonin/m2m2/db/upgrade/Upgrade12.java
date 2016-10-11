@@ -24,6 +24,7 @@ public class Upgrade12 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), derbyScript);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mysqlScript);
         runScript(scripts);
 
     }
