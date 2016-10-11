@@ -305,7 +305,7 @@ public class RuntimeManager {
         }
 
         // Add the enabled points to the data source.
-        List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPoints(vo.getId(), null);
+        List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPointsForDataSourceStart(vo.getId());
         
         Map<Integer, List<PointValueTime>> latestValuesMap = null;
         if (DaoRegistry.pointValueDao instanceof EnhancedPointValueDao) {

@@ -155,6 +155,13 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             Collections.sort(dps, comparator);
         return dps;
     }
+    
+    public List<DataPointVO> getDataPointsForDataSourceStart(int dataSourceId) {
+    	List<DataPointVO> dps = query(DataPointStartupResultSetExtractor.DATA_POINT_SELECT_STARTUP, new Object[] { dataSourceId },
+                new DataPointStartupResultSetExtractor());
+    	
+    	return dps;
+    }
 
     public DataPointVO getDataPoint(int id) {
         return getDataPoint(id, true);
@@ -184,6 +191,46 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 new DataPointRowMapper(), null);
         setRelationalData(dp);
         return dp;
+    }
+    
+    class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
+    	private static final int EVENT_DETECTOR_FIRST_COLUMN = 26;
+    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(null, EVENT_DETECTOR_FIRST_COLUMN-1);
+    	static final String DATA_POINT_SELECT_STARTUP = //
+        	    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
+        	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
+        	            + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
+        	            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
+        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.alias, ped.detectorType, ped.alarmLevel, ped.stateLimit, " //
+        	            + "  ped.duration, ped.durationType, ped.binaryState, ped.multistateState, ped.changeCount, ped.alphanumericState, ped.weight "//
+        	            + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
+        	            + "  left outer join pointEventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
+    	
+		@Override
+		public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+			Map<Integer, DataPointVO> result = new HashMap<Integer, DataPointVO>();
+			DataPointRowMapper pointRowMapper = new DataPointRowMapper();
+			while(rs.next()) {
+				int id = rs.getInt(2); //dp.id column number
+				if(result.containsKey(id))
+					addEventDetector(result.get(id), rs);
+				else {
+					DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
+					dpvo.setEventDetectors(new ArrayList<PointEventDetectorVO>());
+					result.put(id, dpvo);
+					addEventDetector(dpvo, rs);
+				}
+			}
+			return new ArrayList<DataPointVO>(result.values());
+		}
+    	
+		private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
+			if(rs.getObject(EVENT_DETECTOR_FIRST_COLUMN) == null)
+				return;
+			PointEventDetectorVO edvo = eventRowMapper.mapRow(rs, rs.getRow());
+			edvo.njbSetDataPoint(dpvo);
+			dpvo.getEventDetectors().add(edvo);
+		}
     }
 
     class DataPointRowMapper implements RowMapper<DataPointVO> {
@@ -458,15 +505,21 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
     class EventDetectorRowMapper implements RowMapper<PointEventDetectorVO> {
         private final DataPointVO dp;
+        private final int initialColumn;
 
         public EventDetectorRowMapper(DataPointVO dp) {
-            this.dp = dp;
+            this(dp, 0);
+        }
+        
+        public EventDetectorRowMapper(DataPointVO dp, int initialColumn) {
+        	this.dp = dp;
+        	this.initialColumn = initialColumn;
         }
 
         @Override
         public PointEventDetectorVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             PointEventDetectorVO detector = new PointEventDetectorVO();
-            int i = 0;
+            int i = initialColumn;
             detector.setId(rs.getInt(++i));
             detector.setXid(rs.getString(++i));
             detector.setAlias(rs.getString(++i));
