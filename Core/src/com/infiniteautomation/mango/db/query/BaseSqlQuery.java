@@ -6,8 +6,8 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
@@ -16,8 +16,6 @@ import com.serotonin.m2m2.db.dao.AbstractBasicDao;
  *
  */
 public class BaseSqlQuery<T> {
-	private static final Log LOG = LogFactory.getLog(BaseSqlQuery.class);
-
 	protected AbstractBasicDao<T> dao;
 	
 	protected String selectSql;
@@ -27,6 +25,8 @@ public class BaseSqlQuery<T> {
 	protected List<Object> countArgs;
 	
 	protected List<Object> limitOffsetArgs;
+	
+	protected boolean useMetrics;
 
 	public BaseSqlQuery(AbstractBasicDao<T> dao, 
 			String selectSql, List<Object> selectArgs,
@@ -38,6 +38,8 @@ public class BaseSqlQuery<T> {
 		
 		this.countSql = countSql;
 		this.countArgs = countArgs;
+		
+		this.useMetrics = this.dao.isUseMetrics();
 	}
 	
 	/**
@@ -57,6 +59,7 @@ public class BaseSqlQuery<T> {
 		this.countArgs = statement.getCountArgs();
 		
 		this.limitOffsetArgs = statement.getLimitOffsetArgs();
+		this.useMetrics = this.dao.isUseMetrics();
 	}
 	
 
@@ -65,10 +68,14 @@ public class BaseSqlQuery<T> {
 	 * @return
 	 */
 	public List<T> immediateQuery(){
-		if(LOG.isDebugEnabled()){
-        	LOG.debug("Query: " + selectSql + " \nArgs: " + selectArgs.toString());
-        }
-		return this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper());
+        StopWatch stopWatch = null;
+        if(this.useMetrics)
+        	 stopWatch = new Log4JStopWatch();
+		
+		List<T> list = this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper());
+		if(this.useMetrics)
+			stopWatch.stop("Query: " + selectSql + " \nArgs: " + selectArgs.toString());
+		return list;
 	}
 	
 	/**
@@ -77,12 +84,15 @@ public class BaseSqlQuery<T> {
 	public long immediateCount(){
 		if(countSql == null)
 			return 0;
-        //Report the query in the log
-        if(LOG.isDebugEnabled()){
-        	LOG.debug("Count: " + countSql + " \nArgs: " + countArgs.toString());
-        }
- 
-        return this.dao.queryForObject(countSql, countArgs.toArray(), Long.class , new Long(0));
+
+        StopWatch stopWatch = null;
+        if(this.useMetrics)
+        	 stopWatch = new Log4JStopWatch();
+
+        long count = this.dao.queryForObject(countSql, countArgs.toArray(), Long.class , new Long(0));
+        if(this.useMetrics)
+        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString());
+        return count;
 	}
 	
 	public List<Object> getLimitOffsetArgs(){

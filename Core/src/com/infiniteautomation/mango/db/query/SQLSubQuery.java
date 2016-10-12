@@ -293,9 +293,10 @@ public class SQLSubQuery extends SQLStatement{
 		 */
 		public void appendSQL(StringBuilder selectSql, StringBuilder countSql, List<Object> selectArgs,
 				List<Object> countArgs) {
-			selectArgs.addAll(this.columnArgs);
-			countArgs.addAll(this.columnArgs);
-			this.column.appendSQL(selectSql, countSql, this.columnArgs, this.columnArgs, this.comparison);
+			List<Object> newArgs = new ArrayList<Object>();
+			this.column.appendSQL(selectSql, countSql, newArgs, this.columnArgs, this.comparison);
+			selectArgs.addAll(newArgs);
+			countArgs.addAll(newArgs);
 		}
 		
 	}
