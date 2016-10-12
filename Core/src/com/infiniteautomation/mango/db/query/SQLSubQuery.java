@@ -25,7 +25,7 @@ public class SQLSubQuery extends SQLStatement{
 	private String tableName;
 	private String tablePrefix;
 	
-	//private SQLStatement baseSelect;
+	
 	private String baseSelect;
 	private String baseCount;
 	private String baseJoins;
@@ -34,8 +34,8 @@ public class SQLSubQuery extends SQLStatement{
 	private String countSQL;
 	
 	//TODO Merge these into 1 Object of cascading where clauses to support infinite subQueries?
-	private WhereClause baseWhere = new WhereClause();
-	private WhereClause subSelectWhere = new WhereClause();
+	private WhereClause baseWhere;
+	private WhereClause subSelectWhere;
 		
 	public void openAndOr(ComparisonEnum comparison){
 		this.baseWhere.openNewClause(comparison);
@@ -63,6 +63,8 @@ public class SQLSubQuery extends SQLStatement{
 		this.baseJoins = joins;
 		this.tableName = tableName;
 		this.tablePrefix = tablePrefix;
+		this.baseWhere = new WhereClause(applyLimitToSelectSql);
+		this.subSelectWhere = new WhereClause(applyLimitToSelectSql);
 	}
 
 	public void build(){
@@ -193,14 +195,14 @@ public class SQLSubQuery extends SQLStatement{
 		//If at any time we add a Restriction to the base WHERE 
 		// we must move the sub-query current clause into the base WHERE since we can't OR or AND with a JOINed table in the inner where
 		if(column.getName().startsWith(tablePrefix)){
-			if(this.baseWhere.currentClause.hasRestrictions()){
+			if(this.baseWhere.currentClauseHasRestriction()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 				this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}else{
 				this.subSelectWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}
 		}else{
-			if(this.subSelectWhere.currentClause.hasRestrictions()){
+			if(this.subSelectWhere.currentClauseHasRestriction()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 			}
 			//Must be from a JOIN, add to outer where
@@ -366,6 +368,9 @@ public class SQLSubQuery extends SQLStatement{
 	class WhereClause{
 		
 		boolean built; //Have we been built yet
+		//In some situations when we filter in memory 
+		// it is not possible to limit the query results
+		boolean applyLimit;
 		String selectSQL;
 		List<Object> selectArgs;
 		String countSQL;
@@ -373,10 +378,13 @@ public class SQLSubQuery extends SQLStatement{
 		List<SortOption> sort;
 		SQLLimitOffset limitOffset;
 		
-		//My tree of clauses
+		//If there are no clauses
+		private Restriction singleRestriction;
+		//Tree of clauses
 		private AndOrClause currentClause;
 		
-		public WhereClause(){
+		public WhereClause(boolean applyLimit){
+			this.applyLimit = applyLimit;
 			this.selectArgs = new ArrayList<Object>();
 			this.countArgs = new ArrayList<Object>();
 			this.sort = new ArrayList<SortOption>();
@@ -431,9 +439,10 @@ public class SQLSubQuery extends SQLStatement{
 		}
 
 		public void openNewClause(ComparisonEnum comparison){
-			if(this.currentClause == null)
+			if(this.currentClause == null){
 				this.currentClause = new AndOrClause(null, comparison);
-			else{
+				//TODO Decide to add single restriction and clear it here?
+			}else{
 				//Open a new clause and set that to the current
 				this.currentClause = this.currentClause.addChild(comparison);
 			}
@@ -446,14 +455,27 @@ public class SQLSubQuery extends SQLStatement{
 		}
 		
 		public void addRestrictionToCurrentClause(Restriction restriction){
-			this.currentClause.addRestriction(restriction);
+			if(this.currentClause == null)
+				this.singleRestriction = restriction;
+			else
+				this.currentClause.addRestriction(restriction);
 		}
 	
+		public boolean currentClauseHasRestriction(){
+			if(this.currentClause == null)
+				return false;
+			else{
+				return this.currentClause.hasRestrictions();
+			}
+		}
+		
 		public boolean hasRestrictions(){
 			//Walk up to the parent from the current clause
 			AndOrClause root  = this.currentClause;
-			if(root == null)
+			if((root == null)&&(this.singleRestriction == null))
 				return false;
+			else if(this.singleRestriction != null)
+				return true;
 			
 			while(root.parent != null)
 				root = root.parent;
@@ -476,10 +498,14 @@ public class SQLSubQuery extends SQLStatement{
 					root = root.parent;
 				//Recursively build the comparisons
 				this.recursivelyApply(root, selectSql, this.selectArgs, countSql, this.countArgs);
+			}else if(this.singleRestriction != null){
+				this.singleRestriction.appendSQL(selectSql, countSql, selectArgs, countArgs);
+				selectSql.append(SPACE);
+				countSql.append(SPACE);
 			}
 			
 			this.applySort(selectSql);
-			if(this.limitOffset != null){
+			if((this.limitOffset != null)&&(this.applyLimit)){
 				this.limitOffset.apply(selectSql);
 				this.selectArgs.addAll(this.limitOffset.getArgs());
 			}

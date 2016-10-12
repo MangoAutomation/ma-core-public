@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 
@@ -20,6 +21,7 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public class FilteredPageQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStream<VO, MODEL, DAO> implements QueryDataPageStream<VO>{
 
+	protected User user;
 	protected CountQueryStreamCallback countCallback;
 	
 	/**
@@ -28,9 +30,10 @@ public class FilteredPageQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>
 	 * @param node
 	 * @param queryCallback
 	 */
-	public FilteredPageQueryStream(DAO dao, MangoVoRestController<VO, MODEL, DAO> controller, ASTNode node,
+	public FilteredPageQueryStream(DAO dao, MangoVoRestController<VO, MODEL, DAO> controller, User user, ASTNode node,
 			FilteredQueryStreamCallback<VO> queryCallback) {
 		super(dao, controller, node, queryCallback);
+		this.user = user;
 		this.countCallback = new CountQueryStreamCallback();
 	}
 
@@ -39,7 +42,7 @@ public class FilteredPageQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>
 	 */
 	@Override
 	public void setupQuery(){
-		this.results = this.dao.createQuery(root, queryCallback, countCallback, controller.getModelMap(), controller.getAppenders(), false);
+		this.results = this.dao.createQuery(root, queryCallback, countCallback, controller.getModelMap(), controller.getAppenders(), user.isAdmin());
 		List<Object> args = this.results.getLimitOffsetArgs();
 		if((args != null)&&(args.size() > 0)){
 			FilteredQueryStreamCallback<VO> callback = (FilteredQueryStreamCallback<VO>)this.queryCallback;
