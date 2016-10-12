@@ -7,6 +7,7 @@ package com.infiniteautomation.mango.db.query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -195,14 +196,14 @@ public class SQLSubQuery extends SQLStatement{
 		//If at any time we add a Restriction to the base WHERE 
 		// we must move the sub-query current clause into the base WHERE since we can't OR or AND with a JOINed table in the inner where
 		if(column.getName().startsWith(tablePrefix)){
-			if(this.baseWhere.currentClauseHasRestriction()){
+			if(this.baseWhere.hasRestrictions()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 				this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}else{
 				this.subSelectWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}
 		}else{
-			if(this.subSelectWhere.currentClauseHasRestriction()){
+			if(this.subSelectWhere.hasRestrictions()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 			}
 			//Must be from a JOIN, add to outer where
@@ -423,11 +424,16 @@ public class SQLSubQuery extends SQLStatement{
 		 * while removing restrictions from the incoming clause
 		 */
 		public void mergeClause(AndOrClause currentClause) {
-			ListIterator<Restriction> it = currentClause.getRestrictions().listIterator();
-			while(it.hasNext()){
-				this.currentClause.addRestriction(it.next());
-				it.remove();
-			}
+			AndOrClause root = currentClause;
+			
+			do{
+				ListIterator<Restriction> it = root.getRestrictions().listIterator();
+				while(it.hasNext()){
+					this.currentClause.addRestriction(it.next());
+					it.remove();
+				}
+				root = root.parent;
+			}while(root.parent != null);
 		}
 
 		/**
@@ -497,7 +503,7 @@ public class SQLSubQuery extends SQLStatement{
 				while(root.parent != null)
 					root = root.parent;
 				//Recursively build the comparisons
-				this.recursivelyApply(root, selectSql, this.selectArgs, countSql, this.countArgs);
+				this.recursivelyApply(root, selectSql, this.selectArgs, countSql, this.countArgs, new AtomicBoolean(true));
 			}else if(this.singleRestriction != null){
 				this.singleRestriction.appendSQL(selectSql, countSql, selectArgs, countArgs);
 				selectSql.append(SPACE);
@@ -519,13 +525,21 @@ public class SQLSubQuery extends SQLStatement{
 		
 		protected void recursivelyApply(AndOrClause clause, 
 				StringBuilder selectSql, List<Object> selectArgs, 
-				StringBuilder countSql, List<Object> countArgs){
+				StringBuilder countSql, List<Object> countArgs,
+				AtomicBoolean first){
+			
+			if(!first.get()){
+				selectSql.append(clause.comparison.name());
+				countSql.append(clause.comparison.name());
+			}
 			
 			if(clause.hasRestrictions()){
+				first.set(false);
 				selectSql.append(" ( ");
 				countSql.append(" ( ");				
 			}
 			
+
 			//Apply the restrictions
 			int restrictionCount = clause.restrictions.size();
 			int i = 0;
@@ -539,7 +553,7 @@ public class SQLSubQuery extends SQLStatement{
 			}
 			//Apply the children
 			for(AndOrClause child : clause.children){
-				recursivelyApply(child, selectSql, selectArgs, countSql, countArgs);
+				recursivelyApply(child, selectSql, selectArgs, countSql, countArgs, first);
 			}
 			
 			if(clause.hasRestrictions()){
