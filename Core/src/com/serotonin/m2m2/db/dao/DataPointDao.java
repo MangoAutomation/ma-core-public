@@ -90,7 +90,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public DataPointDao() {
         super(AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
-        		false,
+        		true,
                 "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
 
     }

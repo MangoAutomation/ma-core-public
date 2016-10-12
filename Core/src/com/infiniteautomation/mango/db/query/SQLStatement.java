@@ -220,7 +220,6 @@ public class SQLStatement {
 	 */
 	public void applySort(SQLQueryColumn column, boolean desc) {
 		this.sort.add(new SortOption(column.getName(), desc));
-		
 	}
 	
 	/**
