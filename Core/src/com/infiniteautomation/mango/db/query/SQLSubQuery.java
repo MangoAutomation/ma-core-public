@@ -529,8 +529,8 @@ public class SQLSubQuery extends SQLStatement{
 				AtomicBoolean first){
 			
 			if(!first.get()){
-				selectSql.append(clause.comparison.name());
-				countSql.append(clause.comparison.name());
+				selectSql.append(clause.parent.comparison.name());
+				countSql.append(clause.parent.comparison.name());
 			}
 			
 			if(clause.hasRestrictions()){
