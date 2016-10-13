@@ -426,14 +426,21 @@ public class SQLSubQuery extends SQLStatement{
 		public void mergeClause(AndOrClause currentClause) {
 			AndOrClause root = currentClause;
 			
-			do{
+			while(root != null){
+				//Get the restrictions for the clause
 				ListIterator<Restriction> it = root.getRestrictions().listIterator();
 				while(it.hasNext()){
 					this.currentClause.addRestriction(it.next());
 					it.remove();
 				}
+				//Add the children recursiveley to this clause and remove them
+				ListIterator<AndOrClause> childIt = root.children.listIterator();
+				while(childIt.hasNext()){
+					this.currentClause.children.add(childIt.next());
+					childIt.remove();
+				}
 				root = root.parent;
-			}while(root.parent != null);
+			}
 		}
 
 		/**
@@ -528,7 +535,7 @@ public class SQLSubQuery extends SQLStatement{
 				StringBuilder countSql, List<Object> countArgs,
 				AtomicBoolean first){
 			
-			if(!first.get()){
+			if(!first.get() && clause.hasRestrictions()){
 				selectSql.append(clause.parent.comparison.name());
 				countSql.append(clause.parent.comparison.name());
 			}
