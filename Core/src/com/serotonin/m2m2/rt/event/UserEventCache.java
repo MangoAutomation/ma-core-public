@@ -183,7 +183,7 @@ public class UserEventCache implements TimeoutClient{
 		if (jobThread != null) {
             // There is another poll still running, so abort this one.
             LOG.warn("Cleanup at :"+ Functions.getFullSecondTime(fireTime)
-                    + " aborted because a previous Clenaup is still running");
+                    + " aborted because a previous Cleanup is still running");
             return;
 		}
 		try{

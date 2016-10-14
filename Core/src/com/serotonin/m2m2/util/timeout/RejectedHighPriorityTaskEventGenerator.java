@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.util.timeout;
 
+import java.lang.reflect.Field;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,10 +26,25 @@ public class RejectedHighPriorityTaskEventGenerator implements RejectedTaskHandl
 	
 	@Override
 	public void rejected(RejectedTaskReason reason){
-		LOG.fatal("High priority task: " + reason.getTask().toString() + " rejected because " + reason.getDescription());
+		String taskName;
+		if(reason.getTask() instanceof TimeoutTask){
+			try {
+				TimeoutTask task = (TimeoutTask)reason.getTask();
+				Field f;
+				f = task.getClass().getDeclaredField("client");
+				f.setAccessible(true);
+				Class<?> c = f.get(task).getClass();
+				taskName = c.getName();
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+				taskName = reason.getTask().toString();
+			}
+
+		}else{
+			taskName = reason.getTask().toString();
+		}
 		
-		//TODO could improve this by switching on type of task or making TimerTask implement a getDescription() method
-		String taskName = reason.getTask().toString();
+		
+		LOG.fatal("High priority task: " + taskName + " rejected because " + reason.getDescription());
 		
     	//Raise Event that Task Was Rejected
     	switch(reason.getCode()){
