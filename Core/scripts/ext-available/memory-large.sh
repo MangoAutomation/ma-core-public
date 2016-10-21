@@ -2,6 +2,6 @@
 case "$1" in
     init)
         # Startup with Java Memory setup for Large installation
-        JAVAOPTS=' -Xms10g -Xmx10g'
+        JAVAOPTS="$JAVAOPTS -Xms10g -Xmx10g"
         ;;
 esac
