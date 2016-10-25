@@ -40,7 +40,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 //        MockitoAnnotations.initMocks(this);
     }
 	
-	@Test
+//	@Test
 	public void testStreamableSqlQuery() {
 		OutputStream deadEnd = new OutputStream(){
 			@Override
