@@ -192,17 +192,21 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public void appendColumnQuery(SQLQueryColumn column, List<Object> columnArgs, ComparisonEnum comparison) {
-		//If at any time we add a Restriction to the base WHERE 
-		// we must move the sub-query current clause into the base WHERE since we can't OR or AND with a JOINed table in the inner where
+		//Any time we add a restriction we must decide if it belongs in the outer or inner select.
+		//Merge the subSelectWhere if the current baseWhere is an OR and there is a Joined table in the clause
 		if(column.getName().startsWith(tablePrefix)){
-			if(this.baseWhere.hasRestrictions()){
+			//Should Merge the inner select to the outer select?
+			if(this.baseWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.comparison == ComparisonEnum.OR){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 				this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}else{
 				this.subSelectWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}
 		}else{
-			if(this.subSelectWhere.hasRestrictions()){
+			
+			//Don't Merge the subSelectWhere 
+			// if the current clause niether ORs with or Contains a Joined Table Property
+			if(this.subSelectWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.comparison == ComparisonEnum.OR){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 			}
 			//Must be from a JOIN, add to outer where
@@ -309,7 +313,6 @@ public class SQLSubQuery extends SQLStatement{
 		private ComparisonEnum comparison;
 		private List<Restriction> restrictions;
 		private List<AndOrClause> children;
-		private boolean open = true;
 		
 		public AndOrClause(AndOrClause parent, ComparisonEnum comparison) {
 			super();
@@ -424,58 +427,26 @@ public class SQLSubQuery extends SQLStatement{
 		 * while removing restrictions from the incoming clause
 		 */
 		public void mergeClause(AndOrClause newClause) {
-			//TODO Base decision to merge children or splice on if the clauses are open or NOT
-			if(this.currentClause.open){
-				//Get the restrictions for the clause
-				ListIterator<Restriction> it = newClause.getRestrictions().listIterator();
-				while(it.hasNext()){
-					this.currentClause.addRestriction(it.next());
-					it.remove();
-				}
-				//Add the children to this clause and remove them
-				ListIterator<AndOrClause> childIt = newClause.children.listIterator();
-				while(childIt.hasNext()){
-					this.currentClause.children.add(childIt.next());
-					childIt.remove();
-				}
-				//new clause's parent?
-				if(newClause.parent != null){
-					newClause.parent.children.remove(newClause);
-					if(this.currentClause.parent != null)
-						this.currentClause.parent.children.add(newClause.parent);
-					else
-						this.currentClause.parent = newClause.parent;
-				}
-			}else{
-				//TODO Is this code ever necessary?  If so it needs to be tested.
-				//Splice the parent into the hierarchy
-				if(this.currentClause.parent == null)
-					this.currentClause.parent = newClause;
-				else{
-					//Get the root of the newClause to set it's parent
-					AndOrClause root  = newClause;
-					while(root.parent != null)
-						root = root.parent;
-					
-					//Get the current parent
-					AndOrClause currentParent = this.currentClause.parent;
-					
-					//Set root as child of current parent
-					currentParent.children.add(root);
-					//Set root of new clause's parent as current parent
-					root.parent = currentParent;
-					
-					//Remove current clause as child of current parent
-					currentParent.children.remove(this.currentClause);
-					
-					//Set parent of current clause to be new clause
-					this.currentClause.parent = newClause;
-					
-					//Set current clause to be child of new clause
-					newClause.children.add(this.currentClause);
-				}
+			//Get the restrictions for the clause
+			ListIterator<Restriction> it = newClause.getRestrictions().listIterator();
+			while(it.hasNext()){
+				this.currentClause.addRestriction(it.next());
+				it.remove();
 			}
-
+			//Add the children to this clause and remove them
+			ListIterator<AndOrClause> childIt = newClause.children.listIterator();
+			while(childIt.hasNext()){
+				this.currentClause.children.add(childIt.next());
+				childIt.remove();
+			}
+			//new clause's parent?
+			if(newClause.parent != null){
+				newClause.parent.children.remove(newClause);
+				if(this.currentClause.parent != null)
+					this.currentClause.parent.children.add(newClause.parent);
+				else
+					this.currentClause.parent = newClause.parent;
+			}
 		}
 
 		/**
@@ -498,7 +469,6 @@ public class SQLSubQuery extends SQLStatement{
 
 		public void closeCurrentClause(){
 			//Close clause and go up to parent if there is one
-			this.currentClause.open = false;
 			if(currentClause.getParent() != null)
 				this.currentClause = this.currentClause.getParent();
 		}
