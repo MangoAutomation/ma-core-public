@@ -309,6 +309,7 @@ public class SQLSubQuery extends SQLStatement{
 		private ComparisonEnum comparison;
 		private List<Restriction> restrictions;
 		private List<AndOrClause> children;
+		private boolean open = true;
 		
 		public AndOrClause(AndOrClause parent, ComparisonEnum comparison) {
 			super();
@@ -422,24 +423,59 @@ public class SQLSubQuery extends SQLStatement{
 		 * Merge the current incoming clause into our current clause
 		 * while removing restrictions from the incoming clause
 		 */
-		public void mergeClause(AndOrClause currentClause) {
-			AndOrClause root = currentClause;
-			
-			while(root != null){
+		public void mergeClause(AndOrClause newClause) {
+			//TODO Base decision to merge children or splice on if the clauses are open or NOT
+			if(this.currentClause.open){
 				//Get the restrictions for the clause
-				ListIterator<Restriction> it = root.getRestrictions().listIterator();
+				ListIterator<Restriction> it = newClause.getRestrictions().listIterator();
 				while(it.hasNext()){
 					this.currentClause.addRestriction(it.next());
 					it.remove();
 				}
-				//Add the children recursiveley to this clause and remove them
-				ListIterator<AndOrClause> childIt = root.children.listIterator();
+				//Add the children to this clause and remove them
+				ListIterator<AndOrClause> childIt = newClause.children.listIterator();
 				while(childIt.hasNext()){
 					this.currentClause.children.add(childIt.next());
 					childIt.remove();
 				}
-				root = root.parent;
+				//new clause's parent?
+				if(newClause.parent != null){
+					newClause.parent.children.remove(newClause);
+					if(this.currentClause.parent != null)
+						this.currentClause.parent.children.add(newClause.parent);
+					else
+						this.currentClause.parent = newClause.parent;
+				}
+			}else{
+				//TODO Is this code ever necessary?  If so it needs to be tested.
+				//Splice the parent into the hierarchy
+				if(this.currentClause.parent == null)
+					this.currentClause.parent = newClause;
+				else{
+					//Get the root of the newClause to set it's parent
+					AndOrClause root  = newClause;
+					while(root.parent != null)
+						root = root.parent;
+					
+					//Get the current parent
+					AndOrClause currentParent = this.currentClause.parent;
+					
+					//Set root as child of current parent
+					currentParent.children.add(root);
+					//Set root of new clause's parent as current parent
+					root.parent = currentParent;
+					
+					//Remove current clause as child of current parent
+					currentParent.children.remove(this.currentClause);
+					
+					//Set parent of current clause to be new clause
+					this.currentClause.parent = newClause;
+					
+					//Set current clause to be child of new clause
+					newClause.children.add(this.currentClause);
+				}
 			}
+
 		}
 
 		/**
@@ -462,6 +498,7 @@ public class SQLSubQuery extends SQLStatement{
 
 		public void closeCurrentClause(){
 			//Close clause and go up to parent if there is one
+			this.currentClause.open = false;
 			if(currentClause.getParent() != null)
 				this.currentClause = this.currentClause.getParent();
 		}
