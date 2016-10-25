@@ -175,7 +175,6 @@ public class SQLSubQuery extends SQLStatement{
 	public List<Object> getSelectArgs() {
 		List<Object> args = new ArrayList<Object>(this.subSelectWhere.selectArgs);
 		args.addAll(this.baseWhere.selectArgs);
-		//TODO Add LIMIT OFFSET args
 		return args;
 	}
 	
@@ -227,11 +226,11 @@ public class SQLSubQuery extends SQLStatement{
 		//Expected to happen after all WHERE clauses are done being populated
 		if(column.getName().startsWith(tablePrefix)){
 			//Will there even be a sub-query? If so we can sort it
-			//if(this.subSelectWhere.hasRestrictions()){
+			if(this.subSelectWhere.hasRestrictions()){
 				this.subSelectWhere.addSort(column, desc);
-			//}else{
-			//	this.baseWhere.addSort(column, desc);
-			//}
+			}else{
+				this.baseWhere.addSort(column, desc);
+			}
 		}else{
 			//Must be from a JOIN, add to outer where
 			this.baseWhere.addSort(column, desc);
@@ -574,8 +573,13 @@ public class SQLSubQuery extends SQLStatement{
 				builder.append(ORDER_BY);
 				int cnt = 0;
 				for(SortOption option : this.sort){
-					builder.append(" ? ");
-					this.selectArgs.add(option.attribute);
+					//TODO H2 expects an column number NOT a ?=column name
+					//builder.append(" ? ");
+					//this.selectArgs.add(option.attribute);
+					//This is ok so long as we only used real column names via dao.getQueryColumn() sql injection wise
+					builder.append(SPACE);
+					builder.append(option.attribute);
+					builder.append(SPACE);
 					if(option.desc)
 						builder.append(DESC);
 					else
