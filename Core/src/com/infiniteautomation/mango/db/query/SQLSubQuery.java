@@ -439,14 +439,7 @@ public class SQLSubQuery extends SQLStatement{
 				this.currentClause.children.add(childIt.next());
 				childIt.remove();
 			}
-			//new clause's parent?
-			if(newClause.parent != null){
-				newClause.parent.children.remove(newClause);
-				if(this.currentClause.parent != null)
-					this.currentClause.parent.children.add(newClause.parent);
-				else
-					this.currentClause.parent = newClause.parent;
-			}
+			//Don't fiddle with the parent, it's already been built properly.
 		}
 
 		/**
