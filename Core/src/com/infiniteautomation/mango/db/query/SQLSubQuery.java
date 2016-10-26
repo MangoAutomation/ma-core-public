@@ -196,17 +196,17 @@ public class SQLSubQuery extends SQLStatement{
 		//Merge the subSelectWhere if the current baseWhere is an OR and there is a Joined table in the clause
 		if(column.getName().startsWith(tablePrefix)){
 			//Should Merge the inner select to the outer select?
-			if(this.baseWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.comparison == ComparisonEnum.OR){
+			if(this.baseWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.hasOr()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 				this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}else{
 				this.subSelectWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}
 		}else{
-			
+			//Could be if any clause has restriction && Any baseWhere clause has an OR in its parent
 			//Don't Merge the subSelectWhere 
 			// if the current clause niether ORs with or Contains a Joined Table Property
-			if(this.subSelectWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.comparison == ComparisonEnum.OR){
+			if(this.subSelectWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.hasOr()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 			}
 			//Must be from a JOIN, add to outer where
@@ -358,6 +358,18 @@ public class SQLSubQuery extends SQLStatement{
 			return false;
 		}
 		
+		public boolean hasOr() {
+			if(this.comparison == ComparisonEnum.OR)
+				return true;
+			AndOrClause root = this;
+			while(root.parent != null){
+				root = root.parent;
+				if(root.comparison == ComparisonEnum.OR)
+					return true;
+			}
+			return false;
+		}
+	
 		public String toString(){
 			StringBuilder builder = new StringBuilder();
 			for(int i=0; i<this.restrictions.size(); i++){
@@ -427,19 +439,42 @@ public class SQLSubQuery extends SQLStatement{
 		 * while removing restrictions from the incoming clause
 		 */
 		public void mergeClause(AndOrClause newClause) {
-			//Get the restrictions for the clause
-			ListIterator<Restriction> it = newClause.getRestrictions().listIterator();
-			while(it.hasNext()){
-				this.currentClause.addRestriction(it.next());
-				it.remove();
+			
+//			//Find the Upper most OR Clause and Relocate it.
+//			
+//			//Get the restrictions for the clause
+//			ListIterator<Restriction> it = newClause.getRestrictions().listIterator();
+//			while(it.hasNext()){
+//				this.currentClause.addRestriction(it.next());
+//				it.remove();
+//			}
+//			//Add the children to this clause and remove them
+//			ListIterator<AndOrClause> childIt = newClause.children.listIterator();
+//			while(childIt.hasNext()){
+//				this.currentClause.children.add(childIt.next());
+//				childIt.remove();
+//			}
+			
+			//Walk up to highest OR and re-locate the tree to this clause
+			AndOrClause newClauseRoot = newClause;
+			AndOrClause currentClauseRoot = this.currentClause;
+			while(true){
+				//Move restrictions from ANY OR above us?
+				if(newClauseRoot.comparison == ComparisonEnum.OR){
+					currentClauseRoot.restrictions.addAll(newClauseRoot.restrictions);
+					newClauseRoot.restrictions.clear();
+					//Move children
+					currentClauseRoot.children.addAll(newClauseRoot.children);
+					newClauseRoot.children.clear();
+				}
+				//Step
+				newClauseRoot = newClauseRoot.parent;
+				currentClauseRoot = currentClauseRoot.parent;
+				if(newClauseRoot == null)
+					break;
+
 			}
-			//Add the children to this clause and remove them
-			ListIterator<AndOrClause> childIt = newClause.children.listIterator();
-			while(childIt.hasNext()){
-				this.currentClause.children.add(childIt.next());
-				childIt.remove();
-			}
-			//Don't fiddle with the parent, it's already been built properly.
+			
 		}
 
 		/**
