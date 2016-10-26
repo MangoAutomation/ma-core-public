@@ -195,7 +195,7 @@ public class SQLSubQuery extends SQLStatement{
 		//Any time we add a restriction we must decide if it belongs in the outer or inner select.
 		//Merge the subSelectWhere if the current baseWhere is an OR and there is a Joined table in the clause
 		if(column.getName().startsWith(tablePrefix)){
-			//Should Merge the inner select to the outer select?
+			//Should Merge the inner select to the outer select if there are current restrictions and an OR in the tree
 			if(this.baseWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.hasOr()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 				this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
@@ -203,10 +203,8 @@ public class SQLSubQuery extends SQLStatement{
 				this.subSelectWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
 			}
 		}else{
-			//Could be if any clause has restriction && Any baseWhere clause has an OR in its parent
-			//Don't Merge the subSelectWhere 
-			// if the current clause niether ORs with or Contains a Joined Table Property
-			if(this.subSelectWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.hasOr()){
+			//If we are going to add an OR condition we must merge the current clause
+			if(this.baseWhere.currentClause.hasOr()){
 				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
 			}
 			//Must be from a JOIN, add to outer where
