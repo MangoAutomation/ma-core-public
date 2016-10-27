@@ -272,6 +272,7 @@ CREATE TABLE jsonData (
 	name nvarchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),
+  	publicData char(1),
   	data ntext,
     primary key (id)
 )engine=InnoDB;

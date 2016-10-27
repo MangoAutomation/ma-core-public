@@ -1,5 +1,19 @@
-*Version 2.7.13*
+*Version 2.7.14*
 * Updates for RQL improvements
+* Using Sub Queries for Data Point RQL Queries
+* Improved aborted poll handling, will only raise 1 event on the first aborted poll and only log the count every 5 minutes
+* Display aborted polls on data source edit page
+* Allow publicly available JSON data into the JSON data store
+* Improved Rejected task logging with real names of most aborted tasks.
+* Adding query timing logging via db.useMetrics env property
+* Adding MySQL Backup/Restore ability
+* Adding indexes to data points table for performance
+* No longer indenting JSON output from REST api, use rest.indentJSON=true env property to enable
+* Improved COUNT query performance
+* Scripting/Meta Javascript TIMESTAMP bugfix for Java 8
+* No default colors in templates
+* Improved permissions filtering via RQL Rest queries
+* Publisher Alarm Levels now configurable
 
 *Version 2.7.12*
 * ETag Support for caching pages

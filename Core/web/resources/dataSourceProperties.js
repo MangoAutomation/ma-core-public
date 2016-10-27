@@ -533,7 +533,10 @@ function deletePoint() {
   * Get the current poll times for a datasource
   */
  function getPollTimes() {
-     DataSourceDwr.getPollTimes(currentDsId,writePollTimes);
+     DataSourceDwr.getPollTimes(currentDsId,function(response){
+    	 writePollTimes(response.data.polls);
+    	 writeAbortedPollTimes(response.data.aborts);
+     });
  }
  
  /**
@@ -555,6 +558,30 @@ function deletePoint() {
          dwr.util.addRows("pollTimesList", pollTimes, [
                  function(pollTime){ return pollTime.key; },
                  function(pollTime){ return pollTime.value;}
+                 ],
+                 {
+                     rowCreator: function(options) {
+                    	 var tr = document.createElement("tr");
+                         tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
+                         return tr;
+                     }
+                 });
+     }
+ }
+ 
+ function writeAbortedPollTimes(pollTimes) {
+     dwr.util.removeAllRows("abortedPollTimesList");
+     if (pollTimes.length == 0) {
+         show("noAbortedPollTimesMsg");
+         hide("abortedPollTimesList");
+         hide("abortedPollTimesHeader");
+     }
+     else {
+         hide("noAbortedPollTimesMsg");
+         show("abortedPollTimesList");
+         show("abortedPollTimesHeader");
+         dwr.util.addRows("abortedPollTimesList", pollTimes, [
+                 function(pollTime){ return pollTime; },
                  ],
                  {
                      rowCreator: function(options) {

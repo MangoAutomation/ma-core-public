@@ -60,4 +60,12 @@ public class PublisherEditDwr extends BaseDwr {
         response.addData("allPoints", allPoints);
         return response;
     }
+    
+    @DwrPermission(user = true)
+    public void updateEventAlarmLevel(int eventId, int alarmLevel) {
+        PublisherVO<?> pub = Common.getUser().getEditPublisher();
+        pub.setAlarmLevel(eventId, alarmLevel);
+    }
+    
+    
 }

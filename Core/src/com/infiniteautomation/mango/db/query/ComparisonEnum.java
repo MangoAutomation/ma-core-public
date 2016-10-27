@@ -20,7 +20,9 @@ public enum ComparisonEnum {
 	GREATER_THAN_EQUAL_TO,
 	IN,
 	LIKE,
-	CONTAINS;
+	CONTAINS,
+	AND,
+	OR;
 	
 	public static ComparisonEnum convertTo(String comparison){
 		switch(comparison){
@@ -41,6 +43,10 @@ public enum ComparisonEnum {
         	return LIKE;
         case "in":
         	return IN;
+        case "and":
+        	return AND;
+        case "or":
+        	return OR;
 		}
 		throw new ShouldNeverHappenException("Comparison: " + comparison + " not supported.");
 	}

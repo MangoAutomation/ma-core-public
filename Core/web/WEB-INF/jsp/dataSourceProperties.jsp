@@ -46,15 +46,30 @@
       <jsp:include page="${statpage}"/>
     </c:if>
     <hr>
-    <h3><fmt:message key="dsEdit.latestPollTimes"/></h3>
     <div style="float: right"><tag:img png="control_repeat_blue" title="common.refresh" onclick="getPollTimes()"/></div>
     <table>
-      <tr id="noPollTimesMsg"><td colspan="2"><b><fmt:message key="dsEdit.noPollTimes"/></b></td></tr>
-      <tr id="pollTimesHeader" class="rowHeader">
-        <td><fmt:message key="dsEdit.pollStartTime"/></td>
-        <td><fmt:message key="dsEdit.pollDuration"/></td>
-      </tr>
-      <tbody id="pollTimesList"></tbody>
+      <tr><td>
+    	<h3><fmt:message key="dsEdit.latestPollTimes"/></h3>
+	    <table>
+	      <tr id="noPollTimesMsg"><td colspan="2"><b><fmt:message key="dsEdit.noPollTimes"/></b></td></tr>
+	      <tr id="pollTimesHeader" class="rowHeader">
+	        <td><fmt:message key="dsEdit.pollStartTime"/></td>
+	        <td><fmt:message key="dsEdit.pollDuration"/></td>
+	      </tr>
+	      <tbody id="pollTimesList"></tbody>
+	    </table>
+	   </td>
+	   <td>
+	    <h3><fmt:message key="dsEdit.latestAbortedPollTimes"/></h3>
+	    <table>
+	      <tr id="noAbortedPollTimesMsg"><td colspan="2"><b><fmt:message key="dsEdit.noAbortedPolls"/></b></td></tr>
+	      <tr id="abortedPollTimesHeader" class="rowHeader">
+	        <td><fmt:message key="dsEdit.pollStartTime"/></td>
+	      </tr>
+	      <tbody id="abortedPollTimesList"></tbody>
+	    </table>
+	   </td>
+	  </tr>
     </table>
   </tag:labelledSection>
 

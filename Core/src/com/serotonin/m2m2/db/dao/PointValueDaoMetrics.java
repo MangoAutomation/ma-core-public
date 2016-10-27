@@ -31,11 +31,13 @@ public class PointValueDaoMetrics implements PointValueDao{
 
 	private PointValueDao dao;
 	
-	
 	public PointValueDaoMetrics(PointValueDao dao){
 		this.dao = dao;
 	}
-	
+
+	public PointValueDao getBaseDao(){
+		return this.dao;
+	}
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#savePointValueSync(int, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)

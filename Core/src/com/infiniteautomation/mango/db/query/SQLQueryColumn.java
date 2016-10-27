@@ -96,5 +96,7 @@ public class SQLQueryColumn {
 		this.appender = appender;
 	}
 	
-
+	public String toString(){
+		return this.name;
+	}
 }

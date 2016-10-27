@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Create a statement of the form
@@ -22,7 +23,17 @@ public class SQLSubQuery extends SQLStatement{
 	private String tableName;
 	private String tablePrefix;
 	
-	private SQLStatement baseSelect;
+	
+	private String baseSelect;
+	private String baseCount;
+	private String baseJoins;
+	
+	private String selectSQL;
+	private String countSQL;
+	
+	//TODO Merge these into 1 Object of cascading where clauses to support infinite subQueries?
+	private WhereClause baseWhere;
+	private WhereClause subSelectWhere;
 	
 	/**
 	 * @param baseSelectStatement - SELECT x,y,z
@@ -35,55 +46,108 @@ public class SQLSubQuery extends SQLStatement{
 			String tablePrefix,
 			boolean applyLimitToSelectSql) {
 		super("SELECT * FROM " + tableName + " AS " + tablePrefix, new ArrayList<Object>(), baseCountStatement, null, applyLimitToSelectSql);
-		this.baseSelect = new SQLStatement(baseSelect, baseCountStatement, joins, applyLimitToSelectSql);
+		this.baseSelect = baseSelect;
+		this.baseCount = baseCountStatement;
+		this.baseJoins = joins;
 		this.tableName = tableName;
 		this.tablePrefix = tablePrefix;
+		this.baseWhere = new WhereClause(applyLimitToSelectSql);
+		this.subSelectWhere = new WhereClause(applyLimitToSelectSql);
 	}
 
+	public void build(){
+		
+		//First remove any invalid clauses and place into outer where
+		this.pruneSubQuery();
+		
+		//SELECT tbl.id,tbl.xid, ... FROM
+		StringBuilder selectSql = new StringBuilder(this.baseSelect);
+		//COUNT ... FROM
+		StringBuilder countSql = new StringBuilder(this.baseCount);
+		
+		if(this.subSelectWhere.hasRestrictions() || this.subSelectWhere.hasLimitOrder()){
+			//baseSelect (SELECT * FROM tbl as tbl.prefix WHERE ... )
+			selectSql.append("(SELECT * FROM ");
+			selectSql.append(this.tableName);
+			selectSql.append(SPACE);
+			countSql.append(" (SELECT * FROM ");
+			countSql.append(this.tableName);
+			countSql.append(SPACE);
+			if(this.tablePrefix != null){
+				selectSql.append(" AS ");
+				selectSql.append(this.tablePrefix);
+				selectSql.append(SPACE);
+				countSql.append(" AS ");
+				countSql.append(this.tablePrefix);
+				countSql.append(SPACE);
+			}
+			//Append Joins
+			if(this.joins != null){
+				selectSql.append(SPACE);
+				selectSql.append(this.joins);
+				selectSql.append(SPACE);
+				countSql.append(SPACE);
+				countSql.append(this.joins);
+				countSql.append(SPACE);
+			}
+			//We may only have order/limit
+			if(this.subSelectWhere.hasRestrictions()){
+				selectSql.append(WHERE);
+				countSql.append(WHERE);
+			}
+			this.subSelectWhere.build();
+			selectSql.append(this.subSelectWhere.selectSQL);
+			countSql.append(this.subSelectWhere.countSQL);
+			selectSql.append(") ");
+			countSql.append(") ");
+		}else{
+			selectSql.append(this.tableName);
+			selectSql.append(SPACE);
+			countSql.append(this.tableName);
+			countSql.append(SPACE);
+		}
+		
+		if(this.tablePrefix != null){
+			selectSql.append(" AS ");
+			selectSql.append(this.tablePrefix);
+			selectSql.append(SPACE);
+			countSql.append(" AS ");
+			countSql.append(this.tablePrefix);
+			countSql.append(SPACE);
+		}
+
+		if(this.baseJoins != null){
+			selectSql.append(SPACE);
+			selectSql.append(this.baseJoins);
+			selectSql.append(SPACE);
+			countSql.append(SPACE);
+			countSql.append(this.baseJoins);
+			countSql.append(SPACE);
+		}
+		
+		
+		//Build up the where clauses
+		this.baseWhere.build();
+		if(this.baseWhere.hasRestrictions()){
+			selectSql.append(WHERE);
+			countSql.append(WHERE);
+			selectSql.append(this.baseWhere.selectSQL);
+			countSql.append(this.baseWhere.countSQL);
+		}else if(this.baseWhere.hasLimitOrder()){
+			selectSql.append(this.baseWhere.selectSQL);
+			countSql.append(this.baseWhere.countSQL);
+		}
+		
+		this.selectSQL = selectSql.toString();
+		this.countSQL = countSql.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.infiniteautomation.mango.db.query.SQLStatement#getSelectSql()
 	 */
 	@Override
 	public String getSelectSql() {
-		StringBuilder baseSelect = new StringBuilder(this.baseSelect.selectSql);
-		
-		//Do we have any sub query parameters
-		if(super.getSelectArgs().size() > 0){
-			baseSelect.append(" ( ");
-			if(this.selectArgs.size() > 0)
-				baseSelect.append(super.getSelectSql());
-			else{
-				//Only Apply Limit and Offset
-				baseSelect.append(this.selectSql);
-				if(this.applyLimit)
-					baseSelect.append(limitOffset.toString());
-			}
-			baseSelect.append(") ");		
-		}else{
-			baseSelect.append(this.tableName);
-		}
-		
-		if(this.tablePrefix != null){
-			baseSelect.append(" AS ");
-			baseSelect.append(this.tablePrefix);
-			baseSelect.append(SPACE);
-		}
-		
-		if(this.baseSelect.joins != null){
-			baseSelect.append(this.baseSelect.joins);
-			baseSelect.append(SPACE);
-		}
-		
-		if(this.baseSelect.appliedWhere)
-			baseSelect.append(this.baseSelect.selectWhere);
-		
-		//Apply the Sort
-		this.baseSelect.applySort(baseSelect);
-		
-		if(this.baseSelect.applyLimit)
-			baseSelect.append(this.baseSelect.limitOffset.toString());
-		
-		return baseSelect.toString();
+		return this.selectSQL;
 	}
 	
 	/* (non-Javadoc)
@@ -91,36 +155,7 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public String getCountSql() {
-		StringBuilder baseCount = new StringBuilder(this.baseSelect.countSql);
-		
-		if(this.selectArgs.size() > 0){
-			baseCount.append(" ( ");
-			//Apply where without limit or sort
-			baseCount.append(this.selectSql);
-			if(this.joins != null)
-				baseCount.append(joins);
-			baseCount.append(this.selectWhere);
-			baseCount.append(") ");
-			
-		}else{
-			baseCount.append(this.tableName);
-		}
-		
-		if(this.tablePrefix != null){
-			baseCount.append(" AS ");
-			baseCount.append(this.tablePrefix);
-			baseCount.append(SPACE);
-		}
-		
-		if((this.baseSelect.joins != null) && this.baseSelect.appliedWhere){
-			baseCount.append(this.baseSelect.joins);
-			baseCount.append(SPACE);
-		}
-		
-		if(this.baseSelect.appliedWhere)
-			baseCount.append(this.baseSelect.selectWhere);		
-		
-		return baseCount.toString();
+		return this.countSQL;
 	}
 	
 	/* (non-Javadoc)
@@ -128,8 +163,8 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public List<Object> getSelectArgs() {
-		List<Object> args = new ArrayList<Object>(super.getSelectArgs());
-		args.addAll(this.baseSelect.getSelectArgs());
+		List<Object> args = new ArrayList<Object>(this.subSelectWhere.selectArgs);
+		args.addAll(this.baseWhere.selectArgs);
 		return args;
 	}
 	
@@ -138,22 +173,28 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public List<Object> getCountArgs() {
-		List<Object> args = new ArrayList<Object>(super.getCountArgs());
-		args.addAll(this.baseSelect.getCountArgs());
+		List<Object> args = new ArrayList<Object>(this.subSelectWhere.countArgs);
+		args.addAll(this.baseWhere.countArgs);
 		return args;
 	}
+	
+	public void openAndOr(ComparisonEnum comparison){
+		if(!this.baseWhere.isOpen())
+			this.baseWhere.openNewClause(comparison);
+		this.subSelectWhere.openNewClause(comparison);
+	}
+	
+	public void closeAndOr(ComparisonEnum comparison){
+		this.subSelectWhere.closeCurrentClause();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.infiniteautomation.mango.db.query.SQLStatement#appendColumnQuery(com.infiniteautomation.mango.db.query.SQLQueryColumn, java.util.List, com.infiniteautomation.mango.db.query.ComparisonEnum)
 	 */
 	@Override
 	public void appendColumnQuery(SQLQueryColumn column, List<Object> columnArgs, ComparisonEnum comparison) {
-		if(column.getName().startsWith(tablePrefix)){
-			//Apply to sub-select
-			super.appendColumnQuery(column, columnArgs, comparison);
-		}else{
-			this.baseSelect.appendColumnQuery(column, columnArgs, comparison);
-		}
-		
+		//Always add to base where, when done we will create the sub query if possible
+		this.subSelectWhere.addRestrictionToCurrentClause(new QueryRestriction(column, columnArgs, comparison));
 	}
 	
 	/* (non-Javadoc)
@@ -169,12 +210,89 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public void applySort(SQLQueryColumn column, boolean desc) {
-		//Determine which statement to apply the sort to
-		if(column.getName().startsWith(tablePrefix)){
-			//Apply to sub-select
-			super.applySort(column, desc);
-		}else{
-			this.baseSelect.applySort(column, desc);
+		this.subSelectWhere.addSort(column, desc);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.infiniteautomation.mango.db.query.SQLStatement#applyLimit(java.util.List)
+	 */
+	@Override
+	public void applyLimit(List<Object> args) throws RQLToSQLParseException {
+		this.subSelectWhere.applyLimit(args);
+	}
+	
+	
+	public void pruneSubQuery(){
+		
+		//Is there a Where at all?
+		if(this.subSelectWhere.getCurrentClause() != null){
+		
+			//Move to root of tree
+			this.subSelectWhere.root();
+	
+			//Recursively prune it
+			if(recursivelyPrune(this.subSelectWhere.getCurrentClause(), this.baseWhere.getCurrentClause()))
+				this.subSelectWhere.setCurrentClause(null);
+			
+			//Move sort
+			if(!this.subSelectWhere.hasRestrictions()){
+				//Move everything
+				ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
+				while(it.hasNext()){
+					this.baseWhere.sort.add(it.next());
+					it.remove();
+				}
+			}else{
+				//Only move the items that can't be sorted on the inner
+				ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
+				while(it.hasNext()){
+					SortOption option = it.next();
+					if(!option.attribute.startsWith(tablePrefix)){
+						this.baseWhere.sort.add(option);
+						it.remove();
+					}
+				}
+			}
+		}else if((this.subSelectWhere.getSingleRestriction() != null)&&(!this.subSelectWhere.getSingleRestriction().column.getName().startsWith(tablePrefix))){
+			//Special handling for single restriction
+			this.baseWhere.setSingleRestriction(this.subSelectWhere.getSingleRestriction());
+			this.subSelectWhere.setSingleRestriction(null);
 		}
+			
+		//Move limits if there are not any inner where restrictions
+		if(!this.subSelectWhere.hasRestrictions()){
+			this.baseWhere.limitOffset = this.subSelectWhere.limitOffset;
+			 this.subSelectWhere.limitOffset = null;
+		}
+		
+	}
+	
+	boolean recursivelyPrune(AndOrClause inner, AndOrClause outer){
+		
+		if((inner.getComparison() == ComparisonEnum.OR)&&(inner.hasAnyJoinedRestrictions(tablePrefix))){
+			//Add this entire clause to the outer
+			outer.addChild(inner);
+			return true; //Mark for removal @ parent
+		}else{
+			//We are an AND, add any restrictions from the Joined table
+			ListIterator<QueryRestriction> it = inner.getRestrictions().listIterator();
+			while(it.hasNext()){
+				QueryRestriction restriction = it.next();
+				if(!restriction.column.getName().startsWith(tablePrefix)){
+					//TODO Can this ever even happen? Ensure we are within an AND if we are going to add some restrictions
+					if(outer.getComparison() != ComparisonEnum.AND)
+						outer = outer.addChild(ComparisonEnum.AND);
+					outer.addRestriction(restriction);
+					it.remove();
+				}
+			}
+			//Check our children
+			ListIterator<AndOrClause> aoIt = inner.getChildren().listIterator();
+			while(aoIt.hasNext()){
+				if(recursivelyPrune(aoIt.next(), outer))
+					aoIt.remove();
+			}
+		}
+		return false;
 	}
 }

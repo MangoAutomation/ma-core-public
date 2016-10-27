@@ -23,6 +23,7 @@ import org.springframework.jdbc.core.RowMapper;
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
+import com.infiniteautomation.mango.db.query.RQLToSQLSubSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.infiniteautomation.mango.db.query.SQLSubQuery;
@@ -87,6 +88,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
   
     //TODO Explain me
     protected final boolean useSubQuery;
+    protected final boolean useMetrics;
     
     /**
      * Override as necessary
@@ -107,6 +109,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      * @param tablePrefix
      */
     public AbstractBasicDao(String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL){
+    	this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
        Map<String,IntStringPair> propMap = getPropertiesMap();
        if(propMap == null)
     	   this.propertiesMap = new HashMap<String, IntStringPair>();
@@ -445,8 +448,9 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     	if(useSubQuery){
     		SQLSubQuery statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
 	    	if(root != null)
-	    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
-	    		
+	    		root.accept(new RQLToSQLSubSelect<T>(this, modelMap, modifiers), statement);
+	    	
+	    	statement.build();	
 	        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
 
     	}else{
@@ -531,4 +535,7 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
 		return stmt;
 	}
 	
+	public boolean isUseMetrics(){
+		return this.useMetrics;
+	}
 }

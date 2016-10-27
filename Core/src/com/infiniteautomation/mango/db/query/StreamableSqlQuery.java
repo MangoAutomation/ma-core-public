@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -65,10 +67,9 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	 * Execute the Query
 	 */
 	public void query(){
-        //Report the query in the log
-        if(LOG.isDebugEnabled()){
-        	LOG.debug("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString());
-        }
+        StopWatch stopWatch = null;
+        if(this.useMetrics)
+        	 stopWatch = new Log4JStopWatch();
         try{
 	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs);
 	        ResultSet rs = statement.executeQuery();
@@ -89,6 +90,8 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         }catch(Exception e){
         	LOG.error(e.getMessage(), e);
         }
+        if(this.useMetrics)
+        	stopWatch.stop("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString());
 	}
 	
 	/**
@@ -97,10 +100,9 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
 	public void count(){
 		if(countSql == null)
 			return;
-        //Report the query in the log
-        if(LOG.isDebugEnabled()){
-        	LOG.debug("Count: " + countSql + " \nArgs: " + countArgs.toString());
-        }
+        StopWatch stopWatch = null;
+        if(this.useMetrics)
+        	 stopWatch = new Log4JStopWatch();
         try{
 	        PreparedStatement statement = this.dao.createPreparedStatement(countSql, countArgs);
 	        try{
@@ -121,6 +123,7 @@ public class StreamableSqlQuery<T> extends BaseSqlQuery<T>{
         }catch(Exception e){
         	LOG.error(e.getMessage(), e);
         }
-		//this.dao.query(countSql, countArgs.toArray(), SingleColumnRowMapper.newInstance(Long.class), countCallback);
+        if(this.useMetrics)
+        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString());
 	}	
 }

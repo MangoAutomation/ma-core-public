@@ -273,6 +273,7 @@ CREATE TABLE jsonData (
 	name varchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),
+  	publicData char(1),
   	data clob
 );
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);

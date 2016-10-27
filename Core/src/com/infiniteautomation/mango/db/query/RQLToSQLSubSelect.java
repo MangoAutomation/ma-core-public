@@ -1,29 +1,23 @@
 /**
- * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
 package com.infiniteautomation.mango.db.query;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.ASTVisitor;
 
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
+import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.ASTVisitor;
+
 /**
- * Class to parse RQL into SQL Statements
- * 
- * All methods can throw RQLToSQLParseExceptions
- * 
- * 
  * @author Terry Packer
  *
  */
-public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLStatement, SQLStatement>{
+public class RQLToSQLSubSelect<T> extends SQLConstants implements ASTVisitor<SQLSubQuery, SQLSubQuery>{
 	
 	public static final int EQUAL_TO = 1;
 	public static final int NOT_EQUAL_TO = 2;
@@ -41,13 +35,13 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
 	private Map<String,String> propertyMap;
 	private Map<String, SQLColumnQueryAppender> columnAppenders;
 	
-	public RQLToSQLSelect(AbstractBasicDao<T> dao, Map<String,String> propertyMap, Map<String, SQLColumnQueryAppender> appenders){
+	public RQLToSQLSubSelect(AbstractBasicDao<T> dao, Map<String,String> propertyMap, Map<String, SQLColumnQueryAppender> appenders){
 		this.dao = dao;
 		this.propertyMap = propertyMap;
 		this.columnAppenders = appenders;
 	}
 	
-	public RQLToSQLSelect(AbstractBasicDao<T> dao){
+	public RQLToSQLSubSelect(AbstractBasicDao<T> dao){
 		this.dao = dao;
 		this.propertyMap = new HashMap<String,String>();
 		this.columnAppenders = new HashMap<String, SQLColumnQueryAppender>();
@@ -58,7 +52,7 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
 	 * @see net.jazdw.rql.parser.ASTVisitor#visit(net.jazdw.rql.parser.ASTNode, java.lang.Object)
 	 */
 	@Override
-	public SQLStatement visit(ASTNode node, SQLStatement statement) {
+	public SQLSubQuery visit(ASTNode node, SQLSubQuery statement) {
 		
         switch (node.getName()) {
         case "and":
@@ -133,7 +127,7 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
 	 * @param statement
 	 * @return
 	 */
-	protected SQLStatement applySort(ASTNode node, SQLStatement statement) {
+	protected SQLSubQuery applySort(ASTNode node, SQLSubQuery statement) {
 		
 		if(node.getArgumentsSize() == 0)
 			return statement;
@@ -156,32 +150,12 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
 		}
 		return statement;
 	}
+	
 
-	/**
-	 * @param node
-	 * @param param
-	 * @return
-	 */
-	protected SQLStatement visitAndOr(ASTNode node, SQLStatement masterStatement) {
-		
+	protected SQLSubQuery visitAndOr(ASTNode node, SQLSubQuery masterStatement) {
 		boolean opened = false;
+		ComparisonEnum comparison = ComparisonEnum.convertTo(node.getName());
 		
-		int cnt = 0;
-		//Count the number of nodes that are viable for AND comparisons
-		//TODO Better way to handle this?
-		int total = 0;
-		for(Object obj : node){
-			if (obj instanceof ASTNode) {
-            	
-            	switch(((ASTNode) obj).getName()){
-            	case "limit":
-            	case "sort":
-            	break;
-            	default:
-            		total++;
-            	}
-			}
-		}
 		for (Object obj : node) {
             if (obj instanceof ASTNode) {
             	
@@ -191,14 +165,13 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
                 	((ASTNode) obj).accept(this, masterStatement);
             		break;
             	default:
-                	if(!opened){
-                		masterStatement.appendSQL(OPEN_PARENTH, new ArrayList<Object>());
-                		opened = true;
-                	}
+            		if(!opened){
+            			masterStatement.openAndOr(comparison);
+            			opened = true;
+            		}
+
+                	//We know we are in an And/Or 
                 	((ASTNode) obj).accept(this, masterStatement);
-                	cnt++;
-                	if(cnt < total)
-                		masterStatement.appendSQL(node.getName(), new ArrayList<Object>());
 
             	}
             } else {
@@ -207,8 +180,9 @@ public class RQLToSQLSelect<T> extends SQLConstants implements ASTVisitor<SQLSta
         }
 		
 		if(opened)
-			masterStatement.appendSQL(CLOSE_PARENTH, new ArrayList<Object>());
+			masterStatement.closeAndOr(comparison);
 		
 		return masterStatement;
 	}
+	
 }

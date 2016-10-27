@@ -270,9 +270,10 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
      * @return
      */
     @DwrPermission(user = true)
-    public List<StringStringPair> getPollTimes(int id) {
+    public ProcessResult getPollTimes(int id) {
+    	ProcessResult result = new ProcessResult();
         DataSourceRT ds = Common.runtimeManager.getRunningDataSource(id);
-        List<StringStringPair> times = new ArrayList<StringStringPair>();
+        List<StringStringPair> polls = new ArrayList<StringStringPair>();
         
         if ((ds != null)&&(ds instanceof PollingDataSource)){
             List<LongLongPair> list = ((PollingDataSource)ds).getLatestPollTimes();
@@ -297,12 +298,26 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
             	duration.append(translate("common.duration.millis", period.getMillis()));
             	
             	StringStringPair pair = new StringStringPair(pollTime, duration.toString());
-            	times.add(pair);
+            	polls.add(pair);
             }
         }
-        return times;
+        
+        List<String> aborts = new ArrayList<String>();
+        if ((ds != null)&&(ds instanceof PollingDataSource)){
+            List<Long> list = ((PollingDataSource)ds).getLatestAbortedPollTimes();
+            String pollTime;
+            for(Long poll : list){
+            	pollTime = Functions.getFullMilliSecondTime(poll);
+            	aborts.add(pollTime);
+            }
+        }
+        
+        result.addData("polls", polls);
+        result.addData("aborts", aborts);
+        
+        return result;
     }
-    
+        
     /**
      * Load a list of VOs
      * 
