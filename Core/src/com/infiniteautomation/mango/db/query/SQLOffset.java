@@ -11,8 +11,6 @@ import java.util.List;
  *
  */
 public class SQLOffset extends SQLLimitOffset{
-	
-	private static final String OFFSET_SQL = "OFFSET ?";
 
 	public SQLOffset(List<Object> args){
 		super(args);

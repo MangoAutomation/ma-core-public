@@ -13,17 +13,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public class SQLStatement {
-	
-	protected static final String SPACE = " ";
-	protected static final String WHERE = "WHERE ";
-	protected static final String LIMIT_SQL = "LIMIT ?";
-	protected static final String OFFSET_SQL = "OFFSET ?";
-	protected static final String LIMIT_OFFSET_SQL = "LIMIT ? OFFSET ?";
-	protected static final String ORDER_BY = "ORDER BY ";
-	protected static final String ASC = " ASC ";
-	protected static final String DESC = " DESC ";
-	protected static final String COMMA = ",";
+public class SQLStatement extends SQLConstants{
 
 	protected StringBuilder selectSql;
 	protected StringBuilder joins;

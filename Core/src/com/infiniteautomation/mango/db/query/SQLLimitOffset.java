@@ -10,10 +10,8 @@ import java.util.List;
  * @author Terry Packer
  *
  */
-public class SQLLimitOffset {
+public class SQLLimitOffset extends SQLConstants{
 	
-	private static final String LIMIT_OFFSET_SQL = "LIMIT ? OFFSET ?";
-
 	protected List<Object> args;
 	
 	public SQLLimitOffset(List<Object> args){

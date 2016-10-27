@@ -7,9 +7,6 @@ package com.infiniteautomation.mango.db.query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import net.jazdw.rql.parser.ASTNode;
 
 /**
  * Create a statement of the form
@@ -37,16 +34,6 @@ public class SQLSubQuery extends SQLStatement{
 	//TODO Merge these into 1 Object of cascading where clauses to support infinite subQueries?
 	private WhereClause baseWhere;
 	private WhereClause subSelectWhere;
-		
-	public void openAndOr(ComparisonEnum comparison){
-		this.baseWhere.openNewClause(comparison);
-		this.subSelectWhere.openNewClause(comparison);
-	}
-	
-	public void closeAndOr(ComparisonEnum comparison){
-		this.baseWhere.closeCurrentClause();
-		this.subSelectWhere.closeCurrentClause();
-	}
 	
 	/**
 	 * @param baseSelectStatement - SELECT x,y,z
@@ -69,6 +56,9 @@ public class SQLSubQuery extends SQLStatement{
 	}
 
 	public void build(){
+		
+		//First remove any invalid clauses and place into outer where
+		this.pruneSubQuery();
 		
 		//SELECT tbl.id,tbl.xid, ... FROM
 		StringBuilder selectSql = new StringBuilder(this.baseSelect);
@@ -187,29 +177,24 @@ public class SQLSubQuery extends SQLStatement{
 		args.addAll(this.baseWhere.countArgs);
 		return args;
 	}
+	
+	public void openAndOr(ComparisonEnum comparison){
+		if(!this.baseWhere.isOpen())
+			this.baseWhere.openNewClause(comparison);
+		this.subSelectWhere.openNewClause(comparison);
+	}
+	
+	public void closeAndOr(ComparisonEnum comparison){
+		this.subSelectWhere.closeCurrentClause();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.infiniteautomation.mango.db.query.SQLStatement#appendColumnQuery(com.infiniteautomation.mango.db.query.SQLQueryColumn, java.util.List, com.infiniteautomation.mango.db.query.ComparisonEnum)
 	 */
 	@Override
 	public void appendColumnQuery(SQLQueryColumn column, List<Object> columnArgs, ComparisonEnum comparison) {
-		//Any time we add a restriction we must decide if it belongs in the outer or inner select.
-		//Merge the subSelectWhere if the current baseWhere is an OR and there is a Joined table in the clause
-		if(column.getName().startsWith(tablePrefix)){
-			//Should Merge the inner select to the outer select if there are current restrictions and an OR in the tree
-			if(this.baseWhere.currentClauseHasRestriction() && this.baseWhere.currentClause.hasOr()){
-				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
-				this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
-			}else{
-				this.subSelectWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
-			}
-		}else{
-			//If we are going to add an OR condition we must merge the current clause
-			if(this.baseWhere.currentClause.hasOr()){
-				this.baseWhere.mergeClause(this.subSelectWhere.currentClause);
-			}
-			//Must be from a JOIN, add to outer where
-			this.baseWhere.addRestrictionToCurrentClause(new Restriction(column, columnArgs, comparison));
-		}
+		//Always add to base where, when done we will create the sub query if possible
+		this.subSelectWhere.addRestrictionToCurrentClause(new QueryRestriction(column, columnArgs, comparison));
 	}
 	
 	/* (non-Javadoc)
@@ -225,18 +210,7 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public void applySort(SQLQueryColumn column, boolean desc) {
-		//Expected to happen after all WHERE clauses are done being populated
-		if(column.getName().startsWith(tablePrefix)){
-			//Will there even be a sub-query? If so we can sort it
-			if(this.subSelectWhere.hasRestrictions()){
-				this.subSelectWhere.addSort(column, desc);
-			}else{
-				this.baseWhere.addSort(column, desc);
-			}
-		}else{
-			//Must be from a JOIN, add to outer where
-			this.baseWhere.addSort(column, desc);
-		}
+		this.subSelectWhere.addSort(column, desc);
 	}
 
 	/* (non-Javadoc)
@@ -244,385 +218,81 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public void applyLimit(List<Object> args) throws RQLToSQLParseException {
-		//Expected to happen after all WHERE clauses are done being populated
-		if(this.baseWhere.hasRestrictions()){
-			this.baseWhere.applyLimit(args);
+		this.subSelectWhere.applyLimit(args);
+	}
+	
+	
+	public void pruneSubQuery(){
+		
+		//Is there a Where at all?
+		if(this.subSelectWhere.getCurrentClause() != null){
+		
+			//Move to root of tree
+			this.subSelectWhere.root();
+	
+			//Recursively prune it
+			if(recursivelyPrune(this.subSelectWhere.getCurrentClause(), this.baseWhere.getCurrentClause()))
+				this.subSelectWhere.setCurrentClause(null);
+			
+			//Move sort
+			if(!this.subSelectWhere.hasRestrictions()){
+				//Move everything
+				ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
+				while(it.hasNext()){
+					this.baseWhere.sort.add(it.next());
+					it.remove();
+				}
+			}else{
+				//Only move the items that can't be sorted on the inner
+				ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
+				while(it.hasNext()){
+					SortOption option = it.next();
+					if(!option.attribute.startsWith(tablePrefix)){
+						this.baseWhere.sort.add(option);
+						it.remove();
+					}
+				}
+			}
+		}else if((this.subSelectWhere.getSingleRestriction() != null)&&(!this.subSelectWhere.getSingleRestriction().column.getName().startsWith(tablePrefix))){
+			//Special handling for single restriction
+			this.baseWhere.setSingleRestriction(this.subSelectWhere.getSingleRestriction());
+			this.subSelectWhere.setSingleRestriction(null);
+		}
+			
+		//Move limits if there are not any inner where restrictions
+		if(!this.subSelectWhere.hasRestrictions()){
+			this.baseWhere.limitOffset = this.subSelectWhere.limitOffset;
+			 this.subSelectWhere.limitOffset = null;
+		}
+		
+	}
+	
+	boolean recursivelyPrune(AndOrClause inner, AndOrClause outer){
+		
+		if((inner.getComparison() == ComparisonEnum.OR)&&(inner.hasAnyJoinedRestrictions(tablePrefix))){
+			//Add this entire clause to the outer
+			outer.addChild(inner);
+			return true; //Mark for removal @ parent
 		}else{
-			this.subSelectWhere.applyLimit(args);
-		}
-	}
-	
-	class Restriction{
-		
-		SQLQueryColumn column;
-		List<Object> columnArgs;
-		ComparisonEnum comparison;
-		
-		public Restriction(SQLQueryColumn column, List<Object> columnArgs, ComparisonEnum comparison) {
-			super();
-			this.column = column;
-			this.columnArgs = columnArgs;
-			this.comparison = comparison;
-		}
-		
-		public ComparisonEnum getComparison() {
-			return comparison;
-		}
-		public void setComparison(ComparisonEnum comparison) {
-			this.comparison = comparison;
-		}
-		public SQLQueryColumn getColumn() {
-			return column;
-		}
-		public void setColumn(SQLQueryColumn column) {
-			this.column = column;
-		}
-		public List<Object> getColumnArgs() {
-			return columnArgs;
-		}
-		public void setColumnArgs(List<Object> columnArgs) {
-			this.columnArgs = columnArgs;
-		}
-		
-		public String toString(){
-			return this.column + this.comparison.name() + this.columnArgs;
-		}
-
-		/**
-		 * @param selectSql
-		 * @param countSql
-		 * @param selectArgs
-		 * @param countArgs
-		 * @param comparison2
-		 */
-		public void appendSQL(StringBuilder selectSql, StringBuilder countSql, List<Object> selectArgs,
-				List<Object> countArgs) {
-			List<Object> newArgs = new ArrayList<Object>();
-			this.column.appendSQL(selectSql, countSql, newArgs, this.columnArgs, this.comparison);
-			selectArgs.addAll(newArgs);
-			countArgs.addAll(newArgs);
-		}
-		
-	}
-	
-	class AndOrClause{
-		
-		private AndOrClause parent;
-		private ComparisonEnum comparison;
-		private List<Restriction> restrictions;
-		private List<AndOrClause> children;
-		
-		public AndOrClause(AndOrClause parent, ComparisonEnum comparison) {
-			super();
-			this.parent = parent;
-			this.comparison = comparison;
-			this.restrictions = new ArrayList<Restriction>();
-			this.children = new ArrayList<AndOrClause>();
-		}
-
-		public void addRestriction(Restriction component) {
-			this.restrictions.add(component);
-		}
-
-		public ComparisonEnum getComparison() {
-			return comparison;
-		}
-
-		public List<Restriction> getRestrictions() {
-			return restrictions;
-		}
-
-		public AndOrClause addChild(ComparisonEnum comparison){
-			AndOrClause child = new AndOrClause(this, comparison);
-			this.children.add(child);
-			return child;
-		}
-		
-		public AndOrClause getParent(){
-			return this.parent;
-		}
-		
-		public boolean hasRestrictions(){
-			return this.restrictions.size() > 0;
-		}
-		
-		public boolean hasAnyRestrictions(){
-			if(this.restrictions.size() > 0)
-				return true;
-			for(AndOrClause child : this.children){
-				if(child.hasAnyRestrictions())
-					return true;
-			}
-			return false;
-		}
-		
-		public boolean hasOr() {
-			if(this.comparison == ComparisonEnum.OR)
-				return true;
-			AndOrClause root = this;
-			while(root.parent != null){
-				root = root.parent;
-				if(root.comparison == ComparisonEnum.OR)
-					return true;
-			}
-			return false;
-		}
-	
-		public String toString(){
-			StringBuilder builder = new StringBuilder();
-			for(int i=0; i<this.restrictions.size(); i++){
-				builder.append(this.restrictions.get(i).toString());
-				if(i < this.restrictions.size() - 1)
-					builder.append(" " + comparison + " ");
-			}
-			return builder.toString();
-		}
-	}
-	
-	class WhereClause{
-		
-		boolean built; //Have we been built yet
-		//In some situations when we filter in memory 
-		// it is not possible to limit the query results
-		boolean applyLimit;
-		String selectSQL;
-		List<Object> selectArgs;
-		String countSQL;
-		List<Object> countArgs;
-		List<SortOption> sort;
-		SQLLimitOffset limitOffset;
-		
-		//If there are no clauses
-		private Restriction singleRestriction;
-		//Tree of clauses
-		private AndOrClause currentClause;
-		
-		public WhereClause(boolean applyLimit){
-			this.applyLimit = applyLimit;
-			this.selectArgs = new ArrayList<Object>();
-			this.countArgs = new ArrayList<Object>();
-			this.sort = new ArrayList<SortOption>();
-		}
-		
-		/**
-		 * @return
-		 */
-		public boolean hasLimitOrder() {
-			return (this.limitOffset != null) || (this.sort.size() > 0);
-		}
-
-		/**
-		 * @param args
-		 */
-		public void applyLimit(List<Object> args) {
-			if (args.get(0).equals(Double.POSITIVE_INFINITY)) {
-			    if ((args.size() > 1) && (!(args.get(1) instanceof ASTNode))){
-			        // apply offset only
-			    	this.limitOffset = new SQLOffset(args);
-			    }
-			    return;
-			}else{
-				if ((args.size() > 1) && (!(args.get(1) instanceof ASTNode))){
-		            //Limit, Offset
-		            this.limitOffset = new SQLLimitOffset(args);
-				}else{
-					//Simple Limit
-					this.limitOffset = new SQLLimit(args);
-				}	
-			}
-		}
-
-		/**
-		 * Merge the current incoming clause into our current clause
-		 * while removing restrictions from the incoming clause
-		 */
-		public void mergeClause(AndOrClause newClause) {
-			
-//			//Find the Upper most OR Clause and Relocate it.
-//			
-//			//Get the restrictions for the clause
-//			ListIterator<Restriction> it = newClause.getRestrictions().listIterator();
-//			while(it.hasNext()){
-//				this.currentClause.addRestriction(it.next());
-//				it.remove();
-//			}
-//			//Add the children to this clause and remove them
-//			ListIterator<AndOrClause> childIt = newClause.children.listIterator();
-//			while(childIt.hasNext()){
-//				this.currentClause.children.add(childIt.next());
-//				childIt.remove();
-//			}
-			
-			//Walk up to highest OR and re-locate the tree to this clause
-			AndOrClause newClauseRoot = newClause;
-			AndOrClause currentClauseRoot = this.currentClause;
-			while(true){
-				//Move restrictions from ANY OR above us?
-				if(newClauseRoot.comparison == ComparisonEnum.OR){
-					currentClauseRoot.restrictions.addAll(newClauseRoot.restrictions);
-					newClauseRoot.restrictions.clear();
-					//Move children
-					currentClauseRoot.children.addAll(newClauseRoot.children);
-					newClauseRoot.children.clear();
-				}
-				//Step
-				newClauseRoot = newClauseRoot.parent;
-				currentClauseRoot = currentClauseRoot.parent;
-				if(newClauseRoot == null)
-					break;
-
-			}
-			
-		}
-
-		/**
-		 * @param column
-		 * @param desc
-		 */
-		public void addSort(SQLQueryColumn column, boolean desc) {
-			this.sort.add(new SortOption(column.getName(), desc));
-		}
-
-		public void openNewClause(ComparisonEnum comparison){
-			if(this.currentClause == null){
-				this.currentClause = new AndOrClause(null, comparison);
-				//TODO Decide to add single restriction and clear it here?
-			}else{
-				//Open a new clause and set that to the current
-				this.currentClause = this.currentClause.addChild(comparison);
-			}
-		}
-
-		public void closeCurrentClause(){
-			//Close clause and go up to parent if there is one
-			if(currentClause.getParent() != null)
-				this.currentClause = this.currentClause.getParent();
-		}
-		
-		public void addRestrictionToCurrentClause(Restriction restriction){
-			if(this.currentClause == null)
-				this.singleRestriction = restriction;
-			else
-				this.currentClause.addRestriction(restriction);
-		}
-	
-		public boolean currentClauseHasRestriction(){
-			if(this.currentClause == null)
-				return false;
-			else{
-				return this.currentClause.hasRestrictions();
-			}
-		}
-		
-		public boolean hasRestrictions(){
-			//Walk up to the parent from the current clause
-			AndOrClause root  = this.currentClause;
-			if((root == null)&&(this.singleRestriction == null))
-				return false;
-			else if(this.singleRestriction != null)
-				return true;
-			
-			while(root.parent != null)
-				root = root.parent;
-			
-			return root.hasAnyRestrictions();
-		}
-		
-		
-		public void build(){
-			if(built)
-				return;
-
-			StringBuilder selectSql = new StringBuilder();
-			StringBuilder countSql = new StringBuilder();
-			
-			//Walk up to the parent from the current clause
-			AndOrClause root  = this.currentClause;
-			if(root != null){
-				while(root.parent != null)
-					root = root.parent;
-				//Recursively build the comparisons
-				this.recursivelyApply(root, selectSql, this.selectArgs, countSql, this.countArgs, new AtomicBoolean(true));
-			}else if(this.singleRestriction != null){
-				this.singleRestriction.appendSQL(selectSql, countSql, selectArgs, countArgs);
-				selectSql.append(SPACE);
-				countSql.append(SPACE);
-			}
-			
-			this.applySort(selectSql);
-			if((this.limitOffset != null)&&(this.applyLimit)){
-				this.limitOffset.apply(selectSql);
-				this.selectArgs.addAll(this.limitOffset.getArgs());
-			}
-			
-			this.selectSQL = selectSql.toString();
-			this.countSQL = countSql.toString();
-			
-			this.built = true;
-			
-		}
-		
-		protected void recursivelyApply(AndOrClause clause, 
-				StringBuilder selectSql, List<Object> selectArgs, 
-				StringBuilder countSql, List<Object> countArgs,
-				AtomicBoolean first){
-			
-			if(!first.get() && clause.hasRestrictions()){
-				selectSql.append(clause.parent.comparison.name());
-				countSql.append(clause.parent.comparison.name());
-			}
-			
-			if(clause.hasRestrictions()){
-				first.set(false);
-				selectSql.append(" ( ");
-				countSql.append(" ( ");				
-			}
-			
-
-			//Apply the restrictions
-			int restrictionCount = clause.restrictions.size();
-			int i = 0;
-			for(Restriction restriction : clause.restrictions){
-				restriction.appendSQL(selectSql, countSql, selectArgs, countArgs);
-				i++;
-				if(i < restrictionCount){
-					selectSql.append(SPACE + clause.comparison.name() + SPACE);
-					countSql.append(SPACE + clause.comparison.name() + SPACE);
+			//We are an AND, add any restrictions from the Joined table
+			ListIterator<QueryRestriction> it = inner.getRestrictions().listIterator();
+			while(it.hasNext()){
+				QueryRestriction restriction = it.next();
+				if(!restriction.column.getName().startsWith(tablePrefix)){
+					//TODO Can this ever even happen? Ensure we are within an AND if we are going to add some restrictions
+					if(outer.getComparison() != ComparisonEnum.AND)
+						outer = outer.addChild(ComparisonEnum.AND);
+					outer.addRestriction(restriction);
+					it.remove();
 				}
 			}
-			//Apply the children
-			for(AndOrClause child : clause.children){
-				recursivelyApply(child, selectSql, selectArgs, countSql, countArgs, first);
-			}
-			
-			if(clause.hasRestrictions()){
-				selectSql.append(" ) ");
-				countSql.append(" ) ");	
+			//Check our children
+			ListIterator<AndOrClause> aoIt = inner.getChildren().listIterator();
+			while(aoIt.hasNext()){
+				if(recursivelyPrune(aoIt.next(), outer))
+					aoIt.remove();
 			}
 		}
-		
-		protected void applySort(StringBuilder builder) {
-			if(this.sort.size() > 0){
-				builder.append(ORDER_BY);
-				int cnt = 0;
-				for(SortOption option : this.sort){
-					//TODO H2 expects an column number NOT a ?=column name
-					//builder.append(" ? ");
-					//this.selectArgs.add(option.attribute);
-					//This is ok so long as we only used real column names via dao.getQueryColumn() sql injection wise
-					builder.append(SPACE);
-					builder.append(option.attribute);
-					builder.append(SPACE);
-					if(option.desc)
-						builder.append(DESC);
-					else
-						builder.append(ASC);
-					//Append comma?
-					if(cnt < this.sort.size() - 1)
-						builder.append(COMMA);
-					cnt++;
-				}
-			}
-		}
+		return false;
 	}
 }
