@@ -46,6 +46,13 @@
     function initPublisher() {
         sendSnapshotChanged();
     }
+    
+    function alarmLevelChanged(eventId) {
+        var alarmLevel = $get("alarmLevel"+ eventId);
+        PublisherEditDwr.updateEventAlarmLevel(eventId, alarmLevel);
+        setAlarmLevelImg(alarmLevel, "alarmLevelImg"+ eventId);
+    }
+    
   </script>
   
   <table>
@@ -126,8 +133,8 @@
               </td>
             </tr>
           </table>
+          <tag:pubEvents/>
         </div>
-        
         <div>
           <c:set var="incpage">/<c:out value="<%= Constants.DIR_MODULES %>"/>/${publisher.definition.module.name}/${publisher.definition.editPagePath}</c:set>
           <jsp:include page="${incpage}"/>

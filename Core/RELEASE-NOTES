@@ -13,6 +13,7 @@
 * Scripting/Meta Javascript TIMESTAMP bugfix for Java 8
 * No default colors in templates
 * Improved permissions filtering via RQL Rest queries
+* Publisher Alarm Levels now configurable
 
 *Version 2.7.12*
 * ETag Support for caching pages

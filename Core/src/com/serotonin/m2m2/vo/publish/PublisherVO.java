@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,11 +58,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
         eventTypes
                 .add(new EventTypeVO(EventType.EventTypeNames.PUBLISHER, null, getId(),
                         PublisherRT.POINT_DISABLED_EVENT, new TranslatableMessage("event.pb.pointMissing"),
-                        AlarmLevels.URGENT));
+                        getAlarmLevel(PublisherRT.POINT_DISABLED_EVENT, AlarmLevels.URGENT)));
         eventTypes
                 .add(new EventTypeVO(EventType.EventTypeNames.PUBLISHER, null, getId(),
                         PublisherRT.QUEUE_SIZE_WARNING_EVENT, new TranslatableMessage("event.pb.queueSize"),
-                        AlarmLevels.URGENT));
+                        getAlarmLevel(PublisherRT.QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT)));
 
         getEventTypesImpl(eventTypes);
 
@@ -78,6 +79,8 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
     abstract public ExportCodes getEventCodes();
 
     private PublisherDefinition definition;
+    
+    private Map<Integer, Integer> alarmLevels = new HashMap<>();
 
     public TranslatableMessage getTypeDescription() {
         return new TranslatableMessage(getDefinition().getDescriptionKey());
@@ -122,6 +125,17 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
         this.enabled = enabled;
     }
 
+    public void setAlarmLevel(int eventId, int level) {
+        alarmLevels.put(eventId, level);
+    }
+
+    public int getAlarmLevel(int eventId, int defaultLevel) {
+        Integer level = alarmLevels.get(eventId);
+        if (level == null)
+            return defaultLevel;
+        return level;
+    }
+    
     public int getId() {
         return id;
     }
@@ -255,10 +269,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 2;
+    private static final int version = 3;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
+        out.writeObject(alarmLevels);
         SerializationHelper.writeSafeUTF(out, name);
         out.writeBoolean(enabled);
         out.writeObject(points);
@@ -285,6 +300,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
+            alarmLevels = new HashMap<Integer,Integer>();
         }
         else if (ver == 2) {
             name = SerializationHelper.readSafeUTF(in);
@@ -293,6 +309,18 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
             changesOnly = in.readBoolean();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
+            sendSnapshot = in.readBoolean();
+            snapshotSendPeriodType = in.readInt();
+            snapshotSendPeriods = in.readInt();
+            alarmLevels = new HashMap<Integer,Integer>();
+        }else if(ver == 3){
+        	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            name = SerializationHelper.readSafeUTF(in);
+            enabled = in.readBoolean();
+            points = (List<T>) in.readObject();
+            changesOnly = in.readBoolean();
+            cacheWarningSize = in.readInt();
+            cacheDiscardSize = cacheWarningSize * 3;
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
@@ -305,6 +333,18 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
         writer.writeEntry("type", definition.getPublisherTypeName());
         writer.writeEntry("points", points);
         writer.writeEntry("snapshotSendPeriodType", Common.TIME_PERIOD_CODES.getCode(snapshotSendPeriodType));
+        ExportCodes eventCodes = getEventCodes();
+        if (eventCodes != null && eventCodes.size() > 0) {
+            Map<String, String> alarmCodeLevels = new HashMap<>();
+
+            for (int i = 0; i < eventCodes.size(); i++) {
+                int eventId = eventCodes.getId(i);
+                int level = getAlarmLevel(eventId, AlarmLevels.URGENT);
+                alarmCodeLevels.put(eventCodes.getCode(eventId), AlarmLevels.CODES.getCode(level));
+            }
+
+            writer.writeEntry("alarmLevels", alarmCodeLevels);
+        }
     }
 
     @Override
@@ -325,6 +365,26 @@ abstract public class PublisherVO<T extends PublishedPointVO> implements Seriali
             if (snapshotSendPeriodType == -1)
                 throw new TranslatableJsonException("emport.error.invalid", "snapshotSendPeriodType", text,
                         Common.TIME_PERIOD_CODES.getCodeList());
+        }
+        
+        JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
+        if (alarmCodeLevels != null) {
+            ExportCodes eventCodes = getEventCodes();
+            if (eventCodes != null && eventCodes.size() > 0) {
+                for (String code : alarmCodeLevels.keySet()) {
+                    int eventId = eventCodes.getId(code);
+                    if (!eventCodes.isValidId(eventId))
+                        throw new TranslatableJsonException("emport.error.eventCode", code, eventCodes.getCodeList());
+
+                    text = alarmCodeLevels.getString(code);
+                    int level = AlarmLevels.CODES.getId(text);
+                    if (!AlarmLevels.CODES.isValidId(level))
+                        throw new TranslatableJsonException("emport.error.alarmLevel", text, code,
+                                AlarmLevels.CODES.getCodeList());
+
+                    setAlarmLevel(eventId, level);
+                }
+            }
         }
     }
 }
