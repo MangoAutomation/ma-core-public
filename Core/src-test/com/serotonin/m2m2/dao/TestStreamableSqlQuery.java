@@ -2,7 +2,6 @@ package com.serotonin.m2m2.dao;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.ResultSet;
@@ -13,8 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.query.SQLStatement;
@@ -33,7 +30,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
     	this.initMaHome();
     	this.initEnvProperties("test-env");
     	this.initTimer();
-    	File db = new File(new File("junit"), "databases");
+//    	File db = new File(new File("junit"), "databases");
 //    	this.configureH2Proxy(db);
     	this.configureMySqlProxy("10.55.55.8", 3306, "mango");
     			
@@ -123,7 +120,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 	
 	class StreamTestDao extends AbstractDao<StreamTestData> {
 
-		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData from streamTest;", "select count(id) from streamTest;", "", false);
+		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false);
 		
 		protected StreamTestDao(String typeName) {
 			super(typeName);

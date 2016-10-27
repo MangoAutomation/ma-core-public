@@ -23,7 +23,6 @@ import org.springframework.jdbc.core.RowMapper;
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
-import com.infiniteautomation.mango.db.query.RQLToSQLSubSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.infiniteautomation.mango.db.query.SQLSubQuery;
@@ -445,21 +444,17 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
     		StreamableRowCallback<Long> countCallback, Map<String,String> modelMap, 
             Map<String, SQLColumnQueryAppender> modifiers, boolean applyLimitToSelectSql){
     	
+    	SQLStatement statement;
     	if(useSubQuery){
-    		SQLSubQuery statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
-	    	if(root != null)
-	    		root.accept(new RQLToSQLSubSelect<T>(this, modelMap, modifiers), statement);
-	    	
-	    	statement.build();	
-	        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
-
+    		statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql, null);
     	}else{
-	    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT, applyLimitToSelectSql);
-	    	if(root != null)
-	    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
-	    		
-	        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
+	    	statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
     	}
+    	if(root != null)
+    		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
+    
+    	statement.build();
+        return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
     }
     
     /**
@@ -470,10 +465,11 @@ public abstract class AbstractBasicDao<T> extends BaseDao {
      */
     public BaseSqlQuery<T> createQuery(ASTNode root, boolean applyLimitToSelectSql){
     	
-    	SQLStatement statement = new SQLStatement(SELECT_ALL, COUNT, applyLimitToSelectSql);
+    	SQLStatement statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
     	if(root != null)
     		root.accept(new RQLToSQLSelect<T>(this), statement);
     	
+       	statement.build();
     	return new BaseSqlQuery<T>(this, statement);
     }
     

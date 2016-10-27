@@ -7,241 +7,177 @@ package com.infiniteautomation.mango.db.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.jazdw.rql.parser.ASTNode;
-
 /**
  * @author Terry Packer
  *
  */
 public class SQLStatement implements SQLConstants{
 
-	protected StringBuilder selectSql;
-	protected StringBuilder joins;
-	protected StringBuilder selectWhere;
+	protected String baseSelect;
+	protected String baseCount;
+	protected String baseJoins;
+	protected String tableName;
+	protected String tablePrefix;
+
+	protected WhereClause baseWhere;
 	
+	protected String selectSQL;
 	protected List<Object> selectArgs;
-
-	protected StringBuilder countSql;
-	protected StringBuilder countWhere;
 	
-	protected boolean appliedWhere;
+	protected String countSQL;
+	protected List<Object> countArgs;
 	
-	protected StringBuilder limitOffset;
-	protected List<Object> limitArgs;
-	protected boolean appliedLimit; //Only can happen once
-	protected boolean applyLimit; //Do we even want to apply it to the generated SQL?
-	
-	protected List<SortOption> sort;
-	
-	
-	public SQLStatement(String baseSelectStatement, String baseCountStatement, String joins, boolean applyLimitToSelectSql){
-		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement, joins, applyLimitToSelectSql);
+	public SQLStatement(String baseSelect, String baseCountStatement, String joins,
+			String tableName, String tablePrefix, boolean applyLimitToSelectSql){
+		this.baseSelect = baseSelect;
+		this.baseCount = baseCountStatement;
+		this.baseJoins = joins;
+		this.tableName = tableName;
+		this.tablePrefix = tablePrefix;
+		this.baseWhere = new WhereClause(applyLimitToSelectSql);
 	}
 	
 	/**
-	 * 
-	 * @param baseSelectStatement
-	 * @param baseCountStatement
-	 * @param applyLimitToSelectSql - Do we want the limit/offset applied to the generated SQL?
-	 */
-	public SQLStatement(String baseSelectStatement, String baseCountStatement, boolean applyLimitToSelectSql){
-		this(baseSelectStatement, new ArrayList<Object>(), baseCountStatement, null, applyLimitToSelectSql);
-	}
-	
-	public SQLStatement(String baseSelectStatement,
-			List<Object> selectArgs, String baseCountStatement, boolean applyLimitToSelectSql){
-		this(baseSelectStatement, selectArgs, baseCountStatement, null, applyLimitToSelectSql);
-	}
-	
-	/**
-	 * 
-	 * @param baseSelectStatement
-	 * @param selectArgs
-	 * @param baseCountStatement
-	 * @param applyLimitToSelectSql - Do we want the limit/offset applied to the generated SQL?
-	 */
-	public SQLStatement(String baseSelectStatement,
-			List<Object> selectArgs, String baseCountStatement, String joins, boolean applyLimitToSelectSql){
-		
-		this.selectSql = new StringBuilder(baseSelectStatement);
-		if(!baseSelectStatement.endsWith(SPACE))
-			this.selectSql.append(SPACE);
-		
-		if(joins != null)
-			this.joins = new StringBuilder(joins);
-		
-		this.selectWhere = new StringBuilder(WHERE);
-		this.countWhere = new StringBuilder(WHERE);
-		
-		this.countSql = new StringBuilder(baseCountStatement);
-		if(!baseCountStatement.endsWith(SPACE))
-			this.countSql.append(SPACE);
-		
-		this.selectArgs = selectArgs;
-		this.appliedWhere = false;
-		
-		this.limitOffset = new StringBuilder();
-		this.limitArgs = new ArrayList<Object>();
-		this.appliedLimit = false;
-		this.applyLimit = applyLimitToSelectSql;
-		
-		this.sort = new ArrayList<SortOption>();
-		
-	}
-	
-	public String getSelectSql() {
-		StringBuilder builder = new StringBuilder(this.selectSql.toString());
-		
-		//Apply any Joins
-		if(this.joins != null)
-			builder.append(joins);
-		
-		//Apply the where
-		if(this.appliedWhere)
-			builder.append(this.selectWhere);
-		
-		//Apply the sort
-		this.applySort(builder);
-		
-		//Apply the limit
-		if(this.applyLimit)
-			builder.append(limitOffset.toString());
-		
-		return builder.toString();
-	}
-
-	/**
-	 * @param builder
-	 */
-	protected void applySort(StringBuilder builder) {
-		if(this.sort.size() > 0){
-			builder.append(ORDER_BY);
-			int cnt = 0;
-			for(SortOption option : this.sort){
-				builder.append(option.attribute);
-				if(option.desc)
-					builder.append(DESC);
-				else
-					builder.append(ASC);
-				//Append comma?
-				if(cnt < this.sort.size() - 1)
-					builder.append(COMMA);
-				cnt++;
-			}
-		}
-	}
-
-	public List<Object> getSelectArgs() {
-		//Merge both select and limit
-		List<Object> allArgs = new ArrayList<Object>();
-		allArgs.addAll(this.selectArgs);
-		if(this.applyLimit)
-			allArgs.addAll(this.limitArgs);
-		return allArgs;
-	}
-	
-	
-	public String getCountSql(){
-		StringBuilder sb = new StringBuilder(this.countSql);
-		
-		//Apply Joins
-		if((this.joins != null) && this.appliedWhere)
-			sb.append(joins);
-		
-		//Apply Where Clause
-		if(this.appliedWhere)
-			sb.append(this.countWhere);
-		return sb.toString();
-	}
-	
-	public List<Object> getCountArgs(){
-		return this.selectArgs; //Everything but the limit stuff
-	}
-	
-	/**
-	 * Add to the limit
-	 * @param stmt
-	 */
-	public void applyLimit(List<Object> args) throws RQLToSQLParseException{
-		if(appliedLimit)
-			throw new RQLToSQLParseException("Limit cannot be applied twice to a statement");
-		
-		if (args.get(0).equals(Double.POSITIVE_INFINITY)) {
-		    if ((args.size() > 1) && (!(args.get(1) instanceof ASTNode))){
-		        // apply offset only
-		        this.limitOffset.append(OFFSET_SQL);
-		        this.limitArgs.add(args.get(1));
-		        this.appliedLimit = true;
-		    }
-		    return;
-		}
-		
-		if ((args.size() > 1) && (!(args.get(1) instanceof ASTNode))){
-            //Limit, Offset
-            this.limitOffset.append(LIMIT_OFFSET_SQL);
-            this.limitArgs.add(args.get(0));
-            this.limitArgs.add(args.get(1));
-		}else{
-			//Simple Limit
-			this.limitOffset.append(LIMIT_SQL);
-			this.limitArgs.add(args.get(0));
-		}
-
-        this.appliedLimit = true;
-		
-	}
-
-	/**
-	 * Get the arguments for the limit (offset)
-	 * 
-	 * Size 1 - Limit only
-	 * Size 2 - Limit and Offset
-	 * 
+	 * Call after build to get full SQL
 	 * @return
 	 */
-	public List<Object> getLimitOffsetArgs(){
-		return this.limitArgs;
+	public String getSelectSql() {
+		return this.selectSQL;
 	}
 	
 	/**
-	 * 
-	 * Append this statement with some Sort operation
-	 * @param stmt
+	 * Call after build to get full SQL
+	 * @return
+	 */
+	public String getCountSql() {
+		return this.countSQL;
+	}
+	
+	/**
+	 * Call after build to get select arguments
+	 * @return
+	 */
+	public List<Object> getSelectArgs() {
+		return this.selectArgs;
+	}
+
+	/**
+	 * Call after build to get count arguments
+	 * @return
+	 */
+	public List<Object> getCountArgs() {
+		return this.countArgs;
+	}
+
+	public List<Object> getLimitOffsetArgs(){
+		if(this.baseWhere.limitOffset != null)
+			return this.baseWhere.limitOffset.getArgs();
+		else
+			return null;
+	}
+	
+	/**
+	 * Add a restriction to the current clause
+	 * @param column
+	 * @param columnArgs
+	 * @param comparison
+	 */
+	public void appendColumnQuery(SQLQueryColumn column, List<Object> columnArgs, ComparisonEnum comparison) {
+		this.baseWhere.addRestrictionToCurrentClause(new QueryRestriction(column, columnArgs, comparison));
+	}
+	
+	/**
+	 * Apply Sort
+	 * @param column
+	 * @param desc
 	 */
 	public void applySort(SQLQueryColumn column, boolean desc) {
-		this.sort.add(new SortOption(column.getName(), desc));
+		this.baseWhere.addSort(column, desc);
 	}
 	
 	/**
-	 * Append to both count and select
-	 * 
-	 * @param sql
-	 * @param args 
-	 * @return
+	 * Apply a limit
+	 * @param args
+	 * @throws RQLToSQLParseException
 	 */
-	public void appendSQL(String sql, List<Object> args) {
-		if(!appliedWhere)
-			this.appliedWhere = true;
-		
-		this.selectWhere.append(sql);
-		this.selectWhere.append(SPACE);
-		
-		this.countWhere.append(sql);
-		this.countWhere.append(SPACE);
-		
-		this.selectArgs.addAll(args);
+	public void applyLimit(List<Object> args) throws RQLToSQLParseException {
+		this.baseWhere.applyLimit(args);
 	}
-
-
+	
+//	/* (non-Javadoc)
+//	 * @see com.infiniteautomation.mango.db.query.SQLStatement#appendSQL(java.lang.String, java.util.List)
+//	 */
+//	@Override
+//	public void appendSQL(String sql, List<Object> args) {
+//		super.appendSQL(sql, args);
+//	}
+	
 	/**
-	 * @param queryColumn
-	 * @param subList
-	 * @param equalTo
+	 * Open a clause with a comparison type
+	 * @param comparison
 	 */
-	public void appendColumnQuery(SQLQueryColumn column,
-			List<Object> columnArgs, ComparisonEnum comparison) {
-		if(!appliedWhere)
-			this.appliedWhere = true;
-		column.appendSQL(selectWhere, countWhere, selectArgs, columnArgs, comparison);
+	public void openAndOr(ComparisonEnum comparison){
+		this.baseWhere.openNewClause(comparison);
 	}
+	
+	/**
+	 * Close a clause
+	 * @param comparison
+	 */
+	public void closeAndOr(ComparisonEnum comparison){
+		this.baseWhere.closeCurrentClause();
+	}
+	
+	/**
+	 * Build the Count and Select Statements
+	 */
+	public void build(){
+		//SELECT tbl.id,tbl.xid, ... FROM
+		StringBuilder selectSql = new StringBuilder(this.baseSelect);
+		//COUNT ... FROM
+		StringBuilder countSql = new StringBuilder(this.baseCount);
+		
+		selectSql.append(this.tableName);
+		selectSql.append(SPACE);
+		countSql.append(this.tableName);
+		countSql.append(SPACE);
+
+		if(this.tablePrefix != null){
+			selectSql.append(" AS ");
+			selectSql.append(this.tablePrefix);
+			selectSql.append(SPACE);
+			countSql.append(" AS ");
+			countSql.append(this.tablePrefix);
+			countSql.append(SPACE);
+		}
+
+		if(this.baseJoins != null){
+			selectSql.append(SPACE);
+			selectSql.append(this.baseJoins);
+			selectSql.append(SPACE);
+			countSql.append(SPACE);
+			countSql.append(this.baseJoins);
+			countSql.append(SPACE);
+		}
+		
+		
+		//Build up the where clauses
+		this.baseWhere.build();
+		if(this.baseWhere.hasRestrictions()){
+			selectSql.append(WHERE);
+			countSql.append(WHERE);
+			selectSql.append(this.baseWhere.selectSQL);
+			countSql.append(this.baseWhere.countSQL);
+		}else if(this.baseWhere.hasLimitOrder()){
+			selectSql.append(this.baseWhere.selectSQL);
+			countSql.append(this.baseWhere.countSQL);
+		}
+		
+		this.selectSQL = selectSql.toString();
+		this.selectArgs = new ArrayList<Object>(this.baseWhere.selectArgs);
+		
+		this.countSQL = countSql.toString();
+		this.countArgs = new ArrayList<Object>(this.baseWhere.countArgs);
+	}
+
 }

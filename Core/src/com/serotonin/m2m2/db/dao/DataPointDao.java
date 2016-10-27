@@ -36,13 +36,9 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
-import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
-import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
-import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -1279,7 +1275,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			case MYSQL:
 			case POSTGRES:
 			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT, true);
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission ", COUNT_BASE, null, this.tableName, this.tablePrefix, true);
 				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
 				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
 						new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
@@ -1311,7 +1307,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			case MYSQL:
 			case POSTGRES:
 			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp ", new ArrayList<Object>(), COUNT, true);
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission ", COUNT_BASE, null, this.tableName, this.tablePrefix, true);
 				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
 				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
 						new DataPointPermissionChangeCallback(updateSetPermissions, null));

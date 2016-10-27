@@ -20,19 +20,7 @@ import java.util.ListIterator;
  */
 public class SQLSubQuery extends SQLStatement{
 
-	private String tableName;
-	private String tablePrefix;
-	
-	
-	private String baseSelect;
-	private String baseCount;
-	private String baseJoins;
-	
-	private String selectSQL;
-	private String countSQL;
-	
-	//TODO Merge these into 1 Object of cascading where clauses to support infinite subQueries?
-	private WhereClause baseWhere;
+	private String subSelectJoins;
 	private WhereClause subSelectWhere;
 	
 	/**
@@ -41,20 +29,17 @@ public class SQLSubQuery extends SQLStatement{
 	 * @param baseCountStatement
 	 * @param applyLimitToSelectSql
 	 */
-	public SQLSubQuery(String baseSelect, String baseCountStatement, String joins,
+	public SQLSubQuery(String baseSelect, String baseCountStatement, String baseJoins,
 			String tableName,
 			String tablePrefix,
-			boolean applyLimitToSelectSql) {
-		super("SELECT * FROM " + tableName + " AS " + tablePrefix, new ArrayList<Object>(), baseCountStatement, null, applyLimitToSelectSql);
-		this.baseSelect = baseSelect;
-		this.baseCount = baseCountStatement;
-		this.baseJoins = joins;
-		this.tableName = tableName;
-		this.tablePrefix = tablePrefix;
-		this.baseWhere = new WhereClause(applyLimitToSelectSql);
+			boolean applyLimitToSelectSql, String subSelectJoins) {
+		super(baseSelect, baseCountStatement, baseJoins, tableName, tablePrefix, applyLimitToSelectSql);
+		
+		this.subSelectJoins = subSelectJoins;
 		this.subSelectWhere = new WhereClause(applyLimitToSelectSql);
 	}
 
+	@Override
 	public void build(){
 		
 		//First remove any invalid clauses and place into outer where
@@ -82,12 +67,12 @@ public class SQLSubQuery extends SQLStatement{
 				countSql.append(SPACE);
 			}
 			//Append Joins
-			if(this.joins != null){
+			if(this.subSelectJoins != null){
 				selectSql.append(SPACE);
-				selectSql.append(this.joins);
+				selectSql.append(this.subSelectJoins);
 				selectSql.append(SPACE);
 				countSql.append(SPACE);
-				countSql.append(this.joins);
+				countSql.append(this.subSelectJoins);
 				countSql.append(SPACE);
 			}
 			//We may only have order/limit
@@ -139,51 +124,22 @@ public class SQLSubQuery extends SQLStatement{
 		}
 		
 		this.selectSQL = selectSql.toString();
+		this.selectArgs = new ArrayList<Object>(this.subSelectWhere.selectArgs);
+		this.selectArgs.addAll(this.baseWhere.selectArgs);
+		
 		this.countSQL = countSql.toString();
+		this.countArgs = new ArrayList<Object>(this.subSelectWhere.countArgs);
+		this.countArgs.addAll(this.baseWhere.countArgs);
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLStatement#getSelectSql()
-	 */
 	@Override
-	public String getSelectSql() {
-		return this.selectSQL;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLStatement#getCountSql()
-	 */
-	@Override
-	public String getCountSql() {
-		return this.countSQL;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLStatement#getSelectArgs()
-	 */
-	@Override
-	public List<Object> getSelectArgs() {
-		List<Object> args = new ArrayList<Object>(this.subSelectWhere.selectArgs);
-		args.addAll(this.baseWhere.selectArgs);
-		return args;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLStatement#getCountArgs()
-	 */
-	@Override
-	public List<Object> getCountArgs() {
-		List<Object> args = new ArrayList<Object>(this.subSelectWhere.countArgs);
-		args.addAll(this.baseWhere.countArgs);
-		return args;
-	}
-	
 	public void openAndOr(ComparisonEnum comparison){
 		if(!this.baseWhere.isOpen())
 			this.baseWhere.openNewClause(comparison);
 		this.subSelectWhere.openNewClause(comparison);
 	}
 	
+	@Override
 	public void closeAndOr(ComparisonEnum comparison){
 		this.subSelectWhere.closeCurrentClause();
 	}
@@ -193,16 +149,7 @@ public class SQLSubQuery extends SQLStatement{
 	 */
 	@Override
 	public void appendColumnQuery(SQLQueryColumn column, List<Object> columnArgs, ComparisonEnum comparison) {
-		//Always add to base where, when done we will create the sub query if possible
 		this.subSelectWhere.addRestrictionToCurrentClause(new QueryRestriction(column, columnArgs, comparison));
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLStatement#appendSQL(java.lang.String, java.util.List)
-	 */
-	@Override
-	public void appendSQL(String sql, List<Object> args) {
-		super.appendSQL(sql, args);
 	}
 	
 	/* (non-Javadoc)
@@ -221,6 +168,17 @@ public class SQLSubQuery extends SQLStatement{
 		this.subSelectWhere.applyLimit(args);
 	}
 	
+	@Override
+	public List<Object> getLimitOffsetArgs(){
+		if(!this.subSelectWhere.hasRestrictions()){
+			return this.baseWhere.limitOffset.getArgs();
+		}else{
+			if(this.subSelectWhere.limitOffset != null)
+				return this.subSelectWhere.limitOffset.getArgs();
+			else
+				return null;
+		}
+	}
 	
 	public void pruneSubQuery(){
 		
