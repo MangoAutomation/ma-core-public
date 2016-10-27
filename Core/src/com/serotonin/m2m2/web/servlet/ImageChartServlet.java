@@ -187,7 +187,7 @@ public class ImageChartServlet extends BaseInfoServlet {
                         		UnitConverter converter = null;
                         		if(dp.getRenderedUnit() != dp.getUnit())
                         			converter = dp.getUnit().getConverterTo(dp.getRenderedUnit());
-	                            ts = new TimeSeries(dp.getName(), null, dp.getTextRenderer().getMetaText());
+	                            ts = new TimeSeries(dp.getExtendedName(), null, dp.getTextRenderer().getMetaText());
 	                            double value;
 	                            for (PointValueTime pv : data){
 	                            	if(converter != null)
@@ -198,7 +198,7 @@ public class ImageChartServlet extends BaseInfoServlet {
 	                            }
                         	}else{
                         		//No renderer, don't need it
-	                            ts = new TimeSeries(dp.getName(), null, dp.getTextRenderer().getMetaText());
+	                            ts = new TimeSeries(dp.getExtendedName(), null, dp.getTextRenderer().getMetaText());
 	                            for (PointValueTime pv : data){
 	                                ImageChartUtils.addMillisecond(ts, pv.getTime(), pv.getValue().numberValue()); //pv.getValue().numberValue());
 	                            }                        		
@@ -206,7 +206,7 @@ public class ImageChartServlet extends BaseInfoServlet {
                             ptsc.addNumericTimeSeries(new NumericTimeSeries(dp.getPlotType(), ts, colour, null));
                         }
                         else {
-                            DiscreteTimeSeries ts = new DiscreteTimeSeries(dp.getName(), dp.getTextRenderer(), colour,
+                            DiscreteTimeSeries ts = new DiscreteTimeSeries(dp.getExtendedName(), dp.getTextRenderer(), colour,
                                     null);
                             for (PointValueTime pv : data)
                                 ts.addValueTime(pv);
