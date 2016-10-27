@@ -1,5 +1,4 @@
 *Version 2.7.14*
-* Updates for RQL improvements
 * Using Sub Queries for Data Point RQL Queries
 * Improved aborted poll handling, will only raise 1 event on the first aborted poll and only log the count every 5 minutes
 * Display aborted polls on data source edit page
@@ -14,6 +13,13 @@
 * No default colors in templates
 * Improved permissions filtering via RQL Rest queries
 * Publisher Alarm Levels now configurable
+* Update current user's settings when saving/editing user
+* Improve unauthorized access logging
+* Split Excel point value export into multiple sheets based on max rows per sheet
+* Improved Event/Alarm purge performance
+* Bugfix to allow deleting point values via Excel import
+* Only allow GET requests during startup
+* Adding null comparisons and NOT LIKE for RQL: like(^pattern)
 
 *Version 2.7.12*
 * ETag Support for caching pages
