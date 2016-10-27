@@ -110,7 +110,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         //Raise No RTN Event On First aborted poll
         int eventId = vo.getPollAbortedExceptionEventId();
         if((eventId >= 0) && (unsuccessful == 1))
-        	this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName(), unsuccessful));
+        	this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName()));
     }
 
     @Override
