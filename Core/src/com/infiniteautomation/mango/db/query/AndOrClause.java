@@ -84,18 +84,7 @@ public class AndOrClause {
 		}
 		return false;
 	}
-	
-	public boolean hasOr() {
-		if(this.comparison == ComparisonEnum.OR)
-			return true;
-		AndOrClause root = this;
-		while(root.parent != null){
-			root = root.parent;
-			if(root.comparison == ComparisonEnum.OR)
-				return true;
-		}
-		return false;
-	}
+
 
 	public String toString(){
 		StringBuilder builder = new StringBuilder();

@@ -90,7 +90,6 @@ public class WhereClause extends SQLConstants{
 	public void openNewClause(ComparisonEnum comparison){
 		if(this.currentClause == null){
 			this.currentClause = new AndOrClause(null, comparison);
-			//TODO Decide to add single restriction and clear it here?
 		}else{
 			//Open a new clause and set that to the current
 			this.currentClause = this.currentClause.addChild(comparison);
@@ -191,7 +190,6 @@ public class WhereClause extends SQLConstants{
 			selectSql.append(" ( ");
 			countSql.append(" ( ");				
 		}
-		
 
 		//Apply the restrictions
 		int restrictionCount = clause.getRestrictions().size();
