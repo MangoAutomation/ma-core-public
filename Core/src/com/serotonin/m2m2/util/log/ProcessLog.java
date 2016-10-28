@@ -41,6 +41,10 @@ public class ProcessLog {
         }
         return false;
     }
+    
+    public static List<ProcessLog> getProcessLogs(){
+    	return processLogs;
+    }
 
     public static enum LogLevel {
         TRACE("TRACE"), DEBUG("DEBUG"), INFO("INFO "), WARN("WARN "), ERROR("ERROR"), FATAL("FATAL");

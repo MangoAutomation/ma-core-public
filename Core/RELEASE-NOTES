@@ -20,6 +20,7 @@
 * Bugfix to allow deleting point values via Excel import
 * Only allow GET requests during startup
 * Adding null comparisons and NOT LIKE for RQL: like(^pattern)
+* Adding rolling process logs for use in modules
 
 *Version 2.7.12*
 * ETag Support for caching pages

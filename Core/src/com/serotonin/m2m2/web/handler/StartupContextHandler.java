@@ -53,9 +53,9 @@ public class StartupContextHandler extends ResourceHandler{
 			throws IOException, ServletException {
         //Allow access to js and css files
         int requestType = PAGE;
-        if(!request.getMethod().equalsIgnoreCase("GET")){
-        	response.setHeader("Allow", "GET");
-        	response.sendError(HttpStatus.SC_METHOD_NOT_ALLOWED, "Only GET requests allowed during startup.");
+        if(!request.getMethod().equalsIgnoreCase("GET")&&!request.getMethod().equalsIgnoreCase("OPTIONS")){
+        	response.setHeader("Allow", "GET,OPTIONS");
+        	response.sendError(HttpStatus.SC_METHOD_NOT_ALLOWED, "Only GET,OPTIONS requests allowed during startup.");
         	return;
         }
         
