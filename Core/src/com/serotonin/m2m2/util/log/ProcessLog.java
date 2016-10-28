@@ -1,7 +1,8 @@
 package com.serotonin.m2m2.util.log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,16 +54,21 @@ public class ProcessLog {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss,SSS";
 
-    private final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
-    private final String id;
-    private final PrintWriter out;
-    private LogLevel logLevel;
+    protected final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+    protected final String id;
+    protected PrintWriter out;
+    protected LogLevel logLevel;
+    protected File file;
 
     public ProcessLog(String id, LogLevel logLevel) {
         this(id, logLevel, null);
     }
-
+    
     public ProcessLog(String id, LogLevel logLevel, PrintWriter out) {
+    	this(id, logLevel, out, false);
+    }
+    
+    public ProcessLog(String id, LogLevel logLevel, PrintWriter out, boolean deleteExisting) {
         this.id = id;
 
         if (logLevel == null)
@@ -70,24 +76,22 @@ public class ProcessLog {
         else
             this.logLevel = logLevel;
 
-        if (out == null) {
-            File file = new File(Common.getLogsDir(), "processLog." + id + ".log");
-            if (file.exists())
-                file.delete();
-
-            try {
-                out = new PrintWriter(file);
-            }
-            catch (FileNotFoundException e) {
-                out = new PrintWriter(new NullWriter());
-                LOG.error("Error while creating process log", e);
-            }
-        }
-        this.out = out;
+        file = new File(Common.getLogsDir(), "processLog." + id + ".log");
+        if (file.exists() && deleteExisting)
+            file.delete();
+        
+        if (out == null)
+        	createOut();
+        else
+        	this.out = out;
 
         processLogs.add(this);
     }
 
+    public File getFile(){
+    	return file;
+    }
+    
     public void close() {
         out.close();
         processLogs.remove(this);
@@ -220,7 +224,10 @@ public class ProcessLog {
     private void log(String s, Throwable t, LogLevel level) {
         if (level.ordinal() < logLevel.ordinal())
             return;
-
+        
+        //Check to roll
+        sizeCheck();
+        
         synchronized (out) {
             out.append(level.logName).append(' ');
             out.append(sdf.format(new Date())).append(" (");
@@ -234,6 +241,25 @@ public class ProcessLog {
         }
     }
 
+    /**
+     * Check the size of the log file and perform adjustments
+     * as necessary
+     */
+    protected void sizeCheck() { }
+    
+    /**
+     * Create the Print Writer output
+     */
+    protected void createOut() {
+        try {
+            out = new PrintWriter(new FileWriter(file, true));
+        }
+        catch (IOException e) {
+            out = new PrintWriter(new NullWriter());
+            LOG.error("Error while creating process log", e);
+        }
+    }
+    
     public static void main(String[] args) {
         new ProcessLog("test", LogLevel.DEBUG, new PrintWriter(System.out)).info("test");
     }
