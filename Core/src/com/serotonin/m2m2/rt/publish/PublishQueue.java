@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.publish;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
@@ -86,12 +87,17 @@ public class PublishQueue<T extends PublishedPointVO> {
         long now = System.currentTimeMillis();
         if (lastSizeCheck + SIZE_CHECK_DELAY < now) {
             lastSizeCheck = now;
+            int size = queue.size();
 
             synchronized (owner) {
-            	int size = queue.size();
                 if (size > discardSize) {
-                    for (int i = discardSize; i < size; i++)
-                        queue.remove();
+                	try {
+                		for (int i = discardSize; i < size; i++)
+                			queue.remove();
+                	} catch(NoSuchElementException e) {
+                		//Queue is emptied, nothing to do
+                	}
+                	
                     LOG.warn("Publisher queue " + owner.getVo().getName() + " discarded " + (size - discardSize)
                             + " entries");
                 }
