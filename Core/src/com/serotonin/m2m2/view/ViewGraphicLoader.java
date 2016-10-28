@@ -38,8 +38,11 @@ public class ViewGraphicLoader {
         viewGraphics = new ArrayList<ViewGraphic>();
 
         for (Module module : ModuleRegistry.getModules()) {
-            if (module.getGraphicsDir() != null)
-                loadModuleGraphics(new File(path + module.getWebPath(), module.getGraphicsDir()), module.getName());
+            if (module.getGraphicsDir() != null){
+            	String[] dirs = module.getGraphicsDir().split(",");
+            	for(String dir : dirs)
+            		loadModuleGraphics(new File(path + module.getWebPath(), dir), module.getName());
+            }
         }
 
         return viewGraphics;
