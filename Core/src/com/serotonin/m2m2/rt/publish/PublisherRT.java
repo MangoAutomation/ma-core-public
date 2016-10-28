@@ -115,11 +115,11 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
         }
     }
 
-    protected void pointInitialized(@SuppressWarnings("unused") PublishedPointRT<T> rt) {
+    protected void pointInitialized(PublishedPointRT<T> rt) {
         checkForDisabledPoints();
     }
 
-    protected void pointTerminated(@SuppressWarnings("unused") PublishedPointRT<T> rt) {
+    protected void pointTerminated(PublishedPointRT<T> rt) {
         checkForDisabledPoints();
     }
 
