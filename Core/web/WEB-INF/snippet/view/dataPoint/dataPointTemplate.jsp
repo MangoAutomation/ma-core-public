@@ -67,19 +67,8 @@
       <fmt:message key="pointEdit.template.updateWarning" />
     </span>
     <br>
-  <%-- Points To Update Table --%> 
-   <div style="max-height: 200px; overflow-y: scroll">
-    <table style="margin: 5px auto">
-      <thead>
-        <tr class="rowHeader">
-          <td><fmt:message key="dsEdit.deviceName"/></td>
-          <td><fmt:message key="common.name"/></td>
-          <td><fmt:message key="common.xid"/></td>
-        </tr>
-      </thead>
-      <tbody id="templateChangeAffectsPointsList"></tbody>
-    </table>
-    </div>
+    <%-- Points To Update Table --%> 
+	<div id="templateChangeAffectsPointsList"></div>
     <div style="width: 300px; margin: 5px auto">
       <label for='updateTemplateXid'>
         <fmt:message key="common.xid" />
@@ -98,7 +87,30 @@
 </div>
 <script type="text/javascript">
 	dojo.require("dijit.Dialog");
+	dojo.require("dojo/store/Memory");
 
+	//Setup the All Points Grid
+  	var updatedTemplatePointsGrid;
+  	require([
+  	         'dgrid/OnDemandGrid'], function(OnDemandGrid){
+  		updatedTemplatePointsGrid = new OnDemandGrid({
+  		   showHeader: true,
+  	       store: new dojo.store.Memory(),
+  	       loadingMessage: '<fmt:message key="common.loading"/>',
+  	       noDataMessage: '<fmt:message key="common.noData"/>',
+  	       columns: [
+  	           {label: '<fmt:message key="dsEdit.deviceName"/>', field: 'deviceName'},
+  	           {label: '<fmt:message key="common.name"/>', field: 'name'},
+  	           {label: '<fmt:message key="common.xid"/>', field: 'xid'}
+  	       ]
+  	   	}, 'templateChangeAffectsPointsList');
+  		//Dirty hack as the headers don't show (bug #1170 on github)
+  		updatedTemplatePointsGrid.on('dgrid-refresh-complete',function(){
+  			updatedTemplatePointsGrid.resize();
+  			});
+  		updatedTemplatePointsGrid.startup();
+  	});	
+	
 	function showNewTemplateDialog() {
 		dijit.byId('newTemplateDialog').show();
 		$set('templateXid',"");
@@ -317,26 +329,13 @@
 		//Check to see that something is selected
 		if (template != null) {
 			TemplateDwr.findPointsWithTemplate(template, function(response){
-			  //Load the template List
-              dwr.util.removeAllRows("templateChangeAffectsPointsList");
-              dwr.util.addRows("templateChangeAffectsPointsList", response.data.dataPoints, [
-                      function(t) { return t.deviceName; },
-                      function(t) { return t.name; },
-                      function(t) { return t.xid; }
-                  ],
-                  {
-                      rowCreator: function(options) {
-                          var tr = document.createElement("tr");
-                          tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
-                          return tr;
-                      },
-                      cellCreator: function(options) {
-                          var td = document.createElement("td");
-                          td.vAlign = "top";
-                          return td;
-                      }
-                  }
-              );				
+				
+				var allPointsStore = new dojo.store.Memory({
+	       			idProperty: 'id',
+	       			data: response.data.dataPoints
+	       		});
+				updatedTemplatePointsGrid.set('showHeader', true);
+				updatedTemplatePointsGrid.set('store', allPointsStore);		  			
 				showUpdateTemplateDialog();
 			});
 		}
