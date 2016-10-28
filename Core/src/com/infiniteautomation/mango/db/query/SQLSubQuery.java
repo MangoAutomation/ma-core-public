@@ -171,7 +171,10 @@ public class SQLSubQuery extends SQLStatement{
 	@Override
 	public List<Object> getLimitOffsetArgs(){
 		if(!this.subSelectWhere.hasRestrictions()){
-			return this.baseWhere.limitOffset.getArgs();
+			if(this.baseWhere.limitOffset != null)
+				return this.baseWhere.limitOffset.getArgs();
+			else
+				return null;
 		}else{
 			if(this.subSelectWhere.limitOffset != null)
 				return this.subSelectWhere.limitOffset.getArgs();
