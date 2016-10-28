@@ -146,7 +146,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
                 else
                     lm = new TranslatableMessage("event.publish.pointDisabled", disabledPoint.getXid());
                 Common.eventManager.raiseEvent(pointDisabledEventType, System.currentTimeMillis(), true,
-                        AlarmLevels.URGENT, lm, createEventContext());
+                        vo.getAlarmLevel(POINT_DISABLED_EVENT, AlarmLevels.URGENT), lm, createEventContext());
             }
             else
                 // Everything is good
@@ -155,7 +155,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
     }
 
     void fireQueueSizeWarningEvent() {
-        Common.eventManager.raiseEvent(queueSizeWarningEventType, System.currentTimeMillis(), true, AlarmLevels.URGENT,
+        Common.eventManager.raiseEvent(queueSizeWarningEventType, System.currentTimeMillis(), true, 
+        		vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT),
                 new TranslatableMessage("event.publish.queueSize", vo.getCacheWarningSize()), createEventContext());
     }
 
