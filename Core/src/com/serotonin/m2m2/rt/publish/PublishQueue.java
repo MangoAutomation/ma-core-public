@@ -73,6 +73,10 @@ public class PublishQueue<T extends PublishedPointVO> {
         queue.removeAll(list);
         sizeCheck();
     }
+    
+    public void removeAll() {
+    	queue.clear();
+    }
 
     public int getSize() {
         return queue.size();
@@ -82,9 +86,9 @@ public class PublishQueue<T extends PublishedPointVO> {
         long now = System.currentTimeMillis();
         if (lastSizeCheck + SIZE_CHECK_DELAY < now) {
             lastSizeCheck = now;
-            int size = queue.size();
 
             synchronized (owner) {
+            	int size = queue.size();
                 if (size > discardSize) {
                     for (int i = discardSize; i < size; i++)
                         queue.remove();
