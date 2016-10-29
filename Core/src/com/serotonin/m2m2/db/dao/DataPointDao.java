@@ -42,6 +42,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -88,7 +89,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
         		true,
                 "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
-
     }
 
     //
@@ -889,7 +889,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
-                vo.getReadPermission(), vo.getSetPermission(), };
+                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId()};
     }
 
     /*
@@ -1237,11 +1237,21 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 	 * @return
 	 */
 	public List<DataPointVO> getByTemplate(int id) {
-		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
-		setRelationalData(dps); //We will need this to restart the points after updating them
-		return dps;
+		return getByTemplate(id, true);
 	}
 
+	/**
+	 * Get a list of all Data Points using a given template
+	 * @param id
+	 * @return
+	 */
+	public List<DataPointVO> getByTemplate(int id, boolean setRelational) {
+		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
+		if(setRelational)
+			setRelationalData(dps); //We will need this to restart the points after updating them
+		return dps;
+	}
+	
 	/**
 	 * @param node
 	 * @param permissions

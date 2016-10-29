@@ -20,6 +20,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
@@ -80,8 +81,11 @@ public class TemplateDwr extends BaseDwr{
     @DwrPermission(user = true)
     public ProcessResult findPointsWithTemplate(DataPointPropertiesTemplateVO vo){
     	ProcessResult response = new ProcessResult();
-    	List<DataPointVO> dataPoints = DaoRegistry.dataPointDao.getByTemplate(vo.getId());
-    	response.addData("dataPoints", dataPoints);
+    	List<DataPointVO> dataPoints = DaoRegistry.dataPointDao.getByTemplate(vo.getId(), false);
+    	List<DataPointSummary> summaries = new ArrayList<DataPointSummary>(dataPoints.size());
+    	for(DataPointVO dp: dataPoints)
+    		summaries.add(new DataPointSummary(dp));
+    	response.addData("dataPoints", summaries);
     	return response;
     }
     

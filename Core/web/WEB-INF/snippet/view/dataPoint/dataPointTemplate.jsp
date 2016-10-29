@@ -4,43 +4,64 @@
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp"%>
 <%@page import="com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition" %>
-<table>
-  <tr>
-    <td colspan="2"><span class="smallTitle"><fmt:message
-          key="pointEdit.template.propertyTemplate" /></span> <tag:help
-        id="dataPointTemplate" /></td>
-  </tr>
-  <tr>
-    <td colspan="2">
-    <table>
-      <tbody id="pointPropertyTemplateMessages" />
-    </table></td>
-  </tr>
-  <tr>
-    <td class="formLabel"><fmt:message key="pointEdit.template.usePropertyTemplate" /></td>
-    <td class="formField"><input
-      data-dojo-type="dijit/form/CheckBox" id="usePointPropertyTemplate"
-      name="usePointPropertyTemplate" /> <input
-      id="pointPropertyTemplate" />
-      <button type="button" id='editDataPointTemplateButton'
-        onClick="editDataPointTemplate()">
-        <fmt:message key="pointEdit.template.editPropertyTemplate" />
-      </button>
-      <button type="button" id='cancelEditDataPointTemplateButton' style='display:none'
-        onClick="cancelEditDataPointTemplate()">
-        <fmt:message key="pointEdit.template.cancelEditPropertyTemplate" />
-      </button>
-      <button type="button" id='updateDataPointTemplateButton'
-        onClick="getPointsUpdatedByTemplate();" style="display:none">
-        <fmt:message key="pointEdit.template.updatePropertyTemplate" />
-      </button>
-      <button type="button" id='saveNewDataPointTemplateButton' style='display:none'
-        onClick="showNewTemplateDialog();">
-        <fmt:message key="pointEdit.template.saveNewPropertyTemplate" />
-      </button>
-    </td>
-  </tr>
-</table>
+<style>
+  .dgrid-loading{
+      height: 100%;
+      width: 100%;
+      display: block;
+      background: url('/images/throbber.gif') no-repeat 32px 32px;
+      background-position: center;
+  }
+  .dgrid-no-data{
+  	padding-top: 30px;
+  }
+  .baseOverlay{
+    height: 100%;
+    width: 100%;
+    display: block;
+  }
+</style>
+<div id="templateEditorTableBaseLoadingOverlay" class="baseOverlay">
+	<div id="templateEditorTableLoadingOverlay" class="baseOverlay">
+	<table id="templateEditorTable">
+	  <tr>
+	    <td colspan="2"><span class="smallTitle"><fmt:message
+	          key="pointEdit.template.propertyTemplate" /></span> <tag:help
+	        id="dataPointTemplate" /></td>
+	  </tr>
+	  <tr>
+	    <td colspan="2">
+	    <table>
+	      <tbody id="pointPropertyTemplateMessages" />
+	    </table></td>
+	  </tr>
+	  <tr>
+	    <td class="formLabel"><fmt:message key="pointEdit.template.usePropertyTemplate" /></td>
+	    <td class="formField"><input
+	      data-dojo-type="dijit/form/CheckBox" id="usePointPropertyTemplate"
+	      name="usePointPropertyTemplate" /> <input
+	      id="pointPropertyTemplate" />
+	      <button type="button" id='editDataPointTemplateButton'
+	        onClick="editDataPointTemplate()">
+	        <fmt:message key="pointEdit.template.editPropertyTemplate" />
+	      </button>
+	      <button type="button" id='cancelEditDataPointTemplateButton' style='display:none'
+	        onClick="cancelEditDataPointTemplate()">
+	        <fmt:message key="pointEdit.template.cancelEditPropertyTemplate" />
+	      </button>
+	      <button type="button" id='updateDataPointTemplateButton'
+	        onClick="getPointsUpdatedByTemplate();" style="display:none">
+	        <fmt:message key="pointEdit.template.updatePropertyTemplate" />
+	      </button>
+	      <button type="button" id='saveNewDataPointTemplateButton' style='display:none'
+	        onClick="showNewTemplateDialog();">
+	        <fmt:message key="pointEdit.template.saveNewPropertyTemplate" />
+	      </button>
+	    </td>
+	  </tr>
+	</table>
+  </div>
+</div>
 <%-- Save New Dialog --%>
 <div data-dojo-type="dijit.Dialog" id="newTemplateDialog"
   title="<fmt:message key='template.saveNew'/>" style="width: 300px">
@@ -67,8 +88,13 @@
       <fmt:message key="pointEdit.template.updateWarning" />
     </span>
     <br>
-    <%-- Points To Update Table --%> 
-	<div id="templateChangeAffectsPointsList"></div>
+    <%-- Points To Update Table --%>
+    <div id="templateChangeAffectsPointsListBaseLoadingOverlay" class="baseOverlay">
+        <div id="templateChangeAffectsPointsListLoadingOverlay" class="baseOverlay">
+          <div id="templateChangeAffectsPointsList"></div>
+        </div>
+      </div>
+	
     <div style="width: 300px; margin: 5px auto">
       <label for='updateTemplateXid'>
         <fmt:message key="common.xid" />
@@ -86,13 +112,14 @@
   </div>
 </div>
 <script type="text/javascript">
+	dojo.require("dojo.dom");
+	dojo.require("dojo.dom-style");
 	dojo.require("dijit.Dialog");
-	dojo.require("dojo/store/Memory");
+	dojo.require("dojo.store.Memory");
 
 	//Setup the All Points Grid
   	var updatedTemplatePointsGrid;
-  	require([
-  	         'dgrid/OnDemandGrid'], function(OnDemandGrid){
+  	require(['dgrid/OnDemandGrid'], function(OnDemandGrid){
   		updatedTemplatePointsGrid = new OnDemandGrid({
   		   showHeader: true,
   	       store: new dojo.store.Memory(),
@@ -326,8 +353,10 @@
 	 */
 	function getPointsUpdatedByTemplate(){
 		var template = dataPointTemplatePicker.item;
-		//Check to see that something is selected
 		if (template != null) {
+			//Check to see that something is selected
+			showUpdateTemplateDialog();
+			showLoading('templateChangeAffectsPointsList');
 			TemplateDwr.findPointsWithTemplate(template, function(response){
 				
 				var allPointsStore = new dojo.store.Memory({
@@ -336,7 +365,7 @@
 	       		});
 				updatedTemplatePointsGrid.set('showHeader', true);
 				updatedTemplatePointsGrid.set('store', allPointsStore);		  			
-				showUpdateTemplateDialog();
+				hideLoading('templateChangeAffectsPointsList');
 			});
 		}
 	}
@@ -357,6 +386,8 @@
 			//Load template info from inputs
 			loadIntoDataPointTemplate(template);
 			//Save the template
+			//Start the loading gif again
+			showLoading('templateEditorTable');
 			TemplateDwr.saveDataPointTemplate(template, function(response) {
 				if (response.hasMessages) {
 					response.messages.push(templateNotSavedMessage);
@@ -376,6 +407,7 @@
 					dataPointTemplatePicker.set('item', template);
 					dataPointTemplatePicker.set('_onChangeActive', true);
 				}
+				hideLoading('templateEditorTable');
 			});
 		} else {
 			//TODO this can happen when someone enters a name into the dropdown and there is no matching template
@@ -539,5 +571,53 @@
 			}
 		}
 	}
+	
+  	/**
+  	 * Show Loading Graphic
+  	 */
+  	function showLoading(id){
+  		require(["dojo/dom", "dojo/dom-style",], function(dom, style){
+  		var loading = dom.byId(id + 'LoadingOverlay');
+  		if(loading !== null){
+  			style.set(loading, {
+	  				'z-index': '1002',
+	  				background: "url('/images/throbber.gif') no-repeat 32px 32px",
+	  				'background-position': 'center'
+  			});
+  		}
+  		
+  		loading = dom.byId(id + 'BaseLoadingOverlay');
+  		if(loading !== null){
+  	  		style.set(loading, {
+  	  				'z-index': '1001',
+  	  				opacity: '.5'
+  	  			});
+  	  	}
+  		});
+  	}
+
+  	/**
+  	 * Hide Loading Graphic
+  	 */
+  	function hideLoading(id){
+  		require(["dojo/dom", "dojo/dom-style",], function(dom, style){
+  		var loading = dom.byId(id + 'LoadingOverlay');
+  		if(loading !== null){
+  			style.set(loading, {
+	  				'z-index': '-1',
+	  				background: ''
+	  			});
+  		}
+  		
+  		loading = dom.byId(id + 'BaseLoadingOverlay');
+  		if(loading !== null){
+  			style.set(loading, {
+	  				'z-index': '-1',
+	  				opacity: ''
+	  			});
+  		}
+  		});
+  	}
+	
 </script>
 
