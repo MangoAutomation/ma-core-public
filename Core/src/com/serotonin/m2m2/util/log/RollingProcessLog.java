@@ -46,7 +46,7 @@ public class RollingProcessLog extends ProcessLog{
     }
 	
     @Override
-    protected void sizeCheck() {
+    protected synchronized void sizeCheck() {
         // Check if the file should be rolled.
         if (file.length() > this.fileSize) {
             out.close();
@@ -69,7 +69,7 @@ public class RollingProcessLog extends ProcessLog{
                 }
 	        	
             }catch(IOException e){
-            	LOG.error(e);
+            	LOG.error(e.getMessage(), e);
             }
              
             createOut();

@@ -229,10 +229,10 @@ public class ProcessLog {
         if (level.ordinal() < logLevel.ordinal())
             return;
         
-        //Check to roll
-        sizeCheck();
-        
         synchronized (out) {
+            //Check to roll
+            sizeCheck();
+            
             out.append(level.logName).append(' ');
             out.append(sdf.format(new Date())).append(" (");
             StackTraceElement e = new RuntimeException().getStackTrace()[2];
