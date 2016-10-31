@@ -74,6 +74,8 @@
   <tag:versionedJavascript  src="/dwr/util.js" />
   <tag:versionedJavascript  src="/dwr/interface/MiscDwr.js" />
   <tag:versionedJavascript  src="/resources/soundmanager2-nodebug-jsmin.js" />
+  <tag:versionedJavascript  src="/resources/jquery/jquery-1.11.2.js" />
+  <tag:versionedJavascript  src="/resources/notify-combined.min.js" />
   <tag:versionedJavascript  src="/resources/common.js" />
 
   <c:forEach items="${dwr}" var="dwrname">

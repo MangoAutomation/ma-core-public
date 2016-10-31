@@ -3,6 +3,21 @@
     @author Matthew Lohbihler
 */
 
+if ($) {
+    $.noConflict();
+    
+    window.alert = function(message) {
+        jQuery.notify(message, {
+            style: 'bootstrap',
+            className: 'info',
+            position: 'top center',
+            autoHide: true,
+            autoHideDelay: 10000,
+            clickToHide: true
+        });
+    };
+}
+
 var mango = {};
 
 //
