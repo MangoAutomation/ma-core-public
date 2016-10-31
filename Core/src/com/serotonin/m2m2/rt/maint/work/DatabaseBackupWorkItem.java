@@ -173,10 +173,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				if (!file.exists())
 					if (!file.createNewFile()) {
 						LOG.warn("Unable to create backup file: " + fullFilePath);
-						SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-								System.currentTimeMillis(), false, new TranslatableMessage("event.backup.failure",
-										fullFilePath, "Unable to create backup file"));
-
+						backupFailed(fullFilePath, "Unable to create backup file");
 						return;
 					}
 				// Store the last successful backup time
@@ -200,11 +197,15 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 			} catch (Exception e) {
 				LOG.warn(e);
-				SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-						System.currentTimeMillis(), false,
-						new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
+				backupFailed(fullFilePath, e.getMessage());
 			}
 		}
+	}
+	
+	private void backupFailed(String fullFilePath, String message) {
+		SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
+				Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.backup.failure",
+						fullFilePath, message));
 	}
 
 	protected OutputStream createLogOutputStream() {
@@ -334,7 +335,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 					// Split off any extra stuff on the db
 					String[] dbParts = parts[3].split("\\?");
 					String database = dbParts[0];
-					restoreMysqlToDatabase(mySqlPath, host, port, user, password, database, fullFilePath);
+					result.addMessage(restoreMysqlToDatabase(mySqlPath, host, port, user, password, database, fullFilePath));
 					break;
 				case DERBY:
 				case MSSQL:
@@ -342,7 +343,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				case POSTGRES:
 				default:
 					LOG.warn(
-							"Unable to backup database, because no script for type: " + Common.databaseProxy.getType());
+							"Unable to restore database, because no script for type: " + Common.databaseProxy.getType());
 					result.addMessage(new TranslatableMessage("systemSettings.databaseRestoreNotSupported",
 							Common.databaseProxy.getType()));
 					return result;
@@ -380,9 +381,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	 * @param backupPath
 	 * @return
 	 */
-	public boolean backupMysqlWithOutDatabase(String dumpExePath, String host, String port, String user,
+	public void backupMysqlWithOutDatabase(String dumpExePath, String host, String port, String user,
 			String password, String database, String backupPath) {
-		boolean status = false;
 		try {
 			Process p = null;
 
@@ -432,24 +432,24 @@ public class DatabaseBackupWorkItem implements WorkItem {
 						rawOutputFile.delete();
 				}
 
-				status = true;
 				LOG.info("Backup created successfully for" + database + " in " + host + ":" + port);
 			} else {
-				status = false;
 				LOG.info("Could not create the backup for " + database + " in " + host + ":" + port);
+				backupFailed(backupPath, "Process exit status: "+processComplete);
 			}
 
 		} catch (IOException ioe) {
 			LOG.error(ioe, ioe.getCause());
+			backupFailed(backupPath, ioe.getMessage());
 		} catch (Exception e) {
 			LOG.error(e, e.getCause());
+			backupFailed(backupPath, e.getMessage());
 		}
-		return status;
 	}
 
-	public static boolean restoreMysqlToDatabase(String mysqlPath, String host, String port, String user, String password,
+	public static TranslatableMessage restoreMysqlToDatabase(String mysqlPath, String host, String port, String user, String password,
 			String database, String backupZipFile) {
-		boolean status = false;
+		TranslatableMessage status = null;
 		File sqlFile = new File(backupZipFile.replace(".zip", ".sql"));
 		try {
 			Process p = null;
@@ -487,7 +487,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				zis.close();
 			} catch (IOException ex) {
 				LOG.error(ex, ex.getCause());
-				return false;
+				return new TranslatableMessage("systemSettings.databaseRestoreFailed", ex.getMessage());
 			}
 
 			ProcessBuilder pb = new ProcessBuilder(args);
@@ -499,17 +499,19 @@ public class DatabaseBackupWorkItem implements WorkItem {
 			int processComplete = p.waitFor();
 
 			if (processComplete == 0) {
-				status = true;
+				status = new TranslatableMessage("systemSettings.databaseRestored");
 				LOG.info("Backup restored successfully for" + database + " in " + host + ":" + port);
 			} else {
-				status = false;
+				status = new TranslatableMessage("systemSettings.databaseRestoreFailed", processComplete);
 				LOG.info("Could not restore the backup for " + database + " in " + host + ":" + port);
 			}
 
 		} catch (IOException ioe) {
 			LOG.error(ioe, ioe.getCause());
+			status = new TranslatableMessage("systemSettings.databaseRestoreFailed", ioe.getMessage());
 		} catch (Exception e) {
 			LOG.error(e, e.getCause());
+			new TranslatableMessage("systemSettings.databaseRestoreFailed", e.getMessage());
 		}finally{
 			if(sqlFile.exists())
 				sqlFile.delete();
