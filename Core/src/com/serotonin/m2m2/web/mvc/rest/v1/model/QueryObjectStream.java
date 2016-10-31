@@ -9,6 +9,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 
@@ -18,7 +19,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public class QueryObjectStream <VO, MODEL, DAO extends AbstractBasicDao<VO>> implements ObjectStream<VO>{
+public class QueryObjectStream <VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> implements ObjectStream<VO>{
 
 	
 	protected DAO dao;

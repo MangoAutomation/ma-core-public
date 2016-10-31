@@ -123,7 +123,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false);
 		
 		protected StreamTestDao(String typeName) {
-			super(typeName);
+			super(null, typeName);
 		}
 
 		@Override

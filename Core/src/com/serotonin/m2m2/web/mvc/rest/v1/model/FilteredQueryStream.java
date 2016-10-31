@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 import java.util.List;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -15,7 +16,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public class FilteredQueryStream<VO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStream<VO, MODEL, DAO>{
+public class FilteredQueryStream<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStream<VO, MODEL, DAO>{
 
 	/**
 	 * @param dao

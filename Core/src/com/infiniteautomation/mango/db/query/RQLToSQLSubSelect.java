@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.ASTVisitor;
@@ -17,7 +18,7 @@ import net.jazdw.rql.parser.ASTVisitor;
  * @author Terry Packer
  *
  */
-public class RQLToSQLSubSelect<T> implements SQLConstants, ASTVisitor<SQLSubQuery, SQLSubQuery>{
+public class RQLToSQLSubSelect<T extends AbstractBasicVO> implements SQLConstants, ASTVisitor<SQLSubQuery, SQLSubQuery>{
 	
 	private AbstractBasicDao<T> dao;
 	//Map of any model members to either columns or Vo members
