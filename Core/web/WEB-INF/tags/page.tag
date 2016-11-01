@@ -69,9 +69,9 @@
   <script type="text/javascript" src="/dwr/util.js"></script>
   <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
   <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js"></script>
-  <script type="text/javascript" src="/resources/common.js"></script>
   <script type="text/javascript"  src="/resources/jquery/jquery-1.11.2.js"></script>
   <script type="text/javascript"  src="/resources/notify-combined.min.js"></script>
+  <script type="text/javascript" src="/resources/common.js"></script>
 
   <c:forEach items="${dwr}" var="dwrname">
     <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>

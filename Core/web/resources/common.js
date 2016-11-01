@@ -3,7 +3,7 @@
     @author Matthew Lohbihler
 */
 
-if ($) {
+if ($ && typeof $.noConflict === 'function') {
     $.noConflict();
     
     window.alert = function(message) {
