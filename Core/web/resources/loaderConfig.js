@@ -43,7 +43,9 @@ var config = {
         'angular': 'angular.min',
         'angular-resource': 'angular-resource.min',
         'amcharts/plugins/export/export': 'amcharts/plugins/export/export.min',
-        'amcharts/plugins/responsive/responsive': 'amcharts/plugins/responsive/responsive.min'
+        'amcharts/plugins/responsive/responsive': 'amcharts/plugins/responsive/responsive.min',
+        'amcharts/plugins/dataloader/dataloader': 'amcharts/plugins/dataloader/dataloader.min',
+        'amcharts/plugins/animate/animate': 'amcharts/plugins/responsive/animate.min'
     },
     shim: {
         "bootstrap" : {
@@ -144,6 +146,15 @@ var config = {
         },
         'amcharts/plugins/export/libs/pdfmake/vfs_fonts': {
             deps: ['amcharts/plugins/export/libs/pdfmake/pdfmake.min']
+        },
+        'amcharts/plugins/dataloader/dataloader': {
+            deps: ['amcharts/amcharts']
+        },
+        'amcharts/plugins/animate/animate': {
+            deps: ['amcharts/amcharts']
+        },
+        'amcharts/plugins/responsive/responsive': {
+            deps: ['amcharts/amcharts']
         },
         'amcharts-3.13/exporting/amexport': {
             deps: ['amcharts-3.13/amcharts',
