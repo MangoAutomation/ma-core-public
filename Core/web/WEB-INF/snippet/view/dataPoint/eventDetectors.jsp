@@ -755,34 +755,32 @@
           
           // Set the values in the content controls.
           if (detector.detectorType == '<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
+              $set("eventDetector"+ detector.id +"State", detector.notHigher ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
-              $set("eventDetector"+ detector.id +"Weight", detector.weight);
-              if(detector.multistateState == 1){
-                  $set("eventDetector" + detector.id + "UseReset", true);
-                  changeUseResetLimit(true, detector.id);
-              }
+              $set("eventDetector"+ detector.id +"Weight", detector.resetLimit);
+              $set("eventDetector" + detector.id + "UseReset", detector.useResetLimit);
+              if(detector.useResetLimit === true)
+              	changeUseResetLimit(true, detector.id);
           }
           else if (detector.detectorType == '<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
+              $set("eventDetector"+ detector.id +"State", detector.notLower ? "true" : "false");
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
-              $set("eventDetector"+ detector.id +"Weight", detector.weight);
-              if(detector.multistateState == 1){
-                  $set("eventDetector" + detector.id + "UseReset", true);
-                  changeUseResetLimit(true, detector.id);
-              }
+              $set("eventDetector"+ detector.id +"Weight", detector.resetLimit);
+              $set("eventDetector" + detector.id + "UseReset", detector.useResetLimit);
+              if(detector.useResetLimit === true)
+                	changeUseResetLimit(true, detector.id);
           }
           else if (detector.detectorType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
+              $set("eventDetector"+ detector.id +"State", detector.state ? "true" : "false");
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           else if (detector.detectorType == '<%= MultistateStateEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"State", detector.multistateState);
+              $set("eventDetector"+ detector.id +"State", detector.state);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
@@ -801,12 +799,12 @@
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           else if (detector.detectorType == '<%= AlphanumericStateEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"State", detector.alphanumericState);
+              $set("eventDetector"+ detector.id +"State", detector.state);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           else if (detector.detectorType == '<%= AlphanumericRegexStateEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"State", detector.alphanumericState);
+              $set("eventDetector"+ detector.id +"State", detector.state);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
@@ -823,15 +821,15 @@
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           else if (detector.detectorType == '<%= AnalogRangeEventDetectorDefinition.TYPE_NAME %>') {
-              $set("eventDetector"+ detector.id +"Limit", detector.limit);
-              $set("eventDetector"+ detector.id +"Weight", detector.weight);
+              $set("eventDetector"+ detector.id +"Limit", detector.high);
+              $set("eventDetector"+ detector.id +"Weight", detector.low);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
-              $set("eventDetector"+ detector.id +"State", detector.binaryState ? "true" : "false");
+              $set("eventDetector"+ detector.id +"State", detector.withinRange ? "true" : "false");
           }
           else if (detector.detectorType == '<%= SmoothnessEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
-              $set("eventDetector"+ detector.id +"ChangeCount", detector.changeCount);
+              $set("eventDetector"+ detector.id +"ChangeCount", detector.boxCar);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
@@ -897,7 +895,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else if(isNaN(weight))
                       errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
                   else if((multistateState==1)&&(state)&&(limit < weight)){
@@ -931,7 +929,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else if(isNaN(weight))
                       errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
                   else if((multistateState==1)&&(state)&&(limit > weight)){
@@ -954,7 +952,7 @@
                   if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateBinaryStateDetector(pedId, xid, alias, state, duration, durationType,
@@ -971,7 +969,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateMultistateStateDetector(pedId, xid, alias, state, duration, durationType,
@@ -994,7 +992,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 1)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationOne"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateStateChangeCountDetector(pedId, xid, alias, count, duration, durationType, 
@@ -1008,7 +1006,7 @@
                   if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 1)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationOne"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateNoChangeDetector(pedId, xid, alias, duration, durationType, alarmLevel,
@@ -1022,7 +1020,7 @@
                   if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 1)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationOne"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateNoUpdateDetector(pedId, xid, alias, duration, durationType, alarmLevel,
@@ -1039,7 +1037,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateAlphanumericStateDetector(pedId, xid, alias, state, duration, durationType, 
@@ -1056,7 +1054,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateAlphanumericRegexStateDetector(pedId, xid, alias, state, duration, durationType, 
@@ -1076,7 +1074,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updatePositiveCusumDetector(pedId, xid, alias, limit, weight, duration,
@@ -1096,7 +1094,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateNegativeCusumDetector(pedId, xid, alias, limit, weight, duration,
@@ -1117,7 +1115,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingDuration'/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key='pointEdit.detectors.invalidDuration'/>";
+                      errorMessage = "<fmt:message key='pointEdit.detectors.invalidDurationZero'/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateAnalogRangeDetector(pedId, xid, alias, limit, weight, state, duration,
@@ -1139,7 +1137,7 @@
                   else if (isNaN(duration))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
                   else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDuration"/>";
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateSmoothnessDetector(pedId, xid, alias, limit, boxcar, duration,
