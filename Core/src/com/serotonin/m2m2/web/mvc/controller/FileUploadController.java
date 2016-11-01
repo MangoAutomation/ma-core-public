@@ -21,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.View;
 
+import org.apache.poi.ss.usermodel.Sheet;
+
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
@@ -146,9 +148,11 @@ public class FileUploadController implements UrlHandler {
         String dataType = (String) model.get("dataType");
 
         if(dataType != null){
-	        if(dataType.equals("pointValue"))
-	        	emporter.doImport(input, new PointValueEmporter(Common.translate("emport.pointValues")));
-	        else
+	        if(dataType.equals("pointValue")){
+	        	//List the sheets and create sheet emporters for each
+	        	for(Sheet sheet: emporter.listSheets(input))
+	        		emporter.doImport(input, new PointValueEmporter(sheet.getSheetName()));
+	        }else
 	        	throw new ShouldNeverHappenException("Unsupported data.");
     	}
 

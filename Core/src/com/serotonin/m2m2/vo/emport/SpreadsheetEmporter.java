@@ -110,14 +110,31 @@ public class SpreadsheetEmporter {
         doImport(sheetEmporters);
     }
     
+    public List<Sheet> listSheets(InputStream inStream){
+    	this.inStream = inStream;
+    	List<Sheet> sheets = new ArrayList<Sheet>();
+        if (wb == null) {
+        	openInputWorkbook();
+        	if(wb == null)
+        		return sheets;
+        }
+        
+        for(int i=0; i<wb.getNumberOfSheets(); i++){
+        	sheets.add(wb.getSheetAt(i));
+        }
+        return sheets;
+    }
+    
     /**
      * Import from the file specified in constructor
      * @param sheetEmporters list of sheet emporters
      */
     public void doImport(AbstractSheetEmporter... sheetEmporters) {
-        openInputWorkbook();
+        
         if (wb == null) {
-            return;
+        	openInputWorkbook();
+        	if(wb == null)
+        		return;
         }
         rowsProcessed = 0;
         rowErrors = 0;
@@ -485,7 +502,7 @@ public class SpreadsheetEmporter {
         return ret;
     }
     
-    private void openInputWorkbook() {
+    public void openInputWorkbook() {
         try {
             if (file != null) {
                 inStream = new FileInputStream(file);
