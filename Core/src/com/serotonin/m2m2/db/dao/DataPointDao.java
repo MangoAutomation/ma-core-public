@@ -191,7 +191,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
         	            + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
         	            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
-        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.typeName, ped.sourceId, ped.data, " //
+        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.typeName, ped.sourceId, ped.data " //
         	            + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
         	            + "  left outer join eventDetectors ped on dp.id = ped.sourceId where dp.dataSourceId=?";
     	
