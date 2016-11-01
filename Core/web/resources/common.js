@@ -3,9 +3,17 @@
     @author Matthew Lohbihler
 */
 
-if ($ && typeof $.noConflict === 'function') {
-    $.noConflict();
-    
+// reset dgrid back to v0.3 for legacy pages
+require({
+    map: {
+        '*': {
+            'dgrid': 'dgrid'
+        }
+    }
+});
+
+require(['jquery', 'jquery.notify'], function(jQuery) {
+    jQuery.noConflict();
     window.alert = function(message) {
         jQuery.notify(message, {
             style: 'bootstrap',
@@ -16,7 +24,7 @@ if ($ && typeof $.noConflict === 'function') {
             clickToHide: true
         });
     };
-}
+});
 
 var mango = {};
 

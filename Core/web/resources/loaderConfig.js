@@ -171,7 +171,7 @@ if (loader === 'RequireJS') {
 else if (loader === 'Dojo') {
     config.tlmSiblingOfDojo = false;
     // load jquery before anything else so we can put it in noConflict mode
-    config.deps = ['jquery'];
+    config.deps = ['jquery', 'jquery.notify'];
     config.callback = function($) {
         // remove $ from the global scope, jQuery global is still available
         // $ is defined by DWR and is used in Mango legacy scripts

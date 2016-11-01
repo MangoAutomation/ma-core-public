@@ -64,13 +64,12 @@
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
+  <script type="text/javascript" src="/resources/loaderConfig.js" data-loader="Dojo"></script>
   <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
   <script type="text/javascript" src="/dwr/engine.js"></script>
   <script type="text/javascript" src="/dwr/util.js"></script>
   <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
   <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js"></script>
-  <script type="text/javascript"  src="/resources/jquery/jquery-1.11.2.js"></script>
-  <script type="text/javascript"  src="/resources/notify-combined.min.js"></script>
   <script type="text/javascript" src="/resources/common.js"></script>
 
   <c:forEach items="${dwr}" var="dwrname">
