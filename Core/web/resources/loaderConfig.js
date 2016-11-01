@@ -42,7 +42,8 @@ var config = {
         'jquery.notify': 'notify-combined.min',
         'angular': 'angular.min',
         'angular-resource': 'angular-resource.min',
-        'amcharts/plugins/export/export': 'amcharts/plugins/export/export.min',
+        // cant use as export.css then maps to export.min.css
+        //'amcharts/plugins/export/export': 'amcharts/plugins/export/export.min',
         'amcharts/plugins/responsive/responsive': 'amcharts/plugins/responsive/responsive.min',
         'amcharts/plugins/dataloader/dataloader': 'amcharts/plugins/dataloader/dataloader.min',
         'amcharts/plugins/animate/animate': 'amcharts/plugins/responsive/animate.min'
@@ -140,12 +141,14 @@ var config = {
                    'amcharts/plugins/export/libs/blob.js/blob',
                    'amcharts/plugins/export/libs/fabric.js/fabric.min',
                    'amcharts/plugins/export/libs/FileSaver.js/FileSaver.min',
-                   'amcharts/plugins/export/libs/jszip/jszip.min',
                    'amcharts/plugins/export/libs/pdfmake/vfs_fonts',
                    'amcharts/plugins/export/libs/xlsx/xlsx.min']
         },
         'amcharts/plugins/export/libs/pdfmake/vfs_fonts': {
             deps: ['amcharts/plugins/export/libs/pdfmake/pdfmake.min']
+        },
+        'amcharts/plugins/export/libs/xlsx/xlsx.min': {
+            deps: ['shims/amcharts/jszip_shim']
         },
         'amcharts/plugins/dataloader/dataloader': {
             deps: ['amcharts/amcharts']
