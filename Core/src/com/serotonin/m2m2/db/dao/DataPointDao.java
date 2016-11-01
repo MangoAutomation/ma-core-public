@@ -185,7 +185,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
     	private static final int EVENT_DETECTOR_FIRST_COLUMN = 26;
-    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN-1);
+    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN);
     	static final String DATA_POINT_SELECT_STARTUP = //
         	    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
         	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
