@@ -2,7 +2,9 @@
     Copyright (C) 2013 Infinite Automation All rights reserved.
     @author Terry Packer
 -->
-<p>The application is capable of automatic backup the database to a zip file.  The frequency and location of these backups can be set here.  By default the configuration is saved daily and the past 10 backups are kept on the disk.</p>
+<h1>Overview</h1>
+<p>The application is capable of automatic backup the database to a zip file.  The frequency and location of these backups can be set here.  By default the configuration is saved daily and the past 10 backups are kept on the disk.
+<b><font color="red">YOU MUST RESTART MANGO</font> after the restore is complete</b>.</p>
 
 <p><b>Enable auto backup</b> to schedule the backup of the system configuration to a file.
 
@@ -18,4 +20,4 @@
 
 <p>The <b>Backup now</b> button allows the user to queue a job to backup the system now.  This job will execute as soon as possible.</p>
 
-<p>A <b>MySQL backup</b> will require mysqldump and mysql to either be on the system path as executables, or their pathes need to be explictly set to absolute paths in the env.properties file as the properties db.mysqldump=/path/to/mysqldump and db.mysql=/path/to/mysql</p> 
+<p>A <b>MySQL backup</b> will require mysqldump and mysql to either be on the system path as executables or paths need to be explicitly set as absolute paths in the env.properties file as db.mysqldump=/path/to/mysqldump and db.mysql=/path/to/mysql</p> 
