@@ -147,10 +147,10 @@ public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, 
 		if(node.getArgumentsSize() == 0)
 			return statement;
 		
-		boolean descending = false;
+		
 		
 		for (Object arg : node) {
-            
+			boolean descending = false;
             String prop = (String) arg;
             if (prop.startsWith("-")) {
             	descending = true;

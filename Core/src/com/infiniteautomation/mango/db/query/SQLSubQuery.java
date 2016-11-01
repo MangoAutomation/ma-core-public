@@ -220,10 +220,16 @@ public class SQLSubQuery extends SQLStatement{
 			this.subSelectWhere.setSingleRestriction(null);
 		}
 			
-		//Move limits if there are not any inner where restrictions
+		//Move limits & order if there are not any inner where restrictions
 		if(!this.subSelectWhere.hasRestrictions()){
 			this.baseWhere.limitOffset = this.subSelectWhere.limitOffset;
-			 this.subSelectWhere.limitOffset = null;
+			this.subSelectWhere.limitOffset = null;
+			ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
+			while(it.hasNext()){
+				SortOption option = it.next();
+				this.baseWhere.sort.add(option);
+				it.remove();
+			}
 		}
 		
 	}
