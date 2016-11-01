@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonObject;
@@ -50,6 +51,9 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 			throws SQLException {
 		
 		EventDetectorDefinition definition = ModuleRegistry.getEventDetectorDefinition(rs.getString(this.firstColumn + 2));
+		if(definition == null)
+			throw new ShouldNeverHappenException("Event Detector defintion of type: " + rs.getString(this.firstColumn + 2) + " not found." );
+		
 		AbstractEventDetectorVO<?> vo = definition.baseCreateEventDetectorVO();
 		vo.setId(rs.getInt(this.firstColumn));
 		vo.setXid(rs.getString(this.firstColumn + 1));

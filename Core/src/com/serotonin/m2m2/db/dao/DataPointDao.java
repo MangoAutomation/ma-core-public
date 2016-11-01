@@ -201,12 +201,20 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			while(rs.next()) {
 				int id = rs.getInt(2); //dp.id column number
 				if(result.containsKey(id))
-					addEventDetector(result.get(id), rs);
+					try{
+						addEventDetector(result.get(id), rs);
+					}catch(Exception e){
+						LOG.error("Point not fully initialized: " + e.getMessage(), e);
+					}
 				else {
 					DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
 					dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
 					result.put(id, dpvo);
-					addEventDetector(dpvo, rs);
+					try{
+						addEventDetector(dpvo, rs);
+					}catch(Exception e){
+						LOG.error("Point not fully initialized: " + e.getMessage(), e);
+					}
 				}
 			}
 			return new ArrayList<DataPointVO>(result.values());
