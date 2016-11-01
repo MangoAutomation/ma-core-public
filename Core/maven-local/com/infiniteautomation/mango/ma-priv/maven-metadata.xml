@@ -34,10 +34,6 @@
       <version>1.4.12</version>
       <version>1.5.0</version>
     </versions>
-<<<<<<< HEAD
-    <lastUpdated>20161101010119</lastUpdated>
-=======
-    <lastUpdated>20160811171940</lastUpdated>
->>>>>>> 3a9443b... Modify Monitors to use Translations for names as per #779
+    <lastUpdated>20161101021513</lastUpdated>
   </versioning>
 </metadata>
