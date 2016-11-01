@@ -22,7 +22,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.UserComment;
@@ -39,7 +39,7 @@ public class UserDao extends AbstractDao<User> {
 	 * @param extraSQL
 	 */
 	public UserDao() {
-		super(UserWebSocketDefinition.handler, AuditEventType.TYPE_USER);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("USER"), AuditEventType.TYPE_USER);
 	}
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);

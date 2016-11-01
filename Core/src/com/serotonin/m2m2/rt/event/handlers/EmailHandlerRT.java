@@ -46,7 +46,7 @@ import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailAttachment;

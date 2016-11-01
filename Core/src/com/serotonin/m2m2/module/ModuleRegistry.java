@@ -46,17 +46,6 @@ import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandler
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.AuditEventWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.DataPointWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.DataSourceWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.EventDetectorWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.EventHandlerWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.EventInstanceWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.JsonDataWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.PublisherWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.TemplateWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.UserCommentWebSocketDefinition;
-import com.serotonin.m2m2.module.definitions.websocket.UserWebSocketDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -77,9 +66,6 @@ import com.serotonin.m2m2.web.mvc.controller.StartupController;
 import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
 import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.audit.AuditEventInstanceModelDefinition;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.DataPointModelDefinition;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.jsondata.JsonDataModelDefinition;
 
 /**
  * The registry of all modules in an MA instance.
@@ -102,6 +88,7 @@ public class ModuleRegistry {
     private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
     private static Map<String, EventHandlerDefinition> EVENT_HANDLER_DEFINITIONS;
     private static Map<String, EventDetectorDefinition> EVENT_DETECTOR_DEFINITIONS;
+    private static Map<String, WebSocketDefinition> WEB_SOCKET_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
 
@@ -385,7 +372,7 @@ public class ModuleRegistry {
     
     //
     //
-    // Model special handling
+    // Event Detector special handling
     //
     public static EventDetectorDefinition getEventDetectorDefinition(String type) {
         ensureEventDetectorDefinitions();
@@ -418,6 +405,41 @@ public class ModuleRegistry {
                     	map.put(def.getEventDetectorTypeName(), def);
                     }
                     EVENT_DETECTOR_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // WebSocketHandler special handling
+    //
+    public static WebSocketDefinition getWebSocketHandlerDefinition(String type) {
+    	ensureWebSocketDefinitions();
+        return WEB_SOCKET_DEFINITIONS.get(type);
+    }
+
+    public static Set<String> getWebSocketDefinitionTypes() {
+        ensureWebSocketDefinitions();
+        return WEB_SOCKET_DEFINITIONS.keySet();
+    }
+
+    private static void ensureWebSocketDefinitions() {
+        if (WEB_SOCKET_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (WEB_SOCKET_DEFINITIONS == null) {
+                    Map<String, WebSocketDefinition> map = new HashMap<String, WebSocketDefinition>();
+                    for(WebSocketDefinition def : Module.getDefinitions(preDefaults, WebSocketDefinition.class)){
+                    	map.put(def.getTypeName(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (WebSocketDefinition def : module.getDefinitions(WebSocketDefinition.class))
+                            map.put(def.getTypeName(), def);
+                    }
+                    for(WebSocketDefinition def : Module.getDefinitions(postDefaults, WebSocketDefinition.class)){
+                    	map.put(def.getTypeName(), def);
+                    }
+                    WEB_SOCKET_DEFINITIONS = map;
                 }
             }
         }
@@ -539,25 +561,9 @@ public class ModuleRegistry {
         
         //Add in core Models
         preDefaults.add(new RestErrorModelDefinition());
-        preDefaults.add(new JsonDataModelDefinition());
-        preDefaults.add(new AuditEventInstanceModelDefinition());
-        preDefaults.add(new DataPointModelDefinition());
         
         //TODO Add env property to load the Demo Swagger Endpoint then re-enable the demo controller
         //preDefaults.add(new DemoModelDefinition());
-        
-        //Add in core Web Sockets 
-        preDefaults.add(new AuditEventWebSocketDefinition());
-        preDefaults.add(new DataPointWebSocketDefinition());
-        preDefaults.add(new DataSourceWebSocketDefinition());
-        preDefaults.add(new EventDetectorWebSocketDefinition());
-        preDefaults.add(new EventHandlerWebSocketDefinition());
-        preDefaults.add(new EventInstanceWebSocketDefinition());
-        preDefaults.add(new JsonDataWebSocketDefinition());
-        preDefaults.add(new TemplateWebSocketDefinition());
-        preDefaults.add(new UserCommentWebSocketDefinition());
-        preDefaults.add(new UserWebSocketDefinition());
-        preDefaults.add(new PublisherWebSocketDefinition());
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());

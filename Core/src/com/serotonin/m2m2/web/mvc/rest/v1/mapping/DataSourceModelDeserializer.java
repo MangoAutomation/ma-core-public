@@ -17,7 +17,7 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 
 
 /**

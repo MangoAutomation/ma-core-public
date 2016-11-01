@@ -6,8 +6,8 @@ package com.serotonin.m2m2.vo.dataSource.mock;
 
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.MockDataSourceModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 
 /**
  * @author Terry Packer

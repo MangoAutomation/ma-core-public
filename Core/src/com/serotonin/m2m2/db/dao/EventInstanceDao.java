@@ -24,7 +24,6 @@ import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.websocket.EventInstanceWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -45,7 +44,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	 * @param typeName
 	 */
 	private EventInstanceDao() {
-		super(EventInstanceWebSocketDefinition.handler, null,"evt",
+		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_INSTANCE"), null,"evt",
 				new String[]{
 					"u.username",
 					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",

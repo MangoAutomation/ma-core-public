@@ -34,6 +34,7 @@ import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 
@@ -107,6 +108,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     	this(handler, tablePrefix, extraProperties, false, extraSQL);
     }
 	
+    @SuppressWarnings("unchecked")
+	public AbstractBasicDao(WebSocketDefinition def, String tablePrefix, String[] extraProperties, String extraSQL){
+    	this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, false, extraSQL);
+    }
+    
+    
 	/**
      * Provide a table prefix to use for complex queries.  Ie. Joins
      * Do not include the . at the end of the prefix

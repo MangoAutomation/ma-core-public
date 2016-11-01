@@ -18,7 +18,6 @@ import org.springframework.jdbc.core.RowMapper;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.websocket.TemplateWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
@@ -40,7 +39,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 	 * @param typeName
 	 */
 	protected TemplateDao() {
-		super(TemplateWebSocketDefinition.handler, AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, new String());
+		super(ModuleRegistry.getWebSocketHandlerDefinition("TEMPLATE"), AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, new String());
 	}
 
 	/* (non-Javadoc)

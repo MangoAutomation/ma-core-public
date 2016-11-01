@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.module.definitions.websocket.JsonDataWebSocketDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 
@@ -40,7 +40,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	 * @param typeName
 	 */
 	private JsonDataDao() {
-		super(JsonDataWebSocketDefinition.handler, AuditEventType.TYPE_JSON_DATA);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("JSON_DATA"), AuditEventType.TYPE_JSON_DATA);
 	
 		mapper = new ObjectMapper();
 		TypeFactory typeFactory = mapper.getTypeFactory();

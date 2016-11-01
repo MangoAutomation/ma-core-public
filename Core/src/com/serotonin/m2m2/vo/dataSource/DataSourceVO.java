@@ -33,7 +33,7 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractDataSourceModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 
 abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractActionVO<DataSourceVO<?>> {
     public static final String XID_PREFIX = "DS_";

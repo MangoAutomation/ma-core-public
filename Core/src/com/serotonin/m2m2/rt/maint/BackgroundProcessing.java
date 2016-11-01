@@ -26,7 +26,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.WorkItemModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;

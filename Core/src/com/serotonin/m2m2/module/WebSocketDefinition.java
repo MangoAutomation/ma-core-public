@@ -35,4 +35,11 @@ public abstract class WebSocketDefinition extends ModuleElementDefinition{
 	 */
 	public abstract boolean perConnection();
 	
+	
+	/**
+	 * Return a System Wide Unique Identifier to get this from the registry
+	 * @return
+	 */
+	public abstract String getTypeName();
+	
 }

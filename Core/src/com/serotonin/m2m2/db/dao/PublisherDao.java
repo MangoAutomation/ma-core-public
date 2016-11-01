@@ -32,7 +32,6 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.websocket.PublisherWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -49,7 +48,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     private PublisherDao(){
-    	super(PublisherWebSocketDefinition.handler, AuditEventType.TYPE_PUBLISHER);
+    	super(ModuleRegistry.getWebSocketHandlerDefinition("PUBLISHER"), AuditEventType.TYPE_PUBLISHER);
     }
     
     

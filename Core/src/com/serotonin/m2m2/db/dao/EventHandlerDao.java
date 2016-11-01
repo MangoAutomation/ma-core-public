@@ -19,7 +19,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.websocket.EventHandlerWebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -39,7 +38,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	 * @param typeName
 	 */
 	protected EventHandlerDao() {
-		super(EventHandlerWebSocketDefinition.handler, AuditEventType.TYPE_EVENT_HANDLER);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER);
 	}
 
 	/* (non-Javadoc)

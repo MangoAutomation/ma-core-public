@@ -2,7 +2,7 @@
  * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.web.mvc.rest.v1.model;
+package com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,7 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.PurgeSettings;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractActionVoModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
 
 /**

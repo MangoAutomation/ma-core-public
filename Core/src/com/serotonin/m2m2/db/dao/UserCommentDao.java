@@ -16,7 +16,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.module.definitions.websocket.UserCommentWebSocketDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
@@ -36,7 +36,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	public static final UserCommentDao instance = new UserCommentDao();
 
 	private UserCommentDao(){
-		super(UserCommentWebSocketDefinition.handler, AuditEventType.TYPE_USER_COMMENT, "uc", 
+		super(ModuleRegistry.getWebSocketHandlerDefinition("USER_COMMENT"), AuditEventType.TYPE_USER_COMMENT, "uc", 
 				new String[]{ "u.username" },
 				"left join users u on uc.userId = u.id"
 			);

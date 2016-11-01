@@ -7,7 +7,6 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -26,6 +25,7 @@ import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
+import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
@@ -59,6 +59,13 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         this.typeName = typeName;
     }
     
+    @SuppressWarnings("unchecked")
+	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL) {
+        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, useSubQuery, extraSQL);
+        this.xidPrefix = getXidPrefix();
+        this.typeName = typeName;
+    }
+    
     /**
      * 
      * @param typeName - Audit Event Type
@@ -70,6 +77,11 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         this(handler, typeName, tablePrefix, extraProperties, false, extraSQL);
     }
 
+    protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
+        this(def, typeName, tablePrefix, extraProperties, false, extraSQL);
+    }
+    
+    
     /**
      * 
      * @param typeName - Audit Event Type Name
@@ -78,6 +90,10 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
         this(handler, typeName, null, new String[0], null);
     }
 
+    protected AbstractDao(WebSocketDefinition def, String typeName) {
+        this(def, typeName, null, new String[0], null);
+    }
+    
     /**
      * Gets the XID prefix for XID generation
      * 
