@@ -32,11 +32,8 @@
       <version>1.4.10</version>
       <version>1.4.11</version>
       <version>1.4.12</version>
+      <version>1.5.0</version>
     </versions>
-<<<<<<< HEAD
-    <lastUpdated>20160215214043</lastUpdated>
-=======
-    <lastUpdated>20160526195346</lastUpdated>
->>>>>>> aeef36a... Changes for login with new Spring Security as per issue
+    <lastUpdated>20161101010119</lastUpdated>
   </versioning>
 </metadata>
