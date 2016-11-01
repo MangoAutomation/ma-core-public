@@ -42,7 +42,8 @@ var config = {
         'jquery.notify': 'notify-combined.min',
         'angular': 'angular.min',
         'angular-resource': 'angular-resource.min',
-        'amcharts/plugins/export/export': 'amcharts/plugins/export/export.min'
+        'amcharts/plugins/export/export': 'amcharts/plugins/export/export.min',
+        'amcharts/plugins/responsive/responsive': 'amcharts/plugins/responsive/responsive.min'
     },
     shim: {
         "bootstrap" : {
@@ -98,30 +99,30 @@ var config = {
             }
         },
         'amcharts/themes/chalk': {
-        	deps: ['amcharts/amcharts'],
-        	exports: 'AmCharts',
-        	init: function() {
+            deps: ['amcharts/amcharts'],
+            exports: 'AmCharts',
+            init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts/themes/light': {
-        	deps: ['amcharts/amcharts'],
-        	exports: 'AmCharts',
-        	init: function() {
+            deps: ['amcharts/amcharts'],
+            exports: 'AmCharts',
+            init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts/themes/dark': {
-        	deps: ['amcharts/amcharts'],
-        	exports: 'AmCharts',
-        	init: function() {
+            deps: ['amcharts/amcharts'],
+            exports: 'AmCharts',
+            init: function() {
                 AmCharts.isReady = true;
             }
         },
         'amcharts/themes/black': {
-        	deps: ['amcharts/amcharts'],
-        	exports: 'AmCharts',
-        	init: function() {
+            deps: ['amcharts/amcharts'],
+            exports: 'AmCharts',
+            init: function() {
                 AmCharts.isReady = true;
             }
         },
@@ -133,8 +134,30 @@ var config = {
             }
         },
         'amcharts/plugins/export/export': {
-            deps: ['amcharts/amcharts'],
-    		exports: 'AmCharts'
+            deps: ['amcharts/amcharts',
+                   'amcharts/plugins/export/libs/blob.js/blob',
+                   'amcharts/plugins/export/libs/fabric.js/fabric.min',
+                   'amcharts/plugins/export/libs/FileSaver.js/FileSaver.min',
+                   'amcharts/plugins/export/libs/jszip/jszip.min',
+                   'amcharts/plugins/export/libs/pdfmake/vfs_fonts',
+                   'amcharts/plugins/export/libs/xlsx/xlsx.min']
+        },
+        'amcharts/plugins/export/libs/pdfmake/vfs_fonts': {
+            deps: ['amcharts/plugins/export/libs/pdfmake/pdfmake.min']
+        },
+        'amcharts-3.13/exporting/amexport': {
+            deps: ['amcharts-3.13/amcharts',
+                   'amcharts-3.13/exporting/canvg',
+                   'amcharts-3.13/exporting/filesaver',
+                   'amcharts-3.13/exporting/jspdf',
+                   'amcharts-3.13/exporting/jspdf.plugin.addimage',
+                   'amcharts-3.13/exporting/rgbcolor']
+        },
+        'amcharts-3.13/exporting/filesaver': {
+            deps: ['amcharts-3.13/amcharts']
+        },
+        'amcharts-3.13/exporting/jspdf.plugin.addimage': {
+            deps: ['amcharts-3.13/exporting/jspdf']
         },
         'jquery.mousewheel': {"deps" : ['jquery']},
         'jquery.select2': {"deps" : ['jquery']},
@@ -151,6 +174,9 @@ var config = {
     map: {
         '*': {
             'dgrid': 'dgrid-0.4'
+        },
+        'mango-2.0': {
+            'amcharts': 'amcharts-3.13'
         }
     }
 };
@@ -202,9 +228,10 @@ else if (loader === 'Dojo') {
     config.paths['amcharts/themes/chalk'] = './shims/amcharts/themes/chalk';
     config.paths['amcharts/themes/dark'] = './shims/amcharts/themes/dark';
     config.paths['amcharts/themes/light'] = './shims/amcharts/themes/light';
-    config.paths['amcharts/exporting/amexport'] = './shims/amcharts/exporting/amexport';
-    config.paths['amcharts/exporting/filesaver'] = './shims/amcharts/exporting/filesaver';
-    config.paths['amcharts/exporting/jspdf.plugin.addimage'] = './shims/amcharts/exporting/jspdf.plugin.addimage';
+    config.paths['amcharts/plugins/export/export'] = './shims/amcharts/plugins/export/export';
+    config.paths['amcharts-3.13/exporting/amexport'] = './shims/amcharts/exporting/amexport';
+    config.paths['amcharts-3.13/exporting/filesaver'] = './shims/amcharts/exporting/filesaver';
+    config.paths['amcharts-3.13/exporting/jspdf.plugin.addimage'] = './shims/amcharts/exporting/jspdf.plugin.addimage';
     
     config.paths['angular'] = './shims/angular';
     config.paths['angular-resource'] = './shims/angular-resource';
