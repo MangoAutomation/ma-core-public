@@ -137,6 +137,16 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
             AuditEventType.raiseDeletedEvent(this.typeName, vo);
         }
     }
+    
+    @Override
+    public void save(AbstractEventDetectorVO<?> vo, String initiatorId) {
+        if (vo.getId() <= Common.NEW_ID) {
+            insert(vo, initiatorId);
+        }
+        else {
+            update(vo, initiatorId);
+        }
+    }
 	/**
 	 * Get all with given source id.
 	 * Ordered by detector id.

@@ -28,7 +28,7 @@ public class SmoothnessDetectorVO extends TimeoutDetectorVO<SmoothnessDetectorVO
 	@JsonProperty
 	private double limit;
 	@JsonProperty
-	private double boxcar;
+	private double boxcar = 3;
 	
 	public SmoothnessDetectorVO() {
 		super(new int[] { DataTypes.NUMERIC });

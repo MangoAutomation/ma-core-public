@@ -19,10 +19,11 @@ public class StateChangeCountDetectorVO extends TimeoutDetectorVO<StateChangeCou
 	private static final long serialVersionUID = 1L;
 	
 	@JsonProperty
-	private int changeCount;
+	private int changeCount = 2;
 	
 	public StateChangeCountDetectorVO() {
 		super(new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC });
+		this.setDuration(1);
 	}
 
 	public int getChangeCount() {

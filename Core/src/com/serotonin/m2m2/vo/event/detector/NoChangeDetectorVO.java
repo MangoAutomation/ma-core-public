@@ -19,6 +19,7 @@ public class NoChangeDetectorVO extends TimeoutDetectorVO<NoChangeDetectorVO>{
 	
 	public NoChangeDetectorVO() {
 		super(new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC });
+		this.setDuration(1);
 	}
 	
 	/* (non-Javadoc)

@@ -23,6 +23,7 @@ public class NoUpdateDetectorVO extends TimeoutDetectorVO<NoUpdateDetectorVO>{
 				DataTypes.NUMERIC, 
 				DataTypes.ALPHANUMERIC,
 				DataTypes.IMAGE});
+		this.setDuration(1);
 	}
 	
 	/* (non-Javadoc)

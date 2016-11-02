@@ -428,7 +428,7 @@
           <tag:img png="delete" title="common.delete" onclick="pointEventDetectorEditor.deleteDetector(getPedId(this))"/>
           <fmt:message key="pointEdit.detectors.type"/>
         </td>
-        <td class="formField"><fmt:message key="pointEdit.detectors.stateDet"/></td>
+        <td class="formField"><fmt:message key="pointEdit.detectors.regexStateDet"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
@@ -829,7 +829,7 @@
           }
           else if (detector.detectorType == '<%= SmoothnessEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"Limit", detector.limit);
-              $set("eventDetector"+ detector.id +"ChangeCount", detector.boxCar);
+              $set("eventDetector"+ detector.id +"ChangeCount", detector.boxcar);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }

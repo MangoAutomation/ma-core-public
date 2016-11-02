@@ -182,6 +182,8 @@ public class DataPointEditDwr extends BaseDwr {
     //
     // Event detectors
     //
+    private int newEventDetectorId = -1;
+    
     @DwrPermission(user = true)
     public List<AbstractPointEventDetectorVO<?>> getEventDetectors() {
         return getDataPoint().getEventDetectors();
@@ -195,6 +197,7 @@ public class DataPointEditDwr extends BaseDwr {
         AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) definition.baseCreateEventDetectorVO();
         ped.setXid(EventDetectorDao.instance.generateUniqueXid());
         ped.setAlias("");
+        ped.setId(newEventDetectorId--);
         
         synchronized (dp) {
         	ped.setSourceId(dp.getId());
