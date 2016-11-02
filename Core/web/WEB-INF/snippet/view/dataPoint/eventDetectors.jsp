@@ -717,6 +717,7 @@
 
   function PointEventDetectorEditor() {
       var detectorCount = 0;
+      var newDetectorId = -1;
       
       this.eventDetectorSelect = new dijit.form.Select({
           name: 'eventDetectorSelect',
@@ -738,7 +739,7 @@
       this.addEventDetector = function() {
           var value = this.eventDetectorSelect.value;
           
-          DataPointEditDwr.addEventDetector(value, this.addEventDetectorCB);
+          DataPointEditDwr.addEventDetector(value, newDetectorId--, this.addEventDetectorCB);
       }
   
       this.addEventDetectorCB = function(detector) {
