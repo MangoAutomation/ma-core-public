@@ -23,7 +23,6 @@ import org.springframework.jdbc.core.RowMapper;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
@@ -86,12 +85,9 @@ public class Upgrade12 extends DBUpgrade {
 	private static final Log LOG = LogFactory.getLog(Upgrade12.class);
 	
 	private ObjectMapper mapper;
-	private MapType mapType;
 	
 	public Upgrade12(){
 		mapper = MangoRestSpringConfiguration.objectMapper;
-		TypeFactory typeFactory = mapper.getTypeFactory();
-		mapType = typeFactory.constructMapType(HashMap.class, String.class, Object.class);
 	}
 
 	
