@@ -51,7 +51,7 @@ public class UpgradeCheck extends TimerTask {
                         EventInstance.RtnCauses.RETURN_TO_NORMAL);
         }
         catch (Exception e) {
-            LOG.error(e);
+            LOG.error(e.getMessage(), e);
         }
     }
 }
