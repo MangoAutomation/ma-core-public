@@ -1158,6 +1158,10 @@
           // If no save calls were made, continue by calling the callback.
           if (runSaveCallback && saveCBCount == 0)
               callback();
+          else if(!runSaveCallback) {
+        	  stopImageFader("pointSaveImg");
+        	  showMessage("pointMessage", "<fmt:message key="pointEdit.detectors.validationFailed"/>");
+          }
       };
       
       function saveCB() {
