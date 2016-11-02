@@ -17,6 +17,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
@@ -46,8 +47,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	
 	private List<RecipientListEntryBean> activeRecipients;
     private boolean sendEscalation;
-    private int escalationDelayType;
-    private int escalationDelay;
+    private int escalationDelayType = TimePeriods.HOURS;
+    private int escalationDelay = 1;
     private List<RecipientListEntryBean> escalationRecipients;
     private boolean sendInactive;
     private boolean inactiveOverride;
