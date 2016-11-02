@@ -576,7 +576,7 @@ public class ModuleRegistry {
         //Add in Core Event Detectors
         preDefaults.add(new AlphanumericRegexStateEventDetectorDefinition());
         preDefaults.add(new AlphanumericStateEventDetectorDefinition());
-        preDefaults.add(new AnalogChangeEventDetectorDefinition());
+//        preDefaults.add(new AnalogChangeEventDetectorDefinition());
         preDefaults.add(new AnalogHighLimitEventDetectorDefinition());
         preDefaults.add(new AnalogLowLimitEventDetectorDefinition());
         preDefaults.add(new AnalogRangeEventDetectorDefinition());

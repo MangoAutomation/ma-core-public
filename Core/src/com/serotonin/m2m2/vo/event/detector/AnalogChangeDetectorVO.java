@@ -13,6 +13,8 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 
 /**
  * TODO Class is a work in progress, not wired in or tested yet.
+ *      This will require uncommenting the line in the ModuleRegistry
+ *      pertaining to this detector's definition
  * 
  * @author Terry Packer
  *
