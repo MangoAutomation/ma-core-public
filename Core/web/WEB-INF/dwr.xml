@@ -197,19 +197,54 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO">
     	<param name="exclude" value="eventType,dataPoint,supportedDataTypes"/>
     </convert>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.BinaryStateDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.MultistateStateDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.NegativeCusumDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.StateChangeDetectorVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO"/>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert> 
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert> 
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert> 
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.BinaryStateDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.MultistateStateDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.NegativeCusumDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.NoChangeDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.NoUpdateDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+	<convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO">
+		<param name="exclude" value="definition"/>
+	</convert> 
+	<convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO">
+		<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.StateChangeDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO">
+    	<param name="exclude" value="definition"/>
+	</convert>
         
     <convert converter="bean" match="com.serotonin.m2m2.vo.DataPointSummary"/>
     
