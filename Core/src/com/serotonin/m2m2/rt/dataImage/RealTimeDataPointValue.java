@@ -241,6 +241,12 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	@Override
 	public void pointBackdated(PointValueTime value) { }
 	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointLogged(com.serotonin.m2m2.rt.dataImage.PointValueTime)
+	 */
+	@Override
+	public void pointLogged(PointValueTime value) { }	
+	
 	public int getDataPointId(){
 		return this.dataPointId;
 	}

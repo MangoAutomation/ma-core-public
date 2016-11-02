@@ -50,6 +50,18 @@ import com.serotonin.validation.StringValidation;
 abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<?>> implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "PUB_";
 
+    public interface PublishType{
+    	int ALL = 1;
+    	int CHANGES_ONLY = 2;
+    	int LOGGED_ONLY = 3;
+    }
+    
+    public static final ExportCodes PUBLISH_TYPE_CODES = new ExportCodes();
+    static{
+    	PUBLISH_TYPE_CODES.addElement(PublishType.ALL, "ALL", "publisherEdit.publishType.all");	
+    	PUBLISH_TYPE_CODES.addElement(PublishType.CHANGES_ONLY, "CHANGES_ONLY", "publisherEdit.publishType.changesOnly");	
+    	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");	
+    }
     
     /**
      * Return the Model Representation of the Publisher
@@ -98,7 +110,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
     protected List<T> points = new ArrayList<>();
     @JsonProperty
-    private boolean changesOnly;
+    private int publishType = PublishType.ALL;
     @JsonProperty
     private int cacheWarningSize = 100;
     @JsonProperty
@@ -136,12 +148,12 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         this.points = points;
     }
 
-    public boolean isChangesOnly() {
-        return changesOnly;
+    public int getPublishType() {
+        return publishType;
     }
 
-    public void setChangesOnly(boolean changesOnly) {
-        this.changesOnly = changesOnly;
+    public void setPublishType(int publishType) {
+        this.publishType = publishType;
     }
 
     public int getCacheWarningSize() {
@@ -237,7 +249,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -245,7 +257,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         SerializationHelper.writeSafeUTF(out, name);
         out.writeBoolean(enabled);
         out.writeObject(points);
-        out.writeBoolean(changesOnly);
+        out.writeInt(publishType);
         out.writeInt(cacheWarningSize);
         out.writeInt(cacheDiscardSize);
         out.writeBoolean(sendSnapshot);
@@ -262,7 +274,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
-            changesOnly = in.readBoolean();
+            //Changes Only
+            if(in.readBoolean())
+            	this.publishType = PublishType.CHANGES_ONLY;
+            else
+            	this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
             cacheDiscardSize = cacheWarningSize * 3;
             sendSnapshot = in.readBoolean();
@@ -274,7 +290,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
-            changesOnly = in.readBoolean();
+            //Changes Only
+            if(in.readBoolean())
+            	this.publishType = PublishType.CHANGES_ONLY;
+            else
+            	this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
@@ -286,7 +306,22 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
-            changesOnly = in.readBoolean();
+            //Changes Only
+            if(in.readBoolean())
+            	this.publishType = PublishType.CHANGES_ONLY;
+            else
+            	this.publishType = PublishType.ALL;
+            cacheWarningSize = in.readInt();
+            cacheDiscardSize = cacheWarningSize * 3;
+            sendSnapshot = in.readBoolean();
+            snapshotSendPeriodType = in.readInt();
+            snapshotSendPeriods = in.readInt();
+        }else if(ver == 4){
+        	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            name = SerializationHelper.readSafeUTF(in);
+            enabled = in.readBoolean();
+            points = (List<T>) in.readObject();
+            publishType = in.readInt();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = cacheWarningSize * 3;
             sendSnapshot = in.readBoolean();
@@ -321,6 +356,16 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
         name = jsonObject.getString("name");
         enabled = jsonObject.getBoolean("enabled");
+        
+        //Legacy conversion for publishType
+        if(jsonObject.containsKey("changesOnly")){
+        	boolean changesOnly = jsonObject.getBoolean("changesOnly");
+        	if(changesOnly){
+        		this.publishType = PublishType.CHANGES_ONLY;
+        	}else{
+        		this.publishType = PublishType.ALL;
+        	}
+        }
         
     	JsonArray arr = jsonObject.getJsonArray("points");
         if (arr != null) {

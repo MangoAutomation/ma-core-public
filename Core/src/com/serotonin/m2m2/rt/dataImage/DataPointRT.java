@@ -328,10 +328,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
             pointValue = newValue;
-            fireEvents(oldValue, newValue, source != null, false);
+            fireEvents(oldValue, newValue, source != null, false, logValue);
         }
         else
-            fireEvents(null, newValue, false, true);
+            fireEvents(null, newValue, false, true, logValue);
     }
 
     public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
@@ -554,9 +554,9 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
     // / Listeners
     // /
     //
-    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate) {
+    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate, boolean logValue) {
         if (listeners != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), listeners, oldValue, newValue, set, backdate));
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), listeners, oldValue, newValue, set, backdate, logValue));
     }
 
     class EventNotifyWorkItem implements WorkItem {
@@ -566,15 +566,17 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         private final PointValueTime newValue;
         private final boolean set;
         private final boolean backdate;
+        private final boolean logged;
 
         EventNotifyWorkItem(String xid, DataPointListener listener, PointValueTime oldValue, PointValueTime newValue, boolean set,
-                boolean backdate) {
+                boolean backdate, boolean logged) {
         	this.sourceXid = xid;
             this.listener = listener;
             this.oldValue = oldValue;
             this.newValue = newValue;
             this.set = set;
             this.backdate = backdate;
+            this.logged = logged;
         }
 
         @Override
@@ -582,7 +584,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             if (backdate)
                 listener.pointBackdated(newValue);
             else {
-                // Always fire this.
+                // Updated
                 listener.pointUpdated(newValue);
 
                 // Fire if the point has changed.
@@ -593,6 +595,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
                 if (set)
                     listener.pointSet(oldValue, newValue);
             }
+            
+            //Was this value actually logged
+            if(logged)
+            	listener.pointLogged(newValue);
         }
 
         @Override

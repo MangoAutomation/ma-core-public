@@ -8,6 +8,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
+import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
 
 /**
  * @author Matthew Lohbihler
@@ -29,7 +30,7 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
     }
 
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        if (parent.getVo().isChangesOnly())
+        if (parent.getVo().getPublishType() == PublishType.CHANGES_ONLY)
             parent.publish(vo, newValue);
     }
 
@@ -38,7 +39,7 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
     }
 
     public void pointUpdated(PointValueTime newValue) {
-        if (!parent.getVo().isChangesOnly())
+        if (parent.getVo().getPublishType() == PublishType.ALL)
             parent.publish(vo, newValue);
     }
 
@@ -60,6 +61,12 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         parent.pointTerminated(this);
     }
 
+	@Override
+	public void pointLogged(PointValueTime value) {
+		if(parent.getVo().getPublishType() == PublishType.LOGGED_ONLY)
+			parent.publish(vo, value);
+	}	
+	
     public T getVo() {
         return vo;
     }

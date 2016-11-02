@@ -80,27 +80,32 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     //
     // Point listener interface
     //
+	@Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         // no op
     }
-
+	@Override
     public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
         // no op
     }
-
+	@Override
     public void pointUpdated(PointValueTime newValue) {
         // no op
     }
-
+	@Override
     public void pointBackdated(PointValueTime value) {
         // no op
     }
-
+	@Override
     public void pointInitialized() {
         // no op
     }
-
+	@Override
     public void pointTerminated() {
         // no op
+    }
+	@Override
+    public void pointLogged(PointValueTime value){
+    	//no op
     }
 }

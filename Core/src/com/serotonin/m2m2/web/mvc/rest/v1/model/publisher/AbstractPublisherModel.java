@@ -68,11 +68,11 @@ public class AbstractPublisherModel<T extends PublisherVO<P>, P extends Publishe
 		this.points = points;
 	}
 	
-	public boolean isChangesOnly(){
-		return this.data.isChangesOnly();
+	public String getPublishType(){
+		return PublisherVO.PUBLISH_TYPE_CODES.getCode(this.data.getPublishType());
 	}
-	public void setChangesOnly(boolean changesOnly){
-		this.data.setChangesOnly(changesOnly);
+	public void setPublishType(String type){
+		this.data.setPublishType(PublisherVO.PUBLISH_TYPE_CODES.getId(type));
 	}
 	
 	public int getCacheWarningSize() {

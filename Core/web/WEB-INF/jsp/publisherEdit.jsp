@@ -3,6 +3,7 @@
     @author Matthew Lohbihler
 --%>
 <%@page import="com.serotonin.m2m2.Constants"%>
+<%@page import="com.serotonin.m2m2.vo.publish.PublisherVO"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <c:set var="dwrClasses">PublisherEditDwr</c:set>
@@ -17,7 +18,7 @@
         setDisabled("saveBtn", true);
         
         savePublisherImpl($get("name"), $get("xid"), $get("enabled"), $get("cacheWarningSize"),
-                $get("cacheDiscardSize"), $get("changesOnly") == "true", $get("sendSnapshot"),
+                $get("cacheDiscardSize"), $get("publishType"), $get("sendSnapshot"),
                 $get("snapshotSendPeriods"), $get("snapshotSendPeriodType"));
     }
     
@@ -112,11 +113,7 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="publisherEdit.updateEvent"/></td>
               <td class="formField">
-                <sst:select id="changesOnly" value="${publisher.changesOnly}">
-                  <sst:option value="false"><fmt:message key="publisherEdit.updateEvent.all"/></sst:option>
-                  <sst:option value="true"><fmt:message key="publisherEdit.updateEvent.changes"/></sst:option>
-                </sst:select>
-              </td>
+              	<tag:exportCodesOptions id="publishType" optionList="<%= PublisherVO.PUBLISH_TYPE_CODES.getIdKeys() %>" value="${publisher.publishType}"/>
             </tr>
             
             <tr>

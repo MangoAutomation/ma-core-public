@@ -78,34 +78,38 @@ public class DataPointEventMulticaster implements DataPointListener {
     // /
     // / DataPointListener interface
     // /
-    //
+    // /
+	@Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         a.pointChanged(oldValue, newValue);
         b.pointChanged(oldValue, newValue);
     }
-
+	@Override
     public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
         a.pointSet(oldValue, newValue);
         b.pointSet(oldValue, newValue);
     }
-
+	@Override
     public void pointUpdated(PointValueTime newValue) {
         a.pointUpdated(newValue);
         b.pointUpdated(newValue);
     }
-
+	@Override
     public void pointBackdated(PointValueTime value) {
         a.pointBackdated(value);
         b.pointBackdated(value);
     }
-
+	@Override
     public void pointInitialized() {
         a.pointInitialized();
         b.pointInitialized();
     }
-
+	@Override
     public void pointTerminated() {
         a.pointTerminated();
         b.pointTerminated();
     }
+
+	@Override
+	public void pointLogged(PointValueTime value) { }
 }

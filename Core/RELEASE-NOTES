@@ -1,13 +1,10 @@
 *Version 2.8.0*
 * Upgrade core-private for new login process
-* Adding quantization and cron pattern options for all eligible polling data sources
 * Adding runtime.javascript.metrics. env property to log javascript execution times of the ScriptEngine
 * Modularize Event Detectors
 * Modularize Event Handlers
 * User passwords upgraded
-* Fixing bug where schema versions were being exported and allowed to be imported via JSON.
-
-*Version 2.7.14*
+* Adding new publish type of Logged only, where only values saved to the database are published
 * Using Sub Queries for Data Point RQL Queries
 * Improved aborted poll handling, will only raise 1 event on the first aborted poll and only log the count every 5 minutes
 * Display aborted polls on data source edit page
@@ -32,7 +29,6 @@
 * Adding rolling process logs for use in modules
 * Upgrade all DAOs to be able to publish modification results to WebSockets
 * Adding Audit system to be able to restore configuration to a known state/date
-* Adding env property runtime.javascript.metrics to log execution timing of scripts
 * Making WebSocket definitions modular
 * Adding CORS support for core as env.properties
 * Bugfix to prevent importing databaseSchemaVersion in JSON, causing database upgrade errors

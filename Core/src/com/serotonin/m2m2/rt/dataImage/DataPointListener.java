@@ -47,4 +47,11 @@ public interface DataPointListener {
      * This method is called when the point has been terminated, allowing listeners to react as necessary.
      */
     void pointTerminated();
+    
+    /**
+     * This method is called when the value is sent to the database for saving.  There is no guarantee that 
+     * it has made it to the database if an error occurs at a lower level, but all efforts are made to save it.
+     * @param value
+     */
+    void pointLogged(PointValueTime value);
 }
