@@ -879,41 +879,7 @@
               var alarmLevel = parseInt($get("eventDetector"+ pedId +"AlarmLevel"));
               
               if (pedType == '<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>') {
-                  var state = $get("eventDetector"+ pedId +"State");
-                  var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
-                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
-                  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
-                  var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
-                  var useReset = $get("eventDetector" + pedId + "UseReset");
-                  var multistateState;
-                  if(useReset)
-                      multistateState = 1;
-                  else
-                      multistateState = 0;
-                  
-                  if (isNaN(limit))
-                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
-                  else if (isNaN(duration))
-                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
-                  else if (duration < 0)
-                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
-                  else if(isNaN(weight))
-                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
-                  else if((multistateState==1)&&(state)&&(limit < weight)){
-                       //Is not higher, so reset limit must be >= limit
-                       errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
-                  }else if((multistateState==1)&&(!state)&&(limit > weight)){
-                      //Is higher, so reset limit must be <= limit
-                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
-                  }
-                  else {
-                      saveCBCount++;
-                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, multistateState,
-                              weight, duration, durationType, alarmLevel, saveCB);
-                  }
-              }
-              else if (pedType == '<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>') {
-                  var state = $get("eventDetector"+ pedId +"State");
+                  var state = $get("eventDetector"+ pedId +"State") === "true";
                   var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
                   var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
                   var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
@@ -934,14 +900,48 @@
                   else if(isNaN(weight))
                       errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
                   else if((multistateState==1)&&(state)&&(limit > weight)){
+                       //Is not higher, so reset limit must be >= limit
+                       errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
+                  }else if((multistateState==1)&&(!state)&&(limit < weight)){
+                      //Is higher, so reset limit must be <= limit
+                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
+                  }
+                  else {
+                      saveCBCount++;
+                      DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, useReset,
+                              weight, duration, durationType, alarmLevel, saveCB);
+                  }
+              }
+              else if (pedType == '<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>') {
+                  var state = $get("eventDetector"+ pedId +"State") === "true";
+                  var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+                  var weight = parseFloat($get("eventDetector"+ pedId +"Weight"));
+                  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
+                  var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  var useReset = $get("eventDetector" + pedId + "UseReset");
+                  var multistateState;
+                  if(useReset)
+                      multistateState = 1;
+                  else
+                      multistateState = 0;
+                  
+                  if (isNaN(limit))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
+                  else if (isNaN(duration))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
+                  else if (duration < 0)
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
+                  else if(isNaN(weight))
+                      errorMessage = "<fmt:message key='pointEdit.detectors.errorParsingResetLimit'/>";
+                  else if((multistateState==1)&&(state)&&(limit < weight)){
                       //Is not lower, so reset limit must be <= limit
                       errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeLessThanLimit'/>"
-                  }else if((multistateState==1)&&(!state)&&(limit < weight)){
+                  }else if((multistateState==1)&&(!state)&&(limit > weight)){
                      //Is lower, so reset limit must be >= limit
                      errorMessage = "<fmt:message key='pointEdit.detectors.resetLimitMustBeGreaterThanLimit'/>"
                   }else {
                       saveCBCount++;
-                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, multistateState,
+                      DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, useReset,
                               weight, duration, durationType, alarmLevel, saveCB);
                   }
               }
