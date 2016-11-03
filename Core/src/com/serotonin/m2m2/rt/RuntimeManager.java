@@ -135,9 +135,12 @@ public class RuntimeManager {
         rtmdIndex = startRTMDefs(defs, safe, rtmdIndex, Integer.MAX_VALUE);
 
         // Start the publishers that are enabled
+        long pubStart = Common.backgroundProcessing.currentTimeMillis();
         PublisherDao publisherDao = DaoRegistry.publisherDao;
         List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getPublishers();
+        LOG.info("Starting " + publishers.size() + " Publishers...");
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
+        	LOG.info("Starting publisher: " + vo.getName());
             if (vo.isEnabled()) {
                 if (safe) {
                     vo.setEnabled(false);
@@ -147,6 +150,7 @@ public class RuntimeManager {
                     startPublisher(vo);
             }
         }
+        LOG.info(publishers.size() + " Publisher's started in " +  (Common.backgroundProcessing.currentTimeMillis() - pubStart) + "ms");
         
         //Schedule the Backup Tasks if necessary
         // No way to set the default value for Bools in SystemSettingsDao so must do here
