@@ -30,6 +30,10 @@ public class UserImporter extends Importer {
 
             try {
                 ctx.getReader().readInto(user, json);
+                //Check if this is a legacy JSON user password
+                String password = user.getPassword();
+                if(!password.startsWith("{BCRYPT}") && !password.startsWith("{SHA-1}") && !password.startsWith("{NONE}"))
+                	user.setPassword("{SHA-1}"+password); //Add the encryption algorithm
 
                 // Now validate it. Use a new response object so we can distinguish errors in this user from other
                 // errors.
