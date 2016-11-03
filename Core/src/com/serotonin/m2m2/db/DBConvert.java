@@ -72,11 +72,14 @@ public class DBConvert {
         tableNames.add("dataPoints");
         tableNames.add("pointValues");
         tableNames.add("pointValueAnnotations");
+        tableNames.add("eventDetectors");
         tableNames.add("events");
         tableNames.add("userEvents");
         tableNames.add("eventHandlers");
         tableNames.add("publishers");
         tableNames.add("dataPointHierarchy");
+        tableNames.add("audit");
+        tableNames.add("jsonData");
         tableNames.add(SchemaDefinition.JSON_DATA_TABLE);
         return tableNames;
     }
