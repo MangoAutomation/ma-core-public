@@ -322,6 +322,16 @@ public class Upgrade12 extends DBUpgrade {
 
     	//Write them to disk
     	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+    	File backupFolder = new File(backupLocation);
+    	boolean writable = true;
+    	if(!backupFolder.exists())
+    		writable = backupFolder.mkdir();
+    	
+    	if(!writable) {
+    		LOG.error("Unable to backup audit events, backup folder doesn't exist and couldn't be created.");
+    		return;
+    	}
+    	
 		File backupFile = new File(backupLocation, "auditEventBackup.json");
 
     	EventRowCallbackHandler handler = new EventRowCallbackHandler(backupFile, os);
