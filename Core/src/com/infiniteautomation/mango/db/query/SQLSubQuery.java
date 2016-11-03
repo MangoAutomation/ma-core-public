@@ -55,19 +55,28 @@ public class SQLSubQuery extends SQLStatement{
 			selectSql.append("(SELECT * FROM ");
 			selectSql.append(this.tableName);
 			selectSql.append(SPACE);
-			countSql.append(" (SELECT * FROM ");
-			countSql.append(this.tableName);
-			countSql.append(SPACE);
 			if(this.tablePrefix != null){
 				selectSql.append(" AS ");
 				selectSql.append(this.tablePrefix);
 				selectSql.append(SPACE);
-				countSql.append(" AS ");
-				countSql.append(this.tablePrefix);
-				countSql.append(SPACE);
 			}
+			
+			//Only add the sub-select if there are restrictions (order/limit don't matter for a count)
+			if(this.subSelectWhere.hasRestrictions()){
+				countSql.append(" (SELECT * FROM ");
+				countSql.append(this.tableName);
+				countSql.append(SPACE);
+				if(this.tablePrefix != null){
+					countSql.append(" AS ");
+					countSql.append(this.tablePrefix);
+					countSql.append(SPACE);
+				}
+			}else{
+				countSql.append(this.tableName);
+			}
+			
 			//Append Joins
-			if(this.subSelectJoins != null){
+			if((this.subSelectJoins != null) && this.subSelectWhere.hasRestrictions()){
 				selectSql.append(SPACE);
 				selectSql.append(this.subSelectJoins);
 				selectSql.append(SPACE);
@@ -75,16 +84,23 @@ public class SQLSubQuery extends SQLStatement{
 				countSql.append(this.subSelectJoins);
 				countSql.append(SPACE);
 			}
+			
 			//We may only have order/limit
 			if(this.subSelectWhere.hasRestrictions()){
+				
 				selectSql.append(WHERE);
 				countSql.append(WHERE);
+				
 			}
+			
 			this.subSelectWhere.build();
 			selectSql.append(this.subSelectWhere.selectSQL);
 			countSql.append(this.subSelectWhere.countSQL);
 			selectSql.append(") ");
-			countSql.append(") ");
+			//Since we only added the sub-query clause to the count if there were restrictions
+			if(this.subSelectWhere.hasRestrictions())
+				countSql.append(") ");
+			
 		}else{
 			selectSql.append(this.tableName);
 			selectSql.append(SPACE);
@@ -105,9 +121,12 @@ public class SQLSubQuery extends SQLStatement{
 			selectSql.append(SPACE);
 			selectSql.append(this.baseJoins);
 			selectSql.append(SPACE);
-			countSql.append(SPACE);
-			countSql.append(this.baseJoins);
-			countSql.append(SPACE);
+			//Don't bother with the joins if there are no restrictions on them
+			if(this.baseWhere.hasRestrictions()){
+				countSql.append(SPACE);
+				countSql.append(this.baseJoins);
+				countSql.append(SPACE);
+			}
 		}
 		
 		
@@ -195,43 +214,27 @@ public class SQLSubQuery extends SQLStatement{
 			if(recursivelyPrune(this.subSelectWhere.getCurrentClause(), this.baseWhere.getCurrentClause()))
 				this.subSelectWhere.setCurrentClause(null);
 			
-			//Move sort
-			if(!this.subSelectWhere.hasRestrictions()){
-				//Move everything
-				ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
-				while(it.hasNext()){
-					this.baseWhere.sort.add(it.next());
-					it.remove();
-				}
-			}else{
-				//Only move the items that can't be sorted on the inner
-				ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
-				while(it.hasNext()){
-					SortOption option = it.next();
-					if(!option.attribute.startsWith(tablePrefix)){
-						this.baseWhere.sort.add(option);
-						it.remove();
-					}
-				}
+			//Move sort, limit/offset if there are any restriction in the outer query
+			if(this.baseWhere.hasRestrictions()){
+				this.baseWhere.limitOffset = this.subSelectWhere.limitOffset;
+				this.subSelectWhere.limitOffset = null;
 			}
+			
 		}else if((this.subSelectWhere.getSingleRestriction() != null)&&(!this.subSelectWhere.getSingleRestriction().column.getName().startsWith(tablePrefix))){
 			//Special handling for single restriction
 			this.baseWhere.setSingleRestriction(this.subSelectWhere.getSingleRestriction());
 			this.subSelectWhere.setSingleRestriction(null);
 		}
-			
-		//Move limits & order if there are not any inner where restrictions
-		if(!this.subSelectWhere.hasRestrictions()){
-			this.baseWhere.limitOffset = this.subSelectWhere.limitOffset;
-			this.subSelectWhere.limitOffset = null;
-			ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
-			while(it.hasNext()){
-				SortOption option = it.next();
+		
+		//Move any pertinent ordering
+		ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
+		while(it.hasNext()){
+			SortOption option = it.next();
+			if(!option.attribute.startsWith(tablePrefix)){
 				this.baseWhere.sort.add(option);
 				it.remove();
 			}
 		}
-		
 	}
 	
 	boolean recursivelyPrune(AndOrClause inner, AndOrClause outer){

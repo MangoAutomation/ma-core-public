@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.spring.authentication;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -64,7 +65,8 @@ public class MangoUserAuthenticationProvider implements AuthenticationProvider{
 		List<GrantedAuthority> permissions = new ArrayList<GrantedAuthority>(roles.length);
 		
 		for (String role : roles) {
-			permissions.add(new SimpleGrantedAuthority(role));
+			if(!StringUtils.isEmpty(role))
+				permissions.add(new SimpleGrantedAuthority(role));
 		}
 		if(u.isAdmin())
 			permissions.add(new SimpleGrantedAuthority("ADMIN"));

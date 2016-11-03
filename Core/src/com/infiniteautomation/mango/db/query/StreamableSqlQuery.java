@@ -89,7 +89,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	        	statement.close();
 	        }
         }catch(Exception e){
-        	LOG.error(e.getMessage(), e);
+        	LOG.error(e.getMessage() + " For Query: " + selectSql, e);
         }
         if(this.useMetrics)
         	stopWatch.stop("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString());
@@ -122,7 +122,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	        	statement.close();
 	        }
         }catch(Exception e){
-        	LOG.error(e.getMessage(), e);
+        	LOG.error(e.getMessage() + " For Query: " + countSql, e);
         }
         if(this.useMetrics)
         	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString());
