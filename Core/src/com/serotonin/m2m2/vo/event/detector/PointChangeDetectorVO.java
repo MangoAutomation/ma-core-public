@@ -40,5 +40,10 @@ public class PointChangeDetectorVO extends AbstractPointEventDetectorVO<PointCha
 	protected TranslatableMessage getConfigurationDescription() {
 		return new TranslatableMessage("event.detectorVo.change");
 	}
+	
+	@Override
+    public boolean isRtnApplicable() {
+    	return false;
+    }
 
 }
