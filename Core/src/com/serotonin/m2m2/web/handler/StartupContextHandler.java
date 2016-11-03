@@ -59,6 +59,15 @@ public class StartupContextHandler extends ResourceHandler{
         	return;
         }
         
+        if(request.getMethod().equalsIgnoreCase("OPTIONS")){
+        	//Return options response
+        	response.setStatus(HttpStatus.SC_OK);
+        	response.setHeader("Allow", "OPTIONS, GET");
+        	response.setContentLength(0);
+        	baseRequest.setHandled(true);
+        	return;
+        }
+        
         if(request.getPathInfo().endsWith(".css") || 
         		request.getPathInfo().endsWith(".js") ||
         		request.getPathInfo().endsWith(".ico") ||
