@@ -262,8 +262,7 @@ create table publishers (
   xid varchar(50) not null,
   publisherType varchar(40) not null,
   data blob not null,
-  rtdata blob,
-  tags clob
+  rtdata blob
 );
 alter table publishers add constraint publishersPk primary key (id);
 alter table publishers add constraint publishersUn1 unique (xid);
