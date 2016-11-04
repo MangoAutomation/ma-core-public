@@ -877,26 +877,18 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     	columns = new ArrayList<QueryAttribute>();
     	columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
     	indexes.add(new Index("dataSourcesUn1", "ds", columns, "ASC"));
-
     	
     	//DeviceNameName Index Force
     	columns = new ArrayList<QueryAttribute>();
     	columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
     	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
     	indexes.add(new Index("deviceNameNameIndex", "dp", columns, "ASC"));
-
-    	columns = new ArrayList<QueryAttribute>();
-    	columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
-    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-    	indexes.add(new Index("deviceNameNameDescIndex", "dp", columns, "DESC"));
-
     	
     	//xid point name force
     	columns = new ArrayList<QueryAttribute>();
     	columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
     	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
     	indexes.add(new Index("xidNameIndex", "dp", columns, "ASC"));
-
     	
     	return indexes;
     }
