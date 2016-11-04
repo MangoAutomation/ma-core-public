@@ -200,7 +200,7 @@ public class ModulesDwr extends BaseDwr {
         JsonValue jsonResponse = getAvailableUpgrades();
 
         if (jsonResponse instanceof JsonString)
-            throw new Exception(jsonResponse.toString());
+            throw new Exception("Mango Store Response Error: " + jsonResponse.toString());
 
         JsonObject root = jsonResponse.toJsonObject();
 
