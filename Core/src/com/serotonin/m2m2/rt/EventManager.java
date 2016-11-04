@@ -116,8 +116,7 @@ public class EventManager implements ILifecycle {
 		List<Integer> eventUserIds = new ArrayList<Integer>();
 		Set<String> emailUsers = new HashSet<String>();
 
-		//So none level events don't make it into the cache or get sent out as notifications
-		if(evt.isAlarm()){
+		if(alarmLevel != AlarmLevels.DO_NOT_LOG){
 			for (User user : userDao.getActiveUsers()) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
@@ -130,17 +129,16 @@ public class EventManager implements ILifecycle {
 							&& alarmLevel >= user.getReceiveAlarmEmails())
 						emailUsers.add(user.getEmail());
 				
-					//Notify All User Event Listeners of the new event
+					//Notify All User Event Listeners of the new event if it is not DO NOT LOG
 					for(UserEventListener l : this.userEventListeners){
 						if(l.getUserId() == user.getId()){
 							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
 						}
 					}
-				
 					//Add to the UserEventCache if the user has recently accessed their events
 					this.userEventCache.addEvent(user.getId(), evt);
+
 				}
-				
 			}
 		}
 
