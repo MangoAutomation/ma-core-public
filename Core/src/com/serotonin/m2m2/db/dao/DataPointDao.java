@@ -189,13 +189,13 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
     	private static final int EVENT_DETECTOR_FIRST_COLUMN = 26;
-    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, "ped");
+    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, 5);
     	static final String DATA_POINT_SELECT_STARTUP = //
         	    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
         	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
         	            + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
         	            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
-        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.typeName, ped.data, ped.dataPointId " //
+        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
         	            + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
         	            + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
     	

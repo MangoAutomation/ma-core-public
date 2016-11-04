@@ -34,16 +34,24 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO<?>>{
 
 	private final Log LOG = LogFactory.getLog(EventDetectorRowMapper.class);
+	//First column in the query for the event detector columns
 	private int firstColumn;
-	private String tablePrefix;
+	//Column offset for the sourceId to use, -1 means use definition mappings
+	private int sourceIdColumnOffset;
 	
-	public EventDetectorRowMapper(int firstColumn, String tablePrefix){
+	/**
+	 * 
+	 * @param firstColumn - First column of Event Detector columns in ResultSet
+	 * @param sourceIdColumnOffset - Offset from first column to where 
+	 * 	the sourceId column is located < 0 means use definition and expect all sourceId columns in result
+	 */
+	public EventDetectorRowMapper(int firstColumn, int sourceIdColumnOffset){
 		this.firstColumn = firstColumn;
-		this.tablePrefix = tablePrefix + ".";
+		this.sourceIdColumnOffset = sourceIdColumnOffset;
 	}
 	
 	public EventDetectorRowMapper(){
-		this(1, "edt");
+		this(1, -1);
 	}
 	/* (non-Javadoc)
 	 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
@@ -71,7 +79,13 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
         catch (ClassCastException | IOException | JsonException e) {
             LOG.error(e.getMessage(), e);
         }
-		vo.setSourceId(rs.getInt(this.tablePrefix + definition.getSourceIdColumnName()));
+		//Extract the source id
+		int sourceIdColumnIndex;
+		if(this.sourceIdColumnOffset < 0)
+			sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.instance.getSourceIdIndex(definition.getSourceTypeName());
+		else
+			sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
+		vo.setSourceId(rs.getInt(sourceIdColumnIndex));
         
 		return vo;
 	}
