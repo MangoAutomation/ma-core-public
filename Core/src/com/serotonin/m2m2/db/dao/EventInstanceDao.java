@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.Map;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.query.JoinClause;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -48,8 +50,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 				new String[]{
 					"u.username",
 					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
-					"ue.silenced"},
-				"left join users u on evt.ackUserId=u.id left join userEvents ue on evt.id=ue.eventId ");
+					"ue.silenced"});
 		LOG = LogFactory.getLog(EventInstanceDao.class);
 	}
 
@@ -167,6 +168,17 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		
 		return map;
 	}
+	
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getJoins()
+     */
+    @Override
+    protected List<JoinClause> getJoins() {
+    	List<JoinClause> joins = new ArrayList<JoinClause>();
+    	joins.add(new JoinClause(LEFT_JOIN, "users", "u", "evt.ackUserId = u.id"));
+    	joins.add(new JoinClause(LEFT_JOIN, "userEvents", "ue", "evt.id=ue.eventId"));
+    	return joins;
+    }
 	
 	@Override
 	protected Map<String, Comparator<EventInstanceVO>> getComparatorMap() {

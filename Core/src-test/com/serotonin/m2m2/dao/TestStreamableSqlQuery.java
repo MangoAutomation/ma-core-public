@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,12 +15,14 @@ import java.util.Map;
 import org.junit.Before;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.infiniteautomation.mango.db.query.StreamableRowCallback;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -130,7 +133,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 	
 	class StreamTestDao extends AbstractDao<StreamTestData> {
 
-		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false);
+		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false, new ArrayList<Index>(), DatabaseType.MYSQL);
 		
 		protected StreamTestDao(WebSocketDefinition def, String typeName) {
 			super(def, typeName);

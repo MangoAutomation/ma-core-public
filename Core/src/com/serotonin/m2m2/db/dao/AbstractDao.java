@@ -53,15 +53,15 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     //Provide Arguments for Mapped Property members to be sorted by (Not really sure if this is necessary)
     protected final Map<String,PropertyArguments> propertyArgumentsMap = getPropertyArgumentsMap();
     
-    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL) {
-        super(handler, tablePrefix, extraProperties, useSubQuery, extraSQL);
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery) {
+        super(handler, tablePrefix, extraProperties, useSubQuery);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
     
     @SuppressWarnings("unchecked")
-	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL) {
-        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, useSubQuery, extraSQL);
+	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery) {
+        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, useSubQuery);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
@@ -73,12 +73,12 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param extraProperties - Properties from other tables
      * @param extraSQL - Any additional query pieces
      */
-    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
-        this(handler, typeName, tablePrefix, extraProperties, false, extraSQL);
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties) {
+        this(handler, typeName, tablePrefix, extraProperties, false);
     }
 
-    protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, String extraSQL) {
-        this(def, typeName, tablePrefix, extraProperties, false, extraSQL);
+    protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties) {
+        this(def, typeName, tablePrefix, extraProperties, false);
     }
     
     
@@ -87,11 +87,11 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
      * @param typeName - Audit Event Type Name
      */
     protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName) {
-        this(handler, typeName, null, new String[0], null);
+        this(handler, typeName, null, new String[0]);
     }
 
     protected AbstractDao(WebSocketDefinition def, String typeName) {
-        this(def, typeName, null, new String[0], null);
+        this(def, typeName, null, new String[0]);
     }
     
     /**

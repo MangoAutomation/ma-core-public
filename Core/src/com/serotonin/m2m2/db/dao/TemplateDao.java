@@ -39,7 +39,7 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 	 * @param typeName
 	 */
 	protected TemplateDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("TEMPLATE"), AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, new String());
+		super(ModuleRegistry.getWebSocketHandlerDefinition("TEMPLATE"), AuditEventType.TYPE_TEMPLATE, "t", new String[]{});
 	}
 
 	/* (non-Javadoc)

@@ -8,12 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.infiniteautomation.mango.db.query.SQLConstants;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
-public class BaseDao extends DaoUtils {
+public class BaseDao extends DaoUtils implements SQLConstants{
     /**
      * Public constructor for code that needs to get stuff from the database.
      */
@@ -25,11 +26,11 @@ public class BaseDao extends DaoUtils {
     // Convenience methods for storage of booleans.
     //
     public static String boolToChar(boolean b) {
-        return b ? "Y" : "N";
+        return b ? Y : N;
     }
 
     public static boolean charToBool(String s) {
-        return "Y".equals(s);
+        return Y.equals(s);
     }
 
     protected void deleteInChunks(String sql, List<Integer> ids) {

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
+
 /**
  * Create a statement of the form
  * 
@@ -20,7 +22,7 @@ import java.util.ListIterator;
  */
 public class SQLSubQuery extends SQLStatement{
 
-	private String subSelectJoins;
+	private List<JoinClause> subSelectJoins;
 	private WhereClause subSelectWhere;
 	
 	/**
@@ -29,11 +31,12 @@ public class SQLSubQuery extends SQLStatement{
 	 * @param baseCountStatement
 	 * @param applyLimitToSelectSql
 	 */
-	public SQLSubQuery(String baseSelect, String baseCountStatement, String baseJoins,
+	public SQLSubQuery(String baseSelect, String baseCountStatement, List<JoinClause> baseJoins,
 			String tableName,
 			String tablePrefix,
-			boolean applyLimitToSelectSql, String subSelectJoins) {
-		super(baseSelect, baseCountStatement, baseJoins, tableName, tablePrefix, applyLimitToSelectSql);
+			boolean applyLimitToSelectSql, List<JoinClause> subSelectJoins,
+			List<Index> indexes, DatabaseType type) {
+		super(baseSelect, baseCountStatement, baseJoins, tableName, tablePrefix, applyLimitToSelectSql, indexes, type);
 		
 		this.subSelectJoins = subSelectJoins;
 		this.subSelectWhere = new WhereClause(applyLimitToSelectSql);
@@ -76,21 +79,13 @@ public class SQLSubQuery extends SQLStatement{
 			}
 			
 			//Append Joins
-			if((this.subSelectJoins != null) && this.subSelectWhere.hasRestrictions()){
-				selectSql.append(SPACE);
-				selectSql.append(this.subSelectJoins);
-				selectSql.append(SPACE);
-				countSql.append(SPACE);
-				countSql.append(this.subSelectJoins);
-				countSql.append(SPACE);
-			}
+			if((!this.subSelectJoins.isEmpty()) && this.subSelectWhere.hasRestrictions())
+				addJoinSql(this.subSelectWhere, this.subSelectJoins, this.indexes, selectSql, countSql);
 			
 			//We may only have order/limit
 			if(this.subSelectWhere.hasRestrictions()){
-				
 				selectSql.append(WHERE);
 				countSql.append(WHERE);
-				
 			}
 			
 			this.subSelectWhere.build();
@@ -117,18 +112,8 @@ public class SQLSubQuery extends SQLStatement{
 			countSql.append(SPACE);
 		}
 
-		if(this.baseJoins != null){
-			selectSql.append(SPACE);
-			selectSql.append(this.baseJoins);
-			selectSql.append(SPACE);
-			//Don't bother with the joins if there are no restrictions on them
-			if(this.baseWhere.hasRestrictions()){
-				countSql.append(SPACE);
-				countSql.append(this.baseJoins);
-				countSql.append(SPACE);
-			}
-		}
-		
+		if(this.baseJoins != null)
+			addJoinSql(this.baseWhere, this.baseJoins, this.indexes, selectSql, countSql);
 		
 		//Build up the where clauses
 		this.baseWhere.build();
@@ -150,7 +135,7 @@ public class SQLSubQuery extends SQLStatement{
 		this.countArgs = new ArrayList<Object>(this.subSelectWhere.countArgs);
 		this.countArgs.addAll(this.baseWhere.countArgs);
 	}
-	
+
 	@Override
 	public void openAndOr(ComparisonEnum comparison){
 		if(!this.baseWhere.isOpen())
@@ -230,8 +215,9 @@ public class SQLSubQuery extends SQLStatement{
 		ListIterator<SortOption> it = this.subSelectWhere.sort.listIterator();
 		while(it.hasNext()){
 			SortOption option = it.next();
+			//We must always do an outer sort since the inner query sort is wrecked upon the outer query
+			this.baseWhere.sort.add(option);
 			if(!option.attribute.startsWith(tablePrefix)){
-				this.baseWhere.sort.add(option);
 				it.remove();
 			}
 		}

@@ -7,13 +7,16 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.query.JoinClause;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -37,11 +40,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 
 	private UserCommentDao(){
 		super(ModuleRegistry.getWebSocketHandlerDefinition("USER_COMMENT"), AuditEventType.TYPE_USER_COMMENT, "uc", 
-				new String[]{ "u.username" },
-				"left join users u on uc.userId = u.id"
-			);
-		
-		
+				new String[]{ "u.username" });
 		LOG = LogFactory.getLog(UserCommentDao.class);
 	}
     
@@ -176,6 +175,16 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 		return new UserCommentVORowMapper();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getJoins()
+	 */
+	@Override
+	protected List<JoinClause> getJoins() {
+    	List<JoinClause> joins = new ArrayList<JoinClause>();
+    	joins.add(new JoinClause(LEFT_JOIN, "users", "u", "uc.userId = u.id"));
+    	return joins;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPkColumnName()
 	 */

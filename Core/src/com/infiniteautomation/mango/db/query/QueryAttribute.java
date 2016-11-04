@@ -29,15 +29,13 @@ public class QueryAttribute {
 	}
 	
 	
-
 	/**
+	 * 
 	 * @param columnName
-	 * @param attribute
 	 * @param aliases
 	 * @param sqlType
-	 * @param javaClassName
 	 */
-	public QueryAttribute(String columnName, String attribute,
+	public QueryAttribute(String columnName,
 			Set<String> aliases, int sqlType) {
 		super();
 		this.columnName = columnName;

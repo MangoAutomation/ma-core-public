@@ -19,6 +19,9 @@ public interface SQLConstants {
 	public static final String ASC = " ASC ";
 	public static final String DESC = " DESC ";
 	public static final String COMMA = ",";
+	public static final String JOIN = "JOIN ";
+	public static final String LEFT_JOIN = "LEFT JOIN ";
+	public static final String ON = " ON ";
 	
 	public static final String EQUAL_TO_SQL = "=?";
 	public static final String NOT_EQUAL_TO_SQL = "!=?";

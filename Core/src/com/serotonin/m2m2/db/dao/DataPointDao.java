@@ -36,6 +36,9 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.db.query.Index;
+import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.serotonin.ShouldNeverHappenException;
@@ -88,10 +91,9 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_POINT"), 
         		AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
-        		true,
-                "join dataSources ds on ds.id = dp.dataSourceId left outer join templates template on template.id = dp.templateId"); //Extra Joins to get the data we need
+        		false);
     }
-
+    
     //
     //
     // Data Points
@@ -846,6 +848,56 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         return map;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getJoins()
+     */
+    @Override
+    protected List<JoinClause> getJoins() {
+    	List<JoinClause> joins = new ArrayList<JoinClause>();
+    	joins.add(new JoinClause(JOIN, "dataSources", "ds", "ds.id = dp.dataSourceId"));
+    	joins.add(new JoinClause(LEFT_JOIN, "templates", "template", "template.id = dp.templateId"));
+    	return joins;
+    }
+    
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getIndexes()
+     */
+    @Override
+    protected List<Index> getIndexes() {
+    	List<Index> indexes = new ArrayList<Index>();
+    	List<QueryAttribute> columns = new ArrayList<QueryAttribute>();
+    	//Data Source Name Force
+    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+    	indexes.add(new Index("nameIndex", "ds", columns, "ASC"));
+    	
+    	//Data Source xid Force
+    	columns = new ArrayList<QueryAttribute>();
+    	columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
+    	indexes.add(new Index("dataSourcesUn1", "ds", columns, "ASC"));
+
+    	
+    	//DeviceNameName Index Force
+    	columns = new ArrayList<QueryAttribute>();
+    	columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
+    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+    	indexes.add(new Index("deviceNameNameIndex", "dp", columns, "ASC"));
+
+    	columns = new ArrayList<QueryAttribute>();
+    	columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
+    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+    	indexes.add(new Index("deviceNameNameDescIndex", "dp", columns, "DESC"));
+
+    	
+    	//xid point name force
+    	columns = new ArrayList<QueryAttribute>();
+    	columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
+    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+    	indexes.add(new Index("xidNameIndex", "dp", columns, "ASC"));
+
+    	
+    	return indexes;
+    }
+    
     @Override
     protected Map<String, Comparator<DataPointVO>> getComparatorMap() {
         HashMap<String, Comparator<DataPointVO>> comparatorMap = new HashMap<>();
@@ -1199,7 +1251,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			case MYSQL:
 			case POSTGRES:
 			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission ", COUNT_BASE, null, this.tableName, this.tablePrefix, true);
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission ", COUNT_BASE, null, this.tableName, this.tablePrefix, true, super.getIndexes(), this.databaseType);
 				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
 				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
 						new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
@@ -1231,7 +1283,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 			case MYSQL:
 			case POSTGRES:
 			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission ", COUNT_BASE, null, this.tableName, this.tablePrefix, true);
+				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission ", COUNT_BASE, null, this.tableName, this.tablePrefix, true, super.getIndexes(), this.databaseType);
 				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
 				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
 						new DataPointPermissionChangeCallback(updateSetPermissions, null));

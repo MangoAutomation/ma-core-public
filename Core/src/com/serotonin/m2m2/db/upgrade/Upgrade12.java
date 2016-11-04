@@ -23,7 +23,6 @@ import org.springframework.jdbc.core.RowMapper;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
@@ -110,8 +109,8 @@ public class Upgrade12 extends DBUpgrade {
 	   
 	    	"ALTER TABLE dataPoints ADD INDEX nameIndex (name ASC);",
 	    	"ALTER TABLE dataPoints ADD INDEX deviceNameIndex (deviceName ASC);",
-	    	"ALTER TABLE dataPoints ADD INDEX pointFolderIndex (pointFolderId ASC);",
-	    	"ALTER TABLE dataPoints ADD INDEX dataSourceIndex (dataSourceId ASC);",
+	    	"ALTER TABLE dataPoints ADD INDEX pointFolderIdIndex (pointFolderId ASC);",
+	    	"ALTER TABLE dataPoints ADD INDEX dataSourceIdIndex (dataSourceId ASC);",
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
 	    };
@@ -132,8 +131,8 @@ public class Upgrade12 extends DBUpgrade {
 
 	   		"CREATE INDEX nameIndex on dataPoints (name ASC);",
 	   		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
-	   		"CREATE INDEX pointFolderIndex on dataPoints (pointFolderId ASC);",
-	   		"CREATE INDEX dataSourceIndex on dataPoints (dataSourceId ASC);",
+	   		"CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);",
+	   		"CREATE INDEX dataSourceIdIndex on dataPoints (dataSourceId ASC);",
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
 	    };    
@@ -152,8 +151,8 @@ public class Upgrade12 extends DBUpgrade {
 	
 	    	"CREATE INDEX nameIndex on dataPoints (`name` ASC);",
 	    	"CREATE INDEX deviceNameIndex on dataPoints (`deviceName` ASC);",
-	    	"CREATE INDEX pointFolderIndex on dataPoints (`pointFolderId` ASC);",
-	    	"CREATE INDEX dataSourceIndex on dataPoints (`dataSourceId` ASC);", 
+	    	"CREATE INDEX pointFolderIdIndex on dataPoints (`pointFolderId` ASC);",
+	    	"CREATE INDEX dataSourceIdIndex on dataPoints (`dataSourceId` ASC);", 
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
 	    };
@@ -172,8 +171,8 @@ public class Upgrade12 extends DBUpgrade {
 	        
 	   		"CREATE INDEX nameIndex on dataPoints (name ASC);",
 	   		"CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
-	   		"CREATE INDEX pointFolderIndex on dataPoints (pointFolderId ASC);",
-	   		"CREATE INDEX dataSourceIndex on dataPoints (dataSourceId ASC);",
+	   		"CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);",
+	   		"CREATE INDEX dataSourceIdIndex on dataPoints (dataSourceId ASC);",
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",    
 	    };

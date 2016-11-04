@@ -22,6 +22,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
+import com.infiniteautomation.mango.db.query.Index;
+import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
@@ -34,6 +36,7 @@ import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
@@ -63,6 +66,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     //Map of Database Column Names to Column SQL Type
     protected final LinkedHashMap<String, Integer> propertyTypeMap;
     
+    //List of our Joins
+    protected final List<JoinClause> joins;
+    
+    //List of our Indexes
+    protected final List<Index> indexes;
     
     /*
      * SQL templates
@@ -80,7 +88,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected final String DELETE;
     protected final String COUNT_BASE;
     protected final String COUNT;
-    protected final String EXTRA_SQL;
+    //protected final String EXTRA_SQL;
 
     public final String tableName;
 
@@ -91,9 +99,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     public final String tablePrefix;  //Select * from table as tablePrefix
   
-    //TODO Explain me
+    //Use SubQuery for restrictions not in Joined Tables
     protected final boolean useSubQuery;
+    //Print out times and SQL for RQL Queries
     protected final boolean useMetrics;
+    //The type of database we are using
+    protected final DatabaseType databaseType;
     
     /**
      * Override as necessary
@@ -104,13 +115,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     	return "id";
     }
 	
-    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties, String extraSQL){
-    	this(handler, tablePrefix, extraProperties, false, extraSQL);
+    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties){
+    	this(handler, tablePrefix, extraProperties, false);
     }
 	
     @SuppressWarnings("unchecked")
-	public AbstractBasicDao(WebSocketDefinition def, String tablePrefix, String[] extraProperties, String extraSQL){
-    	this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, false, extraSQL);
+	public AbstractBasicDao(WebSocketDefinition def, String tablePrefix, String[] extraProperties){
+    	this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, false);
     }
     
     
@@ -119,10 +130,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * Do not include the . at the end of the prefix
      * @param tablePrefix
      */
-    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties, boolean useSubQuery, String extraSQL){
+    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties, boolean useSubQuery){
        this.handler = handler;
-       
        this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
+       this.databaseType = Common.databaseProxy.getType();
+       
        Map<String,IntStringPair> propMap = getPropertiesMap();
        if(propMap == null)
     	   this.propertiesMap = new HashMap<String, IntStringPair>();
@@ -183,8 +195,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	            selectAll += "," + prop;
 	        }
 
+        //Setup the Joins
+        this.joins = getJoins();
+        String joinSql = null;
+        if(!this.joins.isEmpty()){
+        	StringBuilder joinSqlBuilder = new StringBuilder();
+            for(JoinClause join : this.joins){
+            	joinSqlBuilder.append(join.toString());
+            }
+            joinSql = joinSqlBuilder.toString();
+        }
+        
         //Add the table prefix to the queries if necessary
-        EXTRA_SQL = extraSQL;
         SELECT_ALL_BASE = selectAll + " FROM ";
         String pkColumn = getPkColumnName();
      
@@ -194,9 +216,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         	else
         		COUNT_BASE = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM ";
         	
-            if (extraSQL != null)
-                SELECT_ALL = selectAll + " FROM " + tableName + " " + extraSQL;
-            else
+        	if(joinSql != null)
+	            SELECT_ALL = selectAll + " FROM " + tableName + joinSql;
+        	else
                 SELECT_ALL = selectAll + " FROM " + tableName;
 
             SELECT_ALL_SORT = SELECT_ALL + " ORDER BY ";
@@ -214,11 +236,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
             
-            if (extraSQL != null){
+            if (joinSql != null){
             	if(StringUtils.isEmpty(pkColumn))
-            		COUNT = "SELECT COUNT(*) FROM " + tableName + " " + extraSQL;
+            		COUNT = "SELECT COUNT(*) FROM " + tableName + joinSql;
             	else
-            		COUNT = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM " + tableName + " " + extraSQL;
+            		COUNT = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM " + tableName + joins;
             }else{
             	if(StringUtils.isEmpty(pkColumn))
             		COUNT = "SELECT COUNT(*) FROM " + tableName;
@@ -234,8 +256,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         	else
         		COUNT_BASE = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM ";
         	
-            if (extraSQL != null)
-                SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
+            if (joinSql != null)
+                SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix + joinSql;
             else
                 SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix;
 
@@ -253,11 +275,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             INSERT = insert + ") VALUES (" + insertValues + ")";
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-            if (extraSQL != null){
+            if (joinSql != null){
             	if(StringUtils.isEmpty(pkColumn))
-            		COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;
+            		COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + joinSql;
             	else
-            		COUNT = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM " + tableName + " AS " + tablePrefix + " " + extraSQL;            		
+            		COUNT = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM " + tableName + " AS " + tablePrefix + joinSql;            		
             }else{
             	if(StringUtils.isEmpty(pkColumn))
             		COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix;
@@ -291,7 +313,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if((getPkColumnName() != null)&&(this.propertyTypeMap.get(getPkColumnName()) != null)){
         	Integer pkType = this.propertyTypeMap.get(getPkColumnName());
        		this.updateStatementPropertyTypes[j] =  pkType;
-       		attributeMap.put(getPkColumnName(), new QueryAttribute(getPkColumnName(), "id", new HashSet<String>(), pkType));
+       		attributeMap.put(getPkColumnName(), new QueryAttribute(getPkColumnName(), new HashSet<String>(), pkType));
         }
         
 		Iterator<String> propertyMapIterator = this.propertiesMap.keySet().iterator();	
@@ -311,6 +333,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         	}
         }
 
+        //Collect the indexes
+        this.indexes = getIndexes();
+        
 		//Create the model
 		this.tableModel = new TableModel(this.getTableName(), new ArrayList<QueryAttribute>(attributeMap.values()));
     	
@@ -340,9 +365,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 * @return
 	 */
 	protected abstract LinkedHashMap<String,Integer> getPropertyTypeMap();
-//	{
-//		return new LinkedHashMap<String,Integer>();
-//	}
 	
 	/**
      * Returns a map which maps a virtual property to a real one used
@@ -358,7 +380,25 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @return row mapper
      */
     public abstract RowMapper<T> getRowMapper();
+    
+    /**
+     * Get a map of the Joined tables with table prefix --> Join SQL
+     * To be overridden as necessary
+     * @return
+     */
+    protected List<JoinClause> getJoins(){
+    	return new ArrayList<JoinClause>();
+    }
 
+    /**
+     * Optionally return a list of Indexes for this table
+     * for Query optimization
+     * @return
+     */
+    protected List<Index> getIndexes(){
+    	return new ArrayList<Index>();
+    }
+    
 	public void delete(int id){
 		 T vo = get(id);
         if (vo != null) {
@@ -583,9 +623,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     	
     	SQLStatement statement;
     	if(useSubQuery){
-    		statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql, null);
+    		statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX, applyLimitToSelectSql, null, this.indexes, this.databaseType);
     	}else{
-	    	statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
+	    	statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX, applyLimitToSelectSql, this.indexes, this.databaseType);
     	}
     	if(root != null)
     		root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
@@ -602,7 +642,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      */
     public BaseSqlQuery<T> createQuery(ASTNode root, boolean applyLimitToSelectSql){
     	
-    	SQLStatement statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, EXTRA_SQL, getTableName(), TABLE_PREFIX, applyLimitToSelectSql);
+    	SQLStatement statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX, applyLimitToSelectSql, this.indexes, this.databaseType);
     	if(root != null)
     		root.accept(new RQLToSQLSelect<T>(this), statement);
     	

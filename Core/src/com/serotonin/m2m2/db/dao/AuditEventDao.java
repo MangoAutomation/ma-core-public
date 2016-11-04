@@ -38,7 +38,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 	 * @param extraSQL
 	 */
 	private AuditEventDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("AUDIT"), "aud", new String[0], null);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("AUDIT"), "aud", new String[0]);
 	}
 	
 	/* (non-Javadoc)
