@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.Types;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
@@ -32,8 +34,11 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	
 	public static final EventDetectorDao instance = new EventDetectorDao();
 	
+	/* Map of Source Type to Source ID Column Names */
+	private LinkedHashMap<String, String> sourceTypeToColumnNameMap;
+	
 	private EventDetectorDao(){
-		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_DETECTOR"), AuditEventType.TYPE_EVENT_DETECTOR, "edt", new String[0], null);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_DETECTOR"), AuditEventType.TYPE_EVENT_DETECTOR, "edt", new String[0]);
 	}
 	
 	/* (non-Javadoc)
@@ -56,12 +61,16 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 			LOG.error(e.getMessage(), e);
 		}
 		
-		return new Object[]{
-			vo.getXid(),
-			vo.getDetectorType(),
-			vo.getSourceId(),
-			jsonData,
-		};
+		//Find the index of our sourceIdColumn
+		int sourceIdIndex = getSourceIdIndex(vo.getDefinition().getSourceTypeName());
+
+		Object[] o = new Object[4 + this.sourceTypeToColumnNameMap.size()];
+		o[0] = vo.getXid();
+		o[1] = vo.getDetectorSourceType();
+		o[2] = vo.getDetectorType();
+		o[3] = jsonData;
+		o[4 + sourceIdIndex] = vo.getSourceId();
+		return o;
 	}
 
 	/* (non-Javadoc)
@@ -72,9 +81,18 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
 		map.put("id", Types.INTEGER);
 		map.put("xid", Types.VARCHAR);
+		map.put("sourceTypeName", Types.VARCHAR);
 		map.put("typeName", Types.VARCHAR);
-		map.put("sourceId", Types.INTEGER);
 		map.put("data", Types.CLOB);
+		
+		//Build our ordered column set from the Module Registry
+		List<EventDetectorDefinition> defs = ModuleRegistry.getEventDetectorDefinitions();
+		this.sourceTypeToColumnNameMap = new LinkedHashMap<String, String>(defs.size());
+		for(EventDetectorDefinition def : defs){
+			this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), this.TABLE_PREFIX + "." + def.getSourceIdColumnName());
+			map.put(def.getSourceIdColumnName(), Types.INTEGER);
+		}
+
 		return map;
 	}
 
@@ -154,8 +172,9 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	 * @param sourceId
 	 * @return
 	 */
-	public List<AbstractEventDetectorVO<?>> getWithSourceId(int sourceId){
-		return query(SELECT_ALL + " WHERE sourceId=? ORDER BY id", new Object[]{sourceId}, new EventDetectorRowMapper());
+	public List<AbstractEventDetectorVO<?>> getWithSourceId(String sourceType, int sourceId){
+		String sourceIdColumnName = getSourceIdColumnName(sourceType);
+		return query(SELECT_ALL + " WHERE " + sourceIdColumnName +  "=? ORDER BY id", new Object[]{sourceId}, new EventDetectorRowMapper());
 	}
 
 	/**
@@ -189,5 +208,33 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	@Override
 	public AbstractEventDetectorVO<?> getByXid(String xid){
 		throw new ShouldNeverHappenException("Not possible as XIDs are not unique");
+	}
+	
+	public String getSourceIdColumnName(String sourceType){
+		Iterator<String> it = this.sourceTypeToColumnNameMap.keySet().iterator();
+		while(it.hasNext()){
+			String thisType = it.next();
+			if(thisType.equals(sourceType))
+				return this.sourceTypeToColumnNameMap.get(thisType);
+		}
+		
+		throw new ShouldNeverHappenException("Unknown Detector Source Type: " + sourceType);
+	}
+	
+	/**
+	 * Get the index of the source id column in the list of columns of source ids
+	 * @param sourceType
+	 * @return
+	 */
+	public int getSourceIdIndex(String sourceType){
+		int index = 0;
+		Iterator<String> it = this.sourceTypeToColumnNameMap.keySet().iterator();
+		while(it.hasNext()){
+			if(it.next().equals(sourceType))
+				break;
+			index++;
+		}
+		
+		return index;
 	}
 }

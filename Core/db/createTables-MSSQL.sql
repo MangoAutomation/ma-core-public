@@ -172,12 +172,14 @@ create table pointValueAnnotations (
 CREATE TABLE eventDetectors (
   id int NOT NULL identity,
   xid nvarchar(50) NOT NULL,
+  sourceTypeName nvarchar(32) NOT NULL,
   typeName nvarchar(32) NOT NULL,
-  sourceId int NOT NULL,
+  dataPointId int,
   data ntext NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
+ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
 
 --
 --

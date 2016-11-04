@@ -134,6 +134,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
        this.handler = handler;
        this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
        this.databaseType = Common.databaseProxy.getType();
+	   TABLE_PREFIX = tablePrefix;
+	   if(tablePrefix != null)
+	   	this.tablePrefix = tablePrefix + ".";
+	   else
+	   	this.tablePrefix = "";
+   	
+       this.tableName = getTableName();
+       this.useSubQuery = useSubQuery;
+       
        
        Map<String,IntStringPair> propMap = getPropertiesMap();
        if(propMap == null)
@@ -145,17 +154,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
        if(propTypeMap == null)
     	   throw new ShouldNeverHappenException("Property Type Map is required!");
        else
-    	   this.propertyTypeMap = propTypeMap;
-
-    	TABLE_PREFIX = tablePrefix;
-    	if(tablePrefix != null)
-    		this.tablePrefix = tablePrefix + ".";
-    	else
-    		this.tablePrefix = "";
-    	
-        this.tableName = getTableName();
-        this.useSubQuery = useSubQuery;
-        
+    	   this.propertyTypeMap = propTypeMap;        
 
         // generate SQL statements
         String selectAll = "SELECT ";

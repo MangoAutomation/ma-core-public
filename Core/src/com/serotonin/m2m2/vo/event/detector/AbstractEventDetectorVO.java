@@ -79,6 +79,14 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		return this.definition.getEventDetectorTypeName();
 	}
 	
+	/**
+	 * Our source type name
+	 * @return
+	 */
+	public String getDetectorSourceType(){
+		return this.definition.getSourceTypeName();
+	}
+	
     public TranslatableMessage getDescription() {
         if (!StringUtils.isBlank(name))
             return new TranslatableMessage("common.default", name);
@@ -103,6 +111,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	public void setSourceId(int id){
 		sourceId = id;
 	}
+	
 	public EventDetectorDefinition getDefinition() {
 		return definition;
 	}
@@ -119,6 +128,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("type", this.definition.getEventDetectorTypeName());
+        writer.writeEntry("sourceType", this.definition.getSourceTypeName());
         writer.writeEntry("xid", xid);
         writer.writeEntry("alias", name);
     }

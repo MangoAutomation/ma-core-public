@@ -47,6 +47,7 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -172,6 +173,8 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             if (e.getCause() instanceof ObjectStreamException) {
                 // Yep. Log the occurrence and continue.
                 LOG.error("Data point with id '" + id + "' could not be loaded. Is its module missing?", e);
+            }else{
+            	LOG.error(e.getMessage(), e);
             }
         }
         return null;
@@ -186,15 +189,15 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
     	private static final int EVENT_DETECTOR_FIRST_COLUMN = 26;
-    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN);
+    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, "ped");
     	static final String DATA_POINT_SELECT_STARTUP = //
         	    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
         	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
         	            + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
         	            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, ds.name, " //
-        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.typeName, ped.sourceId, ped.data " //
+        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.typeName, ped.data, ped.dataPointId " //
         	            + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
-        	            + "  left outer join eventDetectors ped on dp.id = ped.sourceId where dp.dataSourceId=?";
+        	            + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
     	
 		@Override
 		public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
@@ -454,7 +457,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     //
 
     public void setEventDetectors(DataPointVO dp) {
-    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(dp.getId());
+    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dp.getId());
     	List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
     	for(AbstractEventDetectorVO<?> ed : detectors){
     		AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
@@ -467,7 +470,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(dp.getId());
+        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dp.getId());
 
         // Insert or update each detector in the point.
         for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
@@ -1078,7 +1081,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 copy.getComments().clear();
 
                 // Copy the event detectors
-                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(dataPoint.getId());
+                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dataPoint.getId());
                 List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
                 
                 for (AbstractEventDetectorVO<?> ed : existing) {

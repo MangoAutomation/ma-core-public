@@ -35,13 +35,15 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 
 	private final Log LOG = LogFactory.getLog(EventDetectorRowMapper.class);
 	private int firstColumn;
+	private String tablePrefix;
 	
-	public EventDetectorRowMapper(int firstColumn){
+	public EventDetectorRowMapper(int firstColumn, String tablePrefix){
 		this.firstColumn = firstColumn;
+		this.tablePrefix = tablePrefix + ".";
 	}
 	
 	public EventDetectorRowMapper(){
-		this(1);
+		this(1, "edt");
 	}
 	/* (non-Javadoc)
 	 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
@@ -50,15 +52,14 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 	public AbstractEventDetectorVO<?> mapRow(ResultSet rs, int rowNum)
 			throws SQLException {
 		
-		EventDetectorDefinition definition = ModuleRegistry.getEventDetectorDefinition(rs.getString(this.firstColumn + 2));
+		EventDetectorDefinition definition = ModuleRegistry.getEventDetectorDefinition(rs.getString(this.firstColumn + 3));
 		if(definition == null)
-			throw new ShouldNeverHappenException("Event Detector defintion of type: " + rs.getString(this.firstColumn + 2) + " not found." );
+			throw new ShouldNeverHappenException("Event Detector defintion of type: " + rs.getString(this.firstColumn + 3) + " not found." );
 		
 		AbstractEventDetectorVO<?> vo = definition.baseCreateEventDetectorVO();
 		vo.setId(rs.getInt(this.firstColumn));
 		vo.setXid(rs.getString(this.firstColumn + 1));
 		vo.setDefinition(definition);
-		vo.setSourceId(rs.getInt(this.firstColumn + 3));
 		//Read Into Detector
 		JsonTypeReader typeReader = new JsonTypeReader(rs.getString(this.firstColumn + 4));
 		try {
@@ -70,6 +71,7 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
         catch (ClassCastException | IOException | JsonException e) {
             LOG.error(e.getMessage(), e);
         }
+		vo.setSourceId(rs.getInt(this.tablePrefix + definition.getSourceIdColumnName()));
         
 		return vo;
 	}

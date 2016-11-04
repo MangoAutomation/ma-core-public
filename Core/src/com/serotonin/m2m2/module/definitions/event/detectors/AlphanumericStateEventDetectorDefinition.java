@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
-import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -13,7 +12,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  * @author Terry Packer
  *
  */
-public class AlphanumericStateEventDetectorDefinition extends EventDetectorDefinition{
+public class AlphanumericStateEventDetectorDefinition extends PointEventDetectorDefinition{
 
 	public static final String TYPE_NAME = "ALPHANUMERIC_STATE";
 		
