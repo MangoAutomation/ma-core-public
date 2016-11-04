@@ -415,7 +415,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
             type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else if (typeName.equals(EventType.EventTypeNames.AUDIT))
-           throw new ShouldNeverHappenException("AUDIT events should not exist here.");
+           throw new ShouldNeverHappenException("AUDIT events should not exist here. Consider running the SQL: DELETE FROM events WHERE typeName='AUDIT';");
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null)
