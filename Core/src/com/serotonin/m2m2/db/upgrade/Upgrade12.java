@@ -92,12 +92,14 @@ public class Upgrade12 extends DBUpgrade {
 	
     @Override
     public void upgrade() throws Exception {
-    	// get hash algorithm using the old default
-    	String hashAlgorithm = Common.envProps.getString("security.hashAlgorithm", "SHA-1");
-
     	String[] mysqlScript = {
-	        "ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL;",
-	        "UPDATE users SET password  = CONCAT('{" + hashAlgorithm + "}', password);",
+			"SET @preparedDropTagsStatement = (SELECT IF( (SELECT COUNT(*) FROM information_schema.columns where table_name='publishers' and column_name='tags') > 0, 'alter table publishers drop column tags;', 'SELECT 1'));",
+	        "PREPARE dropIfExists FROM @preparedDropTagsStatement;",
+	        "EXECUTE dropIfExists;",
+	        "DEALLOCATE PREPARE dropIfExists;",
+			
+    		"ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL;",
+	        "UPDATE users SET password  = CONCAT('{SHA-1}', password);",
 	        
 	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);",
 
@@ -114,10 +116,12 @@ public class Upgrade12 extends DBUpgrade {
 	    	"ALTER TABLE dataPoints ADD INDEX dataSourceIdIndex (dataSourceId ASC);",
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
+	        
+	        
 	    };
 	    String[] derbyScript = {
 	        "ALTER TABLE users ALTER COLUMN password SET DATA TYPE VARCHAR(255);",
-	        "UPDATE users SET password  = '{" + hashAlgorithm + "}' || password;",
+	        "UPDATE users SET password  = '{SHA-1}' || password;",
 	    
 	    	"ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);",
 	    	
@@ -139,8 +143,10 @@ public class Upgrade12 extends DBUpgrade {
 	    };    
 	
 	    String[] h2Script = {
-	        "ALTER TABLE users ALTER COLUMN password VARCHAR(255) NOT NULL;",
-	        "UPDATE users SET password  = CONCAT('{" + hashAlgorithm + "}', password);",
+	    	"ALTER TABLE publishers DROP COLUMN IF EXISTS tags;",
+	    	
+	    	"ALTER TABLE users ALTER COLUMN password VARCHAR(255) NOT NULL;",
+	        "UPDATE users SET password  = CONCAT('{SHA-1}', password);",
 	        
 	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);",
 
@@ -157,11 +163,12 @@ public class Upgrade12 extends DBUpgrade {
 	    	"CREATE INDEX dataSourceIdIndex on dataPoints (`dataSourceId` ASC);", 
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
+	        
 	    };
 	    
 	   	String[] mssqlScript = {
 	        "ALTER TABLE users ALTER COLUMN password nvarchar(255) NOT NULL;",
-	        "UPDATE users SET password  = CONCAT('{" + hashAlgorithm + "}', password);",
+	        "UPDATE users SET password  = CONCAT('{SHA-1}', password);",
 	        
 	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType nvarchar(40);",
 
