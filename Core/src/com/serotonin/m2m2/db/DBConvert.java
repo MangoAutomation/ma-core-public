@@ -79,7 +79,6 @@ public class DBConvert {
         tableNames.add("publishers");
         tableNames.add("dataPointHierarchy");
         tableNames.add("audit");
-        tableNames.add("jsonData");
         tableNames.add(SchemaDefinition.JSON_DATA_TABLE);
         return tableNames;
     }
