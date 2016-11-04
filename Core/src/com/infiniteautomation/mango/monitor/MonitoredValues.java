@@ -29,14 +29,14 @@ public class MonitoredValues {
         return monitor;
     }
 
-    //    public void removeStatMonitor(String id) {
-    //        for (ValueMonitor<?> m : monitors) {
-    //            if (m.getId().equals(id)) {
-    //                monitors.remove(m);
-    //                break;
-    //            }
-    //        }
-    //    }
+        public void removeStatMonitor(String id) {
+            for (ValueMonitor<?> m : monitors) {
+                if (m.getId().equals(id)) {
+                    monitors.remove(m);
+                    break;
+                }
+            }
+        }
 
     public List<ValueMonitor<?>> getMonitors() {
         return monitors;
