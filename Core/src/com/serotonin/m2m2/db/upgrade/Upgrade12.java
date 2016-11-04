@@ -452,7 +452,7 @@ public class Upgrade12 extends DBUpgrade {
     			vo.getDetectorType(),
     			vo.getSourceId(),
     			jsonData,
-    		}, new int[]{Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.CLOB});
+    		}, new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.CLOB});
         }
         
         return detectors.size();
