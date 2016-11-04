@@ -183,10 +183,14 @@ public class SQLStatement implements SQLConstants{
 		if(this.databaseType != DatabaseType.MYSQL)
 			return;
 		
+		//Don't mess with more complex queries yet
+		if(where.hasRestrictions())
+			return;
+		
 		List<Index> toUse = new ArrayList<Index>();
 		Map<Index, Integer> maybeUse = new HashMap<Index, Integer>(); //Compound indexes
 
-		//TODO Check the restrictions
+		//TODO Check the restrictions (Is this possible) 
 		//TODO add to select SQL
 		//TODO add to count SQL here but not during sort
 		//TODO Clear the list and map
@@ -200,7 +204,7 @@ public class SQLStatement implements SQLConstants{
 				for(QueryAttribute column : index.getColumns()){
 					if(sort.attribute.startsWith(index.getTablePrefix())){
 						//TODO Make this much better with table prefix in sort option
-						if((sort.attribute.endsWith(column.getColumnName()) && (sort.desc == index.getType().equals("DESC")))){
+						if((sort.attribute.endsWith(column.getColumnName()))){
 							if(index.getColumns().size() == 1)
 								toUse.add(index);
 							else{
