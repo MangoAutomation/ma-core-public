@@ -180,16 +180,18 @@ public class WhereClause implements SQLConstants{
 			StringBuilder countSql, List<Object> countArgs,
 			AtomicBoolean first){
 		
-		if(!first.get() && clause.hasRestrictions()){
+		if(!first.get() && (clause.hasRestrictions() || clause.getChildren().size() > 0)){
 			selectSql.append(clause.getParent().getComparison().name());
 			countSql.append(clause.getParent().getComparison().name());
 		}
-		
-		if(clause.hasRestrictions()){
-			first.set(false);
+
+		if(clause.hasRestrictions() || clause.getChildren().size() > 0){
+			if(clause.hasRestrictions())
+				first.set(false);
 			selectSql.append(" ( ");
-			countSql.append(" ( ");				
+			countSql.append(" ( ");	
 		}
+
 
 		//Apply the restrictions
 		int restrictionCount = clause.getRestrictions().size();
@@ -202,15 +204,26 @@ public class WhereClause implements SQLConstants{
 				countSql.append(SPACE + clause.getComparison().name() + SPACE);
 			}
 		}
+		
+		//Check to see if we need to reset our first flag so we don't end up with spurious comparisons with nothing
+		boolean wasFirst = first.get();
+		if((clause.getChildren().size() > 0)&&(!clause.hasRestrictions()))
+			first.set(true);
+		
 		//Apply the children
 		for(AndOrClause child : clause.getChildren()){
 			recursivelyApply(child, selectSql, selectArgs, countSql, countArgs, first);
 		}
 		
-		if(clause.hasRestrictions()){
+		//Change back our first flag if required
+		if(wasFirst)
+			first.set(wasFirst);
+		
+		if(clause.hasRestrictions() || clause.getChildren().size() > 0){
 			selectSql.append(" ) ");
 			countSql.append(" ) ");	
 		}
+
 	}
 	
 	protected void applySort(StringBuilder builder) {

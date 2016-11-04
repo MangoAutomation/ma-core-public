@@ -984,6 +984,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         map.put("dataSourceName", new IntStringPair(Types.VARCHAR, "ds.name"));
         map.put("dataSourceTypeName", new IntStringPair(Types.VARCHAR, "ds.dataSourceType"));
         map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
+        map.put("dataSourceEditPermission", new IntStringPair(Types.VARCHAR, "ds.editPermission"));
         map.put("templateName", new IntStringPair(Types.VARCHAR, "template.name"));
         return map;
     }
