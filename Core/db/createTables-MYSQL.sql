@@ -178,7 +178,7 @@ create table pointValueAnnotations (
 CREATE TABLE eventDetectors (
   id int NOT NULL auto_increment,
   xid varchar(50) NOT NULL,
-  sourceTypeName(32) NOT NULL,
+  sourceTypeName varchar(32) NOT NULL,
   typeName varchar(32) NOT NULL,
   dataPointId int,
   data longtext NOT NULL,
