@@ -202,7 +202,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	 * @return
 	 */
 	public int getSourceId(int id) {
-		return queryForObject("SELECT sourceId from " + this.tableName + " WHERE id=?", new Object[]{id}, Integer.class, -1);
+		return queryForObject("SELECT dataPointId from " + this.tableName + " WHERE id=?", new Object[]{id}, Integer.class, -1);
 	}
 	
 	@Override

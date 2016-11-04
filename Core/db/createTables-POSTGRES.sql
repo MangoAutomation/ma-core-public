@@ -175,8 +175,9 @@ CREATE TABLE pointValueAnnotations (
 CREATE TABLE eventDetectors (
   id SERIAL,
   xid varchar(50) NOT NULL,
+  sourceTypeName varchar(32) NOT NULL,
   typeName varchar(32) NOT NULL,
-  sourceId int NOT NULL,
+  dataPointId int NOT NULL,
   data longtext NOT NULL,
   PRIMARY KEY (id)
 );

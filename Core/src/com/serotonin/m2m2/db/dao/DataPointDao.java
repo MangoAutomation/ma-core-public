@@ -440,7 +440,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         ejt.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1 in " + dataPointIdList,
                 new Object[] { EventType.EventTypeNames.DATA_POINT });
         ejt.update("delete from userComments where commentType=2 and typeKey in " + dataPointIdList);
-        ejt.update("delete from eventDetectors where sourceId in " + dataPointIdList);
+        ejt.update("delete from eventDetectors where dataPointId in " + dataPointIdList);
         ejt.update("delete from dataPoints where id in " + dataPointIdList);
 
         clearPointHierarchyCache();
