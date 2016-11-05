@@ -95,7 +95,7 @@ CREATE TABLE dataSources (
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
-
+ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
 
 --
 -- Data Points
@@ -127,10 +127,12 @@ CREATE TABLE dataPoints (
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
-CREATE INDEX nameIndex on dataPoints (`name` ASC);
-CREATE INDEX deviceNameIndex on dataPoints (`deviceName` ASC);
-CREATE INDEX pointFolderIdIndex on dataPoints (`pointFolderId` ASC);
-CREATE INDEX dataSourceIdIndex on dataPoints (`dataSourceId` ASC);
+CREATE INDEX nameIndex on dataPoints (name ASC);
+CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
+CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);
+CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
+CREATE INDEX enabledIndex on dataPoints (enabled ASC);
+CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
 
 -- Data point hierarchy
 CREATE TABLE dataPointHierarchy (
@@ -250,8 +252,10 @@ CREATE TABLE audit (
   message varchar(255),
   PRIMARY KEY (id)
 );
-CREATE INDEX audit_performance1 ON audit (`ts` ASC);
-
+CREATE INDEX tsIndex ON audit (ts ASC);
+CREATE INDEX userIdIndex ON audit (userId ASC);
+CREATE INDEX typeNameIndex ON audit (typeName ASC);
+CREATE INDEX alarmLevelIndex ON audit (alarmLevel ASC);
 --
 --
 -- Publishers
