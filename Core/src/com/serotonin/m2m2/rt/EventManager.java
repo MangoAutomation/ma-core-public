@@ -112,7 +112,7 @@ public class EventManager implements ILifecycle {
 
 		// Get id from database by inserting event immediately.
 		//Check to see if we are Not Logging these
-		if(alarmLevel != AlarmLevels.DO_NOT_LOG){
+		if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
 			eventDao.saveEvent(evt);
 		}
 
@@ -132,7 +132,7 @@ public class EventManager implements ILifecycle {
 					emailUsers.add(user.getEmail());
 			
 				//Notify All User Event Listeners of the new event
-				if(alarmLevel != AlarmLevels.DO_NOT_LOG){
+				if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
 					for(UserEventListener l : this.userEventListeners){
 						if(l.getUserId() == user.getId()){
 							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
@@ -168,7 +168,7 @@ public class EventManager implements ILifecycle {
 			}
 		}
 
-		if ((autoAckMessage != null)&&(alarmLevel != AlarmLevels.DO_NOT_LOG))
+		if ((autoAckMessage != null)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)))
 			this.acknowledgeEvent(evt, time, 0, autoAckMessage);
 		else {
 			if (evt.isRtnApplicable()) {
