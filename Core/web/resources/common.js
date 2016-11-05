@@ -117,7 +117,7 @@ mango.longPoll.pollCB = function(response) {
 			mango.soundPlayer.stop(); //Stop the sound and only play again if necessary
 			
 			//Check to see if we need to add new
-	        if(response.alarmsInformation > -1){
+	        if(response.alarmsNone > 0){
 	        	mango.soundPlayer.play("level0"); //Play Sound
 	        	if(response.alarmsNone > 1){
 		            dojo.publish("alarmTopic",[{

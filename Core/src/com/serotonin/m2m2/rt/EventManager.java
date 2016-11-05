@@ -175,14 +175,11 @@ public class EventManager implements ILifecycle {
 				if (alarmLevel > highestActiveAlarmLevel) {
 					int oldValue = highestActiveAlarmLevel;
 					highestActiveAlarmLevel = alarmLevel;
-					SystemEventType
-							.raiseEvent(
-									new SystemEventType(
-											SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED),
+					SystemEventType.raiseEvent(
+									new SystemEventType(SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED),
 									time,
 									false,
-									getAlarmLevelChangeMessage(
-											"event.alarmMaxIncreased", oldValue));
+									getAlarmLevelChangeMessage("event.alarmMaxIncreased", oldValue));
 				}
 			}
 
