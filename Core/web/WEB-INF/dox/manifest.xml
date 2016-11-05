@@ -27,7 +27,9 @@
   
   <item id="spinwavePP" key="dox.spinwavePP" filename="spinwavePP.htm"/>
 
-  <item id="eventHandlers" key="dox.eventHandlers" filename="eventHandlers.htm"/>
+  <item id="eventHandlers" key="dox.eventHandlers" filename="eventHandlers.htm">
+  	<relation id="alarms"/>
+  </item>
   
   <item id="emailSettings" key="dox.emailSettings" filename="emailSettings.htm"/>
 
@@ -82,8 +84,15 @@
   </item>
   
   <item id="dataSourceList" key="dox.dataSourceList" filename="dataSourceList.htm"/>
-
-  <item id="eventDetectors" key="dox.eventDetectors" filename="eventDetectors.htm"/>
+  
+  <item id="alarms" key="dox.alarms" filename="alarms.htm">
+  	<relation id="eventDetectors"/>
+  	<relation id="eventHandlers"/>
+  </item>
+  
+  <item id="eventDetectors" key="dox.eventDetectors" filename="eventDetectors.htm">
+  	<relation id="alarms"/>
+  </item>
   
   <item id="pointValueLogPurging" key="dox.pointValueLogPurging" filename="pointValueLogPurging.htm"/>
   
@@ -107,9 +116,13 @@
   
   <item id="languageSettings" key="dox.languageSettings" filename="languageSettings.htm"/>
   
-  <item id="systemAlarmLevels" key="dox.systemAlarmLevels" filename="systemAlarmLevels.htm"/>
+  <item id="systemAlarmLevels" key="dox.systemAlarmLevels" filename="systemAlarmLevels.htm">
+  	<relation id="alarms"/>
+  </item>
   
-  <item id="auditAlarmLevels" key="systemSettings.auditAlarmLevels" filename="auditAlarmLevels.htm"/>
+  <item id="auditAlarmLevels" key="systemSettings.auditAlarmLevels" filename="auditAlarmLevels.htm">
+  	<relation id="alarms"/>
+  </item>
   
   <item id="emport" key="dox.emport" filename="emport.htm"/>
   

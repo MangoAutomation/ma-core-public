@@ -7,6 +7,7 @@
   <tr><td class="smallTitle">
     <tag:img png="flag_white"/>
     <fmt:message key="dsEdit.events.alarmLevels"/>
+    <tag:help id="alarms"/>
   </td></tr>
 </table>
 <table cellspacing="1">
