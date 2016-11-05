@@ -32,6 +32,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
@@ -104,10 +105,11 @@ public class EventDao extends BaseDao {
         }
         args[8] = event.getAlarmLevel();
         args[9] = writeTranslatableMessage(event.getMessage());
-        if (!event.isAlarm()) {
-            event.setAcknowledgedTimestamp(event.getActiveTimestamp());
-            args[10] = event.getAcknowledgedTimestamp();
-        }
+        //For None Level Events
+//        if (event.getAlarmLevel() == AlarmLevels.DO_NOT_LOG) {
+//            event.setAcknowledgedTimestamp(event.getActiveTimestamp());
+//            args[10] = event.getAcknowledgedTimestamp();
+//        }
         event.setId(doInsert(EVENT_INSERT, args, EVENT_INSERT_TYPES));
         event.setEventComments(new LinkedList<UserComment>());
     }

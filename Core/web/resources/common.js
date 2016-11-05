@@ -117,6 +117,26 @@ mango.longPoll.pollCB = function(response) {
 			mango.soundPlayer.stop(); //Stop the sound and only play again if necessary
 			
 			//Check to see if we need to add new
+	        if(response.alarmsInformation > -1){
+	        	mango.soundPlayer.play("level0"); //Play Sound
+	        	if(response.alarmsNone > 1){
+		            dojo.publish("alarmTopic",[{
+		            	message: "<a class='ptr' href='/events.shtm?level=none'><img src='/images/flag_green.png'/> " + response.alarmsNone  + " None Events</a>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);            		
+	        	}else{
+	        		//For only 1
+		            dojo.publish("alarmTopic",[{
+		            	message: "<span><img src='/images/flag_green.png'/> " + response.noneEvent.messageString  + 
+		            	" <a class='ptr' onclick='ackEvent(" + response.noneEvent.id + ")'>" +	
+		            	"<img src='/images/tick.png' id='ackImg" + response.noneEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);
+	        	}
+	
+	        }
 	        if(response.alarmsInformation > 0){
 	        	mango.soundPlayer.play("level1"); //Play Sound
 	        	if(response.alarmsInformation > 1){
@@ -620,7 +640,7 @@ function getMangoId(node) {
 
 function setAlarmLevelImg(alarmLevel, imgNode) {
     if (alarmLevel == 0)
-        updateImg(imgNode, "/images/flag_green.png", mango.i18n["common.alarmLevel.none"], false);
+        updateImg(imgNode, "/images/flag_green.png", mango.i18n["common.alarmLevel.none"], true);
     else if (alarmLevel == 1)
         updateImg(imgNode, "/images/flag_blue.png", mango.i18n["common.alarmLevel.info"], true);
     else if (alarmLevel == 2)
@@ -631,13 +651,15 @@ function setAlarmLevelImg(alarmLevel, imgNode) {
         updateImg(imgNode, "/images/flag_red.png", mango.i18n["common.alarmLevel.lifeSafety"], true);
     else if(alarmLevel == -2)
     	updateImg(imgNode, "/images/cancel.png", mango.i18n["common.alarmLevel.doNotLog"], true);
+    else if(alarmLevel == -3)
+    	updateImg(imgNode, "/images/cross.png", mango.i18n["common.alarmLevel.ignore"], true);
     else
         updateImg(imgNode, "(unknown)", "(unknown)", true);
 }
 
 function setAlarmLevelText(alarmLevel, textNode) {
     if (alarmLevel == 0)
-        textNode.innerHTML = "";
+        textNode.innerHTML = mango.i18n["common.alarmLevel.none"];
     else if (alarmLevel == 1)
         textNode.innerHTML = mango.i18n["common.alarmLevel.info"];
     else if (alarmLevel == 2)
@@ -646,6 +668,10 @@ function setAlarmLevelText(alarmLevel, textNode) {
         textNode.innerHTML = mango.i18n["common.alarmLevel.critical"];
     else if (alarmLevel == 4)
         textNode.innerHTML = mango.i18n["common.alarmLevel.lifeSafety"];
+    else if (alarmLevel == -2)
+    	textNode.innerHTML = mango.i18n["common.alarmLevel.doNotLog"];
+    else if (alarmLevel == -3)
+    	textNode.innerHTML = mango.i18n["common.alarmLevel.ignore"];
     else
         textNode.innerHTML = "Unknown alarm level: "+ alarmLevel;
 }

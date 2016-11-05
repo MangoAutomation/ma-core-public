@@ -94,7 +94,7 @@ public class M2M2ContextListener implements ServletContextListener {
 
         String[] codes = { "common.access.read", "common.access.set", "common.alarmLevel.none",
                 "common.alarmLevel.info", "common.alarmLevel.urgent", "common.alarmLevel.critical",
-                "common.alarmLevel.lifeSafety", "common.disabled", "common.administrator", "common.user",
+                "common.alarmLevel.lifeSafety", "common.alarmLevel.doNotLog", "common.alarmLevel.ignore", "common.disabled", "common.administrator", "common.user",
                 "common.disabledToggle", "common.enabledToggle", "common.maximize", "common.minimize",
                 "common.loading", "js.help.error", "js.help.related", "js.help.lastUpdated", "common.sendTestEmail",
                 "js.email.noRecipients", "js.email.addMailingList", "js.email.addUser", "js.email.addAddress",

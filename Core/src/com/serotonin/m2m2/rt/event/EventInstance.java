@@ -172,10 +172,6 @@ public class EventInstance{
         return Functions.getFullSecondTime(acknowledgedTimestamp);
     }
 
-    public boolean isAlarm() {
-        return alarmLevel != AlarmLevels.NONE;
-    }
-
     /**
      * This method should only be used by the EventDao for creating and updating.
      * 

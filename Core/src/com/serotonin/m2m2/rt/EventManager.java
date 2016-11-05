@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -76,6 +77,9 @@ public class EventManager implements ILifecycle {
 			int alarmLevel, TranslatableMessage message,
 			Map<String, Object> context) {
 		
+		if(alarmLevel == AlarmLevels.IGNORE)
+			return;
+		
 		// Check if there is an event for this type already active.
 		EventInstance dup = get(type);
 		if (dup != null) {
@@ -116,20 +120,19 @@ public class EventManager implements ILifecycle {
 		List<Integer> eventUserIds = new ArrayList<Integer>();
 		Set<String> emailUsers = new HashSet<String>();
 
-		if(alarmLevel != AlarmLevels.DO_NOT_LOG){
-			for (User user : userDao.getActiveUsers()) {
-				// Do not create an event for this user if the event type says the
-				// user should be skipped.
-				if (type.excludeUser(user))
-					continue;
-	
-				if (Permissions.hasEventTypePermission(user, type)) {
-					eventUserIds.add(user.getId());
-					if (evt.isAlarm() && user.getReceiveAlarmEmails() > 0
-							&& alarmLevel >= user.getReceiveAlarmEmails())
-						emailUsers.add(user.getEmail());
-				
-					//Notify All User Event Listeners of the new event if it is not DO NOT LOG
+		for (User user : userDao.getActiveUsers()) {
+			// Do not create an event for this user if the event type says the
+			// user should be skipped.
+			if (type.excludeUser(user))
+				continue;
+
+			if (Permissions.hasEventTypePermission(user, type)) {
+				eventUserIds.add(user.getId());
+				if (user.getReceiveAlarmEmails() > 0 && alarmLevel >= user.getReceiveAlarmEmails() && !StringUtils.isEmpty(user.getEmail()))
+					emailUsers.add(user.getEmail());
+			
+				//Notify All User Event Listeners of the new event
+				if(alarmLevel != AlarmLevels.DO_NOT_LOG){
 					for(UserEventListener l : this.userEventListeners){
 						if(l.getUserId() == user.getId()){
 							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
@@ -137,14 +140,15 @@ public class EventManager implements ILifecycle {
 					}
 					//Add to the UserEventCache if the user has recently accessed their events
 					this.userEventCache.addEvent(user.getId(), evt);
-
 				}
+
 			}
 		}
 
+		//No Audit or Do Not Log events are User Events
 		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
-			eventDao.insertUserEvents(evt.getId(), eventUserIds, evt.isAlarm());
-			if (autoAckMessage == null && evt.isAlarm())
+			eventDao.insertUserEvents(evt.getId(), eventUserIds, true);
+			if (autoAckMessage == null)
 				lastAlarmTimestamp = System.currentTimeMillis();
 		}
 
@@ -257,18 +261,19 @@ public class EventManager implements ILifecycle {
 				// user should be skipped.
 				if (type.excludeUser(user))
 					continue;
-	
-				if (Permissions.hasEventTypePermission(user, type)) {
-					//Notify All User Event Listeners of the new event
-					for(UserEventListener l : this.userEventListeners){
-						if((l.getUserId() == user.getId() && evt.isAlarm())){
-							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
-	
+				
+				if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
+					if (Permissions.hasEventTypePermission(user, type)) {
+						//Notify All User Event Listeners of the new event
+						for(UserEventListener l : this.userEventListeners){
+							if((l.getUserId() == user.getId())){
+								Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
+		
+							}
 						}
-					}
-					//Only alarms make it into the cache
-					if(evt.isAlarm())
+						//Only alarms make it into the cache
 						this.userEventCache.updateEvent(user.getId(), evt);
+					}
 				}
 				
 			}
