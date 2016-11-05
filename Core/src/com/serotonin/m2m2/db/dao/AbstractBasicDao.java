@@ -73,6 +73,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	// List of our Indexes
 	protected final List<Index> indexes;
+	//Can we try to force indexes?
+	protected boolean forceUseIndex;
 
 	/*
 	 * SQL templates
@@ -138,6 +140,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		this.handler = handler;
 		this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
 		this.databaseType = Common.databaseProxy.getType();
+		this.forceUseIndex = Common.envProps.getBoolean("db.forceUseIndex", false);
 		TABLE_PREFIX = tablePrefix;
 		if (tablePrefix != null)
 			this.tablePrefix = tablePrefix + ".";
@@ -627,10 +630,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		SQLStatement statement;
 		if (useSubQuery) {
 			statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-					applyLimitToSelectSql, null, this.indexes, this.databaseType);
+					applyLimitToSelectSql, this.forceUseIndex, null, this.indexes, this.databaseType);
 		} else {
 			statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-					applyLimitToSelectSql, this.indexes, this.databaseType);
+					applyLimitToSelectSql, this.forceUseIndex, this.indexes, this.databaseType);
 		}
 		if (root != null)
 			root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
@@ -648,7 +651,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public BaseSqlQuery<T> createQuery(ASTNode root, boolean applyLimitToSelectSql) {
 
 		SQLStatement statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-				applyLimitToSelectSql, this.indexes, this.databaseType);
+				applyLimitToSelectSql, this.forceUseIndex, this.indexes, this.databaseType);
 		if (root != null)
 			root.accept(new RQLToSQLSelect<T>(this), statement);
 

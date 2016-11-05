@@ -22,6 +22,8 @@ public class SQLStatement implements SQLConstants{
 	protected List<JoinClause> baseJoins;
 	protected String tableName;
 	protected String tablePrefix;
+	//Can we force use indexes if we think its a good idea?
+	protected boolean allowIndexForce;
 	protected List<Index> indexes;
 	protected DatabaseType databaseType;
 
@@ -34,13 +36,14 @@ public class SQLStatement implements SQLConstants{
 	protected List<Object> countArgs;
 	
 	public SQLStatement(String baseSelect, String baseCountStatement, List<JoinClause> joins,
-			String tableName, String tablePrefix, boolean applyLimitToSelectSql, List<Index> indexes,
+			String tableName, String tablePrefix, boolean applyLimitToSelectSql, boolean allowIndexForce, List<Index> indexes,
 			DatabaseType type){
 		this.baseSelect = baseSelect;
 		this.baseCount = baseCountStatement;
 		this.baseJoins = joins;
 		this.tableName = tableName;
 		this.tablePrefix = tablePrefix;
+		this.allowIndexForce = allowIndexForce;
 		this.indexes = indexes;
 		this.databaseType = type;
 		this.baseWhere = new WhereClause(applyLimitToSelectSql);
@@ -180,7 +183,8 @@ public class SQLStatement implements SQLConstants{
 
 	protected void addForceIndexSql(WhereClause where, List<Index> indexes, String tablePrefix, StringBuilder selectSql,
 			StringBuilder countSql) {
-		if(this.databaseType != DatabaseType.MYSQL)
+		//Should we even try this?
+		if(!this.allowIndexForce || this.databaseType != DatabaseType.MYSQL)
 			return;
 		
 		//Don't mess with more complex queries yet

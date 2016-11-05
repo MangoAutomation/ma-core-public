@@ -34,9 +34,9 @@ public class SQLSubQuery extends SQLStatement{
 	public SQLSubQuery(String baseSelect, String baseCountStatement, List<JoinClause> baseJoins,
 			String tableName,
 			String tablePrefix,
-			boolean applyLimitToSelectSql, List<JoinClause> subSelectJoins,
+			boolean applyLimitToSelectSql, boolean forceUseIndex, List<JoinClause> subSelectJoins,
 			List<Index> indexes, DatabaseType type) {
-		super(baseSelect, baseCountStatement, baseJoins, tableName, tablePrefix, applyLimitToSelectSql, indexes, type);
+		super(baseSelect, baseCountStatement, baseJoins, tableName, tablePrefix, applyLimitToSelectSql, forceUseIndex, indexes, type);
 		
 		this.subSelectJoins = subSelectJoins;
 		this.subSelectWhere = new WhereClause(applyLimitToSelectSql);

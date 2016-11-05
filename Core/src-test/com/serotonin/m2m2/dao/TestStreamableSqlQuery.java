@@ -133,7 +133,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 	
 	class StreamTestDao extends AbstractDao<StreamTestData> {
 
-		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false, new ArrayList<Index>(), DatabaseType.MYSQL);
+		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false, false, new ArrayList<Index>(), DatabaseType.MYSQL);
 		
 		protected StreamTestDao(WebSocketDefinition def, String typeName) {
 			super(def, typeName);
