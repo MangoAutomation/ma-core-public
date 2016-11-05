@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,8 +74,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	// List of our Indexes
 	protected final List<Index> indexes;
-	//Can we try to force indexes?
-	protected boolean forceUseIndex;
+
 
 	/*
 	 * SQL templates
@@ -140,7 +140,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		this.handler = handler;
 		this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
 		this.databaseType = Common.databaseProxy.getType();
-		this.forceUseIndex = Common.envProps.getBoolean("db.forceUseIndex", false);
 		TABLE_PREFIX = tablePrefix;
 		if (tablePrefix != null)
 			this.tablePrefix = tablePrefix + ".";
@@ -630,16 +629,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		SQLStatement statement;
 		if (useSubQuery) {
 			statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-					applyLimitToSelectSql, this.forceUseIndex, null, this.indexes, this.databaseType);
+					applyLimitToSelectSql, Common.envProps.getBoolean("db.forceUseIndex", false), null, this.indexes, this.databaseType);
 		} else {
 			statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-					applyLimitToSelectSql, this.forceUseIndex, this.indexes, this.databaseType);
+					applyLimitToSelectSql, Common.envProps.getBoolean("db.forceUseIndex", false), this.indexes, this.databaseType);
 		}
 		if (root != null)
 			root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
 
 		statement.build();
-		return new StreamableSqlQuery<T>(this, statement, selectCallback, countCallback);
+		return new StreamableSqlQuery<T>(this, Common.envProps.getBoolean("db.stream", false), statement, selectCallback, countCallback);
 	}
 
 	/**
@@ -651,7 +650,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public BaseSqlQuery<T> createQuery(ASTNode root, boolean applyLimitToSelectSql) {
 
 		SQLStatement statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-				applyLimitToSelectSql, this.forceUseIndex, this.indexes, this.databaseType);
+				applyLimitToSelectSql, Common.envProps.getBoolean("db.forceUseIndex", false), this.indexes, this.databaseType);
 		if (root != null)
 			root.accept(new RQLToSQLSelect<T>(this), statement);
 
@@ -705,9 +704,21 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 * @return
 	 * @throws SQLException
 	 */
-	public PreparedStatement createPreparedStatement(String sql, List<Object> args) throws SQLException {
-		PreparedStatement stmt = this.dataSource.getConnection().prepareStatement(sql);
+	public PreparedStatement createPreparedStatement(String sql, List<Object> args, boolean stream) throws SQLException {
+		
+		PreparedStatement stmt;
+		if(stream){
+			stmt = this.dataSource.getConnection().prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			stmt.setFetchSize(Integer.MIN_VALUE);
+		}else{
+			stmt = this.dataSource.getConnection().prepareStatement(sql);
+			int fetchSize = Common.envProps.getInt("db.fetchSize", -1);
+			if(fetchSize > 0)
+				stmt.setFetchSize(fetchSize);
+		}
 
+
+		
 		int index = 1;
 		for (Object o : args) {
 			stmt.setObject(index, o);

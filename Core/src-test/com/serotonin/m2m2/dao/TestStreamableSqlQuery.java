@@ -66,7 +66,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 			fail("Failed to create test database.");
 		}
 		StreamTestDao std = new StreamTestDao(null, "streamTest");
-		StreamableSqlQuery<StreamTestData> ssq = new StreamableSqlQuery<StreamTestData>(std, std.TEST_SELECT_ALL,
+		StreamableSqlQuery<StreamTestData> ssq = new StreamableSqlQuery<StreamTestData>(std, false, std.TEST_SELECT_ALL,
 				new StreamableRowCallback<StreamTestData>() {
 					boolean logged = false;
 					@Override

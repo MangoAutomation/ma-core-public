@@ -26,40 +26,48 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	
 	private static final Log LOG = LogFactory.getLog(StreamableSqlQuery.class);
 	
+	//Stream the results (MySQL)
+	protected boolean stream;
 	protected StreamableRowCallback<T> selectCallback;
 	protected StreamableRowCallback<Long> countCallback;
+	
 	
 	/**
 	 * 
 	 * @param dao
+	 * @param stream - Stream results (MySQL)
 	 * @param statement
 	 * @param selectCallback
 	 * @param countCallback
-	 * @param applyLimitToSelectSql - Should the limit/offset be applied or left off
 	 */
-	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
-			SQLStatement statement, StreamableRowCallback<T> selectCallback, 
+	public StreamableSqlQuery(AbstractBasicDao<T> dao,
+			boolean stream,
+			SQLStatement statement,
+			StreamableRowCallback<T> selectCallback, 
 			StreamableRowCallback<Long> countCallback) {
 		super(dao, statement);
-		
+		this.stream = stream;
 		this.selectCallback = selectCallback;
 		this.countCallback = countCallback;
 	}
 	
 	
 	/**
+	 * 
 	 * @param dao
+	 * @param stream - Stream the results (MySQL)
 	 * @param selectSql
 	 * @param selectCallback
+	 * @param selectArgs
 	 * @param countSql
 	 * @param countCallback
-	 * @param selectArgs
+	 * @param countArgs
 	 */
-	public StreamableSqlQuery(AbstractBasicDao<T> dao, 
+	public StreamableSqlQuery(AbstractBasicDao<T> dao, boolean stream,
 			String selectSql, StreamableRowCallback<T> selectCallback, List<Object> selectArgs,
 			String countSql, StreamableRowCallback<Long> countCallback, List<Object> countArgs) {
 		super(dao, selectSql, selectArgs, countSql, countArgs);
-		
+		this.stream = stream;
 		this.selectCallback = selectCallback;
 		this.countCallback = countCallback;
 	}
@@ -72,7 +80,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
         if(this.useMetrics)
         	 stopWatch = new Log4JStopWatch();
         try{
-	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs);
+	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs, stream);
 	        ResultSet rs = statement.executeQuery();
 	        RowMapper<T> mapper = this.dao.getRowMapper();
 	        int index = 0;
@@ -105,7 +113,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
         if(this.useMetrics)
         	 stopWatch = new Log4JStopWatch();
         try{
-	        PreparedStatement statement = this.dao.createPreparedStatement(countSql, countArgs);
+	        PreparedStatement statement = this.dao.createPreparedStatement(countSql, countArgs, stream);
 	        try{
 		        ResultSet rs = statement.executeQuery();
 		        RowMapper<Long> mapper = SingleColumnRowMapper.newInstance(Long.class);
