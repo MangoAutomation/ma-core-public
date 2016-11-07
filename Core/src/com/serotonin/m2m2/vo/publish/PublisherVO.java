@@ -109,7 +109,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     }
 
     protected List<T> points = new ArrayList<>();
-    @JsonProperty
     private int publishType = PublishType.ALL;
     @JsonProperty
     private int cacheWarningSize = 100;
@@ -336,6 +335,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         writer.writeEntry("type", definition.getPublisherTypeName());
         writer.writeEntry("points", points);
         writer.writeEntry("snapshotSendPeriodType", Common.TIME_PERIOD_CODES.getCode(snapshotSendPeriodType));
+        writer.writeEntry("publishType", PUBLISH_TYPE_CODES.getCode(publishType));
         ExportCodes eventCodes = getEventCodes();
         if (eventCodes != null && eventCodes.size() > 0) {
             Map<String, String> alarmCodeLevels = new HashMap<>();
@@ -358,7 +358,14 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         enabled = jsonObject.getBoolean("enabled");
         
         //Legacy conversion for publishType
-        if(jsonObject.containsKey("changesOnly")){
+        if(jsonObject.containsKey("publishType")) {
+        	String publishTypeCode = jsonObject.getString("publishType");
+        	int publishTypeId = PUBLISH_TYPE_CODES.getId(publishTypeCode);
+        	if(publishTypeId == -1)
+        		throw new TranslatableJsonException("emport.error.invalid", "publishType", 
+        			publishTypeCode, PUBLISH_TYPE_CODES.getCodeList());
+        	publishType = publishTypeId;
+        }else if(jsonObject.containsKey("changesOnly")){
         	boolean changesOnly = jsonObject.getBoolean("changesOnly");
         	if(changesOnly){
         		this.publishType = PublishType.CHANGES_ONLY;
