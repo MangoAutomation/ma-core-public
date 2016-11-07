@@ -36,6 +36,7 @@
 * Adding Publisher Audit Events
 * Bugfix to allow migration of JSON data SQL table
 * Reduced logging for aborted polls on polling data sources in systems with large amounts of alarms
+* Modified alarm levels, DO_NOT_LOG is now handled and can be emailed, while IGNORE now disregards the event entirely
 
 *Version 2.7.12*
 * ETag Support for caching pages
