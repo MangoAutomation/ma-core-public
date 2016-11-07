@@ -128,7 +128,7 @@ public class EventManager implements ILifecycle {
 
 			if (Permissions.hasEventTypePermission(user, type)) {
 				eventUserIds.add(user.getId());
-				if (user.getReceiveAlarmEmails() > -3 && alarmLevel >= user.getReceiveAlarmEmails() && !StringUtils.isEmpty(user.getEmail()))
+				if (user.getReceiveAlarmEmails() > AlarmLevels.IGNORE && alarmLevel >= user.getReceiveAlarmEmails() && !StringUtils.isEmpty(user.getEmail()))
 					emailUsers.add(user.getEmail());
 			
 				//Notify All User Event Listeners of the new event
