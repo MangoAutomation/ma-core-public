@@ -228,8 +228,9 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 
     public void deleteEventHandler(final int handlerId) {
     	AbstractEventHandlerVO<?> handler = getEventHandler(handlerId);
-        ejt.update("delete from eventHandlers where id=?", new Object[] { handlerId });
+    	//We must raise the deleted event first since generating the Audit JSON makes a call to the DB to get a column we are about to delete
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
+        ejt.update("delete from eventHandlers where id=?", new Object[] { handlerId });
     }
 	
 }
