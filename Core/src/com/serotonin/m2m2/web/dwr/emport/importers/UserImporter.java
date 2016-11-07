@@ -7,6 +7,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -32,8 +33,12 @@ public class UserImporter extends Importer {
                 ctx.getReader().readInto(user, json);
                 //Check if this is a legacy JSON user password
                 String password = user.getPassword();
-                if(!password.startsWith("{BCRYPT}") && !password.startsWith("{SHA1}") && !password.startsWith("{NONE}"))
+                if(!password.startsWith("{BCRYPT}") && !password.startsWith("{SHA1}") && !password.startsWith("{NONE}")) {
                 	user.setPassword("{SHA1}"+password); //Add the encryption algorithm
+                	//Check if they have receiveEvents==NONE, as IGNORE is the new NONE
+                	if(user.getReceiveAlarmEmails() == AlarmLevels.NONE)
+                		user.setReceiveAlarmEmails(AlarmLevels.IGNORE);
+                }
 
                 // Now validate it. Use a new response object so we can distinguish errors in this user from other
                 // errors.
