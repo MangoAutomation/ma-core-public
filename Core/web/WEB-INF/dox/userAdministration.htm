@@ -36,7 +36,11 @@
   is raised (i.e. no escalation or inactive notifications). Note also that if the user is already specified on an email 
   event handler, they will not be sent multiple emails.
 </p>
-
+<p>
+  Users may receive emails from their own audit trail by checking the <b>Receive own audit events</b>. Note that only
+  audit events at or above the user's <b>Send alarm emails</b> setting will be emailed. Audit events would be emailed 
+  to all other users who have elected to receive event emails at or below the level of the event.
+</p>
 <h1>User privileges</h1>
 <p>The <b>Administrator</b> checkbox determines if this user is an administrator.</p>
 <p>
