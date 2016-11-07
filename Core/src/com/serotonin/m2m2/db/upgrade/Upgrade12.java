@@ -203,7 +203,7 @@ public class Upgrade12 extends DBUpgrade {
 	        "CREATE INDEX alarmLevelIndex ON audit (alarmLevel ASC);",
 	        
             "CREATE TABLE eventDetectors (id int NOT NULL identity,xid nvarchar(50) NOT NULL,sourceTypeName nvarchar(32) NOT NULL,typeName nvarchar(32) NOT NULL,dataPointId int,data ntext NOT NULL, PRIMARY KEY (id));",
-            "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);",
+            "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, dataPointId);",
             "ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);",
 	        
             "CREATE INDEX nameIndex on dataPoints (name ASC);",
