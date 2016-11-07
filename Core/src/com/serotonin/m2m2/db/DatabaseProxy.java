@@ -134,7 +134,7 @@ abstract public class DatabaseProxy {
                         throw new ShouldNeverHappenException(e);
                     }
 
-                    sourceProxy.terminate();
+                    sourceProxy.terminate(false);
                 }
                 else {
                      SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
@@ -222,10 +222,10 @@ abstract public class DatabaseProxy {
 
     abstract public DatabaseType getType();
 
-    public void terminate() {
+    public void terminate(boolean terminateNoSql) {
         terminateImpl();
         // Check if we are using NoSQL
-        if (NoSQLProxyFactory.instance.getProxy() != null) {
+        if ((terminateNoSql)&&(NoSQLProxyFactory.instance.getProxy() != null)) {
             noSQLProxy = NoSQLProxyFactory.instance.getProxy();
             noSQLProxy.shutdown();
         }
