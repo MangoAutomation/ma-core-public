@@ -113,7 +113,7 @@ public class Upgrade12 extends DBUpgrade {
             "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, dataPointId);",
             "ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);",
             
-            "CREATE INDEX nameIndex on dataPoints (name ASC);",
+            "CREATE INDEX pointNameIndex on dataPoints (name ASC);",
             "CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
             "CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);",
             "CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);",
@@ -145,7 +145,7 @@ public class Upgrade12 extends DBUpgrade {
             "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, dataPointId);",
 	    	"ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);",
 
-            "CREATE INDEX nameIndex on dataPoints (name ASC);",
+            "CREATE INDEX pointNameIndex on dataPoints (name ASC);",
             "CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
             "CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);",
             "CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);",
@@ -177,7 +177,7 @@ public class Upgrade12 extends DBUpgrade {
             "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, dataPointId);",
             "ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);",
             
-            "CREATE INDEX nameIndex on dataPoints (name ASC);",
+            "CREATE INDEX pointNameIndex on dataPoints (name ASC);",
             "CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
             "CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);",
             "CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);",
@@ -207,7 +207,7 @@ public class Upgrade12 extends DBUpgrade {
             "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, dataPointId);",
             "ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);",
 	        
-            "CREATE INDEX nameIndex on dataPoints (name ASC);",
+            "CREATE INDEX pointNameIndex on dataPoints (name ASC);",
             "CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);",
             "CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);",
             "CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);",
