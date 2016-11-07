@@ -305,6 +305,19 @@ public class EventDao extends BaseDao {
         }
     }
 
+    /**
+     * Get an event type from a result set
+     * 
+     * eventTypeName = offset
+     * eventSubtypeName = offset + 1
+     * eventTypeRef1 = offset + 2
+     * eventTypeRef2 = offset + 3
+     * 
+     * @param rs
+     * @param offset
+     * @return
+     * @throws SQLException
+     */
     public static EventType createEventType(ResultSet rs, int offset) throws SQLException {
         String typeName = rs.getString(offset);
         String subtypeName = rs.getString(offset + 1);

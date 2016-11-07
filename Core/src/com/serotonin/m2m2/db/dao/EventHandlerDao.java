@@ -123,7 +123,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
                 });
     }
 
-    private static final String EVENT_HANDLER_SELECT = "select id, xid, alias, eventHandlerType, data from eventHandlers ";
+    private static final String EVENT_HANDLER_SELECT = "select id, xid, alias, eventHandlerType, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2, data from eventHandlers ";
 
     public List<AbstractEventHandlerVO<?>> getEventHandlers(EventType type) {
         return getEventHandlers(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
@@ -173,10 +173,11 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     class EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO<?>> {
         @Override
         public AbstractEventHandlerVO<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-        	AbstractEventHandlerVO<?> h = (AbstractEventHandlerVO<?>) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+        	AbstractEventHandlerVO<?> h = (AbstractEventHandlerVO<?>) SerializationHelper.readObjectInContext(rs.getBinaryStream(9));
             h.setId(rs.getInt(1));
             h.setXid(rs.getString(2));
             h.setAlias(rs.getString(3));
+            h.setEventType(EventDao.createEventType(rs, 5));
             h.setDefinition(ModuleRegistry.getEventHandlerDefinition(rs.getString(4)));
             return h;
         }
@@ -228,9 +229,8 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 
     public void deleteEventHandler(final int handlerId) {
     	AbstractEventHandlerVO<?> handler = getEventHandler(handlerId);
-    	//We must raise the deleted event first since generating the Audit JSON makes a call to the DB to get a column we are about to delete
-        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
         ejt.update("delete from eventHandlers where id=?", new Object[] { handlerId });
+        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
     }
 	
 }

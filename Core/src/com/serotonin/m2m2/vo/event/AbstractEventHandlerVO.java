@@ -20,6 +20,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.validation.StringValidation;
@@ -33,6 +34,9 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>
     private String alias;
     @JsonProperty
     private boolean disabled;
+    
+    //
+    private EventType eventType; 
     
     private EventHandlerDefinition definition;
 
@@ -73,8 +77,16 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
+    
+	public EventType getEventType() {
+		return eventType;
+	}
 
-    public EventHandlerDefinition getDefinition() {
+	public void setEventType(EventType eventType) {
+		this.eventType = eventType;
+	}
+
+	public EventHandlerDefinition getDefinition() {
 		return definition;
 	}
 
@@ -128,7 +140,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	writer.writeEntry("eventType", EventHandlerDao.instance.getEventHandlerType(id));
+    	writer.writeEntry("eventType", eventType);
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
     }

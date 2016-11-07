@@ -176,9 +176,15 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.AbstractEventHandlerVO">
     	<param name="exclude" value="definition,model"/>
     </convert>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.EmailEventHandlerVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.ProcessEventHandlerVO"/>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.event.SetPointEventHandlerVO"/>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.EmailEventHandlerVO">
+    	<param name="exclude" value="definition"/>
+    </convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.ProcessEventHandlerVO">
+    	<param name="exclude" value="definition"/>
+    </convert>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.event.SetPointEventHandlerVO">
+    	<param name="exclude" value="definition"/>
+    </convert>
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.EventTypeVO"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.PointEventDetectorVO"/>
     <convert converter="bean" match="com.serotonin.m2m2.vo.hierarchy.PointFolder"/>
