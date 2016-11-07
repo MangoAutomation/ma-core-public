@@ -112,7 +112,7 @@ public class EventManager implements ILifecycle {
 
 		// Get id from database by inserting event immediately.
 		//Check to see if we are Not Logging these
-		if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
+		if(alarmLevel != AlarmLevels.DO_NOT_LOG){
 			eventDao.saveEvent(evt);
 		}
 
