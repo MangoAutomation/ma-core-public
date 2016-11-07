@@ -57,7 +57,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private String homeUrl;
     private long lastLogin;
     //Receive emails for alarm levels >= this
-    private int receiveAlarmEmails;
+    private int receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
     private boolean receiveOwnAuditEvents;
     @JsonProperty

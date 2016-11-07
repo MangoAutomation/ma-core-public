@@ -124,9 +124,9 @@ public class Upgrade12 extends DBUpgrade {
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
-	        
-	        
+	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };
+    	
 	    String[] derbyScript = {
 	        "ALTER TABLE users ALTER COLUMN password SET DATA TYPE VARCHAR(255);",
 	        "UPDATE users SET password  = '{SHA-1}' || password;",
@@ -156,6 +156,7 @@ public class Upgrade12 extends DBUpgrade {
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
+	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };    
 	
 	    String[] h2Script = {
@@ -187,7 +188,7 @@ public class Upgrade12 extends DBUpgrade {
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
-	        
+	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };
 	    
 	   	String[] mssqlScript = {
@@ -216,7 +217,8 @@ public class Upgrade12 extends DBUpgrade {
 	    	"ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);",
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
-	        "UPDATE jsonData SET publicData='N';",    
+	        "UPDATE jsonData SET publicData='N';",
+	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };
     
         // Run the script.
