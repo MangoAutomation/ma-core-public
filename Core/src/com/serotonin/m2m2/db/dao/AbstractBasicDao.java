@@ -708,8 +708,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		
 		PreparedStatement stmt;
 		if(stream){
-			stmt = this.dataSource.getConnection().prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			stmt.setFetchSize(Integer.MIN_VALUE);
+			if(this.databaseType == DatabaseType.MYSQL){
+				stmt = this.dataSource.getConnection().prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				stmt.setFetchSize(Integer.MIN_VALUE);
+			}else{
+				//TODO Choose settings for other types to stream
+				stmt = this.dataSource.getConnection().prepareStatement(sql);
+			}
 		}else{
 			stmt = this.dataSource.getConnection().prepareStatement(sql);
 			int fetchSize = Common.envProps.getInt("db.fetchSize", -1);
