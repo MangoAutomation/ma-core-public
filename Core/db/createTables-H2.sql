@@ -95,7 +95,7 @@ CREATE TABLE dataSources (
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
-ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
+CREATE INDEX nameIndex ON dataSources (name ASC);
 
 --
 -- Data Points
