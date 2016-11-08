@@ -190,7 +190,7 @@ ToolbarUtilities.prototype.setLevelProps = function(level) {
         return;
     case 'NONE':
         level.translatedName = this.noneLabel;
-        level.flagColour = 'green';
+        level.flagColour = 'grey';
         level.urlParameter = 'none';
         return;
     }
