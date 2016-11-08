@@ -34,7 +34,7 @@ public interface SQLConstants {
 	public static final String CONTAINS_SQL = " CONTAINS ?";
 	
 	public static final String QMARK = "?";
-	public static final String IS_SQL = "IS ?";
+	public static final String IS_SQL = " IS ?";
 	public static final String IS_NOT_SQL = " IS NOT ?";
 	public static final String QMARK_COMMA = "?,";
 	public static final String OPEN_PARENTH = "(";
