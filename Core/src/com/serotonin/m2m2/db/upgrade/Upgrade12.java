@@ -101,7 +101,7 @@ public class Upgrade12 extends DBUpgrade {
 	        "DEALLOCATE PREPARE dropIfExists;",
 			
     		"ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL;",
-	        "UPDATE users SET password  = CONCAT('"+hashAlgorithm+"', password);",
+	        "UPDATE users SET password  = CONCAT('{"+hashAlgorithm+"}', password);",
 	        
 	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);",
 
@@ -131,7 +131,7 @@ public class Upgrade12 extends DBUpgrade {
     	
 	    String[] derbyScript = {
 	        "ALTER TABLE users ALTER COLUMN password SET DATA TYPE VARCHAR(255);",
-	        "UPDATE users SET password  = '"+hashAlgorithm+"' || password;",
+	        "UPDATE users SET password  = '{"+hashAlgorithm+"}' || password;",
 	    
 	    	"ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);",
 
@@ -165,7 +165,7 @@ public class Upgrade12 extends DBUpgrade {
 	    	"ALTER TABLE publishers DROP COLUMN IF EXISTS tags;",
 	    	
 	    	"ALTER TABLE users ALTER COLUMN password VARCHAR(255) NOT NULL;",
-	        "UPDATE users SET password  = CONCAT('"+hashAlgorithm+"', password);",
+	        "UPDATE users SET password  = CONCAT('{"+hashAlgorithm+"}', password);",
 	        
 	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType VARCHAR(40);",
 
@@ -195,7 +195,7 @@ public class Upgrade12 extends DBUpgrade {
 	    
 	   	String[] mssqlScript = {
 	        "ALTER TABLE users ALTER COLUMN password nvarchar(255) NOT NULL;",
-	        "UPDATE users SET password  = CONCAT('"+hashAlgorithm+"', password);",
+	        "UPDATE users SET password  = CONCAT('{"+hashAlgorithm+"}', password);",
 	        
 	        "ALTER TABLE eventHandlers ADD COLUMN eventHandlerType nvarchar(40);",
 
