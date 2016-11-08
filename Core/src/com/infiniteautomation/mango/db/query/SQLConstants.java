@@ -55,8 +55,8 @@ public interface SQLConstants {
 	public static final String H2_LIKE = " LIKE ? ";
 	public static final String DERBY_CHAR = "(CHAR(";
 	public static final String DERBY_NOT_LIKE = ") NOT LIKE ? ) ";
-	public static final String H2_LOWER = "LOWER(";
-	public static final String H2_NOT_LIKE = ") NOT LIKE ? ";
+	//public static final String H2_LOWER = "LOWER(";
+	public static final String H2_NOT_LIKE = " NOT LIKE ? ";
 	
 	public static final int EQUAL_TO = 1;
 	public static final int NOT_EQUAL_TO = 2;

@@ -27,12 +27,12 @@ public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQue
 			StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
 
-		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
-			//Catchall for null comparisons
-			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
-			selectArgs.add(null);
-			return;
-		}
+//		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
+//			//Catchall for null comparisons
+//			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
+//			selectArgs.add(null);
+//			return;
+//		}
 		
 		switch(comparison){
 		case CONTAINS:
@@ -49,6 +49,12 @@ public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQue
 			break;
 		case IN:
 			appendIn(column.getName(), columnArgs, selectSql, countSql);
+			break;
+		case IS:
+			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
+			break;
+		case IS_NOT:
+			appendSQL(column.getName(), IS_NOT_SQL, selectSql, countSql);
 			break;
 		case LESS_THAN:
 			appendSQL(column.getName(), LESS_THAN_SQL, selectSql, countSql);

@@ -325,16 +325,22 @@ DataPointPermissionsView.prototype.filterChanged = function(event){
 				//Only use enabled filter properties
 				if($('#cb-' + prop).is(':checked') === true){
 					if(rowFilter === null){
-						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
-							rowFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
-						else
+						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or')){
+							if(filter[prop].startsWith('^'))
+								rowFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+							else
+								rowFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
+						}else
 							rowFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
 					}else{
 						//Create the filter
 						var newFilter;
-						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or'))
-							newFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
-						else
+						if((filter.enabled === 'not-and')||(filter.enabled === 'not-or')){
+							if(filter[prop].startsWith('^'))
+								newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
+							else
+								rowFilter = new my.pointsStore.Filter().match(prop, '^' + filter[prop]);
+						}else
 							newFilter = new my.pointsStore.Filter().match(prop, filter[prop]);
 						
 						if((filter.enabled === 'or')||(filter.enabled === 'not-or'))

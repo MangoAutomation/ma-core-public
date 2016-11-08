@@ -26,13 +26,6 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 			StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
 		
-		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
-			//Catchall for null comparisons
-			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
-			selectArgs.add(null);
-			return;
-		}
-		
 		switch(comparison){
 		case CONTAINS:
 			appendSQL(column.getName(), GREATER_THAN_SQL, selectSql, countSql);
@@ -97,11 +90,9 @@ public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
             case POSTGRES:
             case MSSQL:
             case H2:
-	            selectSql.append(H2_LOWER);
 	           	selectSql.append(column.getName());
 	           	selectSql.append(H2_NOT_LIKE);
-	
-	           	countSql.append(H2_LOWER);
+
 	           	countSql.append(column.getName());
 	           	countSql.append(H2_NOT_LIKE);
             break;

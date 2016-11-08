@@ -11,7 +11,7 @@ filters to find desired points.
 <h2>Creating a Filter</h2>
 <p>
 Filters are applied if the <b>Filter State</b> column is set to anything besides <i>Disabled</i>.  Multiple filters can be applied at the same time. Items in the results 
-will match all enabled filters. Filter allow pattern matching of strings and can use either % or * as wildcards, all other characters are treated as is.
+will match all enabled filters. Filter allow pattern matching of strings and can use either % or * as wildcards, as well as a prefix of '^' for NOT, all other characters are treated as is.
 Using the value <i>null</i> will match null values, but using the value <i>*null*</i> will match a string that contains the text 'null'.
 </p>
 <p>
@@ -32,6 +32,8 @@ Disabling the parameter excludes it from the query entirely. To edit the value o
 for the corresponding filter and start typing.  Hitting <i>enter</i> will close the editor and update the filter results.  
 Filter cells <b>cannot</b> be edited if their column is disabled.
 </p>
+
+<p>Note: When applying a <b>Not And</b> or <b>Not Or</b> condition be careful when using the '^' prefix for NOT as it will be ignored and not result in a double <b>not</b> condition.</p>
 
 <h2>Applying Permissions</h2>
 <p>
