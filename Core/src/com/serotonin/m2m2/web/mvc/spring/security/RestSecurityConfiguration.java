@@ -70,9 +70,13 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	        for(DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)){
 	        	try{
 		        	String uri = def.getLoginPageUri(null, null);
-		        	LOG.info("URL: " + uri);
-		        	if(uri != null)
+		        	if(uri != null){
+		        		if(def.getModule() == null)
+		        			LOG.info("Core allowing full access to URL: " + uri);
+		        		else
+		        			LOG.info("Module " + def.getModule().getName() + " allowing full access to URL: " + uri);
 		        		http.authorizeRequests().antMatchers(uri).permitAll();
+		        	}
 	        	}catch(Exception e){
 	        		LOG.error("Problem setting login page definition for class: " + def.getClass().getCanonicalName() + " because " + e.getMessage());
 	        	}
