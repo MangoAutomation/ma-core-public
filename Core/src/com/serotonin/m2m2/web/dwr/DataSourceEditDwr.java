@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DuplicateKeyException;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -225,7 +226,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         if (!response.getHasMessages()) {
 
-            Common.runtimeManager.saveDataPoint(dp);
+        	try {
+        		Common.runtimeManager.saveDataPoint(dp);
+        	} catch(DuplicateKeyException e) {
+        		response.addGenericMessage("pointEdit.detectors.duplicateXid");
+        		return response;
+        	}
 
             //If we have the need to copy permissions then do it now
             // Dirty kludge but whatever for now this all needs reworking.
