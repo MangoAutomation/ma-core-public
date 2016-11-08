@@ -11,30 +11,28 @@ import com.infiniteautomation.mango.db.query.ComparisonEnum;
 import com.infiniteautomation.mango.db.query.RQLToSQLParseException;
 import com.infiniteautomation.mango.db.query.SQLConstants;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
+import com.serotonin.m2m2.Common;
 
 /**
  * @author Terry Packer
  *
  */
-public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQueryAppender{
+public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQueryAppender {
 
-	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLColumnQueryAppender#appendSQL(com.infiniteautomation.mango.db.query.SQLQueryColumn, java.lang.StringBuilder, java.lang.StringBuilder, java.util.List, java.util.List)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.infiniteautomation.mango.db.query.SQLColumnQueryAppender#appendSQL(
+	 * com.infiniteautomation.mango.db.query.SQLQueryColumn,
+	 * java.lang.StringBuilder, java.lang.StringBuilder, java.util.List,
+	 * java.util.List)
 	 */
 	@Override
-	public void appendSQL(SQLQueryColumn column,
-			StringBuilder selectSql, StringBuilder countSql,
+	public void appendSQL(SQLQueryColumn column, StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
 
-//		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
-//			//Catchall for null comparisons
-//			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
-//			selectArgs.add(null);
-//			return;
-//		}
-		
-		switch(comparison){
+		switch (comparison) {
 		case CONTAINS:
 			appendSQL(column.getName(), GREATER_THAN_SQL, selectSql, countSql);
 			break;
@@ -63,15 +61,68 @@ public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQue
 			appendSQL(column.getName(), LESS_THAN_EQUAL_TO_SQL, selectSql, countSql);
 			break;
 		case LIKE:
-			//Replace wildcards
-			appendSQL(column.getName(), LIKE_SQL, selectSql, countSql);
+			switch (Common.databaseProxy.getType()) {
+			case MYSQL:
+			case POSTGRES:
+			case MSSQL:
+			case H2:
+				selectSql.append(column.getName());
+				selectSql.append(H2_LIKE);
+
+				countSql.append(column.getName());
+				countSql.append(H2_LIKE);
+				break;
+			case DERBY:
+				selectSql.append(column.getName());
+				selectSql.append(DERBY_LIKE);
+
+				countSql.append(column.getName());
+				countSql.append(DERBY_LIKE);
+				break;
+			default:
+				throw new RQLToSQLParseException("No case for converting LIKE expressing for database of type: "
+						+ Common.databaseProxy.getType());
+			}
 			List<Object> likeArgs = new ArrayList<Object>();
-			for(Object o : columnArgs){
-				String arg = (String)o;
+			for (Object o : columnArgs) {
+				String arg = (String) o;
 				arg = arg.replace(STAR, PERCENT);
 				likeArgs.add(arg);
 			}
 			selectArgs.addAll(likeArgs);
+			return;
+		case NOT_LIKE:
+			switch (Common.databaseProxy.getType()) {
+			case MYSQL:
+			case POSTGRES:
+			case MSSQL:
+			case H2:
+				selectSql.append(column.getName());
+				selectSql.append(H2_NOT_LIKE);
+
+				countSql.append(column.getName());
+				countSql.append(H2_NOT_LIKE);
+				break;
+			case DERBY:
+				selectSql.append(DERBY_CHAR);
+				selectSql.append(column.getName());
+				selectSql.append(DERBY_NOT_LIKE);
+
+				countSql.append(DERBY_CHAR);
+				countSql.append(column.getName());
+				countSql.append(DERBY_NOT_LIKE);
+				break;
+			default:
+				throw new RQLToSQLParseException("No case for converting LIKE expressing for database of type: "
+						+ Common.databaseProxy.getType());
+			}
+			List<Object> notLikeArgs = new ArrayList<Object>();
+			for (Object o : columnArgs) {
+				String arg = (String) o;
+				arg = arg.replace(STAR, PERCENT);
+				notLikeArgs.add(arg);
+			}
+			selectArgs.addAll(notLikeArgs);
 			return;
 		case NOT_EQUAL_TO:
 			appendSQL(column.getName(), NOT_EQUAL_TO_SQL, selectSql, countSql);
@@ -82,47 +133,44 @@ public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQue
 
 		selectArgs.addAll(columnArgs);
 		return;
-		
+
 	}
-	
-	
-	
+
 	/**
 	 * @param name
 	 * @param greaterThanSql
 	 * @param selectSql
 	 * @param countSql
 	 */
-	protected void appendSQL(String name, String condition,
-			StringBuilder selectSql, StringBuilder countSql) {
-		
+	protected void appendSQL(String name, String condition, StringBuilder selectSql, StringBuilder countSql) {
+
 		selectSql.append(name);
 		selectSql.append(condition);
 		selectSql.append(SPACE);
-		
+
 		countSql.append(name);
 		countSql.append(condition);
 		countSql.append(SPACE);
-		
+
 	}
-	
+
 	/**
 	 * @param name
 	 * @param columnArgs
 	 */
 	protected void appendIn(String name, List<Object> arguments, StringBuilder selectSql, StringBuilder countSql) {
-	
+
 		selectSql.append(name);
 		countSql.append(name);
-		
+
 		selectSql.append(IN_SQL);
 		countSql.append(IN_SQL);
 
-		for(int i=0; i<arguments.size(); i++){
-			if(i < arguments.size() - 1){
+		for (int i = 0; i < arguments.size(); i++) {
+			if (i < arguments.size() - 1) {
 				selectSql.append(QMARK_COMMA);
 				countSql.append(QMARK_COMMA);
-			}else{
+			} else {
 				selectSql.append(QMARK);
 				countSql.append(QMARK);
 			}
@@ -130,10 +178,10 @@ public class GenericSQLColumnQueryAppender implements SQLConstants, SQLColumnQue
 
 		selectSql.append(CLOSE_PARENTH);
 		countSql.append(CLOSE_PARENTH);
-		
+
 		selectSql.append(SPACE);
 		countSql.append(SPACE);
-		
+
 	}
-	
+
 }

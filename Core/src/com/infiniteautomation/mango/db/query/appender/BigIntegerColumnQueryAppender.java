@@ -30,9 +30,14 @@ public class BigIntegerColumnQueryAppender extends GenericSQLColumnQueryAppender
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {
 
 		
+		//Catchall for null comparisons
 		if((columnArgs.size() == 1)&&(columnArgs.get(0) == null)){
-			//Catchall for null comparisons
-			appendSQL(column.getName(), IS_SQL, selectSql, countSql);
+			if(comparison == ComparisonEnum.IS)
+				super.appendSQL(column.getName(), IS_SQL, selectSql, countSql);
+			else if(comparison == ComparisonEnum.IS_NOT)
+				super.appendSQL(column.getName(), IS_NOT_SQL, selectSql, countSql);
+			else
+				super.appendSQL(column.getName(), IS_SQL, selectSql, countSql);
 			selectArgs.add(null);
 			return;
 		}

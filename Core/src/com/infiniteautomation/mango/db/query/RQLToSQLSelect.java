@@ -57,7 +57,11 @@ public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, 
         case "or":
             return visitAndOr(node, statement);
         case "eq":
-        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.EQUAL_TO);
+        	//Null Check
+    		if(node.getArgument(1) == null)
+    			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.IS);
+    		else
+    			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.EQUAL_TO);
         	return statement;
         case "gt":
         	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.GREATER_THAN);
@@ -72,7 +76,11 @@ public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, 
         	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.LESS_THAN_EQUAL_TO);
         	return statement;
         case "ne":
-        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.NOT_EQUAL_TO);
+        	//Null Check
+    		if(node.getArgument(1) == null)
+    			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.IS_NOT);
+    		else
+    			statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.NOT_EQUAL_TO);
         	return statement;
         case "match":
         case "like":
