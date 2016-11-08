@@ -189,11 +189,11 @@ eventInstances = new StoreView({
     			
     			var html = "";
     			if(eventInstance.active && eventInstance.alarmLevel == 0){
-    				html = "<img src='/images/flag_green.png' title='";
+    				html = "<img src='/images/flag_grey.png' title='";
     				html += mangoMsg['common.alarmLevel.none'];
     				html += "'/>"
     			}else if(eventInstance.alarmLevel == 0){
-    				html = "<img src='/images/flag_green_off.png' title='";
+    				html = "<img src='/images/flag_grey_off.png' title='";
     				html += mangoMsg['common.alarmLevel.none.rtn'];
     				html += "'/>"
     			}else if(eventInstance.active && eventInstance.alarmLevel == 1){

@@ -121,14 +121,14 @@ mango.longPoll.pollCB = function(response) {
 	        	mango.soundPlayer.play("level0"); //Play Sound
 	        	if(response.alarmsNone > 1){
 		            dojo.publish("alarmTopic",[{
-		            	message: "<a class='ptr' href='/events.shtm?level=none'><img src='/images/flag_green.png'/> " + response.alarmsNone  + " None Events</a>",
+		            	message: "<a class='ptr' href='/events.shtm?level=none'><img src='/images/flag_grey.png'/> " + response.alarmsNone  + " None Events</a>",
 		            	type: "message",
 		            	duration: -1, //Don't Go Away
 		            }]);            		
 	        	}else{
 	        		//For only 1
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span><img src='/images/flag_green.png'/> " + response.noneEvent.messageString  + 
+		            	message: "<span><img src='/images/flag_grey.png'/> " + response.noneEvent.messageString  + 
 		            	" <a class='ptr' onclick='ackEvent(" + response.noneEvent.id + ")'>" +	
 		            	"<img src='/images/tick.png' id='ackImg" + response.noneEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 		            	type: "message",
@@ -640,7 +640,7 @@ function getMangoId(node) {
 
 function setAlarmLevelImg(alarmLevel, imgNode) {
     if (alarmLevel == 0)
-        updateImg(imgNode, "/images/flag_green.png", mango.i18n["common.alarmLevel.none"], true);
+        updateImg(imgNode, "/images/flag_grey.png", mango.i18n["common.alarmLevel.none"], true);
     else if (alarmLevel == 1)
         updateImg(imgNode, "/images/flag_blue.png", mango.i18n["common.alarmLevel.info"], true);
     else if (alarmLevel == 2)
