@@ -490,7 +490,7 @@ public class Common {
         return checkPassword(plaintext, hashed, false);
     }
     
-    private static final Pattern EXTRACT_ALGORITHM_HASH = Pattern.compile("^\\{(.*?)\\}(.*)");
+    public static final Pattern EXTRACT_ALGORITHM_HASH = Pattern.compile("^\\{(.*?)\\}(.*)");
     
     public static boolean checkPassword(String password, String storedHash, boolean passwordEncrypted) {
         try {

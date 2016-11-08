@@ -1,5 +1,7 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
+import java.util.regex.Matcher;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.JsonException;
@@ -32,14 +34,18 @@ public class UserImporter extends Importer {
             try {
                 ctx.getReader().readInto(user, json);
                 //Check if this is a legacy JSON user password
-                String password = user.getPassword();
-                if(!password.startsWith("{BCRYPT}") && !password.startsWith("{SHA-1}") && !password.startsWith("{NONE}")) {
-                	user.setPassword("{SHA-1}"+password); //Add the encryption algorithm
-                	//Check if they have receiveEvents==NONE, as IGNORE is the new NONE
-                	if(user.getReceiveAlarmEmails() == AlarmLevels.NONE)
-                		user.setReceiveAlarmEmails(AlarmLevels.IGNORE);
+                String hash = user.getPassword();
+                Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(hash);
+                if (!m.matches()) {
+                    // assume SHA-1 for hashes without an algorithm prefix
+                    user.setPassword("{SHA-1}"+hash);
+                    
+                    // Can assume this JSON was exported by mango < 2.8.x
+                    //Check if they have receiveEvents==NONE, as IGNORE is the new NONE
+                    if(user.getReceiveAlarmEmails() == AlarmLevels.NONE)
+                        user.setReceiveAlarmEmails(AlarmLevels.IGNORE);
                 }
-
+                
                 // Now validate it. Use a new response object so we can distinguish errors in this user from other
                 // errors.
                 ProcessResult userResponse = new ProcessResult();
