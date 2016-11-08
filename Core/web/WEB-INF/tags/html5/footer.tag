@@ -6,5 +6,5 @@
 <%@include file="/WEB-INF/tags/decl.tagf"%>
 <%@tag import="com.serotonin.m2m2.Common"%>
 
-<footer>&copy;2015 Infinite Automation Systems, Inc. <fmt:message key="footer.rightsReserved"/>.<br>
+<footer>&copy;2016 Infinite Automation Systems, Inc. <fmt:message key="footer.rightsReserved"/>.<br>
 <a href="http://www.infiniteautomation.com/" ><b></b>www.infiniteautomation.com</a></footer>
