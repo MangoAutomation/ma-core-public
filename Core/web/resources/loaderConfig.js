@@ -52,6 +52,9 @@ var config = {
         "bootstrap" : {
             "deps" : ['jquery']
         },
+        'amcharts/amcharts': {
+            exports: 'AmCharts'
+        },
         'amcharts/funnel': {
             deps: ['amcharts/amcharts'],
             exports: 'AmCharts',
