@@ -354,15 +354,20 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
             pointValue = newValue;
-            fireEvents(oldValue, newValue, source != null, false, logValue);
+            fireEvents(oldValue, newValue, source != null, false, logValue, true);
         }
         else
-            fireEvents(null, newValue, false, true, logValue);
+            fireEvents(null, newValue, false, true, logValue, true);
     }
 
     public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
             boolean async) {
-        valueCache.savePointValue(newValue, source, logValue, async);
+    	 if (source != null)
+             newValue = new AnnotatedPointValueTime(newValue.getValue(), newValue.getTime(), source.getSetPointSourceMessage());
+
+    	 valueCache.savePointValue(newValue, source, logValue, async);
+    	 if(logValue)
+    		 fireEvents(valueCache.getLatestPointValue(), newValue, false, false, logValue, false);
     }
 
     //
@@ -482,8 +487,12 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             else
                 throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
 
-            if (value != null)
-                valueCache.logPointValueAsync(new PointValueTime(value, fireTime), null);
+            if (value != null){
+            	PointValueTime newValue = new PointValueTime(value, fireTime);
+                valueCache.logPointValueAsync(newValue, null);
+                //Fire logged Events
+                fireEvents(valueCache.getLatestPointValue(), newValue, false, false, true, false);
+            }
         }
     }
 
@@ -580,10 +589,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
     // / Listeners
     // /
     //
-    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate, boolean logged) {
+    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate, boolean logged, boolean updated) {
         DataPointListener l = Common.runtimeManager.getDataPointListeners(vo.getId());
         if (l != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, set, backdate, logged));
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, set, backdate, logged, updated));
     }
 
     class EventNotifyWorkItem implements WorkItem {
@@ -594,9 +603,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         private final boolean set;
         private final boolean backdate;
         private final boolean logged;
+        private final boolean updated;
 
         EventNotifyWorkItem(String xid, DataPointListener listener, PointValueTime oldValue, PointValueTime newValue, boolean set,
-                boolean backdate, boolean logged) {
+                boolean backdate, boolean logged, boolean updated) {
         	this.sourceXid = xid;
             this.listener = listener;
             this.oldValue = oldValue;
@@ -604,6 +614,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             this.set = set;
             this.backdate = backdate;
             this.logged = logged;
+            this.updated = updated;
         }
 
         @Override
@@ -612,7 +623,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
                 listener.pointBackdated(newValue);
             else {
                 // Updated
-                listener.pointUpdated(newValue);
+            	if(updated)
+            		listener.pointUpdated(newValue);
 
                 // Fire if the point has changed.
                 if (!PointValueTime.equalValues(oldValue, newValue))
