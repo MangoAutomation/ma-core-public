@@ -289,7 +289,6 @@ public class Upgrade12 extends DBUpgrade {
     				emailHandler.setAlias(vo.getAlias());
     				emailHandler.setDisabled(vo.isDisabled());
     				emailHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
-    				emailHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
     				emailHandler.setActiveRecipients(vo.getActiveRecipients());
     				emailHandler.setSendEscalation(vo.isSendEscalation());
     				emailHandler.setEscalationDelayType(vo.getEscalationDelayType());
