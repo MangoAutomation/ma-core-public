@@ -68,7 +68,7 @@
             </div>
           </div>
         </c:if>
-        <c:if test="${fn:length(availableLanguages) > 1}">
+        <c:if test="${fn:length(availableLanguages) > 0}">
           <div style="display:inline;" onmouseover="hideLayersIgnoreMissing('userHome'); showMenu('localeEdit', null, 10, 10);">
             <tag:img png="locale" title="header.changeLanguage"/>
             <div id="localeEdit" style="visibility:hidden;left:0px;top:15px;" class="labelDiv" onmouseout="hideLayer(this)">
