@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
+import java.util.Arrays;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +21,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
@@ -102,6 +107,10 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests().anyRequest().authenticated().and().addFilterAfter(new CsrfHeaderFilter(), CsrfFilter.class)
 			.csrf().csrfTokenRepository(csrfTokenRepository());
 		
+		//Use the MVC Cors Configuration
+		if(Common.envProps.getBoolean("rest.cors.enabled", false))
+			http.cors();
+		
 		//Later when we add Authority restrictions to various URLs we can use the .antMatchers().hasAuthority() instead of hasRole() to avoid the ROLE_ prefix being appended
 		
 		//We could replace our Form Login but it will need to be customized for Module defined login/logout actions
@@ -123,6 +132,24 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		//Customize the headers here
 		http.headers().frameOptions().sameOrigin();
 	}
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource(){
+		if(Common.envProps.getBoolean("rest.cors.enabled", false)){
+			CorsConfiguration configuration = new CorsConfiguration();
+			configuration.setAllowedOrigins(Arrays.asList(Common.envProps.getStringArray("rest.cors.allowedOrigins", ",", new String[0])));
+			configuration.setAllowedMethods(Arrays.asList(Common.envProps.getStringArray("rest.cors.allowedMethods", ",", new String[0])));
+			configuration.setAllowedHeaders(Arrays.asList(Common.envProps.getStringArray("rest.cors.allowedHeaders", ",", new String[0])));
+			configuration.setExposedHeaders(Arrays.asList(Common.envProps.getStringArray("rest.cors.exposedHeaders", ",", new String[0])));
+			configuration.setAllowCredentials(Common.envProps.getBoolean("rest.cors.allowCredentials", false));
+			configuration.setMaxAge(Common.envProps.getLong("rest.cors.maxAge", 0));
+			UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+			source.registerCorsConfiguration("/**", configuration);
+			return source;
+		}else
+			return null;
+	}
+
 	
 	private CsrfTokenRepository csrfTokenRepository() {
 		  HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
