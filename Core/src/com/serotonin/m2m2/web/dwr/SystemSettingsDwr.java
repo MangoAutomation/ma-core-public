@@ -243,7 +243,7 @@ public class SystemSettingsDwr extends BaseDwr {
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
             Map<String, String> permission = new HashMap<>();
             permission.put("name", def.getPermissionTypeName());
-            permission.put("label", Translations.getTranslations().translate(def.getPermissionKey()));
+            permission.put("label", Translations.getTranslations(Common.getLocale()).translate(def.getPermissionKey()));
             permission.put("value", SystemSettingsDao.getValue(def.getPermissionTypeName()));
             modulePermissions.add(permission);
         }

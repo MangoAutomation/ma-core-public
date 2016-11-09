@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -344,7 +345,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(EVENT_PURGE_PERIODS, 1);
 
-        DEFAULT_VALUES.put(LANGUAGE, "en");
+        DEFAULT_VALUES.put(LANGUAGE, Locale.getDefault().toString());
 
         DEFAULT_VALUES.put(FILEDATA_PATH, "~/WEB-INF/filedata");
         DEFAULT_VALUES.put(HTTPDS_PROLOGUE, "");
