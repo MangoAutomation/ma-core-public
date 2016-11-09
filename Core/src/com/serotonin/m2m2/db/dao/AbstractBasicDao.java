@@ -125,7 +125,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	@SuppressWarnings("unchecked")
 	public AbstractBasicDao(WebSocketDefinition def, String tablePrefix, String[] extraProperties) {
-		this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties,
+		this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties,
 				false);
 	}
 

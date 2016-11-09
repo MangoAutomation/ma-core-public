@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.JsonRestJacksonModuleDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvDataPageQueryStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
@@ -132,6 +134,8 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new CsvDataPageQueryStreamMessageConverter());
 		converters.add(new ByteArrayHttpMessageConverter());
 		converters.add(new HtmlHttpMessageConverter());
+		
+		
 	}
 
 	
@@ -152,6 +156,11 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		// Mango Core JSON Module
 		MangoCoreModule mangoCore = new MangoCoreModule();
 		objectMapper.registerModule(mangoCore);
+		
+		//Setup Module Defined JSON Modules
+		List<JsonRestJacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JsonRestJacksonModuleDefinition.class);
+		for(JsonRestJacksonModuleDefinition def : defs)
+			objectMapper.registerModule(def.getJacksonModule());
 
 		// Custom Date Output Format
 		String customDateFormat = Common.envProps

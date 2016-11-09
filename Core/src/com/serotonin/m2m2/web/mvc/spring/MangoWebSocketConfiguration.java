@@ -45,9 +45,9 @@ public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer {
 
 		List<WebSocketDefinition> defs = ModuleRegistry.getDefinitions(WebSocketDefinition.class);
 		for(WebSocketDefinition def : defs){
-			WebSocketHandler handler = def.getHandler();
+			WebSocketHandler handler = def.getHandlerInstance();
 			if(def.perConnection())
-				handler = new PerConnectionWebSocketHandler(def.getHandler().getClass());
+				handler = new PerConnectionWebSocketHandler(def.getHandlerInstance().getClass());
 			WebSocketHandlerRegistration registration = registry.addHandler(handler, def.getUrl())
 					.setHandshakeHandler(handshakeHandler())
 					.addInterceptors(handshakeIterceptor());

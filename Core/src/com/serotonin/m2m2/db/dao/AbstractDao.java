@@ -61,7 +61,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     
     @SuppressWarnings("unchecked")
 	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery) {
-        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandler() : null), tablePrefix, extraProperties, useSubQuery);
+        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties, useSubQuery);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }

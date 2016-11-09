@@ -18,7 +18,7 @@ public abstract class WebSocketDefinition extends ModuleElementDefinition{
 	 * Return the one and only singleton
 	 * @return
 	 */
-	public abstract MangoWebSocketHandler getHandler();
+	protected abstract MangoWebSocketHandler getHandler();
 
 	/**
 	 * The URL to connect to this websocket
@@ -41,5 +41,18 @@ public abstract class WebSocketDefinition extends ModuleElementDefinition{
 	 * @return
 	 */
 	public abstract String getTypeName();
+	
+	private MangoWebSocketHandler handler;
+	
+	/**
+	 * To be used to get the instance that is loaded into Spring and mapped to this Url
+	 * @return
+	 */
+	public MangoWebSocketHandler getHandlerInstance(){
+		if(this.handler == null)
+			this.handler = getHandler();
+		return this.handler;
+	}
+	
 	
 }
