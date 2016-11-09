@@ -284,6 +284,10 @@ public class Upgrade12 extends DBUpgrade {
     		switch(vo.getHandlerType()){
     			case EventHandlerVO.TYPE_EMAIL:
     				EmailEventHandlerVO emailHandler = new EmailEventHandlerVO();
+    				emailHandler.setId(vo.getId());
+    				emailHandler.setXid(vo.getXid());
+    				emailHandler.setAlias(vo.getAlias());
+    				emailHandler.setDisabled(vo.isDisabled());
     				emailHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
     				emailHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
     				emailHandler.setActiveRecipients(vo.getActiveRecipients());
@@ -302,6 +306,10 @@ public class Upgrade12 extends DBUpgrade {
     		    break;
     			case EventHandlerVO.TYPE_PROCESS:
     		        ProcessEventHandlerVO processHandler = new ProcessEventHandlerVO();
+    		        processHandler.setId(vo.getId());
+    		        processHandler.setXid(vo.getXid());
+    		        processHandler.setAlias(vo.getAlias());
+    		        processHandler.setDisabled(vo.isDisabled());
     		        processHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(ProcessEventHandlerDefinition.TYPE_NAME));
     		        processHandler.setActiveProcessCommand(vo.getActiveProcessCommand());
     		        processHandler.setActiveProcessTimeout(vo.getActiveProcessTimeout());
@@ -312,6 +320,10 @@ public class Upgrade12 extends DBUpgrade {
     			break;
     			case EventHandlerVO.TYPE_SET_POINT:
     		        SetPointEventHandlerVO setPointHandler = new SetPointEventHandlerVO();
+    		        setPointHandler.setId(vo.getId());
+    		        setPointHandler.setXid(vo.getXid());
+    		        setPointHandler.setAlias(vo.getAlias());
+    		        setPointHandler.setDisabled(vo.isDisabled());
     		        setPointHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(SetPointEventHandlerDefinition.TYPE_NAME));
     		        setPointHandler.setTargetPointId(vo.getTargetPointId());
     		        setPointHandler.setActiveAction(vo.getActiveAction());
