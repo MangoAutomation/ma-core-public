@@ -122,11 +122,11 @@ public class Upgrade12 extends DBUpgrade {
             "CREATE INDEX enabledIndex on dataPoints (enabled ASC);",
             "CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);",
 	    	
-	    	"ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);",
+	    	"CREATE INDEX nameIndex ON dataSources (name ASC);",
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
-	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
+	        "UPDATE users SET receiveAlarmEmails=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };
     	
 	    String[] derbyScript = {
@@ -154,11 +154,11 @@ public class Upgrade12 extends DBUpgrade {
             "CREATE INDEX enabledIndex on dataPoints (enabled ASC);",
             "CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);",
 	   		
-	    	"ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);",
+	    	"CREATE INDEX nameIndex ON dataSources (name ASC);",
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
-	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
+	        "UPDATE users SET receiveAlarmEmails=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };    
 	
 	    String[] h2Script = {
@@ -186,11 +186,11 @@ public class Upgrade12 extends DBUpgrade {
             "CREATE INDEX enabledIndex on dataPoints (enabled ASC);",
             "CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);",
 	    	
-	    	"ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);",
+	    	"CREATE INDEX nameIndex ON dataSources (name ASC);",
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
-	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
+	        "UPDATE users SET receiveAlarmEmails=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };
 	    
 	   	String[] mssqlScript = {
@@ -216,11 +216,11 @@ public class Upgrade12 extends DBUpgrade {
             "CREATE INDEX enabledIndex on dataPoints (enabled ASC);",
             "CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);",
 	   		
-	    	"ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);",
+	    	"CREATE INDEX nameIndex ON dataSources (name ASC);",
 	    	
 	    	"ALTER TABLE jsonData ADD COLUMN publicData char(1);",
 	        "UPDATE jsonData SET publicData='N';",
-	        "UPDATE users SET receiveAlarmLevels=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
+	        "UPDATE users SET receiveAlarmEmails=-3 WHERE receiveAlarmEmails=0 OR receiveAlarmEmails=-2;",
 	    };
     
         // Run the script.
