@@ -101,7 +101,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	protected TableModel tableModel;
 
-	public final String tablePrefix; // Select * from table as tablePrefix
+	public final String tablePrefix; // Prefix with dot table.
 
 	// Use SubQuery for restrictions not in Joined Tables
 	protected final boolean useSubQuery;

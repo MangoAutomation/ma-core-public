@@ -141,10 +141,12 @@ public class SQLStatement implements SQLConstants{
 		//COUNT ... FROM
 		StringBuilder countSql = new StringBuilder(this.baseCount);
 		
-		selectSql.append(this.tableName);
-		selectSql.append(SPACE);
-		countSql.append(this.tableName);
-		countSql.append(SPACE);
+		if(this.tableName != null){
+			selectSql.append(this.tableName);
+			selectSql.append(SPACE);
+			countSql.append(this.tableName);
+			countSql.append(SPACE);
+		}
 
 		if(this.tablePrefix != null){
 			selectSql.append(" AS ");
