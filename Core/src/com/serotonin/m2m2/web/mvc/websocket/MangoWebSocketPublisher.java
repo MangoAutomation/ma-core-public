@@ -48,7 +48,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	protected ObjectMapper jacksonMapper;
 	
 	public MangoWebSocketPublisher(){
-		this.jacksonMapper = MangoRestSpringConfiguration.objectMapper;
+		this.jacksonMapper = MangoRestSpringConfiguration.getObjectMapper();
 		this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
 	}
 

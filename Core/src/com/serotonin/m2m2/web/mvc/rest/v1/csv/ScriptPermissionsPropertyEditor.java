@@ -45,7 +45,7 @@ public class ScriptPermissionsPropertyEditor extends CSVPropertyEditor{
 	@Override
 	public String getAsText() {
 		try {
-			return MangoRestSpringConfiguration.objectMapper.writeValueAsString(this.permissions);
+			return MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(this.permissions);
 		} catch (JsonProcessingException e) {
 			LOG.error(e.getMessage(), e);
 			return "";
@@ -58,7 +58,7 @@ public class ScriptPermissionsPropertyEditor extends CSVPropertyEditor{
 	@Override
 	public void setAsText(String text) throws IllegalArgumentException {
 		try {
-			this.permissions = MangoRestSpringConfiguration.objectMapper.readValue(text, ScriptPermissions.class);
+			this.permissions = MangoRestSpringConfiguration.getObjectMapper().readValue(text, ScriptPermissions.class);
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
 		}

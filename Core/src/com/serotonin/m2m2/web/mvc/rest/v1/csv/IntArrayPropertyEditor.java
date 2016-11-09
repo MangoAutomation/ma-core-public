@@ -48,7 +48,7 @@ public class IntArrayPropertyEditor  extends CSVPropertyEditor{
 	public String getAsText() {
 		StringWriter writer = new StringWriter();
 		try {
-			MangoRestSpringConfiguration.objectMapper.writeValue(writer, data);
+			MangoRestSpringConfiguration.getObjectMapper().writeValue(writer, data);
 			return writer.toString();
 		} catch (IOException e) {
 			LOG.error(e.getMessage(),e);
@@ -62,7 +62,7 @@ public class IntArrayPropertyEditor  extends CSVPropertyEditor{
 	@Override
 	public void setAsText(String text) throws IllegalArgumentException {
 		try {
-			this.data = MangoRestSpringConfiguration.objectMapper.readValue(text, int[].class);
+			this.data = MangoRestSpringConfiguration.getObjectMapper().readValue(text, int[].class);
 		} catch (IOException e) {
 			LOG.error(e.getMessage(),e);
 			throw new ShouldNeverHappenException(e);

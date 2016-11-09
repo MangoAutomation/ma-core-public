@@ -86,7 +86,7 @@ public class Upgrade12 extends DBUpgrade {
 	private ObjectMapper mapper;
 	
 	public Upgrade12(){
-		mapper = MangoRestSpringConfiguration.objectMapper;
+		mapper = MangoRestSpringConfiguration.getObjectMapper();
 	}
 
 	

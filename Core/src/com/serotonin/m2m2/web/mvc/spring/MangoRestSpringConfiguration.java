@@ -28,6 +28,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JsonRestJacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -50,10 +51,28 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.web.mvc.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
-	// TODO Make this a Bean by annotating the createObjectmapper method
-	// This is public for use in testing
-	public static final ObjectMapper objectMapper = createObjectMapper();
 
+	private static ObjectMapper objectMapper;
+
+	/**
+	 * Public access to our Object Mapper.  Must Be Initialized to use.
+	 * @return
+	 */
+	public static ObjectMapper getObjectMapper(){
+		if(objectMapper == null)
+			throw new ShouldNeverHappenException("Object Mapper not initialized.");
+		else
+			return objectMapper;
+	}
+
+	/**
+	 * To be called After all Module Definitions are loaded
+	 */
+	public static void initializeObjectMapper(){
+		objectMapper = createNewObjectMapper();
+	}
+	
+	
 	/**
 	 * 
 	 * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS Setup
@@ -124,9 +143,9 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	@Override
 	public void configureMessageConverters(
 			List<HttpMessageConverter<?>> converters) {
-
+		
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setObjectMapper(objectMapper);
+		converter.setObjectMapper(getObjectMapper());
 		converters.add(converter);
 		converters.add(new CsvMessageConverter());
 		converters.add(new CsvRowMessageConverter());
@@ -140,10 +159,14 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
 	
 	/**
+	 * Create an instance of the Object Mapper.
+	 * Used locally when starting Spring but may also be used for testing.
+	 * 
+	 * Note: This is NOT the same Object Mapper instance used within a running Mango.
 	 * 
 	 * @return
 	 */
-	private static ObjectMapper createObjectMapper() {
+	public static ObjectMapper createNewObjectMapper() {
 		// For raw Jackson
 		ObjectMapper objectMapper = new ObjectMapper();
 		if(Common.envProps.getBoolean("rest.indentJSON", false))
