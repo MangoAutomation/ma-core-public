@@ -33,10 +33,6 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 
 	public static final EventHandlerDao instance = new EventHandlerDao();
 	
-	/**
-	 * @param handler
-	 * @param typeName
-	 */
 	protected EventHandlerDao() {
 		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER);
 	}

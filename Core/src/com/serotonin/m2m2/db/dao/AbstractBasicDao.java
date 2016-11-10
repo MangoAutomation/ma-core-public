@@ -408,7 +408,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
 		}
-		handler.notify("delete", vo, null);
+		if(handler != null)
+			handler.notify("delete", vo, null);
 	}
 
 	public void delete(int id, String initiatorId) {
@@ -416,21 +417,24 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
 		}
-		handler.notify("delete", vo, initiatorId);
+		if(handler != null)
+			handler.notify("delete", vo, initiatorId);
 	}
 
 	public void delete(T vo) {
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
 		}
-		handler.notify("delete", vo, null);
+		if(handler != null)
+			handler.notify("delete", vo, null);
 	}
 
 	public void delete(T vo, String initiatorId) {
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
 		}
-		handler.notify("delete", vo, initiatorId);
+		if(handler != null)
+			handler.notify("delete", vo, initiatorId);
 	}
 
 	/**
@@ -473,7 +477,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		else
 			id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
 		vo.setId(id);
-		handler.notify("add", vo, null);
+		if(handler != null)
+			handler.notify("add", vo, null);
 	}
 
 	protected void insert(T vo, String initiatorId) {
@@ -483,7 +488,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		else
 			id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
 		vo.setId(id);
-		handler.notify("add", vo, initiatorId);
+		if(handler != null)
+			handler.notify("add", vo, initiatorId);
 	}
 
 	/**
@@ -501,8 +507,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 			ejt.update(UPDATE, list.toArray());
 		else
 			ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-
-		handler.notify("update", vo, null);
+		if(handler != null)
+			handler.notify("update", vo, null);
 	}
 
 	/**
@@ -519,8 +525,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 			ejt.update(UPDATE, list.toArray());
 		else
 			ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-
-		handler.notify("update", vo, initiatorId);
+		if(handler != null)
+			handler.notify("update", vo, initiatorId);
 	}
 
 	/**
