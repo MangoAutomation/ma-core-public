@@ -14,6 +14,9 @@ import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketHandler;
  */
 public abstract class WebSocketDefinition extends ModuleElementDefinition{
 
+	/* Singleton Instance */
+	private MangoWebSocketHandler handler;
+
 	/**
 	 * Return the one and only singleton
 	 * @return
@@ -42,7 +45,6 @@ public abstract class WebSocketDefinition extends ModuleElementDefinition{
 	 */
 	public abstract String getTypeName();
 	
-	private MangoWebSocketHandler handler;
 	
 	/**
 	 * To be used to get the instance that is loaded into Spring and mapped to this Url
