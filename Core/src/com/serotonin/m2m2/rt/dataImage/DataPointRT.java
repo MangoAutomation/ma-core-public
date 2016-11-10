@@ -357,17 +357,23 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             fireEvents(oldValue, newValue, source != null, false, logValue, true);
         }
         else
-            fireEvents(null, newValue, false, true, logValue, true);
+            fireEvents(null, newValue, false, true, logValue, false);
     }
 
+    /**
+     * @param newValue
+     * @param source
+     * @param logValue
+     * @param async
+     * 
+     * This method is called by modules that have the potential to generate a rapid flow of values and backdates
+     *  for the purpose of circumventing the update method's various controls on logging behaviors. It does not
+     *  generate events because the expected rate of calls from the modules which use it is somewhere between high
+     *  and very high.
+     */
     public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
             boolean async) {
-    	 if (source != null)
-             newValue = new AnnotatedPointValueTime(newValue.getValue(), newValue.getTime(), source.getSetPointSourceMessage());
-
     	 valueCache.savePointValue(newValue, source, logValue, async);
-    	 if(logValue)
-    		 fireEvents(valueCache.getLatestPointValue(), newValue, false, false, logValue, false);
     }
 
     //
@@ -491,7 +497,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             	PointValueTime newValue = new PointValueTime(value, fireTime);
                 valueCache.logPointValueAsync(newValue, null);
                 //Fire logged Events
-                fireEvents(valueCache.getLatestPointValue(), newValue, false, false, true, false);
+                fireEvents(null, newValue, false, false, true, false);
             }
         }
     }
@@ -621,10 +627,9 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         public void execute() {
             if (backdate)
                 listener.pointBackdated(newValue);
-            else {
+            else if(updated) {
                 // Updated
-            	if(updated)
-            		listener.pointUpdated(newValue);
+        		listener.pointUpdated(newValue);
 
                 // Fire if the point has changed.
                 if (!PointValueTime.equalValues(oldValue, newValue))
