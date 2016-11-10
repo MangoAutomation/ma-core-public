@@ -137,17 +137,18 @@
 
   <filter-mapping>
   	<filter-name>etagFilter</filter-name>
-  	<url-pattern>/audio/*</url-pattern>
-  	<url-pattern>/dwr/interfaces/*</url-pattern>
-  	<url-pattern>/dwr/engine.js</url-pattern>
-  	<url-pattern>/dwr/utils.js</url-pattern>
-	<url-pattern>/exception/*</url-pattern>
-  	<url-pattern>/images/*</url-pattern>
-  	<url-pattern>/modules/*</url-pattern>
- 	<url-pattern>/protected/*</url-pattern>
-  	<url-pattern>/resources/*</url-pattern>
-	<url-pattern>/swagger/*</url-pattern>  	
-	<url-pattern>/mango-javascript/*</url-pattern>
+  	<url-pattern>/*</url-pattern>
+<!--   	<url-pattern>/audio/*</url-pattern> -->
+<!--   	<url-pattern>/dwr/interfaces/*</url-pattern> -->
+<!--   	<url-pattern>/dwr/engine.js</url-pattern> -->
+<!--   	<url-pattern>/dwr/utils.js</url-pattern> -->
+<!-- 	<url-pattern>/exception/*</url-pattern> -->
+<!--   	<url-pattern>/images/*</url-pattern> -->
+<!--   	<url-pattern>/modules/*</url-pattern> -->
+<!--  	<url-pattern>/protected/*</url-pattern> -->
+<!--   	<url-pattern>/resources/*</url-pattern> -->
+<!-- 	<url-pattern>/swagger/*</url-pattern>  	 -->
+<!-- 	<url-pattern>/mango-javascript/*</url-pattern> -->
   </filter-mapping>
   
   <!-- 
