@@ -643,7 +643,7 @@ class CSVPojoHandler {
 		public Object getValue(Object obj) {
 			try {
 				return field.get(obj);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow getting of private fields and try again
 				field.setAccessible(true);
 				try {
@@ -668,7 +668,7 @@ class CSVPojoHandler {
 		public void setValue(Object obj, Object value) {
 			try {
 				field.set(obj, value);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow setting of private fields and try again
 				field.setAccessible(true);
 				try {
@@ -720,17 +720,17 @@ class CSVPojoHandler {
 				return; // Nothing to do
 			try {
 				setter.invoke(obj, value);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow setting of private fields and try again
 				setter.setAccessible(true);
 				try {
 					setter.invoke(obj, value);
 				} catch (IllegalAccessException ex) {
 					throw new IllegalAccessError(ex.getMessage());
-				} catch (IllegalArgumentException e) {
-					throw new IllegalAccessError(e.getMessage());
-				} catch (InvocationTargetException e) {
-					throw new IllegalAccessError(e.getMessage());
+				} catch (IllegalArgumentException e2) {
+					throw new IllegalAccessError(e2.getMessage());
+				} catch (InvocationTargetException e3) {
+					throw new IllegalAccessError(e3.getMessage());
 				}
 			} catch (IllegalArgumentException e) {
 				throw new IllegalAccessError(e.getMessage());
@@ -756,17 +756,17 @@ class CSVPojoHandler {
 				return null;
 			try {
 				return getter.invoke(obj);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow getting of private fields and try again
 				getter.setAccessible(true);
 				try {
 					return getter.invoke(obj);
 				} catch (IllegalAccessException ex) {
 					throw new IllegalAccessError(ex.getMessage());
-				} catch (IllegalArgumentException e) {
-					throw new IllegalAccessError(e.getMessage());
-				} catch (InvocationTargetException e) {
-					throw new IllegalAccessError(e.getMessage());
+				} catch (IllegalArgumentException e2) {
+					throw new IllegalAccessError(e2.getMessage());
+				} catch (InvocationTargetException e3) {
+					throw new IllegalAccessError(e3.getMessage());
 				}
 			} catch (IllegalArgumentException e) {
 				throw new IllegalAccessError(e.getMessage());
@@ -849,7 +849,7 @@ class CSVPojoHandler {
 		public Object getValue(Object obj) {
 			try {
 				return field.get(obj);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow getting of private fields and try again
 				field.setAccessible(true);
 				try {
@@ -874,7 +874,7 @@ class CSVPojoHandler {
 		public void setValue(Object obj, Object value) {
 			try {
 				field.set(obj, value);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow setting of private fields and try again
 				field.setAccessible(true);
 				try {
@@ -933,17 +933,17 @@ class CSVPojoHandler {
 				return; // Nothing to do
 			try {
 				setter.invoke(obj, value);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow setting of private fields and try again
 				setter.setAccessible(true);
 				try {
 					setter.invoke(obj, value);
 				} catch (IllegalAccessException ex) {
 					throw new CSVException(setter.getName() + " " + ex.getMessage());
-				} catch (IllegalArgumentException e) {
-					throw new CSVException(setter.getName() + " " + e.getMessage());
-				} catch (InvocationTargetException e) {
-					throw new CSVException(setter.getName() + " " + e.getTargetException().getMessage());
+				} catch (IllegalArgumentException e2) {
+					throw new CSVException(setter.getName() + " " + e2.getMessage());
+				} catch (InvocationTargetException e3) {
+					throw new CSVException(setter.getName() + " " + e3.getTargetException().getMessage());
 				}
 			} catch (IllegalArgumentException e) {
 				throw new CSVException(setter.getName() + " " + e.getMessage());
@@ -969,17 +969,17 @@ class CSVPojoHandler {
 				return null;
 			try {
 				return getter.invoke(obj);
-			} catch (IllegalAccessException _) {
+			} catch (IllegalAccessException e) {
 				// Allow getting of private fields and try again
 				getter.setAccessible(true);
 				try {
 					return getter.invoke(obj);
-				} catch (IllegalAccessException e) {
-					throw new CSVException(setter.getName() + " " + e.getMessage());
-				} catch (IllegalArgumentException e) {
-					throw new CSVException(setter.getName() + " " + e.getMessage());
-				} catch (InvocationTargetException e) {
-					throw new CSVException(setter.getName() + " " + e.getMessage());
+				} catch (IllegalAccessException e1) {
+					throw new CSVException(setter.getName() + " " + e1.getMessage());
+				} catch (IllegalArgumentException e2) {
+					throw new CSVException(setter.getName() + " " + e2.getMessage());
+				} catch (InvocationTargetException e3) {
+					throw new CSVException(setter.getName() + " " + e3.getMessage());
 				}
 			} catch (IllegalArgumentException e) {
 				throw new CSVException(setter.getName() + " " + e.getMessage());
