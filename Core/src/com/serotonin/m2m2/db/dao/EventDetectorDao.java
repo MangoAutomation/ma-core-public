@@ -210,20 +210,22 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	public AbstractEventDetectorVO<?> getByXid(String xid){
 		throw new ShouldNeverHappenException("Not possible as XIDs are not unique");
 	}
-	
+
+	/**
+	 * Get the column name for the source id using the source type
+	 * @param sourceType
+	 * @return
+	 */
 	public String getSourceIdColumnName(String sourceType){
-		Iterator<String> it = this.sourceTypeToColumnNameMap.keySet().iterator();
-		while(it.hasNext()){
-			String thisType = it.next();
-			if(thisType.equals(sourceType))
-				return this.sourceTypeToColumnNameMap.get(thisType);
-		}
-		
-		throw new ShouldNeverHappenException("Unknown Detector Source Type: " + sourceType);
+		String columnName = this.sourceTypeToColumnNameMap.get(sourceType);
+		if(columnName == null)
+			throw new ShouldNeverHappenException("Unknown Detector Source Type: " + sourceType);
+		else
+			return columnName;
 	}
 	
 	/**
-	 * Get the index of the source id column in the list of columns of source ids
+	 * Get the index of the source id column in the result set returned from a Select
 	 * @param sourceType
 	 * @return
 	 */
