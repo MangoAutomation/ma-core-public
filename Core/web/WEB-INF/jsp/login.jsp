@@ -48,7 +48,7 @@
               <tr>
                 <td class="formLabelRequired"><fmt:message key="login.password"/></td>
                 <td class="formField">
-                  <input id="password" type="password" name="password" value="${status.value}"/>
+                  <input id="password" type="password" name="password" value="${status.value}" maxlength="200001"/>
                 </td>
                 <td class="formError">${status.errorMessage}</td>
               </tr>
