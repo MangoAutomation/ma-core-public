@@ -113,7 +113,7 @@ public class StatusServlet extends HttpServlet{
 	 * @param state
 	 * @return
 	 */
-	private String getLifecycleStateMessage(int state){
+	public String getLifecycleStateMessage(int state){
 		switch(state){
 		case 0:
 			return this.translations.translate("startup.state.notStarted");

@@ -86,7 +86,7 @@
   
   <filter>
    <filter-name>etagFilter</filter-name>
-   <filter-class>org.springframework.web.filter.ShallowEtagHeaderFilter</filter-class>
+   <filter-class>com.serotonin.m2m2.web.filter.MangoShallowEtagHeaderFilter</filter-class>
   </filter>
   
   <!-- 

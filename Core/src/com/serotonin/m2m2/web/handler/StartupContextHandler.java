@@ -19,8 +19,10 @@ import org.eclipse.jetty.util.resource.Resource;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
+import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.web.OverridingFileResource;
 import com.serotonin.m2m2.web.servlet.StatusServlet;
+import com.serotonin.provider.Providers;
 
 /**
  * Handle All Requests During the startup phase of Mango
@@ -64,6 +66,11 @@ public class StartupContextHandler extends ResourceHandler{
         	response.setStatus(HttpStatus.SC_OK);
         	response.setHeader("Allow", "OPTIONS, GET");
         	response.setContentLength(0);
+    		ILifecycle lifecycle = Providers.get(ILifecycle.class);
+    		int state = lifecycle.getLifecycleState();
+    		response.setHeader("Mango-Startup-Progress", Integer.toString(state));
+    		response.setHeader("Mango-Startup_State", this.statusServlet.getLifecycleStateMessage(state));
+        	
         	baseRequest.setHandled(true);
         	return;
         }
@@ -107,8 +114,5 @@ public class StartupContextHandler extends ResourceHandler{
             break;
         }
 		
-	}
-
-
-	
+	}	
 }

@@ -132,7 +132,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		//Customize the headers here
 		http.headers().frameOptions().sameOrigin();
 		
-		//Allow ETags to be used
+		//Allow ETags to be used See MangoShallowEtagHeaderFilter
 		http.headers().cacheControl().disable();
 	}
 
