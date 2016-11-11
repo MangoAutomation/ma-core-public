@@ -192,8 +192,8 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	 * @param xid
 	 * @return
 	 */
-	public int getId(String xid) {
-		return queryForObject("SELECT id from " + this.tableName + " WHERE xid=?", new Object[]{xid}, Integer.class, -1);
+	public int getId(String xid, int dpId) {
+		return queryForObject("SELECT id from " + this.tableName + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
 	}
 
 	/**
