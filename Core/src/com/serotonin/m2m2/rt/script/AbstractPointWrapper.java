@@ -120,7 +120,7 @@ abstract public class AbstractPointWrapper {
     
     /**
      * Get point values between the times.  
-     * Inclusive of the value at from, exclusisve of the value at to
+     * Inclusive of the value at from, exclusive of the value at to
      * @param from
      * @param to
      * @return List of PointValueTime objects or empty list
