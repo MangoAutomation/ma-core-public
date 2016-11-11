@@ -182,7 +182,7 @@ public class ScriptUtils {
         }
         else if (input instanceof AbstractPointWrapper) {
             value = ((AbstractPointWrapper) input).getValueImpl();
-            if (value.getDataType() != toDataTypeId)
+            if ((value != null)&&(value.getDataType() != toDataTypeId))
                 return throwResultTypeException(value, toDataTypeId);
         }
         // See if the type matches.

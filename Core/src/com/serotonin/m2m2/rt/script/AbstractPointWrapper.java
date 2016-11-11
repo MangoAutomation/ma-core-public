@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -100,7 +101,7 @@ abstract public class AbstractPointWrapper {
     private GregorianCalendar getCalendar() {
         long time = getTime();
         if (time == -1)
-            return null;
+            throw new ShouldNeverHappenException("No timestamp for point value.");
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTimeInMillis(time);
         return gc;
