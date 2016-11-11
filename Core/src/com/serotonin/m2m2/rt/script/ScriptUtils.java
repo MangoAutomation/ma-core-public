@@ -10,7 +10,6 @@ import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -54,7 +53,7 @@ public class ScriptUtils {
                 result = engine.eval(script, sctx);
             return result;
         }
-        catch (ScriptException e) {
+        catch (Exception e) {
             throw ScriptError.create(e);
         }
     }
@@ -69,7 +68,7 @@ public class ScriptUtils {
                 return script.eval();
             return script.eval(sctx);
         }
-        catch (ScriptException e) {
+        catch (Exception e) {
             throw ScriptError.create(e);
         }
     }
@@ -83,7 +82,7 @@ public class ScriptUtils {
             try {
                 return ((Compilable) engine).compile(script);
             }
-            catch (ScriptException e) {
+            catch (Exception e) {
                 throw ScriptError.create(e);
             }
         }

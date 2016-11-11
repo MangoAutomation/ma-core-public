@@ -5,20 +5,18 @@
 package com.serotonin.m2m2.rt.script;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -28,12 +26,16 @@ import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.util.StringUtils;
 
 /**
  * @author Matthew Lohbihler
  */
 public class ScriptExecutor {
 	
+	//For extracting error messages Java 7
+	private static final Pattern PATTERN = Pattern.compile("(.*?): (.*?) \\(.*?\\)");
+	 
     protected static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
     protected static final String SCRIPT_SUFFIX = "\r\n}\r\n__scriptExecutor__();";
 
@@ -62,55 +64,6 @@ public class ScriptExecutor {
         }
 
         return converted;
-    }
-    
-    /**
-     * Execute the script 
-     * @param script
-     * @param context
-     * @param additionalContext
-     * @param runtime
-     * @param dataTypeId
-     * @param timestamp
-     * @param permissions
-     * @param scriptWriter
-     * @return
-     * @throws ScriptException
-     * @throws ResultTypeException
-     */
-    public PointValueTime execute(String script, Map<String, IDataPointValueSource> context, 
-    		Map<String, Object> additionalContext, long runtime,
-            int dataTypeId, long timestamp, 
-            ScriptPermissions permissions, 
-            PrintWriter scriptWriter, ScriptLog log) throws ScriptException, ResultTypeException {
-
-    	StopWatch stopWatch = null;
-    	if(useMetrics)
-    		stopWatch = new Log4JStopWatch();
-
-    	// Create the script engine.
-        ScriptEngine engine = ScriptUtils.newEngine();
-
-        //Prepare the Engine
-        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, permissions, scriptWriter, log);
-        engine.setBindings(engineScope, ScriptContext.ENGINE_SCOPE);
-        
-        // Create the script.
-        script = SCRIPT_PREFIX + script + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions();
-
-        // Execute.
-        Object result;
-        try {
-            result = engine.eval(script);
-        }
-        catch (ScriptException e) {
-            throw prettyScriptMessage(e);
-        }
-
-        PointValueTime value = getResult(engine, result, dataTypeId, timestamp);
-        if(useMetrics)
-        	stopWatch.stop("execute(String)");
-        return value;
     }
 
     /**
@@ -194,18 +147,53 @@ public class ScriptExecutor {
      * @return
      */
     public static ScriptException prettyScriptMessage(ScriptException e) {
-        while (e.getCause() instanceof ScriptException)
-            e = (ScriptException) e.getCause();
-
-        // Try to make the error message look a bit nicer.
-        List<String> exclusions = new ArrayList<String>();
-        exclusions.add("sun.org.mozilla.javascript.internal.EcmaError: ");
-        exclusions.add("sun.org.mozilla.javascript.internal.EvaluatorException: ");
-        String message = e.getMessage();
-        for (String exclude : exclusions) {
-            if (message.startsWith(exclude))
-                message = message.substring(exclude.length());
-        }
-        return new ScriptException(message, e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+    	return createScriptError(e);
     }
+    
+    public static ScriptException createScriptError(Exception e){
+    	//Search the stack trace to see if we can pull out any useful script info
+    	if(e instanceof ScriptException){
+    		ScriptException ex = (ScriptException)e;
+    		while (ex.getCause() instanceof ScriptException)
+    			ex = (ScriptException) ex.getCause();
+    		
+            String message = null;
+            //EvaluatorException e1;
+            if((e.getCause() != null)&&e.getCause().getClass().getName().endsWith("EvaluatorException")){
+            	//Get the detail message
+            	Throwable cause = e.getCause();
+            	Class<?> causeClass = cause.getClass();
+            	while(causeClass.getSuperclass() != null){
+	            	try {
+	                	Field f = causeClass.getDeclaredField("detailMessage");
+	                	f.setAccessible(true);
+						message = (String)f.get(cause);
+					} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e1) {
+						//Don't care
+					}
+	            	causeClass = causeClass.getSuperclass();
+            	}
+            	if(message == null)
+            		message = ex.getMessage();
+            }else{
+                String m = ex.getMessage();
+                return new ScriptException(StringUtils.findGroup(PATTERN, m, 2), "javascript",
+                        ex.getLineNumber(), ex.getColumnNumber());
+            }
+
+            return new ScriptException(message, "javascript", ex.getLineNumber(), ex.getColumnNumber());
+    	}else{
+    		//Must get it from the trace
+	    	for(StackTraceElement element : e.getStackTrace()){
+	    		//Compiled Scripts will be run via the __scriptExecutor__ method, Regular scripts are run in the :program method
+	    		if(element.getClassName().startsWith("jdk.nashorn.internal.scripts.Script")&&(element.getMethodName().equals("__scriptExecutor__")||(element.getMethodName().equals(":program")))){
+	    			return new ScriptException(e.getClass().getSimpleName() + ": " + e.getMessage(), "javascript", element.getLineNumber(), -1);
+	    		}
+	    	}
+	    	
+	    	return new ScriptException(e.getMessage(), "javascript", -1, -1);
+    	}
+    }
+    
+    
 }

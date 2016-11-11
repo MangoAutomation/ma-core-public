@@ -13,6 +13,9 @@ import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 
@@ -31,19 +34,24 @@ public class CompiledScriptExecutor extends ScriptExecutor{
      * @throws ScriptException
      */
     public static CompiledScript compile(String script) throws ScriptException {
-//    	StopWatch stopWatch = new Log4JStopWatch();
-//		stopWatch.start();
-        script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
-        //TODO Review change 
-//        ensureInit();
-//        CompiledScript compiledScript = ((Compilable) ENGINE).compile(script);
+    	StopWatch stopWatch = null;
+    	if(useMetrics)
+    		stopWatch = new Log4JStopWatch();
+        
+    	script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
         
     	ScriptEngine engine = ScriptUtils.newEngine();
     	ScriptUtils.prepareEngine(engine);
-    	CompiledScript compiledScript = ((Compilable)engine).compile(script);
-        
-//        stopWatch.stop("compile(script)");
-        return compiledScript;
+    	try{
+	    	CompiledScript compiledScript = ((Compilable)engine).compile(script);
+	        
+	        if(useMetrics)
+	        	stopWatch.stop("compile(String script)");
+	        
+	        return compiledScript;
+    	}catch(Exception e){
+    		throw createScriptError(e);
+    	}
     }
 
     /**
@@ -64,8 +72,10 @@ public class CompiledScriptExecutor extends ScriptExecutor{
            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
            ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log) throws ScriptException, ResultTypeException {
        
-//    	StopWatch stopWatch = new Log4JStopWatch();
-//		stopWatch.start();
+    	StopWatch stopWatch = null;
+    	if(useMetrics)
+    		stopWatch = new Log4JStopWatch();
+
     	ensureInit();
 
         // Create the wrapper object context.
@@ -79,35 +89,18 @@ public class CompiledScriptExecutor extends ScriptExecutor{
         try {
             result = script.eval(engineScope);
         }
-        catch (ScriptException e) {
-            throw prettyScriptMessage(e);
+        catch (Exception e) {
+            throw createScriptError(e);
         }
 
         PointValueTime value = getResult(engine, result, dataTypeId, timestamp);
-    	//stopWatch.stop("execute()");
+    	
+        if(useMetrics)
+        	stopWatch.stop("execute()");
+        
         return value;
     }
     
-    
-
-
-    /**
-     * Execute a script on the common engine
-     * @param script
-     * @param context
-     * @param runtime
-     * @param dataTypeId
-     * @param timestamp
-     * @param permissions
-     * @return
-     * @throws ScriptException
-     * @throws ResultTypeException
-     */
-//    public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
-//            long runtime, int dataTypeId, long timestamp, ScriptPermissions permissions) throws ScriptException, ResultTypeException {
-//    	return execute(script, context, null, runtime, dataTypeId, timestamp, permissions, null, null);
-//    }
-
     /**
      * Ensure the Engine is Ready, this Engine is used by all the 
      * Scripts to run them.
