@@ -69,7 +69,7 @@ public class StartupContextHandler extends ResourceHandler{
     		ILifecycle lifecycle = Providers.get(ILifecycle.class);
     		int state = lifecycle.getLifecycleState();
     		response.setHeader("Mango-Startup-Progress", Integer.toString(state));
-    		response.setHeader("Mango-Startup_State", this.statusServlet.getLifecycleStateMessage(state));
+    		response.setHeader("Mango-Startup-State", this.statusServlet.getLifecycleStateMessage(state));
         	
         	baseRequest.setHandled(true);
         	return;
