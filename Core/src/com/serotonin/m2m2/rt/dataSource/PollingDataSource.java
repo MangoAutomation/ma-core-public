@@ -104,7 +104,7 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
         //Log A Message Every 5 Minutes
         if(LOG.isWarnEnabled() && (nextAbortedPollMessageTime <= time)){
         	nextAbortedPollMessageTime = time + abortedPollLogDelay;
-        	LOG.warn("Data Source " + vo.getName() + " aborted " + unsuccessful + " since it started.");
+        	LOG.warn("Data Source " + vo.getName() + " aborted " + unsuccessful + " polls since it started.");
         }
         
         //Raise No RTN Event On First aborted poll
