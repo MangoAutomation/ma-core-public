@@ -56,6 +56,7 @@ public class LoggedInFilter implements Filter {
                     + request.getRequestURI());
 
             String forwardUri = DefaultPagesDefinition.getLoginUri(request, response);
+            request.getSession().invalidate();
             response.sendRedirect(forwardUri);
             return;
         }
