@@ -303,7 +303,7 @@
         <td class="formField"><input id="eventDetector_TEMPLATE_ChangeCount" type="text" class="formShort"/></td>
       </tr>
       <tr>
-        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.duration"/></td>
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
@@ -338,7 +338,7 @@
         </td>
       </tr>
       <tr>
-        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.duration"/></td>
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
@@ -373,7 +373,7 @@
         </td>
       </tr>
       <tr>
-        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.duration"/></td>
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
