@@ -67,7 +67,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -125,7 +125,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -184,7 +184,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -228,7 +228,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -267,7 +267,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
@@ -295,7 +295,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -334,7 +334,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -369,7 +369,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -404,7 +404,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -443,7 +443,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -482,7 +482,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -525,7 +525,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -567,7 +567,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>
@@ -619,7 +619,7 @@
         <td class="formField">
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
-          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_green" title="common.alarmLevel.none" style="display:none;"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
         </td>
       </tr>
       <tr>

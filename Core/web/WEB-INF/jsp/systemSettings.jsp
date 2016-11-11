@@ -49,7 +49,7 @@
                     content += "<option value='<c:out value="<%= AlarmLevels.IGNORE %>"/>'><fmt:message key="<%= AlarmLevels.IGNORE_DESCRIPTION %>"/></option>";
                     
                     content += "</select> ";
-                    content += "<img id='alarmLevelImg"+ etid +"' src='images/flag_green.png' style='display:none'>";
+                    content += "<img id='alarmLevelImg"+ etid +"' src='images/flag_grey.png' style='display:none'>";
                     return content;
                 }
             ];

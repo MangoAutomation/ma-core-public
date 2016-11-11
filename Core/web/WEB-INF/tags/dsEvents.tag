@@ -21,7 +21,7 @@
           <td><b><m2m2:translate message="${type.description}"/></b></td>
           <td>
             <tag:alarmLevelOptions id="alarmLevel${type.typeRef2}" onchange="alarmLevelChanged(${type.typeRef2})" value="${type.alarmLevel}"/>
-            <tag:img id="alarmLevelImg${type.typeRef2}" png="flag_green" style="display:none;"/>
+            <tag:img id="alarmLevelImg${type.typeRef2}" png="flag_grey" style="display:none;"/>
             <script type="text/javascript">setAlarmLevelImg(${type.alarmLevel}, 'alarmLevelImg${type.typeRef2}');</script>
           </td>
         </tr>

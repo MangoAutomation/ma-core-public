@@ -7,8 +7,8 @@
 --%><%@attribute name="eventBean" type="com.serotonin.m2m2.web.dwr.beans.EventInstanceBean" rtexprvalue="true"%><%--
 --%><c:if test="${empty event}"><c:set var="event" value="${eventBean}"/></c:if><%--
 --%><c:choose>
-  <c:when test="${event.active && event.alarmLevel == 0}"><tag:img png="flag_green" title="common.alarmLevel.none"/></c:when>
-  <c:when test="${event.alarmLevel == 0}"><tag:img png="flag_green_off" title="common.alarmLevel.none.rtn"/></c:when>
+  <c:when test="${event.active && event.alarmLevel == 0}"><tag:img png="flag_grey" title="common.alarmLevel.none"/></c:when>
+  <c:when test="${event.alarmLevel == 0}"><tag:img png="flag_grey_off" title="common.alarmLevel.none.rtn"/></c:when>
   <c:when test="${event.active && event.alarmLevel == 1}"><tag:img png="flag_blue" title="common.alarmLevel.info"/></c:when>
   <c:when test="${event.alarmLevel == 1}"><tag:img png="flag_blue_off" title="common.alarmLevel.info.rtn"/></c:when>
   <c:when test="${event.active && event.alarmLevel == 2}"><tag:img png="flag_yellow" title="common.alarmLevel.urgent"/></c:when>
