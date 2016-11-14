@@ -95,7 +95,7 @@ create table dataSources (
   primary key (id)
 );
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
-ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
+CREATE INDEX nameIndex on dataSources (name ASC);
 
 --
 --
@@ -286,7 +286,7 @@ CREATE TABLE jsonData (
   	publicData char(1),
   	data ntext,
     primary key (id)
-)engine=InnoDB;
+);
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
 
 --
