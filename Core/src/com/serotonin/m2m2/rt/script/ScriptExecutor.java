@@ -151,48 +151,53 @@ public class ScriptExecutor {
     }
     
     public static ScriptException createScriptError(Exception e){
-    	//Search the stack trace to see if we can pull out any useful script info
-    	if(e instanceof ScriptException){
-    		ScriptException ex = (ScriptException)e;
-    		while (ex.getCause() instanceof ScriptException)
-    			ex = (ScriptException) ex.getCause();
-    		
-            String message = null;
-            //EvaluatorException e1;
-            if((e.getCause() != null)&&e.getCause().getClass().getName().endsWith("EvaluatorException")){
-            	//Get the detail message
-            	Throwable cause = e.getCause();
-            	Class<?> causeClass = cause.getClass();
-            	while(causeClass.getSuperclass() != null){
-	            	try {
-	                	Field f = causeClass.getDeclaredField("detailMessage");
-	                	f.setAccessible(true);
-						message = (String)f.get(cause);
-					} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e1) {
-						//Don't care
-					}
-	            	causeClass = causeClass.getSuperclass();
-            	}
-            	if(message == null)
-            		message = ex.getMessage();
-            }else{
-                String m = ex.getMessage();
-                return new ScriptException(StringUtils.findGroup(PATTERN, m, 2), "javascript",
-                        ex.getLineNumber(), ex.getColumnNumber());
-            }
-
-            return new ScriptException(message, "javascript", ex.getLineNumber(), ex.getColumnNumber());
-    	}else{
-    		//Must get it from the trace
-	    	for(StackTraceElement element : e.getStackTrace()){
-	    		//Compiled Scripts will be run via the __scriptExecutor__ method, Regular scripts are run in the :program method
-	    		if(element.getClassName().startsWith("jdk.nashorn.internal.scripts.Script")&&(element.getMethodName().equals("__scriptExecutor__")||(element.getMethodName().equals(":program")))){
-	    			return new ScriptException(e.getClass().getSimpleName() + ": " + e.getMessage(), "javascript", element.getLineNumber(), -1);
-	    		}
+	    	try{
+	    	//Search the stack trace to see if we can pull out any useful script info
+	    	if(e instanceof ScriptException){
+	    		ScriptException ex = (ScriptException)e;
+	    		while (ex.getCause() instanceof ScriptException)
+	    			ex = (ScriptException) ex.getCause();
+	    		
+	            String message = null;
+	            //EvaluatorException e1;
+	            if((e.getCause() != null)&&e.getCause().getClass().getName().endsWith("EvaluatorException")){
+	            	//Get the detail message
+	            	Throwable cause = e.getCause();
+	            	Class<?> causeClass = cause.getClass();
+	            	while(causeClass.getSuperclass() != null){
+		            	try {
+		                	Field f = causeClass.getDeclaredField("detailMessage");
+		                	f.setAccessible(true);
+							message = (String)f.get(cause);
+						} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e1) {
+							//Don't care
+						}
+		            	causeClass = causeClass.getSuperclass();
+	            	}
+	            	if(message == null)
+	            		message = ex.getMessage();
+	            }else{
+	                String m = ex.getMessage();
+	                return new ScriptException(StringUtils.findGroup(PATTERN, m, 2), "javascript",
+	                        ex.getLineNumber(), ex.getColumnNumber());
+	            }
+	
+	            return new ScriptException(message, "javascript", ex.getLineNumber(), ex.getColumnNumber());
+	    	}else{
+	    		//Must get it from the trace
+		    	for(StackTraceElement element : e.getStackTrace()){
+		    		//Compiled Scripts will be run via the __scriptExecutor__ method, Regular scripts are run in the :program method
+		    		if(element.getClassName().startsWith("jdk.nashorn.internal.scripts.Script")&&(element.getMethodName().equals("__scriptExecutor__")||(element.getMethodName().equals(":program")))){
+		    			return new ScriptException(e.getClass().getSimpleName() + ": " + e.getMessage(), "javascript", element.getLineNumber(), -1);
+		    		}
+		    	}
+		    	
+		    	return new ScriptException(e.getMessage(), "javascript", -1, -1);
 	    	}
-	    	
+	    }catch(Exception all){
+	    	//For sanity until we rework this class as per #909
 	    	return new ScriptException(e.getMessage(), "javascript", -1, -1);
-    	}
+	    }
     }
     
     
