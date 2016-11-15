@@ -39,6 +39,7 @@
 * Users now opt out of alarm emails with their "Send alarm emails" setting set to "Ignore." enabling opting in to NONE events
 * Adding env property runtime.shutdown.highTimeout to limit the time waiting to shutdown for high priority tasks
 * Adding env property runtime.shutdown.medLowTimeout to limit the time waiting to shutdown for low and medium priority tasks
+* Newly created H2 databases are case insensitive
 
 *Version 2.7.12*
 * ETag Support for caching pages

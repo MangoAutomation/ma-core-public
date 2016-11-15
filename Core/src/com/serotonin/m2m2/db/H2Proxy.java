@@ -83,6 +83,9 @@ public class H2Proxy extends DatabaseProxy {
         if (!url.contains(";MV_STORE=")) {
         	url += ";MV_STORE=FALSE";
         }
+        if (!url.contains(";IGNORECASE=")) {
+            url += ";IGNORECASE=TRUE";
+        }
         return url;
     }
 
