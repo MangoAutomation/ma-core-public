@@ -66,9 +66,8 @@ public class DateUtils {
             time = time.millisOfSecond().withMinimumValue();
         }
         else if (periodType == TimePeriods.DAYS) {
-            // there is no logical day to round down to, period should always start at current day
-            //if (periods > 1)
-            //    time = time.minusDays(time.getDayOfYear() % periods);
+            if (periods > 1)
+                time = time.minusDays(time.getDayOfYear() % periods);
             time = time.withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.WEEKS) {
