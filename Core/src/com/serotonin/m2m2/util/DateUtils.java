@@ -48,40 +48,46 @@ public class DateUtils {
                 time = time.minusMillis(time.getMillisOfSecond() % periods);
         }
         else if (periodType == TimePeriods.SECONDS) {
-            time = time.minus(time.getMillisOfSecond());
             if (periods > 1)
                 time = time.minusSeconds(time.getSecondOfMinute() % periods);
+            time = time.millisOfSecond().withMinimumValue();
         }
         else if (periodType == TimePeriods.MINUTES) {
-            time = time.minus(time.getMillisOfSecond());
-            time = time.minus(Common.getPeriod(TimePeriods.SECONDS, time.getSecondOfMinute()));
             if (periods > 1)
                 time = time.minusMinutes(time.getMinuteOfHour() % periods);
+            time = time.secondOfMinute().withMinimumValue();
+            time = time.millisOfSecond().withMinimumValue();
         }
         else if (periodType == TimePeriods.HOURS) {
-            time = time.minus(time.getMillisOfSecond());
-            time = time.minus(Common.getPeriod(TimePeriods.SECONDS, time.getSecondOfMinute()));
-            time = time.minus(Common.getPeriod(TimePeriods.MINUTES, time.getMinuteOfHour()));
             if (periods > 1)
                 time = time.minusHours(time.getHourOfDay() % periods);
+            time = time.minuteOfHour().withMinimumValue();
+            time = time.secondOfMinute().withMinimumValue();
+            time = time.millisOfSecond().withMinimumValue();
         }
         else if (periodType == TimePeriods.DAYS) {
-        	time = time.minusDays(periods-1).withTimeAtStartOfDay();
+            // there is no logical day to round down to, period should always start at current day
+            //if (periods > 1)
+            //    time = time.minusDays(time.getDayOfYear() % periods);
+            time = time.withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.WEEKS) {
             if (periods > 1)
                 time = time.minusWeeks(time.getWeekOfWeekyear() % periods);
-            time = time.minus(Common.getPeriod(TimePeriods.DAYS, time.getDayOfWeek() - 1));
-        	time = time.minus(time.getMillisOfDay());
+            time = time.dayOfWeek().withMinimumValue();
+            time = time.withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.MONTHS) {
-        	time = time.minusMonths(periods-1).withDayOfMonth(1).withTimeAtStartOfDay();
+            if (periods > 1)
+                time = time.minusMonths(time.getMonthOfYear() % periods);
+            time = time.dayOfMonth().withMinimumValue();
+            time = time.withTimeAtStartOfDay();
         }
         else if (periodType == TimePeriods.YEARS) {
-            time = time.minus(time.getMillisOfDay());
-            time = time.minus(Common.getPeriod(TimePeriods.DAYS, time.getDayOfYear() - 1));
             if (periods > 1)
                 time = time.minusYears(time.getYearOfCentury() % periods);
+            time = time.dayOfYear().withMinimumValue();
+            time = time.withTimeAtStartOfDay();
         }
         return time;
     }
