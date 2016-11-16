@@ -40,6 +40,8 @@
 * Adding env property runtime.shutdown.highTimeout to limit the time waiting to shutdown for high priority tasks
 * Adding env property runtime.shutdown.medLowTimeout to limit the time waiting to shutdown for low and medium priority tasks
 * Newly created H2 databases are case insensitive
+* Adding env property db.forceUseIndex which will force the use of indexes on data point RQL queries for performance improvements
+* Adding env properties db.fetchSize and db.stream to experiment with memory footprint reduction (defaults to disabled)
 
 *Version 2.7.12*
 * ETag Support for caching pages
