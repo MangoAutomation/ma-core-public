@@ -25,9 +25,10 @@
    <url>http://www.infiniteautomation.com/</url>
  </organization>
  <modules>
-   <module>Assembly Descriptors</module>
+   <module>AssemblyDescriptors</module>
    <module>Core</module>
    <module>Modules</module>
+   <module>CoreBundle</module>
  </modules>
  <repositories>
     <repository>
@@ -153,6 +154,16 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-plugin</artifactId>
+          <version>1.9.5</version>
+          <configuration>
+              <connectionType>developerConnection</connectionType>
+              <scmVersion>main</scmVersion>
+              <scmVersionType>branch</scmVersionType>
+          </configuration>
+      </plugin>
     </plugins>
   </build>
  <issueManagement>
@@ -162,6 +173,6 @@
  <scm>
    <url>https://github.com/infiniteautomation/ma-core-public</url>
    <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
-   <developerConnection>scm:git:git@github.com:infiniteautomation/ma-core-public.git</developerConnection>
+   <developerConnection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
  </scm>
 </project>
