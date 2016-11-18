@@ -2,7 +2,7 @@
   xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>core-zip</id>
+  <id>full-core-zip</id>
   <formats>
     <format>dir</format>
     <format>zip</format>
@@ -106,11 +106,20 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-        <excludes>
+		<excludes>
  			<!-- Exclude the module zips from the lib folder -->
 			<exclude>com.infiniteautomation.mango:*:zip</exclude>
 		</excludes>
+      <useProjectArtifact>false</useProjectArtifact>
     </dependencySet>
-   </dependencySets>
+    <dependencySet>
+    	<outputDirectory>web/modules</outputDirectory>
+    	<includes>
+    		<!-- Public Modules -->
+    		<include>com.infiniteautomation.mango:ascii-ds</include>
+    		<include>com.infiniteautomation.mango:mango-api</include>
+    	</includes>
+    	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+  </dependencySets>
 </assembly>	

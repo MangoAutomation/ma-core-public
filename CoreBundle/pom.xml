@@ -17,14 +17,14 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
-                <id>core-zip</id>
+                <id>full-core-zip</id>
                 <phase>package</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>
                 <configuration>
                   <descriptorRefs>
-                    <descriptorRef>coreZipAssembly</descriptorRef>
+                    <descriptorRef>fullCoreZipAssembly</descriptorRef>
                   </descriptorRefs>
                   <finalName>ma-core-${project.parent.version}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
@@ -83,6 +83,25 @@
 			<artifactId>ma-priv</artifactId>
 			<version>1.5.0</version>
 		</dependency>
+		<!--  TODO REVIEW THIS https://maven.apache.org/plugins/maven-assembly-plugin/ -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>ma-modules-public</artifactId> -->
+<!-- 			<version>${project.parent.version}</version> -->
+<!-- 			<type>pom</type> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>ma-modules-private</artifactId> -->
+<!-- 			<version>${project.parent.version}</version> -->
+<!-- 			<type>pom</type> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>ma-modules-proprietary</artifactId> -->
+<!-- 			<version>${project.parent.version}</version> -->
+<!-- 			<type>pom</type> -->
+<!-- 		</dependency> -->
 		<!-- Private Modules -->
 <!-- 		<dependency> -->
 <!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
@@ -101,8 +120,14 @@
 		<!-- Public Modules -->
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>mangoApi</artifactId>
-			<version>1.1.9</version>
+			<artifactId>ascii-ds</artifactId>
+			<version>1.3.1-SNAPSHOT</version>
+			<type>zip</type>
+		</dependency>
+		<dependency>
+			<groupId>com.infiniteautomation.mango</groupId>
+			<artifactId>mango-api</artifactId>
+			<version>1.2.1-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 	</dependencies>
