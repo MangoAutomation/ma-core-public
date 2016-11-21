@@ -179,6 +179,19 @@ public class ModulesDwr extends BaseDwr {
 
         return null;
     }
+    
+    @DwrPermission(admin = true)
+    public ProcessResult tryCancelDownloads() {
+    	ProcessResult pr = new ProcessResult();
+    	if(UPGRADE_DOWNLOADER == null) {
+    		pr.addGenericMessage("modules.versionCheck.notRunning");
+    		return pr;
+    	}
+    	
+    	UPGRADE_DOWNLOADER.cancel();
+    	pr.addGenericMessage("common.cancelled");
+    	return pr;
+    }
 
     @DwrPermission(admin = true)
     public ProcessResult monitorDownloads() {
@@ -253,11 +266,16 @@ public class ModulesDwr extends BaseDwr {
         private boolean finished;
         private final File coreDir = new File(Common.MA_HOME);
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
+        private volatile boolean cancelled = false;
 
         public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart) {
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;
+        }
+        
+        void cancel() {
+        	this.cancelled = true;
         }
 
         @Override
@@ -302,6 +320,18 @@ public class ModulesDwr extends BaseDwr {
             cleanDownloads();
 
             for (StringStringPair mod : modules) {
+            	if(cancelled) {
+            		LOG.info("UpgradeDownloader: Cancelled");
+            		try {
+                        FileUtils.cleanDirectory(tempDir);
+                    }
+                    catch (IOException e) {
+                        error = "Error while clearing temp dir when cancelled: " + e.getMessage();
+                        LOG.warn("Error while clearing temp dir when cancelled", e);
+                        finished = true;
+                    }
+            		return;
+            	}
                 String name = mod.getKey();
                 String version = mod.getValue();
 
@@ -370,6 +400,15 @@ public class ModulesDwr extends BaseDwr {
             }
             catch (IOException e) {
                 LOG.warn(e);
+            }
+            
+            //Final chance to be cancelled....
+            if(cancelled) {
+            	//Delete what we downloaded.
+            	cleanDownloads();
+            	LOG.info("UpgradeDownloader: Cancelled");
+            	finished = true;
+            	return;
             }
 
             if (restart) {

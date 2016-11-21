@@ -215,6 +215,13 @@
         });
     }
     
+    function cancelUpgrade() {
+    	hide('upgradesDiv');
+    	ModulesDwr.tryCancelDownloads(function(response) {
+    		console.log(response);
+    	});
+    }
+    
     function downloadMonitor() {
         ModulesDwr.monitorDownloads(function(results) {
         	$set("upgradeStage", results.data.stage);
@@ -361,8 +368,8 @@
     </div>
     
     <div id="upgradeModulesButtons">
-      <input id="downloadUpgradesBtn" type="button" value="<fmt:message key="modules.downloadUpgrades"/>" onclick="startDownloads()"/>
-      <input id="upgradesCloseBtn" type="button" value="<fmt:message key="modules.upgradesClose"/>" onclick="hide('upgradesDiv')"/>
+      <input id="downloadUpgradesBtn" type="button" value="<fmt:message key="modules.downloadUpgrades"/>" onclick="startDownloads();"/>
+      <input id="upgradesCloseBtn" type="button" value="<fmt:message key="modules.upgradesClose"/>" onclick="cancelUpgrade();"/>
       <tag:help id="performUpgrades" />&nbsp;
       <img id="upgradeModulesThrobber" src="/images/throbber.gif" style="vertical-align: bottom;"/>&nbsp;
       <span id="upgradeStage"></span>
