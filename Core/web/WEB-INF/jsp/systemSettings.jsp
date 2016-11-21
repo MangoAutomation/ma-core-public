@@ -612,6 +612,11 @@
     function getDatabaseBackupFiles() {
          hideContextualMessages("databaseBackupSettingsTab"); //Clear out any existing msgs
          SystemSettingsDwr.getDatabaseBackupFiles(function(response){
+        	 if(response.hasMessages) {
+        		showDwrMessages(response.messages);
+        		return;
+        	 }
+        	 
              var backupFileSelect = document.getElementById("databaseFileToRestore");
              while(backupFileSelect.length > 0)
                  backupFileSelect.remove(0);
