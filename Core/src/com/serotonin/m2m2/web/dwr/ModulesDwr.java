@@ -127,7 +127,7 @@ public class ModulesDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public String startDownloads(List<StringStringPair> modules, boolean backup, boolean restart) {
-        if (UPGRADE_DOWNLOADER != null)
+        if (UPGRADE_DOWNLOADER != null && !UPGRADE_DOWNLOADER.isFinished())
             return Common.translate("modules.versionCheck.occupied");
 
         // Check if the selected modules will result in a version-consistent system.
@@ -166,9 +166,9 @@ public class ModulesDwr extends BaseDwr {
         }
 
         // Ensure that 2 downloads cannot start at the same time.
-        if (UPGRADE_DOWNLOADER == null) {
+        if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
             synchronized (this) {
-                if (UPGRADE_DOWNLOADER == null) {
+                if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
                     UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart);
                     Common.timer.execute(UPGRADE_DOWNLOADER);
                 }
@@ -197,6 +197,7 @@ public class ModulesDwr extends BaseDwr {
     public ProcessResult monitorDownloads() {
         ProcessResult result = new ProcessResult();
         result.addData("finished", UPGRADE_DOWNLOADER.isFinished());
+        result.addData("cancelled", UPGRADE_DOWNLOADER.cancelled);
         result.addData("restart", UPGRADE_DOWNLOADER.isRestart());
         if (UPGRADE_DOWNLOADER.getError() != null)
             result.addData("error", UPGRADE_DOWNLOADER.getError());
