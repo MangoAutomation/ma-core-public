@@ -799,6 +799,10 @@ public class SystemSettingsDwr extends BaseDwr {
         String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
 
         File[] backupFiles = DatabaseBackupWorkItem.getBackupFiles(backupLocation);
+        if(backupFiles == null) {
+        	result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION, "systemSettings.validation.backupLocationNotExists");
+        	return result;
+        }
 
         //Parse the list into data for a select list
         //Files of form core-database-TYPE-date_time
