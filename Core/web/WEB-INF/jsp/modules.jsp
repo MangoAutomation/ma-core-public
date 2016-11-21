@@ -131,7 +131,7 @@
             $("masterUpgradeCB").disabled = false;
             $("masterNewInstallCB").disabled = false;
             toggler($("newInstallToggler"), true);
-            toggler($("advancedOptionsToggler"), true);
+            toggler($("advancedOptionsToggler"), false);
             $set("upgradeStage");
         });
     }
