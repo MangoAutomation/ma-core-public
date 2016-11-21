@@ -218,7 +218,7 @@
     function cancelUpgrade() {
     	hide('upgradesDiv');
     	ModulesDwr.tryCancelDownloads(function(response) {
-    		console.log(response);
+    		showDwrMessages(response);
     	});
     }
     
@@ -233,7 +233,9 @@
                 hide("upgradeModulesButtons");
                 hide("upgradeModulesThrobber");
                 
-                if (results.data.error) {
+                if (results.data.cancelled) {
+                	//Nothing to do
+            	} else if (results.data.error) {
                     $set("upgradeModulesErrorMessage", results.data.error);
                     show("upgradeModulesError");
                 }
