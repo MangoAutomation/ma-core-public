@@ -176,7 +176,7 @@
     function deleteFolder() {
         setErrorMessage();
         
-        if (selectedFolderNode.item.children.length > 0) {
+        if (selectedFolderNode.item.children && selectedFolderNode.item.children.length > 0) {
             if (!confirm("<fmt:message key="pointHierarchy.deleteConfirm"/>"))
                 return;
         }
