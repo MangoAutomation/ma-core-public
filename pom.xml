@@ -27,8 +27,15 @@
    <module>AssemblyDescriptors</module>
    <module>Core</module>
    <module>Modules</module>
-   <module>CoreBundle</module>
  </modules>
+ <profiles>
+    <profile>
+      <id>core-zip</id>
+      <modules>
+        <module>CoreBundle</module>
+      </modules>
+    </profile>
+ </profiles>
  <repositories>
     <repository>
         <releases>
