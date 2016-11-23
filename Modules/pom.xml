@@ -282,5 +282,11 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
       <type>war</type>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
