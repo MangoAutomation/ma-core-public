@@ -83,6 +83,12 @@
 			<artifactId>ma-priv</artifactId>
 			<version>1.5.0</version>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>public-modules-dist</artifactId> -->
+<!-- 			<version>${project.parent.version}</version> -->
+<!-- 			<type>zip</type> -->
+<!-- 		</dependency> -->
 		<!--  TODO REVIEW THIS https://maven.apache.org/plugins/maven-assembly-plugin/ -->
 <!-- 		<dependency> -->
 <!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
@@ -117,18 +123,18 @@
 <!-- 			<optional>true</optional> -->
 <!-- 		</dependency> -->
 
-		<!-- Public Modules -->
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>ascii-ds</artifactId>
-			<version>1.3.1-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>mango-api</artifactId>
-			<version>1.2.1-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
+	 		<!-- Public Modules -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>ascii-ds</artifactId> -->
+<!-- 			<version>1.3.1-SNAPSHOT</version> -->
+<!-- 			<type>zip</type> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
+<!-- 			<artifactId>mango-api</artifactId> -->
+<!-- 			<version>1.2.1-SNAPSHOT</version> -->
+<!-- 			<type>zip</type> -->
+<!-- 		</dependency> -->
 	</dependencies>
 </project>

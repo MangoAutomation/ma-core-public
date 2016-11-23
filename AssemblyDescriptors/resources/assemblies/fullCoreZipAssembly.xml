@@ -34,9 +34,7 @@
         <include>ftl/**</include>
         <include>web/**</include>
       </includes>
-      <excludes>
-      	<exclude>web/modules/**</exclude>
-      </excludes>
+      <!-- TODO Exclude Module Zips? -->
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/work</directory>
@@ -95,13 +93,6 @@
       	<exclude>*/**</exclude>
       </excludes>
     </fileSet>
-    <fileSet>
-      <directory>.</directory>
-      <outputDirectory>web/modules</outputDirectory>
-      <excludes>
-      	<exclude>*/**</exclude>
-      </excludes>
-    </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>
@@ -112,14 +103,13 @@
 		</excludes>
       <useProjectArtifact>false</useProjectArtifact>
     </dependencySet>
-    <dependencySet>
-    	<outputDirectory>web/modules</outputDirectory>
-    	<includes>
-    		<!-- Public Modules -->
-    		<include>com.infiniteautomation.mango:ascii-ds</include>
-    		<include>com.infiniteautomation.mango:mango-api</include>
-    	</includes>
-    	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
-    </dependencySet>
+<!--     <dependencySet> -->
+<!--     	<outputDirectory>web/modules</outputDirectory> -->
+<!--     	<includes> -->
+<!--     		Public Modules -->
+<!--     		<include>com.infiniteautomation.mango:*:zip</include> -->
+<!--     	</includes> -->
+<!--     	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping> -->
+<!--     </dependencySet> -->
   </dependencySets>
 </assembly>	
