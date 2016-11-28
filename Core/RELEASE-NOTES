@@ -1,3 +1,9 @@
+*Version 2.8.2*
+* Adding 'cancel' button for upgrades.
+* Bugfix for failing first database backup on Windows machines
+* Fix to allow deleting empty Point Hierarchy folders whilst editing
+* Upgrade advanced settings are displayed by default now
+
 *Version 2.8.0*
 * Upgrade core-private for new login process
 * Adding runtime.javascript.metrics. env property to log javascript execution times of the ScriptEngine
