@@ -49,7 +49,7 @@ public class DatabaseLogAppender extends AsyncAppender{
 		
 		String message = event.getMessage().toString();
 		String locationInfo = null;
-		if(event.locationInformationExists()){
+		if(event.getLocationInformation() != null){
 			StringBuilder locationBuilder = new StringBuilder();
 			locationBuilder.append(event.getLocationInformation().getClassName());
 			locationBuilder.append(".");
@@ -59,7 +59,7 @@ public class DatabaseLogAppender extends AsyncAppender{
 			locationInfo = locationBuilder.toString();
 		}
 		
-		this.dao.log(new LogEvent(event.getTimeStamp(), event.getLevel().toInt(), message, locationInfo));
+		this.dao.log(new LogEvent(event.timeStamp, event.getLevel().toInt(), message, locationInfo));
 		
 	}
 
