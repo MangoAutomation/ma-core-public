@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -112,7 +113,7 @@ public class JsonSerializableUtility {
 		return allChanges;
 	}
 	
-	protected boolean different(Object fromValue, Object toValue) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	protected boolean different(Object fromValue, Object toValue) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
 		
 		//Either null?
 		if(((fromValue == null)&&(toValue != null))||((fromValue != null)&&(toValue == null)))
@@ -126,19 +127,87 @@ public class JsonSerializableUtility {
 		if(!fromValue.getClass().equals(toValue.getClass()))
 			return true;
 		
+		//List
+		if(fromValue instanceof Collection<?>){
+			Collection<?> fromCollection = (Collection<?>)fromValue;
+			Collection<?> toCollection = (Collection<?>)toValue;
+			//Does the toCollection contain an item that is new/different?
+			if(toCollection.size() == fromCollection.size()){
+				for(Object to : toCollection){
+					boolean containedWithinFrom = false;
+					for(Object from : fromCollection){
+						if(!differentRecursive(from, to)){
+							containedWithinFrom = true;
+							break;
+						}
+					}
+					if(!containedWithinFrom)
+						return true;
+				}
+			}else{
+				//Different Size
+				return true;
+			}
+			return false;
+		}
+		//Map
+		if(fromValue instanceof Map<?,?>){
+			Map<?,?> fromMap = (Map<?,?>)fromValue;
+			Map<?,?> toMap = (Map<?,?>)toValue;
+			if(toMap.size() == fromMap.size()){
+				Iterator<?> it = toMap.keySet().iterator();
+				while(it.hasNext()){
+					Object key = it.next();
+					Object from = fromMap.get(key);
+					Object to = toMap.get(key);
+					if(differentRecursive(from, to))
+						return true;
+				}
+			}else{
+				//Different size
+				return true;
+			}
+			return false;
+		}
+		
 		//Same class, check if it has properties
 		return differentRecursive(fromValue, toValue);
 	}
 	
-	protected boolean differentRecursive(Object from, Object to) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	protected boolean differentRecursive(Object from, Object to) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
+
 		List<SerializableProperty> properties = findProperties(from.getClass());
-		if(properties.size() == 0)
-			return !ObjectUtils.equals(from, to);
-		else{
-			for(SerializableProperty property : properties)
-				if(different(property.getReadMethod().invoke(from), property.getReadMethod().invoke(to)))
-					return true;
+		
+		//Check the serialized annotations
+		for(SerializableProperty property : properties)
+			if(different(property.getReadMethod().invoke(from), property.getReadMethod().invoke(to)))
+				return true;
+		
+		//Second if we are JsonSerializable check the values returned from that
+		JsonMapEntryWriter fromWriter = new JsonMapEntryWriter();
+		if(from instanceof JsonSerializable){
+			((JsonSerializable)from).jsonWrite(fromWriter);
 		}
+		JsonMapEntryWriter toWriter = new JsonMapEntryWriter();
+		if(to instanceof JsonSerializable){
+			((JsonSerializable)to).jsonWrite(toWriter);
+		}
+			
+		//Compare the 2 maps and if different add the toValues
+		Iterator<String> it = toWriter.keySet().iterator();
+		if(it.hasNext()){
+			while(it.hasNext()){
+				String name = it.next();
+				Object fromValue = fromWriter.get(name);
+				Object toValue = toWriter.get(name);
+				if(different(fromValue, toValue))
+					return true;
+			}
+		}else if(properties.size() == 0){
+			//No Sero Json Properties at all 
+			return !ObjectUtils.equals(from, to);
+		}
+
 		return false;
 	}
 	
