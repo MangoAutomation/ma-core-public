@@ -1,3 +1,7 @@
+*Version 2.8.4*
+* Fixing bug in publisher saving
+* Adding validation to publisher snapshot period type
+
 *Version 2.8.2*
 * Adding 'cancel' button for upgrades.
 * Bugfix for failing first database backup on Windows machines
