@@ -211,6 +211,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         if (sendSnapshot) {
             if (snapshotSendPeriods <= 0)
                 response.addContextualMessage("snapshotSendPeriods", "validate.greaterThanZero");
+            if(!Common.TIME_PERIOD_CODES.isValidId(snapshotSendPeriodType, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.DAYS, 
+            		Common.TimePeriods.WEEKS, Common.TimePeriods.MONTHS, Common.TimePeriods.YEARS))
+            	response.addContextualMessage("snapshotSendPeriodType", "validate.invalidValue");
         }
 
         if (cacheWarningSize < 1)
