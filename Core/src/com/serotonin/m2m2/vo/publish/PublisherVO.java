@@ -311,7 +311,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             else
             	this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
-            cacheDiscardSize = cacheWarningSize * 3;
+            cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
@@ -322,7 +322,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             points = (List<T>) in.readObject();
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
-            cacheDiscardSize = cacheWarningSize * 3;
+            cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
