@@ -584,7 +584,7 @@
 	<parent>
 		<artifactId>mango-parent</artifactId>
 		<groupId>com.infiniteautomation.mango</groupId>
-		<version>2.8.2</version>
+		<version>2.8.4</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.infiniteautomation</groupId>
