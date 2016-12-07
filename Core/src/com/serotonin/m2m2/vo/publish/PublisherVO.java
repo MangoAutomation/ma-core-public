@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -223,14 +224,22 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
 
         Set<Integer> set = new HashSet<>();
-        for (T point : points) {
+        ListIterator<T> it = points.listIterator();
+        
+        while(it.hasNext()) {
+        	T point = it.next();
             int pointId = point.getDataPointId();
+            //Does this point even exist?
+            DataPointVO vo = DataPointDao.instance.getDataPoint(pointId);
             if (set.contains(pointId)) {
-                DataPointVO vo = new DataPointDao().getDataPoint(pointId);
                 response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
             }
-            else
-                set.add(pointId);
+            else{
+                if(vo == null)
+                	it.remove();
+                else
+                	set.add(pointId);
+            }
         }
     }
 

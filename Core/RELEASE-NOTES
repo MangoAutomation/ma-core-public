@@ -1,3 +1,6 @@
+*Version 2.8.6*
+* Fix to ensure publishers are not saved with previously deleted data points
+
 *Version 2.8.4*
 * Fixing bug in publisher saving
 * Adding validation to publisher snapshot period type
