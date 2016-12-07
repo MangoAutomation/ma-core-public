@@ -1,3 +1,19 @@
+*Version 2.8.6*
+* Fix to ensure publishers are not saved with previously deleted data points
+
+*Version 2.8.4*
+* Fixing bug in publisher saving
+* Adding validation to publisher snapshot period type
+* Added templates, virtual serial ports and jsonData to json backups
+* Touched up UI for templates on edit data point page
+* Fix for json import task importing new core components depending on new module components
+
+*Version 2.8.2*
+* Adding 'cancel' button for upgrades.
+* Bugfix for failing first database backup on Windows machines
+* Fix to allow deleting empty Point Hierarchy folders whilst editing
+* Upgrade advanced settings are displayed by default now
+
 *Version 2.8.0*
 * Upgrade core-private for new login process
 * Adding runtime.javascript.metrics. env property to log javascript execution times of the ScriptEngine
