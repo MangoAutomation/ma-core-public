@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,8 +47,6 @@ import com.serotonin.m2m2.web.dojo.DojoMemoryStoreListItem;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.taglib.Functions;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * @author Terry Packer
