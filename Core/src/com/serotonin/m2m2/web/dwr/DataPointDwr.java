@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,8 @@ import com.serotonin.m2m2.web.dojo.DojoMemoryStoreListItem;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.taglib.Functions;
+
+import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * @author Terry Packer
@@ -464,6 +467,18 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         for (Unit<?> unit : NonSI.getInstance().getUnits()) {
             pairs.add(new DojoMemoryStoreListItem(unit.toString(), id++));
         }
+        
+        List<String> addedUnits = UnitUtil.getAddedUnitLabels();
+        for (String unit : addedUnits) {
+        	pairs.add(new DojoMemoryStoreListItem(unit, id++));
+        }
+        
+        Collections.sort(pairs, new Comparator<DojoMemoryStoreListItem>() {
+			@Override
+			public int compare(DojoMemoryStoreListItem arg0, DojoMemoryStoreListItem arg1) {
+				return arg0.getName().compareToIgnoreCase(arg1.getName());
+			}
+        });
 
         result.addData("units", pairs);
         return result;

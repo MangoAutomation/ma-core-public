@@ -7,6 +7,8 @@ package com.serotonin.m2m2.util;
 
 import java.text.ParseException;
 import java.text.ParsePosition;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.measure.quantity.Energy;
 import javax.measure.unit.NonSI;
@@ -24,6 +26,7 @@ import com.serotonin.m2m2.Common;
 public class UnitUtil {
     static final UnitFormat localFormat = UnitFormat.getInstance(Common.getLocale());
     static final UnitFormat ucumFormat = UnitFormat.getInstance();//UnitFormat.getUCUMInstance();
+    static final List<String> addedUnitLabels = new ArrayList<String>();
 
     public static final Unit<Energy> BTU = SI.JOULE.times(1055.05585262D);
     public static final Unit<Energy> THERM = BTU.times(100000);
@@ -31,16 +34,22 @@ public class UnitUtil {
 
     static {
         // register some labels
-        localFormat.label(BTU, "btu");
-        localFormat.label(THERM, "thm");
-        localFormat.label(PSI, "psi");
+        localFormat.label(BTU, "btu"); addedUnitLabels.add("btu");
+        localFormat.label(THERM, "thm"); addedUnitLabels.add("thm");
+        localFormat.label(PSI, "psi"); addedUnitLabels.add("psi");
+        
         localFormat.label(NonSI.REVOLUTION.divide(NonSI.MINUTE), "rpm");
+        addedUnitLabels.add("rpm");
         localFormat.label(Unit.ONE.divide(1000000), "ppm");
+        addedUnitLabels.add("ppm");
         localFormat.label(Unit.ONE.divide(1000000000), "ppb");
+        addedUnitLabels.add("ppb");
 
         //Define any aliases
         localFormat.alias(SI.CELSIUS, "Celsius"); // easier to type
+        addedUnitLabels.add("celsius");
         localFormat.alias(NonSI.FAHRENHEIT, "Fahrenheit");
+        addedUnitLabels.add("Fahrenheit");
     }
 
     @SuppressWarnings("deprecation")
@@ -86,5 +95,9 @@ public class UnitUtil {
                 //return Unit.ONE;
             }
         }
+    }
+    
+    public static List<String> getAddedUnitLabels() {
+    	return addedUnitLabels;
     }
 }
