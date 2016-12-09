@@ -122,7 +122,9 @@
     <convert converter="bean" match="com.serotonin.m2m2.view.text.PlainRenderer" javascript="PlainRenderer">
             <param name="exclude" value="unit,renderedUnit"/>
     </convert>
-    <convert converter="bean" match="com.serotonin.m2m2.view.text.RangeRenderer" javascript="RangeRenderer"/>
+    <convert converter="bean" match="com.serotonin.m2m2.view.text.RangeRenderer" javascript="RangeRenderer">
+    	<param name="exclude" value="unit,renderedUnit"/>
+    </convert>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.RangeValue" javascript="RangeValue"/>   
     <convert converter="bean" match="com.serotonin.m2m2.view.text.TextRenderer" javascript="TextRenderer"/>
     <convert converter="bean" match="com.serotonin.m2m2.view.text.TimeRenderer" javascript="TimeRenderer"/>    
