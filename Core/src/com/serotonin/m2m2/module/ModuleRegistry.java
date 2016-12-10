@@ -91,6 +91,7 @@ public class ModuleRegistry {
     private static Map<String, WebSocketDefinition> WEB_SOCKET_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
+    private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
@@ -440,6 +441,36 @@ public class ModuleRegistry {
                     	map.put(def.getTypeName(), def);
                     }
                     WEB_SOCKET_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // AngularJS Module special handling
+    //
+    public static List<AngularJSModuleDefinition> getAngularJSDefinitions() {
+    	ensureAngularJSModuleDefinitions();
+        return ANGULARJS_MODULE_DEFINITIONS;
+    }
+
+    private static void ensureAngularJSModuleDefinitions() {
+        if (ANGULARJS_MODULE_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (ANGULARJS_MODULE_DEFINITIONS == null) {
+                    List<AngularJSModuleDefinition> list = new ArrayList<AngularJSModuleDefinition>();
+                    for(AngularJSModuleDefinition def : Module.getDefinitions(preDefaults, AngularJSModuleDefinition.class)){
+                    	list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (AngularJSModuleDefinition def : module.getDefinitions(AngularJSModuleDefinition.class))
+                        	list.add(def);
+                    }
+                    for(AngularJSModuleDefinition def : Module.getDefinitions(postDefaults, AngularJSModuleDefinition.class)){
+                    	list.add(def);
+                    }
+                    ANGULARJS_MODULE_DEFINITIONS = list;
                 }
             }
         }

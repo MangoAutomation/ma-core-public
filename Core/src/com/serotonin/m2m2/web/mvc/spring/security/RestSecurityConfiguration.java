@@ -91,12 +91,15 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	        http.authorizeRequests().antMatchers(HttpMethod.GET, "/status**").permitAll()
 			
 			//REST api Restrictions
+	        //TODO Change this to be defined in module definitions
 			.antMatchers(HttpMethod.GET, "/rest/v1/login/*").permitAll()
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/login/*").permitAll() //For CORS reqeusts
 			.antMatchers(HttpMethod.GET, "/rest/v1/translations/public/*").permitAll() //For public translations
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/translations/public/*").permitAll() //For public translations
 			.antMatchers(HttpMethod.GET, "/rest/v1/json-data/public/*").permitAll() //For public json-data
-			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/json-data/public/*").permitAll() //For public json-data			
+			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/json-data/public/*").permitAll() //For public json-data
+			.antMatchers(HttpMethod.GET, "/rest/v1/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
+			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
 			.antMatchers(HttpMethod.OPTIONS, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.POST, "/rest/v1/**").authenticated()
 			.antMatchers(HttpMethod.PUT, "/rest/v1/**").authenticated()
