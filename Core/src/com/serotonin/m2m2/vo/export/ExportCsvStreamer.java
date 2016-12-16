@@ -9,8 +9,10 @@ import java.io.PrintWriter;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.view.export.CsvWriter;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -25,13 +27,24 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
     public final static int columns = 8;
     // Working fields
     private TextRenderer textRenderer;
+    private int dataPointId;
     private final String[] data = new String[columns];
     public static final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy/MM/dd HH:mm:ss.SSS");
     private final CsvWriter csvWriter = new CsvWriter();
-
-    public ExportCsvStreamer(PrintWriter out, Translations translations) {
+    private final UriComponentsBuilder imageServletBuilder;   
+    
+    public ExportCsvStreamer(String host, int port, PrintWriter out, Translations translations) {
         this.out = out;
         this.translations = translations;
+        
+        //Setup the Image URL Builder
+        imageServletBuilder  = UriComponentsBuilder.fromPath("/imageValue/hst{ts}_{id}.jpg");
+		if(Common.envProps.getBoolean("ssl.on", false))
+			imageServletBuilder.scheme("https");
+		else
+			imageServletBuilder.scheme("http");
+		imageServletBuilder.host(host);
+		imageServletBuilder.port(port);
 
         // Write the headers.
         data[0] = Common.translate("emport.dataPoint.xid");
@@ -54,6 +67,7 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
         data[1] = pointInfo.getDeviceName();
         data[2] = pointInfo.getPointName();
         textRenderer = pointInfo.getTextRenderer();
+        dataPointId = pointInfo.getDataPointId();
     }
 
     @Override
@@ -63,6 +77,8 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
         if (rdv.getValue() == null)
             data[4] = data[5] = null;
         else {
+        	if(rdv.getValue().getDataType() == DataTypes.IMAGE)
+        		data[4] = imageServletBuilder.buildAndExpand(rdv.getTime(), dataPointId).toUri().toString();
             data[4] = rdv.getValue().toString();
             data[5] = textRenderer.getText(rdv.getValue(), TextRenderer.HINT_FULL);
         }

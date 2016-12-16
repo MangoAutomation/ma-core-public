@@ -71,11 +71,11 @@ public class ChartExportServlet extends HttpServlet {
         
 
 	        if(request.getPathInfo().endsWith(".csv"))
-	        	this.exportCsv(response, from, to, def, user);
+	        	this.exportCsv(request, response, from, to, def, user);
 	        else if(pathInfo.endsWith(".xlsx"))
 	        	this.exportExcel(response, from, to, def, user);
 	        else
-	        	this.exportCsv(response, from, to, def, user); //For general error catching
+	        	this.exportCsv(request, response, from, to, def, user); //For general error catching
         }
     }
 
@@ -88,7 +88,7 @@ public class ChartExportServlet extends HttpServlet {
      * @param user
      * @throws IOException
      */
-    private void exportCsv(HttpServletResponse response,long from, long to, DataExportDefinition def, User user) throws IOException{
+    private void exportCsv(HttpServletRequest request, HttpServletResponse response,long from, long to, DataExportDefinition def, User user) throws IOException{
         
         DataPointDao dataPointDao = new DataPointDao();
         PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
@@ -97,7 +97,7 @@ public class ChartExportServlet extends HttpServlet {
         response.setContentType("text/csv");
 
         final Translations translations = Common.getTranslations();
-        final ExportCsvStreamer exportCreator = new ExportCsvStreamer(response.getWriter(), translations);
+        final ExportCsvStreamer exportCreator = new ExportCsvStreamer(request.getServerName(), request.getLocalPort(), response.getWriter(), translations);
 
         final ExportDataValue edv = new ExportDataValue();
         MappedRowCallback<PointValueTime> callback = new MappedRowCallback<PointValueTime>() {
@@ -121,6 +121,7 @@ public class ChartExportServlet extends HttpServlet {
                 pointInfo.setPointName(dp.getName());
                 pointInfo.setDeviceName(dp.getDeviceName());
                 pointInfo.setTextRenderer(dp.getTextRenderer());
+                pointInfo.setDataPointId(pointId);
                 exportCreator.startPoint(pointInfo);
 
                 pointValueDao.getPointValuesBetween(pointId, from, to, callback);

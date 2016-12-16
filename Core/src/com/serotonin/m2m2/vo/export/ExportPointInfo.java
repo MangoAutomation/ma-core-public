@@ -11,7 +11,8 @@ import com.serotonin.m2m2.view.text.TextRenderer;
  * @author Matthew Lohbihler
  */
 public class ExportPointInfo {
-    private int reportPointId;
+    private int reportPointId; //Id of report point (if this is for reports)
+    private int dataPointId; //Id of data point referenced by report (or just data point)
     private String deviceName;
     private String pointName;
     private int dataType;
@@ -35,7 +36,15 @@ public class ExportPointInfo {
         this.reportPointId = reportPointId;
     }
 
-    public String getDeviceName() {
+    public int getDataPointId() {
+		return dataPointId;
+	}
+
+	public void setDataPointId(int dataPointId) {
+		this.dataPointId = dataPointId;
+	}
+
+	public String getDeviceName() {
         return deviceName;
     }
 
