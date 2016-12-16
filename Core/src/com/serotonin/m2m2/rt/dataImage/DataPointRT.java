@@ -179,7 +179,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
     public List<PointValueTime> getLatestPointValues(int limit) {
         return valueCache.getLatestPointValues(limit);
     }
-
+    
     @Override
     public List<PointValueTime> getPointValues(long since) {
         List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValues(vo.getId(), since);
@@ -727,5 +727,16 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
      */
 	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
+	}
+	
+	/**
+	 * Get a copy of the current cache
+	 * @return
+	 */
+	public List<PointValueTime> getCacheCopy(){
+		List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
+		for(PointValueTime pvt : this.valueCache.getCacheContents())
+			copy.add(pvt);
+		return copy;
 	}
 }
