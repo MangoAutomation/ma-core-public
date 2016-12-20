@@ -64,7 +64,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
      */
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        // dont user JsonProperty annotation so we can choose whether to read/write in sub type
+        // don't use JsonProperty annotation so we can choose whether to read/write in sub type
         xid = jsonObject.getString("xid");
         name = jsonObject.getString("name");
     }
