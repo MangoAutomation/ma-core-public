@@ -39,8 +39,6 @@ import com.serotonin.util.ILifecycle;
 abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implements ILifecycle {
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
-    private final DataSourceVO<?> vo;
-
     /**
      * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
      * cache for points that have been added to the data source, so that at a convenient time for the data source they
@@ -69,8 +67,7 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
 
     public DataSourceRT(DataSourceVO<?> vo) {
     	super(vo);
-        this.vo = vo;
-
+        
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
             eventTypes.add((DataSourceEventType) etvo.createEventType());

@@ -10,7 +10,7 @@ package com.serotonin.m2m2.rt;
  *
  */
 public abstract class AbstractRT<VO> {
-    protected VO vo;
+    protected final VO vo;
     
     public AbstractRT(VO vo) {
         this.vo = vo;
