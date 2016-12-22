@@ -59,7 +59,7 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
     /**
      * Access to either the addedPoints or removedPoints lists should be synchronized with this object's monitor.
      */
-    protected final Object pointListChangeLock = new Object();
+    protected Boolean pointListChangeLock = new Boolean(false);
 
     private final List<DataSourceEventType> eventTypes;
 
