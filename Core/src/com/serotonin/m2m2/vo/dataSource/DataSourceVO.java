@@ -35,7 +35,7 @@ import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 
-abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractActionVO<DataSourceVO<?>> {
+abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
     public static final String XID_PREFIX = "DS_";
 
     /**
@@ -366,7 +366,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<?>> extends AbstractAc
 	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
 	 */
 	@Override
-	protected AbstractDao<DataSourceVO<?>> getDao() {
-		return DataSourceDao.instance;
+	protected AbstractDao<T> getDao() {
+		return (AbstractDao<T>)DataSourceDao.instance;
 	}
 }

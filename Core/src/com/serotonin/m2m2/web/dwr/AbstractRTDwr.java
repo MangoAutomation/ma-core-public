@@ -20,7 +20,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * @author Terry Packer
  *
  */
-public abstract class AbstractRTDwr<VO extends AbstractActionVO<VO>, 
+public abstract class AbstractRTDwr<VO extends AbstractActionVO<?>, 
                       DAO extends AbstractDao<VO>,
                       RT extends AbstractRT<VO>,
                       RTM extends AbstractRTM<VO,RT,DAO>> extends AbstractDwr<VO, DAO>{
@@ -117,7 +117,7 @@ public abstract class AbstractRTDwr<VO extends AbstractActionVO<VO>,
     @Override
     public ProcessResult getCopy(int id) {
         ProcessResult response = super.getCopy(id);
-        ((AbstractActionVO<VO>) response.getData().get("vo")).setEnabled(false); //Ensure he isn't running
+        ((AbstractActionVO<?>) response.getData().get("vo")).setEnabled(false); //Ensure he isn't running
         //Don't Validate it, that will be done on save
         
         return response;

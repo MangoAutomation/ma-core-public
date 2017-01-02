@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 /**
  * Registry to access Daos from a central location
@@ -16,12 +17,12 @@ import com.serotonin.m2m2.Common;
  *
  */
 public class DaoRegistry {
-
+    
 	private DaoRegistry(){
 	}
 	
 	//TODO Maybe set this up to get registered at startup instead of here
-	public static DataSourceDao dataSourceDao = new DataSourceDao();
+	public static DataSourceDao<DataSourceVO<?>> dataSourceDao = new DataSourceDao<>();
 	public static DataPointDao dataPointDao = new DataPointDao();
 	public static UserDao userDao = new UserDao();
 	public static PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();

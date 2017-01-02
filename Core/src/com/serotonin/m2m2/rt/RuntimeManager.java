@@ -52,7 +52,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 public class RuntimeManager {
     private static final Log LOG = LogFactory.getLog(RuntimeManager.class);
 
-    private final Map<Integer, DataSourceRT> runningDataSources = new ConcurrentHashMap<Integer, DataSourceRT>();
+    private final Map<Integer, DataSourceRT<DataSourceVO<?>>> runningDataSources = new ConcurrentHashMap<>();
 
     /**
      * Provides a quick lookup map of the running data points.
@@ -188,12 +188,12 @@ public class RuntimeManager {
         int rtmdIndex = stopRTMDefs(defs, 0, 5);
 
         // Stop data sources in reverse start priority order.
-        Map<DataSourceDefinition.StartPriority, List<DataSourceRT>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceRT>>();
-        for (Entry<Integer, DataSourceRT> entry : runningDataSources.entrySet()) {
-            DataSourceRT rt = entry.getValue();
-            List<DataSourceRT> priorityList = priorityMap.get(rt.getVo().getDefinition().getStartPriority());
+        Map<DataSourceDefinition.StartPriority, List<DataSourceRT<DataSourceVO<?>>>> priorityMap = new HashMap<>();
+        for (Entry<Integer, DataSourceRT<DataSourceVO<?>>> entry : runningDataSources.entrySet()) {
+            DataSourceRT<DataSourceVO<?>> rt = entry.getValue();
+            List<DataSourceRT<DataSourceVO<?>>> priorityList = priorityMap.get(rt.getVo().getDefinition().getStartPriority());
             if (priorityList == null) {
-                priorityList = new ArrayList<DataSourceRT>();
+                priorityList = new ArrayList<>();
                 priorityMap.put(rt.getVo().getDefinition().getStartPriority(), priorityList);
             }
             priorityList.add(rt);
@@ -203,7 +203,7 @@ public class RuntimeManager {
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
-            List<DataSourceRT> priorityList = priorityMap.get(priorities[i]);
+            List<DataSourceRT<DataSourceVO<?>>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
             	DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
                 initializer.terminate();
@@ -215,7 +215,7 @@ public class RuntimeManager {
     }
 
     public void joinTermination() {
-        for (Entry<Integer, DataSourceRT> entry : runningDataSources.entrySet()) {
+        for (Entry<Integer, DataSourceRT<DataSourceVO<?>>> entry : runningDataSources.entrySet()) {
             DataSourceRT dataSource = entry.getValue();
             try {
                 dataSource.joinTermination();
@@ -472,7 +472,7 @@ public class RuntimeManager {
         Assert.isTrue(vo.isEnabled());
 
         // Only add the data point if its data source is enabled.
-        DataSourceRT ds = getRunningDataSource(vo.getDataSourceId());
+        DataSourceRT<DataSourceVO<?>> ds = getRunningDataSource(vo.getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
             DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime(), ds.getVo(), initialCache);

@@ -26,7 +26,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
  * @author Terry Packer
  *
  */
-public class MockPointLocatorVO extends AbstractPointLocatorVO implements JsonSerializable {
+public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorVO> implements JsonSerializable {
 
 	private int dataTypeId = DataTypes.NUMERIC;
 	private boolean settable = false;
@@ -108,7 +108,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
 	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#asModel()
 	 */
 	@Override
-	public PointLocatorModel<?> asModel() {
+	public PointLocatorModel<MockPointLocatorVO> asModel() {
 		// TODO Auto-generated method stub
 		return null;
 	}

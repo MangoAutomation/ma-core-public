@@ -36,10 +36,8 @@ import com.serotonin.util.ILifecycle;
  * 
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implements ILifecycle {
+abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractRT<VO> implements ILifecycle {
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
-
-    private final DataSourceVO<?> vo;
 
     /**
      * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
@@ -67,9 +65,8 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
 
     private boolean terminated;
 
-    public DataSourceRT(DataSourceVO<?> vo) {
+    public DataSourceRT(VO vo) {
     	super(vo);
-        this.vo = vo;
 
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
@@ -82,10 +79,6 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
 
     public String getName() {
         return vo.getName();
-    }
-
-    public DataSourceVO<?> getVo() {
-        return vo;
     }
 
     /**

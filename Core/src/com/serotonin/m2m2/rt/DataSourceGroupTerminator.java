@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -28,7 +29,7 @@ import com.serotonin.timer.TimerTask;
 public class DataSourceGroupTerminator {
 	private final Log LOG = LogFactory.getLog(DataSourceGroupTerminator.class);
 			
-	private List<DataSourceRT> group;
+	private List<DataSourceRT<DataSourceVO<?>>> group;
 	private int threadPoolSize;
 	private List<DataSourceSubGroupTerminator> runningTasks;
 	private boolean useMetrics;
@@ -37,7 +38,7 @@ public class DataSourceGroupTerminator {
 	/**
 	 * @param priorityList
 	 */
-	public DataSourceGroupTerminator(StartPriority startPriority, List<DataSourceRT> group, boolean logMetrics, int threadPoolSize) {
+	public DataSourceGroupTerminator(StartPriority startPriority, List<DataSourceRT<DataSourceVO<?>>> group, boolean logMetrics, int threadPoolSize) {
 		this.startPriority = startPriority;
 		this.group = group;
 		this.useMetrics = logMetrics;
@@ -122,10 +123,10 @@ public class DataSourceGroupTerminator {
 		
 		private final Log LOG = LogFactory.getLog(DataSourceSubGroupTerminator.class);
 		
-		private List<DataSourceRT> subgroup;
+		private List<DataSourceRT<DataSourceVO<?>>> subgroup;
 		private DataSourceGroupTerminator parent;
 		
-		public DataSourceSubGroupTerminator(List<DataSourceRT> subgroup, DataSourceGroupTerminator parent){
+		public DataSourceSubGroupTerminator(List<DataSourceRT<DataSourceVO<?>>> subgroup, DataSourceGroupTerminator parent){
 			super(new OneTimeTrigger(0));
 			this.subgroup = subgroup;
 			this.parent = parent;

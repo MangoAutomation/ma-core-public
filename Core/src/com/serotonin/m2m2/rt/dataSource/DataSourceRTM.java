@@ -20,7 +20,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
  * @author Terry Packer
  *
  */
-public class DataSourceRTM extends AbstractRTM<DataSourceVO<?>,DataSourceRT,DataSourceDao>{
+public class DataSourceRTM<T extends DataSourceVO<?>> extends AbstractRTM<T,DataSourceRT<T>,DataSourceDao<T>>{
 
 	public static DataSourceRTM instance = new DataSourceRTM();
 	
@@ -37,7 +37,7 @@ public class DataSourceRTM extends AbstractRTM<DataSourceVO<?>,DataSourceRT,Data
 	 * @see com.serotonin.m2m2.rt.AbstractRTM#getRt(com.serotonin.m2m2.vo.AbstractActionVO)
 	 */
 	@Override
-	public DataSourceRT getRt(DataSourceVO<?> vo) {
+	public DataSourceRT<T> getRt(T vo) {
 		return vo.createDataSourceRT();
 	}
 
@@ -50,7 +50,7 @@ public class DataSourceRTM extends AbstractRTM<DataSourceVO<?>,DataSourceRT,Data
 	}
 
 	@Override 
-	public void save(DataSourceVO<?> vo){
+	public void save(T vo){
 		Common.runtimeManager.saveDataSource(vo);
 	}
 	

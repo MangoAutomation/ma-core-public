@@ -47,7 +47,7 @@ import com.serotonin.m2m2.web.taglib.Functions;
  * @author Terry Packer
  *
  */
-public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao, DataSourceRT, DataSourceRTM> {
+public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<DataSourceVO<?>>, DataSourceRT<DataSourceVO<?>>, DataSourceRTM<DataSourceVO<?>>> {
 	
 	private static final String SPACE = " ";
 	

@@ -96,7 +96,7 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
 
             // Create a lookup of data sources.
             Map<Integer, DataSourceVO<?>> dss = new HashMap<>();
-            for (DataSourceVO<?> ds : new DataSourceDao().getAll())
+            for (DataSourceVO<?> ds : new DataSourceDao<>().getAll())
                 dss.put(ds.getId(), ds);
 
             for (String key : keys) {

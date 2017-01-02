@@ -120,7 +120,7 @@ public class Permissions {
     // Data source admin
     //
     public static void ensureDataSourcePermission(User user, int dsId) throws PermissionException {
-        ensureDataSourcePermission(user, new DataSourceDao().get(dsId));
+        ensureDataSourcePermission(user, new DataSourceDao<>().get(dsId));
     }
 
     public static void ensureDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
@@ -129,7 +129,7 @@ public class Permissions {
     }
 
     public static boolean hasDataSourcePermission(User user, int dsId) throws PermissionException {
-        return hasDataSourcePermission(user, new DataSourceDao().get(dsId));
+        return hasDataSourcePermission(user, new DataSourceDao<>().get(dsId));
     }
 
     public static boolean hasDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {

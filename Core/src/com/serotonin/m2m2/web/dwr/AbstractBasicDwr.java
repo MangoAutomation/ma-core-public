@@ -24,7 +24,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
  * @author Jared Wiltshire, Terry Packer
  */
-public abstract class AbstractBasicDwr<VO extends AbstractVO<VO>, DAO extends AbstractDao<VO>> extends ModuleDwr {
+public abstract class AbstractBasicDwr<VO extends AbstractVO<?>, DAO extends AbstractDao<VO>> extends ModuleDwr {
     protected Log LOG;
     protected DAO dao;
     

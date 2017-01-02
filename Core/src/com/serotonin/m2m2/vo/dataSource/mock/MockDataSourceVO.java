@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -36,7 +35,7 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     }
 
     @Override
-    public DataSourceRT createDataSourceRT() {
+    public MockDataSourceRT createDataSourceRT() {
         return new MockDataSourceRT(this);
     }
 
@@ -60,7 +59,7 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
 	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
 	 */
 	@Override
-	protected AbstractDao<DataSourceVO<?>> getDao() {
+	protected AbstractDao<MockDataSourceVO> getDao() {
 		return null;
 	}
     

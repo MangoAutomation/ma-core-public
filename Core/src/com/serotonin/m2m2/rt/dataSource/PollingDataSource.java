@@ -30,13 +30,12 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource extends DataSourceRT implements TimeoutClient,RejectedTaskHandler {
+abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> implements TimeoutClient,RejectedTaskHandler {
 	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private Object terminationLock;
 
-    private final DataSourceVO<?> vo;
-    protected List<DataPointRT> dataPoints = new ArrayList<DataPointRT>();
+    protected List<DataPointRT> dataPoints = new ArrayList<>();
     protected boolean pointListChanged = false;
 
     // If polling is done with millis
@@ -58,9 +57,8 @@ abstract public class PollingDataSource extends DataSourceRT implements TimeoutC
     private long nextAbortedPollMessageTime = 0l;
     private final long abortedPollLogDelay;
     
-    public PollingDataSource(DataSourceVO<?> vo) {
+    public PollingDataSource(T vo) {
         super(vo);
-        this.vo = vo;
         this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
         this.latestAbortedPollTimes = new ConcurrentLinkedQueue<Long>();
         this.abortedPollLogDelay = Common.envProps.getLong("runtime.datasource.pollAbortedLogFrequency", 3600000);
