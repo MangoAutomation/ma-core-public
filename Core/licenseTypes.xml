@@ -103,7 +103,7 @@
         <price>500</price>
     </licenseType>
     
-    <licenseType id="brewersdashboard"status="grant-only">
+    <licenseType id="brewersdashboard" status="grant-only">
         <description>No restrictions.</description>
         
         <features>
@@ -117,4 +117,5 @@
 		<description>Variable point restriction.</description>
 		<features></features>
 		<price>123</price>
+	</licenseType>
 </licenseTypes>
