@@ -8,12 +8,12 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 public class DoubleMonitor extends ValueMonitor<Double> {
     private double value;
 
-    public DoubleMonitor(String id, TranslatableMessage name) {
-        this(id, name, 0);
+    public DoubleMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
+        this(id, name, owner, 0);
     }
 
-    public DoubleMonitor(String id, TranslatableMessage name, double initialValue) {
-        super(id, name);
+    public DoubleMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, double initialValue) {
+        super(id, name, owner);
         value = initialValue;
     }
 

@@ -210,7 +210,12 @@ public class ModulesDwr extends BaseDwr {
         return result;
     }
 
-    public static boolean isUpgradeAvailable() throws Exception {
+    /**
+     * How many upgrades are available
+     * @return
+     * @throws Exception
+     */
+    public static int upgradesAvailable() throws Exception {
         JsonValue jsonResponse = getAvailableUpgrades();
 
         if (jsonResponse instanceof JsonString)
@@ -218,7 +223,7 @@ public class ModulesDwr extends BaseDwr {
 
         JsonObject root = jsonResponse.toJsonObject();
 
-        return !root.getJsonArray("upgrades").isEmpty();
+        return root.getJsonArray("upgrades").size();
     }
 
     public static JsonValue getAvailableUpgrades() throws JsonException, IOException, HttpException {

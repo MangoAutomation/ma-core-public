@@ -45,6 +45,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
@@ -79,20 +80,19 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public class DataPointDao extends AbstractDao<DataPointVO> {
+public class DataPointDao extends AbstractDao<DataPointVO>{
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
     public static final DataPointDao instance = new DataPointDao();
+    
 
     /**
-     * TODO make protected, remove access to constructor
-     * 
-     * @param typeName
+     * Private as we only ever want 1 of these guys
      */
-    public DataPointDao() {
+    private DataPointDao() {
         super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_POINT"), 
         		AuditEventType.TYPE_DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
-        		false);
+        		false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
     
     //
@@ -338,6 +338,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterInsert(dp);
+        this.countMonitor.increment();
     }
 
     void updateDataPoint(final DataPointVO dp) {
@@ -404,6 +405,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
                 def.afterDelete(dp.getId());
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
+            this.countMonitor.decrement();
         }
     }
 
@@ -432,6 +434,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                 def.afterDelete(dataPointId);
 
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
+            countMonitor.decrement();
         }
     }
 
@@ -1140,6 +1143,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public void save(DataPointVO vo) {
         if (vo.getId() == Common.NEW_ID) {
             insert(vo);
+            this.countMonitor.increment();
         }
         else {
             update(vo);
@@ -1390,5 +1394,5 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             }
 		}
 		
-	}	
+	}
 }

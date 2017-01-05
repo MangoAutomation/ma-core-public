@@ -35,8 +35,8 @@ public class MailingListsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public ProcessResult init() {
         ProcessResult response = new ProcessResult();
-        response.addData("lists", new MailingListDao().getMailingLists());
-        response.addData("users", new UserDao().getUsers());
+        response.addData("lists", MailingListDao.instance.getMailingLists());
+        response.addData("users", UserDao.instance.getUsers());
         return response;
     }
 
@@ -45,18 +45,18 @@ public class MailingListsDwr extends BaseDwr {
         if (id == Common.NEW_ID) {
             MailingList ml = new MailingList();
             ml.setId(Common.NEW_ID);
-            ml.setXid(new MailingListDao().generateUniqueXid());
+            ml.setXid(MailingListDao.instance.generateUniqueXid());
             ml.setEntries(new LinkedList<EmailRecipient>());
             return ml;
         }
-        return new MailingListDao().getMailingList(id);
+        return MailingListDao.instance.getMailingList(id);
     }
 
     @DwrPermission(admin = true)
     public ProcessResult saveMailingList(int id, String xid, String name, List<RecipientListEntryBean> entryBeans,
             List<Integer> inactiveIntervals) {
         ProcessResult response = new ProcessResult();
-        MailingListDao mailingListDao = new MailingListDao();
+        MailingListDao mailingListDao = MailingListDao.instance;
 
         // Validate the given information. If there is a problem, return an appropriate error message.
         MailingList ml = createMailingList(id, xid, name, entryBeans);
@@ -80,7 +80,7 @@ public class MailingListsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void deleteMailingList(int mlId) {
-        new MailingListDao().deleteMailingList(mlId);
+        MailingListDao.instance.deleteMailingList(mlId);
     }
 
     @DwrPermission(admin = true)
@@ -88,7 +88,7 @@ public class MailingListsDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
 
         MailingList ml = createMailingList(id, null, name, entryBeans);
-        new MailingListDao().populateEntrySubclasses(ml.getEntries());
+        MailingListDao.instance.populateEntrySubclasses(ml.getEntries());
 
         Set<String> addresses = new HashSet<String>();
         ml.appendAddresses(addresses, null);

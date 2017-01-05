@@ -89,7 +89,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                 return new ModelAndView(new RedirectView(errorViewName));
             dataSourceVO = def.baseCreateDataSourceVO();
             dataSourceVO.setId(Common.NEW_ID);
-            dataSourceVO.setXid(new DataSourceDao().generateUniqueXid());
+            dataSourceVO.setXid(DataSourceDao.instance.generateUniqueXid());
         }
 
         //Are we going to be making a copy?
@@ -98,7 +98,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
         //Are we editing a point?
         if (pidStr != null) {
             int pid = Integer.parseInt(pidStr);
-            DataPointVO dp = new DataPointDao().getDataPoint(pid);
+            DataPointVO dp = DataPointDao.instance.getDataPoint(pid);
             if (dp == null) {
                 // The requested data point doesn't exist. Return to the list page.
                 model.put("key", "dsEdit.error.pointDNE");
@@ -184,7 +184,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             model.put("commPortError", e.getMessage());
         }
 
-        List<DataPointVO> allPoints = new DataPointDao().getDataPoints(DataPointExtendedNameComparator.instance, false);
+        List<DataPointVO> allPoints = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, false);
         List<DataPointVO> userPoints = new LinkedList<>();
         List<DataPointVO> analogPoints = new LinkedList<>();
         for (DataPointVO dp : allPoints) {

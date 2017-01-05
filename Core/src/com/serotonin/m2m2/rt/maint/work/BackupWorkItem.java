@@ -184,7 +184,7 @@ public class BackupWorkItem implements WorkItem {
         data.put(EmportDwr.DATA_SOURCES, DataSourceDao.instance.getDataSources());
         data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
         data.put(EmportDwr.USERS, UserDao.instance.getUsers());
-        data.put(EmportDwr.MAILING_LISTS, new MailingListDao().getMailingLists());
+        data.put(EmportDwr.MAILING_LISTS, MailingListDao.instance.getMailingLists());
         data.put(EmportDwr.PUBLISHERS, PublisherDao.instance.getPublishers());
         data.put(EmportDwr.EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         data.put(EmportDwr.POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());

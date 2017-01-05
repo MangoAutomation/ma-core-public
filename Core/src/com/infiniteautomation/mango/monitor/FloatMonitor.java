@@ -8,12 +8,12 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 public class FloatMonitor extends ValueMonitor<Float> {
     private float value;
 
-    public FloatMonitor(String id, TranslatableMessage name) {
-        this(id, name, 0);
+    public FloatMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
+        this(id, name, owner, 0);
     }
 
-    public FloatMonitor(String id, TranslatableMessage name, float initialValue) {
-        super(id, name);
+    public FloatMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, float initialValue) {
+        super(id, name, owner);
         value = initialValue;
     }
 

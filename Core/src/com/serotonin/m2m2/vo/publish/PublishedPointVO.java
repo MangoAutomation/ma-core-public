@@ -55,7 +55,7 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         DataPointVO dp = dataPointDao.getDataPoint(dataPointId);
         String xid;
         if (dp == null)
@@ -68,7 +68,7 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         String xid = jsonObject.getString("dataPointId");
         if (xid == null)
             throw new TranslatableJsonException("emport.error.publishedPoint.missing", "dataPointId");

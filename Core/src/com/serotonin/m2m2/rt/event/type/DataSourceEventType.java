@@ -123,7 +123,7 @@ public class DataSourceEventType extends EventType {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        DataSourceVO<?> ds = new DataSourceDao().getDataSource(dataSourceId);
+        DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataSourceId);
         writer.writeEntry("XID", ds.getXid());
         writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
     }

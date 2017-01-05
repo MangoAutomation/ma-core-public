@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.validation.BindException;
 
+import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.form.LoginForm;
@@ -84,5 +85,11 @@ public interface ILoginManager {
      * @return
      */
     public boolean isLoggedIn(HttpServletRequest request, HttpServletResponse response);
+    
+    /**
+     * Get the monitor for session counts
+     * @return
+     */
+    public AtomicIntegerMonitor getSessionCountMonitor();
 	
 }

@@ -294,7 +294,7 @@ public class SystemSettingsDwr extends BaseDwr {
         data.put("totalSize", DirectoryUtils.bytesDescription(dbSize + filedataSize + noSqlSize));
 
         // Point history counts.
-        List<PointHistoryCount> counts = new DataPointDao().getTopPointHistoryCounts();
+        List<PointHistoryCount> counts = DataPointDao.instance.getTopPointHistoryCounts();
         int sum = 0;
         for (PointHistoryCount c : counts)
             sum += c.getCount();

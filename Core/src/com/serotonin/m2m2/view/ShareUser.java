@@ -55,7 +55,7 @@ public class ShareUser implements JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("user", new UserDao().getUser(userId).getUsername());
+        writer.writeEntry("user", UserDao.instance.getUser(userId).getUsername());
         writer.writeEntry("accessType", ACCESS_CODES.getCode(accessType));
     }
 
@@ -64,7 +64,7 @@ public class ShareUser implements JsonSerializable {
         String text = jsonObject.getString("user");
         if (StringUtils.isBlank(text))
             throw new TranslatableJsonException("emport.error.viewShare.missing", "user");
-        User user = new UserDao().getUser(text);
+        User user = UserDao.instance.getUser(text);
         if (user == null)
             throw new TranslatableJsonException("emport.error.missingUser", text);
         userId = user.getId();

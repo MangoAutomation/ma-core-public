@@ -41,7 +41,7 @@ public class DataPointDetailsController implements UrlHandler {
         if (user.getEditPoint() != null)
             id = user.getEditPoint().getId();
 
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         String idStr = request.getParameter("dpid");
         DataPointVO point = null;
 
@@ -89,7 +89,7 @@ public class DataPointDetailsController implements UrlHandler {
             model.put("point", point);
 
             // Get the users that have access to this point.
-            List<User> allUsers = new UserDao().getUsers();
+            List<User> allUsers = UserDao.instance.getUsers();
             List<Map<String, Object>> users = new LinkedList<>();
             Map<String, Object> userData;
             int accessType;
@@ -157,7 +157,7 @@ public class DataPointDetailsController implements UrlHandler {
     //        if (user.getEditPoint() != null)
     //            id = user.getEditPoint().getId();
     //
-    //        DataPointDao dataPointDao = new DataPointDao();
+    //        DataPointDao dataPointDao = DataPointDao.instance;
     //        String idStr = request.getParameter("dpid");
     //        DataPointVO point = null;
     //
@@ -199,7 +199,7 @@ public class DataPointDetailsController implements UrlHandler {
     //            model.put("point", point);
     //
     //            // Get the users that have access to this point.
-    //            List<User> allUsers = new UserDao().getUsers();
+    //            List<User> allUsers = UserDao.instance.getUsers();
     //            List<Map<String, Object>> users = new LinkedList<Map<String, Object>>();
     //            Map<String, Object> userData;
     //            int accessType;

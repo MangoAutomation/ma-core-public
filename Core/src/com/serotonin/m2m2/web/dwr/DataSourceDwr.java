@@ -96,7 +96,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
             try {
                 vo = def.baseCreateDataSourceVO();
                 vo.setId(Common.NEW_ID);
-                vo.setXid(new DataSourceDao().generateUniqueXid());
+                vo.setXid(DataSourceDao.instance.generateUniqueXid());
                 User user = Common.getUser();
                 if (!Permissions.hasAdmin(user))
                     // Default the permissions of the data source to that of the user so that 
@@ -176,7 +176,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
 
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
-        dss.add(new DataSourceDao().getDataSource(id));
+        dss.add(DataSourceDao.instance.getDataSource(id));
         data.put(EmportDwr.DATA_SOURCES, dss);
         data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(id, null));
         return EmportDwr.export(data, 3);

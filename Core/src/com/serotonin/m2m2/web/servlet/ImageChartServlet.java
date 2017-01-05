@@ -158,7 +158,7 @@ public class ImageChartServlet extends BaseInfoServlet {
                     }
 
                     // Get the data.
-                    DataPointVO dp = new DataPointDao().getDataPoint(dataPointId);
+                    DataPointVO dp = DataPointDao.instance.getDataPoint(dataPointId);
                     if (dp != null && dp.getName() != null) {
                         pointCount++;
                         markerPoint = dp;

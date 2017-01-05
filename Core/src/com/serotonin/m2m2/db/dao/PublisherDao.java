@@ -31,6 +31,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -48,7 +49,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     private PublisherDao(){
-    	super(ModuleRegistry.getWebSocketHandlerDefinition("PUBLISHER"), AuditEventType.TYPE_PUBLISHER);
+    	super(ModuleRegistry.getWebSocketHandlerDefinition("PUBLISHER"), AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
     }
     
     
@@ -137,6 +138,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
                             SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
                     		Types.BINARY})); //TP Edit Nov 2013 had to change from BINARY to BLOB... Did we upgrade Derby version since this code was last touched?
         	AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
+        	this.countMonitor.increment();
         }else{
             PublisherVO<?> old = getPublisher(vo.getId());
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
@@ -156,9 +158,11 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
                 ejt2.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=?", new Object[] {
                         EventType.EventTypeNames.PUBLISHER, publisherId });
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
+                AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
+                countMonitor.decrement();
             }
         });
-        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
+        
     }
 
     public void deletePublisherType(final String publisherType) {

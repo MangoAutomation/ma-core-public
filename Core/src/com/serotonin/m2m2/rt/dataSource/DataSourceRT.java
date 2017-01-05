@@ -92,7 +92,7 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
      * This method is usable by subclasses to retrieve serializable data stored using the setPersistentData method.
      */
     public Object getPersistentData() {
-        return new DataSourceDao().getPersistentData(vo.getId());
+        return DataSourceDao.instance.getPersistentData(vo.getId());
     }
 
     /**
@@ -101,7 +101,7 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
      * called in the terminate method, but may also be called regularly for failover purposes.
      */
     protected void setPersistentData(Object persistentData) {
-        new DataSourceDao().savePersistentData(vo.getId(), persistentData);
+        DataSourceDao.instance.savePersistentData(vo.getId(), persistentData);
     }
 
     protected boolean isTerminated() {

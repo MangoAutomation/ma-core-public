@@ -59,19 +59,19 @@ public class EmportDwr extends BaseDwr {
         Map<String, Object> data = new LinkedHashMap<>();
 
         if (ArrayUtils.contains(exportElements, DATA_SOURCES))
-            data.put(DATA_SOURCES, new DataSourceDao().getDataSources());
+            data.put(DATA_SOURCES, DataSourceDao.instance.getDataSources());
         if (ArrayUtils.contains(exportElements, DATA_POINTS))
-            data.put(DATA_POINTS, new DataPointDao().getDataPoints(null, true));
+            data.put(DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
         if (ArrayUtils.contains(exportElements, USERS))
-            data.put(USERS, new UserDao().getUsers());
+            data.put(USERS, UserDao.instance.getUsers());
         if (ArrayUtils.contains(exportElements, MAILING_LISTS))
-            data.put(MAILING_LISTS, new MailingListDao().getMailingLists());
+            data.put(MAILING_LISTS, MailingListDao.instance.getMailingLists());
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
             data.put(PUBLISHERS, PublisherDao.instance.getPublishers());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
             data.put(EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
-            data.put(POINT_HIERARCHY, new DataPointDao().getPointHierarchy(true).getRoot().getSubfolders());
+            data.put(POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
             data.put(SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettingsForExport());
         if (ArrayUtils.contains(exportElements, TEMPLATES))

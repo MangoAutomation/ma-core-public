@@ -18,9 +18,12 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
@@ -30,7 +33,19 @@ import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 /**
  * @author Matthew Lohbihler
  */
-public class MailingListDao extends BaseDao {
+public class MailingListDao extends BaseDao implements ValueMonitorOwner{
+	
+	public static final MailingListDao instance = new MailingListDao();
+	
+    //Monitor for count of table
+    protected final AtomicIntegerMonitor countMonitor;
+
+    private MailingListDao(){
+		this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"), this);
+        this.countMonitor.setValue(this.count());
+    	Common.MONITORED_VALUES.addIfMissingStatMonitor(this.countMonitor);
+	}
+    
     public String generateUniqueXid() {
         return generateUniqueXid(MailingList.XID_PREFIX, "mailingLists");
     }
@@ -40,6 +55,11 @@ public class MailingListDao extends BaseDao {
     }
 
     private static final String MAILING_LIST_SELECT = "select id, xid, name from mailingLists ";
+    private static final String COUNT = "SELECT COUNT(DISTINCT id) FROM mailingLists";
+    
+    public int count(){
+    	return ejt.queryForInt(COUNT, new Object[0], 0);
+    }
 
     public List<MailingList> getMailingLists() {
         List<MailingList> result = query(MAILING_LIST_SELECT + "order by name", new MailingListRowMapper());
@@ -147,7 +167,7 @@ public class MailingListDao extends BaseDao {
     
     public void populateEntrySubclasses(List<EmailRecipient> entries) {
         // Update the user type entries with their respective user objects.
-        UserDao userDao = new UserDao();
+        UserDao userDao = UserDao.instance;
         for (EmailRecipient e : entries) {
             if (e instanceof MailingList)
                 // NOTE: this does not set the mailing list name.
@@ -168,9 +188,10 @@ public class MailingListDao extends BaseDao {
             @SuppressWarnings("synthetic-access")
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                if (ml.getId() == Common.NEW_ID)
+                if (ml.getId() == Common.NEW_ID){
                     ml.setId(doInsert(MAILING_LIST_INSERT, new Object[] { ml.getXid(), ml.getName() }));
-                else
+                    countMonitor.increment();
+                }else
                     ejt2.update(MAILING_LIST_UPDATE, new Object[] { ml.getXid(), ml.getName(), ml.getId() });
                 saveRelationalData(ml);
             }
@@ -220,5 +241,19 @@ public class MailingListDao extends BaseDao {
 
     public void deleteMailingList(final int mailingListId) {
         ejt.update("delete from mailingLists where id=?", new Object[] { mailingListId });
+        this.countMonitor.decrement();
     }
+    
+	/* (non-Javadoc)
+	 * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
+	 */
+	@Override
+	public void reset(String monitorId) {
+		//We only have one monitor so:
+		this.countMonitor.setValue(this.count());
+	}
+	
+	public AtomicIntegerMonitor getMonitor(){
+		return this.countMonitor;
+	}
 }

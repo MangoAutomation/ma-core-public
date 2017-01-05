@@ -96,7 +96,7 @@ public class ScriptContextVariable implements Serializable{
     }
 
     public static String contextToString(List<ScriptContextVariable> context) {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (ScriptContextVariable ivp : context) {
@@ -117,7 +117,7 @@ public class ScriptContextVariable implements Serializable{
 
     public static void jsonWriteVarContext(ObjectWriter writer, List<ScriptContextVariable> context) throws IOException,
             JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (ScriptContextVariable p : context) {
             DataPointVO dp = dataPointDao.getDataPoint(p.getDataPointId());
@@ -144,7 +144,7 @@ public class ScriptContextVariable implements Serializable{
     	JsonArray jsonContext = json.getJsonArray("context");
         if (jsonContext != null) {
             context.clear();
-            DataPointDao dataPointDao = new DataPointDao();
+            DataPointDao dataPointDao = DataPointDao.instance;
 
             for (JsonValue jv : jsonContext) {
                 JsonObject jo = jv.toJsonObject();

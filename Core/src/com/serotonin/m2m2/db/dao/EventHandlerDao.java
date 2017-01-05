@@ -18,6 +18,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -34,7 +35,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	public static final EventHandlerDao instance = new EventHandlerDao();
 	
 	protected EventHandlerDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
 	}
 
 	/* (non-Javadoc)
@@ -213,6 +214,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
                 typeRef1, typeRef2, SerializationHelper.writeObject(handler) }, new int[] { Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BINARY }));
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
+        this.countMonitor.increment();
     }
 
     void updateEventHandler(AbstractEventHandlerVO<?> handler) {
@@ -227,6 +229,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     	AbstractEventHandlerVO<?> handler = getEventHandler(handlerId);
         ejt.update("delete from eventHandlers where id=?", new Object[] { handlerId });
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
+        this.countMonitor.decrement();
     }
 	
 }
