@@ -27,7 +27,6 @@ import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;

@@ -13,6 +13,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataPointEventTypeModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 public class DataPointEventType extends EventType {
     private int dataSourceId = -1;
@@ -29,6 +31,13 @@ public class DataPointEventType extends EventType {
         this.pointEventDetectorId = pointEventDetectorId;
     }
 
+    public DataPointEventType(int dataSourceId, int dataPointId, int pointEventDetectorId, int duplicateHandling){
+        this.dataSourceId = dataSourceId;
+    	this.dataPointId = dataPointId;
+        this.pointEventDetectorId = pointEventDetectorId;
+        this.duplicateHandling = duplicateHandling;
+    }
+    
     @Override
     public String getEventType() {
         return EventType.EventTypeNames.DATA_POINT;
@@ -122,4 +131,12 @@ public class DataPointEventType extends EventType {
         writer.writeEntry("dataPointXID", dataPointDao.getDataPoint(dataPointId).getXid());
         writer.writeEntry("detectorXID", EventDetectorDao.instance.getXid(pointEventDetectorId));
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+	 */
+	@Override
+	public EventTypeModel asModel() {
+		return new DataPointEventTypeModel(this);
+	}
 }

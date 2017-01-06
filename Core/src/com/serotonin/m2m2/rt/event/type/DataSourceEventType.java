@@ -13,6 +13,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataSourceEventTypeModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 public class DataSourceEventType extends EventType {
     private int dataSourceId;
@@ -127,4 +129,13 @@ public class DataSourceEventType extends EventType {
         writer.writeEntry("XID", ds.getXid());
         writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+	 */
+	@Override
+	public EventTypeModel asModel() {
+		return new DataSourceEventTypeModel(this);
+	}
+    
 }

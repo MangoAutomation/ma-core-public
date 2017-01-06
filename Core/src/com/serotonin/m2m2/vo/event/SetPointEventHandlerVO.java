@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -23,6 +22,7 @@ import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -326,6 +326,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
 	 */
 	@Override
 	public AbstractEventHandlerModel<?> asModel() {
-		throw new ShouldNeverHappenException("Un-implemented.");
+		return new SetPointEventHandlerModel(this);
 	}
 }

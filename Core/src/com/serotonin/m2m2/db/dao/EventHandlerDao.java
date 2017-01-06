@@ -67,7 +67,16 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	 */
 	@Override
 	protected Object[] voToObjectArray(AbstractEventHandlerVO<?> vo) {
-		throw new ShouldNeverHappenException("Not yet supported, use different save method.");
+		return new Object[]{
+				vo.getXid(),
+				vo.getAlias(),
+				vo.getDefinition().getEventHandlerTypeName(),
+				vo.getEventType().getEventType(),
+				vo.getEventType().getEventSubtype(),
+				vo.getEventType().getReferenceId1(),
+				vo.getEventType().getReferenceId2(),
+				SerializationHelper.writeObject(vo)
+		};
 	}
 
 	/* (non-Javadoc)

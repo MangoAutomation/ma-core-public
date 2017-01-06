@@ -25,6 +25,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
  * An event class specifies the type of event that was raised.
@@ -186,6 +187,12 @@ abstract public class EventType implements JsonSerializable {
     abstract public int getReferenceId1();
 
     abstract public int getReferenceId2();
+    
+    /**
+     * Get the model of this Event Type
+     * @return model
+     */
+    abstract public EventTypeModel asModel();
 
     /**
      * Determines if the notification of this event to the given user should be suppressed. Useful if the action of the

@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -14,6 +15,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.CompoundEventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.event.CompoundEventDetectorVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
  * @author Matthew Lohbihler
@@ -128,5 +130,13 @@ public class CompoundDetectorEventType extends EventType {
 	public String getEventSubtype() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+	 */
+	@Override
+	public EventTypeModel asModel() {
+		throw new ShouldNeverHappenException("Un-implemented");
 	}
 }

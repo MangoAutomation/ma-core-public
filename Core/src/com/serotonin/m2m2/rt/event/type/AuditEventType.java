@@ -33,6 +33,8 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.AuditEventTypeModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 public class AuditEventType extends EventType {
     //
@@ -275,6 +277,14 @@ public class AuditEventType extends EventType {
         this.changeType = changeType;
         this.referenceId = referenceId;
     }
+    
+    public AuditEventType(String auditEventType, int changeType, int referenceId, User raisingUser, int auditEventId) {
+        this.auditEventType = auditEventType;
+        this.changeType = changeType;
+        this.referenceId = referenceId;
+        this.raisingUser = raisingUser;
+        this.auditEventId = auditEventId;
+    }
 
     @Override
     public String getEventType() {
@@ -376,4 +386,12 @@ public class AuditEventType extends EventType {
         super.jsonWrite(writer);
         writer.writeEntry("auditType", auditEventType);
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+	 */
+	@Override
+	public EventTypeModel asModel() {
+		return new AuditEventTypeModel(this);
+	}
 }

@@ -5,17 +5,13 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.mapping;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.serotonin.m2m2.module.ModelDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
 
@@ -23,17 +19,10 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
  * @author Terry Packer
  *
  */
-public class PointLocatorModelDeserializer extends StdDeserializer<PointLocatorModel<?>>{
+public class PointLocatorModelDeserializer extends AbstractModelDeserializer<PointLocatorModel<?>>{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
-
-	/**
-	 * 
-	 */
 	protected PointLocatorModelDeserializer() {
 		super(PointLocatorModel.class);
 	}
@@ -50,20 +39,4 @@ public class PointLocatorModelDeserializer extends StdDeserializer<PointLocatorM
 	    ModelDefinition definition = findModelDefinition(tree.get("modelType").asText());
 	    return (PointLocatorModel<?>) mapper.treeToValue(tree, definition.getModelClass());
 	}
-
-	/**
-	 * @return
-	 */
-	public ModelDefinition findModelDefinition(String typeName) throws ModelNotFoundException{
-		List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
-		for(ModelDefinition definition : definitions){
-			if(definition.getModelTypeName().equalsIgnoreCase(typeName))
-				return definition;
-		}
-		throw new ModelNotFoundException(typeName);
-	}
-
-
-
-
 }

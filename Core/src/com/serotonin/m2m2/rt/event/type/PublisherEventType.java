@@ -12,6 +12,8 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.PublisherEventTypeModel;
 
 /**
  * @author Matthew Lohbihler
@@ -117,4 +119,12 @@ public class PublisherEventType extends EventType {
         writer.writeEntry("XID", pub.getXid());
         writer.writeEntry("publisherEventTypeId", pub.getEventCodes().getCode(publisherEventTypeId));
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+	 */
+	@Override
+	public EventTypeModel asModel() {
+		return new PublisherEventTypeModel(this);
+	}
 }
