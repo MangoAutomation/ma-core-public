@@ -211,6 +211,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
                 //                    defaulter.postSave(vo);
 
             } catch(LicenseViolatedException e) {
+            	LOG.error(e);
             	response.addMessage(e.getErrorMessage());
             } catch (Exception e) {
                 // Handle the exceptions.
