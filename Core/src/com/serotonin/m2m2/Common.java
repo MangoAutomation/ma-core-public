@@ -56,6 +56,7 @@ import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.ILoginManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.shared.VersionData;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.DocumentationManifest;
@@ -200,6 +201,13 @@ public class Common {
         TIME_PERIOD_CODES.addElement(TimePeriods.YEARS, "YEARS");
     }
 
+	public static ExportCodes WORK_ITEM_CODES = new ExportCodes();
+    static {
+    	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_HIGH, "PRIORITY_HIGH");
+    	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_MEDIUM, "PRIORITY_MEDIUM");
+    	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_LOW, "PRIORITY_LOW");
+    }
+    
     /**
      * Returns the length of time in milliseconds that the
      * 

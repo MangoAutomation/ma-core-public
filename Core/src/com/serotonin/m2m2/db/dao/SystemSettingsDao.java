@@ -28,6 +28,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.util.ColorUtils;
@@ -382,6 +384,14 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);   
         DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);   
         
+        //Module Defaults
+        Map<String,Object> modDefaults = null;
+        for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
+        	modDefaults = def.getDefaultValues();
+        	if(modDefaults != null)
+        		DEFAULT_VALUES.putAll(modDefaults);
+        	modDefaults = null;
+        }
     }
 
     /**
@@ -699,6 +709,9 @@ public class SystemSettingsDao extends BaseDao {
         	response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
         
+        //Validate the Module Settings
+        for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions())
+        	def.validateSettings(settings, response);
 	}
 	
 
@@ -755,5 +768,158 @@ public class SystemSettingsDao extends BaseDao {
         else
         	return Integer.parseInt((String)value);
     }
+
+	/**
+	 * Potentially Convert a value from a code, if no code exists then return null; 
+	 * 
+	 * @param key - Setting key
+	 * @param value - String code
+	 * @return
+	 */
+	public Integer convertToValueFromCode(String key, String code) {
+		switch(key){
+		case EMAIL_CONTENT_TYPE:
+			return MangoEmailContent.CONTENT_TYPE_CODES.getId(code);
+		case POINT_DATA_PURGE_PERIOD_TYPE:
+		case DATA_POINT_EVENT_PURGE_PERIOD_TYPE:
+		case DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE:
+		case SYSTEM_EVENT_PURGE_PERIOD_TYPE:
+		case PUBLISHER_EVENT_PURGE_PERIOD_TYPE:
+		case AUDIT_EVENT_PURGE_PERIOD_TYPE:
+		case NONE_ALARM_PURGE_PERIOD_TYPE:
+		case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
+		case URGENT_ALARM_PURGE_PERIOD_TYPE:
+		case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
+		case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
+		case EVENT_PURGE_PERIOD_TYPE:
+		case BACKUP_PERIOD_TYPE:
+		case DATABASE_BACKUP_PERIOD_TYPE:
+			return Common.TIME_PERIOD_CODES.getId(code); 
+		}
+		
+		//Now try the SystemSettingsDefinitions
+		Integer value = null;
+		for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
+			value = def.convertToValueFromCode(key, code);
+			if(value != null)
+				return value;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Potentially convert an Integer value from it's Export code value to its export code
+	 * @param key - Setting key
+	 * @param value - Integer value of code
+	 * @return Export code or null if none exists for it
+	 */
+	public static String convertToCodeFromValue(String key, Integer value){
+		switch(key){
+		case EMAIL_CONTENT_TYPE:
+			return MangoEmailContent.CONTENT_TYPE_CODES.getCode(value);
+		case POINT_DATA_PURGE_PERIOD_TYPE:
+		case DATA_POINT_EVENT_PURGE_PERIOD_TYPE:
+		case DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE:
+		case SYSTEM_EVENT_PURGE_PERIOD_TYPE:
+		case PUBLISHER_EVENT_PURGE_PERIOD_TYPE:
+		case AUDIT_EVENT_PURGE_PERIOD_TYPE:
+		case NONE_ALARM_PURGE_PERIOD_TYPE:
+		case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
+		case URGENT_ALARM_PURGE_PERIOD_TYPE:
+		case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
+		case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
+		case EVENT_PURGE_PERIOD_TYPE:
+		case BACKUP_PERIOD_TYPE:
+		case DATABASE_BACKUP_PERIOD_TYPE:
+			return Common.TIME_PERIOD_CODES.getCode(value); 
+		}
+		
+		//Now try the SystemSettingsDefinitions
+		String code = null;
+		for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
+			code = def.convertToCodeFromValue(key, value);
+			if(code != null)
+				return code;
+		}
+		return null;
+	}
+
+	/**
+	 * Get the value and if it can be converted to a code, do it.
+	 * 
+	 * @param key - System Settings Key
+	 * @return - Actual value or if Code-able then return the String Export code
+	 */
+	public static String getValueAsCode(String key) {
+		String value = getValue(key);
+		//First see if this is an Integer since they are the only potential for codes
+		try{
+			Integer code = Integer.parseInt(value);
+			String converted = convertToCodeFromValue(key, code);
+			if(converted != null)
+				value = converted;
+		}catch(NumberFormatException e){ }
+		return value;
+	}
+
+	/**
+	 * Return all settings (if no setting is saved return default value) whilst converting to Export Codes where necessary
+	 * 
+	 * @return
+	 */
+	public Map<String, Object> getAllSystemSettingsAsCodes() {
+		Map<String, Object> settings = new HashMap<String,Object>(DEFAULT_VALUES.size());
+		//Start with all the defaults
+		Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
+		String key;
+		while(it.hasNext()){
+			key = it.next();
+			if(!key.toLowerCase().contains("password")&&!key.startsWith(DATABASE_SCHEMA_VERSION))
+				settings.put(key, DEFAULT_VALUES.get(key));
+		}
+		
+		//Then replace anything with what is stored in the database
+		ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
+            
+            public void processRow(ResultSet rs) throws SQLException {
+            	String settingName = rs.getString(1);
+
+            	//Don't export any passwords or schema numbers
+            	if((!settingName.toLowerCase().contains("password")&&!settingName.startsWith(DATABASE_SCHEMA_VERSION))){
+            		String settingValue = rs.getString(2);
+                	//Convert Numbers to Integers
+                	try{
+                		settings.put(settingName, Integer.parseInt(settingValue));
+                	}catch(NumberFormatException e){
+                		//Are we a boolean
+                		if(settingValue.equalsIgnoreCase("y")){
+                			settings.put(settingName, new Boolean(true));
+                		}else if(settingValue.equalsIgnoreCase("n")){
+                			settings.put(settingName, new Boolean(false));
+                		}else{
+                			//Must be a string
+                			settings.put(settingName, settingValue);
+                		}
+                		
+                	}
+            	}
+            }
+    	});
+		
+		//Convert the Integers to Codes
+		it = settings.keySet().iterator();
+		while(it.hasNext()){
+			key = it.next();
+    		Object value = settings.get(key);
+    		if(value instanceof Integer){
+	    		String code = convertToCodeFromValue(key, (Integer)value);
+	    		if(code != null)
+	    			settings.put(key, code);
+    		}
+		}
+		
+		return settings;
+	}
 	
 }
