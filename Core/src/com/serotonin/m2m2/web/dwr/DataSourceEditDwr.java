@@ -14,13 +14,13 @@ import org.springframework.dao.DuplicateKeyException;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
@@ -187,9 +187,6 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         //If we are a new point then only validate the basics
         if (id == Common.NEW_ID) {
-            // Limit enforcement.
-            DataSourceTypePointsLimit.checkLimit(dp.getDataSourceTypeName(), response);
-
             if (StringUtils.isBlank(xid))
                 response.addContextualMessage("xid", "validate.required");
             else if (StringValidation.isLengthGreaterThan(xid, 50))
@@ -230,6 +227,9 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         		Common.runtimeManager.saveDataPoint(dp);
         	} catch(DuplicateKeyException e) {
         		response.addGenericMessage("pointEdit.detectors.duplicateXid");
+        		return response;
+        	} catch(LicenseViolatedException e) {
+        		response.addMessage(e.getErrorMessage());
         		return response;
         	}
 

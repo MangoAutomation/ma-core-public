@@ -1162,7 +1162,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     @Override
     public void saveFull(DataPointVO vo) {
         //TODO Eventually Fix this up by using the new AbstractDao for the query
-        this.saveDataPoint(vo);
+        this.saveDataPoint(vo); //This method throws a RuntimeException for licenses
     }
 
     /**
