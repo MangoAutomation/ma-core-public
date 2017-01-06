@@ -45,6 +45,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -290,6 +291,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public void saveDataPoint(final DataPointVO dp) {
+    	if(dp.getId() == Common.NEW_ID) checkAddPoint();
+    	
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
@@ -304,6 +307,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 clearPointHierarchyCache();
             }
         });
+    }
+    
+    public void checkAddPoint() {
+    	Integer limit = Common.dataPointLimit();
+    	if(limit != null && this.countMonitor.getValue() >= limit)
+    		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", Common.license().getLicenseType(), limit));
     }
 
     void insertDataPoint(final DataPointVO dp) {
