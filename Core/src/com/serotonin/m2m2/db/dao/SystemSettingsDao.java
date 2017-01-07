@@ -28,7 +28,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
@@ -870,6 +872,12 @@ public class SystemSettingsDao extends BaseDao {
 	 */
 	public Map<String, Object> getAllSystemSettingsAsCodes() {
 		Map<String, Object> settings = new HashMap<String,Object>(DEFAULT_VALUES.size());
+		
+		//Add The Permissions with empty values since they don't necessarily have defaults
+        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
+        	settings.put(def.getPermissionTypeName(), "");
+        }
+		
 		//Start with all the defaults
 		Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
 		String key;
