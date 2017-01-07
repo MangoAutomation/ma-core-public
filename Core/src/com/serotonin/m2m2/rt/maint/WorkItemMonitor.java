@@ -4,8 +4,11 @@
  */
 package com.serotonin.m2m2.rt.maint;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 
+import com.infiniteautomation.mango.monitor.DoubleMonitor;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
@@ -85,6 +88,11 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     private final IntegerMonitor javaAvailableProcessors = new IntegerMonitor("java.lang.Runtime.availableProcessors",
     		new TranslatableMessage("java.monitor.JAVA_PROCESSORS"), this);
     
+    //System Uptime
+    public static final String SYSTEM_UPTIME_MONITOR_ID = "mango.system.uptime";
+    		
+    private final DoubleMonitor uptime = new DoubleMonitor(SYSTEM_UPTIME_MONITOR_ID, new TranslatableMessage("internal.monitor.SYSTEM_UPTIME"), this);
+    
     private final int mb = 1024*1024;
     
     private boolean running;
@@ -110,7 +118,8 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaFreeMemory);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaMaxMemory);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaAvailableProcessors);
-
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(uptime);
+        
         
         //Set the available processors, we don't need to poll this
         javaAvailableProcessors.setValue(Runtime.getRuntime().availableProcessors());
@@ -121,10 +130,10 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     public void run(long fireTime) {
     	if(!running)
     		return;
-        check();
+        check(fireTime);
     }
 
-    public void check() {
+    public void check(long fireTime) {
     	
     	if(Common.backgroundProcessing != null){
     		highPriorityActive.setValue(Common.backgroundProcessing.getHighPriorityServiceActiveCount());
@@ -164,6 +173,13 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         javaMaxMemory.setValue((int)(rt.maxMemory()/mb));
         javaUsedMemory.setValue((int)(rt.totalMemory()/mb) -(int)(rt.freeMemory()/mb));   
         javaFreeMemory.setValue(javaMaxMemory.intValue() - javaUsedMemory.intValue());
+        
+        //Uptime in HRS
+        long uptimeMs = fireTime - Common.START_TIME;
+        Double uptimeHrs = (double)uptimeMs/3600000.0D;
+        BigDecimal bd = new BigDecimal(uptimeHrs);
+    	bd = bd.setScale(2, RoundingMode.HALF_UP);
+        uptime.setValue(bd.doubleValue());
     }
     
     /* (non-Javadoc)
