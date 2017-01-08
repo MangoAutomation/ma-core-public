@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.email.EmailRecipientModel;
@@ -50,12 +51,12 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
         this.data.setEscalationDelay(escalationDelay);
     }
 
-    public int getEscalationDelayType() {
-        return this.data.getEscalationDelayType();
+    public String getEscalationDelayType() {
+        return Common.TIME_PERIOD_CODES.getCode(this.data.getEscalationDelayType());
     }
 
-    public void setEscalationDelayType(int escalationDelayType) {
-        this.data.setEscalationDelayType(escalationDelayType);
+    public void setEscalationDelayType(String escalationDelayType) {
+        this.data.setEscalationDelayType(Common.TIME_PERIOD_CODES.getId(escalationDelayType));
     }
 
 

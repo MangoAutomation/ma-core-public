@@ -64,10 +64,10 @@ public class EventTypeModelDeserializer extends StdDeserializer<EventTypeModel>{
 	    		model = mapper.treeToValue(tree, AuditEventTypeModel.class);
 	    	break;
 	    	case EventType.EventTypeNames.PUBLISHER:
-	    		mapper.treeToValue(tree, PublisherEventTypeModel.class);
+	    		model = mapper.treeToValue(tree, PublisherEventTypeModel.class);
 	    	break;
 	    	case EventType.EventTypeNames.SYSTEM:
-	    		mapper.treeToValue(tree, SystemEventTypeModel.class);
+	    		model = mapper.treeToValue(tree, SystemEventTypeModel.class);
 	    	break;
 	    }
 	    if(model == null){

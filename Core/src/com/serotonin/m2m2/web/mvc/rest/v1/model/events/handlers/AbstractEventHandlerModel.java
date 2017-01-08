@@ -15,7 +15,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
  * @author Terry Packer
  *
  */
-public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerVO<?>> extends AbstractVoModel<AbstractEventHandlerVO<?>>{
+public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerVO<T>> extends AbstractVoModel<AbstractEventHandlerVO<?>>{
 
 	//TODO Fix up Generics so this doesn't need to be here
 	@JsonIgnore
@@ -59,8 +59,17 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
 		this.data.setEventType(eventType.getEventTypeInstance());
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#getData()
+	 */
+	@Override
+	public AbstractEventHandlerVO<T> getData() {
+		return this.data;
+	}
+	
 	@JsonIgnore
 	public void setDefinition(EventHandlerDefinition def) {
 		this.data.setDefinition(def);
 	}
+	
 }
