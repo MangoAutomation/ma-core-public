@@ -222,7 +222,7 @@ public class ModulesDwr extends BaseDwr {
     }
     
     @DwrPermission(admin = true)
-    public ProcessResult monitorDownloads() {
+    public static ProcessResult monitorDownloads() {
         ProcessResult result = new ProcessResult();
         synchronized(UPGRADE_DOWNLOADER_LOCK){
 	        if(UPGRADE_DOWNLOADER == null){
