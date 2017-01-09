@@ -24,12 +24,8 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 public class LoggedInFilter implements Filter {
     private final Log LOGGER = LogFactory.getLog(LoggedInFilter.class);
 
-    private String exceededIpLimitUrl;
-
     @Override
-    public void init(FilterConfig config) {
-        exceededIpLimitUrl = config.getInitParameter("exceededIpLimitUrl");
-    }
+    public void init(FilterConfig config) { }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
@@ -37,12 +33,6 @@ public class LoggedInFilter implements Filter {
         // Assume an http request.
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        
-        
-        //Check to see if we are valid to access Mango
-        if(!Common.loginManager.isValidIp(request)){
-        	response.sendRedirect(exceededIpLimitUrl);
-        }
 
         //Did we already come from a secure URL?
         if(Common.loginManager.isSecure(request)){
