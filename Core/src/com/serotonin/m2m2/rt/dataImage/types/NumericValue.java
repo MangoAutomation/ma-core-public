@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.dataImage.types;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
+
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 
 /**
@@ -14,9 +18,11 @@ public class NumericValue extends DataValue implements Comparable<NumericValue> 
         if (s == null)
             return new NumericValue(0);
         try {
-            return new NumericValue(Double.parseDouble(s));
+        	NumberFormat format = NumberFormat.getInstance(Common.getLocale());
+            Number number = format.parse(s);
+            return new NumericValue(number.doubleValue());
         }
-        catch (NumberFormatException e) {
+        catch (ParseException e) {
             // no op
         }
         return new NumericValue(0);
