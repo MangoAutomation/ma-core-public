@@ -129,18 +129,6 @@ public class Common {
             return license.getFeature(name);
         return null;
     }
-    
-    public static Integer dataPointLimit() {
-		LicenseFeature dataPointLimit = licenseFeature("dataPointLimit");
-		if(dataPointLimit != null) {
-			try {
-				return Integer.parseInt(dataPointLimit.getValue());
-			} catch(NumberFormatException e) {
-				return null;
-			}
-		}
-    	return 300; //The free version is limited to 500
-    }
 
     /*
      * Updating the MA version: - Create a DBUpdate subclass for the old version number. This may not do anything in

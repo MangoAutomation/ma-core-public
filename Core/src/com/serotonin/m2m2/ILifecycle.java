@@ -43,6 +43,12 @@ public interface ILifecycle extends Provider {
      * (Re)load the license
      */
     public void loadLic();
+    
+    /**
+     * Get the data point limit
+     * @return
+     */
+    public Integer dataPointLimit();
 
     /**
      * @param timeout
