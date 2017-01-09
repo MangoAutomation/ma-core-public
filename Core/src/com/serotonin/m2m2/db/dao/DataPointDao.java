@@ -314,8 +314,14 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void checkAddPoint() {
     	ILifecycle lifecycle = Providers.get(ILifecycle.class);
     	Integer limit = lifecycle.dataPointLimit();
-    	if(limit != null && this.countMonitor.getValue() >= limit)
-    		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", Common.license().getLicenseType(), limit));
+    	if(limit != null && this.countMonitor.getValue() >= limit) {
+    		String licenseType;
+    		if(Common.license() != null)
+    			licenseType = Common.license().getLicenseType();
+    		else
+    			licenseType = "Free";
+    		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", licenseType, limit));
+    	}
     }
 
     void insertDataPoint(final DataPointVO dp) {
