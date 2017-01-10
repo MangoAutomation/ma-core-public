@@ -34,11 +34,11 @@ public class DataTypes {
 
     public static final ExportCodes CODES = new ExportCodes();
     static {
-        CODES.addElement(BINARY, "BINARY");
-        CODES.addElement(MULTISTATE, "MULTISTATE");
-        CODES.addElement(NUMERIC, "NUMERIC");
-        CODES.addElement(ALPHANUMERIC, "ALPHANUMERIC");
-        CODES.addElement(IMAGE, "IMAGE");
+        CODES.addElement(BINARY, "BINARY", "common.dataTypes.binary");
+        CODES.addElement(MULTISTATE, "MULTISTATE", "common.dataTypes.multistate");
+        CODES.addElement(NUMERIC, "NUMERIC", "common.dataTypes.numeric");
+        CODES.addElement(ALPHANUMERIC, "ALPHANUMERIC", "common.dataTypes.alphanumeric");
+        CODES.addElement(IMAGE, "IMAGE", "common.dataTypes.image");
     }
 
     public static int getDataType(DataValue value) {
