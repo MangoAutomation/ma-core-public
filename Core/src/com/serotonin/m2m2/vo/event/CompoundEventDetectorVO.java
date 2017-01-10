@@ -92,11 +92,11 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
             List<String> keys = l.getDetectorKeys();
 
             // Get all of the point event detectors.
-            List<DataPointVO> dataPoints = new DataPointDao().getDataPoints(null, true);
+            List<DataPointVO> dataPoints = DataPointDao.instance.getDataPoints(null, true);
 
             // Create a lookup of data sources.
             Map<Integer, DataSourceVO<?>> dss = new HashMap<>();
-            for (DataSourceVO<?> ds : new DataSourceDao<>().getAll())
+            for (DataSourceVO<?> ds : DataSourceDao.instance.getAll())
                 dss.put(ds.getId(), ds);
 
             for (String key : keys) {

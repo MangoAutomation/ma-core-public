@@ -28,7 +28,7 @@ public class VarNames {
     }
 
     public static String contextToString(List<IntStringPair> context) {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (IntStringPair ivp : context) {
@@ -49,7 +49,7 @@ public class VarNames {
 
     public static void jsonWriteVarContext(ObjectWriter writer, List<IntStringPair> context) throws IOException,
             JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (IntStringPair p : context) {
             DataPointVO dp = dataPointDao.getDataPoint(p.getKey());
@@ -67,7 +67,7 @@ public class VarNames {
         JsonArray jsonContext = json.getJsonArray("context");
         if (jsonContext != null) {
             context.clear();
-            DataPointDao dataPointDao = new DataPointDao();
+            DataPointDao dataPointDao = DataPointDao.instance;
 
             for (JsonValue jv : jsonContext) {
                 JsonObject jo = jv.toJsonObject();

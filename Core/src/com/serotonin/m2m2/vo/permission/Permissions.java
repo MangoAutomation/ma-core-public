@@ -120,7 +120,7 @@ public class Permissions {
     // Data source admin
     //
     public static void ensureDataSourcePermission(User user, int dsId) throws PermissionException {
-        ensureDataSourcePermission(user, new DataSourceDao<>().get(dsId));
+        ensureDataSourcePermission(user, DataSourceDao.instance.get(dsId));
     }
 
     public static void ensureDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
@@ -129,7 +129,7 @@ public class Permissions {
     }
 
     public static boolean hasDataSourcePermission(User user, int dsId) throws PermissionException {
-        return hasDataSourcePermission(user, new DataSourceDao<>().get(dsId));
+        return hasDataSourcePermission(user, DataSourceDao.instance.get(dsId));
     }
 
     public static boolean hasDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
@@ -180,7 +180,7 @@ public class Permissions {
     public static boolean hasDataPointReadPermission(String userPermissions, IDataPoint point){
     	if(hasPermission(point.getReadPermission(), userPermissions))
     		return true;
-    	String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
+    	String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
     	if (permissionContains(dsPermission, userPermissions))
             return true;
         else
@@ -199,7 +199,7 @@ public class Permissions {
             return true;
         if (hasPermission(user, point.getSetPermission()))
             return true;
-        String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
+        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
         return hasPermission(user, dsPermission);
     }
 
@@ -212,7 +212,7 @@ public class Permissions {
     public static boolean hasDataPointSetPermission(String userPermissions, IDataPoint point){
         if(hasPermission(point.getSetPermission(), userPermissions))
         	return true;
-    	String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
+    	String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
     	if (permissionContains(dsPermission, userPermissions))
             return true;
         else
@@ -225,7 +225,7 @@ public class Permissions {
         if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
             return DataPointAccessTypes.ADMIN;
 
-        String dsPermission = new DataSourceDao().getEditPermission(point.getDataSourceId());
+        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
         if (hasPermission(user, dsPermission))
             return DataPointAccessTypes.DATA_SOURCE;
 
@@ -245,7 +245,7 @@ public class Permissions {
             return true;
 
         if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT)){
-            DataPointVO point = new DataPointDao().get(eventType.getDataPointId());
+            DataPointVO point = DataPointDao.instance.get(eventType.getDataPointId());
             if(point == null)
             	return false;
             return hasDataPointReadPermission(user, point);

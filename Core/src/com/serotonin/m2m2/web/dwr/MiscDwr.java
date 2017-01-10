@@ -115,7 +115,7 @@ public class MiscDwr extends BaseDwr {
         User user = Common.getUser();
         if (user != null) {
             user.setMuted(!user.isMuted());
-            new UserDao().saveMuted(user.getId(), user.isMuted());
+            UserDao.instance.saveMuted(user.getId(), user.isMuted());
             return user.isMuted();
         }
         return false;
@@ -184,7 +184,7 @@ public class MiscDwr extends BaseDwr {
     public ProcessResult sendTestEmail(List<RecipientListEntryBean> recipientList, String prefix, String message) {
         ProcessResult response = new ProcessResult();
 
-        String[] toAddrs = new MailingListDao().getRecipientAddresses(recipientList, null).toArray(new String[0]);
+        String[] toAddrs = MailingListDao.instance.getRecipientAddresses(recipientList, null).toArray(new String[0]);
         if (toAddrs.length == 0)
             response.addGenericMessage("js.email.noRecipForEmail");
         else {
@@ -244,14 +244,14 @@ public class MiscDwr extends BaseDwr {
 
         // Save the result
         User user = Common.getUser();
-        new UserDao().saveHomeUrl(user.getId(), url);
+        UserDao.instance.saveHomeUrl(user.getId(), url);
         user.setHomeUrl(url);
     }
 
     @DwrPermission(user = true)
     public void deleteHomeUrl() {
         User user = Common.getUser();
-        new UserDao().saveHomeUrl(user.getId(), null);
+        UserDao.instance.saveHomeUrl(user.getId(), null);
         user.setHomeUrl(null);
     }
 

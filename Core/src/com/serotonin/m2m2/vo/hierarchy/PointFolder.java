@@ -309,7 +309,7 @@ public class PointFolder implements JsonSerializable {
     //
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         List<String> pointList = new ArrayList<String>();
         for (DataPointSummary p : points) {
             DataPointVO dp = dataPointDao.getDataPoint(p.getId());
@@ -324,7 +324,7 @@ public class PointFolder implements JsonSerializable {
         JsonArray jsonPoints = jsonObject.getJsonArray("points");
         if (jsonPoints != null) {
             points.clear();
-            DataPointDao dataPointDao = new DataPointDao();
+            DataPointDao dataPointDao = DataPointDao.instance;
 
             for (JsonValue jv : jsonPoints) {
                 String xid = jv.toString();

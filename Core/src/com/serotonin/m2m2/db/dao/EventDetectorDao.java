@@ -21,6 +21,7 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -38,7 +39,12 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	private LinkedHashMap<String, String> sourceTypeToColumnNameMap;
 	
 	private EventDetectorDao(){
-		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_DETECTOR"), AuditEventType.TYPE_EVENT_DETECTOR, "edt", new String[0]);
+		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_DETECTOR"),
+				AuditEventType.TYPE_EVENT_DETECTOR, 
+				"edt",
+				new String[0],
+				false,
+				new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"));
 	}
 	
 	/* (non-Javadoc)

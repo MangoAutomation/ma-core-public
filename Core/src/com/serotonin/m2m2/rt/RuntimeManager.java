@@ -251,16 +251,16 @@ public class RuntimeManager {
     }
 
     public List<DataSourceVO<?>> getDataSources() {
-        return new DataSourceDao().getDataSources();
+        return DataSourceDao.instance.getDataSources();
     }
 
     public DataSourceVO<?> getDataSource(int dataSourceId) {
-        return new DataSourceDao().getDataSource(dataSourceId);
+        return DataSourceDao.instance.getDataSource(dataSourceId);
     }
 
     public void deleteDataSource(int dataSourceId) {
         stopDataSource(dataSourceId);
-        new DataSourceDao().deleteDataSource(dataSourceId);
+        DataSourceDao.instance.deleteDataSource(dataSourceId);
         Common.eventManager.cancelEventsForDataSource(dataSourceId);
     }
 
@@ -453,7 +453,7 @@ public class RuntimeManager {
     public void deleteDataPoint(DataPointVO point) {
         if (point.isEnabled())
             stopDataPoint(point.getId());
-        new DataPointDao().deleteDataPoint(point.getId());
+        DataPointDao.instance.deleteDataPoint(point.getId());
         Common.eventManager.cancelEventsForDataPoint(point.getId());
     }
 

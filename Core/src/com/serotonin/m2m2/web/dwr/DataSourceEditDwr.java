@@ -94,7 +94,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return null;
 
-        List<DataPointVO> points = new DataPointDao()
+        List<DataPointVO> points = DataPointDao.instance
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         return points;
     }
@@ -194,7 +194,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 response.addContextualMessage("xid", "validate.required");
             else if (StringValidation.isLengthGreaterThan(xid, 50))
                 response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
-            else if (!new DataPointDao().isXidUnique(xid, id))
+            else if (!DataPointDao.instance.isXidUnique(xid, id))
                 response.addContextualMessage("xid", "validate.xidUsed");
 
             if (StringUtils.isBlank(name))
@@ -307,7 +307,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     @DwrPermission(user = true)
     public String exportDataPoint(int dataPointId) {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        DataPointVO dp = new DataPointDao().getDataPoint(dataPointId);
+        DataPointVO dp = DataPointDao.instance.getDataPoint(dataPointId);
         if (dp == null)
             return null;
         if (dp.getDataSourceId() != ds.getId())
@@ -350,7 +350,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return 0;
 
-        List<DataPointVO> points = new DataPointDao()
+        List<DataPointVO> points = DataPointDao.instance
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
 
         Long count = 0L;

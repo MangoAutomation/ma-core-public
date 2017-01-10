@@ -64,7 +64,7 @@ public class EventHandlersDwr extends BaseDwr {
         Map<String, Object> model = new HashMap<>();
 
         // Get the data sources.
-        List<DataSourceVO<?>> dss = new DataSourceDao().getDataSources();
+        List<DataSourceVO<?>> dss = DataSourceDao.instance.getDataSources();
 
         // Create a lookup of data sources to quickly determine data point permissions.
         Map<Integer, DataSourceVO<?>> dslu = new HashMap<>();
@@ -74,7 +74,7 @@ public class EventHandlersDwr extends BaseDwr {
         // Get the data points
         List<DataPointBean> allPoints = new ArrayList<>();
         List<EventSourceBean> dataPoints = new ArrayList<>();
-        List<DataPointVO> dps = new DataPointDao().getDataPoints(DataPointExtendedNameComparator.instance, true);
+        List<DataPointVO> dps = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, true);
 
         for (DataPointVO dp : dps) {
             if (!Permissions.hasDataSourcePermission(user, dslu.get(dp.getDataSourceId())))
@@ -191,10 +191,10 @@ public class EventHandlersDwr extends BaseDwr {
         }
 
         // Get the mailing lists.
-        model.put("mailingLists", new MailingListDao().getMailingLists());
+        model.put("mailingLists", MailingListDao.instance.getMailingLists());
 
         // Get the users.
-        model.put("users", new UserDao().getUsers());
+        model.put("users", UserDao.instance.getUsers());
 
         model.put("allPoints", allPoints);
         model.put("dataPoints", dataPoints);
@@ -205,7 +205,7 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public String createSetValueContent(int pointId, String valueStr, String idSuffix) {
-        DataPointVO pointVO = new DataPointDao().getDataPoint(pointId);
+        DataPointVO pointVO = DataPointDao.instance.getDataPoint(pointId);
         Permissions.ensureDataSourcePermission(Common.getUser(), pointVO.getDataSourceId());
 
         DataValue value = DataValue.stringToValue(valueStr, pointVO.getPointLocator().getDataTypeId());

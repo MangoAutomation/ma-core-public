@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.SuperclassModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 
@@ -31,12 +33,15 @@ public class MangoCoreModule extends SimpleModule {
 	
 	@Override
 	public void setupModule(SetupContext context) {
-		//Add the core deserializers
+
 		this.addDeserializer(AbstractDataSourceModel.class, new DataSourceModelDeserializer());
 		this.addDeserializer(PointLocatorModel.class, new PointLocatorModelDeserializer());
 		this.addDeserializer(SuperclassModel.class, new SuperclassModelDeserializer());
 		this.addDeserializer(AbstractPublisherModel.class, new PublisherModelDeserializer());
 		this.addDeserializer(AbstractPublishedPointModel.class, new PublishedPointModelDeserializer());
+		this.addDeserializer(AbstractEventHandlerModel.class, new AbstractEventHandlerModelDeserializer());
+		this.addDeserializer(EventTypeModel.class, new EventTypeModelDeserializer());
+		
 		super.setupModule(context);
 	}
 }

@@ -38,8 +38,8 @@ public class UserDao extends AbstractDao<User> {
 	 * @param extraProperties
 	 * @param extraSQL
 	 */
-	public UserDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("USER"), AuditEventType.TYPE_USER);
+	private UserDao() {
+		super(ModuleRegistry.getWebSocketHandlerDefinition("USER"), AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
 	}
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);
@@ -116,6 +116,7 @@ public class UserDao extends AbstractDao<User> {
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
+        this.countMonitor.increment();
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -164,10 +165,11 @@ public class UserDao extends AbstractDao<User> {
                 ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
                         new TranslatableMessage("events.ackedByDeletedUser").serialize(), userId });
                 ejt.update("DELETE FROM users WHERE id=?", args);
-                //TODO Make User Change Comparable... AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
+                AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
+                countMonitor.decrement();
             }
         });
-        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
+        
     }
 
     public void recordLogin(int userId) {

@@ -78,7 +78,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             return result;
         }
 
-        List<DataPointVO> points = new DataPointDao()
+        List<DataPointVO> points = DataPointDao.instance
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         result.addData("list", points);
 

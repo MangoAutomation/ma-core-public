@@ -22,9 +22,9 @@ public class DaoRegistry {
 	}
 	
 	//TODO Maybe set this up to get registered at startup instead of here
-	public static DataSourceDao<DataSourceVO<?>> dataSourceDao = new DataSourceDao<>();
-	public static DataPointDao dataPointDao = new DataPointDao();
-	public static UserDao userDao = new UserDao();
+	public static DataSourceDao<DataSourceVO<?>> dataSourceDao = DataSourceDao.instance;
+	public static DataPointDao dataPointDao = DataPointDao.instance;
+	public static UserDao userDao = UserDao.instance;
 	public static PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 	public static PublisherDao publisherDao = PublisherDao.instance;
 	

@@ -9,6 +9,7 @@ package com.serotonin.m2m2.rt.maint.work;
  * 
  */
 public interface WorkItem {
+	
     /**
      * Uses a thread pool to immediately execute a process.
      */

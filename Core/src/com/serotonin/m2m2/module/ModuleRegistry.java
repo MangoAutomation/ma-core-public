@@ -27,7 +27,6 @@ import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;
@@ -92,6 +91,7 @@ public class ModuleRegistry {
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
+    private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
@@ -471,6 +471,36 @@ public class ModuleRegistry {
                     	list.add(def);
                     }
                     ANGULARJS_MODULE_DEFINITIONS = list;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // AngularJS Module special handling
+    //
+    public static List<SystemSettingsDefinition> getSystemSettingsDefinitions() {
+    	ensureSystemSettingsDefinitions();
+        return SYSTEM_SETTINGS_DEFINITIONS;
+    }
+
+    private static void ensureSystemSettingsDefinitions() {
+        if (SYSTEM_SETTINGS_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (SYSTEM_SETTINGS_DEFINITIONS == null) {
+                    List<SystemSettingsDefinition> list = new ArrayList<SystemSettingsDefinition>();
+                    for(SystemSettingsDefinition def : Module.getDefinitions(preDefaults, SystemSettingsDefinition.class)){
+                    	list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (SystemSettingsDefinition def : module.getDefinitions(SystemSettingsDefinition.class))
+                        	list.add(def);
+                    }
+                    for(SystemSettingsDefinition def : Module.getDefinitions(postDefaults, SystemSettingsDefinition.class)){
+                    	list.add(def);
+                    }
+                    SYSTEM_SETTINGS_DEFINITIONS = list;
                 }
             }
         }

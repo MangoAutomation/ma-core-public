@@ -47,7 +47,7 @@ import com.serotonin.util.ColorUtils;
 public class AsyncImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
 
-    final DataPointDao dataPointDao = new DataPointDao();
+    final DataPointDao dataPointDao = DataPointDao.instance;
     final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     /**

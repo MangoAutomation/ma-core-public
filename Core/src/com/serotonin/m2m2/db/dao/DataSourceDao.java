@@ -32,6 +32,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -48,8 +49,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     public static final DataSourceDao<DataSourceVO<?>> instance = new DataSourceDao<>();
 
-    public DataSourceDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_SOURCE"), AuditEventType.TYPE_DATA_SOURCE);
+    private DataSourceDao() {
+        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_SOURCE"), AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
 
     public List<T> getDataSources() {
@@ -144,6 +145,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                         Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR }));
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
+        this.countMonitor.increment();
     }
 
     /**
@@ -152,10 +154,6 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
      */
     private void updateDataSource(final T vo) {
         super.save(vo);
-        //DataSourceVO<?> old = getDataSource(vo.getId());
-
-        //_updateDataSource(vo);
-        //AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_SOURCE, old, (ChangeComparable<DataSourceVO<?>>) vo);
     }
 
     public void _updateDataSource(T vo) {
@@ -169,7 +167,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         DataSourceVO<?> vo = getDataSource(dataSourceId);
         final ExtendedJdbcTemplate ejt2 = ejt;
 
-        new DataPointDao().deleteDataPoints(dataSourceId);
+        DataPointDao.instance.deleteDataPoints(dataSourceId);
 
         if (vo != null) {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
@@ -182,6 +180,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             });
 
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
+            this.countMonitor.decrement();
         }
     }
 
@@ -209,7 +208,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = new DataPointDao();
+                DataPointDao dataPointDao = DataPointDao.instance;
 
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
@@ -253,7 +252,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = new DataPointDao();
+                DataPointDao dataPointDao = DataPointDao.instance;
 
                 DataSourceVO<?> dataSource = getDataSource(dataSourceId);
                 // Copy the data source.

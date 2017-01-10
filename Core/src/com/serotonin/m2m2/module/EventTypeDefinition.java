@@ -10,6 +10,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
  * Used for creating custom event types.
@@ -92,5 +93,11 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * @return the translatable message instance, or null.
      */
     abstract public TranslatableMessage getSourceDisabledMessage();
+    
+    /**
+     * Get the model class
+     * @return
+     */
+    abstract public Class<? extends EventTypeModel> getModelClass();
 
 }

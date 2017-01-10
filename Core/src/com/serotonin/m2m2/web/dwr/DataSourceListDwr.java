@@ -79,7 +79,7 @@ public class DataSourceListDwr extends BaseDwr {
     }
 
     public List<DataPointVO> getPointsForDataSource(int dataSourceId) {
-        return new DataPointDao().getDataPoints(dataSourceId, DataPointNameComparator.instance);
+        return DataPointDao.instance.getDataPoints(dataSourceId, DataPointNameComparator.instance);
     }
 
     @DwrPermission(user = true)
@@ -91,7 +91,7 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult toggleDataPoint(int dataPointId) {
-        DataPointVO dataPoint = new DataPointDao().getDataPoint(dataPointId);
+        DataPointVO dataPoint = DataPointDao.instance.getDataPoint(dataPointId);
         Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
 
         dataPoint.setEnabled(!dataPoint.isEnabled());
@@ -105,7 +105,7 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult dataSourceInfo(int dataSourceId) {
-        DataSourceDao dataSourceDao = new DataSourceDao();
+        DataSourceDao dataSourceDao = DataSourceDao.instance;
         DataSourceVO<?> ds = dataSourceDao.getDataSource(dataSourceId);
         Permissions.ensureDataSourcePermission(Common.getUser(), ds);
         ProcessResult response = new ProcessResult();
@@ -132,7 +132,7 @@ public class DataSourceListDwr extends BaseDwr {
         ds.validate(response);
 
         if (!response.getHasMessages()) {
-            int dsId = new DataSourceDao().copyDataSource(dataSourceId, name, xid, deviceName);
+            int dsId = DataSourceDao.instance.copyDataSource(dataSourceId, name, xid, deviceName);
             response.addData("newId", dsId);
         }
 
@@ -143,9 +143,9 @@ public class DataSourceListDwr extends BaseDwr {
     public String exportDataSourceAndPoints(int dataSourceId) {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
-        dss.add(new DataSourceDao().getDataSource(dataSourceId));
+        dss.add(DataSourceDao.instance.getDataSource(dataSourceId));
         data.put(EmportDwr.DATA_SOURCES, dss);
-        data.put(EmportDwr.DATA_POINTS, new DataPointDao().getDataPoints(dataSourceId, null));
+        data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(dataSourceId, null));
         return EmportDwr.export(data, 3);
     }
 }
