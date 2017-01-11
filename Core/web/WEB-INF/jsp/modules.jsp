@@ -316,7 +316,7 @@
   </div>
   
   <div id="guid">
-    <form action="${storeUrl}/account/store" method="post" target="mangoStore">
+    <form action="${storeUrl}/account/store" method="post" target="mangoStore" enctype="application/x-www-form-urlencoded">
       <fmt:message key="modules.guid"/> <b>${guid}</b>
       <textarea rows="2" cols="80" style="display:none;" name="orderJson">${json}</textarea>
       <input type="hidden" id="redirectURI" name="redirect" value=""/>

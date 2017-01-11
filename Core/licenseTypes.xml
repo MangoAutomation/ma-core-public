@@ -55,8 +55,9 @@
             <dataPointLimit>100</dataPointLimit>
         </features>
         
+        <price fromVersion="2" fromType="free">200</price>
         <price fromType="Free">200</price>
-        <price fromVersion="2" fromType="paid">disallow</price>
+        <price fromVersion="2" fromType="paid">200</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="Commercial">disallow</price>
 		<price fromType="Enterprise">disallow</price>
