@@ -46,6 +46,7 @@
 		<price fromType="Commercial">disallow</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
     </licenseType>
     
     <licenseType id="Gateway" status="grant-only">
@@ -62,6 +63,7 @@
 		<price fromType="Commercial">disallow</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
     </licenseType>
     
 	<licenseType id="Commercial" status="normal">
@@ -77,6 +79,7 @@
 		<price fromType="MangoES">disallow</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
     </licenseType>
 	
     <licenseType id="Enterprise" status="normal">
@@ -92,6 +95,7 @@
 		<price fromType="Gateway">4800</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
     </licenseType>
 	
 	<licenseType id="MangoES" status="grant-only">
