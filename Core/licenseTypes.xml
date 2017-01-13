@@ -67,7 +67,7 @@
     </licenseType>
     
 	<licenseType id="Commercial" status="normal">
-        <description>No restrictions within core.</description>
+        <description>Limited to 1000 data points.</description>
         
         <features>
             <dataPointLimit>1000</dataPointLimit>
