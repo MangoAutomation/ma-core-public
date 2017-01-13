@@ -41,6 +41,7 @@ CREATE TABLE users (
   timezone varchar(50),
   muted character(1),
   permissions varchar(255),
+  name varchar(255),
   locale varchar(50),
   PRIMARY KEY (id)
 );

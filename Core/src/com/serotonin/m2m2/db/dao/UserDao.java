@@ -46,7 +46,7 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String USER_SELECT = //
     "SELECT id, username, password, email, phone, disabled, homeUrl, " //
-            + "lastLogin, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, locale FROM users ";
+            + "lastLogin, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale FROM users ";
 
     public User getUser(int id) {
         return queryForObject(USER_SELECT + "WHERE id=?", new Object[] { id }, new UserRowMapper(), null);
@@ -76,6 +76,7 @@ public class UserDao extends AbstractDao<User> {
             user.setTimezone(rs.getString(++i));
             user.setMuted(charToBool(rs.getString(++i)));
             user.setPermissions(rs.getString(++i));
+            user.setName(rs.getString(++i));
             user.setLocale(rs.getString(++i));
             return user;
         }
@@ -103,8 +104,8 @@ public class UserDao extends AbstractDao<User> {
     }
 
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
-            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, locale) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale) " //
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
         int id = ejt.doInsert(
@@ -114,7 +115,7 @@ public class UserDao extends AbstractDao<User> {
                         user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                         boolToChar(user.isMuted()), user.getPermissions(), user.getLocale() }, new int[] { Types.VARCHAR, Types.VARCHAR,
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
+                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
@@ -122,7 +123,7 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, locale=? " //
+            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=? " //
             + "WHERE id=?";
 
     void updateUser(User user) {
@@ -133,6 +134,8 @@ public class UserDao extends AbstractDao<User> {
             user.setHomeUrl("");
         if (user.getTimezone() == null)
             user.setTimezone("");
+        if (user.getName() == null)
+            user.setName("");
         if (user.getLocale() == null)
             user.setLocale("");
         User old = getUser(user.getId());
@@ -142,10 +145,10 @@ public class UserDao extends AbstractDao<User> {
                     new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                             boolToChar(user.isDisabled()), user.getHomeUrl(),
                             user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
-                            user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getLocale(), user.getId() },
+                            user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getId() },
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.INTEGER });
+                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER });
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         }
         catch (DataIntegrityViolationException e) {
@@ -226,6 +229,7 @@ public class UserDao extends AbstractDao<User> {
 				vo.getTimezone(),
 				vo.isMuted(),
 				vo.getPermissions(),
+                vo.getName(),
                 vo.getLocale()
 		};
 	}
@@ -258,6 +262,7 @@ public class UserDao extends AbstractDao<User> {
 		map.put("timezone", Types.VARCHAR);
 		map.put("muted", Types.CHAR);
 		map.put("permissions", Types.VARCHAR);
+        map.put("name", Types.VARCHAR);
         map.put("locale", Types.VARCHAR);
 
 		return map;
