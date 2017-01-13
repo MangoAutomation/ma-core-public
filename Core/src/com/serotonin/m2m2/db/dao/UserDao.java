@@ -113,7 +113,7 @@ public class UserDao extends AbstractDao<User> {
                 new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                         boolToChar(user.isDisabled()), user.getHomeUrl(),
                         user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                        boolToChar(user.isMuted()), user.getPermissions(), user.getLocale() }, new int[] { Types.VARCHAR, Types.VARCHAR,
+                        boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale() }, new int[] { Types.VARCHAR, Types.VARCHAR,
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
         user.setId(id);
