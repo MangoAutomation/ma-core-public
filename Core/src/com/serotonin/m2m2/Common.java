@@ -464,9 +464,13 @@ public class Common {
      * @return
      */
     public static String encrypt(String plaintext) {
-        String alg = envProps.getString("security.hashAlgorithm", "BCRYPT");
+        String alg = getHashAlgorithm();
         String hash = encrypt(plaintext, alg);
         return "{" + alg + "}" + hash;
+    }
+    
+    public static String getHashAlgorithm() {
+        return envProps.getString("security.hashAlgorithm", "BCRYPT");
     }
     
     public static String encrypt(String plaintext, String alg) {
@@ -527,6 +531,14 @@ public class Common {
         } catch (Throwable t) {
             return false;
         }
+    }
+    
+    public static String extractHashAlgorithm(String hash) {
+        Matcher m = EXTRACT_ALGORITHM_HASH.matcher(hash);
+        if (!m.matches()) {
+            return null;
+        }
+        return m.group(1);
     }
 
     //
