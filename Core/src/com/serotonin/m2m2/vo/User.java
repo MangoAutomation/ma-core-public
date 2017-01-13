@@ -66,6 +66,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private boolean muted = true;
     @JsonProperty
     private String permissions = "user"; //Default group
+    @JsonProperty
+    private String locale;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -82,6 +84,11 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient TimeZone _tz;
     private transient DateTimeZone _dtz;
     private transient String remoteAddr; //remote address we are logged in from
+    
+    public User() {
+        this.timezone = "";
+        this.locale = "";
+    }
 
     /**
      * Used for various display purposes.
@@ -363,6 +370,14 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         }
         return _dtz;
     }
+    
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
 
     /**
      * @return the ipAddress
@@ -412,7 +427,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + ", phone="
                 + phone + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
                 + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails + ", receiveOwnAuditEvents="
-                + receiveOwnAuditEvents + ", timezone=" + timezone + ", permissions=" + permissions + "]";
+                + receiveOwnAuditEvents + ", timezone=" + timezone + ", locale=" + locale + ", permissions=" + permissions + "]";
     }
 
     @Override

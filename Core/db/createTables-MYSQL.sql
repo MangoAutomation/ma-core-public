@@ -44,6 +44,7 @@ create table users (
   timezone varchar(50),
   muted char(1),
   permissions varchar(255),
+  locale varchar(50),
   primary key (id)
 ) engine=InnoDB;
 
