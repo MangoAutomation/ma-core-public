@@ -119,6 +119,9 @@ public class UserDao extends AbstractDao<User> {
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
+        
+        if (handler != null)
+            handler.notify("add", user);
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -150,6 +153,8 @@ public class UserDao extends AbstractDao<User> {
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER });
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
+            if (handler != null)
+                handler.notify("update", user);
         }
         catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -173,6 +178,8 @@ public class UserDao extends AbstractDao<User> {
                 ejt.update("DELETE FROM users WHERE id=?", args);
                 AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
                 countMonitor.decrement();
+                if (handler != null)
+                    handler.notify("delete", user);
             }
         });
         
