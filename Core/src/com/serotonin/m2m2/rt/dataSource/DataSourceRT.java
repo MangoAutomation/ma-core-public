@@ -122,8 +122,15 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
             removedPoints.add(dataPoint);
         }
     }
+    
+    public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
+    	if(dataPoint.getVO().isPreventSetExtremeValues() && (valueTime.getDoubleValue() > dataPoint.getVO().getSetExtremeHighLimit() 
+    			|| valueTime.getDoubleValue() < dataPoint.getVO().getSetExtremeLowLimit()))
+    		return;
+    	setPointValueImpl(dataPoint, valueTime, source);
+    }
 
-    abstract public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
+    abstract public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
 
     public void relinquish(DataPointRT dataPoint) {
         throw new ShouldNeverHappenException("not implemented in " + getClass());

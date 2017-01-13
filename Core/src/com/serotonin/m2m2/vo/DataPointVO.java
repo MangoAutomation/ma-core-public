@@ -163,6 +163,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private double discardLowLimit = -Double.MAX_VALUE;
     @JsonProperty
     private double discardHighLimit = Double.MAX_VALUE;
+    @JsonProperty
+    private boolean preventSetExtremeValues = false;
+    @JsonProperty
+    private double setExtremeLowLimit = -Double.MAX_VALUE;
+    @JsonProperty
+    private double setExtremeHighLimit = Double.MAX_VALUE;
     /**
      * @deprecated Use unit instead
      */
@@ -542,6 +548,30 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setDiscardHighLimit(double discardHighLimit) {
         this.discardHighLimit = discardHighLimit;
     }
+    
+    public boolean isPreventSetExtremeValues() {
+    	return preventSetExtremeValues;
+    }
+    
+    public void setPreventSetExtremeValues(boolean preventSetExtremeValues) {
+    	this.preventSetExtremeValues = preventSetExtremeValues;
+    }
+    
+    public double getSetExtremeHighLimit() {
+    	return setExtremeHighLimit;
+    }
+    
+    public void setSetExtremeHighLimit(double setExtremeHighLimit) {
+    	this.setExtremeHighLimit = setExtremeHighLimit;
+    }
+    
+    public double getSetExtremeLowLimit() {
+    	return setExtremeLowLimit;
+    }
+    
+    public void setSetExtremeLowLimit(double setExtremeLowLimit) {
+    	this.setExtremeLowLimit = setExtremeLowLimit;
+    }
 
     /**
      * @deprecated
@@ -764,6 +794,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setReadPermission(readPermission);
             copy.setSetPermission(setPermission);
             copy.setTemplateId(templateId);
+            copy.setPreventSetExtremeValues(preventSetExtremeValues);
+            copy.setSetExtremeHighLimit(setExtremeHighLimit);
+            copy.setSetExtremeLowLimit(setExtremeLowLimit);
 
             return copy;
         }
@@ -811,6 +844,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
         if (discardExtremeValues && discardHighLimit <= discardLowLimit)
             response.addContextualMessage("discardHighLimit", "validate.greaterThanDiscardLow");
+        
+        if(preventSetExtremeValues && setExtremeHighLimit <= setExtremeLowLimit)
+        	response.addContextualMessage("setExtremeHighLimit", "validate.greaterThanSetExtremeLow");
 
         if (!StringUtils.isBlank(chartColour)) {
             try {
@@ -960,14 +996,16 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue + ", settable="
                 + settable + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
-                + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId + "]";
+                + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId 
+                + ", preventSetExtremeValues=" + preventSetExtremeValues + ", setExtremeLowLimit=" + setExtremeLowLimit
+                + ", setExtremeHighLimit=" + setExtremeHighLimit + "]";
     }
 
     //
     //
     // Serialization
     //
-    private static final int version = 10; //Skipped 7,8 to catch up with Deltamation
+    private static final int version = 11; //Skipped 7,8 to catch up with Deltamation
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         ensureUnitsCorrect();
@@ -986,6 +1024,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         out.writeBoolean(useRenderedUnit);
         out.writeBoolean(overrideIntervalLoggingSamples);
         out.writeInt(intervalLoggingSampleWindowSize);
+        out.writeBoolean(preventSetExtremeValues);
+        out.writeDouble(setExtremeLowLimit);
+        out.writeDouble(setExtremeHighLimit);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -1030,6 +1071,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
+            
         }
         else if (ver == 2) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1068,6 +1114,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 3) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1105,6 +1155,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             useRenderedUnit = false;
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 4) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1133,6 +1187,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 5) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1157,6 +1215,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 6) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1181,6 +1243,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 7) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1195,6 +1261,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             renderedUnit = (Unit<?>) in.readObject();
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 8) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1211,6 +1280,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             useRenderedUnit = in.readBoolean();
             in.readDouble(); // error
             in.readBoolean(); // error is a percentage
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1249,6 +1321,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }
         else if (ver == 10) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1286,6 +1362,51 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             overrideIntervalLoggingSamples = in.readBoolean();
             intervalLoggingSampleWindowSize = in.readInt();
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
+        }
+        else if (ver == 11) {
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            pointLocator = (PointLocatorVO) in.readObject();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            plotType = in.readInt();
+            
+            try{
+	            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+	            unitString = UnitUtil.formatLocal(unit);
+            }catch(Exception e){
+            	unit = defaultUnit();
+            	unitString = UnitUtil.formatLocal(unit);
+            }
+            try{
+            	integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }catch(Exception e){
+            	integralUnit = defaultUnit();
+            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }
+
+            try{
+            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }catch(Exception e){
+            	renderedUnit = defaultUnit();
+            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }
+            useIntegralUnit = in.readBoolean();
+            useRenderedUnit = in.readBoolean();
+
+            overrideIntervalLoggingSamples = in.readBoolean();
+            intervalLoggingSampleWindowSize = in.readInt();
+            
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
         }
 
         // Check the purge type. Weird how this could have been set to 0.
