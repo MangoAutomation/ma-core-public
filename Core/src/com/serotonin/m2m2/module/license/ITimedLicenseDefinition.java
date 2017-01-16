@@ -13,5 +13,5 @@ public interface ITimedLicenseDefinition {
 	 * @return long < 0 means no shutdown timeout, long > 0 = timeout milliseconds to expiry
 	 */
 	public long licenseCheck();
-	public TranslatableMessage getShutdownDescription();
+	public String getShutdownDescriptionKey();
 }
