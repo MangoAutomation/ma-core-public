@@ -115,6 +115,10 @@ public class ModulesDwr extends BaseDwr {
                 JsonObject root = jsonResponse.toJsonObject();
                 result.addData("upgrades", root.get("upgrades").toNative());
                 result.addData("newInstalls", root.get("newInstalls").toNative());
+                if(root.containsKey("updates")) {
+                	result.addData("updates", root.get("updates").toNative());
+                	result.addData("newInstalls-oldCore", root.get("newInstalls-oldCore").toNative());
+                }
             }
         }
         catch (Exception e) {
