@@ -209,7 +209,7 @@
     
     function startDownloads() {
     	if($("installUpgrades").checked)
-    		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes=true/>"))
+    		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes="true"/>"))
     			return;
         disableButton("downloadUpgradesBtn");
         disableButton("installUpgrades");
