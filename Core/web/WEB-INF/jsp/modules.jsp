@@ -55,7 +55,7 @@
     }
     
     var versionCheckData = null;
-    var allModuleList;
+    var allModuleMap;
     function versionCheck() {
         disableButton("versionCheckBtn");
         
@@ -68,11 +68,12 @@
             }
             
             versionCheckData = result.data;
-            allModuleList = [];
+            allModuleMap = {};
             var upgradeList = versionCheckData.upgrades;
             var newInstallList = versionCheckData.newInstalls;
             
             drawLists(upgradeList, newInstallList);
+            mapDependencies();
             
             // Reset the state of all of the upgrade stuff in case this is a second run.
             if("updates" in versionCheckData) {
@@ -98,13 +99,14 @@
     }
     
     function toggleInstallUpgrades() {
-    	allModuleList = [];
+    	allModuleMap = {};
     	if(versionCheckData == null || !("updates" in versionCheckData))
     		versionCheck();
     	else if($("installUpgrades").checked)
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
     	else
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
+    	mapDependencies();
     }
     
     function drawLists(upgradeList, newInstallList) {
@@ -113,7 +115,8 @@
         if (upgradeList.length > 0) {
             var s = "";
             for (var i=0; i<upgradeList.length; i++) {
-                allModuleList.push(upgradeList[i]);
+            	upgradeList[1].requiredFor = []
+                allModuleMap[upgradeList[i].name] = upgradeList[i];
                 var name = upgradeList[i].name;
                 s += "<div>";
                 s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB'>";
@@ -135,10 +138,11 @@
         if (newInstallList.length > 0) {
             s = "";
             for (var i=0; i<newInstallList.length; i++) {
-                allModuleList.push(newInstallList[i]);
+            	newInstallList[i].requiredFor = [];
+                allModuleMap[newInstallList[i].name] = newInstallList[i];
                 var name = newInstallList[i].name;
                 s += "<div>";
-                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB'>";
+                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB' onclick='selectDependencies(this.id, this.checked);'>";
                 s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
                 s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
                 s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
@@ -161,6 +165,34 @@
         }
     }
     
+    function mapDependencies() {
+    	for(var key in allModuleMap) {
+        	var dependencies = allModuleMap[key].dependencies;
+        	if(dependencies !== null && dependencies.length > 0) {
+        		for(var k = 0; k < dependencies.length; k+=1) {
+       				allModuleMap[dependencies[k]].requiredFor.push(key);
+        		}
+        	}
+        }
+    }
+    
+    function selectDependencies(id, checked) {
+    	var module = id.substr(0, id.length - 5); //Remove "Check"
+    	if(checked === "checked" && module in allModuleMap ) {
+    		if(allModuleMap[module].dependencies !== null) {
+    			for(var k = 0; k<allModuleMap[module].dependencies.length; k+=1) {
+    				dojo.byId(allModuleMap[module].depedencies[k]+"Check").checked='checked';
+    			}
+    		}
+    	} else if(checked !== "checked" && module in allModuleMap) {
+    		if(allModuleMap[module].requiredFor !== null) {
+    			for(var k = 0; k<allModuleMap[module].requiredFor.length; k+=1) {
+    				delete dojo.byId(allModuleMap[module].requiredFor[k]+"Check").checked;
+    			}
+    		}
+    	}
+    }
+    
     var myTooltipDialog;
     var relNotesTimeout;
     function showReleaseNotes() {
@@ -168,7 +200,7 @@
         
         // Get the release notes content. Get the module name by clipping 'relNotes' from the end of the id.
         var modName = this.id.substring(0, this.id.length - 8);
-        var mod = getElement(allModuleList, modName, "name");
+        var mod = allModuleMap[modName];
         
         var content = "<div class='relNotesContent'>";
         content += "<div class='desc'>"+ mod.shortDescription +"</div>";
@@ -223,9 +255,12 @@
                 var name = cbs[i].id;
                 // Remove the 'Check' at the end.
                 name = name.substring(0, name.length - 5);
-                checkedModules.push({"key": name, "value": getElement(allModuleList, name, 'name').version});
+                checkedModules.push({"key": name, "value": allModuleMap[name].version});
             }
         }
+        
+        if(!checkDependencies(checkedModules))
+        	alert();
         
         ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
             // Check if there was an error with the selected modules.
@@ -242,6 +277,23 @@
                 downloadMonitor();
             }
         });
+    }
+    
+    function checkDependencies(checkedModules) {
+    	var helperMap = {}
+    	for(var k=0; k<checkedModules.length; k+=1)
+    		helperMap[checkedModules[k].key] = true;
+    	
+    	for(var key in helperMap) {
+    		if(allModuleMap[key].dependencies !== null) {
+	    		for(var i = 0; i<allModuleMap[key].dependencies.length; i+=1) {
+	    			if(!(allModuleMap[key].dependencies[i] in helperMap) && allModuleMap[key].dependencies[i] in allModuleMap) {
+	    				alert("<m2m2:translate key="modules.dependencyMissing" escapeDQuotes="true"/>");
+	    				return;
+	    			}
+	    		}
+    		}
+    	}
     }
     
     function cancelUpgrade() {

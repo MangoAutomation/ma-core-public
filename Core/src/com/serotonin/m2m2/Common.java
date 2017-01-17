@@ -129,6 +129,10 @@ public class Common {
             return license.getFeature(name);
         return null;
     }
+    
+    public static boolean isFree() {
+    	return (license == null) || "Free".equals(license.getLicenseType());
+    }
 
     /*
      * Updating the MA version: - Create a DBUpdate subclass for the old version number. This may not do anything in
