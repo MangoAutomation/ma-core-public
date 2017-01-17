@@ -25,6 +25,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -142,6 +143,9 @@ public class SystemSettingsDao extends BaseDao {
     //Site analytics
     public static final String SITE_ANALYTICS_HEAD = "siteAnalyticsHead";
     public static final String SITE_ANALYTICS_BODY = "siteAnalyticsBody";
+    
+    //Download update settings
+    public static final String UPGRADE_VERSION_STATE = "upgradeVersionState";
     
 
     // Value cache
@@ -380,8 +384,9 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(MED_PRI_CORE_POOL_SIZE, 3);   
         DEFAULT_VALUES.put(MED_PRI_MAX_POOL_SIZE, 30);   
         DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);   
-        DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);   
+        DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);
         
+        DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
     }
 
     /**

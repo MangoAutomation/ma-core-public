@@ -239,6 +239,7 @@ public class ModulesDwr extends BaseDwr {
         json.put("guid", Providers.get(ICoreLicense.class).getGuid());
         json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", Common.envProps.getString("distributor"));
+        json.put("upgradeVersionState", SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
 
         Map<String, String> jsonModules = new HashMap<>();
         json.put("modules", jsonModules);

@@ -14,6 +14,7 @@
 <%@page import="com.serotonin.m2m2.email.MangoEmailContent"%>
 <%@page import="java.util.TimeZone"%>
 <%@page import="com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig" %>
+<%@page import="com.serotonin.m2m2.UpgradeVersionState" %>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="SystemSettingsDwr" onload="init">
@@ -153,10 +154,11 @@
            $set("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>", settings.<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>);                
            $set("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>", settings.<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>);                
            
+           $set("<c:out value="<%= SystemSettingsDao.UPGRADE_VERSION_STATE %>"/>", settings.<c:out value="<%= SystemSettingsDao.UPGRADE_VERSION_STATE %>"/>);
            
            displayVirtualSerialPorts(settings.virtualSerialPorts)
             
-            //
+            //1
             // Permissions
             $set("<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>", settings.<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>);
             dwr.util.addRows("modulePermissions", settings.modulePermissions, [
@@ -481,6 +483,7 @@
     function saveInfoSettings() {
         SystemSettingsDwr.saveInfoSettings(
                 $get("<c:out value="<%= SystemSettingsDao.INSTANCE_DESCRIPTION %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.UPGRADE_VERSION_STATE %>"/>"),
                 function() {
                     setDisabled("infoBtn", false);
                     setUserMessage("infoMessage", "<fmt:message key="systemSettings.infoSaved"/>");
@@ -902,6 +905,28 @@
       <tr>
         <td class="formLabel"><fmt:message key="systemSettings.eventCount"/></td>
         <td class="formField" id="eventCount"></td>
+      </tr>
+      <tr>
+      	<td class="formLabel"><fmt:message key="systemSettings.upgradeVersionState"/></td>
+      	<td class="formField">
+      	  <select id="<c:out value="<%= SystemSettingsDao.UPGRADE_VERSION_STATE %>"/>">
+      	    <option value="<c:out value="<%= UpgradeVersionState.DEVELOPMENT %>"/>">
+      	      <fmt:message key="systemSettings.upgradeState.development"/>
+      	    </option>
+      	    <option value="<c:out value="<%= UpgradeVersionState.ALPHA %>"/>">
+      	      <fmt:message key="systemSettings.upgradeState.alpha"/>
+      	    </option>
+      	    <option value="<c:out value="<%= UpgradeVersionState.BETA %>"/>">
+      	      <fmt:message key="systemSettings.upgradeState.beta"/>
+      	    </option>
+      	    <option value="<c:out value="<%= UpgradeVersionState.RELEASE_CANDIDATE %>"/>">
+      	      <fmt:message key="systemSettings.upgradeState.releaseCandidate"/>
+      	    </option>
+      	    <option value="<c:out value="<%= UpgradeVersionState.PRODUCTION %>"/>">
+      	      <fmt:message key="systemSettings.upgradeState.production"/>
+      	    </option>
+      	  </select>
+      	</td>
       </tr>
       <tr>
         <td colspan="2" align="center">

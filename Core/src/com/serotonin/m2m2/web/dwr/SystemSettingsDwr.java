@@ -261,6 +261,9 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.SITE_ANALYTICS_HEAD, SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
         settings.put(SystemSettingsDao.SITE_ANALYTICS_BODY, SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
         
+        //Upgrade states
+        settings.put(SystemSettingsDao.UPGRADE_VERSION_STATE, SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
+        
         return settings;
     }
 
@@ -500,9 +503,10 @@ public class SystemSettingsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public void saveInfoSettings(String instanceDescription) {
+    public void saveInfoSettings(String instanceDescription, String upgradeVersionState) {
         SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
         systemSettingsDao.setValue(SystemSettingsDao.INSTANCE_DESCRIPTION, instanceDescription);
+        systemSettingsDao.setValue(SystemSettingsDao.UPGRADE_VERSION_STATE, upgradeVersionState);
     }
 
     @DwrPermission(admin = true)

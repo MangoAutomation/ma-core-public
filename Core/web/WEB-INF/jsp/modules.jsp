@@ -107,7 +107,7 @@
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
     }
     
-    function drawLists(updgradeList, newInstallList) {
+    function drawLists(upgradeList, newInstallList) {
     	var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
         // Draw the upgrade list.
         if (upgradeList.length > 0) {
@@ -209,7 +209,7 @@
     
     function startDownloads() {
     	if($("installUpgrades").checked)
-    		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes=true/>"))
+    		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes="true"/>"))
     			return;
         disableButton("downloadUpgradesBtn");
         disableButton("installUpgrades");
