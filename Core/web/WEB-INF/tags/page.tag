@@ -30,15 +30,15 @@
     <c:when test="${empty showFooter}"><c:set var="showFooter">${param.showFooter}</c:set></c:when>
 </c:choose>
 <c:choose>
-	<c:when test="<%= Common.isFree() %>">
-		<c:set var="showFooter">true</c:set>
-		<c:set var="freeFooter">true</c:set>
-		<c:set var="invalidFooter">true</c:set>
-	</c:when>
 	<c:when test="<%= Common.isInvalid() %>">
 		<c:set var="showFooter">true</c:set>
 		<c:set var="invalidFooter">true</c:set>
 		<c:set var="freeFooter">false</c:set>
+	</c:when>
+	<c:when test="<%= Common.isFree() %>">
+		<c:set var="showFooter">true</c:set>
+		<c:set var="freeFooter">true</c:set>
+		<c:set var="invalidFooter">true</c:set>
 	</c:when>
 </c:choose>
 <html>
