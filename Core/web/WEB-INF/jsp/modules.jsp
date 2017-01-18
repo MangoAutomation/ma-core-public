@@ -77,12 +77,12 @@
             // Reset the state of all of the upgrade stuff in case this is a second run.
             if("updates" in versionCheckData) {
             	show("installUpgrades")
-            	$("installUpgrades").checked = "checked";
-            	$("installUpgrades").disabled = false;
+            	$("isInstallUpgrades").checked = "checked";
+            	$("isInstallUpgrades").disabled = false;
             } else {
             	hide("installUpgrades");
-            	if($("installUpgrades").checked)
-            		delete $("installUpgrades").checked;
+            	if($("isInstallUpgrades").checked)
+            		delete $("isInstallUpgrades").checked;
             }
             show("upgradeModulesButtons");
             hide("upgradeModulesThrobber");
@@ -101,13 +101,13 @@
     	allModuleList = [];
     	if(versionCheckData == null || !("updates" in versionCheckData))
     		versionCheck();
-    	else if($("installUpgrades").checked)
+    	else if($get("isInstallUpgrades"))
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
     	else
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
     }
     
-    function drawLists(updgradeList, newInstallList) {
+    function drawLists(upgradeList, newInstallList) {
     	var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
         // Draw the upgrade list.
         if (upgradeList.length > 0) {
@@ -208,11 +208,11 @@
     }
     
     function startDownloads() {
-    	if($("installUpgrades").checked)
+    	if($("isInstallUpgrades").checked)
     		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes="true"/>"))
     			return;
         disableButton("downloadUpgradesBtn");
-        disableButton("installUpgrades");
+        disableButton("isInstallUpgrades");
         show("upgradeModulesThrobber");
         
         // Create a list of the checked modules.
