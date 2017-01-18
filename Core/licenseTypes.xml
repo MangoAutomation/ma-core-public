@@ -90,7 +90,7 @@
         </features>
         
         <price>5000</price>
-        <price fromVersion="2" fromType="paid">2500</price>
+        <price fromVersion="2" fromType="paid">1250</price>
 		<price fromType="Commercial">2500</price>
 		<price fromType="Gateway">4800</price>
 		<price fromType="MangoES">disallow</price>

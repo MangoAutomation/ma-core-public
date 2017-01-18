@@ -78,12 +78,12 @@
             // Reset the state of all of the upgrade stuff in case this is a second run.
             if("updates" in versionCheckData) {
             	show("installUpgrades")
-            	$("installUpgrades").checked = "checked";
-            	$("installUpgrades").disabled = false;
+            	$("isInstallUpgrades").checked = "checked";
+            	$("isInstallUpgrades").disabled = false;
             } else {
             	hide("installUpgrades");
-            	if($("installUpgrades").checked)
-            		delete $("installUpgrades").checked;
+            	if($("isInstallUpgrades").checked)
+            		delete $("isInstallUpgrades").checked;
             }
             show("upgradeModulesButtons");
             hide("upgradeModulesThrobber");
@@ -102,7 +102,7 @@
     	allModuleMap = {};
     	if(versionCheckData == null || !("updates" in versionCheckData))
     		versionCheck();
-    	else if($("installUpgrades").checked)
+    	else if($get("installUpgrades"))
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
     	else
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
@@ -142,7 +142,7 @@
                 allModuleMap[newInstallList[i].name] = newInstallList[i];
                 var name = newInstallList[i].name;
                 s += "<div>";
-                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB' onclick='selectDependencies(this.id, this.checked);'>";
+                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB' onclick='selectDependencies(this.id, this.value);'>";
                 s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
                 s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
                 s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
@@ -178,13 +178,13 @@
     
     function selectDependencies(id, checked) {
     	var module = id.substr(0, id.length - 5); //Remove "Check"
-    	if(checked === "checked" && module in allModuleMap ) {
+    	if(checked && module in allModuleMap ) {
     		if(allModuleMap[module].dependencies !== null) {
     			for(var k = 0; k<allModuleMap[module].dependencies.length; k+=1) {
     				dojo.byId(allModuleMap[module].depedencies[k]+"Check").checked='checked';
     			}
     		}
-    	} else if(checked !== "checked" && module in allModuleMap) {
+    	} else if(checked && module in allModuleMap) {
     		if(allModuleMap[module].requiredFor !== null) {
     			for(var k = 0; k<allModuleMap[module].requiredFor.length; k+=1) {
     				delete dojo.byId(allModuleMap[module].requiredFor[k]+"Check").checked;
@@ -240,11 +240,11 @@
     }
     
     function startDownloads() {
-    	if($("installUpgrades").checked)
+    	if($get("isInstallUpgrades"))
     		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes="true"/>"))
     			return;
         disableButton("downloadUpgradesBtn");
-        disableButton("installUpgrades");
+        disableButton("isInstallUpgrades");
         show("upgradeModulesThrobber");
         
         // Create a list of the checked modules.
