@@ -133,6 +133,10 @@ public class Common {
     public static boolean isFree() {
     	return (license == null) || "Free".equals(license.getLicenseType());
     }
+    
+    public static boolean isInvalid() {
+    	return (license != null) && "Invalid".equals(license.getLicenseType());
+    }
 
     /*
      * Updating the MA version: - Create a DBUpdate subclass for the old version number. This may not do anything in
