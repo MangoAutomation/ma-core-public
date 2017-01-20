@@ -28,7 +28,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
@@ -202,29 +201,6 @@ public class SystemSettingsDao extends BaseDao {
             return defaultValue;
         }
     }
-
-	/**
-	 * Get the value and if it can be converted to a code, do it.
-	 * 
-	 * @param key - System Settings Key
-	 * @return - Actual value or if Code-able then return the String Export code
-	 */
-	public static String getExportCode(String key) {
-		Integer defaultValue = (Integer) DEFAULT_VALUES.get(key);
-		if (defaultValue == null){
-			return null;
-		}else{
-			String value = getValue(key, null);
-	        if (value == null)
-	            return convertToCodeFromValue(key, defaultValue);
-	        try {
-	            return convertToCodeFromValue(key, Integer.parseInt(value));
-	        }
-	        catch (NumberFormatException e) {
-	            return convertToCodeFromValue(key, defaultValue);
-	        }
-		}
-	}
     
     public static boolean getBooleanValue(String key) {
         return getBooleanValue(key, false);
