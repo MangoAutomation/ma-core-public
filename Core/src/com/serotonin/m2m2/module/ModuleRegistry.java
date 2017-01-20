@@ -618,6 +618,16 @@ public class ModuleRegistry {
             public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
                 return "/unauthorized.htm";
             }
+            
+            @Override
+            public String getErrorPageUri(HttpServletRequest request, HttpServletResponse response) {
+            	return "/error.htm";
+            }
+            
+            @Override
+            public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response) {
+            	return "/not-found.htm";
+            }
         });
         
         //Add in core Models
@@ -704,7 +714,10 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/modules.shtm", new ModulesController(),
                 "/WEB-INF/jsp/modules.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
-                "/WEB-INF/jsp/emport.jsp"));        
+                "/WEB-INF/jsp/emport.jsp"));
+        //Error Pages
+        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/error.htm", null, "/exception/error.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/not-found.htm", null, "/exception/404.jsp"));
                 
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),

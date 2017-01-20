@@ -105,7 +105,37 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         return uri;
     }
 
-    /**
+    public static String getNotFoundUri(HttpServletRequest request, HttpServletResponse response) {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getNotFoundPageUri(request, response);
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
+    
+    public static String getErrorUri(HttpServletRequest request, HttpServletResponse response) {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getErrorPageUri(request, response);
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
+    
+    public static String getStartupUri(HttpServletRequest request, HttpServletResponse response){
+    	String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getStartupPageUri(request, response);
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
+
+	/**
      * Returns the URI of the login page to use. The default value is "/login.htm". If this method returns null, the
      * next definition (if available) will be used. Results are not cached, so the definition can vary its response
      * contextually.
@@ -174,4 +204,36 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
     public String getLoggedInPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
         return null;
     }
+    
+
+    /**
+     * Returns the URI of a custom error page.
+     * 
+     * @param request
+     * @param response
+     * @return URI of page or null
+     */
+    public String getErrorPageUri(HttpServletRequest request, HttpServletResponse response){
+    	return null;
+    }
+    
+    /**
+     * Return the 404 Error page
+     * @param request
+     * @param response
+     * @return URI of page or null
+     */
+    public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response){
+    	return null;
+    }
+    
+    /**
+     * Return the startup page
+     * @param request
+     * @param response
+     * @return URI of page or null
+     */
+	public String getStartupPageUri(HttpServletRequest request, HttpServletResponse response) {
+		return null;
+	}
 }
