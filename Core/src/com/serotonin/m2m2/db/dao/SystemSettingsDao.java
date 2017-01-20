@@ -152,7 +152,20 @@ public class SystemSettingsDao extends BaseDao {
     private static final Map<String, String> cache = new HashMap<>();
 
     public static String getValue(String key) {
-        return getValue(key, (String) DEFAULT_VALUES.get(key));
+    	Object defaultValue = DEFAULT_VALUES.get(key);
+    	if(defaultValue == null){
+    		return getValue(key, null);
+    	}else{
+    		if(defaultValue instanceof String)
+    			return getValue(key, (String)defaultValue);
+    		else if(defaultValue instanceof Integer)
+    			return getValue(key, ((Integer)defaultValue).toString());
+    		else if(defaultValue instanceof Boolean)
+    			return getValue(key, ((Boolean)defaultValue).toString());
+    		else 
+    			throw new ShouldNeverHappenException("Unsupported type of default value " + defaultValue.getClass().getCanonicalName() + " for System Setting: " + key);
+    	}
+        
     }
 
     public static String getValue(String key, String defaultValue) {
@@ -190,6 +203,29 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
+	/**
+	 * Get the value and if it can be converted to a code, do it.
+	 * 
+	 * @param key - System Settings Key
+	 * @return - Actual value or if Code-able then return the String Export code
+	 */
+	public static String getExportCode(String key) {
+		Integer defaultValue = (Integer) DEFAULT_VALUES.get(key);
+		if (defaultValue == null){
+			return null;
+		}else{
+			String value = getValue(key, null);
+	        if (value == null)
+	            return convertToCodeFromValue(key, defaultValue);
+	        try {
+	            return convertToCodeFromValue(key, Integer.parseInt(value));
+	        }
+	        catch (NumberFormatException e) {
+	            return convertToCodeFromValue(key, defaultValue);
+	        }
+		}
+	}
+    
     public static boolean getBooleanValue(String key) {
         return getBooleanValue(key, false);
     }
@@ -845,24 +881,6 @@ public class SystemSettingsDao extends BaseDao {
 				return code;
 		}
 		return null;
-	}
-
-	/**
-	 * Get the value and if it can be converted to a code, do it.
-	 * 
-	 * @param key - System Settings Key
-	 * @return - Actual value or if Code-able then return the String Export code
-	 */
-	public static String getValueAsCode(String key) {
-		String value = getValue(key);
-		//First see if this is an Integer since they are the only potential for codes
-		try{
-			Integer code = Integer.parseInt(value);
-			String converted = convertToCodeFromValue(key, code);
-			if(converted != null)
-				value = converted;
-		}catch(NumberFormatException e){ }
-		return value;
 	}
 
 	/**
