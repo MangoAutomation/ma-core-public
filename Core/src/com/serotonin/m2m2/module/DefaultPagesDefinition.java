@@ -209,6 +209,9 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
     /**
      * Returns the URI of a custom error page.
      * 
+     * @see org.eclipse.jetty.server.handler.ErrorHandler for how to get information out of 
+     * the response about the error
+     * 
      * @param request
      * @param response
      * @return URI of page or null
