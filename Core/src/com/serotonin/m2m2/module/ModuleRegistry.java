@@ -62,7 +62,6 @@ import com.serotonin.m2m2.web.mvc.controller.ModulesController;
 import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
 import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
 import com.serotonin.m2m2.web.mvc.controller.StartupController;
-import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
 import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 
@@ -718,7 +717,8 @@ public class ModuleRegistry {
         //Error Pages
         preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/error.htm", null, "/exception/error.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/not-found.htm", null, "/exception/404.jsp"));
-                
+        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", null, "/exception/accessDenied.jsp"));
+        
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
                 null));
@@ -739,7 +739,6 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/logout.htm", new LogoutController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", new UnauthorizedController()));
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
         
     }

@@ -275,12 +275,5 @@
     <welcome-file>index.html</welcome-file>
     <welcome-file>index.htm</welcome-file>
   </welcome-file-list>
-
-<!-- TODO Need to handle this in 3.0.0 -->
-<!--   <error-page> -->
-<!--     <exception-type>com.serotonin.m2m2.vo.permission.PermissionException</exception-type> -->
-<!--     <location>/exception/accessDenied.jsp</location> -->
-<!--   </error-page> -->
-  
   
 </web-app>
