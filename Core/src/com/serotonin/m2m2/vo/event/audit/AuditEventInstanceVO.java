@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.audit;
 
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
@@ -19,6 +20,13 @@ public class AuditEventInstanceVO extends AbstractBasicVO{
 	public static final int CHANGE_TYPE_CREATE = 1;
 	public static final int CHANGE_TYPE_MODIFY = 2;
 	public static final int CHANGE_TYPE_DELETE = 3;
+	
+	public static final ExportCodes CHANGE_TYPE_CODES = new ExportCodes();
+	static{
+		CHANGE_TYPE_CODES.addElement(CHANGE_TYPE_CREATE, "CREATE");
+		CHANGE_TYPE_CODES.addElement(CHANGE_TYPE_MODIFY, "MODIFY");
+		CHANGE_TYPE_CODES.addElement(CHANGE_TYPE_DELETE, "DELETE");		
+	}
 	
 	private String typeName;
 	private int alarmLevel;
