@@ -59,7 +59,7 @@ public class MangoErrorHandler extends ErrorHandler{
 		}
 		
 		Throwable th = (Throwable)request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-		if((th.getCause() != null) && (th.getCause() instanceof PermissionException)){
+		if((th != null)&&(th.getCause() != null) && (th.getCause() instanceof PermissionException)){
 			baseRequest.setHandled(true);
 			response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, null, Common.getUser(request)));
 		}
