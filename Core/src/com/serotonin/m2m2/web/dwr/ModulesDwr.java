@@ -240,12 +240,13 @@ public class ModulesDwr extends BaseDwr {
         json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", Common.envProps.getString("distributor"));
         json.put("upgradeVersionState", SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
+        json.put("currentVersionState", SystemSettingsDao.getIntValue(SystemSettingsDao.CURRENT_VERSION_STATE));
 
         Map<String, String> jsonModules = new HashMap<>();
         json.put("modules", jsonModules);
 
         jsonModules.put("core", Common.getVersion().getFullString());
-        for (Module module : modules)
+        for (Module module : modules) //TODO get version state information here.....
             jsonModules.put(module.getName(), module.getVersion());
 
         StringWriter stringWriter = new StringWriter();
