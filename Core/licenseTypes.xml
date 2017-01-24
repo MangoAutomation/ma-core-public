@@ -120,7 +120,9 @@
 	
 	<licenseType id="variableSpecial" status="grant-only">
 		<description>Variable point restriction.</description>
-		<features></features>
+		<features>
+			<dataPointLimit>variable</dataPointLimit>
+		</features>
 		<price>123</price>
 	</licenseType>
 </licenseTypes>
