@@ -102,7 +102,7 @@
     	allModuleMap = {};
     	if(versionCheckData == null || !("updates" in versionCheckData))
     		versionCheck();
-    	else if($get("installUpgrades"))
+    	else if($get("isInstallUpgrades"))
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
     	else
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
@@ -156,6 +156,9 @@
             hide("newInstallModulesOptions");
             show("newInstallModulesNone");
         }
+     
+     	$("masterUpgradeCB").checked = "checked";
+     	delete $("masterNewInstallCB").checked;
         
         // Create the rollovers for the release notes.
         var notes = dojo.query(".relNotes");
@@ -260,7 +263,7 @@
         }
         
         if(!checkDependencies(checkedModules))
-        	alert();
+        	alert("If dependency checking worked it failed here.");
         
         ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
             // Check if there was an error with the selected modules.
