@@ -1,5 +1,6 @@
 *Version 2.8.6*
 * Fix to ensure publishers are not saved with previously deleted data points
+* Updates to modules page to choose to upgrade to Mango 3 or continue 2.8.x updates.
 
 *Version 2.8.4*
 * Fixing bug in publisher saving
