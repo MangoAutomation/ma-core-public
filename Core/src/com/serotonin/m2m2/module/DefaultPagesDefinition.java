@@ -231,7 +231,8 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
     }
     
     /**
-     * Return the startup page
+     * Return the startup page.  This call cannot depend on the database or any other Mango subsystems
+     * since it is called before any systems are initialized
      * @param request
      * @param response
      * @return URI of page or null
