@@ -309,16 +309,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @Override
     public int getPointFolderId() {
         return pointFolderId;
     }
