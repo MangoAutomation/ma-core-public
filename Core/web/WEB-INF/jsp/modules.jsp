@@ -143,7 +143,7 @@
                 allModuleMap[newInstallList[i].name] = newInstallList[i];
                 var name = newInstallList[i].name;
                 s += "<div>";
-                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB' onclick='selectDependencies(this.id, this.value);'>";
+                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB' onclick='selectDependencies(this.id, this.checked);'>";
                 s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
                 s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
                 s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
@@ -174,7 +174,8 @@
         	var dependencies = allModuleMap[key].dependencies;
         	if(dependencies !== null && dependencies.length > 0) {
         		for(var k = 0; k < dependencies.length; k+=1) {
-       				allModuleMap[dependencies[k]].requiredFor.push(key);
+        			if(dependencies[k] in allModuleMap)
+       					allModuleMap[dependencies[k]].requiredFor.push(key);
         		}
         	}
         }
@@ -185,13 +186,15 @@
     	if(checked && module in allModuleMap ) {
     		if(allModuleMap[module].dependencies !== null) {
     			for(var k = 0; k<allModuleMap[module].dependencies.length; k+=1) {
-    				dojo.byId(allModuleMap[module].depedencies[k]+"Check").checked='checked';
+    				var element = $(allModuleMap[module].dependencies[k]+"Check");
+    				if(element)
+    					element.checked='checked';
     			}
     		}
-    	} else if(checked && module in allModuleMap) {
+    	} else if(!checked && module in allModuleMap) {
     		if(allModuleMap[module].requiredFor !== null) {
     			for(var k = 0; k<allModuleMap[module].requiredFor.length; k+=1) {
-    				delete dojo.byId(allModuleMap[module].requiredFor[k]+"Check").checked;
+    				$(allModuleMap[module].requiredFor[k]+"Check").checked = false;
     			}
     		}
     	}
