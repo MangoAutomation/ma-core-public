@@ -72,6 +72,9 @@ public class ModulesController implements UrlHandler {
         model.put("guid", Providers.get(ICoreLicense.class).getGuid());
         model.put("distributor", Common.envProps.getString("distributor"));
         model.put("modules", modules);
+        
+        //Add in the Unloaded modules
+        model.put("unloadedModules", ModuleRegistry.getUnloadedModules());
 
         // The JSON
         Map<String, Object> json = new HashMap<>();

@@ -18,6 +18,7 @@
     .upgradeSectionTitle { margin-bottom: 5px; }
     .upgradeSectionOptions { margin-left: 20px; }
     .modulesList { margin-top: 5px; }
+    .unloaded{ background: lightpink; }
   </style>
   <script type="text/javascript">
     dojo.require("dijit.TooltipDialog");
@@ -263,7 +264,7 @@
         }
         
         if(!checkDependencies(checkedModules))
-        	alert("If dependency checking worked it failed here.");
+        	alert('Fix me please, checkDependencies() line 263.');
         
         ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
             // Check if there was an error with the selected modules.
@@ -472,8 +473,25 @@
       <b><fmt:message key="modules.downloadsError"/> <span id="upgradeModulesErrorMessage"></span></b>
     </div>
   </div>
-  
   <div id="moduleList">
+	  <div id="unloadedModuleList">
+	  	<c:forEach items="${unloadedModules}" var="module">
+	  	<div class="module unloaded">
+	  		<a class="name" href="<c:out value='<%= Common.envProps.getString("store.url") %>'/>/module/${module.name}">${module.name}</a>
+	  		<span style="font-weight: bold;">
+	          ${module.version} - <m2m2:translate key="modules.module.unloadedMissingDependency"/>
+	        </span>
+	        <div class="vendor">
+	          <c:choose>
+	            <c:when test="${empty module.vendor}"></c:when>
+	            <c:when test="${empty module.vendorUrl}">${module.vendor}</c:when>
+	            <c:otherwise><a href="${module.vendorUrl}" target="_blank">${module.vendor}</a></c:otherwise>
+	          </c:choose>
+	        </div>
+	  	</div>
+	  	</c:forEach>
+	  </div>
+  
     <c:forEach items="${modules}" var="module">
       <div id="module-${module.name}" class="module <c:if test="${module.markedForDeletion}">marked</c:if>">
         <c:choose>
