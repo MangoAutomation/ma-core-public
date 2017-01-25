@@ -130,12 +130,13 @@ public class ModuleRegistry {
     }
     
     /**
-     * Modules that could not be loaded are added here
+     * Modules that could not be loaded are added here, only add one at a time
      * @param module
      * @return
      */
     public static void addUnloadedModule(Module module){
-   		UNLOADED_MODULES.add(module);
+    	if(!UNLOADED_MODULES.contains(module))
+   			UNLOADED_MODULES.add(module);
     }
     
     public static List<Module> getUnloadedModules(){

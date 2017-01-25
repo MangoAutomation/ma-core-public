@@ -491,6 +491,14 @@
 	            <c:otherwise><a href="${module.vendorUrl}" target="_blank">${module.vendor}</a></c:otherwise>
 	          </c:choose>
 	        </div>
+	        <div>
+	        <span style="font-weight: bold;">
+	          <m2m2:translate key="modules.module.missingDependencies"/>:
+	        </span>
+	        <span>
+	        	${module.dependencies}
+	        </span>
+	        </div>
 	  	</div>
 	  	</c:forEach>
 	  </div>
