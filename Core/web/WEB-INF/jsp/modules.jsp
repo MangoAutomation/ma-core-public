@@ -266,8 +266,7 @@
             }
         }
         
-        if(!checkDependencies(checkedModules))
-        	alert('Fix me please, checkDependencies() line 263.');
+        checkDependencies(checkedModules);
         
         ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
             // Check if there was an error with the selected modules.
