@@ -61,4 +61,43 @@ public interface ILifecycle extends Provider {
      * @return
      */
     boolean isRestarting();
+    
+    //The Various States
+    //States of the Lifecycle
+    public static final int NOT_STARTED = 0;
+    public static final int WEB_SERVER_INITIALIZE = 10;
+    public static final int PRE_INITIALIZE = 20;
+    public static final int TIMER_INITIALIZE = 30;
+    public static final int JSON_INITIALIZE = 40;
+    public static final int EPOLL_INITIALIZE = 50;
+    public static final int LICENSE_CHECK = 60;
+    public static final int FREEMARKER_INITIALIZE = 70;
+    public static final int DATABASE_INITIALIZE = 80;
+    public static final int POST_DATABASE_INITIALIZE = 90;
+    public static final int UTILITIES_INITIALIZE = 100;
+    public static final int EVENT_MANAGER_INITIALIZE = 110;
+    public static final int RUNTIME_MANAGER_INITIALIZE = 150;
+    public static final int MAINTENANCE_INITIALIZE = 160;
+    public static final int IMAGE_SET_INITIALIZE = 170;
+    public static final int WEB_SERVER_FINALIZE = 175;
+    public static final int POST_INITIALIZE = 180;
+    public static final int STARTUP_TASKS_RUNNING = 190;
+
+    public static final int RUNNING = 200;
+    //Shutdown sequence
+    public static final int PRE_TERMINATE = 210;
+    public static final int SHUTDOWN_TASKS_RUNNING = 220;
+    public static final int WEB_SERVER_TERMINATE = 230;
+    public static final int RUNTIME_MANAGER_TERMINATE = 240;
+
+    public static final int UNINSTALLL_MODULES = 250;
+    public static final int UTILITIES_TERMINATE = 260;
+    public static final int EVENT_MANAGER_TERMINATE = 270;
+    public static final int DATABASE_TERMINATE = 280;
+    public static final int EPOLL_TERMINATE = 290;
+    public static final int TIMER_TERMINATE = 300;
+    public static final int POST_TERMINATE = 310;
+
+    public static final int TERMINATED = 400;
+    
 }
