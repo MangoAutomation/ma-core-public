@@ -146,7 +146,6 @@ public class SystemSettingsDao extends BaseDao {
     
     //Download update settings
     public static final String UPGRADE_VERSION_STATE = "upgradeVersionState";
-    public static final String CURRENT_VERSION_STATE = "currentVersionState";
     
 
     // Value cache
@@ -388,7 +387,6 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);
         
         DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
-        DEFAULT_VALUES.put(CURRENT_VERSION_STATE, UpgradeVersionState.PRODUCTION);
     }
 
     /**
