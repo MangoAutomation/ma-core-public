@@ -116,7 +116,7 @@
         if (upgradeList.length > 0) {
             var s = "";
             for (var i=0; i<upgradeList.length; i++) {
-            	upgradeList[1].requiredFor = []
+            	upgradeList[i].requiredFor = []
                 allModuleMap[upgradeList[i].name] = upgradeList[i];
                 var name = upgradeList[i].name;
                 s += "<div>";
@@ -171,13 +171,15 @@
     
     function mapDependencies() {
     	for(var key in allModuleMap) {
-        	var dependencies = allModuleMap[key].dependencies;
-        	if(dependencies !== null && dependencies.length > 0) {
-        		for(var k = 0; k < dependencies.length; k+=1) {
-        			if(dependencies[k] in allModuleMap)
-       					allModuleMap[dependencies[k]].requiredFor.push(key);
-        		}
-        	}
+    		if("dependencis" in allModuleMap[key]) {
+	        	var dependencies = allModuleMap[key].dependencies;
+	        	if(dependencies !== null && dependencies.length > 0) {
+	        		for(var k = 0; k < dependencies.length; k+=1) {
+	        			if(dependencies[k] in allModuleMap)
+	       					allModuleMap[dependencies[k]].requiredFor.push(key);
+	        		}
+	        	}
+    		}
         }
     }
     
@@ -291,7 +293,7 @@
     		helperMap[checkedModules[k].key] = true;
     	
     	for(var key in helperMap) {
-    		if(allModuleMap[key].dependencies !== null) {
+    		if("dependencies" in allModuleMap[key] && allModuleMap[key].dependencies !== null) {
 	    		for(var i = 0; i<allModuleMap[key].dependencies.length; i+=1) {
 	    			if(!(allModuleMap[key].dependencies[i] in helperMap) && allModuleMap[key].dependencies[i] in allModuleMap) {
 	    				alert("<m2m2:translate key="modules.dependencyMissing" escapeDQuotes="true"/>");
