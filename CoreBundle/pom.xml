@@ -27,7 +27,7 @@
                   <descriptorRefs>
                     <descriptorRef>fullCoreZipAssembly</descriptorRef>
                   </descriptorRefs>
-                  <finalName>ma-core-${project.parent.version}</finalName>
+                  <finalName>m2m2-core-${project.parent.version}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
               </execution>
