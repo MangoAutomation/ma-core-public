@@ -30,7 +30,7 @@ public class MockDataSourceRT extends DataSourceRT{
 	 * @see com.serotonin.m2m2.rt.dataSource.DataSourceRT#setPointValue(com.serotonin.m2m2.rt.dataImage.DataPointRT, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
 	 */
 	@Override
-	public void setPointValue(DataPointRT dataPoint, PointValueTime newValue,
+	public void setPointValueImpl(DataPointRT dataPoint, PointValueTime newValue,
 			SetPointSource source) {
 		dataPoint.setPointValue(newValue, source);
 	}	

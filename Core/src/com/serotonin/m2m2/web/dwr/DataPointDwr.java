@@ -22,13 +22,13 @@ import org.springframework.dao.DuplicateKeyException;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -200,8 +200,6 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         }
         vo.validate(response);
 
-        // Limit enforcement.
-        DataSourceTypePointsLimit.checkLimit(vo.getDataSourceTypeName(), response);
         if (!response.getHasMessages()) {
 
             //When potential for the defaulter is available one must use the DataSourceEditDwr.validate method and store/pull
@@ -212,8 +210,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
                 //TODO             if (defaulter != null)
                 //                    defaulter.postSave(vo);
 
-            }
-            catch (Exception e) {
+            } catch(LicenseViolatedException e) {
+            	LOG.error(e);
+            	response.addMessage(e.getErrorMessage());
+            } catch (Exception e) {
                 // Handle the exceptions.
                 LOG.error(e);
 

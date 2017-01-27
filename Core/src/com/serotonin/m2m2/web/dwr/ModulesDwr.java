@@ -5,14 +5,17 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -36,6 +39,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -127,6 +131,10 @@ public class ModulesDwr extends BaseDwr {
                 JsonObject root = jsonResponse.toJsonObject();
                 result.addData("upgrades", root.get("upgrades").toNative());
                 result.addData("newInstalls", root.get("newInstalls").toNative());
+                if(root.containsKey("updates")) {
+                	result.addData("updates", root.get("updates").toNative());
+                	result.addData("newInstalls-oldCore", root.get("newInstalls-oldCore").toNative());
+                }
             }
         }
         catch (Exception e) {
@@ -286,13 +294,36 @@ public class ModulesDwr extends BaseDwr {
         json.put("guid", Providers.get(ICoreLicense.class).getGuid());
         json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", Common.envProps.getString("distributor"));
+        json.put("upgradeVersionState", SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
+        
+        Properties props = new Properties();
+        File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
+        int versionState = UpgradeVersionState.PRODUCTION;
+        if(propFile.exists()) {
+	        InputStream in = new FileInputStream(propFile);
+	        try {
+	        	props.load(in);
+	        } finally {
+	        	in.close();
+	        }
+	        String currentVersionState = props.getProperty("versionState");
+	        try {
+	        	if(currentVersionState != null)
+	        		versionState = Integer.valueOf(currentVersionState);
+	        } catch(NumberFormatException e) { }
+        }
+        json.put("currentVersionState", versionState);
 
         Map<String, String> jsonModules = new HashMap<>();
         json.put("modules", jsonModules);
 
         jsonModules.put("core", Common.getVersion().getFullString());
-        for (Module module : modules)
-            jsonModules.put(module.getName(), module.getVersion());
+        for (Module module : modules) //TODO get version state information here.....
+            jsonModules.put(module.getName(), module.getVersionAndState());
+        
+        //Add in the unloaded modules so we don't re-download them if we don't have to
+        for(Module module : ModuleRegistry.getUnloadedModules())
+        	jsonModules.put(module.getName(), module.getVersionAndState());
 
         StringWriter stringWriter = new StringWriter();
         new JsonWriter(Common.JSON_CONTEXT, stringWriter).writeObject(json);

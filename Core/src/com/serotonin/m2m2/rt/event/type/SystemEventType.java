@@ -48,6 +48,7 @@ public class SystemEventType extends EventType {
     public static final String TYPE_BACKUP_FAILURE = "BACKUP_FAILURE";
     public static final String TYPE_UPGRADE_CHECK = "UPGRADE_CHECK";
     public static final String TYPE_REJECTED_WORK_ITEM = "REJECTED_WORK_ITEM";
+    public static final String TYPE_MISSING_MODULE_DEPENDENCY = "MISSING_MODULE_DEPENDENCY";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<>();
@@ -64,6 +65,7 @@ public class SystemEventType extends EventType {
         addEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure", AlarmLevels.URGENT);
         addEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck", AlarmLevels.INFORMATION);
         addEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem", AlarmLevels.URGENT);
+        addEventType(TYPE_MISSING_MODULE_DEPENDENCY, "", AlarmLevels.URGENT);
         
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey(), def.getDefaultAlarmLevel());

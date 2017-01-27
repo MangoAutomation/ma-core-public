@@ -18,6 +18,7 @@
     .upgradeSectionTitle { margin-bottom: 5px; }
     .upgradeSectionOptions { margin-left: 20px; }
     .modulesList { margin-top: 5px; }
+    .unloaded{ background: lightpink; }
   </style>
   <script type="text/javascript">
     dojo.require("dijit.TooltipDialog");
@@ -54,7 +55,8 @@
             });
     }
     
-    var allModuleList;
+    var versionCheckData = null;
+    var allModuleMap;
     function versionCheck() {
         disableButton("versionCheckBtn");
         
@@ -66,63 +68,24 @@
                 return;
             }
             
-            allModuleList = [];
-            var upgradeList = result.data.upgrades;
-            var newInstallList = result.data.newInstalls;
+            versionCheckData = result.data;
+            allModuleMap = {};
+            var upgradeList = versionCheckData.upgrades;
+            var newInstallList = versionCheckData.newInstalls;
             
-            var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
-            // Draw the upgrade list.
-            if (upgradeList.length > 0) {
-                var s = "";
-                for (var i=0; i<upgradeList.length; i++) {
-                    allModuleList.push(upgradeList[i]);
-                    var name = upgradeList[i].name;
-                    s += "<div>";
-                    s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB'>";
-                    s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ upgradeList[i].version +"</label></div>";
-                    s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
-                    s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
-                    s += "</div>";
-                }
-                $set("upgradeModulesList", s);
-                show("upgradeModulesOptions");
-                hide("upgradeModulesNone");
-            }
-            else {
-                hide("upgradeModulesOptions");
-                show("upgradeModulesNone");
-            }
-            
-            // Draw the new install list.
-            if (newInstallList.length > 0) {
-                s = "";
-                for (var i=0; i<newInstallList.length; i++) {
-                    allModuleList.push(newInstallList[i]);
-                    var name = newInstallList[i].name;
-                    s += "<div>";
-                    s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB'>";
-                    s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
-                    s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
-                    s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
-                    s += "</div>";
-                }
-                $set("newInstallModulesList", s);
-                show("newInstallModulesOptions");
-                hide("newInstallModulesNone");
-            }
-            else {
-                hide("newInstallModulesOptions");
-                show("newInstallModulesNone");
-            }
-            
-            // Create the rollovers for the release notes.
-            var notes = dojo.query(".relNotes");
-            for (var i=0; i<notes.length; i++) {
-                dojo.connect(notes[i], "onmouseover", showReleaseNotes);
-                dojo.connect(notes[i], "onmouseout", cancelReleaseNotes);
-            }
+            drawLists(upgradeList, newInstallList);
+            mapDependencies();
             
             // Reset the state of all of the upgrade stuff in case this is a second run.
+            if("updates" in versionCheckData) {
+            	show("installUpgrades")
+            	$("isInstallUpgrades").checked = "checked";
+            	$("isInstallUpgrades").disabled = false;
+            } else {
+            	hide("installUpgrades");
+            	if($("isInstallUpgrades").checked)
+            		delete $("isInstallUpgrades").checked;
+            }
             show("upgradeModulesButtons");
             hide("upgradeModulesThrobber");
             hide("upgradeModulesFinished");
@@ -136,6 +99,109 @@
         });
     }
     
+    function toggleInstallUpgrades() {
+    	allModuleMap = {};
+    	if(versionCheckData == null || !("updates" in versionCheckData))
+    		versionCheck();
+    	else if($get("isInstallUpgrades"))
+    		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
+    	else
+    		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
+    	mapDependencies();
+    }
+    
+    function drawLists(upgradeList, newInstallList) {
+    	var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
+        // Draw the upgrade list.
+        if (upgradeList.length > 0) {
+            var s = "";
+            for (var i=0; i<upgradeList.length; i++) {
+            	upgradeList[i].requiredFor = []
+                allModuleMap[upgradeList[i].name] = upgradeList[i];
+                var name = upgradeList[i].name;
+                s += "<div>";
+                s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB'>";
+                s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ upgradeList[i].version +"</label></div>";
+                s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
+                s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
+                s += "</div>";
+            }
+            $set("upgradeModulesList", s);
+            show("upgradeModulesOptions");
+            hide("upgradeModulesNone");
+        }
+        else {
+            hide("upgradeModulesOptions");
+            show("upgradeModulesNone");
+        }
+        
+     // Draw the new install list.
+        if (newInstallList.length > 0) {
+            s = "";
+            for (var i=0; i<newInstallList.length; i++) {
+            	newInstallList[i].requiredFor = [];
+                allModuleMap[newInstallList[i].name] = newInstallList[i];
+                var name = newInstallList[i].name;
+                s += "<div>";
+                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB' onclick='selectDependencies(this.id, this.checked);'>";
+                s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
+                s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
+                s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
+                s += "</div>";
+            }
+            $set("newInstallModulesList", s);
+            show("newInstallModulesOptions");
+            hide("newInstallModulesNone");
+        }
+        else {
+            hide("newInstallModulesOptions");
+            show("newInstallModulesNone");
+        }
+     
+     	$("masterUpgradeCB").checked = "checked";
+     	delete $("masterNewInstallCB").checked;
+        
+        // Create the rollovers for the release notes.
+        var notes = dojo.query(".relNotes");
+        for (var i=0; i<notes.length; i++) {
+            dojo.connect(notes[i], "onmouseover", showReleaseNotes);
+            dojo.connect(notes[i], "onmouseout", cancelReleaseNotes);
+        }
+    }
+    
+    function mapDependencies() {
+    	for(var key in allModuleMap) {
+    		if("dependencis" in allModuleMap[key]) {
+	        	var dependencies = allModuleMap[key].dependencies;
+	        	if(dependencies !== null && dependencies.length > 0) {
+	        		for(var k = 0; k < dependencies.length; k+=1) {
+	        			if(dependencies[k] in allModuleMap)
+	       					allModuleMap[dependencies[k]].requiredFor.push(key);
+	        		}
+	        	}
+    		}
+        }
+    }
+    
+    function selectDependencies(id, checked) {
+    	var module = id.substr(0, id.length - 5); //Remove "Check"
+    	if(checked && module in allModuleMap ) {
+    		if(allModuleMap[module].dependencies !== null) {
+    			for(var k = 0; k<allModuleMap[module].dependencies.length; k+=1) {
+    				var element = $(allModuleMap[module].dependencies[k]+"Check");
+    				if(element)
+    					element.checked='checked';
+    			}
+    		}
+    	} else if(!checked && module in allModuleMap) {
+    		if(allModuleMap[module].requiredFor !== null) {
+    			for(var k = 0; k<allModuleMap[module].requiredFor.length; k+=1) {
+    				$(allModuleMap[module].requiredFor[k]+"Check").checked = false;
+    			}
+    		}
+    	}
+    }
+    
     var myTooltipDialog;
     var relNotesTimeout;
     function showReleaseNotes() {
@@ -143,7 +209,7 @@
         
         // Get the release notes content. Get the module name by clipping 'relNotes' from the end of the id.
         var modName = this.id.substring(0, this.id.length - 8);
-        var mod = getElement(allModuleList, modName, "name");
+        var mod = allModuleMap[modName];
         
         var content = "<div class='relNotesContent'>";
         content += "<div class='desc'>"+ mod.shortDescription +"</div>";
@@ -183,7 +249,11 @@
     }
     
     function startDownloads() {
+    	if($get("isInstallUpgrades"))
+    		if(!confirm("<m2m2:translate key="modules.download.coreUpgradeConfirm" escapeDQuotes="true"/>"))
+    			return;
         disableButton("downloadUpgradesBtn");
+        disableButton("isInstallUpgrades");
         show("upgradeModulesThrobber");
         
         // Create a list of the checked modules.
@@ -194,9 +264,11 @@
                 var name = cbs[i].id;
                 // Remove the 'Check' at the end.
                 name = name.substring(0, name.length - 5);
-                checkedModules.push({"key": name, "value": getElement(allModuleList, name, 'name').version});
+                checkedModules.push({"key": name, "value": allModuleMap[name].version});
             }
         }
+        
+        checkDependencies(checkedModules);
         
         ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
             // Check if there was an error with the selected modules.
@@ -213,6 +285,23 @@
                 downloadMonitor();
             }
         });
+    }
+    
+    function checkDependencies(checkedModules) {
+    	var helperMap = {}
+    	for(var k=0; k<checkedModules.length; k+=1)
+    		helperMap[checkedModules[k].key] = true;
+    	
+    	for(var key in helperMap) {
+    		if("dependencies" in allModuleMap[key] && allModuleMap[key].dependencies !== null) {
+	    		for(var i = 0; i<allModuleMap[key].dependencies.length; i+=1) {
+	    			if(!(allModuleMap[key].dependencies[i] in helperMap) && allModuleMap[key].dependencies[i] in allModuleMap) {
+	    				alert("<m2m2:translate key="modules.dependencyMissing" escapeDQuotes="true"/>");
+	    				return;
+	    			}
+	    		}
+    		}
+    	}
     }
     
     function cancelUpgrade() {
@@ -316,7 +405,7 @@
   </div>
   
   <div id="guid">
-    <form action="${storeUrl}/account/store" method="post" target="mangoStore">
+    <form action="${storeUrl}/account/store" method="post" target="mangoStore" enctype="application/x-www-form-urlencoded">
       <fmt:message key="modules.guid"/> <b>${guid}</b>
       <textarea rows="2" cols="80" style="display:none;" name="orderJson">${json}</textarea>
       <input type="hidden" id="redirectURI" name="redirect" value=""/>
@@ -370,6 +459,10 @@
     </div>
     
     <div id="upgradeModulesButtons">
+      <div id="installUpgrades">
+      	<input id="isInstallUpgrades" type="checkbox" onclick="toggleInstallUpgrades();"/>
+      	<fmt:message key="modules.installUpgrades"/>
+      </div>
       <input id="downloadUpgradesBtn" type="button" value="<fmt:message key="modules.downloadUpgrades"/>" onclick="startDownloads();"/>
       <input id="upgradesCloseBtn" type="button" value="<fmt:message key="modules.upgradesClose"/>" onclick="cancelUpgrade();"/>
       <tag:help id="performUpgrades" />&nbsp;
@@ -384,8 +477,33 @@
       <b><fmt:message key="modules.downloadsError"/> <span id="upgradeModulesErrorMessage"></span></b>
     </div>
   </div>
-  
   <div id="moduleList">
+	  <div id="unloadedModuleList">
+	  	<c:forEach items="${unloadedModules}" var="module">
+	  	<div class="module unloaded">
+	  		<a class="name" href="<c:out value='<%= Common.envProps.getString("store.url") %>'/>/module/${module.name}">${module.name}</a>
+	  		<span style="font-weight: bold;">
+	          ${module.version} - <m2m2:translate key="modules.module.unloadedMissingDependency"/>
+	        </span>
+	        <div class="vendor">
+	          <c:choose>
+	            <c:when test="${empty module.vendor}"></c:when>
+	            <c:when test="${empty module.vendorUrl}">${module.vendor}</c:when>
+	            <c:otherwise><a href="${module.vendorUrl}" target="_blank">${module.vendor}</a></c:otherwise>
+	          </c:choose>
+	        </div>
+	        <div>
+	        <span style="font-weight: bold;">
+	          <m2m2:translate key="modules.module.missingDependencies"/>:
+	        </span>
+	        <span>
+	        	${module.dependencies}
+	        </span>
+	        </div>
+	  	</div>
+	  	</c:forEach>
+	  </div>
+  
     <c:forEach items="${modules}" var="module">
       <div id="module-${module.name}" class="module <c:if test="${module.markedForDeletion}">marked</c:if>">
         <c:choose>

@@ -36,7 +36,7 @@ abstract public class EventDataSource extends DataSourceRT {
     }
 
     @Override
-    public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
+    public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
         // Typically, event based data sources cannot set point values, so don't make subclasses implement this.
     }
 }

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,6 +47,7 @@ import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDef
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
+import com.serotonin.m2m2.shared.VersionData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -76,6 +78,8 @@ public class ModuleRegistry {
 	
     private static final Object LOCK = new Object();
     private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
+    private static final Map<String, VersionData> MISSING_DEPENDENCIES = new LinkedHashMap<String, VersionData>();
+    private static final List<Module> UNLOADED_MODULES = new CopyOnWriteArrayList<>();
 
     private static Map<String, DataSourceDefinition> DATA_SOURCE_DEFINITIONS;
     private static Map<String, PublisherDefinition> PUBLISHER_DEFINITIONS;
@@ -124,7 +128,40 @@ public class ModuleRegistry {
     public static void addModule(Module module) {
         MODULES.put(module.getName(), module);
     }
+    
+    /**
+     * Modules that could not be loaded are added here, only add one at a time
+     * @param module
+     * @return
+     */
+    public static void addUnloadedModule(Module module){
+    	if(!UNLOADED_MODULES.contains(module))
+   			UNLOADED_MODULES.add(module);
+    }
+    
+    public static List<Module> getUnloadedModules(){
+    	return UNLOADED_MODULES;
+    }
 
+    /**
+     * Add the missing dependency
+     * @param moduleName
+     * @param version
+     */
+    public static void addMissingDependency(String moduleName, VersionData version){
+    	MISSING_DEPENDENCIES.put(moduleName, version);
+    }
+    
+    /**
+     * List all missing dependencies
+     * 
+     * Users must not modify this list.
+     * @return
+     */
+    public static Map<String, VersionData> getMissingDependencies(){
+    	return MISSING_DEPENDENCIES;
+    }
+    
     //
     //
     // Data source special handling

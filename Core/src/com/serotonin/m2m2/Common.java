@@ -120,6 +120,8 @@ public class Common {
     //
     // License
     static InstanceLicense license;
+    static boolean free = true;
+    static boolean invalid = false;
 
     public static InstanceLicense license() {
         return license;
@@ -129,6 +131,14 @@ public class Common {
         if (license != null)
             return license.getFeature(name);
         return null;
+    }
+    
+    public static boolean isFree() {
+    	return free;
+    }
+    
+    public static boolean isInvalid() {
+    	return invalid;
     }
 
     /*

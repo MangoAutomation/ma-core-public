@@ -1,5 +1,5 @@
 <licenseTypes>
-    <licenseType id="free">
+	<licenseType id="free" status="deprecated">
         <description>Restricted to 3 unique IP addresses.</description>
         
         <features>
@@ -10,7 +10,7 @@
         <price fromType="paid">disallow</price>
     </licenseType>
     
-    <licenseType id="paid">
+    <licenseType id="paid" status="deprecated">
         <description>No restrictions within core.</description>
         
         <features>
@@ -20,4 +20,109 @@
         <price>400</price>
         <price fromVersion="1" fromType="paid">350</price>
     </licenseType>
+
+	<licenseType id="Invalid" status="grant-only">
+	<description>This license was explicitly revoked.</description>
+	<features>
+		<dataPointLimit>0</dataPointLimit>
+		<licenseInvalid>true</licenseInvalid>
+	</features>
+	
+	<price>disallow</price>
+	</licenseType>
+	
+    <licenseType id="Free" status="normal">
+        <description>Limited to 300 data points and module restrictions</description>
+        
+        <features>
+            <dataPointLimit>300</dataPointLimit>
+        </features>
+        
+        <price>0</price>
+        <price fromType="Gateway">disallow</price>
+		<price fromVersion="2" fromType="free">0</price>
+		<price fromVersion="2" fromType="paid">disallow</price>
+		<price fromType="MangoES">disallow</price>
+		<price fromType="Commercial">disallow</price>
+		<price fromType="Enterprise">disallow</price>
+		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
+    </licenseType>
+    
+    <licenseType id="Gateway" status="grant-only">
+        <description>Limited to 100 data points, NoSQL database, limited reporting</description>
+        
+        <features>
+            <dataPointLimit>100</dataPointLimit>
+        </features>
+        
+        <price fromVersion="2" fromType="free">200</price>
+        <price fromType="Free">200</price>
+        <price fromVersion="2" fromType="paid">200</price>
+		<price fromType="MangoES">disallow</price>
+		<price fromType="Commercial">disallow</price>
+		<price fromType="Enterprise">disallow</price>
+		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
+    </licenseType>
+    
+	<licenseType id="Commercial" status="normal">
+        <description>Limited to 1000 data points.</description>
+        
+        <features>
+            <dataPointLimit>1000</dataPointLimit>
+        </features>
+        
+        <price>2500</price>
+        <price fromVersion="2" fromType="paid">500</price>
+		<price fromType="Gateway">2300</price>
+		<price fromType="MangoES">disallow</price>
+		<price fromType="Enterprise">disallow</price>
+		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
+    </licenseType>
+	
+    <licenseType id="Enterprise" status="normal">
+        <description>No restrictions within core.</description>
+        
+        <features>
+            <dataPointLimit>unlimited</dataPointLimit>
+        </features>
+        
+        <price>5000</price>
+        <price fromVersion="2" fromType="paid">1250</price>
+		<price fromType="Commercial">2500</price>
+		<price fromType="Gateway">4800</price>
+		<price fromType="MangoES">disallow</price>
+		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">disallow</price>
+    </licenseType>
+	
+	<licenseType id="MangoES" status="grant-only">
+        <description>No restrictions within core.</description>
+        
+        <features>
+            <dataPointLimit>unlimited</dataPointLimit>
+        </features>
+        
+        <price>500</price>
+    </licenseType>
+    
+    <licenseType id="brewersdashboard" status="grant-only">
+        <description>No restrictions.</description>
+        
+        <features>
+            <dataPointLimit>unlimited</dataPointLimit>
+        </features>
+        
+        <price>2500</price>
+    </licenseType>
+	
+	<licenseType id="variableSpecial" status="grant-only">
+		<description>Variable point restriction.</description>
+		<features>
+			<dataPointLimit>variable</dataPointLimit>
+		</features>
+		<price>123</price>
+	</licenseType>
 </licenseTypes>

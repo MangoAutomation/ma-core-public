@@ -45,6 +45,8 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -66,6 +68,7 @@ import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
+import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -290,6 +293,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public void saveDataPoint(final DataPointVO dp) {
+    	if(dp.getId() == Common.NEW_ID) checkAddPoint();
+    	
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
@@ -304,6 +309,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 clearPointHierarchyCache();
             }
         });
+    }
+    
+    public void checkAddPoint() {
+    	ILifecycle lifecycle = Providers.get(ILifecycle.class);
+    	Integer limit = lifecycle.dataPointLimit();
+    	if(limit != null && this.countMonitor.getValue() >= limit) {
+    		String licenseType;
+    		if(Common.license() != null)
+    			licenseType = Common.license().getLicenseType();
+    		else
+    			licenseType = "Free";
+    		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", licenseType, limit));
+    	}
     }
 
     void insertDataPoint(final DataPointVO dp) {
@@ -1153,7 +1171,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     @Override
     public void saveFull(DataPointVO vo) {
         //TODO Eventually Fix this up by using the new AbstractDao for the query
-        this.saveDataPoint(vo);
+        this.saveDataPoint(vo); //This method throws a RuntimeException for licenses
     }
 
     /**

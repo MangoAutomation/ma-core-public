@@ -59,6 +59,7 @@ public class Module {
     private final Set<String> locales = new HashSet<>();
     private String graphics;
     private String emailTemplates;
+    private final int versionState;
 
     /**
      * Module constructor. Should not be used by client code.
@@ -70,7 +71,7 @@ public class Module {
      * @param vendorUrl
      */
     public Module(String name, String version, TranslatableMessage description, String vendor, String vendorUrl,
-            String dependencies, int loadOrder) {
+            String dependencies, int loadOrder, int versionState) {
         this.name = name;
         this.version = version;
         this.description = description;
@@ -78,6 +79,7 @@ public class Module {
         this.vendorUrl = vendorUrl;
         this.dependencies = dependencies;
         this.loadOrder = loadOrder;
+        this.versionState = versionState;
     }
 
     /**
@@ -176,6 +178,14 @@ public class Module {
      */
     public String getVersion() {
         return version;
+    }
+    
+    public int getVersionState() {
+    	return versionState;
+    }
+    
+    public String getVersionAndState() {
+    	return version + "-" + versionState;
     }
 
     public String getLicenseType() {

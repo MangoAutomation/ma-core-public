@@ -21,14 +21,6 @@ import com.serotonin.m2m2.web.mvc.form.LoginForm;
 public interface ILoginManager {
 
     /**
-     * Check and store valid ip Addresses
-     * @param ip
-     * @return
-     */
-    public boolean isValidIp(HttpServletRequest request);
-    
-
-    /**
      * 
      * @param username
      * @param password
