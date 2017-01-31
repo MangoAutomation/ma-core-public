@@ -32,9 +32,18 @@
         <include>db/**</include>
         <include>classes/**</include>
         <include>ftl/**</include>
-        <include>web/**</include>
       </includes>
       <!-- TODO Exclude Module Zips? -->
+    </fileSet>
+    <fileSet>
+      <directory>${MA_HOME}/web</directory>
+      <outputDirectory>bin</outputDirectory>
+      <includes>
+        <include>**</include>
+      </includes>
+      <excludes>
+      	<exclude>WEB-INF/filedata/**</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/work</directory>
