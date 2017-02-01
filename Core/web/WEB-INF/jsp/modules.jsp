@@ -519,6 +519,14 @@
         </c:choose>
         
         <span class="version">
+	        <c:choose>
+	          <c:when test="${module.buildNumber > 0}">
+	          ${module.version} (<m2m2:translate key="modules.buildNumber"/>: ${module.buildNumber}) -
+	          </c:when>
+	          <c:otherwise>
+	          ${module.version} -
+	          </c:otherwise>
+	        </c:choose>
           ${module.version} -
           <c:choose>
             <c:when test="${empty module.licenseType}">*** unlicensed ***</c:when>

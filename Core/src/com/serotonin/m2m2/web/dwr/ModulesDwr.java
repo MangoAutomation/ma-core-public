@@ -318,7 +318,7 @@ public class ModulesDwr extends BaseDwr {
         json.put("modules", jsonModules);
 
         jsonModules.put("core", Common.getVersion().getFullString());
-        for (Module module : modules) //TODO get version state information here.....
+        for (Module module : modules)
             jsonModules.put(module.getName(), module.getVersionAndState());
         
         //Add in the unloaded modules so we don't re-download them if we don't have to
