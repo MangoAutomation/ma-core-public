@@ -22,3 +22,4 @@
 !/web/WEB-INF/tags/*.tag
 !/web/WEB-INF/tags/page
 !/web/WEB-INF/tags/html5
+/release.properties

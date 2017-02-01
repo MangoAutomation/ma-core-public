@@ -1,3 +1,4 @@
 /maven-target/
 /target/
 /logs/
+/buildNumber.properties
