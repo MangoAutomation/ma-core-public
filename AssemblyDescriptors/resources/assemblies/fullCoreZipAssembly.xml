@@ -24,6 +24,7 @@
       <directory>${MA_HOME}</directory>
       <outputDirectory></outputDirectory>
       <includes>
+        <include>release.properties</include>
       	<include>Getting Started.txt</include>
       	<include>LICENSE</include>
         <include>licenseTypes.xml</include>
