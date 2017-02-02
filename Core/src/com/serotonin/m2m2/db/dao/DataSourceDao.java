@@ -32,6 +32,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -40,25 +41,25 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
-public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
+public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     static final Log LOG = LogFactory.getLog(DataSourceDao.class);
     private static final String DATA_SOURCE_SELECT = //
     "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";
 
-    public static final DataSourceDao instance = new DataSourceDao();
+    public static final DataSourceDao<DataSourceVO<?>> instance = new DataSourceDao<>();
 
-    public DataSourceDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_SOURCE"), AuditEventType.TYPE_DATA_SOURCE);
+    private DataSourceDao() {
+        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_SOURCE"), AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
 
-    public List<DataSourceVO<?>> getDataSources() {
-        List<DataSourceVO<?>> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
+    public List<T> getDataSources() {
+        List<T> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
         Collections.sort(dss, new DataSourceNameComparator());
         return dss;
     }
 
-    public List<DataSourceVO<?>> getDataSourcesForType(String type) {
+    public List<T> getDataSourcesForType(String type) {
         return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, new DataSourceExtractor());
     }
 
@@ -80,11 +81,11 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                 null);
     }
 
-    class DataSourceExtractor implements ResultSetExtractor<List<DataSourceVO<?>>> {
+    class DataSourceExtractor implements ResultSetExtractor<List<T>> {
         @Override
-        public List<DataSourceVO<?>> extractData(ResultSet rs) throws SQLException, DataAccessException {
+        public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
             DataSourceRowMapper rowMapper = new DataSourceRowMapper();
-            List<DataSourceVO<?>> results = new ArrayList<>();
+            List<T> results = new ArrayList<>();
             int rowNum = 0;
             while (rs.next()) {
                 try {
@@ -105,10 +106,11 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         }
     }
 
-    class DataSourceRowMapper implements RowMapper<DataSourceVO<?>> {
+    class DataSourceRowMapper implements RowMapper<T> {
         @Override
-        public DataSourceVO<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            DataSourceVO<?> ds = (DataSourceVO<?>) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+        public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+            @SuppressWarnings("unchecked")
+			T ds = (T) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             ds.setId(rs.getInt(1));
             ds.setXid(rs.getString(2));
             ds.setName(rs.getString(3));
@@ -128,7 +130,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         return isXidUnique(xid, excludeId, "dataSources");
     }
 
-    public void saveDataSource(final DataSourceVO<?> vo) {
+    public void saveDataSource(final T vo) {
         // Decide whether to insert or update.
         if (vo.getId() == Common.NEW_ID)
             insertDataSource(vo);
@@ -136,7 +138,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
             updateDataSource(vo);
     }
 
-    private void insertDataSource(final DataSourceVO<?> vo) {
+    private void insertDataSource(final T vo) {
         vo.setId(ejt.doInsert(
                 "INSERT INTO dataSources (xid, name, dataSourceType, data, editPermission) values (?,?,?,?,?)",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
@@ -144,21 +146,18 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
                         Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR }));
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
+        this.countMonitor.increment();
     }
 
     /**
      * Update a data source by calling Super.save(vo)
      * @param vo
      */
-    private void updateDataSource(final DataSourceVO<?> vo) {
+    private void updateDataSource(final T vo) {
         super.save(vo);
-        //DataSourceVO<?> old = getDataSource(vo.getId());
-
-        //_updateDataSource(vo);
-        //AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_SOURCE, old, (ChangeComparable<DataSourceVO<?>>) vo);
     }
 
-    public void _updateDataSource(DataSourceVO<?> vo) {
+    public void _updateDataSource(T vo) {
         ejt.update("UPDATE dataSources SET xid=?, name=?, dataSourceType=?, data=?, editPermission WHERE id=?",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
                         SerializationHelper.writeObject(vo), vo.getEditPermission(), vo.getId() }, new int[] {
@@ -169,7 +168,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         DataSourceVO<?> vo = getDataSource(dataSourceId);
         final ExtendedJdbcTemplate ejt2 = ejt;
 
-        new DataPointDao().deleteDataPoints(dataSourceId);
+        DataPointDao.instance.deleteDataPoints(dataSourceId);
 
         if (vo != null) {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
@@ -182,6 +181,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
             });
 
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
+            this.countMonitor.decrement();
         }
     }
 
@@ -209,7 +209,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = new DataPointDao();
+                DataPointDao dataPointDao = DataPointDao.instance;
 
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
@@ -253,7 +253,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = new DataPointDao();
+                DataPointDao dataPointDao = DataPointDao.instance;
 
                 DataSourceVO<?> dataSource = getDataSource(dataSourceId);
                 // Copy the data source.
@@ -348,7 +348,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
      * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
      */
     @Override
-    protected Object[] voToObjectArray(DataSourceVO<?> vo) {
+    protected Object[] voToObjectArray(T vo) {
         return new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
                 SerializationHelper.writeObject(vo), vo.getEditPermission() };
     }
@@ -359,7 +359,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
      */
     @Override
-    public DataSourceVO<?> getNewVo() {
+    public T getNewVo() {
         throw new ShouldNeverHappenException("Unable to create generic data source, must supply a type");
     }
 
@@ -380,19 +380,19 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     }
 
     @Override
-    protected Map<String, Comparator<DataSourceVO<?>>> getComparatorMap() {
-        HashMap<String, Comparator<DataSourceVO<?>>> comparatorMap = new HashMap<>();
+    protected Map<String, Comparator<T>> getComparatorMap() {
+        HashMap<String, Comparator<T>> comparatorMap = new HashMap<>();
 
-        comparatorMap.put("typeDescriptionString", new Comparator<DataSourceVO<?>>() {
+        comparatorMap.put("typeDescriptionString", new Comparator<T>() {
             @Override
-            public int compare(DataSourceVO<?> lhs, DataSourceVO<?> rhs) {
+            public int compare(T lhs, T rhs) {
                 return lhs.getTypeDescriptionString().compareTo(rhs.getTypeDescriptionString());
             }
         });
 
-        comparatorMap.put("connectionDescriptionString", new Comparator<DataSourceVO<?>>() {
+        comparatorMap.put("connectionDescriptionString", new Comparator<T>() {
             @Override
-            public int compare(DataSourceVO<?> lhs, DataSourceVO<?> rhs) {
+            public int compare(T lhs, T rhs) {
                 return lhs.getConnectionDescriptionString().compareTo(rhs.getConnectionDescriptionString());
             }
         });
@@ -401,15 +401,15 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
     }
 
     @Override
-    protected Map<String, IFilter<DataSourceVO<?>>> getFilterMap() {
-        HashMap<String, IFilter<DataSourceVO<?>>> filterMap = new HashMap<>();
+    protected Map<String, IFilter<T>> getFilterMap() {
+        HashMap<String, IFilter<T>> filterMap = new HashMap<>();
 
-        filterMap.put("typeDescriptionString", new IFilter<DataSourceVO<?>>() {
+        filterMap.put("typeDescriptionString", new IFilter<T>() {
 
             private String regex;
 
             @Override
-            public boolean filter(DataSourceVO<?> vo) {
+            public boolean filter(T vo) {
                 return !vo.getTypeDescriptionString().matches(regex);
             }
 
@@ -421,11 +421,11 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
 
         });
 
-        filterMap.put("connectionDescriptionString", new IFilter<DataSourceVO<?>>() {
+        filterMap.put("connectionDescriptionString", new IFilter<T>() {
             private String regex;
 
             @Override
-            public boolean filter(DataSourceVO<?> vo) {
+            public boolean filter(T vo) {
                 return !vo.getConnectionDescriptionString().matches(regex);
             }
 
@@ -456,7 +456,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
      */
     @Override
-    public RowMapper<DataSourceVO<?>> getRowMapper() {
+    public RowMapper<T> getRowMapper() {
         return new DataSourceRowMapper();
     }
 
@@ -467,18 +467,18 @@ public class DataSourceDao extends AbstractDao<DataSourceVO<?>> {
      * @return
      */
     @Override
-    public ResultSetExtractor<List<DataSourceVO<?>>> getResultSetExtractor(final RowMapper<DataSourceVO<?>> rowMapper,
-            final FilterListCallback<DataSourceVO<?>> filters) {
+    public ResultSetExtractor<List<T>> getResultSetExtractor(final RowMapper<T> rowMapper,
+            final FilterListCallback<T> filters) {
 
-        return new ResultSetExtractor<List<DataSourceVO<?>>>() {
-            List<DataSourceVO<?>> results = new ArrayList<>();
+        return new ResultSetExtractor<List<T>>() {
+            List<T> results = new ArrayList<>();
             int rowNum = 0;
 
             @Override
-            public List<DataSourceVO<?>> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
                 while (rs.next()) {
                     try {
-                        DataSourceVO<?> row = rowMapper.mapRow(rs, rowNum);
+                        T row = rowMapper.mapRow(rs, rowNum);
                         //Should we filter the row?
                         if (!filters.filterRow(row, rowNum++))
                             results.add(row);

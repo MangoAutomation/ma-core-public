@@ -4,6 +4,7 @@
  */
 package com.infiniteautomation.mango.db.query;
 
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
@@ -75,7 +76,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	/**
 	 * Execute the Query
 	 */
-	public void query(){
+	public void query() throws IOException{
         StopWatch stopWatch = null;
         if(this.useMetrics)
         	 stopWatch = new Log4JStopWatch();
@@ -92,12 +93,14 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	        }catch(Exception e){
 	        	LOG.error(e.getMessage(), e);
 	        	statement.cancel();
+	        	throw e;
 	        }finally{
 	        	statement.getConnection().close();
 	        	statement.close();
 	        }
         }catch(Exception e){
         	LOG.error(e.getMessage() + " For Query: " + selectSql, e);
+        	throw new IOException(e);
         }
         if(this.useMetrics)
         	stopWatch.stop("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString());
@@ -106,7 +109,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	/**
 	 * Execute the Count if there is one
 	 */
-	public void count(){
+	public void count() throws IOException{
 		if(countSql == null)
 			return;
         StopWatch stopWatch = null;
@@ -125,12 +128,14 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	        }catch(Exception e){
 	        	LOG.error(e.getMessage(), e);
 	        	statement.cancel();
+	        	throw e;
 	        }finally{
 	        	statement.getConnection().close();
 	        	statement.close();
 	        }
         }catch(Exception e){
         	LOG.error(e.getMessage() + " For Query: " + countSql, e);
+        	throw new IOException(e);
         }
         if(this.useMetrics)
         	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString());

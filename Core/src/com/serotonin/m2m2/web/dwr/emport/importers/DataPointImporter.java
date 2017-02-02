@@ -7,10 +7,11 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.TemplateDao;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -47,12 +48,6 @@ public class DataPointImporter extends Importer {
                 vo.setPointLocator(dsvo.createPointLocator());
                 vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
                 //Not needed as it will be set via the template or JSON or it exists in the DB already: vo.setTextRenderer(new PlainRenderer());
-                ProcessResult response = new ProcessResult();
-                DataSourceTypePointsLimit.checkLimit(vo.getDataSourceTypeName(), response);
-                if(response.getHasMessages()){
-                	addFailureMessage(response.getMessages().get(0));
-                	return; //Don't allow adding more than license points
-                }
             }
         }
         
@@ -107,8 +102,12 @@ public class DataPointImporter extends Importer {
                     }
 
                     boolean isnew = vo.isNew();
-                    Common.runtimeManager.saveDataPoint(vo);
-                    addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
+                    try {
+                    	Common.runtimeManager.saveDataPoint(vo);
+                    	addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
+                    } catch(LicenseViolatedException e) {
+                    	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
+                    }
                 }
             }
             catch (TranslatableJsonException e) {

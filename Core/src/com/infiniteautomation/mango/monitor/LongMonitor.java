@@ -8,15 +8,15 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 public class LongMonitor extends ValueMonitor<Long> {
     private long value;
 
-    public LongMonitor(String id, TranslatableMessage name) {
-        this(id, name, 0);
+    public LongMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
+        this(id, name, owner, 0);
     }
 
-    public LongMonitor(String id, TranslatableMessage name, long initialValue) {
-        super(id, name);
+    public LongMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, long initialValue) {
+        super(id, name, owner);
         value = initialValue;
     }
-
+    
     @Override
     public Long getValue() {
         return value;

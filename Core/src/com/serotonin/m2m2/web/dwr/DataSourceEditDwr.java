@@ -14,13 +14,13 @@ import org.springframework.dao.DuplicateKeyException;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.DataPointNameComparator;
@@ -94,7 +94,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return null;
 
-        List<DataPointVO> points = new DataPointDao()
+        List<DataPointVO> points = DataPointDao.instance
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         return points;
     }
@@ -161,12 +161,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         return dp;
     }
 
-    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO locator,
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator,
             DataPointDefaulter defaulter) {
         return validatePoint(id, xid, name, locator, defaulter, true);
     }
 
-    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO locator,
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator,
             DataPointDefaulter defaulter, boolean includePointList) {
         ProcessResult response = new ProcessResult();
 
@@ -179,7 +179,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         //Confirm that we are assinging a point to the correct data source
         DataSourceVO<?> ds = DataSourceDao.instance.get(dp.getDataSourceId());
-        PointLocatorVO plvo = ds.createPointLocator();
+        PointLocatorVO<?> plvo = ds.createPointLocator();
         if (plvo.getClass() != locator.getClass()) {
             response.addGenericMessage("validate.invalidType");
             return response;
@@ -187,14 +187,11 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         //If we are a new point then only validate the basics
         if (id == Common.NEW_ID) {
-            // Limit enforcement.
-            DataSourceTypePointsLimit.checkLimit(dp.getDataSourceTypeName(), response);
-
             if (StringUtils.isBlank(xid))
                 response.addContextualMessage("xid", "validate.required");
             else if (StringValidation.isLengthGreaterThan(xid, 50))
                 response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
-            else if (!new DataPointDao().isXidUnique(xid, id))
+            else if (!DataPointDao.instance.isXidUnique(xid, id))
                 response.addContextualMessage("xid", "validate.xidUsed");
 
             if (StringUtils.isBlank(name))
@@ -230,6 +227,9 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         		Common.runtimeManager.saveDataPoint(dp);
         	} catch(DuplicateKeyException e) {
         		response.addGenericMessage("pointEdit.detectors.duplicateXid");
+        		return response;
+        	} catch(LicenseViolatedException e) {
+        		response.addMessage(e.getErrorMessage());
         		return response;
         	}
 
@@ -307,7 +307,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     @DwrPermission(user = true)
     public String exportDataPoint(int dataPointId) {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        DataPointVO dp = new DataPointDao().getDataPoint(dataPointId);
+        DataPointVO dp = DataPointDao.instance.getDataPoint(dataPointId);
         if (dp == null)
             return null;
         if (dp.getDataSourceId() != ds.getId())
@@ -325,7 +325,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         ProcessResult result = new ProcessResult();
 
         DataSourceVO<?> vo = Common.getUser().getEditDataSource();
-        DataSourceRT rt = Common.runtimeManager.getRunningDataSource(vo.getId());
+        DataSourceRT<?> rt = Common.runtimeManager.getRunningDataSource(vo.getId());
 
         List<TranslatableMessage> messages = new ArrayList<>();
         result.addData("messages", messages);
@@ -350,7 +350,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return 0;
 
-        List<DataPointVO> points = new DataPointDao()
+        List<DataPointVO> points = DataPointDao.instance
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
 
         Long count = 0L;

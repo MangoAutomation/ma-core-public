@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.module;
 
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 
 /**
  * Provides modules with the ability to register additional event handlers
@@ -46,4 +47,10 @@ public abstract class EventHandlerDefinition extends ModuleElementDefinition{
         handler.setDefinition(this);
         return handler;
     }
+    
+	/**
+	 * Return the model class for the Event Handler
+	 * @return
+	 */
+	public abstract Class<? extends AbstractEventHandlerModel<?>> getModelClass();
 }

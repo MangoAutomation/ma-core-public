@@ -29,6 +29,8 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -868,6 +870,35 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
     public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
 
+    private static final ValueMonitorOwner valueOwner = new ValueMonitorOwner(){
+
+		@Override
+		public void reset(String id) {
+			switch(id){
+				case ENTRIES_MONITOR_ID:
+					synchronized (BatchWriteBehind.ENTRIES) {
+						BatchWriteBehind.ENTRIES_MONITOR.setValue(BatchWriteBehind.ENTRIES.size());
+					}
+				break;
+				case INSTANCES_MONITOR_ID:
+					BatchWriteBehind.INSTANCES_MONITOR.setValue(BatchWriteBehind.instances.size());
+				break;
+				case BATCH_WRITE_SPEED_MONITOR_ID:
+					//No-Op since we can't see the speed, perhaps set to 0?
+				break;
+				case ENTRIES_UPDATE_MONITOR_ID:
+					synchronized(BatchUpdateBehind.ENTRIES){
+						BatchUpdateBehind.ENTRIES_MONITOR.setValue(BatchUpdateBehind.ENTRIES.size());
+					}
+				break;
+				case INSTANCES_UPDATE_MONITOR_ID:
+					BatchUpdateBehind.INSTANCES_MONITOR.setValue(BatchUpdateBehind.instances.size());
+				break;
+			}
+		}
+    	
+    };
+    
     static class BatchWriteBehind implements WorkItem {
         private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<PointValueDaoSQL.BatchWriteBehindEntry>();
         private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<BatchWriteBehind>();
@@ -876,12 +907,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         private static final int MAX_INSTANCES = 5;
         private static int MAX_ROWS = 1000;
         private static final IntegerMonitor ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_MONITOR_ID,
-        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"));
+        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"), valueOwner);
         private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_MONITOR_ID,
-        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"));
+        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"), valueOwner);
         //TODO Create DoubleMonitor but will need to upgrade the Internal data source to do this
         private static final IntegerMonitor BATCH_WRITE_SPEED_MONITOR = new IntegerMonitor(
-                BATCH_WRITE_SPEED_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"));
+                BATCH_WRITE_SPEED_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"), valueOwner);
 
         private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
 
@@ -1072,8 +1103,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
     }
 
-    public static final String ENTRIES_UPDATE_MONITOR_ID = BatchUpdateBehind.class.getName() + ".ENTRIES_MONITOR";
-    public static final String INSTANCES_UPDATE_MONITOR_ID = BatchUpdateBehind.class.getName() + ".INSTANCES_MONITOR";
+    public static final String ENTRIES_UPDATE_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchUpdateBehind.ENTRIES_MONITOR";
+    public static final String INSTANCES_UPDATE_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchUpdateBehind.INSTANCES_MONITOR";
 
     static class BatchUpdateBehind implements WorkItem {
         private static final ObjectQueue<BatchUpdateBehindEntry> ENTRIES = new ObjectQueue<PointValueDaoSQL.BatchUpdateBehindEntry>();
@@ -1083,9 +1114,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         private static final int MAX_INSTANCES = 5;
         private static int MAX_ROWS = 1000;
         private static final IntegerMonitor ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_UPDATE_MONITOR_ID,
-        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"));
+        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"), valueOwner);
         private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_UPDATE_MONITOR_ID,
-        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"));
+        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"), valueOwner);
 
         private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
 

@@ -15,7 +15,6 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
-import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
@@ -26,7 +25,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
  * @author Terry Packer
  *
  */
-public class MockPointLocatorVO extends AbstractPointLocatorVO implements JsonSerializable {
+public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorVO> implements JsonSerializable {
 
 	private int dataTypeId = DataTypes.NUMERIC;
 	private boolean settable = false;
@@ -72,7 +71,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
 	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#createRuntime()
 	 */
 	@Override
-	public PointLocatorRT createRuntime() {
+	public MockPointLocatorRT createRuntime() {
 		return new MockPointLocatorRT(this);
 	}
 
@@ -108,7 +107,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
 	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#asModel()
 	 */
 	@Override
-	public PointLocatorModel<?> asModel() {
+	public PointLocatorModel<MockPointLocatorVO> asModel() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -76,7 +76,7 @@ public class UserEntry extends EmailRecipient {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         if (user == null)
-            user = new UserDao().getUser(userId);
+            user = UserDao.instance.getUser(userId);
         writer.writeEntry("username", user.getUsername());
     }
 
@@ -88,7 +88,7 @@ public class UserEntry extends EmailRecipient {
         if (username == null)
             throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
 
-        user = new UserDao().getUser(username);
+        user = UserDao.instance.getUser(username);
         if (user == null)
             throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "username", username);
 

@@ -29,6 +29,18 @@
 <c:choose>
     <c:when test="${empty showFooter}"><c:set var="showFooter">${param.showFooter}</c:set></c:when>
 </c:choose>
+<c:choose>
+	<c:when test="<%= Common.isInvalid() %>">
+		<c:set var="showFooter">true</c:set>
+		<c:set var="invalidFooter">true</c:set>
+		<c:set var="freeFooter">false</c:set>
+	</c:when>
+	<c:when test="<%= Common.isFree() %>">
+		<c:set var="showFooter">true</c:set>
+		<c:set var="freeFooter">true</c:set>
+		<c:set var="invalidFooter">true</c:set>
+	</c:when>
+</c:choose>
 <html>
 <head>
   <title><c:choose>
@@ -131,8 +143,17 @@
     <div id="footerArea" style="float:left; width:100%; height:60px;">
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr><td colspan="2">&nbsp;</td></tr>
+        <c:choose>
+	        <c:when test="${freeFooter == true}">
+	        	<tr><td colspan="2" class="footer" align="center"><fmt:message key="modules.freeMode"/></td></tr>
+	        </c:when>
+	        <c:when test="${invalidFooter == true}">
+	        	<tr><td colspan="2" class="footer" align="center" style="color:red; font-weight:bold;"><fmt:message key="modules.invalidLicense"/></td></tr>
+	        </c:when>
+	        <c:otherwise/>
+        </c:choose>
         <tr>
-          <td colspan="2" class="footer" align="center">&copy;2016 Infinite Automation Systems Inc. <fmt:message key="footer.rightsReserved"/></td>
+          <td colspan="2" class="footer" align="center">&copy;2017 Infinite Automation Systems Inc. <fmt:message key="footer.rightsReserved"/></td>
         </tr>
         <tr>
           <td colspan="2" align="center"><a href="http://www.infiniteautomation.com/" ><b></b>www.InfiniteAutomation.com</a></td>

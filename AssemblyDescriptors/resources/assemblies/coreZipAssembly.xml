@@ -35,6 +35,7 @@
         <include>web/**</include>
       </includes>
       <excludes>
+        <exclude>WEB-INF/filedata/**</exclude>
       	<exclude>web/modules/**</exclude>
       </excludes>
     </fileSet>

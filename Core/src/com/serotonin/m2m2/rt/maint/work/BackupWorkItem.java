@@ -16,14 +16,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EmportDefinition;
@@ -178,14 +181,17 @@ public class BackupWorkItem implements WorkItem {
 	public String getBackup(){
         Map<String, Object> data = new LinkedHashMap<String, Object>();
 
-        data.put(EmportDwr.DATA_SOURCES, new DataSourceDao().getDataSources());
-        data.put(EmportDwr.DATA_POINTS, new DataPointDao().getDataPoints(null, true));
-        data.put(EmportDwr.USERS, new UserDao().getUsers());
-        data.put(EmportDwr.MAILING_LISTS, new MailingListDao().getMailingLists());
+        data.put(EmportDwr.DATA_SOURCES, DataSourceDao.instance.getDataSources());
+        data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
+        data.put(EmportDwr.USERS, UserDao.instance.getUsers());
+        data.put(EmportDwr.MAILING_LISTS, MailingListDao.instance.getMailingLists());
         data.put(EmportDwr.PUBLISHERS, PublisherDao.instance.getPublishers());
         data.put(EmportDwr.EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         data.put(EmportDwr.POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
         data.put(EmportDwr.SYSTEM_SETTINGS, new SystemSettingsDao().getSystemSettingsForExport());
+        data.put(EmportDwr.TEMPLATES, TemplateDao.instance.getAllDataPointTemplates());
+        data.put(EmportDwr.JSON_DATA, JsonDataDao.instance.getAll());
+        data.put(EmportDwr.VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
         
         //Export all module data too
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {

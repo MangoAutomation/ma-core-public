@@ -36,10 +36,8 @@ import com.serotonin.util.ILifecycle;
  * 
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implements ILifecycle {
+abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractRT<VO> implements ILifecycle {
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
-
-    private final DataSourceVO<?> vo;
 
     /**
      * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
@@ -61,15 +59,14 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
     /**
      * Access to either the addedPoints or removedPoints lists should be synchronized with this object's monitor.
      */
-    protected Boolean pointListChangeLock = new Boolean(false);
+    protected final Object pointListChangeLock = new Object();
 
     private final List<DataSourceEventType> eventTypes;
 
     private boolean terminated;
 
-    public DataSourceRT(DataSourceVO<?> vo) {
+    public DataSourceRT(VO vo) {
     	super(vo);
-        this.vo = vo;
 
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
@@ -84,15 +81,11 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
         return vo.getName();
     }
 
-    public DataSourceVO<?> getVo() {
-        return vo;
-    }
-
     /**
      * This method is usable by subclasses to retrieve serializable data stored using the setPersistentData method.
      */
     public Object getPersistentData() {
-        return new DataSourceDao().getPersistentData(vo.getId());
+        return DataSourceDao.instance.getPersistentData(vo.getId());
     }
 
     /**
@@ -101,7 +94,7 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
      * called in the terminate method, but may also be called regularly for failover purposes.
      */
     protected void setPersistentData(Object persistentData) {
-        new DataSourceDao().savePersistentData(vo.getId(), persistentData);
+        DataSourceDao.instance.savePersistentData(vo.getId(), persistentData);
     }
 
     protected boolean isTerminated() {
@@ -122,8 +115,15 @@ abstract public class DataSourceRT extends AbstractRT<DataSourceVO<?>> implement
             removedPoints.add(dataPoint);
         }
     }
+    
+    public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
+    	if(dataPoint.getVO().isPreventSetExtremeValues() && (valueTime.getDoubleValue() > dataPoint.getVO().getSetExtremeHighLimit() 
+    			|| valueTime.getDoubleValue() < dataPoint.getVO().getSetExtremeLowLimit()))
+    		return;
+    	setPointValueImpl(dataPoint, valueTime, source);
+    }
 
-    abstract public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
+    abstract public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
 
     public void relinquish(DataPointRT dataPoint) {
         throw new ShouldNeverHappenException("not implemented in " + getClass());

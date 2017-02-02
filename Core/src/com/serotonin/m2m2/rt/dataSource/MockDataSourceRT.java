@@ -16,21 +16,20 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
  * @author Terry Packer
  *
  */
-public class MockDataSourceRT extends DataSourceRT{
+public class MockDataSourceRT extends DataSourceRT<MockDataSourceVO>{
 
 	/**
 	 * @param vo
 	 */
 	public MockDataSourceRT(MockDataSourceVO vo) {
 		super(vo);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.rt.dataSource.DataSourceRT#setPointValue(com.serotonin.m2m2.rt.dataImage.DataPointRT, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
 	 */
 	@Override
-	public void setPointValue(DataPointRT dataPoint, PointValueTime newValue,
+	public void setPointValueImpl(DataPointRT dataPoint, PointValueTime newValue,
 			SetPointSource source) {
 		dataPoint.setPointValue(newValue, source);
 	}	

@@ -7,6 +7,8 @@ package com.serotonin.m2m2.rt.maint;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.monitor.IntegerMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.EventInstance;
@@ -19,11 +21,15 @@ import com.serotonin.timer.TimerTask;
 /**
  * @author Matthew Lohbihler
  */
-public class UpgradeCheck extends TimerTask {
+public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
+	
     private static final Log LOG = LogFactory.getLog(UpgradeCheck.class);
     private static final long DELAY_TIMEOUT = 1000 * 10; // Run initially after 10 seconds
     private static final long PERIOD_TIMEOUT = 1000 * 60 * 60 * 4; // Run every 4 hours.
 
+    public static final String UPGRADES_AVAILABLE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.UpgradeCheck.COUNT";
+    private final IntegerMonitor availableUpgrades;
+    
     /**
      * This method will set up the upgrade checking job. It assumes that the corresponding system setting for running
      * this job is true.
@@ -37,21 +43,33 @@ public class UpgradeCheck extends TimerTask {
 
     public UpgradeCheck() {
         super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT));
+        this.availableUpgrades = new IntegerMonitor(UPGRADES_AVAILABLE_MONITOR_ID, new TranslatableMessage("internal.monitor.AVAILABLE_UPGRADE_COUNT"), this);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(this.availableUpgrades);
     }
 
     @Override
     public void run(long fireTime) {
         try {
-            if (ModulesDwr.isUpgradeAvailable()) {
+        	int available = ModulesDwr.upgradesAvailable();
+            if (available > 0) {
                 TranslatableMessage m = new TranslatableMessage("modules.event.upgrades");
                 SystemEventType.raiseEvent(et, System.currentTimeMillis(), true, m);
             }
             else
                 Common.eventManager.returnToNormal(et, System.currentTimeMillis(),
                         EventInstance.RtnCauses.RETURN_TO_NORMAL);
+            this.availableUpgrades.setValue(available);
         }
         catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
+	 */
+	@Override
+	public void reset(String monitorId) {
+		//TODO Should we do anything here?
+	}
 }

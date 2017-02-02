@@ -115,6 +115,7 @@ public class ImportTask extends ProgressiveTask {
 
     private int importerIndex;
     private boolean importerSuccess;
+    private boolean importedItems;
 
     @Override
     protected void runImpl() {
@@ -129,14 +130,29 @@ public class ImportTask extends ProgressiveTask {
                         // them again.
                         importerIndex = 0;
                         importerSuccess = false;
-                    }
-                    else {
+                    } else if(!importedItems) {
+        	            try {
+                            for (ImportItem importItem : importItems) {
+                                if (!importItem.isComplete()) {
+                                    importItem.importNext(importContext);
+                                    return;
+                                }
+                            }
+                            importedItems = true;   // We may have imported a dependency in a module
+                            importerIndex = 0;
+                        }
+                        catch (Exception e) {
+                            addException(e);
+                        }
+                    } else {
                         // There are importers left in the list, but there were no successful imports in the last run
                         // of the set. So, all that is left is stuff that will always fail. Copy the validation 
                         // messages to the context for each.
+                    	// Run the import items.
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
+                        completed = true;
                         return;
                     }
                 }

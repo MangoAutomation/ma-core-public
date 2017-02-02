@@ -205,6 +205,10 @@
 					//Disable all inputs each time because some of the 
 					// Settings areas re-enable inputs on load of new types
 					disableDataPointInputs();
+				} else if(dataPointTemplatePicker.store.data.length > 0) {
+					dataPointTemplatePicker.set("item", dataPointTemplatePicker.store.data[0]);
+					loadFromDataPointTemplate(dataPointTemplatePicker.item);
+					disableDataPointInputs();
 				}
 			} else {
 				//Not Using Template

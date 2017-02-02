@@ -11,7 +11,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.module.license.PublisherTypePointsLimit;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -24,9 +23,6 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 public class PublisherEditDwr extends BaseDwr {
     protected ProcessResult trySave(PublisherVO<? extends PublishedPointVO> p) {
         ProcessResult response = new ProcessResult();
-
-        // Limit enforcement.
-        PublisherTypePointsLimit.checkLimit(p, response);
 
         p.validate(response);
 
@@ -45,7 +41,7 @@ public class PublisherEditDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public ProcessResult initSender() {
-        List<DataPointVO> allPoints = new DataPointDao().getDataPoints(DataPointExtendedNameComparator.instance, false);
+        List<DataPointVO> allPoints = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, false);
 
         // Remove image points
         Iterator<DataPointVO> iter = allPoints.iterator();

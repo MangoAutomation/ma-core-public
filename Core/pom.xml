@@ -485,7 +485,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-shared</artifactId>
-			<version>1.2.0</version>
+			<version>1.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
@@ -581,7 +581,7 @@
 	<parent>
 		<artifactId>mango-parent</artifactId>
 		<groupId>com.infiniteautomation.mango</groupId>
-		<version>2.8.1-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.infiniteautomation</groupId>

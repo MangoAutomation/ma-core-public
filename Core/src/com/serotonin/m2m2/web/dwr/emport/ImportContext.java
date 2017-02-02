@@ -22,11 +22,11 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.Translations;
 
 public class ImportContext {
-    private final UserDao userDao = new UserDao();
-    private final DataSourceDao dataSourceDao = new DataSourceDao();
-    private final DataPointDao dataPointDao = new DataPointDao();
+    private final UserDao userDao = UserDao.instance;
+    private final DataSourceDao dataSourceDao = DataSourceDao.instance;
+    private final DataPointDao dataPointDao = DataPointDao.instance;
     private final EventDao eventDao = new EventDao();
-    private final MailingListDao mailingListDao = new MailingListDao();
+    private final MailingListDao mailingListDao = MailingListDao.instance;
     private final PublisherDao publisherDao = PublisherDao.instance;
     private final EventHandlerDao eventHandlerDao = EventHandlerDao.instance;
 

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -211,6 +212,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         if (sendSnapshot) {
             if (snapshotSendPeriods <= 0)
                 response.addContextualMessage("snapshotSendPeriods", "validate.greaterThanZero");
+            if(!Common.TIME_PERIOD_CODES.isValidId(snapshotSendPeriodType, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.DAYS, 
+            		Common.TimePeriods.WEEKS, Common.TimePeriods.MONTHS, Common.TimePeriods.YEARS))
+            	response.addContextualMessage("snapshotSendPeriodType", "validate.invalidValue");
         }
 
         if (cacheWarningSize < 1)
@@ -220,14 +224,22 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
 
         Set<Integer> set = new HashSet<>();
-        for (T point : points) {
+        ListIterator<T> it = points.listIterator();
+        
+        while(it.hasNext()) {
+        	T point = it.next();
             int pointId = point.getDataPointId();
+            //Does this point even exist?
+            DataPointVO vo = DataPointDao.instance.getDataPoint(pointId);
             if (set.contains(pointId)) {
-                DataPointVO vo = new DataPointDao().getDataPoint(pointId);
                 response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
             }
-            else
-                set.add(pointId);
+            else{
+                if(vo == null)
+                	it.remove();
+                else
+                	set.add(pointId);
+            }
         }
     }
 
@@ -311,7 +323,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             else
             	this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
-            cacheDiscardSize = cacheWarningSize * 3;
+            cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
@@ -322,7 +334,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             points = (List<T>) in.readObject();
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
-            cacheDiscardSize = cacheWarningSize * 3;
+            cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();

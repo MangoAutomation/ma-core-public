@@ -39,8 +39,8 @@ public class DataPurge {
 	
     private final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
-    private final DataPointDao dataPointDao = new DataPointDao();
-    private final DataSourceDao dataSourceDao = new DataSourceDao();
+    private final DataPointDao dataPointDao = DataPointDao.instance;
+    private final DataSourceDao dataSourceDao = DataSourceDao.instance;
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
     private long deletedSamples;
     private long deletedFiles;

@@ -13,7 +13,9 @@ import java.util.Set;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
+import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.util.license.ModuleLicense;
 
@@ -23,6 +25,16 @@ import com.serotonin.m2m2.util.license.ModuleLicense;
  * @author Matthew Lohbihler
  */
 public class Module {
+	
+	public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
+	static {
+		VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT");
+		VERSION_STATE_CODES.addElement(UpgradeVersionState.ALPHA, "ALPHA");
+		VERSION_STATE_CODES.addElement(UpgradeVersionState.BETA, "BETA");
+		VERSION_STATE_CODES.addElement(UpgradeVersionState.RELEASE_CANDIDATE, "RELEASE_CANDIDATE");
+		VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION");
+	}
+	
     public static final void sortByName(List<Module> modules) {
         Collections.sort(modules, new Comparator<Module>() {
             @Override
@@ -52,13 +64,14 @@ public class Module {
     private final String dependencies;
     private final int loadOrder;
     private boolean markedForDeletion;
-    //    private boolean disabled;
 
     private final List<ModuleElementDefinition> definitions = new ArrayList<>();
 
     private final Set<String> locales = new HashSet<>();
     private String graphics;
     private String emailTemplates;
+    private final int versionState;
+    private final int buildNumber;
 
     /**
      * Module constructor. Should not be used by client code.
@@ -70,7 +83,7 @@ public class Module {
      * @param vendorUrl
      */
     public Module(String name, String version, TranslatableMessage description, String vendor, String vendorUrl,
-            String dependencies, int loadOrder) {
+            String dependencies, int loadOrder, int versionState, int buildNumber) {
         this.name = name;
         this.version = version;
         this.description = description;
@@ -78,6 +91,8 @@ public class Module {
         this.vendorUrl = vendorUrl;
         this.dependencies = dependencies;
         this.loadOrder = loadOrder;
+        this.versionState = versionState;
+        this.buildNumber = buildNumber;
     }
 
     /**
@@ -177,6 +192,14 @@ public class Module {
     public String getVersion() {
         return version;
     }
+    
+    public int getVersionState() {
+    	return versionState;
+    }
+    
+    public String getVersionAndState() {
+    	return version + "-" + versionState;
+    }
 
     public String getLicenseType() {
         return licenseType;
@@ -204,6 +227,10 @@ public class Module {
 
     public int getLoadOrder() {
         return loadOrder;
+    }
+    
+    public int getBuildNumber(){
+    	return this.buildNumber;
     }
 
     public ModuleLicense license() {

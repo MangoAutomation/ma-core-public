@@ -360,7 +360,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     public void validate(ProcessResult response) {
         if (handlerType == TYPE_SET_POINT) {
-            DataPointVO dp = new DataPointDao().getDataPoint(targetPointId);
+            DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId);
 
             if (dp == null)
                 response.addGenericMessage("eventHandlers.noTargetPoint");
@@ -390,7 +390,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (activeAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpActive = new DataPointDao().getDataPoint(activePointId);
+                    DataPointVO dpActive = DataPointDao.instance.getDataPoint(activePointId);
 
                     if (dpActive == null)
                         response.addGenericMessage("eventHandlers.invalidActiveSource");
@@ -418,7 +418,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpInactive = new DataPointDao().getDataPoint(inactivePointId);
+                    DataPointVO dpInactive = DataPointDao.instance.getDataPoint(inactivePointId);
 
                     if (dpInactive == null)
                         response.addGenericMessage("eventHandlers.invalidInactiveSource");
@@ -672,7 +672,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
         writer.writeEntry("eventType", EventHandlerDao.instance.getEventHandlerType(id));
 
         writer.writeEntry("xid", xid);
@@ -732,7 +732,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
     @SuppressWarnings("unchecked")
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        DataPointDao dataPointDao = new DataPointDao();
+        DataPointDao dataPointDao = DataPointDao.instance;
 
         String text = jsonObject.getString("handlerType");
         if (text != null) {

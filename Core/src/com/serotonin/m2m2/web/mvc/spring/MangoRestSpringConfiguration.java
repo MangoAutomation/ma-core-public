@@ -32,13 +32,16 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JsonRestJacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.util.AbstractRestModelConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvDataPageQueryStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
+import com.serotonin.m2m2.web.mvc.rest.v1.converters.SerotoninJsonMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
  * Scan the rest packages and create a Spring Context for them
@@ -131,7 +134,8 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 				.mediaType("xml", MediaType.APPLICATION_XML) // TODO add jaxb
 																// for this to
 																// work
-				.mediaType("json", MediaType.APPLICATION_JSON) 
+				.mediaType("json", MediaType.APPLICATION_JSON)
+				.mediaType("sjson", SerotoninJsonMessageConverter.MEDIA_TYPE)
 				.mediaType("csv", new MediaType("text", "csv"));
 				//mediaType("csv", new MediaType("text", "csv", Common.UTF8_CS));
 	}
@@ -153,7 +157,10 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new CsvDataPageQueryStreamMessageConverter());
 		converters.add(new ByteArrayHttpMessageConverter());
 		converters.add(new HtmlHttpMessageConverter());
+		converters.add(new SerotoninJsonMessageConverter());
 		
+		//Now is a good time to register our Sero Json Converter
+		Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 		
 	}
 

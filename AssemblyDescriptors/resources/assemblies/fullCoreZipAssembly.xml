@@ -9,7 +9,6 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
-  <!--  TODO Build NUMBER -->
     <fileSet>
       <directory>${MA_HOME}/scripts</directory>
       <outputDirectory>bin</outputDirectory>
@@ -34,7 +33,9 @@
         <include>ftl/**</include>
         <include>web/**</include>
       </includes>
-      <!-- TODO Exclude Module Zips? -->
+      <excludes>
+      	<exclude>web/WEB-INF/filedata/**</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/work</directory>
@@ -43,10 +44,24 @@
         <include>**/*.class</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>work/jsp</outputDirectory>
+      <includes>
+        <include>release.properties</include>
+      </includes>
+    </fileSet>
     <!-- Empty Dirs -->
     <fileSet>
       <directory>.</directory>
       <outputDirectory>backup</outputDirectory>
+      <excludes>
+      	<exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>web/WEB-INF/filedata</outputDirectory>
       <excludes>
       	<exclude>*/**</exclude>
       </excludes>
@@ -96,20 +111,33 @@
   </fileSets>
   <dependencySets>
     <dependencySet>
+    	<excludes>
+    		<exclude>*:zip</exclude>
+    		<exclude>*:pom</exclude>
+    	</excludes>
       <outputDirectory>lib</outputDirectory>
-		<excludes>
- 			<!-- Exclude the module zips from the lib folder -->
-			<exclude>com.infiniteautomation.mango:*:zip</exclude>
-		</excludes>
       <useProjectArtifact>false</useProjectArtifact>
     </dependencySet>
 <!--     <dependencySet> -->
+<!--       	<includes> -->
+<!-- 			<include>*:zip</include> -->
+<!-- 		</includes> -->
 <!--     	<outputDirectory>web/modules</outputDirectory> -->
-<!--     	<includes> -->
-<!--     		Public Modules -->
-<!--     		<include>com.infiniteautomation.mango:*:zip</include> -->
-<!--     	</includes> -->
-<!--     	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping> -->
+<!--     	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.version}.${artifact.extension}</outputFileNameMapping> -->
+<!--     	<useProjectArtifact>false</useProjectArtifact> -->
 <!--     </dependencySet> -->
   </dependencySets>
+<!--   <moduleSets> -->
+<!--   	    <moduleSet> -->
+<!-- 				<useAllReactorProjects>true</useAllReactorProjects> -->
+<!--   	    	<includes> -->
+<!-- 				<include>com.infiniteautomation.mango:excel-reports</include> -->
+<!-- 			</includes> -->
+<!--   	    	<binaries> -->
+<!--   	    		<attachmentClassifier>zip</attachmentClassifier>  -->
+<!--   	    		<outputDirectory>web/modules</outputDirectory> -->
+<!--   	    		<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping> -->
+<!--   	    	</binaries> -->
+<!--     </moduleSet> -->
+<!--   </moduleSets> -->
 </assembly>	

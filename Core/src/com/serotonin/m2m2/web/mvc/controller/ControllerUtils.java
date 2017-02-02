@@ -50,7 +50,7 @@ public class ControllerUtils {
     }
 
     public static List<DataPointSummary> addPointListDataToModel(User user, int pointId, Map<String, Object> model) {
-        List<DataPointSummary> allPoints = new DataPointDao()
+        List<DataPointSummary> allPoints = DataPointDao.instance
                 .getDataPointSummaries(DataPointExtendedNameComparator.instance);
         List<DataPointSummary> userPoints = new LinkedList<>();
 

@@ -230,7 +230,7 @@ abstract public class BaseDwr {
 	@DwrPermission(user = true)
 	public int setPoint(int pointId, int componentId, String valueStr) {
 		User user = Common.getUser();
-		DataPointVO point = new DataPointDao().getDataPoint(pointId);
+		DataPointVO point = DataPointDao.instance.getDataPoint(pointId);
 
 		// Check permissions.
 		Permissions.ensureDataPointSetPermission(user, point);
@@ -270,7 +270,7 @@ abstract public class BaseDwr {
 	@DwrPermission(user = true)
 	public void forcePointRead(int pointId) {
 		User user = Common.getUser();
-		DataPointVO point = new DataPointDao().getDataPoint(pointId);
+		DataPointVO point = DataPointDao.instance.getDataPoint(pointId);
 
 		// Check permissions.
 		Permissions.ensureDataPointReadPermission(user, point);
@@ -301,7 +301,7 @@ abstract public class BaseDwr {
 		if (typeId == UserComment.TYPE_EVENT)
 			EVENT_DAO.insertEventComment(referenceId, c);
 		else if (typeId == UserComment.TYPE_POINT)
-			new UserDao().insertUserComment(UserComment.TYPE_POINT,
+			UserDao.instance.insertUserComment(UserComment.TYPE_POINT,
 					referenceId, c);
 		else
 			throw new ShouldNeverHappenException("Invalid comment type: "
@@ -313,7 +313,7 @@ abstract public class BaseDwr {
 	protected List<DataPointBean> getReadablePoints() {
 		User user = Common.getUser();
 
-		List<DataPointVO> points = new DataPointDao().getDataPoints(
+		List<DataPointVO> points = DataPointDao.instance.getDataPoints(
 				DataPointExtendedNameComparator.instance, false);
 		if (!Permissions.hasAdmin(user)) {
 			List<DataPointVO> userPoints = new ArrayList<>();
@@ -392,7 +392,7 @@ abstract public class BaseDwr {
 
 	protected List<User> getShareUsers(User excludeUser) {
 		List<User> users = new ArrayList<>();
-		for (User u : new UserDao().getUsers()) {
+		for (User u : UserDao.instance.getUsers()) {
 			if (u.getId() != excludeUser.getId())
 				users.add(u);
 		}
@@ -781,7 +781,7 @@ abstract public class BaseDwr {
 	public List<PermissionDetails> getUserPermissionInfo(String query) {
 		List<PermissionDetails> ds = new ArrayList<>();
 		User currentUser = Common.getUser();
-		for (User user : new UserDao().getActiveUsers()) {
+		for (User user : UserDao.instance.getActiveUsers()) {
 			PermissionDetails deets = Permissions.getPermissionDetails(
 					currentUser, query, user);
 			if (deets != null)
@@ -794,7 +794,7 @@ abstract public class BaseDwr {
 	public static Set<String> getAllUserGroups(String exclude) {
 		Set<String> result = new TreeSet<>();
 
-		for (User user : new UserDao().getActiveUsers())
+		for (User user : UserDao.instance.getActiveUsers())
 			result.addAll(Permissions.explodePermissionGroups(user
 					.getPermissions()));
 

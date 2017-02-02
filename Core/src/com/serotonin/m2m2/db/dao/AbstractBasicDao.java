@@ -34,10 +34,13 @@ import com.infiniteautomation.mango.db.query.StreamableRowCallback;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
+import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
@@ -52,7 +55,7 @@ import net.jazdw.rql.parser.ASTNode;
  * 
  * @author Jared Wiltshire
  */
-public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao {
+public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements ValueMonitorOwner{
 	protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
 	protected DaoNotificationWebSocketHandler<T> handler;
@@ -110,33 +113,41 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	// The type of database we are using
 	protected final DatabaseType databaseType;
 
-	/**
-	 * Override as necessary Can be null if no Pk Exists
-	 * 
-	 * @return String name of Pk Column
-	 */
-	public String getPkColumnName() {
-		return "id";
-	}
+    //Monitor for count of table
+    protected final AtomicIntegerMonitor countMonitor;
 
+    /**
+     * 
+	 * @param handler - Web Socket Notifications
+	 * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
+	 * @param extraProperties - Other SQL for use in Queries
+     */
 	public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties) {
-		this(handler, tablePrefix, extraProperties, false);
+		this(handler, tablePrefix, extraProperties, false, null);
 	}
 
+	/**
+	 * 
+	 * @param def - Definition of Websocket
+	 * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
+	 * @param extraProperties - Other SQL for use in Queries
+	 */
 	@SuppressWarnings("unchecked")
 	public AbstractBasicDao(WebSocketDefinition def, String tablePrefix, String[] extraProperties) {
 		this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties,
-				false);
+				false, null);
 	}
 
 	/**
-	 * Provide a table prefix to use for complex queries. Ie. Joins Do not
-	 * include the . at the end of the prefix
 	 * 
-	 * @param tablePrefix
+	 * @param handler - Web Socket Notifications
+	 * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
+	 * @param extraProperties - Other SQL for use in Queries
+	 * @param useSubQuery - Compute and use subqueries for performance
+	 * @param countMonitorName - If not null create a monitor to track table row count
 	 */
 	public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties,
-			boolean useSubQuery) {
+			boolean useSubQuery, TranslatableMessage countMonitorName) {
 		this.handler = handler;
 		this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
 		this.databaseType = Common.databaseProxy.getType();
@@ -341,9 +352,29 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 		// Create the model
 		this.tableModel = new TableModel(this.getTableName(), new ArrayList<QueryAttribute>(attributeMap.values()));
+		
+		//Setup Monitors
+        if(countMonitorName != null){
+            this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", countMonitorName, this);
+            this.countMonitor.setValue(this.count());
+        	Common.MONITORED_VALUES.addIfMissingStatMonitor(this.countMonitor);
+        }else{
+        	this.countMonitor = null;
+        }
 
+		
 	}
 
+	/**
+	 * Override as necessary Can be null if no Pk Exists
+	 * 
+	 * @return String name of Pk Column
+	 */
+	public String getPkColumnName() {
+		return "id";
+	}
+
+	
 	/**
 	 * Gets the table name that the Dao operates on
 	 * 
@@ -407,6 +438,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		T vo = get(id);
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
+			if(this.countMonitor != null)
+				this.countMonitor.decrement();
 		}
 		if(handler != null)
 			handler.notify("delete", vo, null);
@@ -416,6 +449,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		T vo = get(id);
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
+			if(this.countMonitor != null)
+				this.countMonitor.decrement();
 		}
 		if(handler != null)
 			handler.notify("delete", vo, initiatorId);
@@ -424,6 +459,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public void delete(T vo) {
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
+			if(this.countMonitor != null)
+				this.countMonitor.decrement();
 		}
 		if(handler != null)
 			handler.notify("delete", vo, null);
@@ -432,6 +469,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public void delete(T vo, String initiatorId) {
 		if (vo != null) {
 			ejt.update(DELETE, vo.getId());
+			if(this.countMonitor != null)
+				this.countMonitor.decrement();
 		}
 		if(handler != null)
 			handler.notify("delete", vo, initiatorId);
@@ -479,8 +518,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		vo.setId(id);
 		if(handler != null)
 			handler.notify("add", vo, null);
+		if(this.countMonitor != null)
+			this.countMonitor.increment();
 	}
 
+	/**
+	 * 
+	 * @param vo
+	 * @param initiatorId - For Websocket Notifications
+	 */
 	protected void insert(T vo, String initiatorId) {
 		int id = -1;
 		if (insertStatementPropertyTypes == null)
@@ -490,6 +536,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		vo.setId(id);
 		if(handler != null)
 			handler.notify("add", vo, initiatorId);
+		if(this.countMonitor != null)
+			this.countMonitor.increment();
 	}
 
 	/**
@@ -741,5 +789,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	public boolean isUseMetrics() {
 		return this.useMetrics;
+	}
+	
+	public AtomicIntegerMonitor getCountMonitor(){
+		return this.countMonitor;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(com.infiniteautomation.mango.monitor.ValueMonitor)
+	 */
+	@Override
+	public void reset(String id) {
+		//We only have one monitor so:
+		this.countMonitor.setValue(this.count());
 	}
 }

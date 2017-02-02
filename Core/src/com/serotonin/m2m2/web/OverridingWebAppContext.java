@@ -9,6 +9,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
+import com.serotonin.m2m2.web.handler.MangoErrorHandler;
 
 public class OverridingWebAppContext extends WebAppContext {
     public OverridingWebAppContext(ClassLoader classLoader) {
@@ -50,6 +51,9 @@ public class OverridingWebAppContext extends WebAppContext {
         setAttribute("javax.servlet.context.tempdir", tempDirPath);
         setPersistTempDirectory(true);
         setTempDirectory(file);
+        
+        //Setup error handling
+        setErrorHandler(new MangoErrorHandler());
 
     }
 }

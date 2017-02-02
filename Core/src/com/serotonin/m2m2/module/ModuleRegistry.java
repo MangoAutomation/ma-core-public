@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,7 +15,9 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,12 +27,14 @@ import org.springframework.web.servlet.mvc.Controller;
 
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ICoreLicense;
+import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;
@@ -47,6 +54,8 @@ import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDef
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
+import com.serotonin.m2m2.shared.DependencyData;
+import com.serotonin.m2m2.shared.VersionData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -63,9 +72,9 @@ import com.serotonin.m2m2.web.mvc.controller.ModulesController;
 import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
 import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
 import com.serotonin.m2m2.web.mvc.controller.StartupController;
-import com.serotonin.m2m2.web.mvc.controller.UnauthorizedController;
 import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
+import com.serotonin.provider.Providers;
 
 /**
  * The registry of all modules in an MA instance.
@@ -78,6 +87,8 @@ public class ModuleRegistry {
 	
     private static final Object LOCK = new Object();
     private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
+    private static final Map<String, DependencyData> MISSING_DEPENDENCIES = new LinkedHashMap<String, DependencyData>();
+    private static final List<Module> UNLOADED_MODULES = new CopyOnWriteArrayList<>();
 
     private static Map<String, DataSourceDefinition> DATA_SOURCE_DEFINITIONS;
     private static Map<String, PublisherDefinition> PUBLISHER_DEFINITIONS;
@@ -91,11 +102,49 @@ public class ModuleRegistry {
     private static Map<String, WebSocketDefinition> WEB_SOCKET_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
+    private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
+    private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
 
+    /**
+     * Helper Method to create a Module with Core Information 
+     * @return
+     */
+    public static Module getCoreModule(){
+    	
+    	Properties props = new Properties();
+    	File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
+        int versionState = UpgradeVersionState.PRODUCTION;
+        int buildNumber = -1;
+        if(propFile.exists()) {
+	        //InputStream in = new FileInputStream(propFile);
+	        try(InputStream in = new FileInputStream(propFile)){
+	        	props.load(in);
+	        } catch (Exception e1) { }
+	        String buildNumberStr = props.getProperty("buildNumber");
+	        String currentVersionState = props.getProperty("versionState");
+	        try {
+	        	if(currentVersionState != null)
+	        		versionState = Integer.valueOf(currentVersionState);
+	        } catch(NumberFormatException e) { }
+	        try {
+	        	if(buildNumberStr != null)
+	        		buildNumber = Integer.valueOf(buildNumberStr);
+	        } catch(NumberFormatException e) { }
+        }
+    	
+        Module core = new Module("core", Common.getVersion().getFullString(), new TranslatableMessage("modules.core.description"),
+                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, versionState, buildNumber);
+
+        core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
+        core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
+
+    	return core;
+    }
+    
     /**
      * @return a list of all available modules in the instance.
      */
@@ -124,7 +173,40 @@ public class ModuleRegistry {
     public static void addModule(Module module) {
         MODULES.put(module.getName(), module);
     }
+    
+    /**
+     * Modules that could not be loaded are added here, only add one at a time
+     * @param module
+     * @return
+     */
+    public static void addUnloadedModule(Module module){
+    	if(!UNLOADED_MODULES.contains(module))
+   			UNLOADED_MODULES.add(module);
+    }
+    
+    public static List<Module> getUnloadedModules(){
+    	return UNLOADED_MODULES;
+    }
 
+    /**
+     * Add the missing dependency
+     * @param moduleName
+     * @param version
+     */
+    public static void addMissingDependency(String moduleName, DependencyData version){
+    	MISSING_DEPENDENCIES.put(moduleName, version);
+    }
+    
+    /**
+     * List all missing dependencies
+     * 
+     * Users must not modify this list.
+     * @return
+     */
+    public static Map<String, DependencyData> getMissingDependencies(){
+    	return MISSING_DEPENDENCIES;
+    }
+    
     //
     //
     // Data source special handling
@@ -447,6 +529,66 @@ public class ModuleRegistry {
     
     //
     //
+    // AngularJS Module special handling
+    //
+    public static List<AngularJSModuleDefinition> getAngularJSDefinitions() {
+    	ensureAngularJSModuleDefinitions();
+        return ANGULARJS_MODULE_DEFINITIONS;
+    }
+
+    private static void ensureAngularJSModuleDefinitions() {
+        if (ANGULARJS_MODULE_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (ANGULARJS_MODULE_DEFINITIONS == null) {
+                    List<AngularJSModuleDefinition> list = new ArrayList<AngularJSModuleDefinition>();
+                    for(AngularJSModuleDefinition def : Module.getDefinitions(preDefaults, AngularJSModuleDefinition.class)){
+                    	list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (AngularJSModuleDefinition def : module.getDefinitions(AngularJSModuleDefinition.class))
+                        	list.add(def);
+                    }
+                    for(AngularJSModuleDefinition def : Module.getDefinitions(postDefaults, AngularJSModuleDefinition.class)){
+                    	list.add(def);
+                    }
+                    ANGULARJS_MODULE_DEFINITIONS = list;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // AngularJS Module special handling
+    //
+    public static List<SystemSettingsDefinition> getSystemSettingsDefinitions() {
+    	ensureSystemSettingsDefinitions();
+        return SYSTEM_SETTINGS_DEFINITIONS;
+    }
+
+    private static void ensureSystemSettingsDefinitions() {
+        if (SYSTEM_SETTINGS_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (SYSTEM_SETTINGS_DEFINITIONS == null) {
+                    List<SystemSettingsDefinition> list = new ArrayList<SystemSettingsDefinition>();
+                    for(SystemSettingsDefinition def : Module.getDefinitions(preDefaults, SystemSettingsDefinition.class)){
+                    	list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (SystemSettingsDefinition def : module.getDefinitions(SystemSettingsDefinition.class))
+                        	list.add(def);
+                    }
+                    for(SystemSettingsDefinition def : Module.getDefinitions(postDefaults, SystemSettingsDefinition.class)){
+                    	list.add(def);
+                    }
+                    SYSTEM_SETTINGS_DEFINITIONS = list;
+                }
+            }
+        }
+    }
+    
+    //
+    //
     // Generic handling
     //
     public static <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
@@ -557,6 +699,16 @@ public class ModuleRegistry {
             public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
                 return "/unauthorized.htm";
             }
+            
+            @Override
+            public String getErrorPageUri(HttpServletRequest request, HttpServletResponse response) {
+            	return "/error.htm";
+            }
+            
+            @Override
+            public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response) {
+            	return "/not-found.htm";
+            }
         });
         
         //Add in core Models
@@ -643,8 +795,12 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/modules.shtm", new ModulesController(),
                 "/WEB-INF/jsp/modules.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
-                "/WEB-INF/jsp/emport.jsp"));        
-                
+                "/WEB-INF/jsp/emport.jsp"));
+        //Error Pages
+        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/error.htm", null, "/exception/error.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/not-found.htm", null, "/exception/404.jsp"));
+        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", null, "/exception/accessDenied.jsp"));
+        
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
                 null));
@@ -665,7 +821,6 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/logout.htm", new LogoutController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", new UnauthorizedController()));
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
         
     }

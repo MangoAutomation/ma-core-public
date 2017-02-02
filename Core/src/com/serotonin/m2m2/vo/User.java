@@ -66,6 +66,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private boolean muted = true;
     @JsonProperty
     private String permissions = "user"; //Default group
+    @JsonProperty
+    private String locale;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -82,6 +84,12 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient TimeZone _tz;
     private transient DateTimeZone _dtz;
     private transient String remoteAddr; //remote address we are logged in from
+    
+    public User() {
+        this.name = "";
+        this.timezone = "";
+        this.locale = "";
+    }
 
     /**
      * Used for various display purposes.
@@ -363,6 +371,14 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         }
         return _dtz;
     }
+    
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
 
     /**
      * @return the ipAddress
@@ -386,6 +402,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
             response.addMessage("email", new TranslatableMessage("validate.required"));
         if (id == Common.NEW_ID && StringUtils.isBlank(password))
             response.addMessage("password", new TranslatableMessage("validate.required"));
+        if (StringUtils.isBlank(name))
+            response.addMessage("name", new TranslatableMessage("validate.required"));
 
         // Check field lengths
         if (StringValidation.isLengthGreaterThan(username, 40))
@@ -394,6 +412,12 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
             response.addMessage("email", new TranslatableMessage("validate.notLongerThan", 255));
         if (StringValidation.isLengthGreaterThan(phone, 40))
             response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
+        if (StringValidation.isLengthGreaterThan(name, 255))
+            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+        if (StringValidation.isLengthGreaterThan(locale, 50))
+            response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
+        if (StringValidation.isLengthGreaterThan(timezone, 50))
+            response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
         
         //Validate Permissions (Can't be blank)
         if (!StringUtils.isEmpty(this.permissions)) {
@@ -412,7 +436,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + ", phone="
                 + phone + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
                 + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails + ", receiveOwnAuditEvents="
-                + receiveOwnAuditEvents + ", timezone=" + timezone + ", permissions=" + permissions + "]";
+                + receiveOwnAuditEvents + ", timezone=" + timezone + ", name=" + name + ", locale=" + locale + ", permissions=" + permissions + "]";
     }
 
     @Override
@@ -443,9 +467,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	@Override
 	public void jsonWrite(ObjectWriter writer) throws IOException,
 			JsonException {
-		
+        writer.writeEntry("name", name);
 		writer.writeEntry("receiveAlarmEmails", AlarmLevels.CODES.getCode(receiveAlarmEmails));
-		
 	}
 
 	/* (non-Javadoc)
@@ -454,12 +477,11 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	@Override
 	public void jsonRead(JsonReader reader, JsonObject jsonObject)
 			throws JsonException {
-		
+        name = jsonObject.getString("name");
 		String text = jsonObject.getString("recieveAlarmEmails");
 		if(text != null){
 			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
 		}
-		
 	}
 
 	/* (non-Javadoc)

@@ -25,6 +25,7 @@ import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -38,8 +39,7 @@ import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
  * 
  * @author Jared Wiltshire
  */
-public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasicDao<T> {
-
+public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> {
     public final String xidPrefix;
     
     protected final String typeName; //Type name for Audit Events
@@ -53,45 +53,95 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
     //Provide Arguments for Mapped Property members to be sorted by (Not really sure if this is necessary)
     protected final Map<String,PropertyArguments> propertyArgumentsMap = getPropertyArgumentsMap();
     
-    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery) {
-        super(handler, tablePrefix, extraProperties, useSubQuery);
-        this.xidPrefix = getXidPrefix();
-        this.typeName = typeName;
-    }
-    
-    @SuppressWarnings("unchecked")
-	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery) {
-        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties, useSubQuery);
+    /**
+     * 
+     * @param handler - Web socket handler
+     * @param typeName - Type name for Audit events
+     * @param tablePrefix - Table prefix for Selects/Joins
+     * @param extraProperties - Any extra SQL for queries
+     * @param useSubQuery - Compute queries as sub-queries
+     * @param countMonitorName - If not null create a monitor to track table row count
+     */
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, TranslatableMessage countMonitorName) {
+        super(handler, tablePrefix, extraProperties, useSubQuery, countMonitorName);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
     
     /**
      * 
-     * @param typeName - Audit Event Type
-     * @param tablePrefix - Table prefix for use in Joins
-     * @param extraProperties - Properties from other tables
-     * @param extraSQL - Any additional query pieces
+     * @param def - shortcut Instead of Handler for web sockets
+     * @param typeName - Type name for Audit events
+     * @param tablePrefix - Table prefix for Selects/Joins
+     * @param extraProperties - Any extra SQL for queries
+     * @param useSubQuery - Compute queries as sub-queries
+     * @param countMonitorName - If not null create a monitor to track table row count
      */
-    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties) {
-        this(handler, typeName, tablePrefix, extraProperties, false);
+    @SuppressWarnings("unchecked")
+	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, TranslatableMessage countMonitorName) {
+        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties, useSubQuery, countMonitorName);
+        this.xidPrefix = getXidPrefix();
+        this.typeName = typeName;
     }
 
-    protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties) {
-        this(def, typeName, tablePrefix, extraProperties, false);
+    /**
+     * 
+     * @param handler - Web socket handler
+     * @param typeName - Type name for Audit events
+     * @param tablePrefix - Table prefix for Selects/Joins
+     * @param extraProperties - Any extra SQL for queries
+     */
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties) {
+        this(handler, typeName, tablePrefix, extraProperties, false, null);
     }
-    
+
+    /**
+     * 
+     * @param def - shortcut Instead of Handler for web sockets
+     * @param typeName - Type name for Audit events
+     * @param tablePrefix - Table prefix for Selects/Joins
+     * @param extraProperties - Any extra SQL for queries
+     */
+    protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties) {
+        this(def, typeName, tablePrefix, extraProperties, false, null);
+    }
     
     /**
      * 
-     * @param typeName - Audit Event Type Name
+     * @param handler - Web socket handler
+     * @param typeName - Type name for Audit events
      */
     protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName) {
         this(handler, typeName, null, new String[0]);
     }
+    
+    /**
+     * 
+     * @param handler - Web socket handler
+     * @param typeName - Type name for Audit events
+     * @param countMonitorName - If not null used to track count of table rows
+     */
+    protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, TranslatableMessage countMonitorName) {
+        this(handler, typeName, null, new String[0], false, countMonitorName);
+    }
 
+    /**
+     * 
+     * @param def - shortcut Instead of Handler for web sockets
+     * @param typeName - Type name for Audit events
+     */
     protected AbstractDao(WebSocketDefinition def, String typeName) {
         this(def, typeName, null, new String[0]);
+    }
+    
+    /**
+     * 
+     * @param def - shortcut Instead of Handler for web sockets
+     * @param typeName - Type name for Audit events
+     * @param countMonitorName - If not null used to track count of table rows
+     */
+    protected AbstractDao(WebSocketDefinition def, String typeName, TranslatableMessage countMonitorName) {
+        this(def, typeName, null, new String[0], false, countMonitorName);
     }
     
     /**
@@ -307,7 +357,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
                 T vo = get(existingId);
 
                 // Copy the vo
-                T copy = vo.copy();
+                T copy = (T)vo.copy();
                 copy.setId(Common.NEW_ID);
                 copy.setXid(newXid);
                 copy.setName(newName);

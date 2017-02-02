@@ -330,7 +330,7 @@ public class DeltamationCommon {
     }
     
     public static int parsePoint(JsonObject jsonObject, String name) throws TranslatableJsonException {
-        DataPointDao points = new DataPointDao();
+        DataPointDao points = DataPointDao.instance;
         
         String xid = jsonObject.getString(name);
         DataPointVO point = points.getDataPoint(xid);
@@ -349,7 +349,7 @@ public class DeltamationCommon {
     }
     
     public static DataPointVO validatePoint(int pointId, String name, ProcessResult response, Integer dataType, boolean requireSettable) {
-        DataPointDao points = new DataPointDao();
+        DataPointDao points = DataPointDao.instance;
         
         DataPointVO point = points.getDataPoint(pointId);
         if (point == null) {

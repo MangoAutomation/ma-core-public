@@ -5,12 +5,10 @@
 package com.serotonin.m2m2.web.mvc.controller;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,8 +25,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.LicenseDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
@@ -51,27 +47,15 @@ public class ModulesController implements UrlHandler {
         List<Module> modules = ModuleRegistry.getModules();
         Module.sortByName(modules);
 
-        String version = Common.getVersion().getFullString();
-
-        //Get the build number if one exists
-        InputStream inStream = this.getClass().getResourceAsStream("/mango.build.number");
-        if (inStream != null) {
-            Properties props = new Properties();
-            props.load(inStream);
-            version += " build " + props.getProperty("build.number");
-            inStream.close();
-        }
-
-        Module core = new Module("core", version, new TranslatableMessage("modules.core.description"),
-                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1);
-        
-        core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
-        core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
+        Module core = ModuleRegistry.getCoreModule();
         modules.add(0, core);
 
         model.put("guid", Providers.get(ICoreLicense.class).getGuid());
         model.put("distributor", Common.envProps.getString("distributor"));
         model.put("modules", modules);
+        
+        //Add in the Unloaded modules
+        model.put("unloadedModules", ModuleRegistry.getUnloadedModules());
 
         // The JSON
         Map<String, Object> json = new HashMap<>();

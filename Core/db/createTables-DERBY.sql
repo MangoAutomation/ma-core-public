@@ -39,7 +39,9 @@ create table users (
   receiveOwnAuditEvents char(1) not null,
   timezone varchar(50),
   muted char(1),
-  permissions varchar(255)
+  permissions varchar(255),
+  name varchar(255),
+  locale varchar(50)
 );
 alter table users add constraint usersPk primary key (id);
 

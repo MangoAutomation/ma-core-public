@@ -159,6 +159,17 @@ public class SerialPortManager {
 		
 		return false;
 	}
+	
+	public String getPortOwner(String commPortId) {
+		
+		//Get serial port owner
+		for(SerialPortIdentifier id : ownedPorts){
+			if(id.getName().equalsIgnoreCase(commPortId))
+				return id.getCurrentOwner();
+		}
+		
+		return null;
+	}
 
 
 

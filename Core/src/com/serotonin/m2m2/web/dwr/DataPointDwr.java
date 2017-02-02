@@ -5,6 +5,8 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,13 +22,13 @@ import org.springframework.dao.DuplicateKeyException;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.license.DataSourceTypePointsLimit;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -76,7 +78,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             return result;
         }
 
-        List<DataPointVO> points = new DataPointDao()
+        List<DataPointVO> points = DataPointDao.instance
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         result.addData("list", points);
 
@@ -198,8 +200,6 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         }
         vo.validate(response);
 
-        // Limit enforcement.
-        DataSourceTypePointsLimit.checkLimit(vo.getDataSourceTypeName(), response);
         if (!response.getHasMessages()) {
 
             //When potential for the defaulter is available one must use the DataSourceEditDwr.validate method and store/pull
@@ -210,8 +210,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
                 //TODO             if (defaulter != null)
                 //                    defaulter.postSave(vo);
 
-            }
-            catch (Exception e) {
+            } catch(LicenseViolatedException e) {
+            	LOG.error(e);
+            	response.addMessage(e.getErrorMessage());
+            } catch (Exception e) {
                 // Handle the exceptions.
                 LOG.error(e);
 
@@ -464,6 +466,18 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         for (Unit<?> unit : NonSI.getInstance().getUnits()) {
             pairs.add(new DojoMemoryStoreListItem(unit.toString(), id++));
         }
+        
+        List<String> addedUnits = UnitUtil.getAddedUnitLabels();
+        for (String unit : addedUnits) {
+        	pairs.add(new DojoMemoryStoreListItem(unit, id++));
+        }
+        
+        Collections.sort(pairs, new Comparator<DojoMemoryStoreListItem>() {
+			@Override
+			public int compare(DojoMemoryStoreListItem arg0, DojoMemoryStoreListItem arg1) {
+				return arg0.getName().compareToIgnoreCase(arg1.getName());
+			}
+        });
 
         result.addData("units", pairs);
         return result;

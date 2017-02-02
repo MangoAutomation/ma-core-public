@@ -40,6 +40,8 @@ create table users (
   timezone nvarchar(50),
   muted char(1),
   permissions nvarchar(255),
+  name nvarchar(255),
+  locale nvarchar(50),
   primary key (id)
 );
 

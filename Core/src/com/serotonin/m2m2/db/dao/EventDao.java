@@ -360,7 +360,7 @@ public class EventDao extends BaseDao {
     }
 
     public EventInstance insertEventComment(int eventId, UserComment comment) {
-        new UserDao().insertUserComment(UserComment.TYPE_EVENT, eventId, comment);
+        UserDao.instance.insertUserComment(UserComment.TYPE_EVENT, eventId, comment);
         return getEventInstance(eventId);
     }
 

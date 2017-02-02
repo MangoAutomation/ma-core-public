@@ -54,14 +54,14 @@ public class UsersDwr extends BaseDwr {
 
             // Users
             initData.put("admin", true);
-            initData.put("users", new UserDao().getUsers());
+            initData.put("users", UserDao.instance.getUsers());
 
             // Data sources
-            List<DataSourceVO<?>> dataSourceVOs = new DataSourceDao().getDataSources();
+            List<DataSourceVO<?>> dataSourceVOs = DataSourceDao.instance.getDataSources();
             List<Map<String, Object>> dataSources = new ArrayList<>(dataSourceVOs.size());
             Map<String, Object> ds, dp;
             List<Map<String, Object>> points;
-            DataPointDao dataPointDao = new DataPointDao();
+            DataPointDao dataPointDao = DataPointDao.instance;
             for (DataSourceVO<?> dsvo : dataSourceVOs) {
                 ds = new HashMap<>();
                 ds.put("id", dsvo.getId());
@@ -93,7 +93,7 @@ public class UsersDwr extends BaseDwr {
     public User getUser(int id) {
         if (id == Common.NEW_ID)
             return new User();
-        return new UserDao().getUser(id);
+        return UserDao.instance.getUser(id);
     }
 
     @DwrPermission(admin = true)
@@ -103,7 +103,7 @@ public class UsersDwr extends BaseDwr {
         // Validate the given information. If there is a problem, return an appropriate error message.
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
         User currentUser = Common.getUser(request);
-        UserDao userDao = new UserDao();
+        UserDao userDao = UserDao.instance;
 
         User user;
         if (id == Common.NEW_ID)
@@ -194,7 +194,7 @@ public class UsersDwr extends BaseDwr {
         if (user.getId() != id)
             throw new PermissionException("Cannot update a different user", user);
 
-        UserDao userDao = new UserDao();
+        UserDao userDao = UserDao.instance;
         User updateUser = userDao.getUser(id);
         if (!StringUtils.isBlank(password))
             updateUser.setPassword(Common.encrypt(password));
@@ -244,7 +244,7 @@ public class UsersDwr extends BaseDwr {
             // You can't delete yourself.
             response.addMessage(new TranslatableMessage("users.validate.badDelete"));
         else
-            new UserDao().deleteUser(id);
+            UserDao.instance.deleteUser(id);
 
         return response;
     }
@@ -259,7 +259,7 @@ public class UsersDwr extends BaseDwr {
     public ProcessResult getCopy(int id) {
         ProcessResult result = new ProcessResult();
 
-        UserDao dao = new UserDao();
+        UserDao dao = UserDao.instance;
         User existing = dao.getUser(id);
 
         User newUser = new User();
@@ -289,7 +289,7 @@ public class UsersDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public ProcessResult su(String username) {
         ProcessResult result = new ProcessResult();
-        UserDao userDao = new UserDao();
+        UserDao userDao = UserDao.instance;
         User user = userDao.getUser(username);
 
         if (user == null) {

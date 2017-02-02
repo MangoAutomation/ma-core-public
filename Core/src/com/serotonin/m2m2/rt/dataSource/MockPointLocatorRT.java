@@ -12,19 +12,9 @@ import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
  * @author Terry Packer
  *
  */
-public class MockPointLocatorRT extends PointLocatorRT{
+public class MockPointLocatorRT extends PointLocatorRT<MockPointLocatorVO>{
 
-	private MockPointLocatorVO vo;
-	
 	public MockPointLocatorRT(MockPointLocatorVO vo){
-		this.vo = vo;
+		super(vo);
 	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataSource.PointLocatorRT#isSettable()
-	 */
-	@Override
-	public boolean isSettable() {
-		return this.vo.isSettable();
-	}
-
 }
