@@ -41,13 +41,14 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.taglib.Functions;
 
 /**
+ * This class is still used on the Data Source Legacy Page
  * 
  * DWR For Data Source Manipulation
  * 
  * @author Terry Packer
  *
  */
-public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao, DataSourceRT, DataSourceRTM> {
+public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<DataSourceVO<?>>, DataSourceRT<DataSourceVO<?>>, DataSourceRTM<DataSourceVO<?>>> {
 	
 	private static final String SPACE = " ";
 	
@@ -55,7 +56,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao,
      * Default Constructor
      */
     public DataSourceDwr() {
-        super(DataSourceDao.instance, "dataSources", DataSourceRTM.instance, "dataSources");
+        super(DataSourceDao.instance, "dataSources", (DataSourceRTM<DataSourceVO<?>>) DataSourceRTM.instance, "dataSources");
         LOG = LogFactory.getLog(DataSourceDwr.class);
     }
 

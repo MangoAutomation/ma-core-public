@@ -4,15 +4,12 @@ import java.util.List;
 
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.MockDataSourceModel;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 
 /**
  * Useful for things like validation and testing
@@ -31,12 +28,12 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     }
 
     @Override
-    public PointLocatorVO createPointLocator() {
+    public MockPointLocatorVO createPointLocator() {
         return new MockPointLocatorVO();
     }
 
     @Override
-    public DataSourceRT createDataSourceRT() {
+    public MockDataSourceRT createDataSourceRT() {
         return new MockDataSourceRT(this);
     }
 
@@ -51,7 +48,7 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     }
     
     @Override
-    public AbstractDataSourceModel<MockDataSourceVO> asModel(){
+    public MockDataSourceModel asModel(){
     	return new MockDataSourceModel(this);
     }
 
@@ -60,7 +57,7 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
 	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
 	 */
 	@Override
-	protected AbstractDao<DataSourceVO<?>> getDao() {
+	protected AbstractDao<MockDataSourceVO> getDao() {
 		return null;
 	}
     

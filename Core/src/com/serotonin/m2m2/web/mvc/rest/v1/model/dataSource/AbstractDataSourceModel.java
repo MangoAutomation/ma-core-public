@@ -27,7 +27,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  *
  */
 @JsonPropertyOrder({"xid", "name", "enabled"})
-public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractActionVoModel<DataSourceVO<?>>{
+public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractActionVoModel<T>{
 	
 	protected T data;
 	

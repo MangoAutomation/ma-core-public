@@ -39,8 +39,7 @@ import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
  * 
  * @author Jared Wiltshire
  */
-public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasicDao<T>{
-	
+public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> {
     public final String xidPrefix;
     
     protected final String typeName; //Type name for Audit Events
@@ -358,7 +357,7 @@ public abstract class AbstractDao<T extends AbstractVO<T>> extends AbstractBasic
                 T vo = get(existingId);
 
                 // Copy the vo
-                T copy = vo.copy();
+                T copy = (T)vo.copy();
                 copy.setId(Common.NEW_ID);
                 copy.setXid(newXid);
                 copy.setName(newName);

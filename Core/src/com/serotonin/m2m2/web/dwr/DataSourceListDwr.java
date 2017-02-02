@@ -105,8 +105,7 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult dataSourceInfo(int dataSourceId) {
-        DataSourceDao dataSourceDao = DataSourceDao.instance;
-        DataSourceVO<?> ds = dataSourceDao.getDataSource(dataSourceId);
+        DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataSourceId);
         Permissions.ensureDataSourcePermission(Common.getUser(), ds);
         ProcessResult response = new ProcessResult();
 
@@ -114,7 +113,7 @@ public class DataSourceListDwr extends BaseDwr {
                 TranslatableMessage.translate(getTranslations(), "common.copyPrefix", ds.getName()), 40);
 
         response.addData("name", name);
-        response.addData("xid", dataSourceDao.generateUniqueXid());
+        response.addData("xid", DataSourceDao.instance.generateUniqueXid());
         response.addData("deviceName", name);
 
         return response;

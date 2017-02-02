@@ -25,7 +25,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
  * @author Jared Wiltshire
  */
-public abstract class AbstractDwr<VO extends AbstractVO<VO>, DAO extends AbstractDao<VO>> extends AbstractBasicDwr<VO, DAO> {
+public abstract class AbstractDwr<VO extends AbstractVO<?>, DAO extends AbstractDao<VO>> extends AbstractBasicDwr<VO, DAO> {
     // Used for:
     // JSON export of individual VOs, whole sets of objects are handled separately
     // keyNameErrors is the div where errors will be shown TODO is this still true?
@@ -205,7 +205,7 @@ public abstract class AbstractDwr<VO extends AbstractVO<VO>, DAO extends Abstrac
                 TranslatableMessage.translate(getTranslations(), "common.copyPrefix", vo.getName()), 40);
 
         //Setup the Copy
-        VO copy = vo.copy();
+        VO copy = (VO)vo.copy();
         copy.setId(Common.NEW_ID);
         copy.setName(name);
         copy.setXid(dao.generateUniqueXid());

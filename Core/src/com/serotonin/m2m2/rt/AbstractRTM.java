@@ -15,11 +15,14 @@ import com.serotonin.m2m2.module.RuntimeManagerDefinition;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 
 /**
+ * This class is dead and can be removed when we remove DWR
+ * 
  * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
  * @author Terry Packer
  *
  */
-public abstract class AbstractRTM<VO extends AbstractActionVO<VO>, RT extends AbstractRT<VO>, DAO extends AbstractDao<VO>>
+@Deprecated
+public abstract class AbstractRTM<VO extends AbstractActionVO<?>, RT extends AbstractRT<VO>, DAO extends AbstractDao<VO>>
     extends RuntimeManagerDefinition {
     protected Log LOG;
     private int initializationPriority;

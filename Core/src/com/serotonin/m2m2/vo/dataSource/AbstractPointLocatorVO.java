@@ -21,7 +21,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 
 //Required to prevent properties from being written
 @JsonEntity
-abstract public class AbstractPointLocatorVO implements PointLocatorVO {
+abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<VO>> implements PointLocatorVO<VO> {
     @Override
     public TranslatableMessage getDataTypeMessage() {
         return DataTypes.getDataTypeMessage(getDataTypeId());

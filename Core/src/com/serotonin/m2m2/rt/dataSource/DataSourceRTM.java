@@ -12,17 +12,15 @@ import com.serotonin.m2m2.rt.AbstractRTM;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 /**
- * 
- * TODO Clean this up to break into subclass so that the AbstractRTM can be used in modules
- * and the other here
- * 
+ * This class is dead and can be removed when we remove DWR
  * 
  * @author Terry Packer
  *
  */
-public class DataSourceRTM extends AbstractRTM<DataSourceVO<?>,DataSourceRT,DataSourceDao>{
+@Deprecated
+public class DataSourceRTM<T extends DataSourceVO<?>> extends AbstractRTM<T,DataSourceRT<T>,DataSourceDao<T>>{
 
-	public static DataSourceRTM instance = new DataSourceRTM();
+	public static DataSourceRTM<?> instance = new DataSourceRTM<>();
 	
 	/**
 	 * @param initializationPriority
@@ -37,20 +35,20 @@ public class DataSourceRTM extends AbstractRTM<DataSourceVO<?>,DataSourceRT,Data
 	 * @see com.serotonin.m2m2.rt.AbstractRTM#getRt(com.serotonin.m2m2.vo.AbstractActionVO)
 	 */
 	@Override
-	public DataSourceRT getRt(DataSourceVO<?> vo) {
-		return vo.createDataSourceRT();
+	public DataSourceRT<T> getRt(T vo) {
+		return (DataSourceRT<T>) vo.createDataSourceRT();
 	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.rt.AbstractRTM#getDao()
 	 */
 	@Override
-	public DataSourceDao getDao() {
-		return DataSourceDao.instance;
+	public DataSourceDao<T> getDao() {
+		return (DataSourceDao<T>) DataSourceDao.instance;
 	}
 
 	@Override 
-	public void save(DataSourceVO<?> vo){
+	public void save(T vo){
 		Common.runtimeManager.saveDataSource(vo);
 	}
 	

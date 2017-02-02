@@ -161,12 +161,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         return dp;
     }
 
-    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO locator,
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator,
             DataPointDefaulter defaulter) {
         return validatePoint(id, xid, name, locator, defaulter, true);
     }
 
-    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO locator,
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator,
             DataPointDefaulter defaulter, boolean includePointList) {
         ProcessResult response = new ProcessResult();
 
@@ -179,7 +179,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
         //Confirm that we are assinging a point to the correct data source
         DataSourceVO<?> ds = DataSourceDao.instance.get(dp.getDataSourceId());
-        PointLocatorVO plvo = ds.createPointLocator();
+        PointLocatorVO<?> plvo = ds.createPointLocator();
         if (plvo.getClass() != locator.getClass()) {
             response.addGenericMessage("validate.invalidType");
             return response;
@@ -325,7 +325,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         ProcessResult result = new ProcessResult();
 
         DataSourceVO<?> vo = Common.getUser().getEditDataSource();
-        DataSourceRT rt = Common.runtimeManager.getRunningDataSource(vo.getId());
+        DataSourceRT<?> rt = Common.runtimeManager.getRunningDataSource(vo.getId());
 
         List<TranslatableMessage> messages = new ArrayList<>();
         result.addData("messages", messages);

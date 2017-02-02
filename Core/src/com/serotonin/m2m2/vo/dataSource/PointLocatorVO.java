@@ -12,7 +12,7 @@ import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
-public interface PointLocatorVO extends Serializable {
+public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializable {
     /**
      * One of the com.serotonin.m2m2.DataTypes
      */
@@ -41,7 +41,7 @@ public interface PointLocatorVO extends Serializable {
     /**
      * Create a runtime version of the locator
      */
-    public PointLocatorRT createRuntime();
+    public PointLocatorRT<VO> createRuntime();
 
     /**
      * Validate. What else?
@@ -56,5 +56,5 @@ public interface PointLocatorVO extends Serializable {
      * Get the Model of this Point Locator
      * @return PointLocatorModel implementation
      */
-    public PointLocatorModel<?> asModel();
+    public PointLocatorModel<VO> asModel();
 }

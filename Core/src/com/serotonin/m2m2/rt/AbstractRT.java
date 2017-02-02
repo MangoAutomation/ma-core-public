@@ -4,13 +4,15 @@
  */
 package com.serotonin.m2m2.rt;
 
+import com.serotonin.m2m2.vo.AbstractVO;
+
 /**
  * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
  * @author Terry Packer
  *
  */
-public abstract class AbstractRT<VO> {
-    protected VO vo;
+public abstract class AbstractRT<VO extends AbstractVO<?>> {
+    protected final VO vo;
     
     public AbstractRT(VO vo) {
         this.vo = vo;

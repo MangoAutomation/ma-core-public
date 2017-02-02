@@ -18,7 +18,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  *
  */
 @CSVEntity(derived=true)
-public abstract class PointLocatorModel<T extends PointLocatorVO> extends AbstractRestModel<T>{
+public abstract class PointLocatorModel<T extends PointLocatorVO<?>> extends AbstractRestModel<T>{
 	
 	/**
 	 * @param data
