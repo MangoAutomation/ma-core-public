@@ -311,12 +311,22 @@
 		  <dependency>
 		    <groupId>org.apache.logging.log4j</groupId>
 		    <artifactId>log4j-api</artifactId>
-		    <version>2.7</version>
+		    <version>${log4jVersion}</version>
 		  </dependency>
 		  <dependency>
 		    <groupId>org.apache.logging.log4j</groupId>
 		    <artifactId>log4j-core</artifactId>
-		    <version>2.7</version>
+		    <version>${log4jVersion}</version>
+		  </dependency>
+		  <dependency>
+		    <groupId>org.apache.logging.log4j</groupId>
+		    <artifactId>log4j-jcl</artifactId>
+		    <version>${log4jVersion}</version>
+		  </dependency>
+		  <dependency>
+		  	<groupId>org.slf4j</groupId>
+    		<artifactId>log4j-over-slf4j</artifactId>
+    		<version>1.7.22</version>
 		  </dependency>
 		<dependency>
 			<groupId>mysql</groupId>
@@ -480,6 +490,10 @@
 					<artifactId>javax.servlet.jsp-api</artifactId>
 					<groupId>javax.servlet.jsp</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -515,7 +529,7 @@
 	  <dependency>
 	    <groupId>org.apache.logging.log4j</groupId>
 	    <artifactId>log4j-slf4j-impl</artifactId>
-	    <version>2.7</version>
+	    <version>${log4jVersion}</version>
 	  </dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
