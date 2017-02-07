@@ -500,13 +500,14 @@ public class Upgrade12 extends DBUpgrade {
     			}
     		}
     		
-    		this.ejt.doInsert("INSERT INTO eventDetectors (xid, sourceTypeName, typeName, dataPointId, data) values (?,?,?,?,?)", new Object[]{
+    		this.ejt.doInsert("INSERT INTO eventDetectors (id, xid, sourceTypeName, typeName, dataPointId, data) values (?,?,?,?,?,?)", new Object[]{
+    			vo.getId(),
     			vo.getXid(),
     			vo.getDetectorSourceType(),
     			vo.getDetectorType(),
     			vo.getSourceId(),
     			jsonData,
-    		}, new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.CLOB});
+    		}, new int[]{Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.CLOB});
         }
         
         return detectors.size();
@@ -527,6 +528,7 @@ public class Upgrade12 extends DBUpgrade {
             switch(rs.getInt(5)){
             case PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE:
             	AlphanumericRegexStateDetectorVO arsd = (AlphanumericRegexStateDetectorVO) new AlphanumericRegexStateEventDetectorDefinition().baseCreateEventDetectorVO();
+            	arsd.setId(rs.getInt(1));
             	arsd.setXid(rs.getString(2));
             	arsd.setAlias(rs.getString(3));
             	arsd.setAlarmLevel(rs.getInt(6));
@@ -537,6 +539,7 @@ public class Upgrade12 extends DBUpgrade {
             	return arsd;
             case PointEventDetectorVO.TYPE_ALPHANUMERIC_STATE:
             	AlphanumericStateDetectorVO asd = (AlphanumericStateDetectorVO) new AlphanumericStateEventDetectorDefinition().baseCreateEventDetectorVO();
+            	asd.setId(rs.getInt(1));
             	asd.setXid(rs.getString(2));
             	asd.setAlias(rs.getString(3));
             	asd.setAlarmLevel(rs.getInt(6));
@@ -547,6 +550,7 @@ public class Upgrade12 extends DBUpgrade {
             	return asd;
             case PointEventDetectorVO.TYPE_ANALOG_CHANGE:
             	AnalogChangeDetectorVO acd = (AnalogChangeDetectorVO)new AnalogChangeEventDetectorDefinition().baseCreateEventDetectorVO();
+            	acd.setId(rs.getInt(1));
             	acd.setXid(rs.getString(2));
             	acd.setAlias(rs.getString(3));
             	acd.setAlarmLevel(rs.getInt(6));
@@ -558,6 +562,7 @@ public class Upgrade12 extends DBUpgrade {
             	return acd;
             case PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT:
             	AnalogHighLimitDetectorVO ahld = (AnalogHighLimitDetectorVO)new AnalogHighLimitEventDetectorDefinition().baseCreateEventDetectorVO();
+            	ahld.setId(rs.getInt(1));
             	ahld.setXid(rs.getString(2));
             	ahld.setAlias(rs.getString(3));
             	ahld.setAlarmLevel(rs.getInt(6));
@@ -571,6 +576,7 @@ public class Upgrade12 extends DBUpgrade {
             	return ahld;
             case PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT:
             	AnalogLowLimitDetectorVO alld = (AnalogLowLimitDetectorVO)new AnalogLowLimitEventDetectorDefinition().baseCreateEventDetectorVO();
+            	alld.setId(rs.getInt(1));
             	alld.setXid(rs.getString(2));
             	alld.setAlias(rs.getString(3));
             	alld.setAlarmLevel(rs.getInt(6));
@@ -584,6 +590,7 @@ public class Upgrade12 extends DBUpgrade {
             	return alld;
             case PointEventDetectorVO.TYPE_ANALOG_RANGE:
             	AnalogRangeDetectorVO ard = (AnalogRangeDetectorVO)new AnalogRangeEventDetectorDefinition().baseCreateEventDetectorVO();
+            	ard.setId(rs.getInt(1));
             	ard.setXid(rs.getString(2));
             	ard.setAlias(rs.getString(3));
             	ard.setAlarmLevel(rs.getInt(6));
@@ -596,6 +603,7 @@ public class Upgrade12 extends DBUpgrade {
             	return ard;
             case PointEventDetectorVO.TYPE_BINARY_STATE:
             	BinaryStateDetectorVO bsd = (BinaryStateDetectorVO)new BinaryStateEventDetectorDefinition().baseCreateEventDetectorVO();
+            	bsd.setId(rs.getInt(1));
             	bsd.setXid(rs.getString(2));
             	bsd.setAlias(rs.getString(3));
             	bsd.setAlarmLevel(rs.getInt(6));
@@ -606,6 +614,7 @@ public class Upgrade12 extends DBUpgrade {
             	return bsd;
             case PointEventDetectorVO.TYPE_MULTISTATE_STATE:
             	MultistateStateDetectorVO msd = (MultistateStateDetectorVO)new MultistateStateEventDetectorDefinition().baseCreateEventDetectorVO();
+            	msd.setId(rs.getInt(1));
             	msd.setXid(rs.getString(2));
             	msd.setAlias(rs.getString(3));
             	msd.setAlarmLevel(rs.getInt(6));
@@ -616,6 +625,7 @@ public class Upgrade12 extends DBUpgrade {
             	return msd;
             case PointEventDetectorVO.TYPE_NEGATIVE_CUSUM:
             	NegativeCusumDetectorVO ncd = (NegativeCusumDetectorVO)new NegativeCusumEventDetectorDefinition().baseCreateEventDetectorVO();
+            	ncd.setId(rs.getInt(1));
             	ncd.setXid(rs.getString(2));
             	ncd.setAlias(rs.getString(3));
             	ncd.setAlarmLevel(rs.getInt(6));
@@ -627,6 +637,7 @@ public class Upgrade12 extends DBUpgrade {
             	return ncd;
             case PointEventDetectorVO.TYPE_NO_CHANGE:
             	NoChangeDetectorVO ncd2 = (NoChangeDetectorVO)new NoChangeEventDetectorDefinition().baseCreateEventDetectorVO();
+            	ncd2.setId(rs.getInt(1));
             	ncd2.setXid(rs.getString(2));
             	ncd2.setAlias(rs.getString(3));
             	ncd2.setAlarmLevel(rs.getInt(6));
@@ -636,6 +647,7 @@ public class Upgrade12 extends DBUpgrade {
             	return ncd2;
             case PointEventDetectorVO.TYPE_NO_UPDATE:
             	NoUpdateDetectorVO nud = (NoUpdateDetectorVO)new NoUpdateEventDetectorDefinition().baseCreateEventDetectorVO();
+            	nud.setId(rs.getInt(1));
             	nud.setXid(rs.getString(2));
             	nud.setAlias(rs.getString(3));
             	nud.setAlarmLevel(rs.getInt(6));
@@ -645,6 +657,7 @@ public class Upgrade12 extends DBUpgrade {
             	return nud;
             case PointEventDetectorVO.TYPE_POINT_CHANGE:
             	PointChangeDetectorVO pcd = (PointChangeDetectorVO)new PointChangeEventDetectorDefinition().baseCreateEventDetectorVO();
+            	pcd.setId(rs.getInt(1));
             	pcd.setXid(rs.getString(2));
             	pcd.setAlias(rs.getString(3));
             	pcd.setAlarmLevel(rs.getInt(6));
@@ -652,6 +665,7 @@ public class Upgrade12 extends DBUpgrade {
             	return pcd;
             case PointEventDetectorVO.TYPE_POSITIVE_CUSUM:
             	PositiveCusumDetectorVO pcd2 = (PositiveCusumDetectorVO)new PositiveCusumEventDetectorDefinition().baseCreateEventDetectorVO();
+            	pcd2.setId(rs.getInt(1));
             	pcd2.setXid(rs.getString(2));
             	pcd2.setAlias(rs.getString(3));
             	pcd2.setAlarmLevel(rs.getInt(6));
@@ -663,6 +677,7 @@ public class Upgrade12 extends DBUpgrade {
             	return pcd2;
             case PointEventDetectorVO.TYPE_SMOOTHNESS:
             	SmoothnessDetectorVO sd = (SmoothnessDetectorVO)new SmoothnessEventDetectorDefinition().baseCreateEventDetectorVO();
+            	sd.setId(rs.getInt(1));
             	sd.setXid(rs.getString(2));
             	sd.setAlias(rs.getString(3));
             	sd.setAlarmLevel(rs.getInt(6));
@@ -674,6 +689,7 @@ public class Upgrade12 extends DBUpgrade {
             	return sd;
             case PointEventDetectorVO.TYPE_STATE_CHANGE_COUNT:
             	StateChangeCountDetectorVO scc = (StateChangeCountDetectorVO)new StateChangeCountEventDetectorDefinition().baseCreateEventDetectorVO();
+            	scc.setId(rs.getInt(1));
             	scc.setXid(rs.getString(2));
             	scc.setAlias(rs.getString(3));
             	scc.setAlarmLevel(rs.getInt(6));
