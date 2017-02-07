@@ -835,6 +835,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         if (discardExtremeValues && discardHighLimit <= discardLowLimit)
             response.addContextualMessage("discardHighLimit", "validate.greaterThanDiscardLow");
         
+        if(pointLocator.getDataTypeId() != DataTypes.NUMERIC && pointLocator.getDataTypeId() != DataTypes.MULTISTATE)
+        	preventSetExtremeValues = false;
+        
         if(preventSetExtremeValues && setExtremeHighLimit <= setExtremeLowLimit)
         	response.addContextualMessage("setExtremeHighLimit", "validate.greaterThanSetExtremeLow");
 
