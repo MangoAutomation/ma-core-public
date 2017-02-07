@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
@@ -32,15 +33,11 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.directwebremoting.WebContext;
-import org.directwebremoting.WebContextFactory;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
@@ -68,8 +65,7 @@ import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
-import com.serotonin.m2m2.web.filter.LoggedInFilter;
-import com.serotonin.m2m2.web.mvc.spring.authentication.MangoUserAuthenticationProvider;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.timer.RealTimeTimer;
@@ -79,7 +75,7 @@ import com.serotonin.util.properties.ReloadingProperties;
 import freemarker.template.Configuration;
 
 public class Common {
-    private static final String SESSION_USER = "sessionUser";
+    public static final String SESSION_USER = "sessionUser";
     
     public static OverridingWebAppContext owac;
     // Note the start time of the application.
@@ -114,8 +110,6 @@ public class Common {
     public static final RealTimeTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
-
-    public LoggedInFilter loggedInFilter; //Hack to allow setting the license early on in startup TBRedesigned
 
     //
     // License
@@ -286,77 +280,74 @@ public class Common {
         return new TranslatableMessage("common.tp.description", periods, new TranslatableMessage(periodKey));
     }
 
-    //
-    // Session user
+    // Get the user of the current HTTP request or the background context
+    @Deprecated
     public static User getUser() {
-		
-		//Check for the User via Spring Security
-	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-	    if(auth != null){
-	    	Object principle = auth.getPrincipal();
-	    	if(principle != null){
-	    		//At this point User could be of type AnonymousUser
-	    		if(principle instanceof User)
-	    			return (User)principle;
-	    	}
-	    }
-    	
-        WebContext webContext = WebContextFactory.get();
-        if (webContext == null) {
-            // If there is no web context, check if there is a background context
-            BackgroundContext backgroundContext = BackgroundContext.get();
-            if (backgroundContext == null){
-            	//As a last attempt, try Spring
-            	try{
-            		ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            		return (User)attr.getRequest().getSession(true).getAttribute(SESSION_USER); // true == allow create
-            	}catch(IllegalStateException e){
-            		return null;
-            	}
-
-            }else
-            	return backgroundContext.getUser();
+        User user = getHttpUser();
+        if (user == null) {
+            user = getBackgroundContextUser();
         }
-        return getUser(webContext.getHttpServletRequest());
-    }
-
-    public static User getUser(HttpServletRequest request) {
-    	
-		//Check for the User via Spring Security
-	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-	    if(auth != null){
-	    	Object principle = auth.getPrincipal();
-	    	if(principle != null){
-	    		//The Principle could be "anonymousUser"
-	    		if(principle instanceof User)
-	    			return (User)principle;
-	    	}
-	    }
-    	
-        // Check first to see if the user object is in the request.
-        User user = (User) request.getAttribute(SESSION_USER);
-        if (user != null)
-            return user;
-        // If not, get it from the session.
-        user = (User) request.getSession().getAttribute(SESSION_USER);
-
-        if (user != null) {
-            // Add the user to the request. This prevents race conditions in which long-ish lasting requests have the
-            // user object swiped from them by a quicker (logout) request.
-            request.setAttribute(SESSION_USER, user);
-        }
-        
         return user;
     }
-
-    public static void setUser(HttpServletRequest request, User user) {
-    	
-    	//Update the security context
-	    SecurityContextHolder.getContext().setAuthentication(MangoUserAuthenticationProvider.createToken(user));
-	    //For legacy also update the session
-        request.getSession().setAttribute(SESSION_USER, user);
+    
+    @Deprecated
+    public static User getUser(HttpServletRequest request) {
+        return getUser();
     }
 
+    public static User getHttpUser() {
+        // Check for the User via Spring Security, this will exist for every HTTP request
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principle = auth.getPrincipal();
+            // auth could be some token which does not have a User as its principle such as AnonymousAuthenticationToken
+            if (principle instanceof User) {
+                return (User) principle;
+            }
+        }
+        return null;
+    }
+    
+    @Deprecated
+    public static void setUser(HttpServletRequest request, User user) {
+        setHttpUser(request, user);
+    }
+    
+    public static void setHttpUser(HttpServletRequest request, User user) {
+        User existingUser = getHttpUser();
+        if (existingUser == null || existingUser.getId() != user.getId()) {
+            throw new IllegalArgumentException("Can only update the current HTTP user");
+        }
+        
+        setHttpAuthentication(request, MangoPasswordAuthenticationProvider.createAuthenticatedToken(user));
+    }
+    
+    public static void setHttpAuthentication(HttpServletRequest request, Authentication authentication) {
+        // Update the Spring Security context
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            if (authentication == null) {
+                session.removeAttribute(SESSION_USER);
+            } else {
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof User) {
+                    // For legacy pages also update the session
+                    session.setAttribute(SESSION_USER, (User) principal);
+                }
+            }
+        }
+    }
+
+    public static User getBackgroundContextUser() {
+        BackgroundContext backgroundContext = BackgroundContext.get();
+        if (backgroundContext != null) {
+            return backgroundContext.getUser();
+        }
+        return null;
+    }
+    
     public static TimeZone getUserTimeZone(User user) {
         if (user != null)
             return user.getTimeZoneInstance();

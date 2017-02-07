@@ -133,5 +133,9 @@
 <!-- Messaging and Error/Export/Copy Views -->
   <jsp:include page="/WEB-INF/snippet/message.jsp"/>
 
+<form id="logout-form" action="/logout" method="post">
+  <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/> 
+</form>
+
 </body>
 </html>

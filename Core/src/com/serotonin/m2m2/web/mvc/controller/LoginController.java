@@ -8,21 +8,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ILifecycle;
-import com.serotonin.m2m2.i18n.TranslatableException;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.form.LoginForm;
-import com.serotonin.provider.Providers;
-
 
 /**
  * 
@@ -33,102 +25,41 @@ import com.serotonin.provider.Providers;
 @RequestMapping("/login.htm")
 public class LoginController {
 
-    public LoginController(){
-    	super();
-    	this.setCommandName("login");
-    	this.setCommandClass("com.serotonin.m2m2.web.mvc.form.LoginForm");
-    	this.setFormView("/WEB-INF/jsp/login.jsp");
-    	this.setBindOnNewForm(true);
-    }
-    
-    private String commandName;
-    private String commandClass;
-    private String formView;
-    private boolean bindOnNewForm;
-    
     @RequestMapping(method=RequestMethod.GET)
-    public String initForm(HttpServletRequest request, HttpServletResponse response, @ModelAttribute("login") LoginForm loginForm, BindingResult result){
-    	//Edit TP Feb 2014 to show loading page until Mango is started.
-    	ILifecycle lifecycle = Providers.get(ILifecycle.class);
-    	if((lifecycle.getStartupProgress() < 100f && Common.envProps.getBoolean("showStartup", true)) || (lifecycle.getShutdownProgress() > 0)){
-    		return "/startup.htm";
-    	}
-    	
+    public String initForm(HttpServletRequest request, HttpServletResponse response, @ModelAttribute("login") LoginForm loginForm, BindingResult result) {
     	BindException errors = new BindException(result);
 
-        if (!errors.hasErrors()) {
-            User user = null;
-			try {
-				user = Common.loginManager.performLogin(null, null, request, response, loginForm, errors, false, false);
-			} catch (TranslatableException e) {
-				//Munch, we don't care
-			}
-
-            if (user != null){
-            	//Assign new SessionId to thwart Session Hijacking attempts for pre-login sniffed requests
-            	request.changeSessionId();
-                return "redirect:" + DefaultPagesDefinition.getDefaultUri(request, response, user);     
+    	String errorParameter = request.getParameter("error");
+    	if (errorParameter != null) {
+    	    errors.reject(errorParameter);
+    	    
+    	    /* 
+    	     * Alternative is to get the stored exception from SimpleUrlAuthenticationFailureHandler
+    	     * 
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+                if (ex != null) {
+                    if (ex instanceof DisabledException) {
+                        errors.reject("login.validation.accountDisabled", ex.getMessage());
+                    } else {
+                        errors.reject("login.validation.invalidLogin", ex.getMessage());
+                    }
+                }
             }
-        }
-
+            */
+            
+            String username = request.getParameter("username");
+            if (username != null && !username.isEmpty()) {
+                loginForm.setUsername(username);
+            }
+            
+            // display errors on the form or next to inputs like so
+            // errors.reject("translation.key", "Fall back text");
+            // errors.rejectValue("password", "translation.key", "Fall back text");
+    	}
+    	
         return "/WEB-INF/jsp/login.jsp";
     }
-    
-    @RequestMapping(method=RequestMethod.POST)
-    public String onSubmit(@ModelAttribute("login") LoginForm login, HttpServletRequest request, HttpServletResponse response,
-    		Model model, BindingResult result){
 
-    	BindException errors = new BindException(result);
-    	
-    	try{
-    		User user = Common.loginManager.performLogin(login.getUsername(), login.getPassword(), request, response, null, errors, false, false);
-    		if ((user == null)||errors.hasErrors())
-    			return initForm(request, response, login, errors);
-    		else{
-    			//Assign new SessionId to thwart Session Hijacking attempts for pre-login sniffed requests
-            	request.changeSessionId();
-    			return "redirect:" + DefaultPagesDefinition.getDefaultUri(request, response, user);  
-    		}
-    	}catch(TranslatableException e){
-    		
-    		//Add the error
-    		errors.reject(e.getTranslatableMessage().getKey(), e.getTranslatableMessage().getArgs(), e.getTranslatableMessage().getKey());
-    		
-           return initForm(request, response, login, errors);
-    	}
-    }
-
-	public String getCommandName() {
-		return commandName;
-	}
-
-	public void setCommandName(String form) {
-		this.commandName = form;
-	}
-
-	public String getCommandClass() {
-		return commandClass;
-	}
-
-	public void setCommandClass(String commandClass) {
-		this.commandClass = commandClass;
-	}
-
-	public String getFormView() {
-		return formView;
-	}
-
-	public void setFormView(String formView) {
-		this.formView = formView;
-	}
-
-	public boolean isBindOnNewForm() {
-		return bindOnNewForm;
-	}
-
-	public void setBindOnNewForm(boolean bindOnNewForm) {
-		this.bindOnNewForm = bindOnNewForm;
-	}
-    
-    
 }

@@ -55,7 +55,6 @@ import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewP
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.shared.DependencyData;
-import com.serotonin.m2m2.shared.VersionData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -67,7 +66,6 @@ import com.serotonin.m2m2.web.mvc.controller.DataSourceEditController;
 import com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController;
 import com.serotonin.m2m2.web.mvc.controller.FileUploadController;
 import com.serotonin.m2m2.web.mvc.controller.HelpController;
-import com.serotonin.m2m2.web.mvc.controller.LogoutController;
 import com.serotonin.m2m2.web.mvc.controller.ModulesController;
 import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
 import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
@@ -819,7 +817,6 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/help.htm", new HelpController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/startup.htm", new StartupController()));
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/logout.htm", new LogoutController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
         
@@ -880,7 +877,7 @@ public class ModuleRegistry {
             
             @Override
             public boolean isVisible(HttpServletRequest request, HttpServletResponse response) {
-            	return Permissions.hasPermission(Common.getUser(request), SystemSettingsDao.getValue(permission));
+            	return Permissions.hasPermission(Common.getHttpUser(), SystemSettingsDao.getValue(permission));
             }
             
             @Override

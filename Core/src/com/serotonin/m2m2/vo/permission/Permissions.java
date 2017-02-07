@@ -7,12 +7,9 @@ package com.serotonin.m2m2.vo.permission;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -56,14 +53,6 @@ public class Permissions {
     //
     // Valid user
     //
-    public static void ensureValidUser() throws PermissionException {
-        ensureValidUser(Common.getUser());
-    }
-
-    public static void ensureValidUser(HttpServletRequest request) throws PermissionException {
-        ensureValidUser(Common.getUser(request));
-    }
-
     public static void ensureValidUser(User user) throws PermissionException {
         if (user == null)
             throw new PermissionException("Not logged in", null);
@@ -71,12 +60,6 @@ public class Permissions {
             throw new PermissionException("User is disabled", user);
     }
 
-    public static boolean isValidUser(){
-    	return isValidUser(Common.getUser());
-    }
-	public static boolean isValidUser(HttpServletRequest request) {
-		return isValidUser(Common.getUser(request));
-	}
 	public static boolean isValidUser(User user){
 		if (user == null)
             return false;
@@ -89,25 +72,9 @@ public class Permissions {
     //
     // Administrator
     //
-    public static boolean hasAdmin() throws PermissionException {
-        return hasAdmin(Common.getUser());
-    }
-
-    public static boolean hasAdmin(HttpServletRequest request) throws PermissionException {
-        return hasAdmin(Common.getUser(request));
-    }
-
     public static boolean hasAdmin(User user) throws PermissionException {
         ensureValidUser(user);
         return permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions());
-    }
-
-    public static void ensureAdmin() throws PermissionException {
-        ensureAdmin(Common.getUser());
-    }
-
-    public static void ensureAdmin(HttpServletRequest request) throws PermissionException {
-        ensureAdmin(Common.getUser(request));
     }
 
     public static void ensureAdmin(User user) throws PermissionException {

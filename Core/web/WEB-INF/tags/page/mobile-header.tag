@@ -17,7 +17,7 @@
     <span style="float:right; padding-left:10px;">
      <fmt:message key="header.user"/>:${sessionUser.username}
      <tag:img id="userMutedImg" onclick="MiscDwr.toggleUserMuted(setUserMuted)"/>
-     <m2m2:menuItem id="logoutMi" href="/logout.htm" png="control-power" key="header.logout"/>
+     <m2m2:menuItem id="logoutMi" href="#" onclick="getElementById('logout-form').submit()" png="control-power" key="header.logout"/>
      </span>
      
     </c:if>

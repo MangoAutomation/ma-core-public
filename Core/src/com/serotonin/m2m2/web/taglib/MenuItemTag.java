@@ -25,6 +25,7 @@ public class MenuItemTag extends TagSupport {
     private String png;
     private String src;
     private String key;
+    private String onclick;
 
     public void setDef(MenuItemDefinition def) {
         this.def = def;
@@ -51,6 +52,10 @@ public class MenuItemTag extends TagSupport {
         this.key = key;
     }
 
+    public void setOnclick(String onclick) {
+        this.onclick = onclick;
+    }
+
     @Override
     public int doEndTag() throws JspException {
         HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
@@ -75,7 +80,7 @@ public class MenuItemTag extends TagSupport {
             else {
                 _id = id;
                 _href = href;
-                _onclick = null;
+                _onclick = onclick;
                 _target = null;
                 _key = key;
                 _src = src;

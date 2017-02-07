@@ -75,8 +75,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	public static void initializeObjectMapper(){
 		objectMapper = createNewObjectMapper();
 	}
-	
-	
+
 	/**
 	 * 
 	 * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS Setup
@@ -171,6 +170,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	 * Used locally when starting Spring but may also be used for testing.
 	 * 
 	 * Note: This is NOT the same Object Mapper instance used within a running Mango.
+	 * XXX J.W. Seems to be used inside the REST controller to me?
 	 * 
 	 * @return
 	 */

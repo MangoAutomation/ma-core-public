@@ -17,11 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.FileUploadException;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.View;
-
-import org.apache.poi.ss.usermodel.Sheet;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -32,7 +31,6 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.PointValueEmporter;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.FileType;
-import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
@@ -46,18 +44,11 @@ public class FileUploadController implements UrlHandler {
     public View handleRequest(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
             throws Exception {
     	
-    	checkPermission(request);
+        Permissions.ensureAdmin(Common.getHttpUser());
     	
         return prepareResponse(request,response,model);
 
     }
-
-    /**
-	 * @param request
-	 */
-	protected void checkPermission(HttpServletRequest request) throws PermissionException{
-		Permissions.ensureAdmin(request);
-	}
 
 	/**
      * @param request

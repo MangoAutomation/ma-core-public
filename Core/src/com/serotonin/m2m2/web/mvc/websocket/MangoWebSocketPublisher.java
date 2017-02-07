@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.websocket;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpSession;
+
 import org.eclipse.jetty.server.session.AbstractSession;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
@@ -91,7 +93,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 		if(closeOnLogout){
 			//Check our HttpSession to see if we logged out
 			AbstractSession httpSession = getHttpSession(session);
-			if(!httpSession.isValid()){
+			if(httpSession == null || !httpSession.isValid()){
 				session.close();
 				return;
 			}
@@ -122,7 +124,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 		if(closeOnLogout){
 			//Check our HttpSession to see if we logged out
 			AbstractSession httpSession = getHttpSession(session);
-			if(!httpSession.isValid()){
+			if(httpSession == null || !httpSession.isValid()){
 				session.close();
 				return;
 			}
@@ -154,8 +156,12 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	 * @param session
 	 * @return
 	 */
-	protected AbstractSession getHttpSession(WebSocketSession session){
-		return (AbstractSession)session.getAttributes().get("httpsession");
+	protected AbstractSession getHttpSession(WebSocketSession session) {
+	    HttpSession httpSession = (HttpSession) session.getAttributes().get("httpsession");
+	    if (httpSession instanceof AbstractSession) {
+	        return (AbstractSession) httpSession;
+	    }
+		return null;
 	}
 
 	/* (non-Javadoc)

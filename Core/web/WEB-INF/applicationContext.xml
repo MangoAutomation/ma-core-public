@@ -3,12 +3,19 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 -->
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
 
-<beans>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context-4.2.xsd">
 
   <!-- i18n -->
   <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver"/>
   <bean id="messageSource" class="com.serotonin.m2m2.i18n.TranslatedMessageSource"/>
-
+  
+  <context:component-scan base-package="com.serotonin.m2m2.web.mvc.spring.components" />
 </beans>
