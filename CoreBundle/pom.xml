@@ -12,6 +12,20 @@
 	<packaging>jar</packaging>
 	<properties>
 	</properties>
+	<repositories>
+	    <repository>
+		<id>mango-core</id>
+		<name>Mango Dependencies</name>
+		<releases>
+			<enabled>true</enabled>
+			<checksumPolicy>ignore</checksumPolicy>
+		</releases>
+		<snapshots>
+			<enabled>true</enabled>
+		</snapshots>
+		<url>file://${project.basedir}/../Core/maven-local</url>
+	</repository>  
+	</repositories>
 	<build>
 		<resources>
 			<resource>
