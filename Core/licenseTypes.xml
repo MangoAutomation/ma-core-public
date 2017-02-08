@@ -31,6 +31,17 @@
 	<price>disallow</price>
 	</licenseType>
 	
+	<licenseType id="Trial" status="grant-only">
+	<description>This license will revert to free after 30 days.</description>
+	<features>
+		<creation>variable</creation>
+		<expiration>variable</expiration>
+		<dataPointLimit>unlimited</dataPointLimit>
+	</features>
+	
+	<price>0</price>
+	</licenseType>
+	
     <licenseType id="Free" status="normal">
         <description>Limited to 300 data points and module restrictions</description>
         
@@ -58,6 +69,7 @@
         
         <price fromVersion="2" fromType="free">200</price>
         <price fromType="Free">200</price>
+        <price fromType="Trial">200</price>
         <price fromVersion="2" fromType="paid">200</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="Commercial">disallow</price>
