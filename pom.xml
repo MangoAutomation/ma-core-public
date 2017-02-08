@@ -49,6 +49,18 @@
         <name>Mango Dependencies</name>
         <url>http://mangoautomation.net:9902/maven-repo/</url>
     </repository>
+    <repository>
+		<id>mango-core</id>
+		<name>Mango Dependencies</name>
+		<releases>
+			<enabled>true</enabled>
+			<checksumPolicy>ignore</checksumPolicy>
+		</releases>
+		<snapshots>
+			<enabled>false</enabled>
+		</snapshots>
+		<url>file://${project.basedir}/Core/maven-local</url>
+	</repository>  
  </repositories>
  <build>
     <directory>maven-target</directory>

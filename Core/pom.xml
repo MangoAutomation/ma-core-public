@@ -7,20 +7,6 @@
 		<webDirectory>${project.basedir}/web</webDirectory>
 		<jspWorkDirectory>${project.basedir}/work/jsp</jspWorkDirectory>
 	</properties>
-	<repositories>
-		<repository>
-			<id>mango-core</id>
-			<name>Mango Dependencies</name>
-			<releases>
-				<enabled>true</enabled>
-				<checksumPolicy>ignore</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<url>file://${project.basedir}/maven-local</url>
-		</repository>
-	</repositories>
 	<build>
 		<directory>maven-target</directory>
 		<sourceDirectory>src</sourceDirectory>
