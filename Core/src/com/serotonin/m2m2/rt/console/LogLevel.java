@@ -23,7 +23,8 @@ public enum LogLevel {
 	ERROR(50, "ERROR", "common.logging.error"),
 	FATAL(60, "FATAL", "common.logging.fatal"),
 	UNKNOWN(100, "UNKNOWN", "common.logging.unknown"),
-	ALL(200, "ALL", "common.logging.all");
+	ALL(200, "ALL", "common.logging.all"),
+	OFF(0, "OFF", "common.logging.off");
 	
 	private int level;
 	private String code;
@@ -65,19 +66,21 @@ public enum LogLevel {
 	 */
 	public static LogLevel createFromLog4jLevel(int level){
 		switch(level){
-		case 5000:
+		case 0:
+			return OFF;
+		case 600:
 			return TRACE;
-		case 10000:
+		case 500:
 			return DEBUG;
-		case 20000:
+		case 400:
 			return INFO;
-		case 30000:
+		case 300:
 			return WARN;
-		case 40000:
+		case 200:
 			return ERROR;
-		case 50000: 
+		case 100: 
 			return FATAL;
-		case -2147483648:
+		case Integer.MAX_VALUE:
 			return ALL;
 		default:
 			return UNKNOWN;
@@ -108,22 +111,24 @@ public enum LogLevel {
 	 */
 	public int getLog4jLevel() {
 		switch(this){
+		case OFF:
+			return 0;
 		case TRACE:
-			return 5000;
+			return 600;
 		case DEBUG:
-			return 10000;
+			return 500;
 		case INFO:
-			return 20000;
+			return 400;
 		case WARN:
-			return 30000;
+			return 300;
 		case ERROR:
-			return 40000;
+			return 200;
 		case FATAL: 
-			return 50000;
+			return 100;
 		case ALL:
-			return -2147483648;
+			return Integer.MAX_VALUE;
 		default:
-			return 10000;
+			return 100;
 		}
 	}
 	

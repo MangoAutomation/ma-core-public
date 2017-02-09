@@ -13,6 +13,7 @@
    for websockets support -->
   <springVersion>4.2.2.RELEASE</springVersion>
   <springSecurityVersion>4.1.1.RELEASE</springSecurityVersion>
+  <log4jVersion>2.8</log4jVersion>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
   <compilerSourceVersion>1.8</compilerSourceVersion>
