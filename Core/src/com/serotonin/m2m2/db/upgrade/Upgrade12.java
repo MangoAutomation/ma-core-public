@@ -84,9 +84,15 @@ public class Upgrade12 extends DBUpgrade {
 	private static final Log LOG = LogFactory.getLog(Upgrade12.class);
 	
 	private ObjectMapper mapper;
+	private String mysqlDatabaseName = "";
 	
 	public Upgrade12(){
 		mapper = MangoRestSpringConfiguration.getObjectMapper();
+		String databaseUrl = Common.envProps.getString("db.url", "");
+		if(databaseUrl.contains("mysql")) {
+			int endingSlash = databaseUrl.lastIndexOf("/");
+			mysqlDatabaseName = databaseUrl.substring(endingSlash + 1);
+		}
 	}
 
 	
@@ -95,7 +101,7 @@ public class Upgrade12 extends DBUpgrade {
     	String hashAlgorithm = Common.envProps.getString("security.hashAlgorithm", "SHA-1");
     	
     	String[] mysqlScript = {
-			"SET @preparedDropTagsStatement = (SELECT IF( (SELECT COUNT(*) FROM information_schema.columns where table_name='publishers' and column_name='tags') > 0, 'alter table publishers drop column tags;', 'SELECT 1'));",
+			"SET @preparedDropTagsStatement = (SELECT IF( (SELECT COUNT(*) FROM information_schema.columns where table_schema='" + mysqlDatabaseName + "' and table_name='publishers' and column_name='tags') > 0, 'alter table publishers drop column tags;', 'SELECT 1'));",
 	        "PREPARE dropIfExists FROM @preparedDropTagsStatement;",
 	        "EXECUTE dropIfExists;",
 	        "DEALLOCATE PREPARE dropIfExists;",
