@@ -73,19 +73,20 @@
             var upgradeList = versionCheckData.upgrades;
             var newInstallList = versionCheckData.newInstalls;
             
-            drawLists(upgradeList, newInstallList);
-            mapDependencies();
-            
             // Reset the state of all of the upgrade stuff in case this is a second run.
             if("updates" in versionCheckData) {
             	show("installUpgrades")
-            	$("isInstallUpgrades").checked = "checked";
+            	delete $("isInstallUpgrades").checked;
             	$("isInstallUpgrades").disabled = false;
             } else {
             	hide("installUpgrades");
             	if($("isInstallUpgrades").checked)
             		delete $("isInstallUpgrades").checked;
             }
+            
+            //call the appropriate drawLists
+            toggleInstallUpgrades();
+            
             show("upgradeModulesButtons");
             hide("upgradeModulesThrobber");
             hide("upgradeModulesFinished");
@@ -101,7 +102,7 @@
     
     function toggleInstallUpgrades() {
     	allModuleMap = {};
-    	if(versionCheckData == null || !("updates" in versionCheckData))
+    	if(versionCheckData == null)
     		versionCheck();
     	else if($get("isInstallUpgrades"))
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
