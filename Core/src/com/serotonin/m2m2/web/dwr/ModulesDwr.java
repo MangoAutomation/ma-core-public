@@ -420,11 +420,11 @@ public class ModulesDwr extends BaseDwr {
                     catch (IOException e) {
                         error = "Error while clearing temp dir when cancelled: " + e.getMessage();
                         LOG.warn("Error while clearing temp dir when cancelled", e);
-                        finished = true;
                     }
                     for(ModuleNotificationListener listener : listeners)
                     	listener.upgradeStateChanged("cancelled");
 
+                    finished = true;
             		return;
             	}
                 String name = mod.getKey();
