@@ -333,8 +333,8 @@ public class ModulesDwr extends BaseDwr {
                     catch (IOException e) {
                         error = "Error while clearing temp dir when cancelled: " + e.getMessage();
                         LOG.warn("Error while clearing temp dir when cancelled", e);
-                        finished = true;
                     }
+            		finished = true;
             		return;
             	}
                 String name = mod.getKey();
