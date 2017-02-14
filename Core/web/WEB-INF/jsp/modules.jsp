@@ -102,6 +102,8 @@
     
     function toggleInstallUpgrades() {
     	allModuleMap = {};
+    	$set($("masterUpgradeCB"), true);
+    	$set($("masterNewInstallCB"), false);
     	if(versionCheckData == null)
     		versionCheck();
     	else if($get("isInstallUpgrades"))
