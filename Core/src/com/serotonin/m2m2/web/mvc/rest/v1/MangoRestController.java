@@ -83,7 +83,7 @@ public abstract class MangoRestController{
 	 * @return
 	 */
 	public RestMessage getValidationFailedError(){
-		return new RestMessage(HttpStatus.NOT_ACCEPTABLE, new TranslatableMessage("common.default", "Validation error"));
+		return new RestMessage(HttpStatus.UNPROCESSABLE_ENTITY, new TranslatableMessage("common.default", "Validation error"));
 	}
 	
 	public RestMessage getResourceCreatedMessage(URI location){
