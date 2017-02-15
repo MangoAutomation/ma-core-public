@@ -105,7 +105,7 @@
     	$set($("masterNewInstallCB"), false);
     	if(versionCheckData == null)
     		versionCheck();
-    	else if($get("isInstallUpgrades"))
+    	else if($get("isInstallUpgrades") || !("updates" in versionCheckData))
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
     	else
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
