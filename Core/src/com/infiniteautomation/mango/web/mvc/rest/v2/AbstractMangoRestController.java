@@ -23,33 +23,43 @@ import net.jazdw.rql.parser.RQLParser;
  */
 public class AbstractMangoRestController {
 
+    /**
+     * Check to see if a User is logged in and is an admin
+     * 
+     * @param request
+     * @param result
+     * @return User that is logged in
+     * @throws UnauthorizedRestException if the user is not authenticated
+     * @throws ForbiddenAccessRestException if the user is not an admin
+     */
+    protected User checkAdminUser(HttpServletRequest request) {
+        User user = Common.getUser(request);
+        if(user == null)
+            throw new UnauthorizedRestException();
+        if(!user.isAdmin())
+            throw new ForbiddenAccessRestException(user);
+        return user;
+    }
+    
 	/**
-	 * Check to see if a User is logged in
+	 * Check to see if a User is logged in and has permissions
 	 * 
 	 * @param request
 	 * @param result
 	 * @return User that is logged in
-	 * @throws UnauthorizedRestException  
+     * @throws UnauthorizedRestException if the user is not authenticated
+     * @throws ForbiddenAccessRestException if the user does not have all of the permissions
 	 */
-	protected User checkUser(HttpServletRequest request) throws UnauthorizedRestException {
+	protected User checkUser(HttpServletRequest request, String... permissions) {
 		User user = Common.getUser(request);
 		if(user == null)
 			throw new UnauthorizedRestException();
 		
+		// TODO check permissions
+		
 		return user;
 	}
-	
-	/**
-	 * Ensure the user is admin, if not throw Exception
-	 * 
-	 * @param user
-	 * @throws ForbiddenAccessRestException
-	 */
-	protected void ensureAdmin(User user) throws ForbiddenAccessRestException{
-		if(!user.isAdmin())
-			throw new ForbiddenAccessRestException(user);
-	}
-	
+
 	protected ASTNode parseRQLtoAST(HttpServletRequest request) throws UnsupportedEncodingException {
 		RQLParser parser = new RQLParser();
 		String query = request.getQueryString();
