@@ -48,15 +48,9 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ 
     	NoSupportingModelException.class,
     	CSVException.class,
-    	ModelNotFoundException.class,
-    	Exception.class,
-    	RuntimeException.class
+    	ModelNotFoundException.class
     	})
     protected ResponseEntity<Object> handleMangoError(Exception e, WebRequest request) {
-    	
-    	//Log this
-    	LOG.error(e.getMessage(), e);
-    	
     	RestErrorModel error = new RestErrorModel(e);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Messages", "error");
