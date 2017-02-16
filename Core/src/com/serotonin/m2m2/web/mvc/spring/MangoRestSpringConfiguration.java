@@ -28,6 +28,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.infiniteautomation.mango.web.mvc.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JsonRestJacksonModuleDefinition;
@@ -183,9 +184,11 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		JScienceModule jScienceModule = new JScienceModule();
 		objectMapper.registerModule(jScienceModule);
 
-		// Mango Core JSON Module
+		// Mango Core JSON Modules
 		MangoCoreModule mangoCore = new MangoCoreModule();
 		objectMapper.registerModule(mangoCore);
+		MangoRestV2JacksonModule mangoCoreV2 = new MangoRestV2JacksonModule();
+		objectMapper.registerModule(mangoCoreV2);
 		
 		//Setup Module Defined JSON Modules
 		List<JsonRestJacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JsonRestJacksonModuleDefinition.class);

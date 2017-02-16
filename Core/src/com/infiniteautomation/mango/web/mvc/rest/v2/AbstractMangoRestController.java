@@ -4,17 +4,18 @@
  */
 package com.infiniteautomation.mango.web.mvc.rest.v2;
 
-import java.io.UnsupportedEncodingException;
-
 import javax.servlet.http.HttpServletRequest;
 
 import com.infiniteautomation.mango.web.mvc.rest.v2.exception.ForbiddenAccessRestException;
+import com.infiniteautomation.mango.web.mvc.rest.v2.exception.InvalidRQLRestException;
 import com.infiniteautomation.mango.web.mvc.rest.v2.exception.UnauthorizedRestException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
+import net.jazdw.rql.parser.RQLParserException;
 
 /**
  * Base Rest Controller for V2 of the REST api
@@ -41,11 +42,27 @@ public class AbstractMangoRestController {
         return user;
     }
     
+    /**
+     * Check to see 
+     * @param request
+     * @return
+     * @throws UnauthorizedRestException if the user is not authenticated
+     * @throws ForbiddenAccessRestException if the user does not have general Data Source priveleges
+     */
+    protected User checkDataSourceUser(HttpServletRequest request){
+    	User user = Common.getUser(request);
+    	if(user == null)
+            throw new UnauthorizedRestException();
+        if(!user.isAdmin())
+            throw new ForbiddenAccessRestException(user);
+        return user;
+    }
+    
 	/**
 	 * Check to see if a User is logged in and has permissions
 	 * 
 	 * @param request
-	 * @param result
+	 * @param permissions - Comma separated list of acceptable permissions
 	 * @return User that is logged in
      * @throws UnauthorizedRestException if the user is not authenticated
      * @throws ForbiddenAccessRestException if the user does not have all of the permissions
@@ -55,17 +72,32 @@ public class AbstractMangoRestController {
 		if(user == null)
 			throw new UnauthorizedRestException();
 		
-		// TODO check permissions
+		for(String permission : permissions){
+			if(!Permissions.hasPermission(user, permission))
+				throw new ForbiddenAccessRestException(user);
+		}
 		
 		return user;
 	}
 
-	protected ASTNode parseRQLtoAST(HttpServletRequest request) throws UnsupportedEncodingException {
+	/**
+	 * Create an AST Node from the RQL query in the request
+	 * @param request
+	 * @return ASTNode or null if no query
+	 * @throws InvalidRQLRestException
+	 */
+	protected ASTNode parseRQLtoAST(HttpServletRequest request) {
 		RQLParser parser = new RQLParser();
 		String query = request.getQueryString();
 		if(query == null)
 			return null;
-        return parser.parse(query);
+		else{
+			try{
+				return parser.parse(query);
+			}catch(RQLParserException e){
+				throw new InvalidRQLRestException(query, e.getMessage());
+			}
+		} 
 	}
 	
 }

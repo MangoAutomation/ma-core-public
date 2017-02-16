@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.infiniteautomation.mango.web.mvc.rest.v2.model.exception.GenericRestExceptionModel;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-
 /**
  * 
  * Class to handle REST Specific Errors and present the user with a Model
@@ -33,12 +30,13 @@ public class RestV2ExceptionHandler extends ResponseEntityExceptionHandler {
 	
     @ExceptionHandler({ 
     	ForbiddenAccessRestException.class,
-    	UnauthorizedRestException.class
+    	UnauthorizedRestException.class,
+    	InvalidRQLRestException.class
     	})
     protected ResponseEntity<Object> handleMangoError(Exception e, WebRequest request) {
     	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
     	AbstractRestV2Exception ex = (AbstractRestV2Exception)e;
-    	return handleExceptionInternal(e, ex.getBodyModel(), new HttpHeaders(), ex.getStatus(), request);
+    	return handleExceptionInternal(e, ex, new HttpHeaders(), ex.getStatus(), request);
     }
     
     /* (non-Javadoc)
@@ -56,12 +54,13 @@ public class RestV2ExceptionHandler extends ResponseEntityExceptionHandler {
         if(ex instanceof NestedRuntimeException)
         	ex = (Exception) ((NestedRuntimeException) ex).getMostSpecificCause();
 
-    	LOG.error(ex.getMessage(), ex);
+        //Only Log Some Errors
+        if(!(ex instanceof AbstractRestV2Exception))
+        	LOG.error(ex.getMessage(), ex);
 
-    	//If no body provided
+    	//If no body provided we will 
         if(body == null)
-        	body = new GenericRestExceptionModel(status.value(), new TranslatableMessage("common.default", status.getReasonPhrase()));
-        
+        	body = new GenericRestException(status, ex);
         
         return new ResponseEntity<Object>(body, headers, status);
     }
