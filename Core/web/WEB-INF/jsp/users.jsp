@@ -93,6 +93,20 @@
 
 <jsp:body>
 <div>
+  <m2m2:moduleDoesNotExist name="mangoApi">
+    <h1 style="color:red">
+    <fmt:message key="common.moduleDoesNotExist">
+      <fmt:param value="mangoApi"/>
+    </fmt:message>
+    </h1>
+  </m2m2:moduleDoesNotExist>
+  <m2m2:moduleDoesNotExist name="dashboards">
+    <h1 style="color:red">
+    <fmt:message key="common.moduleDoesNotExist">
+      <fmt:param value="dashboards"/>
+    </fmt:message>
+    </h1>
+  </m2m2:moduleDoesNotExist>
   <m2m2:moduleExists name="mangoApi">
   <div style="width: 100%; height: 80vh">
     <div id="tab-container" style="display: none">
@@ -107,13 +121,6 @@
     </div>
   </div>
   </m2m2:moduleExists>
-  <m2m2:moduleDoesNotExist name="mangoApi">
-    <h1 style="color:red">
-    <fmt:message key="common.moduleDoesNotExist">
-      <fmt:param value="mangoApi"/>
-    </fmt:message>
-    </h1>
-  </m2m2:moduleDoesNotExist>
 </div>
 </jsp:body>
 </tag:html5>

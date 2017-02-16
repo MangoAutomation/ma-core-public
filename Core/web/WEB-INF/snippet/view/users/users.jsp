@@ -70,6 +70,11 @@
         </tr>
         <tr>
           <td class="formLabelRequired"><fmt:message
+              key="common.name" /></td>
+          <td class="formField"><input id="name" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="formLabelRequired"><fmt:message
               key="users.username" /></td>
           <td class="formField"><input id="username" type="text" /></td>
         </tr>
