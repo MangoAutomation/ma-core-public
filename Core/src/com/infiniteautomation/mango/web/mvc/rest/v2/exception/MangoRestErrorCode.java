@@ -17,10 +17,12 @@ package com.infiniteautomation.mango.web.mvc.rest.v2.exception;
 public enum MangoRestErrorCode {
 	
 	//***** 4000 Series *****
-	RQL_PARSE_FAILURE(4000);
+	
+	RQL_PARSE_FAILURE(4001),
+	VALIDATION_FAILED(4002),
 	
 	//***** 5000 Series *****
-	
+	GENERIC_500(5000);
 	
 	private final int code;
 	

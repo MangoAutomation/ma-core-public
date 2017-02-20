@@ -20,7 +20,7 @@ public class ForbiddenAccessRestException extends AbstractRestV2Exception{
 	private User user;
 	
 	public ForbiddenAccessRestException(User user){
-		super(HttpStatus.FORBIDDEN, null, new TranslatableMessage("permissions.missing"));
+		super(HttpStatus.FORBIDDEN, new TranslatableMessage("permissions.missing"));
 		this.user = user;
 	}
 	

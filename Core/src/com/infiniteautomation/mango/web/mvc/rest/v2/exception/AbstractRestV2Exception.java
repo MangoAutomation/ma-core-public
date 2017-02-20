@@ -21,27 +21,39 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 
 	private static final long serialVersionUID = 1L;
 	//Code for Error (may be HTTP code or Custom Mango Error Code?)
-	protected HttpStatus httpCode;
-	protected MangoRestErrorCode mangoCode;
-	protected TranslatableMessage translatableMessage;
+	protected final HttpStatus httpCode;
+	protected final MangoRestErrorCode mangoCode;
+	protected final TranslatableMessage translatableMessage;
 	
-	/**
-	 * @param httpCode
-	 * @param mangoCode
-	 * @param message
-	 */
 	public AbstractRestV2Exception(HttpStatus httpCode, MangoRestErrorCode mangoCode, TranslatableMessage message) {
+		super(message.translate(Common.getTranslations()));
 		this.httpCode = httpCode;
 		this.mangoCode = mangoCode;
 		this.translatableMessage = message;
 	}
 	
+	public AbstractRestV2Exception(HttpStatus httpCode, TranslatableMessage message) {
+		super(message.translate(Common.getTranslations()));
+		this.httpCode = httpCode;
+		this.mangoCode = null;
+		this.translatableMessage = message;
+	}
+
+	
 	public AbstractRestV2Exception(HttpStatus httpCode, MangoRestErrorCode mangoCode, Exception e){
 		super(e);
 		this.httpCode = httpCode;
 		this.mangoCode = mangoCode;
-		this.translatableMessage = new TranslatableMessage("common.default", e.getMessage());
+		this.translatableMessage = null;
 	}
+	
+	public AbstractRestV2Exception(HttpStatus httpCode, Exception e){
+		super(e);
+		this.httpCode = httpCode;
+		this.mangoCode = null;
+		this.translatableMessage = null;
+	}
+	
 	
 	@JsonIgnore
 	public HttpStatus getStatus(){
@@ -79,7 +91,7 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 		if(this.translatableMessage != null)
 			return this.translatableMessage.translate(Common.getTranslations());
 		else
-			return null;
+			return super.getMessage();
 	}
 	
 	/* (non-Javadoc)
@@ -97,7 +109,6 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 	@JsonIgnore
 	@Override
 	public StackTraceElement[] getStackTrace() {
-		// TODO Auto-generated method stub
 		return super.getStackTrace();
 	}
 }

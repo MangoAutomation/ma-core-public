@@ -29,9 +29,12 @@ public class RestV2ExceptionHandler extends ResponseEntityExceptionHandler {
 	 protected Log LOG = LogFactory.getLog(RestV2ExceptionHandler.class);
 	
     @ExceptionHandler({ 
-    	ForbiddenAccessRestException.class,
-    	UnauthorizedRestException.class,
-    	InvalidRQLRestException.class
+//    	ForbiddenAccessRestException.class,
+//    	UnauthorizedRestException.class,
+//    	InvalidRQLRestException.class,
+//    	ValidationFailedRestException.class,
+//    	GenericRestException.class
+    	AbstractRestV2Exception.class
     	})
     protected ResponseEntity<Object> handleMangoError(Exception e, WebRequest request) {
     	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
