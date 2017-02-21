@@ -24,6 +24,17 @@
 	<build>
 		<directory>maven-target</directory>
 		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>overrides/classes</directory>
+			</resource>
+			<resource>
+				<directory>overrides/properties</directory>
+			</resource>
+			<resource>
+				<directory>classes</directory>
+			</resource>
+		</resources>
 		<testSourceDirectory>src-test</testSourceDirectory>
 		<testResources>
 			<testResource>
