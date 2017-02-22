@@ -44,6 +44,10 @@ public class UnitUtil {
         addedUnitLabels.add("ppm");
         localFormat.label(Unit.ONE.divide(1000000000), "ppb");
         addedUnitLabels.add("ppb");
+        localFormat.label(NonSI.GALLON_LIQUID_US.divide(NonSI.MINUTE), "gpm");
+        addedUnitLabels.add("gpm");
+        localFormat.label(SI.WATT.times(1000).divide(NonSI.HOUR), "kWh");
+        addedUnitLabels.add("kWh");
 
         //Define any aliases
         localFormat.alias(SI.CELSIUS, "Celsius"); // easier to type
