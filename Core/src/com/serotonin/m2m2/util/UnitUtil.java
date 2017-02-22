@@ -47,7 +47,7 @@ public class UnitUtil {
 
         //Define any aliases
         localFormat.alias(SI.CELSIUS, "Celsius"); // easier to type
-        addedUnitLabels.add("celsius");
+        addedUnitLabels.add("Celsius");
         localFormat.alias(NonSI.FAHRENHEIT, "Fahrenheit");
         addedUnitLabels.add("Fahrenheit");
     }
