@@ -27,6 +27,7 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
 	static{
 		COMMENT_TYPE_CODES.addElement(UserComment.TYPE_POINT, "POINT");
 		COMMENT_TYPE_CODES.addElement(UserComment.TYPE_EVENT, "EVENT");
+		COMMENT_TYPE_CODES.addElement(UserComment.TYPE_JSON_DATA, "JSON_DATA");
 	}
 
 	private static final long serialVersionUID = 1L;

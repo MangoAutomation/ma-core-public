@@ -48,6 +48,12 @@ public abstract class AbstractVoModel<T extends AbstractVO<?>> extends AbstractB
 
 	}
 	
+	@ApiModelProperty(value ="ID of object in database")
+	@JsonGetter("id")
+	public int getId(){
+		return this.data.getId();
+	}
+	
 	@ApiModelProperty(value = "XID of object", required = false)
 	@CSVColumnGetter(order=1, header="xid")
 	@JsonGetter("xid")

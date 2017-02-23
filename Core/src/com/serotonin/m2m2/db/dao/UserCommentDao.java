@@ -52,6 +52,10 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
             + " and uc.typeKey=? " //
             + "order by uc.ts";
 
+    private static final String JSON_DATA_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT
+    		+ "where uc.commentType=" + UserComment.TYPE_JSON_DATA 
+    		+ " and uc.typeKey=?"
+    		+ "order by uc.ts";
     /**
      * Return all comments for a given event
      * @param id

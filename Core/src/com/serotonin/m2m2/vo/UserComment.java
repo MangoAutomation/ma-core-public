@@ -9,6 +9,7 @@ import com.serotonin.m2m2.web.taglib.Functions;
 public class UserComment {
     public static final int TYPE_EVENT = 1;
     public static final int TYPE_POINT = 2;
+    public static final int TYPE_JSON_DATA = 3;
 
     // Configuration fields
     private int userId;
