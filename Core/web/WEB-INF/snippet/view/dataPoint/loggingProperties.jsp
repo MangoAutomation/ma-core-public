@@ -343,7 +343,7 @@
       <td class="formField">
         <div>
           <input data-dojo-type="dijit/form/CheckBox" id="purgeOverride"
-            name="purgeOverride" onclick="changePurgeOverride()" /> <label
+            name="purgeOverride" onchange="changePurgeOverride()" /> <label
             for="purgeOverride"><fmt:message
               key="pointEdit.logging.purgeOverride" /></label>
         </div>
