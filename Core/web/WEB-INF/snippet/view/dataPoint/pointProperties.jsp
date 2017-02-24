@@ -183,11 +183,17 @@
 	function disablePointProperties(dataTypeId) {
 		setDisabled('chartColour', true);
 		setDisabled('plotType', true);
+		setDisabled('preventSetExtremeValues', true);
+		setDisabled('setExtremeLowLimit', true);
+		setDisabled('setExtremeHighLimit', true)
 	}
 	
 	function enablePointProperties(dataTypeId) {
 		setDisabled('chartColour', false);
 		setDisabled('plotType', false);
+		setDisabled('preventSetExtremeValues', false);
+		setDisabled('setExtremeLowLimit', false);
+		setDisabled('setExtremeHighLimit', false)
 		resetPointProperties(dataTypeId);
 	}
 	

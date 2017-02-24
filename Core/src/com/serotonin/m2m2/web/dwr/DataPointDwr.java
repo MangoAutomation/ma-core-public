@@ -428,6 +428,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
             //Text Renderer
             dp.setTextRenderer(newDp.getTextRenderer());
+            
+            //Extreme sets
+            dp.setPreventSetExtremeValues(newDp.isPreventSetExtremeValues());
+            dp.setSetExtremeLowLimit(newDp.getSetExtremeLowLimit());
+            dp.setSetExtremeHighLimit(newDp.getSetExtremeHighLimit());
         }
     }
 

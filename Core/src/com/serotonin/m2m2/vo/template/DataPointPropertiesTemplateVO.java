@@ -57,6 +57,12 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     private double discardLowLimit = -Double.MAX_VALUE;
     @JsonProperty
     private double discardHighLimit = Double.MAX_VALUE;
+    @JsonProperty
+    private boolean preventSetExtremeValues = false;
+    @JsonProperty
+    private double setExtremeLowLimit = -Double.MAX_VALUE;
+    @JsonProperty
+    private double setExtremeHighLimit = Double.MAX_VALUE;
     
     private int intervalLoggingType = DataPointVO.IntervalLoggingTypes.INSTANT;    
     private int intervalLoggingPeriodType = Common.TimePeriods.MINUTES;
@@ -169,6 +175,30 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 	public void setDiscardHighLimit(double discardHighLimit) {
 		this.discardHighLimit = discardHighLimit;
 	}
+	
+	public boolean isPreventSetExtremeValues() {
+    	return preventSetExtremeValues;
+    }
+    
+    public void setPreventSetExtremeValues(boolean preventSetExtremeValues) {
+    	this.preventSetExtremeValues = preventSetExtremeValues;
+    }
+    
+    public double getSetExtremeHighLimit() {
+    	return setExtremeHighLimit;
+    }
+    
+    public void setSetExtremeHighLimit(double setExtremeHighLimit) {
+    	this.setExtremeHighLimit = setExtremeHighLimit;
+    }
+    
+    public double getSetExtremeLowLimit() {
+    	return setExtremeLowLimit;
+    }
+    
+    public void setSetExtremeLowLimit(double setExtremeLowLimit) {
+    	this.setExtremeLowLimit = setExtremeLowLimit;
+    }
 
 	public int getIntervalLoggingType() {
 		return intervalLoggingType;
@@ -302,6 +332,12 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
         if (discardExtremeValues && discardHighLimit <= discardLowLimit)
             response.addContextualMessage("discardHighLimit", "validate.greaterThanDiscardLow");
+        
+        if(dataTypeId != DataTypes.NUMERIC && dataTypeId != DataTypes.MULTISTATE)
+        	preventSetExtremeValues = false;
+        
+        if(preventSetExtremeValues && setExtremeHighLimit <= setExtremeLowLimit)
+        	response.addContextualMessage("setExtremeHighLimit", "validate.greaterThanSetExtremeLow");
 
         if (!StringUtils.isBlank(chartColour)) {
             try {
@@ -338,7 +374,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     //
     // Serialization
     //
-    private static final int version = 2;
+    private static final int version = 3;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -366,6 +402,10 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         
         out.writeObject(textRenderer);
         out.writeObject(chartRenderer);
+        
+        out.writeBoolean(preventSetExtremeValues);
+        out.writeDouble(setExtremeLowLimit);
+        out.writeDouble(setExtremeHighLimit);
     }
 
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -403,32 +443,69 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
         }else if (ver == 2) {
-            	/* Point Properties */
-            	defaultTemplate = in.readBoolean();
-            	dataTypeId = in.readInt();
-            	chartColour = SerializationHelper.readSafeUTF(in);
-            	plotType = in.readInt();
-            	/* Logging Properties */
-            	loggingType = in.readInt();
-            	tolerance = in.readDouble();
-            	discardExtremeValues = in.readBoolean();
-            	discardLowLimit = in.readDouble();
-            	discardHighLimit = in.readDouble();
-            	intervalLoggingType = in.readInt();
-            	intervalLoggingPeriodType = in.readInt();
-            	intervalLoggingPeriod = in.readInt();
-            	overrideIntervalLoggingSamples = in.readBoolean();
-            	intervalLoggingSampleWindowSize = in.readInt();
-            	defaultCacheSize = in.readInt();
-            	/* Purge Override Settings */
-            	purgeOverride = in.readBoolean();
-            	purgeType = in.readInt();
-            	purgePeriod = in.readInt();
-            	
-                textRenderer = (TextRenderer) in.readObject();
-                chartRenderer = (ChartRenderer) in.readObject();
-        }
+        	/* Point Properties */
+        	defaultTemplate = in.readBoolean();
+        	dataTypeId = in.readInt();
+        	chartColour = SerializationHelper.readSafeUTF(in);
+        	plotType = in.readInt();
+        	/* Logging Properties */
+        	loggingType = in.readInt();
+        	tolerance = in.readDouble();
+        	discardExtremeValues = in.readBoolean();
+        	discardLowLimit = in.readDouble();
+        	discardHighLimit = in.readDouble();
+        	intervalLoggingType = in.readInt();
+        	intervalLoggingPeriodType = in.readInt();
+        	intervalLoggingPeriod = in.readInt();
+        	overrideIntervalLoggingSamples = in.readBoolean();
+        	intervalLoggingSampleWindowSize = in.readInt();
+        	defaultCacheSize = in.readInt();
+        	/* Purge Override Settings */
+        	purgeOverride = in.readBoolean();
+        	purgeType = in.readInt();
+        	purgePeriod = in.readInt();
+        	
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            
+            preventSetExtremeValues = false;
+            setExtremeLowLimit = -Double.MAX_VALUE;
+            setExtremeHighLimit = Double.MAX_VALUE;
+        }else if (ver == 3) {
+        	/* Point Properties */
+        	defaultTemplate = in.readBoolean();
+        	dataTypeId = in.readInt();
+        	chartColour = SerializationHelper.readSafeUTF(in);
+        	plotType = in.readInt();
+        	/* Logging Properties */
+        	loggingType = in.readInt();
+        	tolerance = in.readDouble();
+        	discardExtremeValues = in.readBoolean();
+        	discardLowLimit = in.readDouble();
+        	discardHighLimit = in.readDouble();
+        	intervalLoggingType = in.readInt();
+        	intervalLoggingPeriodType = in.readInt();
+        	intervalLoggingPeriod = in.readInt();
+        	overrideIntervalLoggingSamples = in.readBoolean();
+        	intervalLoggingSampleWindowSize = in.readInt();
+        	defaultCacheSize = in.readInt();
+        	/* Purge Override Settings */
+        	purgeOverride = in.readBoolean();
+        	purgeType = in.readInt();
+        	purgePeriod = in.readInt();
+        	
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
+    }
 
     }
 
@@ -543,6 +620,9 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		vo.setChartRenderer(getChartRenderer());
 		
 		vo.setTemplateId(getId());
+		vo.setPreventSetExtremeValues(isPreventSetExtremeValues());
+		vo.setSetExtremeLowLimit(getSetExtremeLowLimit());
+		vo.setSetExtremeHighLimit(getSetExtremeHighLimit());
 		
 	}
 	
@@ -580,5 +660,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		
 		/* Chart Renderer */
 		this.setChartRenderer(vo.getChartRenderer());
+		this.setPreventSetExtremeValues(vo.isPreventSetExtremeValues());
+		this.setSetExtremeLowLimit(vo.getSetExtremeLowLimit());
+		this.setSetExtremeHighLimit(vo.getSetExtremeHighLimit());
 	}
 }
