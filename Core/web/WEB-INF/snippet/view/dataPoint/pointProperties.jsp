@@ -124,6 +124,10 @@
 			$set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
 		}
 
+		dijit.byId('preventSetExtremeValues').set('checked', vo.preventSetExtremeValues);
+		dojo.byId("setExtremeLowLimit").value = vo.setExtremeLowLimit;
+		dojo.byId("setExtremeHighLimit").value = vo.setExtremeHighLimit;
+		changeExtremeSet();
 	}
 
 	/*
@@ -138,6 +142,9 @@
 
 		vo.chartColour = dojo.byId("chartColour").value;
 		vo.plotType = dojo.byId("plotType").value;
+		vo.preventSetExtremeValues = dijit.byId("preventSetExtremeValues").get('checked');
+		vo.setExtremeLowLimit = dojo.byId("setExtremeLowLimit").value;
+		vo.setExtremeHighLimit = dojo.byId("setExtremeHighLimit").value;
 	}
 
 	/**
@@ -183,6 +190,18 @@
 		setDisabled('plotType', false);
 		resetPointProperties(dataTypeId);
 	}
+	
+	function changeExtremeSet() {
+	      var prevent = $get("preventSetExtremeValues");
+	      if (prevent) {
+	          $("setExtremeLowLimit").disabled = false;
+	          $("setExtremeHighLimit").disabled = false;
+	      }
+	      else {
+	          $("setExtremeLowLimit").disabled = true;
+	          $("setExtremeHighLimit").disabled = true;
+	      }
+	  }
 </script>
 
 <div>
@@ -259,6 +278,30 @@
             <fmt:message key="pointEdit.plotType.spline" />
           </sst:option>
         </sst:select></td>
+    </tr>
+    
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.preventSetExtremeValues"/></td>
+      <td class="formField">
+        <input
+          data-dojo-type="dijit.form.CheckBox" id="preventSetExtremeValues"
+          name="preventSetExtremeValues"  onchange="changeExtremeSet();"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
+    </tr>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.setExtremeLowLimit"/></td>
+      <td class="formField">
+        <input id="setExtremeLowLimit" type="text" name="setExtremeLowLimit" value="${status.value}" class="formShort"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
+    </tr>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.setExtremeHighLimit"/></td>
+      <td class="formField">
+        <input id="setExtremeHighLimit" type="text" name="setExtremeHighLimit" value="${status.value}" class="formShort"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
     </tr>
   </table>
 </div>

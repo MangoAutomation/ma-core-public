@@ -17,6 +17,18 @@
           $set("plotType", <%= DataPointVO.PlotTypes.STEP %>);
       }
   });
+  
+  function changeExtremeSet() {
+      var prevent = $get("preventSetExtremeValues");
+      if (prevent) {
+          $("setExtremeLowLimit").disabled = false;
+          $("setExtremeHighLimit").disabled = false;
+      }
+      else {
+          $("setExtremeLowLimit").disabled = true;
+          $("setExtremeHighLimit").disabled = true;
+      }
+  }
 </script>
 
 <div class="borderDiv marB marR">
@@ -86,5 +98,34 @@
         <td class="formError">${status.errorMessage}</td>
       </tr>
     </spring:bind>
+    
+    <spring:bind path="form.preventSetExtremeValues">
+        <tr>
+          <td class="formLabelRequired"><fmt:message key="pointEdit.props.preventSetExtremeValues"/></td>
+          <td class="formField">
+            <sst:checkbox id="preventSetExtremeValues" name="preventSetExtremeValues" selectedValue="${status.value}"
+                    onclick="changeExtremeSet()"/>
+          </td>
+          <td class="formError">${status.errorMessage}</td>
+        </tr>
+      </spring:bind>
+      <spring:bind path="form.setExtremeLowLimit">
+        <tr>
+          <td class="formLabelRequired"><fmt:message key="pointEdit.props.setExtremeLowLimit"/></td>
+          <td class="formField">
+            <input id="setExtremeLowLimit" type="text" name="setExtremeLowLimit" value="${status.value}" class="formShort"/>
+          </td>
+          <td class="formError">${status.errorMessage}</td>
+        </tr>
+      </spring:bind>
+      <spring:bind path="form.setExtremeHighLimit">
+        <tr>
+          <td class="formLabelRequired"><fmt:message key="pointEdit.props.setExtremeHighLimit"/></td>
+          <td class="formField">
+            <input id="setExtremeHighLimit" type="text" name="setExtremeHighLimit" value="${status.value}" class="formShort"/>
+          </td>
+          <td class="formError">${status.errorMessage}</td>
+        </tr>
+      </spring:bind>
   </table>
 </div>
