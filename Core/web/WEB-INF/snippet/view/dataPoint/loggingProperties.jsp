@@ -321,7 +321,7 @@
             key="pointEdit.logging.discard" /></td>
         <td class="formField"><input
           data-dojo-type="dijit/form/CheckBox" id="discardExtremeValues"
-          name="discardExtremeValues" onclick="changeDiscard()" /></td>
+          name="discardExtremeValues" onchange="changeDiscard()" /></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message
