@@ -222,13 +222,19 @@
         }
     }
     
-    function dbSizeUpdate() {
-        $set("databaseSize", "<fmt:message key="systemSettings.retrieving"/>");
+    function clearDbSize() {
+    	$set("databaseSize", "");
         $set("filedataSize", "-");
         $set("totalSize", "-");
         $set("historyCount", "-");
         $set("topPoints", "-");
         $set("eventCount", "-");
+        show("refreshImg");
+    }
+    
+    function dbSizeUpdate() {
+    	clearDbSize();
+        $set("databaseSize", "<fmt:message key="systemSettings.retrieving"/>");
         hide("refreshImg");
         SystemSettingsDwr.getDatabaseSize(function(data) {
             $set("databaseSize", data.databaseSize);
@@ -508,7 +514,7 @@
         if (confirm("<fmt:message key='systemSettings.purgeDataWithPurgeSettingsConfirm'/>")) {
             SystemSettingsDwr.purgeNow(function(msg) {
                 stopImageFader("purgeNowImg");
-                dbSizeUpdate();
+                clearDbSize();
             });
             startImageFader("purgeNowImg");
         }
@@ -519,7 +525,7 @@
             setUserMessage("miscMessage", "<fmt:message key="systemSettings.purgeDataInProgress"/>");
             SystemSettingsDwr.purgeAllData(function(msg) {
                 setUserMessage("miscMessage", msg);
-                dbSizeUpdate();
+                clearDbSize();
             });
         }
     }
@@ -529,7 +535,7 @@
             setUserMessage("miscMessage", "<fmt:message key='systemSettings.purgeAllEventsInProgress'/>");
             SystemSettingsDwr.purgeAllEvents(function(msg) {
                 setUserMessage("miscMessage", msg);
-                dbSizeUpdate();
+                clearDbSize();
             });
         }
     }
