@@ -17,7 +17,7 @@ Mango can receive data from any device for which there is a protocol driver. Cur
 
 ### Multiple Datastores
 
-Mango ships with the Derby embedded database so that you don't have to have one of your own. But, Mango can also use MySQL or MSSQL for power users who need performance.
+Mango ships with the H2 embedded database so that you don't have to have one of your own. But, Mango can also use MySQL or MSSQL for power users who need performance.
 
 ### Custom dashboards
 
