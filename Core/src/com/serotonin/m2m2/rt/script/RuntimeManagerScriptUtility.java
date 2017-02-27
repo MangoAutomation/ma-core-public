@@ -52,7 +52,7 @@ public class RuntimeManagerScriptUtility{
 			if(!vo.isEnabled())
 				return OPERATION_NO_CHANGE;
 			
-			DataSourceRT dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
+			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
 			if(dsRt == null)
 				return OPERATION_NO_CHANGE;
 			
@@ -210,18 +210,28 @@ public class RuntimeManagerScriptUtility{
 			return OPERATION_NO_CHANGE;
 	}
 	
+	public void sleep(long time) {
+		try {
+			Thread.sleep(time);
+		} catch(Exception e) {
+			//no-op
+		}
+	}
+	
 	public String getHelp(){
 		return toString();
 	}
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		builder.append("{ ");
-		builder.append("dataSourceEnabled(xid): boolean, \n");
+		builder.append("refreshDataPoint(xid): -1 0 1, \n");
+		builder.append("isDataSourceEnabled(xid): boolean, \n");
 		builder.append("enableDataSource(xid): -1 0 1, \n");
 		builder.append("disableDataSource(xid): -1 0 1, \n");
-		builder.append("dataPointEnabled(xid): boolean, \n");
+		builder.append("isDataPointEnabled(xid): boolean, \n");
 		builder.append("enableDataPoint(xid): -1 0 1, \n");
 		builder.append("disableDataPoint(xid): -1 0 1, \n");
+		builder.append("sleep(milliseconds): void, \n");
 		builder.append(" }");
 		return builder.toString();
 	}
