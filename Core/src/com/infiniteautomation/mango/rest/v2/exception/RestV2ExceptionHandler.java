@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.web.mvc.rest.v2.exception;
+package com.infiniteautomation.mango.rest.v2.exception;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

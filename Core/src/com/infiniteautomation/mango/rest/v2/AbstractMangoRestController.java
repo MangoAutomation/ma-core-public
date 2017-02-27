@@ -2,13 +2,13 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  *
  */
-package com.infiniteautomation.mango.web.mvc.rest.v2;
+package com.infiniteautomation.mango.rest.v2;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.infiniteautomation.mango.web.mvc.rest.v2.exception.ForbiddenAccessRestException;
-import com.infiniteautomation.mango.web.mvc.rest.v2.exception.InvalidRQLRestException;
-import com.infiniteautomation.mango.web.mvc.rest.v2.exception.UnauthorizedRestException;
+import com.infiniteautomation.mango.rest.v2.exception.ForbiddenAccessRestException;
+import com.infiniteautomation.mango.rest.v2.exception.InvalidRQLRestException;
+import com.infiniteautomation.mango.rest.v2.exception.UnauthorizedRestException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;

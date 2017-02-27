@@ -2,7 +2,7 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  *
  */
-package com.infiniteautomation.mango.web.mvc.rest.v2.mapping;
+package com.infiniteautomation.mango.rest.v2.mapping;
 
 import java.io.IOException;
 import java.util.Locale;

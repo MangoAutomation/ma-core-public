@@ -2,12 +2,12 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  *
  */
-package com.infiniteautomation.mango.web.mvc.rest.v2.model;
+package com.infiniteautomation.mango.rest.v2.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.infiniteautomation.mango.web.mvc.rest.v2.exception.ValidationFailedRestException;
+import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessageLevel;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestValidationMessage;
