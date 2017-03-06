@@ -30,7 +30,7 @@
   Note that for some units there are multiple ways of entering the unit, e.g. for degrees celsius you can enter &deg;C or
   Celsius, for ohms you can use &Omega; or Ohm. Also remember that there are sometimes multiple definitions of a unit, e.g. there are metric tonnes (t),
   short tons (ton_us) and long tons (ton_uk). You can use all SI prefixes on SI units, e.g. you can enter W for watt
-  and also &micro;W (microwatt), MW (megawatt) etc.
+  and also &micro;W (microwatt), MW (megawatt) etc.</p>
   <br>
   For SI Units see the list here <a href='http://jscience.org/api/javax/measure/unit/SI.html' target='blank'>here</a>.
   <br>
@@ -51,7 +51,11 @@
     <li>Celsius - &deg;C</li>
     <li>Fahrenheit - &deg;F</li>
   </ul>
-  
+
+<p>  
+  Units can also be constructed as an expression of units, such as expressing the units of acceleration m/s^2 or a unit of
+  surface loss m^2/s. Kilowatt hours is special: while kW*h would be the means of building it, <b>kWh</b> is the standard suffix
+  and both are supported units. Similarly, gal/min is more simply labeled <b>gpm</b> in common practice, and both are accepted units.
 </p>
 <p>
   The <b>Displayed unit</b> specifies which unit the renderer should convert to for display (if supported by the renderer).
