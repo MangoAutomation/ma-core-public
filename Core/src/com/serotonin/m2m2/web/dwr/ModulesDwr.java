@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -137,7 +138,10 @@ public class ModulesDwr extends BaseDwr {
                 }
             }
         }
-        catch (Exception e) {
+        catch (UnknownHostException e) {
+        	LOG.error("", e);
+        	result.addData("unknownHost", e.getMessage());
+        } catch (Exception e) {
             LOG.error("", e);
             result.addData("error", e.getMessage());
         }
