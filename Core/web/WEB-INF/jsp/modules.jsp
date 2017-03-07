@@ -62,6 +62,10 @@
         ModulesDwr.versionCheck(function(result) {
             enableButton("versionCheckBtn");
         	
+            if (result.data.unknownHost) {
+            	alert("<m2m2:translate key="modules.versionCheck.unknownHost" escapDQuotes="true"/> " + result.data.unknownHost);
+            	return;
+            }
             if (result.data.error) {
                 alert("<m2m2:translate key="modules.versionCheck.error" escapeDQuotes="true"/> "+ result.data.error);
                 return;
