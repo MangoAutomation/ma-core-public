@@ -63,7 +63,7 @@
             enableButton("versionCheckBtn");
         	
             if (result.data.unknownHost) {
-            	alert("<m2m2:translate key="modules.versionCheck.unknownHost" escapDQuotes="true"/> " + result.data.unknownHost);
+            	alert("<m2m2:translate key="modules.versionCheck.unknownHost" escapeDQuotes="true"/> " + result.data.unknownHost);
             	return;
             }
             if (result.data.error) {
