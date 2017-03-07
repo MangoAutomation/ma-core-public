@@ -25,6 +25,7 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandlerModel;
+import com.serotonin.util.SerializationHelper;
 
 /**
  * @author Terry Packer
@@ -56,6 +57,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private boolean includeSystemInfo; //Include Work Items and Service Thread Pool Data
     private int includePointValueCount = 10;
     private boolean includeLogfile;
+    private String customTemplate;
     
     public List<RecipientListEntryBean> getActiveRecipients() {
         return activeRecipients;
@@ -143,6 +145,14 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	public void setIncludeLogfile(boolean includeLogfile) {
 		this.includeLogfile = includeLogfile;
 	}
+	
+	public String getCustomTemplate() {
+		return customTemplate;
+	}
+	
+	public void setCustomTemplate(String customTemplate) {
+		this.customTemplate = customTemplate;
+	}
 
 	@Override
 	public void validate(ProcessResult response) {
@@ -168,7 +178,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
     	out.writeInt(version);
@@ -183,6 +193,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         out.writeBoolean(includeSystemInfo);
         out.writeInt(includePointValueCount);
         out.writeBoolean(includeLogfile);
+        SerializationHelper.writeSafeUTF(out, customTemplate);
     }
 	
     @SuppressWarnings("unchecked")
@@ -203,6 +214,24 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
+            customTemplate = null;
+        }
+        else if (ver == 2) {
+        	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
         }
     }
     
@@ -225,6 +254,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         writer.writeEntry("includeSystemInformation", includeSystemInfo);
         writer.writeEntry("includePointValueCount", includePointValueCount);
         writer.writeEntry("includeLogfile", includeLogfile);
+        writer.writeEntry("customTemplate", customTemplate);
     }
     
     @SuppressWarnings("unchecked")
@@ -288,6 +318,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         if(b != null){
         	includeSystemInfo = b;
         }
+        
+        customTemplate = jsonObject.getString("customTemplate");
+        
     }
     
     @Override

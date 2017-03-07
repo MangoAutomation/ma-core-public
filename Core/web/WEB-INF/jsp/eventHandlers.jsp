@@ -418,6 +418,7 @@
                 $set("includeLogfile", handler.includeLogfile);
                 $set("includePointValueCount", handler.includePointValueCount);
                 inactiveRecipients.updateRecipientList(handler.inactiveRecipients);
+                $set("customTemplate", handler.customTemplate);
             }
             else if (handler.handlerType == '<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
                 $set("activeProcessCommand", handler.activeProcessCommand);
@@ -588,7 +589,7 @@
             var escalList = escalRecipients.createRecipientArray();
             var inactiveList = inactiveRecipients.createRecipientArray();
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
-                    eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("sendEscalation"),
+                    eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("customTemplate"), $get("sendEscalation"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
                     $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), saveEventHandlerCB);
         }
@@ -781,6 +782,8 @@
             <tbody id="emailRecipients"></tbody>
             
             <tr><td class="horzSeparator" colspan="2"></td></tr>
+            <tr><td class="formLabel"><fmt:message key="eventHandlers.customTemplate"/></td>
+            <td class="formField"><textarea id="customTemplate"></textarea></td>
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.includeSystemInfo"/></td>
               <td class="formField"><input id="includeSystemInfo" type="checkbox" /></td>

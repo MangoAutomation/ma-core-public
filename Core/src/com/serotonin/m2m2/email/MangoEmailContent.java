@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.email;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
 
 import com.serotonin.m2m2.Common;
@@ -30,6 +31,27 @@ public class MangoEmailContent extends TemplateEmailContent {
 
     private final String defaultSubject;
     private final SubjectDirective subjectDirective;
+    
+    public MangoEmailContent(String handlerXid, String rawTemplate, Map<String, Object> model, Translations translations, 
+    		String defaultSubject) throws TemplateException, IOException {
+    	super(Common.UTF8);
+
+        int type = SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
+
+        this.defaultSubject = defaultSubject;
+        this.subjectDirective = new SubjectDirective(translations);
+
+        model.put("fmt", new MessageFormatDirective(translations));
+        model.put("subject", subjectDirective);
+
+        Template template = new Template(handlerXid, new StringReader(rawTemplate), Common.freemarkerConfiguration);
+        
+        if (type == CONTENT_TYPE_HTML || type == CONTENT_TYPE_BOTH)
+            setHtmlTemplate(template, model);
+
+        if (type == CONTENT_TYPE_TEXT || type == CONTENT_TYPE_BOTH)
+            setPlainTemplate(template, model);
+    }
 
     public MangoEmailContent(String templateName, Map<String, Object> model, Translations translations,
             String defaultSubject, String encoding) throws TemplateException, IOException {

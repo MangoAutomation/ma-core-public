@@ -136,4 +136,12 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 		this.data.setIncludeLogfile(includeLogfile);
 	}
 	
+	public String getCustomTemplate() {
+		return this.data.getCustomTemplate();
+	}
+	
+	public void setCustomTemplate(String customTemplate) {
+		this.data.setCustomTemplate(customTemplate);
+	}
+	
 }

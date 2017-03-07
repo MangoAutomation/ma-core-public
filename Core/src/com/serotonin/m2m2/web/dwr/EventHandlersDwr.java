@@ -240,13 +240,14 @@ public class EventHandlersDwr extends BaseDwr {
     @DwrPermission(user = true)
     public ProcessResult saveEmailEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled,
-            List<RecipientListEntryBean> activeRecipients, boolean sendEscalation, int escalationDelayType,
+            List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, int escalationDelayType,
             int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
             boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo, 
             int includePointValueCount, boolean includeLogfile) {
         EmailEventHandlerVO handler = new EmailEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
         handler.setActiveRecipients(activeRecipients);
+        handler.setCustomTemplate(customTemplate);
         handler.setSendEscalation(sendEscalation);
         handler.setEscalationDelayType(escalationDelayType);
         handler.setEscalationDelay(escalationDelay);

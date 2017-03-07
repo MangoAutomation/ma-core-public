@@ -86,6 +86,12 @@
 <p>
   Including the logfile is optional and can be used to capture the <b>full</b> logfile at the moment of the event.  This is a zip attachment to the email.
 </p>
+<p>
+  A <b>Custom template</b> can be provided to override the event active message sent by the email handler. The default templates
+  can be found in Mango/ftl/*/active.ftl (depends on system settings for email) and the include folders. The same object model is 
+  passed to the custom template. Having an empty custom template means the default will be used. The textarea can be resized by
+  dragging its corner.
+</p>
 
 <h1>Editing set point handlers</h1>
 <p>

@@ -149,15 +149,17 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
-        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false);
+        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false, null, null);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), vo.isIncludeLogfile());
+        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), 
+        		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
-            String alias, boolean includeSystemInfo, int pointValueCount, boolean includeLogs) {
+            String alias, boolean includeSystemInfo, int pointValueCount, boolean includeLogs, String handlerXid,
+            String customTemplate) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
                     SystemEventType.TYPE_EMAIL_SEND_FAILURE)) {
@@ -264,7 +266,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             	}
             }
             
-            MangoEmailContent content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
+            MangoEmailContent content;
+            if(StringUtils.isEmpty(customTemplate))
+            	content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
+            else
+            	content = new MangoEmailContent(handlerXid, customTemplate, model, translations, subject);
+            
             PostEmailRunnable[] postEmail = null;
             if(includeLogs){
     	        final File logZip = getZippedLogfile(content, new File(Common.getLogsDir(), "ma.log"));
