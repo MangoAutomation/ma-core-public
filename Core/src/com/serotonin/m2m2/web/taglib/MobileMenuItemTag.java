@@ -29,6 +29,7 @@ public class MobileMenuItemTag extends TagSupport{
     private String png;
     private String src;
     private String key;
+    private String onclick;
 
     public void setDef(MenuItemDefinition def) {
         this.def = def;
@@ -53,6 +54,10 @@ public class MobileMenuItemTag extends TagSupport{
 
     public void setKey(String key) {
         this.key = key;
+    }
+    
+    public void setOnclick(String onclick) {
+        this.onclick = onclick;
     }
 
     @Override
@@ -79,7 +84,7 @@ public class MobileMenuItemTag extends TagSupport{
             else {
                 _id = id;
                 _href = href;
-                _onclick = null;
+                _onclick = onclick;
                 _target = null;
                 _key = key;
                 _src = src;
@@ -106,6 +111,7 @@ public class MobileMenuItemTag extends TagSupport{
                 quote(sb,"id",text + "_icon");
                 quote(sb,"icon",_src);
                 quote(sb,"href",_href); //Could use url and then load fragments via a controller
+                quote(sb, "onclick", _onclick);
                 quote(sb,"transition","slide");
                 sb.append(">");
                 sb.append("</li>");

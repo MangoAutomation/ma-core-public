@@ -599,6 +599,16 @@
 			<artifactId>guava</artifactId>
 			<version>19.0</version>
 		</dependency>
+		<dependency>
+		  <groupId>org.bouncycastle</groupId>
+		  <artifactId>bcprov-jdk15on</artifactId>
+		  <version>1.56</version>
+		</dependency>
+		<dependency>
+		  <groupId>io.jsonwebtoken</groupId>
+		  <artifactId>jjwt</artifactId>
+		  <version>0.7.0</version>
+		</dependency>
 	</dependencies>
 	<parent>
 		<artifactId>mango-parent</artifactId>

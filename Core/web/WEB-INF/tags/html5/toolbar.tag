@@ -51,7 +51,7 @@
   <c:if test="${!empty sessionUser}">
     <div class="user-nav">
       <span class="username"><fmt:message key="header.user"/>: <strong>${sessionUser.username}</strong></span>
-      <m2m2:html5menuItem id="logoutMi" href="/logout.htm" png="control-power" key="header.logout"/>
+      <m2m2:html5menuItem id="logoutMi" href="#" onclick="getElementById('logout-form').submit()" png="control-power" key="header.logout"/>
         <img id="userMutedIcon" class="ptr" <%-- We don't have ability to play a sound --%> />
         <div id="homeWidget" style="display: inline;" >
           <img id="goHome" class="ptr" src="/images/house.png" title="<fmt:message key='header.goHomeUrl'/>" alt="<fmt:message key='header.goHomeUrl'/>"/>

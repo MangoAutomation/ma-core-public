@@ -13,11 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.AntPathMatcher;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ControllerMappingDefinition;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.UriMappingDefinition;
 import com.serotonin.m2m2.module.UrlMappingDefinition;
@@ -49,13 +49,14 @@ public class UrlSecurityFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         boolean foundMapping = false;
+        User user = Common.getHttpUser();
+        String msg;
        
         String uri = request.getRequestURI();
         for (UriMappingDefinition uriDef : ModuleRegistry.getDefinitions(UriMappingDefinition.class)) {
             if(matcher.match(uriDef.getPath(), uri)){
                 boolean allowed = true;
                 foundMapping = true;
-                User user = Common.getUser(request);
                 
                 switch (uriDef.getPermission()) {
                 case ADMINISTRATOR:
@@ -83,18 +84,14 @@ public class UrlSecurityFilter implements Filter {
                 }
 
                 if (!allowed) {
-                	String msg;
                 	if(user == null){
                 		msg = "Denying access to page where user isn't logged in, uri=" + uri + ", remote host ip= " + request.getRemoteHost();
                 	}else{
                 		msg = "Denying access to page where user hasn't sufficient permission, user="
                                 + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
-                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
-                		return;
                 	}
                     LOG.warn(msg);
-                }else{
-                	request.setAttribute("urlSecurity", true);
+                    throw new AccessDeniedException(msg);
                 }
 
                 break;
@@ -107,9 +104,7 @@ public class UrlSecurityFilter implements Filter {
 	            if(matcher.match(uriDef.getPath(), uri)){
 	                boolean allowed = true;
 	                foundMapping = true;
-	
-	                User user = Common.getUser(request);
-	                
+
 	                switch (uriDef.getPermission()) {
 	                case ADMINISTRATOR:
 	                    if ((user==null)||(!Permissions.hasAdmin(user)))
@@ -136,18 +131,14 @@ public class UrlSecurityFilter implements Filter {
 	                }
 	
 	                if (!allowed) {
-	                	String msg;
 	                	if(user == null){
 	                		msg = "Denying access to page where user isn't logged in, uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                	}else{
 	                		msg = "Denying access to page where user hasn't sufficient permission, user="
 	                                + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
-	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
-	                		return;
 	                	}
 	                    LOG.info(msg);
-	                }else{
-	                	request.setAttribute("urlSecurity", true);
+	                    throw new AccessDeniedException(msg);
 	                }
 	
 	                break;
@@ -161,9 +152,7 @@ public class UrlSecurityFilter implements Filter {
 	            if(matcher.match(uriDef.getUrlPath(), uri)){
 	                boolean allowed = true;
 	                foundMapping = true;
-	
-	                User user = Common.getUser(request);
-	                
+
 	                switch (uriDef.getPermission()) {
 	                case ADMINISTRATOR:
 	                    if ((user==null)||(!Permissions.hasAdmin(user)))
@@ -183,18 +172,14 @@ public class UrlSecurityFilter implements Filter {
 	                }
 	
 	                if (!allowed) {
-	                	String msg;
 	                	if(user == null){
 	                		msg = "Denying access to page where user isn't logged in, uri=" + uri + ", remote host ip= " + request.getRemoteHost();
 	                	}else{
 	                		msg = "Denying access to page where user hasn't sufficient permission, user="
 	                                + user.getUsername() + ", uri=" + uri + ", remote host ip= " + request.getRemoteHost();
-	                		response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, response, user));
-	                		return;
 	                	}
 	                    LOG.info(msg);
-	                }else{
-	                	request.setAttribute("urlSecurity", true);
+	                    throw new AccessDeniedException(msg);
 	                }
 	
 	                break;

@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.SessionCookieConfig;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -104,5 +105,9 @@ public class M2M2ContextListener implements ServletContextListener {
         for (String code : codes)
             messages.put(code, new TranslatableMessage(code));
         ctx.setAttribute("clientSideMessages", messages);
+        
+        SessionCookieConfig sessionCookieConfig = ctx.getSessionCookieConfig();
+        sessionCookieConfig.setHttpOnly(true);
+        sessionCookieConfig.setName("MANGO" + Common.envProps.getInt("web.port", 8080));
     }
 }

@@ -35,7 +35,7 @@ public class DataPointDetailsController implements UrlHandler {
     @Override
     public View handleRequest(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
             throws Exception {
-        User user = Common.getUser(request);
+        User user = Common.getHttpUser();
 
         int id = -1;
         if (user.getEditPoint() != null)
@@ -151,7 +151,7 @@ public class DataPointDetailsController implements UrlHandler {
     //    protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
     //            throws Exception {
     //        Map<String, Object> model = new HashMap<String, Object>();
-    //        User user = Common.getUser(request);
+    //        User user = Common.getHttpUser();
     //
     //        int id = -1;
     //        if (user.getEditPoint() != null)

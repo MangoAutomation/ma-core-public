@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.websocket;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -26,12 +28,16 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
 			Map<String, Object> attributes) throws Exception {
 		
 		//Setup Session Tracking
-		User user = Common.getUser(((ServletServerHttpRequest)request).getServletRequest());
+	    User user = Common.getHttpUser();
 		if (user != null) {
 		    attributes.put("user", user);
 		}
-
-		attributes.put("httpsession", ((ServletServerHttpRequest)request).getServletRequest().getSession());
+		
+		HttpSession session = ((ServletServerHttpRequest)request).getServletRequest().getSession(false);
+		if (session != null) {
+	        attributes.put("httpsession", session);
+		}
+		
 		return super.beforeHandshake(request, response, wsHandler, attributes);
 	}
 
