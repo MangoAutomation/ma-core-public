@@ -32,7 +32,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
@@ -41,7 +40,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.JsonSerializableUtility;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.web.dwr.EventsDwr;
 
@@ -111,7 +110,7 @@ public class EventDao extends BaseDao {
 //            args[10] = event.getAcknowledgedTimestamp();
 //        }
         event.setId(doInsert(EVENT_INSERT, args, EVENT_INSERT_TYPES));
-        event.setEventComments(new LinkedList<UserComment>());
+        event.setEventComments(new LinkedList<UserCommentVO>());
     }
 
     private static final String EVENT_UPDATE = "update events set rtnTs=?, rtnCause=? where id=?";
@@ -173,7 +172,7 @@ public class EventDao extends BaseDao {
     private static final String BASIC_EVENT_SELECT = //
     "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
             + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //
-            + "  (select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT //
+            + "  (select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT //
             + "     and typeKey=e.id) as cnt " //
             + "from events e " //
             + "  left join users u on e.ackUserId=u.id ";
@@ -192,7 +191,7 @@ public class EventDao extends BaseDao {
     private static final String EVENT_SELECT_WITH_USER_DATA = //
     "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
             + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //
-            + "  (select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT //
+            + "  (select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT //
             + "     and typeKey=e.id) as cnt, " //
             + "  ue.silenced " //
             + "from events e " //
@@ -348,19 +347,19 @@ public class EventDao extends BaseDao {
             attachRelationalInfo(e);
     }
 
-    private static final String EVENT_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT //
-            + "where uc.commentType= " + UserComment.TYPE_EVENT //
+    private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
+            + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
             + " and uc.typeKey=? " //
             + "order by uc.ts";
 
     void attachRelationalInfo(EventInstance event) {
         if (event.isHasComments())
             event.setEventComments(query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
-                    new UserCommentRowMapper()));
+                    UserCommentDao.instance.getRowMapper()));
     }
 
-    public EventInstance insertEventComment(int eventId, UserComment comment) {
-        UserDao.instance.insertUserComment(UserComment.TYPE_EVENT, eventId, comment);
+    public EventInstance insertEventComment(int eventId, UserCommentVO comment) {
+        UserCommentDao.instance.insertUserComment(UserCommentVO.TYPE_EVENT, eventId, comment);
         return getEventInstance(eventId);
     }
 
@@ -374,7 +373,7 @@ public class EventDao extends BaseDao {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 int tot = ejt2.update("delete from events"); //UserEvents table will be deleted on cascade
-                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT);
+                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT);
                 return tot;
             }
         });
@@ -396,7 +395,7 @@ public class EventDao extends BaseDao {
                 int count = ejt2.update("delete from events where activeTs<? and alarmLevel=?", new Object[] { time, alarmLevel});
 
                 // Delete orphaned user comments.
-                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
+                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
                         + "  and typeKey not in (select id from events)");
 
                 return count;
@@ -423,7 +422,7 @@ public class EventDao extends BaseDao {
                 int count = ejt2.update("delete from events where activeTs<? and typeName=?", new Object[] { time, typeName});
 
                 // Delete orphaned user comments.
-                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
+                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
                         + "  and typeKey not in (select id from events)");
 
                 return count;
@@ -444,7 +443,7 @@ public class EventDao extends BaseDao {
                 int count = ejt2.update("delete from events where activeTs<?", new Object[] { time });
 
                 // Delete orphaned user comments.
-                ejt2.update("delete from userComments where commentType=" + UserComment.TYPE_EVENT
+                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
                         + "  and typeKey not in (select id from events)");
 
                 return count;
@@ -538,7 +537,7 @@ public class EventDao extends BaseDao {
                         StringBuilder text = new StringBuilder();
                         text.append(e.getMessage().translate(translations));
                         if (e.isHasComments()) {
-                            for (UserComment comment : e.getEventComments())
+                            for (UserCommentVO comment : e.getEventComments())
                                 text.append(' ').append(comment.getComment());
                         }
 

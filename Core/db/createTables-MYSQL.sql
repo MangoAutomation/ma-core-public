@@ -50,6 +50,7 @@ create table users (
 ) engine=InnoDB;
 
 create table userComments (
+  id int not null auto_increment,
   userId int,
   commentType int not null,
   typeKey int not null,

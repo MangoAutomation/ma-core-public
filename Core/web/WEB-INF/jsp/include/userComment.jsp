@@ -10,7 +10,7 @@
     For data point comments, ...
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<%@page import="com.serotonin.m2m2.vo.UserComment"%>
+<%@page import="com.serotonin.m2m2.vo.comment.UserCommentVO"%>
 <script type="text/javascript">
   dojo.require("dijit.Dialog");
   
@@ -49,9 +49,9 @@
           // Add a row for the comment by cloning the template.
          
           var commentsNode;
-          if (commentTypeId == <%= UserComment.TYPE_EVENT %>)
+          if (commentTypeId == <%= UserCommentVO.TYPE_EVENT %>)
               commentsNode = $("eventComments"+ commentReferenceId);
-          else if (commentTypeId == <%= UserComment.TYPE_POINT %>)
+          else if (commentTypeId == <%= UserCommentVO.TYPE_POINT %>)
               commentsNode = $("pointComments"+ commentReferenceId);
           //Since we are now using this outside of the old format
           if(commentsNode != null){

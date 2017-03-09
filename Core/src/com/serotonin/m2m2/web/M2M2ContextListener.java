@@ -21,7 +21,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class M2M2ContextListener implements ServletContextListener {
@@ -90,8 +90,8 @@ public class M2M2ContextListener implements ServletContextListener {
         ctx.setAttribute("constants.AuditEventType.TYPE_EVENT_DETECTOR", AuditEventType.TYPE_EVENT_DETECTOR);
         ctx.setAttribute("constants.AuditEventType.TYPE_EVENT_HANDLER", AuditEventType.TYPE_EVENT_HANDLER);
 
-        ctx.setAttribute("constants.UserComment.TYPE_EVENT", UserComment.TYPE_EVENT);
-        ctx.setAttribute("constants.UserComment.TYPE_POINT", UserComment.TYPE_POINT);
+        ctx.setAttribute("constants.UserComment.TYPE_EVENT", UserCommentVO.TYPE_EVENT);
+        ctx.setAttribute("constants.UserComment.TYPE_POINT", UserCommentVO.TYPE_POINT);
 
         String[] codes = { "common.access.read", "common.access.set", "common.alarmLevel.none",
                 "common.alarmLevel.info", "common.alarmLevel.urgent", "common.alarmLevel.critical",

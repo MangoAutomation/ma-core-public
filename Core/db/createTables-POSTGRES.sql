@@ -47,6 +47,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE userComments (
+  id int not null auto_increment,
   userId integer,
   commentType integer NOT NULL,
   typeKey integer NOT NULL,

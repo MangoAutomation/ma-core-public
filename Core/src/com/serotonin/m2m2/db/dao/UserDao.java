@@ -25,8 +25,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.UserComment;
-import com.serotonin.web.taglib.Functions;
 
 public class UserDao extends AbstractDao<User> {
 	
@@ -202,20 +200,6 @@ public class UserDao extends AbstractDao<User> {
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
     }
-
-    //
-    //
-    // User comments
-    //
-    private static final String USER_COMMENT_INSERT = //
-    "INSERT INTO userComments (userId, commentType, typeKey, ts, commentText) VALUES (?,?,?,?,?)";
-
-    public void insertUserComment(int typeId, int referenceId, UserComment comment) {
-        comment.setComment(Functions.truncate(comment.getComment(), 1024));
-        ejt.update(USER_COMMENT_INSERT, new Object[] { comment.getUserId(), typeId, referenceId, comment.getTs(),
-                comment.getComment() });
-    }
-    
     
     //Overrides for use in AbstractBasicDao
 	/* (non-Javadoc)

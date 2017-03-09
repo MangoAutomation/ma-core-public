@@ -36,6 +36,7 @@ import com.serotonin.m2m2.ILifecycle;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -56,10 +57,9 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.web.content.ContentGenerator;
 import com.serotonin.m2m2.web.dwr.beans.BasePointState;
 import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
 import com.serotonin.m2m2.web.dwr.beans.PointDetailsState;
@@ -71,6 +71,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
 import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.provider.Providers;
+import com.serotonin.web.content.ContentGenerator;
 
 abstract public class BaseDwr {
 	public static final String MODEL_ATTR_EVENTS = "events";
@@ -286,22 +287,22 @@ abstract public class BaseDwr {
 	 * @return
 	 */
 	@DwrPermission(user = true)
-	public UserComment addUserComment(int typeId, int referenceId,
+	public UserCommentVO addUserComment(int typeId, int referenceId,
 			String comment) {
 		if (StringUtils.isBlank(comment))
 			return null;
 
 		User user = Common.getUser();
-		UserComment c = new UserComment();
+		UserCommentVO c = new UserCommentVO();
 		c.setComment(comment);
 		c.setTs(System.currentTimeMillis());
 		c.setUserId(user.getId());
 		c.setUsername(user.getUsername());
 
-		if (typeId == UserComment.TYPE_EVENT)
+		if (typeId == UserCommentVO.TYPE_EVENT)
 			EVENT_DAO.insertEventComment(referenceId, c);
-		else if (typeId == UserComment.TYPE_POINT)
-			UserDao.instance.insertUserComment(UserComment.TYPE_POINT,
+		else if (typeId == UserCommentVO.TYPE_POINT)
+			UserCommentDao.instance.insertUserComment(UserCommentVO.TYPE_POINT,
 					referenceId, c);
 		else
 			throw new ShouldNeverHappenException("Invalid comment type: "

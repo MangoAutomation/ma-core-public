@@ -31,7 +31,7 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 
 /**
@@ -49,7 +49,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_INSTANCE"), null,"evt",
 				new String[]{
 					"u.username",
-					"(select count(1) from userComments where commentType=" + UserComment.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
+					"(select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
 					"ue.silenced"});
 		LOG = LogFactory.getLog(EventInstanceDao.class);
 	}
@@ -351,15 +351,15 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             return event;
         }
         
-        private static final String EVENT_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT //
-                + "where uc.commentType= " + UserComment.TYPE_EVENT //
+        private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
+                + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
                 + " and uc.typeKey=? " //
                 + "order by uc.ts";
 
         void attachRelationalInfo(EventInstanceVO event) {
             if (event.isHasComments())
                 event.setEventComments(EventInstanceDao.instance.query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
-                        new UserCommentRowMapper()));
+                        UserCommentDao.instance.getRowMapper()));
         }
 
         

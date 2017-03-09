@@ -10,7 +10,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -23,11 +23,13 @@ import com.serotonin.validation.StringValidation;
 public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
 	
 	public static final ExportCodes COMMENT_TYPE_CODES = new ExportCodes();
-	
+    public static final int TYPE_EVENT = 1;
+    public static final int TYPE_POINT = 2;
+    public static final int TYPE_JSON_DATA = 3;
 	static{
-		COMMENT_TYPE_CODES.addElement(UserComment.TYPE_POINT, "POINT");
-		COMMENT_TYPE_CODES.addElement(UserComment.TYPE_EVENT, "EVENT");
-		COMMENT_TYPE_CODES.addElement(UserComment.TYPE_JSON_DATA, "JSON_DATA");
+		COMMENT_TYPE_CODES.addElement(TYPE_POINT, "POINT");
+		COMMENT_TYPE_CODES.addElement(TYPE_EVENT, "EVENT");
+		COMMENT_TYPE_CODES.addElement(TYPE_JSON_DATA, "JSON_DATA");
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -91,7 +93,10 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
         this.username = username;
     }
 
-	
+    public String getPrettyTime() {
+        return Functions.getTime(ts);
+    }
+    
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
 	 */
