@@ -26,14 +26,6 @@ public class Upgrade13 extends DBUpgrade {
     protected String getNewSchemaVersion() {
         return "14";
     }
-    
-    /**
-     * TODO Upgrade12 uses some code that will not function in this version of the core
-     * 	because deserializing the email event handler uses the UserDao to get its recipients at some stage.
-     *  Therefore these changes will prevent someone from successfully upgrading their database from 11 to 13
-     *  because the Dao will upgrade to 13's before the upgrade scripts run, and upgrade 12 will fail a select
-     *  that relies on upgrade 13 having happened.
-     */
 
     private final String[] mssqlScript = {
         "ALTER TABLE users ADD COLUMN name varchar(255) NOT NULL DEFAULT '';",

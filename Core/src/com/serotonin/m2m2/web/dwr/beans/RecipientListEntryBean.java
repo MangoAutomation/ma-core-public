@@ -183,7 +183,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     				it.remove();
     			break;
     		case EmailRecipient.TYPE_USER:
-    			if(UserDao.instance.getUser(bean.referenceId) == null)
+    			if(!UserDao.instance.userExists(bean.referenceId))
     				it.remove();
     			break;
     		}

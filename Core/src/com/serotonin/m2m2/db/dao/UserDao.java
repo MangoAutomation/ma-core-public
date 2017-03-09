@@ -56,6 +56,10 @@ public class UserDao extends AbstractDao<User> {
         return queryForObject(USER_SELECT + "WHERE LOWER(username)=LOWER(?)", new Object[] { username },
                 new UserRowMapper(), null);
     }
+    
+    public boolean userExists(int id) {
+    	return ejt.queryForInt("SELECT count(id) FROM users WHERE id="+id, new Object[0], 0) == 1;
+    }
 
     class UserRowMapper implements RowMapper<User> {
         @Override
@@ -81,7 +85,7 @@ public class UserDao extends AbstractDao<User> {
             return user;
         }
     }
-
+    
     public List<User> getUsers() {
         return query(USER_SELECT + "ORDER BY username", new Object[0], new UserRowMapper());
     }
