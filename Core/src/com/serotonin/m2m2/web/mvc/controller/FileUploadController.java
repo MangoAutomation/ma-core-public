@@ -29,8 +29,10 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.PointValueEmporter;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter;
 import com.serotonin.m2m2.vo.emport.SpreadsheetEmporter.FileType;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 
@@ -43,11 +45,18 @@ public class FileUploadController implements UrlHandler {
 	
     public View handleRequest(HttpServletRequest request, HttpServletResponse response, Map<String, Object> model)
             throws Exception {
-    	
-        Permissions.ensureAdmin(Common.getHttpUser());
-    	
+        ensurePermission(Common.getHttpUser());
         return prepareResponse(request,response,model);
-
+    }
+    
+    /**
+     * Ensure that the User has permissions to upload the file for this controller.
+     * 
+     * NOTE: This is used by the DataImportController in the Data Import Module
+     * @param user
+     */
+    protected void ensurePermission(User user) throws PermissionException{
+    	Permissions.ensureAdmin(Common.getHttpUser());
     }
 
 	/**
