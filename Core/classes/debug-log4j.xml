@@ -51,6 +51,8 @@
     <param name="LocationInfo" value="true"/>
     <appender-ref ref="applicationConsole"/>
   </appender>
+
+  <category name="com.deltamation"><level value="debug"/></category>
   
   <category name="org.directwebremoting"><level value="warn"/></category>
   <category name="org.springframework"><level value="error"/></category>

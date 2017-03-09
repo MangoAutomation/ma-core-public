@@ -379,6 +379,7 @@
     <!-- NEW Targets for Debugging at the Core Directory Level, above target directory-->
     <target name="jsp-compile-eclipse"
             description="Compile the JSPs in place for debugging">
+    	<echo message="Compiling JSPs to: ${core.target}"/>
         <taskdef name="jasper2" classname="org.apache.jasper.JspC">
             <classpath>
                 <pathelement path="${coreHome}/classes" />
