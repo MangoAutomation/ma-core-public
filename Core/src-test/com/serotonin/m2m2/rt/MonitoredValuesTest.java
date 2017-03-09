@@ -9,8 +9,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
@@ -34,7 +32,6 @@ public class MonitoredValuesTest {
 	final int period = 100; //Ms period
 	
 	
-	@Test
 	public void loadTest(){
 		
 		//Setup a Timer
