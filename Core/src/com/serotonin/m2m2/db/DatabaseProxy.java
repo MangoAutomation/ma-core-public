@@ -183,6 +183,8 @@ abstract public class DatabaseProxy {
             if (NoSQLProxyFactory.instance.getProxy() != null) {
                 noSQLProxy = NoSQLProxyFactory.instance.getProxy();
                 noSQLProxy.initialize();
+            } else {
+            	PointValueDaoSQL.initializeMonitors();
             }
 
         }

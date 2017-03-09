@@ -63,6 +63,29 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     private static final String POINT_VALUE_ANNOTATION_INSERT = "insert into pointValueAnnotations "
             + "(pointValueId, textPointValueShort, textPointValueLong, sourceMessage) values (?,?,?,?)";
 
+    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
+    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
+    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
+    private static IntegerMonitor ENTRIES_MONITOR = null;
+    private static IntegerMonitor INSTANCES_MONITOR = null;
+    //TODO Create DoubleMonitor but will need to upgrade the Internal data source to do this
+    private static IntegerMonitor BATCH_WRITE_SPEED_MONITOR = null;
+    private static boolean monitorsInitialized = false;
+    
+    public static void initializeMonitors() {
+    	if(monitorsInitialized)
+    		return;
+    	ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_ENTRIES"));
+    	INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_INSTANCES"));
+    	BATCH_WRITE_SPEED_MONITOR = new IntegerMonitor(BATCH_WRITE_SPEED_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"));
+    	
+    	Common.MONITORED_VALUES.addIfMissingStatMonitor(ENTRIES_MONITOR);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(INSTANCES_MONITOR);
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(BATCH_WRITE_SPEED_MONITOR);
+        
+        monitorsInitialized = true;
+    }
+    
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
@@ -864,10 +887,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
     }
 
-    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
-    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
-    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
-
     static class BatchWriteBehind implements WorkItem {
         private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<PointValueDaoSQL.BatchWriteBehindEntry>();
         private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<BatchWriteBehind>();
@@ -875,13 +894,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         private static final int SPAWN_THRESHOLD = 10000;
         private static final int MAX_INSTANCES = 5;
         private static int MAX_ROWS = 1000;
-        private static final IntegerMonitor ENTRIES_MONITOR = new IntegerMonitor(ENTRIES_MONITOR_ID,
-        		new TranslatableMessage("internal.monitor.BATCH_ENTRIES"));
-        private static final IntegerMonitor INSTANCES_MONITOR = new IntegerMonitor(INSTANCES_MONITOR_ID,
-        		new TranslatableMessage("internal.monitor.BATCH_INSTANCES"));
-        //TODO Create DoubleMonitor but will need to upgrade the Internal data source to do this
-        private static final IntegerMonitor BATCH_WRITE_SPEED_MONITOR = new IntegerMonitor(
-                BATCH_WRITE_SPEED_MONITOR_ID, new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"));
 
         private static List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<Class<? extends RuntimeException>>();
 
@@ -903,10 +915,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 MAX_ROWS = 2000;
             else
                 throw new ShouldNeverHappenException("Unknown database type: " + Common.databaseProxy.getType());
-
-            Common.MONITORED_VALUES.addIfMissingStatMonitor(ENTRIES_MONITOR);
-            Common.MONITORED_VALUES.addIfMissingStatMonitor(INSTANCES_MONITOR);
-            Common.MONITORED_VALUES.addIfMissingStatMonitor(BATCH_WRITE_SPEED_MONITOR);
 
             retriedExceptions.add(RecoverableDataAccessException.class);
             retriedExceptions.add(TransientDataAccessException.class);
