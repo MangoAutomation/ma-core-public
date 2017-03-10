@@ -121,7 +121,10 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
         out.writeInt(version);
         out.writeInt(timePeriod);
         out.writeInt(numberOfPeriods);
-        
+        out.writeInt(rollup);
+        out.writeInt(rollupPeriodType);
+        out.writeInt(rollupPeriods);
+        out.writeInt(relativeDateType);
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
