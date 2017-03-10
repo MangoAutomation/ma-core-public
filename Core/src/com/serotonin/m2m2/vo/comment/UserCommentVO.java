@@ -14,9 +14,7 @@ import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.validation.StringValidation;
 
 /**
- * This class is a half breed because User Comments don't have XIDs but we want to use the Dao Infrastructure with them
- * 
- * 
+ * Container for User Comments 
  * @author Terry Packer
  *
  */
@@ -102,7 +100,7 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
 	 */
 	@Override
 	public String getTypeKey() {
-		return null;
+		return "event.audit.userComment";
 	}
 	
     @Override

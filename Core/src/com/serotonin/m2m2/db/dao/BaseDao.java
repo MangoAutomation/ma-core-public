@@ -45,10 +45,7 @@ public class BaseDao extends DaoUtils implements SQLConstants{
     // XID convenience methods
     //
     protected String generateUniqueXid(String prefix, String tableName) {
-        String xid = Common.generateXid(prefix);
-        while (!isXidUnique(xid, -1, tableName))
-            xid = Common.generateXid(prefix);
-        return xid;
+        return Common.generateXid(prefix);
     }
 
     protected boolean isXidUnique(String xid, int excludeId, String tableName) {

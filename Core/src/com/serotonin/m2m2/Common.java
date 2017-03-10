@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -678,6 +679,6 @@ public class Common {
     }
 
     public static String generateXid(String prefix) {
-        return prefix + StringUtils.generateRandomString(6, "0123456789");
+        return prefix + UUID.randomUUID();
     }
 }

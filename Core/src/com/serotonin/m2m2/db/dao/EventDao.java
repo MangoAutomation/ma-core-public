@@ -358,9 +358,9 @@ public class EventDao extends BaseDao {
                     UserCommentDao.instance.getRowMapper()));
     }
 
-    public EventInstance insertEventComment(int eventId, UserCommentVO comment) {
-        UserCommentDao.instance.insertUserComment(UserCommentVO.TYPE_EVENT, eventId, comment);
-        return getEventInstance(eventId);
+    public EventInstance insertEventComment(UserCommentVO comment) {
+        UserCommentDao.instance.save(comment);
+        return getEventInstance(comment.getReferenceId());
     }
 
     /**

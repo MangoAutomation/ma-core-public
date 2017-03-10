@@ -292,19 +292,22 @@ abstract public class BaseDwr {
 		if (StringUtils.isBlank(comment))
 			return null;
 
-		User user = Common.getUser();
+		User user = Common.getHttpUser();
 		UserCommentVO c = new UserCommentVO();
+		c.setXid(UserCommentDao.instance.generateUniqueXid());
 		c.setComment(comment);
 		c.setTs(System.currentTimeMillis());
 		c.setUserId(user.getId());
 		c.setUsername(user.getUsername());
+		c.setReferenceId(referenceId);
 
-		if (typeId == UserCommentVO.TYPE_EVENT)
-			EVENT_DAO.insertEventComment(referenceId, c);
-		else if (typeId == UserCommentVO.TYPE_POINT)
-			UserCommentDao.instance.insertUserComment(UserCommentVO.TYPE_POINT,
-					referenceId, c);
-		else
+		if (typeId == UserCommentVO.TYPE_EVENT){
+			c.setCommentType(UserCommentVO.TYPE_EVENT);
+			EVENT_DAO.insertEventComment(c);
+		}else if (typeId == UserCommentVO.TYPE_POINT){
+			c.setCommentType(UserCommentVO.TYPE_POINT);
+			UserCommentDao.instance.save(c);
+		}else
 			throw new ShouldNeverHappenException("Invalid comment type: "
 					+ typeId);
 
@@ -312,7 +315,7 @@ abstract public class BaseDwr {
 	}
 
 	protected List<DataPointBean> getReadablePoints() {
-		User user = Common.getUser();
+		User user = Common.getHttpUser();
 
 		List<DataPointVO> points = DataPointDao.instance.getDataPoints(
 				DataPointExtendedNameComparator.instance, false);

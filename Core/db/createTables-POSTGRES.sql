@@ -48,6 +48,7 @@ CREATE TABLE users (
 
 CREATE TABLE userComments (
   id int not null auto_increment,
+  xid varchar(50) NOT NULL,
   userId integer,
   commentType integer NOT NULL,
   typeKey integer NOT NULL,
@@ -55,7 +56,7 @@ CREATE TABLE userComments (
   commentText varchar(1024) NOT NULL
 );
 ALTER TABLE userComments ADD CONSTRAINT userCommentsFk1 FOREIGN KEY (userId) REFERENCES users(id);
-
+ALTER TABLE userComments ADD CONSTRAINT userCommentsUn1 UNIQUE (xid);
 
 --
 -- Mailing lists
