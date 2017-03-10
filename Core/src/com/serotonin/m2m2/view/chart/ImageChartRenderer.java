@@ -35,6 +35,10 @@ public class ImageChartRenderer extends TimePeriodChartRenderer {
     public ImageChartRenderer(int timePeriod, int numberOfPeriods) {
         super(timePeriod, numberOfPeriods);
     }
+    
+    public ImageChartRenderer(int timePeriod, int numberOfPeriods, int rollup, int rollupPeriodType, int rollupPeriods, int relativeDateType) {
+    	super(timePeriod, numberOfPeriods, rollup, rollupPeriodType, rollupPeriods, relativeDateType);
+    }
 
     @Override
     public void addDataToModel(Map<String, Object> model, DataPointVO point) {

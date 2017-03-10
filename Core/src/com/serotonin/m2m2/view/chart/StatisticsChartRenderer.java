@@ -50,6 +50,11 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
         super(timePeriod, numberOfPeriods);
         this.includeSum = includeSum;
     }
+    
+    public StatisticsChartRenderer(int timePeriod, int numberOfPeriods, boolean includeSum, int rollup, int rollupPeriodType, int rollupPeriods, int relativeDateType) {
+    	super(timePeriod, numberOfPeriods, rollup, rollupPeriodType, rollupPeriods, relativeDateType);
+    	this.includeSum = includeSum;
+    }
 
     public boolean isIncludeSum() {
         return includeSum;

@@ -14,6 +14,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 
@@ -28,11 +29,11 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
     @JsonProperty
     private int numberOfPeriods;
     
-    private int rollup;
-    private int rollupPeriodType; 
+    private int rollup = Common.Rollups.NONE;
+    private int rollupPeriodType = TimePeriods.HOURS; 
     @JsonProperty
-    private int rollupPeriods;
-    private int relativeDateType;
+    private int rollupPeriods = 1;
+    private int relativeDateType = Common.RelativeDateTypes.PAST;
 
     /**
      * Convenience method for getting the start time of the chart period.
@@ -60,6 +61,16 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
     public TimePeriodChartRenderer(int timePeriod, int numberOfPeriods) {
         this.timePeriod = timePeriod;
         this.numberOfPeriods = numberOfPeriods;
+        //TODO deprecate and remove this constructor?
+    }
+    
+    public TimePeriodChartRenderer(int timePeriod, int numberOfPeriods, int rollup, int rollupPeriodType, int rollupPeriods, int relativeDateType) {
+    	this.timePeriod = timePeriod;
+    	this.numberOfPeriods = numberOfPeriods;
+    	this.rollup = rollup;
+    	this.rollupPeriodType = rollupPeriodType;
+    	this.rollupPeriods = rollupPeriods;
+    	this.relativeDateType = relativeDateType;
     }
 
     public int getNumberOfPeriods() {
@@ -81,7 +92,7 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
     public int getRollup() {
 		return rollup;
 	}
-
+    
 	public void setRollup(int rollup) {
 		this.rollup = rollup;
 	}
