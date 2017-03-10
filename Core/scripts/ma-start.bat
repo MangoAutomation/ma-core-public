@@ -26,9 +26,6 @@ rem | Found a good home. Carry on...
 :okHome
 echo Using %MA_HOME% as MA_HOME
 
-rem Uncomment the following line to start with the debugger
-rem set JPDA=-agentlib:jdwp=transport=dt_socket,address=8090,server=y,suspend=y
-
 SETLOCAL ENABLEDELAYEDEXPANSION
 set MA_CP=%MA_HOME%\overrides\classes
 set MA_CP=%MA_CP%;%MA_HOME%\classes
@@ -51,6 +48,12 @@ set EXECJAR=%JAVA_HOME%\bin\jar
 
 :gotJava
 echo Using Java at %EXECJAVA%
+
+set JAVAOPTS=
+set JPDA=
+for /R ext-enabled %%f in (*.bat) do (
+	call ext-enabled/%%~nf init
+)
 
 :restart
 if exist "%MA_HOME%"\m2m2-core-*.zip (
@@ -75,7 +78,14 @@ popd
 rem Run the upgrade script that will finish by calling this script to start Mango
 upgrade.bat
 )
-"%EXECJAVA%" %JPDA% -server -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
-if exist "%MA_HOME%\RESTART" goto restart
-
+for /R ext-enabled %%f in (*.bat) do (
+	call ext-enabled/%%~nf start
+)
+"%EXECJAVA%" %JPDA% %JAVAOPTS% -server -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
+if exist "%MA_HOME%\RESTART" (
+	for /R ext-enabled %%f in (*.bat) do (
+		call ext-enabled/%%~nf restart
+	)
+	goto restart
+)
 :end
