@@ -106,6 +106,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         int STEP = 1;
         int LINE = 2;
         int SPLINE = 3;
+        int BAR = 4;
+        int FFT = 5;
     }
 
     public static final ExportCodes PLOT_TYPE_CODES = new ExportCodes();
@@ -113,6 +115,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         PLOT_TYPE_CODES.addElement(PlotTypes.STEP, "STEP", "pointEdit.plotType.step");
         PLOT_TYPE_CODES.addElement(PlotTypes.LINE, "LINE", "pointEdit.plotType.line");
         PLOT_TYPE_CODES.addElement(PlotTypes.SPLINE, "SPLINE", "pointEdit.plotType.spline");
+        PLOT_TYPE_CODES.addElement(PlotTypes.BAR, "BAR", "pointEdit.plotType.bar");
+        PLOT_TYPE_CODES.addElement(PlotTypes.FFT, "FFT", "pointEdit.plotType.fft");        
     }
 
     public TranslatableMessage getDataTypeMessage() {

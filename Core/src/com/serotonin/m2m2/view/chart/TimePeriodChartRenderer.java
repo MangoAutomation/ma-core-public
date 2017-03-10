@@ -17,10 +17,22 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 
+/**
+ * Base Class for Time Period rendering Charts
+ * 
+ * @author Matthew Lohbihler, Terry Packer
+ */
 abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
-    private int timePeriod;
+    
+	private int timePeriod;
     @JsonProperty
     private int numberOfPeriods;
+    
+    private int rollup;
+    private int rollupPeriodType; 
+    @JsonProperty
+    private int rollupPeriods;
+    private int relativeDateType;
 
     /**
      * Convenience method for getting the start time of the chart period.
@@ -66,17 +78,50 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
         this.timePeriod = timePeriod;
     }
 
-    //
+    public int getRollup() {
+		return rollup;
+	}
+
+	public void setRollup(int rollup) {
+		this.rollup = rollup;
+	}
+
+	public int getRollupPeriodType() {
+		return rollupPeriodType;
+	}
+
+	public void setRollupPeriodType(int rollupPeriodType) {
+		this.rollupPeriodType = rollupPeriodType;
+	}
+
+	public int getRollupPeriods() {
+		return rollupPeriods;
+	}
+
+	public void setRollupPeriods(int rollupPeriods) {
+		this.rollupPeriods = rollupPeriods;
+	}
+
+	public int getRelativeDateType() {
+		return relativeDateType;
+	}
+
+	public void setRelativeDateType(int relativeDateType) {
+		this.relativeDateType = relativeDateType;
+	}
+
+	//
     //
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeInt(timePeriod);
         out.writeInt(numberOfPeriods);
+        
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
@@ -86,6 +131,17 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
         if (ver == 1) {
             timePeriod = in.readInt();
             numberOfPeriods = in.readInt();
+            rollup = Common.Rollups.NONE;
+            rollupPeriodType = Common.TimePeriods.HOURS;
+            rollupPeriods = 1;
+            relativeDateType = Common.RelativeDateTypes.PAST;
+        }else if(ver == 2){
+            timePeriod = in.readInt();
+            numberOfPeriods = in.readInt();
+            rollup = in.readInt();
+            rollupPeriodType = in.readInt();
+            rollupPeriods = in.readInt();
+            relativeDateType = in.readInt();
         }
     }
 
@@ -93,6 +149,9 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("timePeriodType", Common.TIME_PERIOD_CODES.getCode(timePeriod));
+        writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
+        writer.writeEntry("rollupPeriodType", Common.TIME_PERIOD_CODES.getCode(rollupPeriodType));
+        writer.writeEntry("relativeDateType", Common.RELATIVE_DATE_TYPE_CODES.getCode(relativeDateType));
     }
 
     @Override
@@ -108,6 +167,32 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
         if (timePeriod == -1)
             throw new TranslatableJsonException("emport.error.chart.invalid", "timePeriodType", text,
                     Common.TIME_PERIOD_CODES.getCodeList());
+        
+        //Rollup
+        text = jsonObject.getString("rollup");
+        if (text != null){
+	        rollup = Common.ROLLUP_CODES.getId(text);
+	        if (rollup == -1)
+	            throw new TranslatableJsonException("emport.error.chart.invalid", "rollup", text,
+	                    Common.ROLLUP_CODES.getCodeList());
+        }
+        //Rollup Period Type
+        text = jsonObject.getString("rollupPeriodType");
+        if (text != null){
+	        rollupPeriodType = Common.TIME_PERIOD_CODES.getId(text);
+	        if (rollupPeriodType == -1)
+	            throw new TranslatableJsonException("emport.error.chart.invalid", "rollupPeriodType", text,
+	                    Common.TIME_PERIOD_CODES.getCodeList());
+        }
+        //Relative Date type
+        text = jsonObject.getString("relativeDateType");
+        if (text != null){
+
+        	relativeDateType = Common.RELATIVE_DATE_TYPE_CODES.getId(text);
+        if (relativeDateType == -1)
+            throw new TranslatableJsonException("emport.error.chart.invalid", "relativeDateType", text,
+                    Common.RELATIVE_DATE_TYPE_CODES.getCodeList());
+        }
     }
     
 	/* (non-Javadoc)
@@ -122,7 +207,19 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
 		
 		if(numberOfPeriods < 1)
 			result.addContextualMessage("numberOfPeriods", "validate.invalidValue");
-		
+	
+		//Rollup
+		if(!Common.ROLLUP_CODES.isValidId(rollup))
+			result.addContextualMessage("rollup", "validate.invalidValue");
+		//Rollup Period Type
+		if(!Common.TIME_PERIOD_CODES.isValidId(rollupPeriodType))
+			result.addContextualMessage("rollupPeriodType", "validate.invalidValue");
+		//Rollup Periods
+		if(rollupPeriods < 1)
+			result.addContextualMessage("rollupPeriods", "validate.invalidValue");
+		//Relative Date Type
+		if(!Common.RELATIVE_DATE_TYPE_CODES.isValidId(relativeDateType))
+			result.addContextualMessage("relativeDateType", "validate.invalidValue");
 	}
     
     

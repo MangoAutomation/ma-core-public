@@ -70,7 +70,6 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.timer.RealTimeTimer;
-import com.serotonin.util.StringUtils;
 import com.serotonin.util.properties.ReloadingProperties;
 
 import freemarker.template.Configuration;
@@ -206,6 +205,48 @@ public class Common {
         TIME_PERIOD_CODES.addElement(TimePeriods.YEARS, "YEARS");
     }
 
+    public interface Rollups {
+    	int NONE = 0;
+    	int AVERAGE = 1;
+    	int DELTA = 2;
+    	int MINIMUM = 3;
+    	int MAXIMUM = 4;
+    	int ACCUMULATOR = 5;
+    	int SUM = 6;
+    	int FIRST = 7;
+    	int LAST = 8;
+    	int COUNT = 9;
+    	int INTEGRAL = 10;
+    	int ALL = 12;
+    }
+    public static ExportCodes ROLLUP_CODES = new ExportCodes();
+    static{
+    	ROLLUP_CODES.addElement(Rollups.NONE, "NONE", "common.rollup.none");
+    	ROLLUP_CODES.addElement(Rollups.AVERAGE, "AVERAGE", "common.rollup.average");
+    	ROLLUP_CODES.addElement(Rollups.DELTA, "DELTA", "common.rollup.delta");
+    	ROLLUP_CODES.addElement(Rollups.MINIMUM, "MINIMUM", "common.rollup.minimum");
+    	ROLLUP_CODES.addElement(Rollups.MAXIMUM, "MAXIMUM", "common.rollup.maximum");
+    	ROLLUP_CODES.addElement(Rollups.ACCUMULATOR, "ACCUMULATOR", "common.rollup.accumulator");
+    	ROLLUP_CODES.addElement(Rollups.SUM, "SUM", "common.rollup.sum");
+    	ROLLUP_CODES.addElement(Rollups.FIRST, "FIRST", "common.rollup.first");
+    	ROLLUP_CODES.addElement(Rollups.LAST, "LAST", "common.rollup.last");
+    	ROLLUP_CODES.addElement(Rollups.COUNT, "COUNT", "common.rollup.count");
+    	ROLLUP_CODES.addElement(Rollups.INTEGRAL, "INTEGRAL", "common.rollup.integral");
+    	ROLLUP_CODES.addElement(Rollups.ALL, "ALL", "common.rollup.all");
+    }
+    
+    public interface RelativeDateTypes{
+    	int PAST = 0;
+    	int PREVIOUS = 1;
+    	int TO_DATE = 2;
+    }
+    public static ExportCodes RELATIVE_DATE_TYPE_CODES = new ExportCodes();
+    static{
+    	RELATIVE_DATE_TYPE_CODES.addElement(RelativeDateTypes.PAST, "PAST", "common.relativeDateType.past");
+    	RELATIVE_DATE_TYPE_CODES.addElement(RelativeDateTypes.PREVIOUS, "PREVIOUS", "common.relativeDateType.previous");
+    	RELATIVE_DATE_TYPE_CODES.addElement(RelativeDateTypes.TO_DATE, "PAST", "common.relativeDateType.toDate");
+    }
+    
 	public static ExportCodes WORK_ITEM_CODES = new ExportCodes();
     static {
     	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_HIGH, "PRIORITY_HIGH");
