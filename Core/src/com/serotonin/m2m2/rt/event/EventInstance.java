@@ -13,7 +13,7 @@ import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.web.taglib.Functions;
 
 public class EventInstance{
@@ -68,7 +68,7 @@ public class EventInstance{
     /**
      * User comments on the event. Added in the events interface after the event has been raised.
      */
-    private List<UserComment> eventComments;
+    private List<UserCommentVO> eventComments;
 
     private List<EventHandlerRT<?>> handlers;
 
@@ -228,15 +228,15 @@ public class EventInstance{
         return rtnApplicable;
     }
 
-    public void addEventComment(UserComment comment) {
+    public void addEventComment(UserCommentVO comment) {
         eventComments.add(comment);
     }
 
-    public void setEventComments(List<UserComment> eventComments) {
+    public void setEventComments(List<UserCommentVO> eventComments) {
         this.eventComments = eventComments;
     }
 
-    public List<UserComment> getEventComments() {
+    public List<UserCommentVO> getEventComments() {
         return eventComments;
     }
 

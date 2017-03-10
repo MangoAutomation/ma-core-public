@@ -46,6 +46,8 @@ create table users (
 );
 
 create table userComments (
+  id int not null identity,
+  xid nvarchar(50) not null,
   userId int,
   commentType int not null,
   typeKey int not null,
@@ -53,8 +55,7 @@ create table userComments (
   commentText nvarchar(1024) not null
 );
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
-
-
+alter table userComments add constraint userCommentsUn1 unique (xid);
 --
 -- Mailing lists
 create table mailingLists (

@@ -21,15 +21,10 @@ import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
-import com.serotonin.web.taglib.Functions;
 
 /**
- * This class should Extend a class that 
- * doesn't require VO use.
- * 
- * This means we need 
+ * We don't use XIDs for comments yet.
  * 
  * @author Terry Packer
  *
@@ -37,23 +32,26 @@ import com.serotonin.web.taglib.Functions;
 public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	
 	public static final UserCommentDao instance = new UserCommentDao();
-
+	
 	private UserCommentDao(){
 		super(ModuleRegistry.getWebSocketHandlerDefinition("USER_COMMENT"), AuditEventType.TYPE_USER_COMMENT, "uc", 
 				new String[]{ "u.username" });
 		LOG = LogFactory.getLog(UserCommentDao.class);
 	}
+
+	public static final String USER_COMMENT_SELECT = "select uc.id, uc.xid, uc.userId, uc.ts, uc.commentText, uc.commentType, uc.typeKey, u.username "
+            + "from userComments uc left join users u on uc.userId = u.id ";
+
+    private static final String POINT_COMMENT_SELECT = USER_COMMENT_SELECT
+            + "where uc.commentType= " + UserCommentVO.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
     
-    private static final String POINT_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT
-            + "where uc.commentType= " + UserComment.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
-    
-    private static final String EVENT_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT //
-            + "where uc.commentType= " + UserComment.TYPE_EVENT //
+    private static final String EVENT_COMMENT_SELECT = USER_COMMENT_SELECT //
+            + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
             + " and uc.typeKey=? " //
             + "order by uc.ts";
 
-    private static final String JSON_DATA_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT
-    		+ "where uc.commentType=" + UserComment.TYPE_JSON_DATA 
+    private static final String JSON_DATA_COMMENT_SELECT = USER_COMMENT_SELECT
+    		+ "where uc.commentType=" + UserCommentVO.TYPE_JSON_DATA 
     		+ " and uc.typeKey=?"
     		+ "order by uc.ts";
     /**
@@ -65,29 +63,6 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
     	query(EVENT_COMMENT_SELECT, new Object[] { id }, new UserCommentVORowMapper(), callback);
     }
     
-    private static final String USER_COMMENT_INSERT = //
-    "INSERT INTO userComments (userId, commentType, typeKey, ts, commentText) VALUES (?,?,?,?,?)";
-
-    public void insertUserComment(int typeId, int referenceId, UserComment comment) {
-        comment.setComment(Functions.truncate(comment.getComment(), 1024));
-        ejt.update(USER_COMMENT_INSERT, new Object[] { comment.getUserId(), typeId, referenceId, comment.getTs(),
-                comment.getComment() });
-    }
-
-    
-    @Override 
-    public void save(UserCommentVO vo){
-    	//We can't use the standard INSERT until we clean up 
-    	// the class heirarchy because it expects an ID AUTO INCREMENT Column
-        ejt.update(USER_COMMENT_INSERT, new Object[] { 
-        		vo.getUserId(), vo.getCommentType(),
-        		vo.getReferenceId(), vo.getTs(),
-                vo.getComment() });
-    	
-    	//Not ready yet, need type key and ChangeComparable etc. AuditEventType.raiseAddedEvent(this.typeName, vo);
-
-    }
-    
     /**
      * Return all comments for a given point
      * @param dpId
@@ -97,23 +72,31 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
     	query(POINT_COMMENT_SELECT, new Object[] { dpId }, new UserCommentVORowMapper(), callback);
     }
     
+    /**
+     * Return all comments for a given JsonData Store Entry
+     * @param jsonDataId
+     * @param callback
+     */
+    public void getJsonDataComments(int jsonDataId, MappedRowCallback<UserCommentVO> callback){
+    	query(JSON_DATA_COMMENT_SELECT, new Object[] { jsonDataId }, new UserCommentVORowMapper(), callback);
+    }
     
     public  class UserCommentVORowMapper implements RowMapper<UserCommentVO> {
-        public static final String USER_COMMENT_SELECT = "select uc.userId, u.username, uc.ts, uc.commentText "
-                + "from userComments uc left join users u on uc.userId = u.id ";
 
         public UserCommentVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             UserCommentVO c = new UserCommentVO();
-            c.setUserId(rs.getInt(1));
-            c.setTs(rs.getLong(2));
-            c.setComment(rs.getString(3));
-            c.setCommentType(rs.getInt(4));
-            c.setReferenceId(rs.getInt(5));
-            c.setUsername(rs.getString(6));
+            int i=0;
+            c.setId(rs.getInt(++i));
+            c.setXid(rs.getString(++i));
+            c.setUserId(rs.getInt(++i));
+            c.setTs(rs.getLong(++i));
+            c.setComment(rs.getString(++i));
+            c.setCommentType(rs.getInt(++i));
+            c.setReferenceId(rs.getInt(++i));
+            c.setUsername(rs.getString(++i));
             return c;
         }
     }
-
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
@@ -129,7 +112,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	 */
 	@Override
 	protected String getXidPrefix() {
-		return "";  //N/A so far
+		return "UC_";
 	}
 
 
@@ -139,16 +122,15 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	@Override
 	protected Object[] voToObjectArray(UserCommentVO vo) {
 		return new Object[]{
+				vo.getXid(),
 				vo.getUserId(),
-				vo.getUsername(),
 				vo.getTs(),
 				vo.getComment(),
 				vo.getCommentType(),
 				vo.getReferenceId()
 		};
 	}
-
-
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
 	 */
@@ -194,8 +176,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	 */
 	@Override
 	public String getPkColumnName() {
-		//We have no PK
-		return null;
+		return "id";
 	}
 
 	/* (non-Javadoc)
@@ -204,6 +185,8 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	@Override
 	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
 		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+		map.put("id", Types.INTEGER);
+		map.put("xid", Types.VARCHAR);
 		map.put("userId", Types.INTEGER);
 		map.put("ts", Types.BIGINT);
 		map.put("commentText", Types.VARCHAR);

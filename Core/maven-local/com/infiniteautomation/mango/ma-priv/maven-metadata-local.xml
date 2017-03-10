@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.infiniteautomation.mango</groupId>
+  <artifactId>ma-priv</artifactId>
+  <versioning>
+    <versions>
+      <version>3.0.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20170309020258</lastUpdated>
+  </versioning>
+</metadata>

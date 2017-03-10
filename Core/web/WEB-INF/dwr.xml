@@ -271,7 +271,7 @@
     <convert converter="bean" match="com.serotonin.m2m2.vo.User">
       <param name="include" value="id,username,email,phone,admin,disabled,receiveAlarmEmails,receiveOwnAuditEvents,timezone,permissions"/>
     </convert>
-    <convert converter="bean" match="com.serotonin.m2m2.vo.UserComment" javascript="UserComment"/>
+    <convert converter="bean" match="com.serotonin.m2m2.vo.comment.UserCommentVO" javascript="UserComment"/>
     
     <convert converter="bean" match="com.serotonin.m2m2.web.dwr.beans.*" />
     <!-- Not yet sure why the above didn't pick up these beans? -->

@@ -50,6 +50,8 @@ create table users (
 ) engine=InnoDB;
 
 create table userComments (
+  id int not null auto_increment,
+  xid varchar(50) not null,
   userId int,
   commentType int not null,
   typeKey int not null,
@@ -57,7 +59,7 @@ create table userComments (
   commentText varchar(1024) not null
 ) engine=InnoDB;
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
-
+alter table userComments add constraint userCommentsUn1 unique (xid);
 
 --
 -- Mailing lists

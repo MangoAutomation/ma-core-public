@@ -5,7 +5,7 @@
     @author Matthew Lohbihler
 --%>
 <%@page import="com.serotonin.m2m2.Common"%>
-<%@page import="com.serotonin.m2m2.vo.UserComment"%>
+<%@page import="com.serotonin.m2m2.vo.comment.UserCommentVO"%>
 <%@page import="com.serotonin.m2m2.rt.event.type.EventType"%>
 <%@page import="com.serotonin.m2m2.web.dwr.EventsDwr"%>
 <%@page import="com.serotonin.m2m2.module.ModuleRegistry"%>

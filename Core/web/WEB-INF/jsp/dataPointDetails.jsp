@@ -3,7 +3,7 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<%@page import="com.serotonin.m2m2.vo.UserComment"%>
+<%@page import="com.serotonin.m2m2.vo.comment.UserCommentVO"%>
 
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="DataPointDetailsDwr" js="/resources/view.js">
   <c:if test="${!empty point}">

@@ -58,8 +58,8 @@ import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
-import com.serotonin.m2m2.vo.UserComment;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -527,11 +527,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
     // Point comments
     //
-    private static final String POINT_COMMENT_SELECT = UserCommentRowMapper.USER_COMMENT_SELECT
-            + "where uc.commentType= " + UserComment.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
+    private static final String POINT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT
+            + "where uc.commentType= " + UserCommentVO.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
 
     private void setPointComments(DataPointVO dp) {
-        dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, new UserCommentRowMapper()));
+        dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, UserCommentDao.instance.getRowMapper()));
     }
     
     

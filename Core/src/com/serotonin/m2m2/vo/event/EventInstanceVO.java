@@ -19,7 +19,7 @@ import com.serotonin.m2m2.rt.event.EventInstance.RtnCauses;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.UserComment;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 
 /**
  * @author Terry Packer
@@ -72,7 +72,7 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     /**
      * User comments on the event. Added in the events interface after the event has been raised.
      */
-    private List<UserComment> eventComments;
+    private List<UserCommentVO> eventComments;
 
     private List<EventHandlerRT<?>> handlers;
 
@@ -189,12 +189,12 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
 		//NoOp
 	}
 
-	public List<UserComment> getEventComments() {
+	public List<UserCommentVO> getEventComments() {
 		return eventComments;
 	}
 
 
-	public void setEventComments(List<UserComment> eventComments) {
+	public void setEventComments(List<UserCommentVO> eventComments) {
 		this.eventComments = eventComments;
 	}
 
@@ -392,7 +392,7 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     	StringBuilder builder = new StringBuilder("");
     	if(eventComments != null){
     		builder.append("</br>");
-	    	for(UserComment comment : this.eventComments){
+	    	for(UserCommentVO comment : this.eventComments){
 	    		builder.append("<span class='copyTitle'>");
 	    		builder.append("<img style='padding-right: 5px' src='/images/comment.png' title='").append(Common.translate("notes.note")).append("'/>");
 	    		builder.append(DeltamationCommon.formatDate(comment.getTs())).append(" ");

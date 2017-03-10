@@ -46,6 +46,7 @@ import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -154,7 +155,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @JsonProperty
     private ChartRenderer chartRenderer;
     private List<AbstractPointEventDetectorVO<?>> eventDetectors = new ArrayList<>();
-    private List<UserComment> comments;
+    private List<UserCommentVO> comments;
     @JsonProperty
     private int defaultCacheSize = 1;
     @JsonProperty
@@ -475,11 +476,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.eventDetectors = eventDetectors;
     }
 
-    public List<UserComment> getComments() {
+    public List<UserCommentVO> getComments() {
         return comments;
     }
 
-    public void setComments(List<UserComment> comments) {
+    public void setComments(List<UserCommentVO> comments) {
         this.comments = comments;
     }
 
