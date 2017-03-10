@@ -51,8 +51,8 @@ echo Using Java at %EXECJAVA%
 
 set JAVAOPTS=
 set JPDA=
-for /R ext-enabled %%f in (*.bat) do (
-	call ext-enabled/%%~nf init
+for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
+	call %MA_HOME%\bin\ext-enabled/%%~nf init
 )
 
 :restart
@@ -78,13 +78,13 @@ popd
 rem Run the upgrade script that will finish by calling this script to start Mango
 upgrade.bat
 )
-for /R ext-enabled %%f in (*.bat) do (
-	call ext-enabled/%%~nf start
+for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
+	call %MA_HOME%\bin\ext-enabled/%%~nf start
 )
 "%EXECJAVA%" %JPDA% %JAVAOPTS% -server -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
 if exist "%MA_HOME%\RESTART" (
-	for /R ext-enabled %%f in (*.bat) do (
-		call ext-enabled/%%~nf restart
+	for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
+		call %MA_HOME%\bin\ext-enabled/%%~nf restart
 	)
 	goto restart
 )
