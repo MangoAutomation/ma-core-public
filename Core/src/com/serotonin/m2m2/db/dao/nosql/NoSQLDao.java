@@ -70,4 +70,13 @@ public abstract class NoSQLDao {
 	 */
 	public abstract void deleteStore(String storeName);
 	
+	
+	/**
+	 * Delete some data within a store
+	 * 
+	 *  @param store name
+	 *  @param from
+	 *  @param to
+	 */
+	public abstract void deleteData(String storeName, long from, long to);
 }
