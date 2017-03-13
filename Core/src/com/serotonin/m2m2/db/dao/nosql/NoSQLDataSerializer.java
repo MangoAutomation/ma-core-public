@@ -17,9 +17,9 @@ public interface NoSQLDataSerializer {
 	 * @param bytes
 	 * @return
 	 */
-	public ITime getObject(byte[] bytes, int readOffset, long timestamp);
+	public ITime getObject(byte[] bytes, int readOffset, long timestamp, String seriesId);
 	
-	public byte[] getBytes(ITime entry);
+	public byte[] getBytes(ITime entry, long timestamp, String seriesId);
 	
     public boolean equals(Object other);
 	
