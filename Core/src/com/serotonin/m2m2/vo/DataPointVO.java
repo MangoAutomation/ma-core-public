@@ -195,6 +195,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     @JsonProperty
     private String chartColour;
+    private int rollup = Common.Rollups.NONE;
 
     private int plotType = PlotTypes.STEP;
 
@@ -635,6 +636,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setChartColour(String chartColour) {
         this.chartColour = chartColour;
     }
+    
+    public int getRollup() {
+    	return rollup;
+    }
+    
+    public void setRollup(int rollup) {
+    	this.rollup = rollup;
+    }
 
     public int getPlotType() {
         return plotType;
@@ -752,6 +761,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             // is all of this necessary after we made a clone?
             copy.setChartColour(chartColour);
+            copy.setRollup(rollup);
             copy.setChartRenderer(chartRenderer);
             copy.setDataSourceId(dataSourceId);
             copy.setDataSourceName(dataSourceName);
@@ -856,6 +866,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }else if(chartColour == null){
         	response.addContextualMessage("chartColour", "validate.invalidValue");
         }
+        
+        if(!Common.ROLLUP_CODES.isValidId(rollup))
+        	response.addContextualMessage("rollup", "validate.invalidValue");
 
         pointLocator.validate(response, this);
 
@@ -989,9 +1002,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + ", defaultCacheSize=" + defaultCacheSize + ", discardExtremeValues=" + discardExtremeValues
                 + ", discardLowLimit=" + discardLowLimit + ", discardHighLimit=" + discardHighLimit + ", unit=" + unit
                 + ", integralUnit=" + integralUnit + ", renderedUnit=" + renderedUnit + ", useIntegralUnit="
-                + useIntegralUnit + ", useRenderedUnit=" + useRenderedUnit + chartColour + ", plotType=" + plotType
-                + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName + ", dataSourceName="
-                + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue + ", settable="
+                + useIntegralUnit + ", useRenderedUnit=" + useRenderedUnit + chartColour + ", rollup=" + Common.ROLLUP_CODES.getCode(rollup) 
+                + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName 
+                + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue + ", settable="
                 + settable + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
                 + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId 
@@ -1003,7 +1016,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     // Serialization
     //
-    private static final int version = 11; //Skipped 7,8 to catch up with Deltamation
+    private static final int version = 12; //Skipped 7,8 to catch up with Deltamation
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         ensureUnitsCorrect();
@@ -1052,7 +1065,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             engineeringUnits = in.readInt();
-            chartColour = null;
+            chartColour = "";
             plotType = PlotTypes.STEP;
 
             unit = defaultUnit();
@@ -1269,6 +1282,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             pointLocator = (PointLocatorVO) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
+            rollup = Common.Rollups.NONE;
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
             unit = (Unit<?>) in.readObject();
@@ -1454,7 +1468,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         writer.writeEntry("pointLocator", pointLocator);
         writer.writeEntry("eventDetectors", eventDetectors);
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
-
+        writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
 
         if (useIntegralUnit)
@@ -1580,6 +1594,15 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             if (plotType == -1)
                 throw new TranslatableJsonException("emport.error.invalid", "plotType", text,
                         PLOT_TYPE_CODES.getCodeList());
+        }
+        
+        //Rollup
+        text = jsonObject.getString("rollup");
+        if (text != null){
+	        rollup = Common.ROLLUP_CODES.getId(text);
+	        if (rollup == -1)
+	            throw new TranslatableJsonException("emport.error.chart.invalid", "rollup", text,
+	                    Common.ROLLUP_CODES.getCodeList());
         }
     }
 

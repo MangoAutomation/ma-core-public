@@ -5,6 +5,7 @@
 <%@page import="com.serotonin.m2m2.vo.DataPointVO"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp"%>
 <%@page import="com.serotonin.m2m2.DataTypes"%>
+<%@page import="com.serotonin.m2m2.Common"%>
 
 <script type="text/javascript">
 	//Create a filter select list
@@ -123,6 +124,8 @@
 			$("plotType").disabled = true;
 			$set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
 		}
+		
+		$set("rollup", vo.rollup);
 
 		dijit.byId('preventSetExtremeValues').set('checked', vo.preventSetExtremeValues);
 		dojo.byId("setExtremeLowLimit").value = vo.setExtremeLowLimit;
@@ -139,7 +142,7 @@
 		vo.integralUnitString = integralUnitPicker.get('value'); //dojo.byId("integralUnit").value;
 		vo.useRenderedUnit = dijit.byId("useRenderedUnit").get('checked');
 		vo.useIntegralUnit = dijit.byId("useIntegralUnit").get('checked');
-
+		vo.rollup = dojo.byId("rollup").value;
 		vo.chartColour = dojo.byId("chartColour").value;
 		vo.plotType = dojo.byId("plotType").value;
 		vo.preventSetExtremeValues = dijit.byId("preventSetExtremeValues").get('checked');
@@ -177,6 +180,7 @@
 			$set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
 		}
 	}
+	
 	//Register for callbacks when the data type is changed
 	dataTypeChangedCallbacks.push(resetPointProperties);
 
@@ -185,7 +189,8 @@
 		setDisabled('plotType', true);
 		setDisabled('preventSetExtremeValues', true);
 		setDisabled('setExtremeLowLimit', true);
-		setDisabled('setExtremeHighLimit', true)
+		setDisabled('setExtremeHighLimit', true);
+		setDisabled('rollup', true);
 	}
 	
 	function enablePointProperties(dataTypeId) {
@@ -193,7 +198,8 @@
 		setDisabled('plotType', false);
 		setDisabled('preventSetExtremeValues', false);
 		setDisabled('setExtremeLowLimit', false);
-		setDisabled('setExtremeHighLimit', false)
+		setDisabled('setExtremeHighLimit', false);
+		setDisabled('rollup', false);
 		resetPointProperties(dataTypeId);
 	}
 	
@@ -265,6 +271,13 @@
       <td class="formField"><input type="text" name="chartColour"
         id="chartColour" /></td>
     </tr>
+    
+    <tr>
+  		<td class="formLabelRequired"><fmt:message key="common.rollup"></fmt:message>
+  		<td class="formField">
+       	  <tag:exportCodesOptions id="rollup" optionList="<%= Common.ROLLUP_CODES.getIdKeys() %>"/>
+        </td>
+	</tr>
 
     <tr>
       <td class="formLabelRequired"><fmt:message

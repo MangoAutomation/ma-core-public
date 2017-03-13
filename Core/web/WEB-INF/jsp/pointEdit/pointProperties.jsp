@@ -7,6 +7,7 @@
 <%@page import="com.serotonin.m2m2.vo.DataPointVO"%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
 <%@page import="com.serotonin.m2m2.DataTypes"%>
+<%@page import="com.serotonin.m2m2.Common"%>
 
 <script type="text/javascript">
   dojo.ready(function() {
@@ -97,6 +98,15 @@
         </td>
         <td class="formError">${status.errorMessage}</td>
       </tr>
+    </spring:bind>
+    
+    <spring:bind path="form.rollup">
+    	<tr>
+    		<td class="formLabelRequired"><fmt:message key="common.rollup"></fmt:message>
+    		<td class="formField">
+         	  <tag:exportCodesOptions id="rollup" name="rollup" optionList="<%= Common.ROLLUP_CODES.getIdKeys() %>"/>
+            </td>
+ 		</tr>
     </spring:bind>
     
     <spring:bind path="form.preventSetExtremeValues">

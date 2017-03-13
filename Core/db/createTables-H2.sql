@@ -126,6 +126,7 @@ CREATE TABLE dataPoints (
   readPermission varchar(255),
   setPermission varchar(255),
   templateId int,
+  rollup int,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);

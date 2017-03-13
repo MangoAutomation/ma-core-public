@@ -3,7 +3,6 @@
     @author Matthew Lohbihler
 --%>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<%@page import="com.serotonin.m2m2.Common" %>
 <div >
   <table>
     <tr><td colspan="3">
@@ -18,30 +17,11 @@
       </td>
     </tr>
     <tbody id="timePeriodRow" style="display:none">
-      <tr>
-      	<td class="formLabelRequired"><fmt:message key="common.relativeDateType"/></td>
-      	<td class="formField">
-          <tag:exportCodesOptions id="relativeDateType" optionList="<%= Common.RELATIVE_DATE_TYPE_CODES.getIdKeys() %>"/>
-        </td>
-      </tr>
        <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.chart.timePeriod"/></td>
         <td class="formField">
           <input id="numberOfPeriods" type="text" class="formVeryShort"/>
           <tag:timePeriods id="timePeriod" min="true" h="true" d="true" w="true" mon="true"/>
-        </td>
-      </tr>
-      <tr>
-      	<td class="formLabelRequired"><fmt:message key="common.rollup"/></td>
-      	<td class="formField">
-          <tag:exportCodesOptions id="rollupType" optionList="<%= Common.ROLLUP_CODES.getIdKeys() %>"/>
-        </td>
-      </tr>
-      <tr>
-        <td class="formLabelRequired"><fmt:message key="common.rollupPeriod"/></td>
-        <td class="formField">
-          <input id="rollupPeriods" type="text" class="formVeryShort"/>
-          <tag:timePeriods id="rollupPeriodType" s="true" min="true" h="true" d="true" w="true" mon="true"/>
         </td>
       </tr>
     </tbody>  
@@ -98,17 +78,9 @@ var chartRendererSelect = new dijit.form.Select({
               }else if(vo.chartRenderer.typeName === "chartRendererImage"){
                   $set("numberOfPeriods", vo.chartRenderer.numberOfPeriods);
                   $set("timePeriod", vo.chartRenderer.timePeriod);
-                  $set("rollupType", vo.chartRenderer.rollup);
-                  $set("rollupPeriods", vo.chartRenderer.rollupPeriods);
-                  $set("rollupPeriodType", vo.chartRenderer.rollupPeriodType);
-                  $set("relativeDateType", vo.chartRenderer.relativeDateType);
               }else if(vo.chartRenderer.typeName == "chartRendererStats"){
                   $set("numberOfPeriods", vo.chartRenderer.numberOfPeriods);
                   $set("timePeriod", vo.chartRenderer.timePeriod);
-                  $set("rollupType", vo.chartRenderer.rollup);
-                  $set("rollupPeriods", vo.chartRenderer.rollupPeriods);
-                  $set("rollupPeriodType", vo.chartRenderer.rollupPeriodType);
-                  $set("relativeDateType", vo.chartRenderer.relativeDateType);
                   dijit.byId("includeSum").set("checked", vo.chartRenderer.includeSum);
               }else if(vo.chartRenderer.typeName == "chartRendererImageFlipbook"){
                   $set("limit", vo.chartRenderer.limit);
@@ -149,12 +121,6 @@ var chartRendererSelect = new dijit.form.Select({
           renderer.numberOfPeriods = parseInt($get("numberOfPeriods"));
           if(isNaN(renderer.numberOfPeriods))
         	  renderer.numberOfPeriods=-1;
-          renderer.relativeDateType = $get("relativeDateType");
-          renderer.rollup = $get("rollupType");
-          renderer.rollupPeriodType = $get("rollupPeriodType");
-          renderer.rollupPeriods = $get("rollupPeriods");
-          if(isNaN(renderer.rollupPeriods))
-        	  renderer.rollupPeriods = -1;
       }
       else if (typeName == "chartRendererStats") {
           renderer = new StatisticsChartRenderer();
@@ -164,12 +130,6 @@ var chartRendererSelect = new dijit.form.Select({
     	  renderer.includeSum = dijit.byId("includeSum").get('checked');
           if(isNaN(renderer.numberOfPeriods))
               renderer.numberOfPeriods=-1;
-          renderer.relativeDateType = $get("relativeDateType");
-          renderer.rollup = $get("rollupType");
-          renderer.rollupPeriodType = $get("rollupPeriodType");
-          renderer.rollupPeriods = $get("rollupPeriods");
-          if(isNaN(renderer.rollupPeriods))
-        	  renderer.rollupPeriods = -1;
       }
       else if (typeName == "chartRendererImageFlipbook") {
     	  renderer = new ImageFlipbookRenderer();
@@ -194,10 +154,7 @@ var chartRendererSelect = new dijit.form.Select({
       			 typeName: 'chartRendererNone',
       			 numberOfPeriods: -1,
       			 timePeriod: 1,
-      			 limit: 1,
-      			 rollup: 0,
-      			 rollupPeriodType: 1,
-      			 rollupPeriods: -1
+      			 limit: 1
           		 },
       		 pointLocator: {dataTypeId: dataTypeId},
       		 
@@ -216,9 +173,6 @@ var chartRendererSelect = new dijit.form.Select({
 		  setDisabled('numberOfPeriods', true);
 		  setDisabled('timePeriod', true);
           dijit.byId("includeSum").set('disabled', true);
-          setDisabled('rollupType', true);
-          setDisabled('rollupPeriodType', true);
-          setDisabled('rollupPeriods', true);
 	  }
 	  
 	  this.enableInputs = function(){
@@ -227,9 +181,6 @@ var chartRendererSelect = new dijit.form.Select({
 		  setDisabled('numberOfPeriods', false);
 		  setDisabled('timePeriod', false);
           dijit.byId("includeSum").set('disabled', false);
-          setDisabled('rollupType', false);
-          setDisabled('rollupPeriodType', false);
-          setDisabled('rollupPeriods', false);
       }
   
       this.change = function(name,oldValue,value) {

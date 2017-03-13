@@ -130,7 +130,8 @@ create table dataPoints (
   data blob not null,
   readPermission varchar(255),
   setPermission varchar(255),
-  templateId int
+  templateId int,
+  rollup int
 );
 alter table dataPoints add constraint dataPointsPk primary key (id);
 alter table dataPoints add constraint dataPointsUn1 unique (xid);

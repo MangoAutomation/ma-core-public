@@ -425,8 +425,9 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
             //Chart Renderer
             dp.setChartRenderer(newDp.getChartRenderer());
+            dp.setRollup(newDp.getRollup());
 
-            //Text Renderer
+            //Text Renderer 
             dp.setTextRenderer(newDp.getTextRenderer());
             
             //Extreme sets

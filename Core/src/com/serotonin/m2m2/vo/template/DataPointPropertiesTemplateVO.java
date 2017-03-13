@@ -44,6 +44,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 	
     @JsonProperty
     private String chartColour;
+    private int rollup = Common.Rollups.NONE;
 
     private int plotType = DataPointVO.PlotTypes.STEP;
 	
@@ -126,6 +127,14 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
 	public void setChartColour(String chartColour) {
 		this.chartColour = chartColour;
+	}
+	
+	public int getRollup() {
+		return rollup;
+	}
+	
+	public void setRollup(int rollup) {
+		this.rollup = rollup;
 	}
 
 	public int getPlotType() {
@@ -347,6 +356,9 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 response.addContextualMessage("chartColour", "validate.invalidValue");
             }
         }
+        
+        if(!Common.ROLLUP_CODES.isValidId(rollup))
+        	response.addContextualMessage("rollup", "validate.invalidValue");
 
         // Check text renderer type
         if (textRenderer != null && !textRenderer.getDef().supports(dataTypeId))
@@ -382,6 +394,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         out.writeInt(dataTypeId);
         /* Point Properties */
         SerializationHelper.writeSafeUTF(out, chartColour);
+        out.writeInt(rollup);
         out.writeInt(plotType);
         /* Logging Properties */
         out.writeInt(loggingType);
@@ -423,6 +436,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	in.readBoolean(); //useRenderedUnit
         	SerializationHelper.readSafeUTF(in); //renderedUnit
         	chartColour = SerializationHelper.readSafeUTF(in);
+        	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
         	/* Logging Properties */
         	loggingType = in.readInt();
@@ -452,6 +466,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	defaultTemplate = in.readBoolean();
         	dataTypeId = in.readInt();
         	chartColour = SerializationHelper.readSafeUTF(in);
+        	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
         	/* Logging Properties */
         	loggingType = in.readInt();
@@ -481,6 +496,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	defaultTemplate = in.readBoolean();
         	dataTypeId = in.readInt();
         	chartColour = SerializationHelper.readSafeUTF(in);
+        	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
         	/* Logging Properties */
         	loggingType = in.readInt();
@@ -505,7 +521,37 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
             setExtremeHighLimit = in.readDouble();
-    }
+        }else if (ver == 4) {
+        	/* Point Properties */
+        	defaultTemplate = in.readBoolean();
+        	dataTypeId = in.readInt();
+        	chartColour = SerializationHelper.readSafeUTF(in);
+        	rollup = in.readInt();
+        	plotType = in.readInt();
+        	/* Logging Properties */
+        	loggingType = in.readInt();
+        	tolerance = in.readDouble();
+        	discardExtremeValues = in.readBoolean();
+        	discardLowLimit = in.readDouble();
+        	discardHighLimit = in.readDouble();
+        	intervalLoggingType = in.readInt();
+        	intervalLoggingPeriodType = in.readInt();
+        	intervalLoggingPeriod = in.readInt();
+        	overrideIntervalLoggingSamples = in.readBoolean();
+        	intervalLoggingSampleWindowSize = in.readInt();
+        	defaultCacheSize = in.readInt();
+        	/* Purge Override Settings */
+        	purgeOverride = in.readBoolean();
+        	purgeType = in.readInt();
+        	purgePeriod = in.readInt();
+        	
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
+        }
 
     }
 
@@ -513,7 +559,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("dataType", DataTypes.CODES.getCode(dataTypeId));
-        
+        writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("loggingType", DataPointVO.LOGGING_TYPE_CODES.getCode(loggingType));
         writer.writeEntry("intervalLoggingPeriodType", Common.TIME_PERIOD_CODES.getCode(intervalLoggingPeriodType));
         writer.writeEntry("intervalLoggingType", DataPointVO.INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType));
@@ -543,6 +589,15 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             if (dataTypeId == -1)
                 throw new TranslatableJsonException("emport.error.invalid", "dataType", text,
                         DataTypes.CODES.getCodeList());
+        }
+        
+        //Rollup
+        text = jsonObject.getString("rollup");
+        if (text != null){
+	        rollup = Common.ROLLUP_CODES.getId(text);
+	        if (rollup == -1)
+	            throw new TranslatableJsonException("emport.error.chart.invalid", "rollup", text,
+	                    Common.ROLLUP_CODES.getCodeList());
         }
 
         text = jsonObject.getString("loggingType");

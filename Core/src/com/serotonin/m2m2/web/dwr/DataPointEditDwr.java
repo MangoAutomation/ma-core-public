@@ -136,14 +136,13 @@ public class DataPointEditDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
-    public void setImageChartRenderer(int timePeriod, int numberOfPeriods, int rollupType, int rollupPeriodType, int rollupPeriods, int relativeDateType) {
-        setChartRenderer(new ImageChartRenderer(timePeriod, numberOfPeriods, rollupType, rollupPeriodType, rollupPeriods, relativeDateType));
+    public void setImageChartRenderer(int timePeriod, int numberOfPeriods) {
+        setChartRenderer(new ImageChartRenderer(timePeriod, numberOfPeriods));
     }
 
     @DwrPermission(user = true)
-    public void setStatisticsChartRenderer(int timePeriod, int numberOfPeriods, boolean includeSum, 
-    		int rollupType, int rollupPeriodType, int rollupPeriods, int relativeDateType) {
-        setChartRenderer(new StatisticsChartRenderer(timePeriod, numberOfPeriods, includeSum, rollupType, rollupPeriodType, rollupPeriods, relativeDateType));
+    public void setStatisticsChartRenderer(int timePeriod, int numberOfPeriods, boolean includeSum) {
+        setChartRenderer(new StatisticsChartRenderer(timePeriod, numberOfPeriods, includeSum));
     }
 
     @DwrPermission(user = true)

@@ -157,7 +157,7 @@ public class Common {
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 15;
+        return 16;
     }
 
     /**
@@ -233,18 +233,6 @@ public class Common {
     	ROLLUP_CODES.addElement(Rollups.COUNT, "COUNT", "common.rollup.count");
     	ROLLUP_CODES.addElement(Rollups.INTEGRAL, "INTEGRAL", "common.rollup.integral");
     	ROLLUP_CODES.addElement(Rollups.ALL, "ALL", "common.rollup.all");
-    }
-    
-    public interface RelativeDateTypes{
-    	int PAST = 0;
-    	int PREVIOUS = 1;
-    	int TO_DATE = 2;
-    }
-    public static ExportCodes RELATIVE_DATE_TYPE_CODES = new ExportCodes();
-    static{
-    	RELATIVE_DATE_TYPE_CODES.addElement(RelativeDateTypes.PAST, "PAST", "common.relativeDateType.past");
-    	RELATIVE_DATE_TYPE_CODES.addElement(RelativeDateTypes.PREVIOUS, "PREVIOUS", "common.relativeDateType.previous");
-    	RELATIVE_DATE_TYPE_CODES.addElement(RelativeDateTypes.TO_DATE, "PAST", "common.relativeDateType.toDate");
     }
     
 	public static ExportCodes WORK_ITEM_CODES = new ExportCodes();
