@@ -1016,7 +1016,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     // Serialization
     //
-    private static final int version = 12; //Skipped 7,8 to catch up with Deltamation
+    private static final int version = 11; //Skipped 7,8 to catch up with Deltamation
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         ensureUnitsCorrect();

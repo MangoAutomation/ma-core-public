@@ -386,7 +386,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     //
     // Serialization
     //
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
