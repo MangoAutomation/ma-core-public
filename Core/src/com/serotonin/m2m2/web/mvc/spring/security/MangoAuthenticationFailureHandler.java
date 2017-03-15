@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.AuthenticationException;
@@ -28,6 +30,8 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 @Component
 public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     
+	private static final Log LOG = LogFactory.getLog(MangoAuthenticationFailureHandler.class);
+	
     RequestMatcher browserHtmlRequestMatcher;
 
     @Autowired
@@ -39,8 +43,8 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
             throws IOException, ServletException {
-        
-        if (browserHtmlRequestMatcher.matches(request)) {
+
+    	if (browserHtmlRequestMatcher.matches(request)) {
             saveExceptionImpl(request, exception);
             
             String uri = DefaultPagesDefinition.getLoginUri(request, response);
@@ -60,11 +64,13 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
             request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
             // forward the request on to its usual destination (e.g. /rest/v1/login) so the correct response is returned
             request.getRequestDispatcher(request.getRequestURI()).forward(request, response);
+            //TODO Log this failure with the username
         }
     }
     
 	protected void saveExceptionImpl(HttpServletRequest request,
 			AuthenticationException exception) {
+		
 		if (this.isUseForward()) {
 			request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
 		}
@@ -75,7 +81,11 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
 				request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION,
 						exception);
 	            //Store for use in the Controller
-				request.getSession().setAttribute("username", request.getParameter("username"));
+				String username = request.getParameter("username");
+				request.getSession().setAttribute("username", username);
+		    	LOG.warn("Failed login attempt on user '"
+						+ username + "' from IP +"
+						+ request.getRemoteAddr());
 			}
 		}
 	}

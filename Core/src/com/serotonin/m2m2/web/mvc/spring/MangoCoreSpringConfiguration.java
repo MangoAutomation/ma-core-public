@@ -16,7 +16,6 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import com.serotonin.m2m2.web.mvc.BlabberUrlHandlerMapping;
-import com.serotonin.m2m2.web.mvc.UrlHandlerController;
 import com.serotonin.m2m2.web.mvc.interceptor.CommonDataInterceptor;
 import com.serotonin.m2m2.web.mvc.resolver.MangoExceptionResolver;
 import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
