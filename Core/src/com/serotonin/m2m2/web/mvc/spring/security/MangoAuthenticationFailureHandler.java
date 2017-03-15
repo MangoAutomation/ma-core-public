@@ -8,10 +8,10 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -41,23 +41,14 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
             throws IOException, ServletException {
         
         if (browserHtmlRequestMatcher.matches(request)) {
-            saveException(request, exception);
+            saveExceptionImpl(request, exception);
             
             String uri = DefaultPagesDefinition.getLoginUri(request, response);
             
-            String errorKey;
-            if (exception instanceof DisabledException) {
-                errorKey = "login.validation.accountDisabled";
-            } else {
-                errorKey = "login.validation.invalidLogin";
-            }
-            
             uri = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("error", errorKey)
-                .queryParam("username", request.getParameter("username"))
                 .build()
                 .toUriString();
-
+            
             if (this.isUseForward()) {
                 logger.debug("Forwarding to " + uri);
                 request.getRequestDispatcher(uri).forward(request, response);
@@ -71,4 +62,21 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
             request.getRequestDispatcher(request.getRequestURI()).forward(request, response);
         }
     }
+    
+	protected void saveExceptionImpl(HttpServletRequest request,
+			AuthenticationException exception) {
+		if (this.isUseForward()) {
+			request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+		}
+		else {
+			HttpSession session = request.getSession(false);
+
+			if (session != null || this.isAllowSessionCreation()) {
+				request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION,
+						exception);
+	            //Store for use in the Controller
+				request.getSession().setAttribute("username", request.getParameter("username"));
+			}
+		}
+	}
 }

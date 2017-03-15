@@ -76,6 +76,7 @@ import freemarker.template.Configuration;
 
 public class Common {
     public static final String SESSION_USER = "sessionUser";
+    public static final String SESSION_USER_EXCEPTION  = "sessionUserException";
     
     public static OverridingWebAppContext owac;
     // Note the start time of the application.

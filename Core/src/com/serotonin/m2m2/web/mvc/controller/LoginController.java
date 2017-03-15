@@ -6,7 +6,11 @@ package com.serotonin.m2m2.web.mvc.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -28,36 +32,28 @@ public class LoginController {
     @RequestMapping(method=RequestMethod.GET)
     public String initForm(HttpServletRequest request, HttpServletResponse response, @ModelAttribute("login") LoginForm loginForm, BindingResult result) {
     	BindException errors = new BindException(result);
-
-    	String errorParameter = request.getParameter("error");
-    	if (errorParameter != null) {
-    	    errors.reject(errorParameter);
-    	    
-    	    /* 
-    	     * Alternative is to get the stored exception from SimpleUrlAuthenticationFailureHandler
-    	     * 
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-                if (ex != null) {
-                    if (ex instanceof DisabledException) {
-                        errors.reject("login.validation.accountDisabled", ex.getMessage());
-                    } else {
-                        errors.reject("login.validation.invalidLogin", ex.getMessage());
-                    }
+    	HttpSession session = request.getSession(false);
+        if (session != null) {
+            AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+            if (ex != null) {
+                if (ex instanceof DisabledException) {
+                    errors.reject("login.validation.accountDisabled", ex.getMessage());
+                } else {
+                    errors.reject("login.validation.invalidLogin", ex.getMessage());
                 }
             }
-            */
-            
-            String username = request.getParameter("username");
+            String username = (String)session.getAttribute("username");
             if (username != null && !username.isEmpty()) {
                 loginForm.setUsername(username);
             }
-            
-            // display errors on the form or next to inputs like so
-            // errors.reject("translation.key", "Fall back text");
-            // errors.rejectValue("password", "translation.key", "Fall back text");
-    	}
+        }
+        
+        //TODO What if this is a forwarded request?  There shan't be a session....
+        
+        // display errors on the form or next to inputs like so
+        // errors.reject("translation.key", "Fall back text");
+        // errors.rejectValue("password", "translation.key", "Fall back text");
+	
     	
         return "/WEB-INF/jsp/login.jsp";
     }
