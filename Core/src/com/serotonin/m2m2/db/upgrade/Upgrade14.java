@@ -131,7 +131,7 @@ public class Upgrade14 extends DBUpgrade{
 	    	"ALTER TABLE userComments ALTER COLUMN xid varchar(50) NOT NULL;",
 	    };
 	private final String[] mysqlXidNotNullColumnScript = {
-			"ALTER TABLE userComments CHANGE COLUMN xid varchar(50) NOT NULL;",
+			"ALTER TABLE userComments MODIFY COLUMN xid varchar(50) NOT NULL;",
 	    };
 	private final String[] h2XidNotNullColumnScript = {
 			"ALTER TABLE userComments ALTER COLUMN xid varchar(50) NOT NULL;",
