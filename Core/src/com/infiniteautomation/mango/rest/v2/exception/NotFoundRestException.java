@@ -18,6 +18,6 @@ public class NotFoundRestException extends AbstractRestV2Exception{
 	private static final long serialVersionUID = 1L;
 	
 	public NotFoundRestException(){
-		super(HttpStatus.NOT_FOUND, new TranslatableMessage("rest.notFound"));
+		super(HttpStatus.NOT_FOUND, new TranslatableMessage("rest.exception.notFound"));
 	}
 }

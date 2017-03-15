@@ -87,10 +87,10 @@ public class TranslatableMessageSerializer extends JsonSerializer<TranslatableMe
 		            return new Locale(parts[0], parts[1]);
 		        else if (parts.length == 3)
 		            return new Locale(parts[0], parts[1], parts[2]);
+		        throw new IllegalArgumentException("Locale for given language not found: " + localeStr);	
 			}
-        	throw new IllegalArgumentException("Locale for given language not found: " + localeStr);	
-		}else
-			return Common.getLocale();
+		}
+		return Common.getLocale();
 	}
 	
 }

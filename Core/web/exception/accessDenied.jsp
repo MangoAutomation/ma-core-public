@@ -4,11 +4,16 @@
 --%>
 <%@ page isErrorPage="true" %>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
+<%@page import="com.serotonin.m2m2.Common"%>
 
 <%
 // Store the stack trace as a request attribute.
 java.io.StringWriter sw = new java.io.StringWriter();
-exception.printStackTrace(new java.io.PrintWriter(sw));
+if (request.getSession(false) != null) {
+	java.lang.Throwable t = (java.lang.Throwable)request.getSession().getAttribute(Common.SESSION_USER_EXCEPTION);
+	if(t != null)
+		t.printStackTrace(new java.io.PrintWriter(sw));
+}
 
 // Write the request url into the message.
 sw.append("\r\nREQUEST URL\r\n");
@@ -46,7 +51,7 @@ while (names.hasMoreElements()) {
     sw.append("   ").append(name).append('=').append(String.valueOf(request.getAttribute(name))).append("\r\n");
 }
 
-if (request.getSession() != null) {
+if (request.getSession(false) != null) {
     // Write the session attributes.
     sw.append("\r\n\r\nSESSION ATTRIBUTES\r\n");
     names = session.getAttributeNames();
@@ -66,6 +71,4 @@ request.setAttribute("stackTrace", sw.toString());
   You do not have sufficient authority to access the resource you requested. Sadly, this exception must be logged
   for review by a system administrator.<br/>
   <br/>
-  
-  <log:error message="${stackTrace}"/>
 </tag:page>

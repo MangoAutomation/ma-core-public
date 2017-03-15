@@ -4,75 +4,80 @@
 --%>
 <%@ page isErrorPage="true" %>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
+<%@page import="com.serotonin.m2m2.Common"%>
 
 <%
 // Store the stack trace as a request attribute.
 java.io.StringWriter sw = new java.io.StringWriter();
-exception.printStackTrace(new java.io.PrintWriter(sw));
+if (request.getSession(false) != null) {
+	java.lang.Throwable t = (java.lang.Throwable)request.getSession().getAttribute(Common.SESSION_USER_EXCEPTION);
+	if(t != null)
+		t.printStackTrace(new java.io.PrintWriter(sw));
+}
 
 // Write the request url into the message.
 sw.append("\r\nREQUEST URL\r\n");
 sw.append(request.getRequestURL());
 
-// Write the request parameters.
+//Write the request parameters.
 sw.append("\r\n\r\nREQUEST PARAMETERS\r\n");
 java.util.Enumeration<?> names = request.getParameterNames();
 while (names.hasMoreElements()) {
-    String name = (String) names.nextElement();
-    sw.append("   ").append(name).append('=').append(request.getParameter(name)).append("\r\n");
+ String name = (String) names.nextElement();
+ sw.append("   ").append(name).append('=').append(request.getParameter(name)).append("\r\n");
 }
 
-// Write the request headers.
+//Write the request headers.
 sw.append("\r\n\r\nREQUEST HEADERS\r\n");
 names = request.getHeaderNames();
 while (names.hasMoreElements()) {
-    String name = (String) names.nextElement();
-    sw.append("   ").append(name).append('=').append(request.getHeader(name)).append("\r\n");
+ String name = (String) names.nextElement();
+ sw.append("   ").append(name).append('=').append(request.getHeader(name)).append("\r\n");
 }
 
-// Write the page attributes.
+//Write the page attributes.
 //sw.append("\r\n\r\nPAGE ATTRIBUTES\r\n");
 //names = pageContext.getAttributeNames();
 //while (names.hasMoreElements()) {
-//    String name = (String) names.nextElement();
-//    sw.append("   ").append(name).append('=').append(pageContext.getAttribute(name)).append("\r\n");
+// String name = (String) names.nextElement();
+// sw.append("   ").append(name).append('=').append(pageContext.getAttribute(name)).append("\r\n");
 //}
 
-// Write the request attributes.
+//Write the request attributes.
 sw.append("\r\n\r\nREQUEST ATTRIBUTES\r\n");
 names = request.getAttributeNames();
 while (names.hasMoreElements()) {
-    String name = (String) names.nextElement();
-    sw.append("   ").append(name).append('=').append(String.valueOf(request.getAttribute(name))).append("\r\n");
+ String name = (String) names.nextElement();
+ sw.append("   ").append(name).append('=').append(String.valueOf(request.getAttribute(name))).append("\r\n");
 }
 
-if (request.getSession() != null) {
-    // Write the session attributes.
-    sw.append("\r\n\r\nSESSION ATTRIBUTES\r\n");
-    names = session.getAttributeNames();
-    while (names.hasMoreElements()) {
-        String name = (String) names.nextElement();
-        sw.append("   ").append(name).append('=').append(String.valueOf(session.getAttribute(name))).append("\r\n");
-    }
+if (request.getSession(false) != null) {
+ // Write the session attributes.
+ sw.append("\r\n\r\nSESSION ATTRIBUTES\r\n");
+ names = session.getAttributeNames();
+ while (names.hasMoreElements()) {
+     String name = (String) names.nextElement();
+     sw.append("   ").append(name).append('=').append(String.valueOf(session.getAttribute(name))).append("\r\n");
+ }
 }
 
-if (request.getSession() != null) {
-    // Write the context attributes.
-    sw.append("\r\n\r\nCONTEXT ATTRIBUTES\r\n");
-    names = session.getServletContext().getAttributeNames();
-    while (names.hasMoreElements()) {
-        String name = (String) names.nextElement();
-        
-        String value;
-        try {
-            value = String.valueOf(session.getServletContext().getAttribute(name));
-        }
-        catch (Exception e) {
-            value = "EXCEPTION in String.valueOf: "+ e.getMessage();
-        }
-        
-        sw.append("   ").append(name).append('=').append(value).append("\r\n");
-    }
+if (request.getSession(false) != null) {
+ // Write the context attributes.
+ sw.append("\r\n\r\nCONTEXT ATTRIBUTES\r\n");
+ names = session.getServletContext().getAttributeNames();
+ while (names.hasMoreElements()) {
+     String name = (String) names.nextElement();
+     
+     String value;
+     try {
+         value = String.valueOf(session.getServletContext().getAttribute(name));
+     }
+     catch (Exception e) {
+         value = "EXCEPTION in String.valueOf: "+ e.getMessage();
+     }
+     
+     sw.append("   ").append(name).append('=').append(value).append("\r\n");
+ }
 }
 
 request.setAttribute("stackTrace", sw.toString());
@@ -103,6 +108,4 @@ request.setAttribute("stackTrace", sw.toString());
   </script>
   <a id="errorDataMessage" href="#" onclick="return toggleErrorData();">Show error details</a><br/>
   <div id="errorData" style="display:none;"><pre>${fn:escapeXml(stackTrace)}</pre></div>
-  
-  <log:error message="${stackTrace}"/>
 </tag:page>

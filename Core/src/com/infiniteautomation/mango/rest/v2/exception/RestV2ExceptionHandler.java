@@ -27,19 +27,22 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class RestV2ExceptionHandler extends ResponseEntityExceptionHandler {
 	 protected Log LOG = LogFactory.getLog(RestV2ExceptionHandler.class);
-	
+	 
     @ExceptionHandler({ 
-//    	ForbiddenAccessRestException.class,
-//    	UnauthorizedRestException.class,
-//    	InvalidRQLRestException.class,
-//    	ValidationFailedRestException.class,
-//    	GenericRestException.class
+    	//Anything that extends our Base Exception
     	AbstractRestV2Exception.class
     	})
     protected ResponseEntity<Object> handleMangoError(Exception e, WebRequest request) {
     	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
     	AbstractRestV2Exception ex = (AbstractRestV2Exception)e;
     	return handleExceptionInternal(e, ex, new HttpHeaders(), ex.getStatus(), request);
+    }
+    
+    @ExceptionHandler({
+    	Exception.class
+    })
+    public ResponseEntity<Object> handleAllOtherErrors(Exception ex, WebRequest request){
+    	return handleExceptionInternal(ex, null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
     
     /* (non-Javadoc)
@@ -57,15 +60,13 @@ public class RestV2ExceptionHandler extends ResponseEntityExceptionHandler {
         if(ex instanceof NestedRuntimeException)
         	ex = (Exception) ((NestedRuntimeException) ex).getMostSpecificCause();
 
-        //Only Log Some Errors
-        if(!(ex instanceof AbstractRestV2Exception))
-        	LOG.error(ex.getMessage(), ex);
-
-    	//If no body provided we will 
+    	//If no body provided we will create one 
         if(body == null)
         	body = new GenericRestException(status, ex);
         
         return new ResponseEntity<Object>(body, headers, status);
     }
+    
+    
     
 }
