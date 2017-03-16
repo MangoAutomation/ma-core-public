@@ -20,7 +20,7 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
-public class IdPointValueTime extends PointValueTime {
+public class IdPointValueTime extends PointValueTime implements IdTime{
     private static final long serialVersionUID = 1L;
 
     private final int dataPointId;
@@ -30,7 +30,13 @@ public class IdPointValueTime extends PointValueTime {
         this.dataPointId = dataPointId;
     }
 
+    //TODO Remove me
+    @Deprecated
     public int getDataPointId() {
         return dataPointId;
+    }
+    
+    public int getId(){
+    	return dataPointId;
     }
 }
