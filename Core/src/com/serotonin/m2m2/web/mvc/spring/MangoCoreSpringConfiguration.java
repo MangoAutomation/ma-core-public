@@ -10,7 +10,9 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
@@ -18,6 +20,8 @@ import org.springframework.web.servlet.view.JstlView;
 import com.serotonin.m2m2.web.mvc.BlabberUrlHandlerMapping;
 import com.serotonin.m2m2.web.mvc.interceptor.CommonDataInterceptor;
 import com.serotonin.m2m2.web.mvc.resolver.MangoExceptionResolver;
+import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
+import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
 import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 
 /**
@@ -33,7 +37,7 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 @EnableWebMvc
 @ComponentScan(
 		basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
-public class MangoCoreSpringConfiguration implements BeanFactoryAware{
+public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfiguration implements BeanFactoryAware {
 
 
 	private BeanFactory beanFactory;
@@ -82,4 +86,15 @@ public class MangoCoreSpringConfiguration implements BeanFactoryAware{
 	public BeanFactory getBeanFactory(){
 		return this.beanFactory;
 	}
+	
+
+    /* (non-Javadoc)
+     * @see org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration#createExpressionHandler()
+     */
+    @Override
+    protected MethodSecurityExpressionHandler createExpressionHandler() {
+    	MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler();
+    	expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
+    	return expressionHandler;
+    }
 }

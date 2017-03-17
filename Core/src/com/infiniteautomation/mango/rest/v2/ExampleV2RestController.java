@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,12 +30,12 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @RequestMapping("/v2/example")
 public class ExampleV2RestController extends AbstractMangoRestController{
 	
-	
+	@PreAuthorize("isAdmin()")
 	@ApiOperation(value = "Example User Credentials test", notes = "")
 	@ApiResponses({
 		@ApiResponse(code = 401, message = "Unauthorized user access", response=ResponseEntity.class),
 	})
-	@RequestMapping( method = {RequestMethod.GET}, value = {"/get/{resourceId}"}, produces = {"application/json"} )
+	@RequestMapping( method = {RequestMethod.GET}, value = {"/admin-get/{resourceId}"}, produces = {"application/json"} )
 	public ResponseEntity<Object> exampleGet(HttpServletRequest request, 
 			@ApiParam(value="Resource id", required=true, allowMultiple=false) @PathVariable String resourceId) {
 		RestProcessResult<Object> result = new RestProcessResult<>(HttpStatus.OK);
@@ -49,5 +50,18 @@ public class ExampleV2RestController extends AbstractMangoRestController{
 	}
 	
 
+	@PreAuthorize("hasAllPermissions('superadmin','user')")
+	@ApiOperation(value = "Example User Credentials test", notes = "")
+	@ApiResponses({
+		@ApiResponse(code = 401, message = "Unauthorized user access", response=ResponseEntity.class),
+	})
+	@RequestMapping( method = {RequestMethod.GET}, value = {"/user-get/{resourceId}"}, produces = {"application/json"} )
+	public ResponseEntity<Object> userGet(HttpServletRequest request, 
+			@ApiParam(value="Resource id", required=true, allowMultiple=false) @PathVariable String resourceId) {
+		RestProcessResult<Object> result = new RestProcessResult<>(HttpStatus.OK);
+		
+		return result.createResponseEntity();
+	}
+	
 	
 }

@@ -16,9 +16,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -57,10 +61,13 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoJsonWebTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
+import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
+import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
 
 /**
  * @author Jared Wiltshire
  */
+@Configuration
 @EnableWebSecurity
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.security"})
 public class MangoSecurityConfiguration {
@@ -169,7 +176,7 @@ public class MangoSecurityConfiguration {
     public ObjectMapper objectMapper() {
         return MangoRestSpringConfiguration.getObjectMapper();
     }
-
+    
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have a Authorization header with Bearer token
     // We use a stateless session creation policy and disable CSRF for these requests so that the Token Authorization is not
     // persisted in the session inside the SecurityContext
@@ -270,7 +277,7 @@ public class MangoSecurityConfiguration {
             this.logoutHandler = logoutHandler;
             this.logoutSuccessHandler = logoutSuccessHandler;
         }
-
+        
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.antMatcher("/rest/**")
