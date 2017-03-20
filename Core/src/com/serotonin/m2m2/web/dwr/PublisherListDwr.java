@@ -44,7 +44,12 @@ public class PublisherListDwr extends BaseDwr {
         PublisherVO<? extends PublishedPointVO> publisher = Common.runtimeManager.getPublisher(publisherId);
 
         publisher.setEnabled(!publisher.isEnabled());
-        Common.runtimeManager.savePublisher(publisher);
+        publisher.validate(response);
+        
+        if(!response.getHasMessages())
+        	Common.runtimeManager.savePublisher(publisher);
+        else
+        	publisher.setEnabled(!publisher.isEnabled());
 
         response.addData("enabled", publisher.isEnabled());
         response.addData("id", publisherId);

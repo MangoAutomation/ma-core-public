@@ -54,6 +54,8 @@ public abstract class AbstractRTDwr<VO extends AbstractActionVO<?>,
 	
 	        if (!response.getHasMessages()) {
 	            runtimeManager.save(mon);
+	        } else {
+	        	mon.setEnabled(!mon.isEnabled());
 	        }
 	 
 	        response.addData("enabled", mon.isEnabled());

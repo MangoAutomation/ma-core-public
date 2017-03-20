@@ -59,6 +59,9 @@
         if (!hasImageFader(imgNode)) {
             startImageFader(imgNode);
             PublisherListDwr.togglePublisher(id, function(result) {
+            	if(result.hasMessages)
+            		for(var k = 0; k < result.messages.length; k+=1)
+            			alert(result.messages[k].genericMessage);
                 updateStatusImg($("pImg"+ result.data.id), result.data.enabled);
             });
         }
