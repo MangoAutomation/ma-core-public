@@ -86,8 +86,8 @@ public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfigurat
 	public BeanFactory getBeanFactory(){
 		return this.beanFactory;
 	}
-	
 
+	
     /* (non-Javadoc)
      * @see org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration#createExpressionHandler()
      */

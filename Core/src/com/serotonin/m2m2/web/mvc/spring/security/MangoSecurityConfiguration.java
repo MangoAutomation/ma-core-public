@@ -16,17 +16,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -61,8 +58,6 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoJsonWebTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
-import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
-import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
 
 /**
  * @author Jared Wiltshire
@@ -72,6 +67,9 @@ import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEva
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.security"})
 public class MangoSecurityConfiguration {
 
+	//Share between all Configurations
+	static SessionRegistry sessionRegistry = new MangoSessionRegistry();
+	
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
             MangoUserDetailsService userDetails,
@@ -138,7 +136,7 @@ public class MangoSecurityConfiguration {
     public RequestCache requestCache() {
         return new HttpSessionRequestCache();
     }
-
+    
     // used to dectect if we should do redirects on login/authentication failure/logout etc
     @Bean(name="browserHtmlRequestMatcher")
     public RequestMatcher browserHtmlRequestMatcher() {
@@ -175,6 +173,11 @@ public class MangoSecurityConfiguration {
     @Bean
     public ObjectMapper objectMapper() {
         return MangoRestSpringConfiguration.getObjectMapper();
+    }
+    
+    @Bean
+    public SessionRegistry sessionRegistry(){
+    	return sessionRegistry;
     }
     
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have a Authorization header with Bearer token
@@ -282,6 +285,11 @@ public class MangoSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             http.antMatcher("/rest/**")
                 .sessionManagement()
+	            	.maximumSessions(1)
+	            	.expiredUrl("/expired")
+	            	.maxSessionsPreventsLogin(true)
+	            	.sessionRegistry(sessionRegistry)
+	            	.and()
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                     .and()
                 .authorizeRequests()
@@ -366,6 +374,11 @@ public class MangoSecurityConfiguration {
                     new AntPathRequestMatcher("/dashboards/**", "GET"),
                     new AntPathRequestMatcher("/dwr/**/*.js", "GET"))))
             .sessionManagement()
+            	.maximumSessions(1)
+            	.expiredUrl("/expired")
+            	.maxSessionsPreventsLogin(true)
+            	.sessionRegistry(sessionRegistry)
+            	.and()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
             .formLogin()

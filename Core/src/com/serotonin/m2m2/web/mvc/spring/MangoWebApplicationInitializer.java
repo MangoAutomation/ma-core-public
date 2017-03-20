@@ -11,6 +11,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -67,6 +68,8 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("*.htm", "*.shtm", "/rest/*", "/api-docs/*");
         
+        //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
+        context.addListener(HttpSessionEventPublisher.class);
 	}
 
 }

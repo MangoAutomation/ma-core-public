@@ -18,7 +18,6 @@ import org.springframework.jdbc.core.RowMapper;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.dao.UserCommentDao;
 
 /**
  * Add ID to UserComments Table with Primary Keys, XIDs
