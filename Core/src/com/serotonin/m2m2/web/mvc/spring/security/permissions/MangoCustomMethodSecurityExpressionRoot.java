@@ -44,6 +44,11 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 		return user.isDataSourcePermission();
 	}
 	
+	/**
+	 * Does the user have every one of the supplied permissions
+	 * @param permissions
+	 * @return
+	 */
 	public boolean hasAllPermissions(String...permissions){
 		User user =  (User) this.getPrincipal();
 		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
@@ -53,6 +58,22 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 				return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * Does the user have at least 1 of the supplied permissions
+	 * @param permissions
+	 * @return
+	 */
+	public boolean hasAnyPermission(String...permissions){
+		User user =  (User) this.getPrincipal();
+		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+		//TODO Use Intersect (See Permissions)
+		for(String permission : permissions){
+			if(userPermissions.contains(permission))
+				return true;
+		}
+		return false;
 	}
 
 	private Object filterObject;
