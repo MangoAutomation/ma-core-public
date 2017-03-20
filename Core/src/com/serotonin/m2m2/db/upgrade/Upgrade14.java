@@ -9,8 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.db.MappedRowCallback;
@@ -51,17 +53,27 @@ public class Upgrade14 extends DBUpgrade{
         
         //Set XIDs on all the user comments, ugh
         AtomicInteger count = new AtomicInteger();
-        UserCommentDao.instance.query("SELECT id FROM userComments", new Object[]{}, new RowMapper<Integer>(){
+        final String prefix = "UC_";
+        final RowMapper<Integer> mapper = new RowMapper<Integer>(){
 			@Override
 			public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
 				return rs.getInt(1);
 			}
-        }, new MappedRowCallback<Integer>(){
+        };
+        final MappedRowCallback<Integer> callback = new MappedRowCallback<Integer>(){
 			@Override
 			public void row(Integer item, int index) {
-				ejt.update("UPDATE userComments SET xid=? WHERE id=?", new Object[]{UserCommentDao.instance.generateUniqueXid(), item});
+				ejt.update("UPDATE userComments SET xid=? WHERE id=?", new Object[]{prefix + UUID.randomUUID(), item});
 				count.incrementAndGet();
 			}
+        };
+        this.ejt.query("SELECT id FROM userComments", new Object[]{}, new RowCallbackHandler() {
+            private int rowNum = 0;
+
+            public void processRow(ResultSet rs) throws SQLException {
+                callback.row(mapper.mapRow(rs, rowNum), rowNum);
+                rowNum++;
+            }
         });
         
         String upgradedString = new String("Updated " + count.get() + " user comments with XIDs.\n");
