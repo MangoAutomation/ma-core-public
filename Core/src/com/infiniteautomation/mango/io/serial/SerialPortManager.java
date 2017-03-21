@@ -55,8 +55,14 @@ public class SerialPortManager {
      * @throws CommPortConfigException
      */
     public List<SerialPortIdentifier> getFreeCommPorts() throws SerialPortConfigException {
-    	if(!initialized)
-    		initialize(false);
+    	if(!initialized){
+	    	this.lock.writeLock().lock();
+	    	try{
+	    		initialize(false);
+	    	}finally{
+	    		this.lock.writeLock().unlock();
+	    	}
+    	}
     	return freePorts;
     }
 
@@ -66,8 +72,14 @@ public class SerialPortManager {
      * @throws CommPortConfigException
      */
     public List<SerialPortIdentifier> getAllCommPorts() throws SerialPortConfigException {
-    	if(!initialized)
-    		initialize(false);
+    	if(!initialized){
+    		this.lock.writeLock().lock();
+        	try{
+        		initialize(false);
+        	}finally{
+        		this.lock.writeLock().unlock();
+        	}
+    	}
     	List<SerialPortIdentifier> allPorts = new ArrayList<SerialPortIdentifier>(freePorts);
     	allPorts.addAll(ownedPorts);
     	return allPorts;
