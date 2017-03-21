@@ -5,6 +5,7 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -57,6 +58,7 @@ import com.infiniteautomation.mango.rest.v2.MangoSwitchUserFilter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoJsonWebTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
@@ -179,8 +181,25 @@ public class MangoSecurityConfiguration {
     }
     
     @Bean
-    public SessionRegistry sessionRegistry(){
+    public static SessionRegistry sessionRegistry(){
     	return sessionRegistry;
+    }
+    
+    /**
+     * Return a count of all active sessions
+     * @return
+     */
+    public static int getActiveSessionCount(){
+    	int activeCount = 0;
+    	final List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
+
+        for (final Object principal : allPrincipals) {
+            if (principal instanceof User) {
+                activeCount += sessionRegistry.getAllSessions(principal, false).size();
+            }
+        }
+        
+        return activeCount;
     }
     
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have a Authorization header with Bearer token

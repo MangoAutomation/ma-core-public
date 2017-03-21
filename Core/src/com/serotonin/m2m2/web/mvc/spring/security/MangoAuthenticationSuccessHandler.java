@@ -71,8 +71,6 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
             
             // Set the IP Address for the session
             user.setRemoteAddr(request.getRemoteAddr());
-            
-            Common.loginManager.getSessionCountMonitor().increment();
         }
 
         if (user != null) {

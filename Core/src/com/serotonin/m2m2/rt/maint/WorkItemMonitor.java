@@ -13,6 +13,8 @@ import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -93,6 +95,10 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     		
     private final DoubleMonitor uptime = new DoubleMonitor(SYSTEM_UPTIME_MONITOR_ID, new TranslatableMessage("internal.monitor.SYSTEM_UPTIME"), this);
     
+    //User Sessions
+    public static final String USER_SESSION_MONITOR_ID = MangoSessionRegistry.class.getCanonicalName() + ".COUNT";
+    private final IntegerMonitor userSessions = new IntegerMonitor(USER_SESSION_MONITOR_ID, new TranslatableMessage("internal.monitor.USER_SESSION_COUNT"), this);
+    
     private final int mb = 1024*1024;
     
     private boolean running;
@@ -120,6 +126,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         Common.MONITORED_VALUES.addIfMissingStatMonitor(javaAvailableProcessors);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(uptime);
         
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(userSessions);
         
         //Set the available processors, we don't need to poll this
         javaAvailableProcessors.setValue(Runtime.getRuntime().availableProcessors());
@@ -180,6 +187,11 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         BigDecimal bd = new BigDecimal(uptimeHrs);
     	bd = bd.setScale(2, RoundingMode.HALF_UP);
         uptime.setValue(bd.doubleValue());
+        
+        //Collect Active User Sessions
+        
+        userSessions.setValue(MangoSecurityConfiguration.getActiveSessionCount());
+
     }
     
     /* (non-Javadoc)

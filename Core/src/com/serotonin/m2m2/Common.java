@@ -51,7 +51,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
-import com.serotonin.m2m2.rt.ILoginManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
@@ -96,7 +95,6 @@ public class Common {
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
     public static SerialPortManager serialPortManager;
-    public static ILoginManager loginManager;
 
     public static String applicationLogo = "/images/logo.png";
     public static String applicationFavicon = "/images/favicon.ico";
