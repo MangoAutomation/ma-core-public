@@ -27,11 +27,13 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -51,6 +53,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.rest.v2.MangoSwitchUserFilter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -108,7 +111,7 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationSuccessHandler mangoAuthenticationSuccessHandler() {
+    public static AuthenticationSuccessHandler mangoAuthenticationSuccessHandler() {
         return new MangoAuthenticationSuccessHandler(requestCache(), browserHtmlRequestMatcher());
     }
     
@@ -128,18 +131,18 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public ContentNegotiationStrategy contentNegotiationStrategy() {
+    public static ContentNegotiationStrategy contentNegotiationStrategy() {
         return new HeaderContentNegotiationStrategy();
     }
     
     @Bean
-    public RequestCache requestCache() {
+    public static RequestCache requestCache() {
         return new HttpSessionRequestCache();
     }
     
     // used to dectect if we should do redirects on login/authentication failure/logout etc
     @Bean(name="browserHtmlRequestMatcher")
-    public RequestMatcher browserHtmlRequestMatcher() {
+    public static RequestMatcher browserHtmlRequestMatcher() {
         ContentNegotiationStrategy contentNegotiationStrategy = contentNegotiationStrategy();
         
         MediaTypeRequestMatcher mediaMatcher = new MediaTypeRequestMatcher(
@@ -328,12 +331,24 @@ public class MangoSecurityConfiguration {
                 .exceptionHandling()
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                     .accessDeniedHandler(accessDeniedHandler)
-                    .and();
+                    .and()
+                .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
             
             // Use the MVC Cors Configuration
             if (Common.envProps.getBoolean("rest.cors.enabled", false))
                 http.cors().configurationSource(corsConfigurationSource);
         }
+        
+    	@Bean
+    	public SwitchUserFilter switchUserFilter(){
+    		MangoSwitchUserFilter filter = new MangoSwitchUserFilter();
+    		filter.setSwitchUserUrl("/rest/v2/switch-user");
+    		filter.setExitUserUrl("/rest/v2/exit-switch-user");
+    		filter.setUserDetailsService(userDetailsService());
+    		filter.setSuccessHandler(mangoAuthenticationSuccessHandler());
+    		filter.setUsernameParameter("username");
+    		return filter;
+    	}
     }
 
     @Configuration

@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
@@ -38,7 +41,6 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 @ComponentScan(
 		basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
 public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfiguration implements BeanFactoryAware {
-
 
 	private BeanFactory beanFactory;
 	
@@ -86,7 +88,6 @@ public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfigurat
 	public BeanFactory getBeanFactory(){
 		return this.beanFactory;
 	}
-
 	
     /* (non-Javadoc)
      * @see org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration#createExpressionHandler()
