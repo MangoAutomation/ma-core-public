@@ -92,9 +92,6 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
         if (ver == 1) {
             timePeriod = in.readInt();
             numberOfPeriods = in.readInt();
-        }else if(ver == 2){
-            timePeriod = in.readInt();
-            numberOfPeriods = in.readInt();
         }
     }
 
