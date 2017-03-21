@@ -10,6 +10,10 @@ import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
 
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
@@ -58,6 +62,38 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 				return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * Does the user have any of the given permissions assigned to the type
+	 * @param permissionType
+	 * @return
+	 */
+	public boolean hasPermissionType(String permissionType){
+		User user =  (User) this.getPrincipal();
+		if(user.isAdmin())
+			return true;
+		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+		for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
+			String groups = SystemSettingsDao.getValue(def.getPermissionTypeName());
+			Set<String> permissions = Permissions.explodePermissionGroups(groups);
+			//TODO Use Union (See Permissions)
+			for(String permission : permissions){
+				if(userPermissions.contains(permission))
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Does a user have data point read permissions?
+	 * @param vo
+	 * @return
+	 */
+	public boolean hasDataPointReadPermission(DataPointVO vo){
+		User user =  (User) this.getPrincipal();
+		return Permissions.hasDataPointReadPermission(user, vo);
 	}
 	
 	/**
