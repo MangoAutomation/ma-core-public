@@ -39,7 +39,7 @@ public abstract class MangoRestController{
 	 * @return User that is logged in, null if none are
 	 */
 	protected User checkUser(HttpServletRequest request, @SuppressWarnings("rawtypes") RestProcessResult  result) {
-		User user = Common.getUser(request);
+		User user = Common.getHttpUser();
 		if(user == null){
 			result.addRestMessage(HttpStatus.UNAUTHORIZED, new TranslatableMessage("common.default", "User not logged in"));
 		}

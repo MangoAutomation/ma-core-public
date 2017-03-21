@@ -33,8 +33,9 @@ public class AbstractMangoRestController {
      * @throws UnauthorizedRestException if the user is not authenticated
      * @throws ForbiddenAccessRestException if the user is not an admin
      */
+	@Deprecated //TODO Use @PreAuthorize instead
     protected User checkAdminUser(HttpServletRequest request) {
-        User user = Common.getUser(request);
+        User user = Common.getHttpUser();
         if(user == null)
             throw new UnauthorizedRestException();
         if(!user.isAdmin())
@@ -49,8 +50,9 @@ public class AbstractMangoRestController {
      * @throws UnauthorizedRestException if the user is not authenticated
      * @throws ForbiddenAccessRestException if the user does not have general Data Source priveleges
      */
+    @Deprecated //TODO Use @PreAuthorize instead
     protected User checkDataSourceUser(HttpServletRequest request){
-    	User user = Common.getUser(request);
+    	User user = Common.getHttpUser();
     	if(user == null)
             throw new UnauthorizedRestException();
         if(!user.isAdmin())
@@ -67,8 +69,9 @@ public class AbstractMangoRestController {
      * @throws UnauthorizedRestException if the user is not authenticated
      * @throws ForbiddenAccessRestException if the user does not have all of the permissions
 	 */
+    @Deprecated //TODO Use @PreAuthorize instead
 	protected User checkUser(HttpServletRequest request, String... permissions) {
-		User user = Common.getUser(request);
+		User user = Common.getHttpUser();
 		if(user == null)
 			throw new UnauthorizedRestException();
 		

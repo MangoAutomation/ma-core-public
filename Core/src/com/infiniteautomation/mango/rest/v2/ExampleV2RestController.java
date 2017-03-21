@@ -40,10 +40,6 @@ public class ExampleV2RestController extends AbstractMangoRestController{
 			@ApiParam(value="Resource id", required=true, allowMultiple=false) @PathVariable String resourceId) {
 		RestProcessResult<Object> result = new RestProcessResult<>(HttpStatus.OK);
 
-		//If not logged in then throw UnauthorizedRestException
-        //If not admin then throw ForbiddenAccessRestException
-		this.checkAdminUser(request);
-
 		//TODO Check to see if the resourceId is 'test' if not throw NotFoundRestException
 		
 		return result.createResponseEntity();
