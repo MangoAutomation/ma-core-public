@@ -56,6 +56,9 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasAllPermissions(String...permissions){
 		User user =  (User) this.getPrincipal();
+		if(user.isAdmin())
+			return true;
+		
 		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
 		//TODO Use Collections.disjoint?
 		for(String permission : permissions){

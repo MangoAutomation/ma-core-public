@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.serotonin.m2m2.vo.permission.PermissionException;
+
 /**
  * 
  * Class to handle REST Specific Errors and present the user with a Model
@@ -36,6 +38,15 @@ public class RestV2ExceptionHandler extends ResponseEntityExceptionHandler {
     	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
     	AbstractRestV2Exception ex = (AbstractRestV2Exception)e;
     	return handleExceptionInternal(e, ex, new HttpHeaders(), ex.getStatus(), request);
+    }
+    
+    @ExceptionHandler({ 
+    	PermissionException.class
+    	})
+    protected ResponseEntity<Object> handlePermissionError(Exception e, WebRequest request) {
+    	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
+    	PermissionException ex = (PermissionException)e;
+    	return handleExceptionInternal(e, ex, new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
     
     @ExceptionHandler({

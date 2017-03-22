@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -52,10 +53,21 @@ public class ExampleV2RestController extends AbstractMangoRestV2Controller{
 		@ApiResponse(code = 401, message = "Unauthorized user access", response=ResponseEntity.class),
 	})
 	@RequestMapping( method = {RequestMethod.GET}, value = {"/user-get/{resourceId}"}, produces = {"application/json"} )
-	public ResponseEntity<Object> userGet(@ApiParam(value="Resource id", required=true, allowMultiple=false) @PathVariable String resourceId) {
+	public ResponseEntity<Object> userGet(@AuthenticationPrincipal User user, 
+			@ApiParam(value="Resource id", required=true, allowMultiple=false) @PathVariable String resourceId) {
 		RestProcessResult<Object> result = new RestProcessResult<>(HttpStatus.OK);
 		
 		return result.createResponseEntity();
+	}
+	
+	@PreAuthorize("hasAllPermissions('user')")
+	@ApiOperation(value = "Example Permission Exception Response", notes = "")
+	@ApiResponses({
+		@ApiResponse(code = 401, message = "Unauthorized user access", response=ResponseEntity.class),
+	})
+	@RequestMapping( method = {RequestMethod.GET}, value = {"/permissions-exception"}, produces = {"application/json"} )
+	public ResponseEntity<Object> alwaysFails(@AuthenticationPrincipal User user) {
+		throw new PermissionException("I always fail.", user);
 	}
 	
 	

@@ -4,13 +4,13 @@
 --%>
 <%@ page isErrorPage="true" %>
 <%@ include file="/WEB-INF/jsp/include/tech.jsp" %>
-<%@page import="com.serotonin.m2m2.Common"%>
+<%@page import="org.springframework.security.web.WebAttributes"%>
 
 <%
 // Store the stack trace as a request attribute.
 java.io.StringWriter sw = new java.io.StringWriter();
 if (request.getSession(false) != null) {
-	java.lang.Throwable t = (java.lang.Throwable)request.getSession().getAttribute(Common.SESSION_USER_EXCEPTION);
+	java.lang.Throwable t = (java.lang.Throwable)request.getSession().getAttribute(WebAttributes.ACCESS_DENIED_403);
 	if(t != null)
 		t.printStackTrace(new java.io.PrintWriter(sw));
 }
