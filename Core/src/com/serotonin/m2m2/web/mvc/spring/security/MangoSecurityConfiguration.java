@@ -54,7 +54,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.rest.v2.MangoSwitchUserFilter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -113,7 +112,7 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public static AuthenticationSuccessHandler mangoAuthenticationSuccessHandler() {
+    public AuthenticationSuccessHandler mangoAuthenticationSuccessHandler() {
         return new MangoAuthenticationSuccessHandler(requestCache(), browserHtmlRequestMatcher());
     }
     
@@ -133,18 +132,18 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public static ContentNegotiationStrategy contentNegotiationStrategy() {
+    public ContentNegotiationStrategy contentNegotiationStrategy() {
         return new HeaderContentNegotiationStrategy();
     }
     
     @Bean
-    public static RequestCache requestCache() {
+    public RequestCache requestCache() {
         return new HttpSessionRequestCache();
     }
     
     // used to dectect if we should do redirects on login/authentication failure/logout etc
     @Bean(name="browserHtmlRequestMatcher")
-    public static RequestMatcher browserHtmlRequestMatcher() {
+    public RequestMatcher browserHtmlRequestMatcher() {
         ContentNegotiationStrategy contentNegotiationStrategy = contentNegotiationStrategy();
         
         MediaTypeRequestMatcher mediaMatcher = new MediaTypeRequestMatcher(
@@ -186,7 +185,8 @@ public class MangoSecurityConfiguration {
     }
     
     /**
-     * Return a count of all active sessions
+     * Return a count of all active sessions.
+     * 
      * @return
      */
     public static int getActiveSessionCount(){
@@ -316,6 +316,9 @@ public class MangoSecurityConfiguration {
                     .and()
                 .authorizeRequests()
                     .antMatchers("/rest/*/login/**").permitAll()
+                    .antMatchers("/rest/*/exception/**").permitAll() //For exception info for a user's session...
+                    .antMatchers(HttpMethod.GET, "/rest/*/login/su").hasRole("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/rest/*/login/exit-su").permitAll() //So you can exit if you are not Admin
                     .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
                     .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
@@ -360,11 +363,11 @@ public class MangoSecurityConfiguration {
         
     	@Bean
     	public SwitchUserFilter switchUserFilter(){
-    		MangoSwitchUserFilter filter = new MangoSwitchUserFilter();
-    		filter.setSwitchUserUrl("/rest/v2/switch-user");
-    		filter.setExitUserUrl("/rest/v2/exit-switch-user");
+    		SwitchUserFilter filter = new SwitchUserFilter();
+    		filter.setSwitchUserUrl("/rest/v2/login/su");
+    		filter.setExitUserUrl("/rest/v2/login/exit-su");
     		filter.setUserDetailsService(userDetailsService());
-    		filter.setSuccessHandler(mangoAuthenticationSuccessHandler());
+    		filter.setSuccessHandler(authenticationSuccessHandler);
     		filter.setUsernameParameter("username");
     		return filter;
     	}

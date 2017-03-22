@@ -79,9 +79,6 @@
     <create creator="new" javascript="SystemSettingsDwr" scope="application">
       <param name="class" value="com.serotonin.m2m2.web.dwr.SystemSettingsDwr"/>
     </create>
-    <create creator="new" javascript="UsersDwr" scope="application">
-      <param name="class" value="com.serotonin.m2m2.web.dwr.UsersDwr"/>
-    </create>
     
     <convert converter="bean" match="com.serotonin.db.IntValuePair"/>
     <convert converter="bean" match="com.serotonin.db.KeyValuePair"/>
