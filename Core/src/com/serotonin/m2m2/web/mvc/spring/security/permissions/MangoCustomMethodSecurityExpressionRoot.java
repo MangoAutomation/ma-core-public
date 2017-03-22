@@ -10,6 +10,7 @@ import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -56,7 +57,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	public boolean hasAllPermissions(String...permissions){
 		User user =  (User) this.getPrincipal();
 		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
-		//TODO Use Union (See Permissions)
+		//TODO Use Collections.disjoint?
 		for(String permission : permissions){
 			if(!userPermissions.contains(permission))
 				return false;
@@ -77,7 +78,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 		for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
 			String groups = SystemSettingsDao.getValue(def.getPermissionTypeName());
 			Set<String> permissions = Permissions.explodePermissionGroups(groups);
-			//TODO Use Union (See Permissions)
+			//TODO Use Collections.disjoint?
 			for(String permission : permissions){
 				if(userPermissions.contains(permission))
 					return true;
@@ -91,9 +92,56 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 * @param vo
 	 * @return
 	 */
-	public boolean hasDataPointReadPermission(DataPointVO vo){
+	public boolean hasDataPointXidReadPermission(String xid){
 		User user =  (User) this.getPrincipal();
-		return Permissions.hasDataPointReadPermission(user, vo);
+		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		
+		return (vo != null) && Permissions.hasDataPointReadPermission(user, vo);
+	}
+	
+	/**
+	 * Does the user have read permissions to every data point in the list?
+	 * @param xids
+	 * @return
+	 */
+	public boolean hasDataPointXidsReadPermission(String[] xids){
+		User user =  (User) this.getPrincipal();
+		for(String xid : xids){
+			DataPointVO vo = DataPointDao.instance.getByXid(xid);
+			if((vo == null)||(!Permissions.hasDataPointReadPermission(user, vo)))
+				return false;
+				
+		}
+		return true;
+	}
+	
+	/**
+	 * Does a user have data point set permissions?
+	 * @param vo
+	 * @return
+	 */
+	public boolean hasDataPointXidSetPermission(String xid){
+		User user =  (User) this.getPrincipal();
+		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		
+		return (vo != null) && Permissions.hasDataPointSetPermission(user, vo);
+	}
+	
+	/**
+	 * TODO Throw NotFoundRestException instead?
+	 * Does the user have read permissions to every data point in the list?
+	 * @param xids
+	 * @return
+	 */
+	public boolean hasDataPointXidsSetPermission(String[] xids){
+		User user =  (User) this.getPrincipal();
+		for(String xid : xids){
+			DataPointVO vo = DataPointDao.instance.getByXid(xid);
+			if((vo == null)||(!Permissions.hasDataPointSetPermission(user, vo)))
+				return false;
+				
+		}
+		return true;
 	}
 	
 	/**

@@ -307,9 +307,9 @@ public class MangoSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             http.antMatcher("/rest/**")
                 .sessionManagement()
-	            	.maximumSessions(1)
+	            	.maximumSessions(10)
 	            	.expiredUrl("/expired")
-	            	.maxSessionsPreventsLogin(true)
+	            	.maxSessionsPreventsLogin(false)
 	            	.sessionRegistry(sessionRegistry)
 	            	.and()
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
