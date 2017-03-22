@@ -337,11 +337,6 @@ public class Common {
         return null;
     }
     
-    @Deprecated
-    public static void setUser(HttpServletRequest request, User user) {
-        setHttpUser(request, user);
-    }
-    
     public static void setHttpUser(HttpServletRequest request, User user) {
         User existingUser = getHttpUser();
         if (existingUser == null || existingUser.getId() != user.getId()) {
