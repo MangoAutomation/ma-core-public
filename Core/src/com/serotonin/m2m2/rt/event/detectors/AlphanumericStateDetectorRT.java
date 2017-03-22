@@ -22,7 +22,7 @@ public class AlphanumericStateDetectorRT extends StateDetectorRT<AlphanumericSta
 
     @Override
     public TranslatableMessage getMessage() {
-        String name = vo.njbGetDataPoint().getName();
+        String name = vo.njbGetDataPoint().getExtendedName();
         String prettyText = vo.njbGetDataPoint().getTextRenderer()
                 .getText(vo.getState(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();

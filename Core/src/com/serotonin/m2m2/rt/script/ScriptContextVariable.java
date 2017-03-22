@@ -109,7 +109,7 @@ public class ScriptContextVariable implements Serializable{
             if (dp == null)
                 sb.append("?");
             else
-                sb.append(dp.getName()).append(", varName=");
+                sb.append(dp.getExtendedName()).append(", varName=");
             sb.append(ivp.getVariableName()).append(", updateContext=").append(ivp.isContextUpdate()).append("}");
         }
         return sb.toString();

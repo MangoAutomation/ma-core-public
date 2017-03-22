@@ -24,7 +24,7 @@ public class NoUpdateDetectorRT extends DifferenceDetectorRT<NoUpdateDetectorVO>
 
     @Override
     public TranslatableMessage getMessage() {
-        return new TranslatableMessage("event.detector.noUpdate", vo.njbGetDataPoint().getName(),
+        return new TranslatableMessage("event.detector.noUpdate", vo.njbGetDataPoint().getExtendedName(),
                 getDurationDescription());
     }
 }

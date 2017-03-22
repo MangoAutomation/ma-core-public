@@ -36,7 +36,7 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
 
     @Override
     public TranslatableMessage getMessage() {
-        return new TranslatableMessage("event.detector.changeCount", vo.njbGetDataPoint().getName(),
+        return new TranslatableMessage("event.detector.changeCount", vo.njbGetDataPoint().getExtendedName(),
                 vo.getChangeCount(), getDurationDescription());
     }
 

@@ -41,7 +41,7 @@ public class VarNames {
             if (dp == null)
                 sb.append("?=");
             else
-                sb.append(dp.getName()).append("=");
+                sb.append(dp.getExtendedName()).append("=");
             sb.append(ivp.getValue());
         }
         return sb.toString();

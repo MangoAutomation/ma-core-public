@@ -17,7 +17,7 @@ public class BinaryStateDetectorRT extends StateDetectorRT<BinaryStateDetectorVO
 
     @Override
     public TranslatableMessage getMessage() {
-        String name = vo.njbGetDataPoint().getName();
+        String name = vo.njbGetDataPoint().getExtendedName();
         String prettyText = vo.njbGetDataPoint().getTextRenderer()
                 .getText(vo.isState(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
