@@ -155,6 +155,7 @@ UsersView.prototype.fillUserInputs = function(userData){
 	
 	this.loadedUsername = userData.username;
 	$('#name').val(userData.name);
+	$('#locale').val(userData.locale);
 	$('#email').val(userData.email);
 	$('#phone').val(userData.phone);
 	$('#muted').prop('checked', userData.muted);
@@ -207,6 +208,7 @@ UsersView.prototype.saveUser = function(){
 	//Get the user info
 	var user = {
 		name: $('#name').val(),
+		locale: $('#locale').val(),
 		username: $('#username').val(),
 		password: $('#password').val(),
 		email: $('#email').val(),

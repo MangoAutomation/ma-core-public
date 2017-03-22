@@ -71,7 +71,9 @@
         <tr>
           <td class="formLabelRequired"><fmt:message
               key="common.name" /></td>
-          <td class="formField"><input id="name" type="text" /></td>
+          <td class="formField"><input id="name" type="text" />
+          <!-- This input is hidden for compatibility with the new UI -->
+          <input id="locale" type="hidden"/></td>
         </tr>
         <tr>
           <td class="formLabelRequired"><fmt:message
