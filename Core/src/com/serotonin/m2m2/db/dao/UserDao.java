@@ -25,6 +25,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 
 public class UserDao extends AbstractDao<User> {
 	
@@ -124,6 +125,7 @@ public class UserDao extends AbstractDao<User> {
         
         if (handler != null)
             handler.notify("add", user);
+        
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -157,6 +159,8 @@ public class UserDao extends AbstractDao<User> {
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
             if (handler != null)
                 handler.notify("update", user);
+            //Update User In Session
+            MangoSecurityConfiguration.replaceUserInSessions(old, user);
         }
         catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -182,6 +186,8 @@ public class UserDao extends AbstractDao<User> {
                 countMonitor.decrement();
                 if (handler != null)
                     handler.notify("delete", user);
+                //Update User In Session
+                MangoSecurityConfiguration.replaceUserInSessions(user, null);
             }
         });
         
@@ -196,6 +202,8 @@ public class UserDao extends AbstractDao<User> {
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
+        //Update User In Session
+        MangoSecurityConfiguration.replaceUserInSessions(old, user);
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -203,6 +211,8 @@ public class UserDao extends AbstractDao<User> {
         ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
+        //Update User In Session
+        MangoSecurityConfiguration.replaceUserInSessions(old, user);
     }
     
     //Overrides for use in AbstractBasicDao

@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -24,6 +25,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -201,6 +203,37 @@ public class MangoSecurityConfiguration {
         
         return activeCount;
     }
+    
+	/**
+	 * Temporary Solution to Caching User in Session, called by User Dao when a User is saved or updated.
+	 * 
+	 * @param old - Cannot be null
+	 * @param new - can be null if user was deleted
+	 */
+	public static void replaceUserInSessions(User old, User user) {
+    	final List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
+
+        for (final Object principal : allPrincipals) {
+        	//Confirm we are only editing the user that was modified
+            if ((principal instanceof User)&&(StringUtils.equals(((User)principal).getUsername(), old.getUsername()))){
+            	List<SessionInformation> sessionInfo = sessionRegistry.getAllSessions(principal, false);
+            	if(user == null){
+            		//Expire sessions, the user was deleted
+            		for(SessionInformation info : sessionInfo){
+            			info.expireNow();
+            			sessionRegistry.removeSessionInformation(info.getSessionId());
+            		}
+            	}else{
+            		//Replace the user's sessions
+            		//TODO Is this really the right way to do this?
+            		for(SessionInformation info : sessionInfo){
+            			sessionRegistry.registerNewSession(info.getSessionId(), user);
+            		}
+            	}
+            }
+        }
+		
+	}
     
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have a Authorization header with Bearer token
     // We use a stateless session creation policy and disable CSRF for these requests so that the Token Authorization is not
