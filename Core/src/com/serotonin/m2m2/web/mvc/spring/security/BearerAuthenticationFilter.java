@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,6 +31,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.BearerAuthentic
 public class BearerAuthenticationFilter extends OncePerRequestFilter {
     private AuthenticationEntryPoint authenticationEntryPoint;
     private AuthenticationManager authenticationManager;
+    private WebAuthenticationDetailsSource authenticationDetailsSource = new WebAuthenticationDetailsSource();
 
     public BearerAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint) {
         Assert.notNull(authenticationManager, "authenticationManager cannot be null");
@@ -68,6 +70,7 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
             if (authenticationIsRequired()) {
                 BearerAuthenticationToken authRequest = new BearerAuthenticationToken(tokenString);
                 Authentication authResult = authenticationManager.authenticate(authRequest);
+                authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authResult);
             }
         } catch (AuthenticationException failed) {
