@@ -42,6 +42,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -176,6 +177,11 @@ public class MangoSecurityConfiguration {
         }
     }
 
+    @Bean
+    public MangoInvalidSessionStrategy invalidSessionStrategy(){
+    	return new MangoInvalidSessionStrategy(browserHtmlRequestMatcher());
+    }
+    
     @Bean
     public ObjectMapper objectMapper() {
         return MangoRestSpringConfiguration.getObjectMapper();
@@ -317,6 +323,7 @@ public class MangoSecurityConfiguration {
         JsonLoginConfigurer jsonLoginConfigurer;
         LogoutHandler logoutHandler;
         LogoutSuccessHandler logoutSuccessHandler;
+        InvalidSessionStrategy invalidSessionStrategy;
         
         @Autowired
         public void init(
@@ -326,7 +333,8 @@ public class MangoSecurityConfiguration {
                 CorsConfigurationSource corsConfigurationSource,
                 JsonLoginConfigurer jsonLoginConfigurer,
                 LogoutHandler logoutHandler,
-                LogoutSuccessHandler logoutSuccessHandler) {
+                LogoutSuccessHandler logoutSuccessHandler,
+                InvalidSessionStrategy invalidSessionStrategy) {
             this.authenticationSuccessHandler = authenticationSuccessHandler;
             this.authenticationFailureHandler = authenticationFailureHandler;
             this.accessDeniedHandler = accessDeniedHandler;
@@ -334,12 +342,14 @@ public class MangoSecurityConfiguration {
             this.jsonLoginConfigurer = jsonLoginConfigurer;
             this.logoutHandler = logoutHandler;
             this.logoutSuccessHandler = logoutSuccessHandler;
+            this.invalidSessionStrategy = invalidSessionStrategy;
         }
         
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.antMatcher("/rest/**")
                 .sessionManagement()
+                	//.invalidSessionStrategy(invalidSessionStrategy)
 	            	.maximumSessions(10)
 	            	.maxSessionsPreventsLogin(false)
 	            	.sessionRegistry(sessionRegistry)
@@ -415,7 +425,8 @@ public class MangoSecurityConfiguration {
         LogoutHandler logoutHandler;
         LogoutSuccessHandler logoutSuccessHandler;
         RequestCache requestCache;
-
+        InvalidSessionStrategy invalidSessionStrategy;
+        
         @Autowired
         public void init(AccessDeniedHandler accessDeniedHandler,
                 AuthenticationEntryPoint authenticationEntryPoint,
@@ -423,7 +434,8 @@ public class MangoSecurityConfiguration {
                 AuthenticationFailureHandler authenticationFailureHandler,
                 LogoutHandler logoutHandler,
                 LogoutSuccessHandler logoutSuccessHandler,
-                RequestCache requestCache) {
+                RequestCache requestCache, 
+                InvalidSessionStrategy invalidSessionStrategy) {
             this.accessDeniedHandler = accessDeniedHandler;
             this.authenticationEntryPoint = authenticationEntryPoint;
             this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -431,6 +443,7 @@ public class MangoSecurityConfiguration {
             this.logoutHandler = logoutHandler;
             this.logoutSuccessHandler = logoutSuccessHandler;
             this.requestCache = requestCache;
+            this.invalidSessionStrategy = invalidSessionStrategy;
         }
 
         @Override
@@ -443,8 +456,8 @@ public class MangoSecurityConfiguration {
                     new AntPathRequestMatcher("/dashboards/**", "GET"),
                     new AntPathRequestMatcher("/dwr/**/*.js", "GET"))))
             .sessionManagement()
+            	//.invalidSessionStrategy(invalidSessionStrategy)
             	.maximumSessions(10)
-            	.expiredUrl("/invalidSession.jsp")
             	.maxSessionsPreventsLogin(false)
             	.sessionRegistry(sessionRegistry)
             	.and()
