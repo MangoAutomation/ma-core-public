@@ -10,12 +10,12 @@ import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
@@ -32,22 +32,28 @@ public class MangoUserDetailsService implements UserDetailsService {
 	 * @see org.springframework.security.core.userdetails.UserDetailsService#loadUserByUsername(java.lang.String)
 	 */
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = UserDao.instance.getUser(username);
+	public User loadUserByUsername(String username) throws UsernameNotFoundException {
+		User user = UserDao.instance.getUserWithAuthorities(username);
 		if (user == null)
 		    throw new UsernameNotFoundException(username);
-        return new MangoUser(user, getGrantedAuthorities(user));
+		else
+			return user;
 	}
 
-	public static Set<GrantedAuthority> getGrantedAuthorities(User user) {
-	    Set<String> permissions = Permissions.explodePermissionGroups(user.getPermissions());
+	/**
+	 * Create a set of Granted Authorities by parsing a permissions string
+	 * @param permissionsString
+	 * @return
+	 */
+	public static Set<GrantedAuthority> getGrantedAuthorities(String permissionsString) {
+	    Set<String> permissions = Permissions.explodePermissionGroups(permissionsString);
         Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(permissions.size());
         
         for (String permission : permissions) {
-            grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + permission.toUpperCase(Locale.ROOT)));
-        }
-        if (user.isAdmin()) {
-            grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        	if(SuperadminPermissionDefinition.GROUP_NAME.equals(permission))
+        		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        	else
+            	grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + permission.toUpperCase(Locale.ROOT)));
         }
         
         return grantedAuthorities;

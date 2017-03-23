@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.web.mvc.spring.security.authentication;
 
 import java.util.Collections;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
@@ -14,7 +13,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -58,8 +56,8 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
         }
 
         Object principal;
-        if (userDetails instanceof MangoUser) {
-            principal = ((MangoUser) userDetails).getUser();
+        if (userDetails instanceof User) {
+            principal = userDetails;
         } else {
             principal = userDetails.getUsername();
         }
@@ -76,8 +74,7 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
 	}
 
 	public static UsernamePasswordAuthenticationToken createAuthenticatedToken(User user) {
-	    Set<GrantedAuthority> grantedAuthorities = MangoUserDetailsService.getGrantedAuthorities(user);
         //Set User object as the Principle in our Token
-        return new UsernamePasswordAuthenticationToken(user, user.getPassword(), Collections.unmodifiableSet(grantedAuthorities));
+        return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
 	}
 }

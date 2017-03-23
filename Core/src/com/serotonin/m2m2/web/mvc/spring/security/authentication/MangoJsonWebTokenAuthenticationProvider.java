@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security.authentication;
 
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,7 +11,6 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
@@ -78,8 +75,7 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         if (user.isDisabled())
             throw new DisabledException(Common.translate("login.validation.accountDisabled"));
 
-        Set<GrantedAuthority> authorities = MangoUserDetailsService.getGrantedAuthorities(user);
-        return new PreAuthenticatedAuthenticationToken(user, claims, authorities);
+        return new PreAuthenticatedAuthenticationToken(user, claims, user.getAuthorities());
     }
 
     @Override

@@ -5,8 +5,11 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpSessionBindingEvent;
@@ -14,6 +17,8 @@ import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -41,7 +46,7 @@ import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.validation.StringValidation;
 
-public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable {
+public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable, UserDetails {
 	
 	@JsonProperty
     private String username;
@@ -64,7 +69,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private String timezone;
     @JsonProperty
     private boolean muted = true;
-    @JsonProperty
     private String permissions = "user"; //Default group
     @JsonProperty
     private String locale;
@@ -84,12 +88,23 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient TimeZone _tz;
     private transient DateTimeZone _dtz;
     private transient String remoteAddr; //remote address we are logged in from
+    private boolean admin;
+    //
+    //Spring Security
+    //
+    private final Set<GrantedAuthority> authorities;
     
     public User() {
         this.name = "";
         this.timezone = "";
         this.locale = "";
+        this.authorities = null;
     }
+    
+    public User(Set<GrantedAuthority> authorities){
+        this.authorities = Collections.unmodifiableSet(authorities);
+    }
+    
 
     /**
      * Used for various display purposes.
@@ -203,7 +218,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     // Properties
     public boolean isAdmin() {
-    	return Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
+    	return admin;
     }
 
     public String getEmail() {
@@ -260,6 +275,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     public void setPermissions(String permissions) {
         this.permissions = permissions;
+        //Set the admin flag if necessary
+        this.admin = Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
     }
 
     public DataSourceVO<?> getEditDataSource() {
@@ -395,6 +412,47 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this.remoteAddr = ipAddress;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.security.core.userdetails.UserDetails#getAuthorities()
+     */
+    @Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+    	return this.authorities;
+    }
+    
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonExpired()
+	 */
+	@Override
+	public boolean isAccountNonExpired() {
+		return true; //Don't have this feature
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonLocked()
+	 */
+	@Override
+	public boolean isAccountNonLocked() {
+		return true; //Don't have this feature
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isCredentialsNonExpired()
+	 */
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true; //Don't have this feature
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isEnabled()
+	 */
+	@Override
+	public boolean isEnabled() {
+		return !this.disabled;
+	}
+    
     public void validate(ProcessResult response) {
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
@@ -469,6 +527,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 			JsonException {
         writer.writeEntry("name", name);
 		writer.writeEntry("receiveAlarmEmails", AlarmLevels.CODES.getCode(receiveAlarmEmails));
+		writer.writeEntry("permissions", permissions);
 	}
 
 	/* (non-Javadoc)
@@ -482,6 +541,9 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 		if(text != null){
 			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
 		}
+		text = jsonObject.getString("permissions");
+		if(text != null)
+			setPermissions(text);
 	}
 
 	/* (non-Javadoc)
