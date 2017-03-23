@@ -255,7 +255,7 @@ UsersView.prototype.switchUser = function(username){
 	this.clearErrors();
 	
 	this.api.ajax({
-        url : "/rest/v1/login/su/" + encodeURIComponent(username)
+        url : "/rest/v2/login/su?username=" + encodeURIComponent(username)
     }).then(function(userData){
     	window.location.href = userData.homeUrl;
     }).fail(this.showError);
