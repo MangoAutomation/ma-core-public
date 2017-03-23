@@ -63,14 +63,16 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
         
         HttpSession session = request.getSession(false);
         if (session != null && user != null) {
-            // For legacy pages also update the session
-            session.setAttribute(Common.SESSION_USER, user);
             
             // Update the last login time.
             DaoRegistry.userDao.recordLogin(user.getId());
             
             // Set the IP Address for the session
             user.setRemoteAddr(request.getRemoteAddr());
+            
+            // For legacy pages also update the session (NOTE This calls ValueBound in the user which raises the Login event
+            // so we MUST have all the information for the event set in the user by this point.
+            session.setAttribute(Common.SESSION_USER, user);
         }
 
         if (user != null) {
