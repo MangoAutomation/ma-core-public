@@ -11,11 +11,15 @@
   <c:when test="${event.alarmLevel == 0}"><tag:img png="flag_grey_off" title="common.alarmLevel.none.rtn"/></c:when>
   <c:when test="${event.active && event.alarmLevel == 1}"><tag:img png="flag_blue" title="common.alarmLevel.info"/></c:when>
   <c:when test="${event.alarmLevel == 1}"><tag:img png="flag_blue_off" title="common.alarmLevel.info.rtn"/></c:when>
-  <c:when test="${event.active && event.alarmLevel == 2}"><tag:img png="flag_yellow" title="common.alarmLevel.urgent"/></c:when>
-  <c:when test="${event.alarmLevel == 2}"><tag:img png="flag_yellow_off" title="common.alarmLevel.urgent.rtn"/></c:when>
-  <c:when test="${event.active && event.alarmLevel == 3}"><tag:img png="flag_orange" title="common.alarmLevel.critical"/></c:when>
-  <c:when test="${event.alarmLevel == 3}"><tag:img png="flag_orange_off" title="common.alarmLevel.critical.rtn"/></c:when>
-  <c:when test="${event.active && event.alarmLevel == 4}"><tag:img png="flag_red" title="common.alarmLevel.lifeSafety"/></c:when>
-  <c:when test="${event.alarmLevel == 4}"><tag:img png="flag_red_off" title="common.alarmLevel.lifeSafety.rtn"/></c:when>
+  <c:when test="${event.active && event.alarmLevel == 2}"><tag:img png="flag_aqua" title="common.alarmLevel.important"/></c:when>
+  <c:when test="${event.alarmLevel == 2}"><tag:img png="flag_aqua_off" title="common.alarmLevel.important.rtn"/></c:when>
+  <c:when test="${event.active && event.alarmLevel == 3}"><tag:img png="flag_green" title="common.alarmLevel.warning"/></c:when>
+  <c:when test="${event.alarmLevel == 3}"><tag:img png="flag_green_off" title="common.alarmLevel.warning.rtn"/></c:when>
+  <c:when test="${event.active && event.alarmLevel == 4}"><tag:img png="flag_yellow" title="common.alarmLevel.urgent"/></c:when>
+  <c:when test="${event.alarmLevel == 4}"><tag:img png="flag_yellow_off" title="common.alarmLevel.urgent.rtn"/></c:when>
+  <c:when test="${event.active && event.alarmLevel == 5}"><tag:img png="flag_orange" title="common.alarmLevel.critical"/></c:when>
+  <c:when test="${event.alarmLevel == 5}"><tag:img png="flag_orange_off" title="common.alarmLevel.critical.rtn"/></c:when>
+  <c:when test="${event.active && event.alarmLevel == 6}"><tag:img png="flag_red" title="common.alarmLevel.lifeSafety"/></c:when>
+  <c:when test="${event.alarmLevel == 6}"><tag:img png="flag_red_off" title="common.alarmLevel.lifeSafety.rtn"/></c:when>
   <c:otherwise>(<fmt:message key="common.alarmLevel.unknown"/> ${event.alarmLevel})</c:otherwise>
 </c:choose>

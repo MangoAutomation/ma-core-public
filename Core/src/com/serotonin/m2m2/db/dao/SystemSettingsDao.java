@@ -73,6 +73,10 @@ public class SystemSettingsDao extends BaseDao {
     public static final String NONE_ALARM_PURGE_PERIODS = "noneAlarmPurgePeriods";
     public static final String INFORMATION_ALARM_PURGE_PERIOD_TYPE = "informationAlarmPurgePeriodType";
     public static final String INFORMATION_ALARM_PURGE_PERIODS = "informationAlarmPurgePeriods";
+    public static final String IMPORTANT_ALARM_PURGE_PERIOD_TYPE = "importantAlarmPurgePeriodType";
+    public static final String IMPORTANT_ALARM_PURGE_PERIODS = "importantAlarmPurgePeriods";
+    public static final String WARNING_ALARM_PURGE_PERIOD_TYPE = "warningAlarmPurgePeriodType";
+    public static final String WARNING_ALARM_PURGE_PERIODS = "warningAlarmPurgePeriods";
     public static final String URGENT_ALARM_PURGE_PERIOD_TYPE = "urgentAlarmPurgePeriodType";
     public static final String URGENT_ALARM_PURGE_PERIODS = "urgentAlarmPurgePeriods";
     public static final String CRITICAL_ALARM_PURGE_PERIOD_TYPE = "criticalAlarmPurgePeriodType";
@@ -355,6 +359,10 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(IMPORTANT_ALARM_PURGE_PERIODS, 1);
+        DEFAULT_VALUES.put(WARNING_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        DEFAULT_VALUES.put(WARNING_ALARM_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(URGENT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(URGENT_ALARM_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(CRITICAL_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
@@ -476,6 +484,8 @@ public class SystemSettingsDao extends BaseDao {
 		convertPeriodType(AUDIT_EVENT_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, settings);
+		convertPeriodType(WARNING_ALARM_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings);
 		convertPeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings);
@@ -575,6 +585,8 @@ public class SystemSettingsDao extends BaseDao {
 		
 		validatePeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings, response);
 		validatePeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(WARNING_ALARM_PURGE_PERIOD_TYPE, settings, response);
 		validatePeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings, response);
 		validatePeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings, response);
 		validatePeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings, response);
@@ -808,6 +820,8 @@ public class SystemSettingsDao extends BaseDao {
 		case AUDIT_EVENT_PURGE_PERIOD_TYPE:
 		case NONE_ALARM_PURGE_PERIOD_TYPE:
 		case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
+		case IMPORTANT_ALARM_PURGE_PERIOD_TYPE:
+		case WARNING_ALARM_PURGE_PERIOD_TYPE:
 		case URGENT_ALARM_PURGE_PERIOD_TYPE:
 		case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
 		case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
@@ -846,6 +860,8 @@ public class SystemSettingsDao extends BaseDao {
 		case AUDIT_EVENT_PURGE_PERIOD_TYPE:
 		case NONE_ALARM_PURGE_PERIOD_TYPE:
 		case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
+		case IMPORTANT_ALARM_PURGE_PERIOD_TYPE:
+		case WARNING_ALARM_PURGE_PERIOD_TYPE:
 		case URGENT_ALARM_PURGE_PERIOD_TYPE:
 		case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
 		case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:

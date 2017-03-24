@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -260,7 +261,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 4;
+    private static final int version = 5;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -314,6 +315,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             alarmLevels = new HashMap<Integer,Integer>();
         }else if(ver == 3){
         	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+        	for(Entry<Integer, Integer> item : alarmLevels.entrySet())
+            	if(item.getValue() >= 2) //Add warning and important
+            		item.setValue(item.getValue()+2);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
@@ -328,6 +332,20 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
         }else if(ver == 4){
+        	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+        	for(Entry<Integer, Integer> item : alarmLevels.entrySet())
+            	if(item.getValue() >= 2) //Add warning and important
+            		item.setValue(item.getValue()+2);
+            name = SerializationHelper.readSafeUTF(in);
+            enabled = in.readBoolean();
+            points = (List<T>) in.readObject();
+            publishType = in.readInt();
+            cacheWarningSize = in.readInt();
+            cacheDiscardSize = in.readInt();
+            sendSnapshot = in.readBoolean();
+            snapshotSendPeriodType = in.readInt();
+            snapshotSendPeriods = in.readInt();
+        }else if(ver == 5){
         	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();

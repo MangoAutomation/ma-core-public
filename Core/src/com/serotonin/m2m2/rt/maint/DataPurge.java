@@ -217,6 +217,16 @@ public class DataPurge {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
         deleteCount += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.INFORMATION);
         
+        //Purge Alarm Level IMPORTANT
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
+        deleteCount += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.IMPORTANT);
+        
+        //Purge Alarm Level WARNING
+        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE),
+                SystemSettingsDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
+        deleteCount += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.WARNING);
+        
         //Purge Alarm Level URGENT
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));

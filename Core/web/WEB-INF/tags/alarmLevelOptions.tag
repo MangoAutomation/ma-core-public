@@ -12,6 +12,8 @@
   <c:if test="${allOption}"><sst:option value="-1"><fmt:message key="common.all"/></sst:option></c:if>
   <sst:option value="<%= Integer.toString(AlarmLevels.NONE) %>"><fmt:message key="<%= AlarmLevels.NONE_DESCRIPTION %>"/></sst:option>
   <sst:option value="<%= Integer.toString(AlarmLevels.INFORMATION) %>"><fmt:message key="<%= AlarmLevels.INFORMATION_DESCRIPTION %>"/></sst:option>
+  <sst:option value="<%= Integer.toString(AlarmLevels.IMPORTANT) %>"><fmt:message key="<%= AlarmLevels.IMPORTANT_DESCRIPTION %>"/></sst:option>
+  <sst:option value="<%= Integer.toString(AlarmLevels.WARNING) %>"><fmt:message key="<%= AlarmLevels.WARNING_DESCRIPTION %>"/></sst:option>
   <sst:option value="<%= Integer.toString(AlarmLevels.URGENT) %>"><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></sst:option>
   <sst:option value="<%= Integer.toString(AlarmLevels.CRITICAL) %>"><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></sst:option>
   <sst:option value="<%= Integer.toString(AlarmLevels.LIFE_SAFETY) %>"><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></sst:option>

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -247,7 +248,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 2;
+    private static final int version = 3;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -266,11 +267,24 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         if (ver == 1) {
             enabled = in.readBoolean();
             alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            for(Entry<Integer, Integer> item : alarmLevels.entrySet())
+            	if(item.getValue() >= 2) //Add warning and important
+            		item.setValue(item.getValue()+2);
             purgeOverride = false;
             purgeType = PurgeTypes.YEARS;
             purgePeriod = 1;
         }
         else if (ver == 2) {
+            enabled = in.readBoolean();
+            alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            for(Entry<Integer, Integer> item : alarmLevels.entrySet())
+            	if(item.getValue() >= 2) //Add warning and important
+            		item.setValue(item.getValue()+2);
+            purgeOverride = in.readBoolean();
+            purgeType = in.readInt();
+            purgePeriod = in.readInt();
+        }
+        else if (ver == 3) {
             enabled = in.readBoolean();
             alarmLevels = (HashMap<Integer, Integer>) in.readObject();
             purgeOverride = in.readBoolean();

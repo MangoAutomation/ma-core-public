@@ -135,6 +135,14 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
+        settings.put(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS,
+                SystemSettingsDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS,
@@ -457,7 +465,8 @@ public class SystemSettingsDwr extends BaseDwr {
             int dataSourceEventPurgePeriods, int systemEventPurgePeriodType, int systemEventPurgePeriods,
             int publisherEventPurgePeriodType, int publisherEventPurgePeriods, int auditEventPurgePeriodType,
             int auditEventPurgePeriods, int noneAlarmPurgePeriodType, int noneAlarmPurgePeriods,
-            int informationAlarmPurgePeriodType, int informationAlarmPurgePeriods, int urgentAlarmPurgePeriodType,
+            int informationAlarmPurgePeriodType, int informationAlarmPurgePeriods, int importantAlarmPurgePeriodType, 
+            int importantAlarmPurgePeriods, int warningAlarmPurgePeriodType, int warningAlarmPurgePeriods, int urgentAlarmPurgePeriodType,
             int urgentAlarmPurgePeriods, int criticalAlarmPurgePeriodType, int criticalAlarmPurgePeriods,
             int lifeSafetyAlarmPurgePeriodType, int lifeSafetyAlarmPurgePeriods, int eventPurgePeriodType,
             int eventPurgePeriods, int uiPerformance, int futureDateLimitPeriodType, int futureDateLimitPeriods) {
@@ -487,6 +496,10 @@ public class SystemSettingsDwr extends BaseDwr {
         systemSettingsDao.setIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE,
                 informationAlarmPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS, informationAlarmPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE, importantAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS, importantAlarmPurgePeriods);
+        systemSettingsDao.setIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE, warningAlarmPurgePeriodType);
+        systemSettingsDao.setIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS, warningAlarmPurgePeriods);
         systemSettingsDao.setIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE, urgentAlarmPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS, urgentAlarmPurgePeriods);
         systemSettingsDao.setIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE, criticalAlarmPurgePeriodType);

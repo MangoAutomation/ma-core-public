@@ -94,7 +94,7 @@ public class M2M2ContextListener implements ServletContextListener {
         ctx.setAttribute("constants.UserComment.TYPE_POINT", UserCommentVO.TYPE_POINT);
 
         String[] codes = { "common.access.read", "common.access.set", "common.alarmLevel.none",
-                "common.alarmLevel.info", "common.alarmLevel.urgent", "common.alarmLevel.critical",
+                "common.alarmLevel.info", "common.alarmLevel.important", "common.alarmLevel.warning", "common.alarmLevel.urgent", "common.alarmLevel.critical",
                 "common.alarmLevel.lifeSafety", "common.alarmLevel.doNotLog", "common.alarmLevel.ignore", "common.disabled", "common.administrator", "common.user",
                 "common.disabledToggle", "common.enabledToggle", "common.maximize", "common.minimize",
                 "common.loading", "js.help.error", "js.help.related", "js.help.lastUpdated", "common.sendTestEmail",

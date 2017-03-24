@@ -116,8 +116,22 @@ mango.longPoll.pollCB = function(response) {
 			);
 			mango.soundPlayer.stop(); //Stop the sound and only play again if necessary
 			
+			var minimumToDisplay = 3
+			if(response.alarmsLifeSafety == 0)
+				minimumToDisplay -= 1;
+			if(response.alarmsCritical == 0)
+				minimumToDisplay -= 1;
+			if(response.alarmsUrgent == 0)
+				minimumToDisplay -= 1;
+			if(minimumToDisplay > 0 && response.alarmsWarning == 0)
+				minimumToDisplay -= 1;
+			if(minimumToDisplay > 0 && response.alarmsImportant == 0)
+				minimumToDisplay -= 1;
+			if(minimumToDisplay > 0 && response.alarmsInformation == 0)
+				minimumToDisplay -= 1;
+			
 			//Check to see if we need to add new
-	        if(response.alarmsNone > 0){
+	        if(response.alarmsNone > 0 && minimumToDisplay <= 0){
 	        	mango.soundPlayer.play("level0"); //Play Sound
 	        	if(response.alarmsNone > 1){
 		            dojo.publish("alarmTopic",[{
@@ -135,9 +149,8 @@ mango.longPoll.pollCB = function(response) {
 		            	duration: -1, //Don't Go Away
 		            }]);
 	        	}
-	
 	        }
-	        if(response.alarmsInformation > 0){
+	        if(response.alarmsInformation > 0 && minimumToDisplay <= 1){
 	        	mango.soundPlayer.play("level1"); //Play Sound
 	        	if(response.alarmsInformation > 1){
 		            dojo.publish("alarmTopic",[{
@@ -155,7 +168,44 @@ mango.longPoll.pollCB = function(response) {
 		            	duration: -1, //Don't Go Away
 		            }]);
 	        	}
-	
+	        }
+	        if(response.alarmsImportant > 0 && minimumToDisplay <= 2){
+	        	mango.soundPlayer.play("level1"); //Play Sound
+	        	if(response.alarmsImportant > 1){
+		            dojo.publish("alarmTopic",[{
+		            	message: "<a class='ptr' href='/events.shtm?level=important'><img src='/images/flag_aqua.png'/> " + response.alarmsImportant  + " Important Events</a>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);            		
+	        	}else{
+	        		//For only 1
+		            dojo.publish("alarmTopic",[{
+		            	message: "<span><img src='/images/flag_aqua.png'/> " + response.importantEvent.messageString  + 
+		            	" <a class='ptr' onclick='ackEvent(" + response.importantEvent.id + ")'>" +	
+		            	"<img src='/images/tick.png' id='ackImg" + response.importantEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);
+	        	}
+	        }
+	        if(response.alarmsWarning > 0){
+	        	mango.soundPlayer.play("level1"); //Play Sound
+	        	if(response.alarmsWarning > 1){
+		            dojo.publish("alarmTopic",[{
+		            	message: "<a class='ptr' href='/events.shtm?level=warning'><img src='/images/flag_green.png'/> " + response.alarmsWarning  + " Warning Events</a>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);            		
+	        	}else{
+	        		//For only 1
+		            dojo.publish("alarmTopic",[{
+		            	message: "<span><img src='/images/flag_green.png'/> " + response.warningEvent.messageString  + 
+		            	" <a class='ptr' onclick='ackEvent(" + response.warningEvent.id + ")'>" +	
+		            	"<img src='/images/tick.png' id='ackImg" + response.warningEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
+		            	type: "message",
+		            	duration: -1, //Don't Go Away
+		            }]);
+	        	}
 	        }
 	        if(response.alarmsUrgent > 0){
 	        	mango.soundPlayer.play("level2"); //Play Sound
@@ -644,10 +694,14 @@ function setAlarmLevelImg(alarmLevel, imgNode) {
     else if (alarmLevel == 1)
         updateImg(imgNode, "/images/flag_blue.png", mango.i18n["common.alarmLevel.info"], true);
     else if (alarmLevel == 2)
-        updateImg(imgNode, "/images/flag_yellow.png", mango.i18n["common.alarmLevel.urgent"], true);
+        updateImg(imgNode, "/images/flag_aqua.png", mango.i18n["common.alarmLevel.important"], true);
     else if (alarmLevel == 3)
-        updateImg(imgNode, "/images/flag_orange.png", mango.i18n["common.alarmLevel.critical"], true);
+        updateImg(imgNode, "/images/flag_green.png", mango.i18n["common.alarmLevel.warning"], true);
     else if (alarmLevel == 4)
+        updateImg(imgNode, "/images/flag_yellow.png", mango.i18n["common.alarmLevel.urgent"], true);
+    else if (alarmLevel == 5)
+        updateImg(imgNode, "/images/flag_orange.png", mango.i18n["common.alarmLevel.critical"], true);
+    else if (alarmLevel == 6)
         updateImg(imgNode, "/images/flag_red.png", mango.i18n["common.alarmLevel.lifeSafety"], true);
     else if(alarmLevel == -2)
     	updateImg(imgNode, "/images/cancel.png", mango.i18n["common.alarmLevel.doNotLog"], true);
@@ -663,10 +717,14 @@ function setAlarmLevelText(alarmLevel, textNode) {
     else if (alarmLevel == 1)
         textNode.innerHTML = mango.i18n["common.alarmLevel.info"];
     else if (alarmLevel == 2)
-        textNode.innerHTML = mango.i18n["common.alarmLevel.urgent"];
+        textNode.innerHTML = mango.i18n["common.alarmLevel.important"];
     else if (alarmLevel == 3)
-        textNode.innerHTML = mango.i18n["common.alarmLevel.critical"];
+        textNode.innerHTML = mango.i18n["common.alarmLevel.warning"];
     else if (alarmLevel == 4)
+        textNode.innerHTML = mango.i18n["common.alarmLevel.urgent"];
+    else if (alarmLevel == 5)
+        textNode.innerHTML = mango.i18n["common.alarmLevel.critical"];
+    else if (alarmLevel == 6)
         textNode.innerHTML = mango.i18n["common.alarmLevel.lifeSafety"];
     else if (alarmLevel == -2)
     	textNode.innerHTML = mango.i18n["common.alarmLevel.doNotLog"];

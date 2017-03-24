@@ -27,24 +27,36 @@ function(StoreView, Button, DateTextBox,TimeTextBox, MultiSelect, Select, Valida
                 acknowledged: "NullCheck:true",
               };
         defaultEventLevelValue = 1;
-    }else if(alarmLevelUrlParameter == 'urgent'){
+    }else if(alarmLevelUrlParameter == 'important'){
         defaultEventInstanceQuery = {
                 alarmLevel: "Int:>=2",
                 acknowledged: "NullCheck:true",
               };
         defaultEventLevelValue = 2;
-    }else if(alarmLevelUrlParameter == 'critical'){
+    }else if(alarmLevelUrlParameter == 'warning'){
         defaultEventInstanceQuery = {
                 alarmLevel: "Int:>=3",
                 acknowledged: "NullCheck:true",
               };
         defaultEventLevelValue = 3;
-    }else if(alarmLevelUrlParameter == 'lifeSafety'){
+    }else if(alarmLevelUrlParameter == 'urgent'){
         defaultEventInstanceQuery = {
                 alarmLevel: "Int:>=4",
                 acknowledged: "NullCheck:true",
               };
         defaultEventLevelValue = 4;
+    }else if(alarmLevelUrlParameter == 'critical'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=5",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 5;
+    }else if(alarmLevelUrlParameter == 'lifeSafety'){
+        defaultEventInstanceQuery = {
+                alarmLevel: "Int:>=6",
+                acknowledged: "NullCheck:true",
+              };
+        defaultEventLevelValue = 6;
     }else{
         defaultEventInstanceQuery = {
                 alarmLevel: "Int:>=1",
@@ -145,9 +157,11 @@ eventInstances = new StoreView({
 					options: [
 						{label : mangoMsg['common.alarmLevel.greaterthan.none'], value: '0'},
 						{label : mangoMsg['common.alarmLevel.greaterthan.info'], value: '1'},
-						{label : mangoMsg['common.alarmLevel.greaterthan.urgent'], value: '2'},
-						{label : mangoMsg['common.alarmLevel.greaterthan.critical'], value: '3'},
-						{label : mangoMsg['common.alarmLevel.greaterthan.lifeSafety'], value: '4'},
+						{label : mangoMsg['common.alarmLevel.greaterthan.important'], value: '2'},
+						{label : mangoMsg['common.alarmLevel.greaterthan.warning'], value: '3'},
+						{label : mangoMsg['common.alarmLevel.greaterthan.urgent'], value: '4'},
+						{label : mangoMsg['common.alarmLevel.greaterthan.critical'], value: '5'},
+						{label : mangoMsg['common.alarmLevel.greaterthan.lifeSafety'], value: '6'},
 					],
 				});
 				input.set('value', defaultEventLevelValue); //DEFAULT FOR PAGE
@@ -205,26 +219,42 @@ eventInstances = new StoreView({
     				html += mangoMsg['common.alarmLevel.info.rtn'];
     				html += "'/>"
     			}else if(eventInstance.active && eventInstance.alarmLevel == 2){
+    				html = "<img src='/images/flag_aqua.png' title='";
+    				html += mangoMsg['common.alarmLevel.info'];
+    				html += "'/>"
+    			}else if(eventInstance.alarmLevel == 2){
+    				html = "<img src='/images/flag_aqua_off.png' title='";
+    				html += mangoMsg['common.alarmLevel.info.rtn'];
+    				html += "'/>"
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 3){
+    				html = "<img src='/images/flag_green.png' title='";
+    				html += mangoMsg['common.alarmLevel.info'];
+    				html += "'/>"
+    			}else if(eventInstance.alarmLevel == 3){
+    				html = "<img src='/images/flag_green_off.png' title='";
+    				html += mangoMsg['common.alarmLevel.info.rtn'];
+    				html += "'/>"
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 4){
     				html = "<img src='/images/flag_yellow.png' title='";
     				html += mangoMsg['common.alarmLevel.urgent'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 2){
+    			}else if(eventInstance.alarmLevel == 4){
     				html = "<img src='/images/flag_yellow_off.png' title='";
     				html += mangoMsg['common.alarmLevel.urgent.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 3){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 5){
     				html = "<img src='/images/flag_orange.png' title='";
     				html += mangoMsg['common.alarmLevel.critical'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 3){
+    			}else if(eventInstance.alarmLevel == 5){
     				html = "<img src='/images/flag_orange_off.png' title='";
     				html += mangoMsg['common.alarmLevel.critical.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 4){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 6){
     				html = "<img src='/images/flag_red.png' title='";
     				html += mangoMsg['common.alarmLevel.lifeSafety'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 4){
+    			}else if(eventInstance.alarmLevel == 6){
     				html = "<img src='/images/flag_red_off.png' title='";
     				html += mangoMsg['common.alarmLevel.lifeSafety.rtn'];
     				html += "'/>"

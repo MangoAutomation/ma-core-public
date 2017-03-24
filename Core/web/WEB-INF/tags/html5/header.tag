@@ -12,6 +12,8 @@
 <div class="event-summary">
     <div class="level-summary none-event" style="display:none"></div>
     <div class="level-summary information-event" style="display:none"></div>
+    <div class="level-summary important-event" style="display:none"></div>
+    <div class="level-summary warning-event" style="display:none"></div>
     <div class="level-summary urgent-event" style="display:none"></div>
     <div class="level-summary critical-event" style="display:none"></div>
     <div class="level-summary life-safety-event" style="display:none"></div>

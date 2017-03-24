@@ -29,6 +29,16 @@ ToolbarUtilities.prototype.noneLabel = null;
 ToolbarUtilities.prototype.infoLabel = null;
 
 /**
+ * Label text for Info Events
+ */
+ToolbarUtilities.prototype.importantLabel = null;
+
+/**
+ * Label text for Info Events
+ */
+ToolbarUtilities.prototype.warningLabel = null;
+
+/**
  * Label text for Urgent Events
  */
 ToolbarUtilities.prototype.UrgetLabel = null;
@@ -60,13 +70,15 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
 	this.lifeSafetyLabel = this.tr('common.alarmLevel.lifeSafety');
 	this.criticalLabel = this.tr('common.alarmLevel.critical');
 	this.urgentLabel = this.tr('common.alarmLevel.urgent');
+	this.warningLabel = this.tr('common.alarmLevel.warning');
+	this.importantLabel = this.tr('common.alarmLevel.important');
 	this.infoLabel = this.tr('common.alarmLevel.info');
 	this.noneLabel = this.tr('common.alarmLevel.none');
 	
 	var self = this;
     this.api.registerForAlarmEvents(
             ['ACKNOWLEDGED', 'RAISED', 'RETURN_TO_NORMAL', 'DEACTIVATED'],
-            ['LIFE_SAFETY', 'CRITICAL', 'URGENT', 'INFORMATION', 'NONE'],
+            ['LIFE_SAFETY', 'CRITICAL', 'URGENT', 'WARNING', 'IMPORTANT', 'INFORMATION', 'NONE'],
     function(data) {
         // onMessage
         //TODO Check ERROR Status of data
@@ -109,7 +121,7 @@ ToolbarUtilities.prototype.getEventLevel = function(event){
 		if(this.eventsActiveSummary[i].level === event.alarmLevel)
 			return this.eventsActiveSummary[i];
 	}
-	return null;
+	return {unsilencedCount: 0, level: event.alarmLevel };
 };
 
 /**
@@ -183,6 +195,16 @@ ToolbarUtilities.prototype.setLevelProps = function(level) {
         level.flagColour = 'yellow';
         level.urlParameter = 'urgent';
         return;
+    case 'WARNING':
+        level.translatedName = this.warningLabel;
+        level.flagColour = 'green';
+        level.urlParameter = 'warning';
+        return;
+    case 'IMPORTANT':
+        level.translatedName = this.importantLabel;
+        level.flagColour = 'aqua';
+        level.urlParameter = 'important';
+        return;
     case 'INFORMATION':
         level.translatedName = this.infoLabel;
         level.flagColour = 'blue';
@@ -235,6 +257,16 @@ ToolbarUtilities.prototype.updateSoundPlayer = function(){
 	level = this.getEventLevel({alarmLevel: 'URGENT'});
 	if(level.unsilencedCount > 0){
 		this.soundPlayer.play('level2');
+		return;
+	}
+	level = this.getEventLevel({alarmLevel: 'WARNING'});
+	if(level.unsilencedCount > 0){
+		this.soundPlayer.play('level1');
+		return;
+	}
+	level = this.getEventLevel({alarmLevel: 'IMPORTANT'});
+	if(level.unsilencedCount > 0){
+		this.soundPlayer.play('level1');
 		return;
 	}
 	level = this.getEventLevel({alarmLevel: 'INFORMATION'});

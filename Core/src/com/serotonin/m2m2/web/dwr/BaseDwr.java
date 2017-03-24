@@ -469,6 +469,10 @@ abstract public class BaseDwr {
 				EventInstance criticalEvent = null;
 				int urgentTotal = 0;
 				EventInstance urgentEvent = null;
+				int warningTotal = 0;
+				EventInstance warningEvent = null;
+				int importantTotal = 0;
+				EventInstance importantEvent = null;
 				int informationTotal = 0;
 				EventInstance informationEvent = null;
 				int noneTotal = 0;
@@ -489,6 +493,14 @@ abstract public class BaseDwr {
 					case AlarmLevels.URGENT:
 						urgentTotal++;
 						urgentEvent = event;
+						break;
+					case AlarmLevels.WARNING:
+						warningTotal++;
+						warningEvent = event;
+						break;
+					case AlarmLevels.IMPORTANT:
+						importantTotal++;
+						importantEvent = event;
 						break;
 					case AlarmLevels.INFORMATION:
 						informationTotal++;
@@ -514,32 +526,29 @@ abstract public class BaseDwr {
 															// alarm
 
 					response.put("alarmsDoNotLog", doNotLogTotal);
-					if (doNotLogTotal == 1) {
+					if (doNotLogTotal == 1)
 						response.put("doNotLogEvent", doNotLogEvent);
-					}
 					response.put("alarmsNone", noneTotal);
-					if (noneTotal == 1) {
+					if (noneTotal == 1)
 						response.put("noneEvent", noneEvent);
-					}
-
 					response.put("alarmsInformation", informationTotal);
-					if (informationTotal == 1) {
+					if (informationTotal == 1)
 						response.put("informationEvent", informationEvent);
-					}
-
+					response.put("alarmsImportant", importantTotal);
+					if (importantTotal == 1)
+						response.put("importantEvent", importantEvent);
+					response.put("alarmsWarning", warningTotal);
+					if (warningTotal == 1)
+						response.put("warningEvent", warningEvent);
 					response.put("alarmsUrgent", urgentTotal);
-					if (urgentTotal == 1) {
+					if (urgentTotal == 1)
 						response.put("urgentEvent", urgentEvent);
-					}
 					response.put("alarmsCritical", criticalTotal);
-					if (criticalTotal == 1) {
+					if (criticalTotal == 1)
 						response.put("criticalEvent", criticalEvent);
-					}
-
 					response.put("alarmsLifeSafety", lifeSafetyTotal);
-					if (lifeSafetyTotal == 1) {
+					if (lifeSafetyTotal == 1)
 						response.put("lifeSafetyEvent", lifeSafetyEvent);
-					}
 				} else {// end if new alarm toaster info
 						// response.put("alarmsUpdated",false);
 				}
@@ -552,6 +561,10 @@ abstract public class BaseDwr {
 					maxAlarmLevel = AlarmLevels.CRITICAL;
 				else if (urgentTotal > 0)
 					maxAlarmLevel = AlarmLevels.URGENT;
+				else if (warningTotal > 0)
+					maxAlarmLevel = AlarmLevels.WARNING;
+				else if (importantTotal > 0)
+					maxAlarmLevel = AlarmLevels.IMPORTANT;
 				else if (informationTotal > 0)
 					maxAlarmLevel = AlarmLevels.INFORMATION;
 				else if (noneTotal > 0)

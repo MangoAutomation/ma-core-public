@@ -43,6 +43,8 @@
                     content += "onchange='updateAlarmLevel(\""+ et.type +"\", \""+ et.subtype +"\", this.value)'>";
                     content += "<option value='<c:out value="<%= AlarmLevels.NONE %>"/>'><fmt:message key="<%= AlarmLevels.NONE_DESCRIPTION %>"/></option>";
                     content += "<option value='<c:out value="<%= AlarmLevels.INFORMATION %>"/>'><fmt:message key="<%= AlarmLevels.INFORMATION_DESCRIPTION %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.IMPORTANT %>"/>'><fmt:message key="<%= AlarmLevels.IMPORTANT_DESCRIPTION %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.WARNING %>"/>'><fmt:message key="<%= AlarmLevels.WARNING_DESCRIPTION %>"/></option>";
                     content += "<option value='<c:out value="<%= AlarmLevels.URGENT %>"/>'><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></option>";
                     content += "<option value='<c:out value="<%= AlarmLevels.CRITICAL %>"/>'><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></option>";
                     content += "<option value='<c:out value="<%= AlarmLevels.LIFE_SAFETY %>"/>'><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></option>";
@@ -94,6 +96,10 @@
             $set("<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE %>"/>);
+            $set("<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>);
@@ -441,6 +447,10 @@
                 $get("<c:out value="<%= SystemSettingsDao.NONE_ALARM_PURGE_PERIODS %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>"),
@@ -1345,6 +1355,22 @@
         <td class="formField">
           <input id="<c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
           <c:set var="tpid"><c:out value="<%= SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeImportantAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.purgeWarningAlarm"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="tpid"><c:out value="<%= SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE %>"/></c:set>
           <tag:timePeriods id="${tpid}" d="true" w="true" mon="true" y="true"/>
         </td>
       </tr>
