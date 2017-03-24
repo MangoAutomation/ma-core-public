@@ -68,7 +68,7 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
     }
     
     public List<MailingList> getAlarmMailingLists(int alarmLevel) {
-    	List<MailingList> result = query(MAILING_LIST_SELECT + "where receiveAlarmEmails>="+alarmLevel, new MailingListRowMapper());
+    	List<MailingList> result = query(MAILING_LIST_SELECT + "where receiveAlarmEmails>=0 and receiveAlarmEmails<="+alarmLevel, new MailingListRowMapper());
     	setRelationalData(result);
     	return result;
     }

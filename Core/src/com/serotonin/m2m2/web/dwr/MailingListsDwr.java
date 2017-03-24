@@ -23,6 +23,7 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
@@ -53,13 +54,13 @@ public class MailingListsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public ProcessResult saveMailingList(int id, String xid, String name, List<RecipientListEntryBean> entryBeans,
+    public ProcessResult saveMailingList(int id, String xid, String name, int receiveAlarmEmails, List<RecipientListEntryBean> entryBeans,
             List<Integer> inactiveIntervals) {
         ProcessResult response = new ProcessResult();
         MailingListDao mailingListDao = MailingListDao.instance;
 
         // Validate the given information. If there is a problem, return an appropriate error message.
-        MailingList ml = createMailingList(id, xid, name, entryBeans);
+        MailingList ml = createMailingList(id, xid, name, receiveAlarmEmails, entryBeans);
         ml.getInactiveIntervals().addAll(inactiveIntervals);
 
         if (StringUtils.isBlank(xid))
@@ -74,6 +75,9 @@ public class MailingListsDwr extends BaseDwr {
             mailingListDao.saveMailingList(ml);
             response.addData("mlId", ml.getId());
         }
+        
+        if(!AlarmLevels.CODES.isValidId(receiveAlarmEmails))
+        	response.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
 
         return response;
     }
@@ -87,7 +91,7 @@ public class MailingListsDwr extends BaseDwr {
     public ProcessResult sendTestEmail(int id, String name, List<RecipientListEntryBean> entryBeans) {
         ProcessResult response = new ProcessResult();
 
-        MailingList ml = createMailingList(id, null, name, entryBeans);
+        MailingList ml = createMailingList(id, null, name, AlarmLevels.IGNORE, entryBeans);
         MailingListDao.instance.populateEntrySubclasses(ml.getEntries());
 
         Set<String> addresses = new HashSet<String>();
@@ -115,12 +119,13 @@ public class MailingListsDwr extends BaseDwr {
     // / Private helper methods
     // /
     //
-    private MailingList createMailingList(int id, String xid, String name, List<RecipientListEntryBean> entryBeans) {
+    private MailingList createMailingList(int id, String xid, String name, int receiveAlarmEmails, List<RecipientListEntryBean> entryBeans) {
         // Convert the incoming information into more useful types.
         MailingList ml = new MailingList();
         ml.setId(id);
         ml.setXid(xid);
         ml.setName(name);
+        ml.setReceiveAlarmEmails(receiveAlarmEmails);
 
         List<EmailRecipient> entries = new ArrayList<EmailRecipient>(entryBeans.size());
         for (RecipientListEntryBean bean : entryBeans)

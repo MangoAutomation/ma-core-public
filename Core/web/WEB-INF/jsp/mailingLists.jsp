@@ -21,6 +21,7 @@
                 updateMailingList(response.data.lists[i]);
             }
             scheduleInit();
+            setAlarmLevelImg($get('receiveAlarmEmails'), 'receiveAlarmLevel');
         });
     }
     
@@ -34,6 +35,7 @@
             
             $set("xid", ml.xid);
             $set("name", ml.name);
+            $set("receiveAlarmEmails", ml.receiveAlarmEmails);
             
             dwr.util.removeAllRows("mailingListEntriesTable");
             var entry;
@@ -87,8 +89,8 @@
         hideContextualMessages("mailingListDetails")
         hideGenericMessages("genericMessages");
         
-        MailingListsDwr.saveMailingList(editingMailingList.id, $get("xid"), $get("name"), createRecipList(),
-                getInactiveIntervals(), function(response) {
+        MailingListsDwr.saveMailingList(editingMailingList.id, $get("xid"), $get("name"), $get("receiveAlarmEmails"),
+        		createRecipList(), getInactiveIntervals(), function(response) {
             if (response.hasMessages)
                 showDwrMessages(response.messages, $("genericMessages"));
             else {
@@ -443,6 +445,11 @@
               <td class="formField"><input id="name" type="text" onmousedown="this.focus()"/></td>
             </tr>
             <tr><td class="horzSeparator" colspan="2"></td></tr>
+            <tr>
+              <td class="formLabelRequired"><fmt:message key="users.receiveAlarmEmails"/></td>
+              <td><tag:alarmLevelOptions id="receiveAlarmEmails" onchange="setAlarmLevelImg($get('receiveAlarmEmails'), 'receiveAlarmLevel');"/>
+                <tag:img id="receiveAlarmLevel" png="flag_grey" style="display:none;"/></td>
+            </tr>
             <tr>
               <td class="formLabel"><fmt:message key="mailingLists.addUser"/></td>
               <td class="formField">
