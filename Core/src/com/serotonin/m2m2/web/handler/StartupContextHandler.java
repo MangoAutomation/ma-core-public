@@ -62,10 +62,9 @@ public class StartupContextHandler extends ResourceHandler{
         	return;
         }
         
-        if(request.getMethod().equalsIgnoreCase("OPTIONS")){
+        if(request.getMethod().equalsIgnoreCase("GET") && request.getPathInfo().startsWith("/rest/")){
         	//Return options response
-        	response.setStatus(HttpStatus.SC_OK);
-        	response.setHeader("Allow", "OPTIONS, GET");
+        	response.setStatus(HttpStatus.SC_SERVICE_UNAVAILABLE);
         	response.setContentLength(0);
     		ILifecycle lifecycle = Providers.get(ILifecycle.class);
             Float progress = lifecycle.getStartupProgress();
