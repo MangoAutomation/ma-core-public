@@ -319,7 +319,7 @@ public class UserDao extends AbstractDao<User> {
 	 */
 	@Override
 	protected String getTableName() {
-		return "users";
+		return SchemaDefinition.USERS_TABLE;
 	}
 
 
