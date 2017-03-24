@@ -19,6 +19,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.validation.StringValidation;
 
 public class MailingList extends EmailRecipient {
@@ -30,6 +31,7 @@ public class MailingList extends EmailRecipient {
     private String name;
     @JsonProperty
     private List<EmailRecipient> entries;
+    private int receiveAlarmEmails = AlarmLevels.IGNORE;
 
     /**
      * Integers that are present in the inactive intervals set are times at which the mailing list schedule is not to be
@@ -93,6 +95,14 @@ public class MailingList extends EmailRecipient {
     public void setInactiveIntervals(Set<Integer> inactiveIntervals) {
         this.inactiveIntervals = inactiveIntervals;
     }
+    
+    public int getReceiveAlarmEmails() {
+    	return receiveAlarmEmails;
+    }
+    
+    public void setReceiveAlarmEmails(int receiveAlarmEmails) {
+    	this.receiveAlarmEmails = receiveAlarmEmails;
+    }
 
     @Override
     public void appendAddresses(Set<String> addresses, DateTime sendTime) {
@@ -138,10 +148,14 @@ public class MailingList extends EmailRecipient {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         // Don't call the super method, because a mailing list can't be a member of a mailing list.
         writer.writeEntry("xid", xid);
+        writer.writeEntry("receiveAlarmEmails", AlarmLevels.CODES.getCode(receiveAlarmEmails));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        // no op
+    	String text = jsonObject.getString("recieveAlarmEmails");
+		if(text != null){
+			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
+		}
     }
 }

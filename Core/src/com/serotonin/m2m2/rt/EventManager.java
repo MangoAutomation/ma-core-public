@@ -17,10 +17,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -35,6 +37,7 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.util.ILifecycle;
 
@@ -143,6 +146,11 @@ public class EventManager implements ILifecycle {
 				}
 
 			}
+		}
+		
+		DateTime now = new DateTime(Common.timer.currentTimeMillis());
+		for(MailingList ml : MailingListDao.instance.getAlarmMailingLists(alarmLevel)) {
+			emailUsers.addAll(MailingListDao.instance.generateRecipientAddresses(ml.getEntries(), now));
 		}
 
 		//No Audit or Do Not Log events are User Events

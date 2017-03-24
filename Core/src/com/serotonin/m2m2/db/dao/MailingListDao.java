@@ -54,7 +54,7 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
         return isXidUnique(xid, excludeId, "mailingLists");
     }
 
-    private static final String MAILING_LIST_SELECT = "select id, xid, name from mailingLists ";
+    private static final String MAILING_LIST_SELECT = "select id, xid, name, receiveAlarmEmails from mailingLists ";
     private static final String COUNT = "SELECT COUNT(DISTINCT id) FROM mailingLists";
     
     public int count(){
@@ -65,6 +65,12 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
         List<MailingList> result = query(MAILING_LIST_SELECT + "order by name", new MailingListRowMapper());
         setRelationalData(result);
         return result;
+    }
+    
+    public List<MailingList> getAlarmMailingLists(int alarmLevel) {
+    	List<MailingList> result = query(MAILING_LIST_SELECT + "where receiveAlarmEmails>="+alarmLevel, new MailingListRowMapper());
+    	setRelationalData(result);
+    	return result;
     }
 
     public MailingList getMailingList(int id) {
@@ -88,6 +94,7 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
             ml.setId(rs.getInt(1));
             ml.setXid(rs.getString(2));
             ml.setName(rs.getString(3));
+            ml.setReceiveAlarmEmails(rs.getInt(4));
             return ml;
         }
     }
@@ -180,7 +187,7 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
     }
 
     private static final String MAILING_LIST_INSERT = "insert into mailingLists (xid, name) values (?,?)";
-    private static final String MAILING_LIST_UPDATE = "update mailingLists set xid=?, name=? where id=?";
+    private static final String MAILING_LIST_UPDATE = "update mailingLists set xid=?, name=?, receiveAlarmEmails=? where id=?";
 
     public void saveMailingList(final MailingList ml) {
         final ExtendedJdbcTemplate ejt2 = ejt;
@@ -189,10 +196,10 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 if (ml.getId() == Common.NEW_ID){
-                    ml.setId(doInsert(MAILING_LIST_INSERT, new Object[] { ml.getXid(), ml.getName() }));
+                    ml.setId(doInsert(MAILING_LIST_INSERT, new Object[] { ml.getXid(), ml.getName(), ml.getReceiveAlarmEmails() }));
                     countMonitor.increment();
                 }else
-                    ejt2.update(MAILING_LIST_UPDATE, new Object[] { ml.getXid(), ml.getName(), ml.getId() });
+                    ejt2.update(MAILING_LIST_UPDATE, new Object[] { ml.getXid(), ml.getName(), ml.getReceiveAlarmEmails(), ml.getId() });
                 saveRelationalData(ml);
             }
         });
