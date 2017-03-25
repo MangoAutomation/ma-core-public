@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.controller;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.serotonin.m2m2.view.chart.TableChartRenderer;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.UrlHandler;
 import com.serotonin.util.CollectionUtils;
@@ -44,7 +46,11 @@ public class DataPointDetailsController implements UrlHandler {
         DataPointDao dataPointDao = DataPointDao.instance;
         String idStr = request.getParameter("dpid");
         DataPointVO point = null;
-
+        if(StringUtils.equals(idStr,"exception"))
+        	throw new IOException("testing");
+        else if(StringUtils.equals(idStr,"permission-exception"))
+        	throw new PermissionException("Testing", user);
+        
         if (StringUtils.isBlank(idStr)) {
             // Check for pedid (point event detector id)
             String pedStr = request.getParameter("pedid");

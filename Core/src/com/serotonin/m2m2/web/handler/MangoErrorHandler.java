@@ -7,16 +7,24 @@ package com.serotonin.m2m2.web.handler;
 import java.io.IOException;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.web.util.NestedServletException;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.web.mvc.spring.exception.ExceptionUtils;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 
 /**
  * Handle and process some of the basic responses that modules may want to
@@ -26,6 +34,10 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  */
 public class MangoErrorHandler extends ErrorHandler{
 
+	private final Log LOG = LogFactory.getLog(MangoErrorHandler.class);
+	private final String ACCESS_DENIED = "/unauthorized.htm";
+	
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -39,29 +51,73 @@ public class MangoErrorHandler extends ErrorHandler{
 	protected void generateAcceptableResponse(Request baseRequest, HttpServletRequest request,
 			HttpServletResponse response, int code, String message, String mimeType) throws IOException {
 		
-		switch (code) {
-		case HttpStatus.SC_NOT_FOUND:
-			baseRequest.setHandled(true);
-			// Search the default pages definitions
-			response.sendRedirect(DefaultPagesDefinition.getNotFoundUri(request, response));
-			break;
-		case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-			baseRequest.setHandled(true);
-			//Are we a PermissionException (Legacy UI only)
-			Throwable th = (Throwable)request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-			if((th.getCause() != null) && (th.getCause() instanceof PermissionException)){
-				response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, null, Common.getUser(request)));
-			}else{
-				// Search the default pages definitions
-				response.sendRedirect(DefaultPagesDefinition.getErrorUri(request, response));
-			}
-			break;
-		}
+		//The cases we need to handle
+		// 1) - Not found forwards to not found URI
+		// 2) - Exception forwards to error URI
+		// 3) - Unauthorized forwards to unauthorized URI
+		// 4) - Other ? 
 		
-		Throwable th = (Throwable)request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-		if((th != null)&&(th.getCause() != null) && (th.getCause() instanceof PermissionException)){
-			baseRequest.setHandled(true);
-			response.sendRedirect(DefaultPagesDefinition.getUnauthorizedUri(request, null, Common.getUser(request)));
+		try{
+			
+			switch (code) {
+			case 404:
+				if(MangoSecurityConfiguration.browserHtmlRequestMatcher().matches(request)){
+					//Forward to Not Found URI
+					String uri = DefaultPagesDefinition.getNotFoundUri(request, response);
+					RequestDispatcher dispatcher = request.getRequestDispatcher(uri);
+	                dispatcher.forward(request, response);
+				}else{
+					//Resource/Rest Request
+					baseRequest.setHandled(true);
+				}
+				
+				break;
+			default:
+				//Catch All unhandled Responses with errors
+				Throwable th = (Throwable)request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+				//Does this require handling
+				if(th != null){
+					
+					if(th instanceof NestedServletException)
+						th = th.getCause();
+					
+					//Log it
+					ExceptionUtils.logWebException((Exception)th, request, LOG);
+					
+					HttpSession sesh = baseRequest.getSession(false);
+					String uri;
+
+					//We need to do something
+					if(MangoSecurityConfiguration.browserHtmlRequestMatcher().matches(request)){
+						//TODO Move this to the MangoExceptionResolver and only handle uncaught exceptions here
+						//Are we a PermissionException (Legacy UI only)
+						if(th instanceof PermissionException){
+							User user = Common.getHttpUser();
+							if(user == null)
+								uri = ACCESS_DENIED;
+							else
+								uri = DefaultPagesDefinition.getUnauthorizedUri(request, response, Common.getHttpUser());
+							// Put exception into request scope (perhaps of use to a view)
+			                request.setAttribute(WebAttributes.ACCESS_DENIED_403, th);
+			                response.sendRedirect(uri);
+						}else{
+							// Redirect to Error URI
+							if(sesh != null)
+								sesh.setAttribute(Common.SESSION_USER_EXCEPTION, th);
+							uri = DefaultPagesDefinition.getErrorUri(baseRequest, response);
+							response.sendRedirect(uri);
+						}
+					}else{
+						//Resource/Rest Request
+						baseRequest.setHandled(true);
+						if(sesh != null)
+							sesh.setAttribute(Common.SESSION_USER_EXCEPTION, th.getCause());
+					}
+				}
+				break;
+			}
+		}catch(ServletException e){
+			throw new IOException(e);
 		}
 	}
 }

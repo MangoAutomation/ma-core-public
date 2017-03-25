@@ -30,6 +30,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -42,7 +43,6 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -76,6 +76,7 @@ public class MangoSecurityConfiguration {
 
 	//Share between all Configurations
 	static SessionRegistry sessionRegistry = new MangoSessionRegistry();
+	final static RequestMatcher browserHtmlRequestMatcher = createBrowserHtmlRequestMatcher();
 	
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
@@ -135,7 +136,7 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public ContentNegotiationStrategy contentNegotiationStrategy() {
+    public static ContentNegotiationStrategy contentNegotiationStrategy() {
         return new HeaderContentNegotiationStrategy();
     }
     
@@ -146,8 +147,16 @@ public class MangoSecurityConfiguration {
     
     // used to dectect if we should do redirects on login/authentication failure/logout etc
     @Bean(name="browserHtmlRequestMatcher")
-    public RequestMatcher browserHtmlRequestMatcher() {
-        ContentNegotiationStrategy contentNegotiationStrategy = contentNegotiationStrategy();
+    public static RequestMatcher browserHtmlRequestMatcher() {
+        return browserHtmlRequestMatcher;
+    }
+    
+    /**
+     * Internal method to create a static matcher
+     * @return
+     */
+    private static RequestMatcher createBrowserHtmlRequestMatcher(){
+    	ContentNegotiationStrategy contentNegotiationStrategy = contentNegotiationStrategy();
         
         MediaTypeRequestMatcher mediaMatcher = new MediaTypeRequestMatcher(
                 contentNegotiationStrategy, MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML);
@@ -176,10 +185,10 @@ public class MangoSecurityConfiguration {
             return null;
         }
     }
-
+    
     @Bean
-    public MangoInvalidSessionStrategy invalidSessionStrategy(){
-    	return new MangoInvalidSessionStrategy(browserHtmlRequestMatcher());
+    public PermissionExceptionFilter permissionExceptionFilter(){
+    	return new PermissionExceptionFilter();
     }
     
     @Bean
@@ -323,7 +332,7 @@ public class MangoSecurityConfiguration {
         JsonLoginConfigurer jsonLoginConfigurer;
         LogoutHandler logoutHandler;
         LogoutSuccessHandler logoutSuccessHandler;
-        InvalidSessionStrategy invalidSessionStrategy;
+        PermissionExceptionFilter permissionExceptionFilter;
         
         @Autowired
         public void init(
@@ -334,7 +343,7 @@ public class MangoSecurityConfiguration {
                 JsonLoginConfigurer jsonLoginConfigurer,
                 LogoutHandler logoutHandler,
                 LogoutSuccessHandler logoutSuccessHandler,
-                InvalidSessionStrategy invalidSessionStrategy) {
+                PermissionExceptionFilter permissionExceptionFilter) {
             this.authenticationSuccessHandler = authenticationSuccessHandler;
             this.authenticationFailureHandler = authenticationFailureHandler;
             this.accessDeniedHandler = accessDeniedHandler;
@@ -342,14 +351,13 @@ public class MangoSecurityConfiguration {
             this.jsonLoginConfigurer = jsonLoginConfigurer;
             this.logoutHandler = logoutHandler;
             this.logoutSuccessHandler = logoutSuccessHandler;
-            this.invalidSessionStrategy = invalidSessionStrategy;
+            this.permissionExceptionFilter = permissionExceptionFilter;
         }
         
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.antMatcher("/rest/**")
                 .sessionManagement()
-                	//.invalidSessionStrategy(invalidSessionStrategy)
 	            	.maximumSessions(10)
 	            	.maxSessionsPreventsLogin(false)
 	            	.sessionRegistry(sessionRegistry)
@@ -396,7 +404,8 @@ public class MangoSecurityConfiguration {
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                     .accessDeniedHandler(accessDeniedHandler)
                     .and()
-                .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
+                .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class)
+            	.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
             
             // Use the MVC Cors Configuration
             if (Common.envProps.getBoolean("rest.cors.enabled", false))
@@ -425,7 +434,7 @@ public class MangoSecurityConfiguration {
         LogoutHandler logoutHandler;
         LogoutSuccessHandler logoutSuccessHandler;
         RequestCache requestCache;
-        InvalidSessionStrategy invalidSessionStrategy;
+        PermissionExceptionFilter permissionExceptionFilter;
         
         @Autowired
         public void init(AccessDeniedHandler accessDeniedHandler,
@@ -435,7 +444,7 @@ public class MangoSecurityConfiguration {
                 LogoutHandler logoutHandler,
                 LogoutSuccessHandler logoutSuccessHandler,
                 RequestCache requestCache, 
-                InvalidSessionStrategy invalidSessionStrategy) {
+                PermissionExceptionFilter permissionExceptionFilter) {
             this.accessDeniedHandler = accessDeniedHandler;
             this.authenticationEntryPoint = authenticationEntryPoint;
             this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -443,7 +452,7 @@ public class MangoSecurityConfiguration {
             this.logoutHandler = logoutHandler;
             this.logoutSuccessHandler = logoutSuccessHandler;
             this.requestCache = requestCache;
-            this.invalidSessionStrategy = invalidSessionStrategy;
+            this.permissionExceptionFilter = permissionExceptionFilter;
         }
 
         @Override
@@ -456,7 +465,6 @@ public class MangoSecurityConfiguration {
                     new AntPathRequestMatcher("/dashboards/**", "GET"),
                     new AntPathRequestMatcher("/dwr/**/*.js", "GET"))))
             .sessionManagement()
-            	//.invalidSessionStrategy(invalidSessionStrategy)
             	.maximumSessions(10)
             	.maxSessionsPreventsLogin(false)
             	.sessionRegistry(sessionRegistry)
@@ -508,7 +516,8 @@ public class MangoSecurityConfiguration {
             .headers()
                 .frameOptions().sameOrigin()
                 .cacheControl().disable()
-                .and();
+                .and()
+            .addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
         }
     }
 }

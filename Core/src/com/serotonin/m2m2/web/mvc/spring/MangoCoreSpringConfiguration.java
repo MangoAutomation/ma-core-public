@@ -7,19 +7,21 @@ package com.serotonin.m2m2.web.mvc.spring;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import com.serotonin.m2m2.web.mvc.BlabberUrlHandlerMapping;
 import com.serotonin.m2m2.web.mvc.interceptor.CommonDataInterceptor;
-import com.serotonin.m2m2.web.mvc.resolver.MangoExceptionResolver;
+import com.serotonin.m2m2.web.mvc.spring.exception.MangoSpringExceptionHandler;
 import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
 import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
 import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
@@ -67,12 +69,11 @@ public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfigurat
 		return mapping;
 	}
 	
-	//To remove All Handlers @Bean(name="handlerExceptionResolver")
-	@Bean(name="mangoExceptionResolver")
-	public MangoExceptionResolver createMangoExceptionResolver(){
-		MangoExceptionResolver resolver = new MangoExceptionResolver();
-		return resolver;
+	@Bean
+	public MangoSpringExceptionHandler exceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher){
+		return new MangoSpringExceptionHandler(browserHtmlRequestMatcher);
 	}
+	
 	
 	/*
 	 * (non-Javadoc)

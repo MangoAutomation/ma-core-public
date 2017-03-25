@@ -2,75 +2,28 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  *
  */
-package com.serotonin.m2m2.web.mvc.resolver;
+package com.serotonin.m2m2.web.mvc.spring.exception;
 
 import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.core.Ordered;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver;
-
-import com.serotonin.m2m2.Common;
 
 /**
  * 
- * Run as the highest priority Exception Resolver 
- * to add the Exception into the Session for later retrieval.
- * 
- * Also does some verbose logging.
- * 
  * @author Terry Packer
  */
-public class MangoExceptionResolver extends AbstractHandlerExceptionResolver{
+public class ExceptionUtils {
 
-	private static final Log LOG = LogFactory.getLog(MangoExceptionResolver.class);
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver#getOrder()
+	/**
+	 * Log a web exception in a standard format
+	 * @param ex
+	 * @param request
+	 * @param log
 	 */
-	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
-	}
-
-	@Override
-	protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response,
-			Object handler, Exception ex) {
-		// Set Exception into Context
-		HttpSession sesh = request.getSession(false);
-		if (sesh != null)
-			sesh.setAttribute(Common.SESSION_USER_EXCEPTION, ex);
-		
-		if(ex != null)
-			logException(ex, request);
-		
-		return null;
-	}
-
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver#shouldApplyTo(javax.servlet.http.HttpServletRequest, java.lang.Object)
-	 */
-	@Override
-	protected boolean shouldApplyTo(HttpServletRequest request, Object handler) {
-		return true;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver#
-	 * logException(java.lang.Exception, javax.servlet.http.HttpServletRequest)
-	 */
-	@Override
-	protected void logException(Exception ex, HttpServletRequest request) {
+	public static void logWebException(Exception ex, HttpServletRequest request, Log log){
 		StringWriter sw = new StringWriter();
 
 		// Write the request url into the message.
@@ -139,7 +92,6 @@ public class MangoExceptionResolver extends AbstractHandlerExceptionResolver{
 			}
 		}
 
-		LOG.warn(sw.toString(), ex);
+		log.warn(sw.toString(), ex);
 	}
-
 }
