@@ -40,7 +40,9 @@ public class Upgrade16 extends DBUpgrade {
 			"ALTER TABLE mailingLists ADD COLUMN receiveAlarmEmails INT NOT NULL DEFAULT -3;"
 	};
 	private static final String[] mssqlColumn = {
-			"ALTER TABLE mailingLists ADD COLUMN receiveAlarmEmails INT NOT NULL DEFAULT -3;"
+			"ALTER TABLE mailingLists ADD COLUMN receiveAlarmEmails INT;",
+			"UPDATE mailingLists SET receiveAlarmEmails=-3;",
+			"ALTER TABLE mailingLists ALTER COLUMN receiveAlarmEmails INT NOT NULL"
 	};
 
 	private static final String[] upgrade = {
