@@ -86,11 +86,17 @@ public class MangoErrorHandler extends ErrorHandler{
 					
 					HttpSession sesh = baseRequest.getSession(false);
 					String uri;
-
+					
+					//We are handling this here
+					baseRequest.setHandled(true);
+					
 					//We need to do something
 					if(MangoSecurityConfiguration.browserHtmlRequestMatcher().matches(request)){
-						//TODO Move this to the MangoExceptionResolver and only handle uncaught exceptions here
-						//Are we a PermissionException (Legacy UI only)
+						//TODO There is no longer a way to get a PermissionException here due to the PermissionExceptionFilter.  
+						// However, there is no User in the Security Context at this point which means we cannot successfully do a forward...
+						// need to understand how this is happening.
+						//
+						//Are we a PermissionException
 						if(th instanceof PermissionException){
 							User user = Common.getHttpUser();
 							if(user == null)

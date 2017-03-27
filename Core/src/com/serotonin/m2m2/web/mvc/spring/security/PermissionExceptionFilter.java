@@ -30,8 +30,12 @@ public class PermissionExceptionFilter extends GenericFilterBean{
 			throws IOException, ServletException {
 		try{
 			chain.doFilter(request, response);
-		}catch(PermissionException e){
-			throw new AccessDeniedException(e.getMessage(), e);
+		}catch(Exception e){
+			//Since most likely this will be a NestedServletException
+			if(e.getCause() != null && e.getCause() instanceof PermissionException)
+				throw new AccessDeniedException(e.getMessage(), e);
+			else
+				throw e;
 		}
 	}
 

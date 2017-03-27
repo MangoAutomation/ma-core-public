@@ -89,8 +89,7 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
             try {
 				dispatcher.forward(servletRequest, servletResponse);
 			} catch (ServletException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error(e.getMessage(), e);
 			}
     		
     		return null;
