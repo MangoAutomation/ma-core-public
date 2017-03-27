@@ -44,7 +44,7 @@ public class RejectedHighPriorityTaskEventGenerator implements RejectedTaskHandl
 		}
 		
 		
-		LOG.fatal("High priority task: " + taskName + " rejected because " + reason.getDescription());
+		LOG.warn("High priority task: " + taskName + " rejected because " + reason.getDescription());
 		
     	//Raise Event that Task Was Rejected
     	switch(reason.getCode()){
