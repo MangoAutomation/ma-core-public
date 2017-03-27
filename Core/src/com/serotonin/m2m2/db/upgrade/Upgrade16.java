@@ -47,8 +47,8 @@ public class Upgrade16 extends DBUpgrade {
 			"UPDATE systemSettings SET settingvalue='6' WHERE settingname LIKE 'systemEventAlarmLevel%' AND settingvalue='4';",
 			"UPDATE systemSettings SET settingvalue='5' WHERE settingname LIKE 'systemEventAlarmLevel%' AND settingvalue='3';",
 			"UPDATE systemSettings SET settingvalue='4' WHERE settingname LIKE 'systemEventAlarmLevel%' AND settingvalue='2';",
-			"UPDATE events SET alarmLevel=alarmLevel+2 WHERE alarmLevel>=2;",
-			"UPDATE users SET receiveAlarmEmails=receiveAlarmEmails+2 WHERE receiveAlarmEmails>=2;",
-			"UPDATE audit SET alarmLevel=alarmLevel+2 WHERE alarmLevel>=2;"
+			"UPDATE events SET alarmLevel=alarmLevel+2 WHERE alarmLevel>=2 AND alarmLevel<=4;",
+			"UPDATE users SET receiveAlarmEmails=receiveAlarmEmails+2 WHERE receiveAlarmEmails>=2 AND receiveAlarmEmails<=4;",
+			"UPDATE audit SET alarmLevel=alarmLevel+2 WHERE alarmLevel>=2 AND alarmLevel<=4;"
 	};
 }
