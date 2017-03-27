@@ -78,6 +78,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
         } else {
             valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
         }
+        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
+        	averagingValues = new ArrayList<IValueTime>();
     }
 
     /**
@@ -405,7 +407,15 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle, Tim
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                 intervalStartTime = System.currentTimeMillis();
-                averagingValues = new ArrayList<IValueTime>();
+                if(averagingValues.size() > 0) {
+                	AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime,
+                			null, averagingValues, intervalValue);
+                	PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
+                    valueCache.logPointValueAsync(newValue, null);
+                    //Fire logged Events
+                    fireEvents(null, newValue, false, false, true, false);
+                	averagingValues.clear();
+                }
             }
         }
     }
