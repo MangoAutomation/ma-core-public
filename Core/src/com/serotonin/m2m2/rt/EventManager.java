@@ -150,7 +150,7 @@ public class EventManager implements ILifecycle {
 		
 		DateTime now = new DateTime(Common.timer.currentTimeMillis());
 		for(MailingList ml : MailingListDao.instance.getAlarmMailingLists(alarmLevel)) {
-			emailUsers.addAll(MailingListDao.instance.generateRecipientAddresses(ml.getEntries(), now));
+			ml.appendAddresses(emailUsers, now);
 		}
 
 		//No Audit or Do Not Log events are User Events

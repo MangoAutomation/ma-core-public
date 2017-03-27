@@ -21,7 +21,6 @@
                 updateMailingList(response.data.lists[i]);
             }
             scheduleInit();
-            setAlarmLevelImg($get('receiveAlarmEmails'), 'receiveAlarmLevel');
         });
     }
     
@@ -36,6 +35,7 @@
             $set("xid", ml.xid);
             $set("name", ml.name);
             $set("receiveAlarmEmails", ml.receiveAlarmEmails);
+            setAlarmLevelImg($get('receiveAlarmEmails'), 'receiveAlarmLevel');
             
             dwr.util.removeAllRows("mailingListEntriesTable");
             var entry;
