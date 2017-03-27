@@ -103,7 +103,16 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
         		level.unsilencedCount--;
         break;
         }
-        self.renderEventLevel(level);
+        var maxAlarmRows = 4;
+        var $div = $('.event-summary .level-summary').empty();
+        for (var i = 0; i < self.eventsActiveSummary.length; i++) {
+        	if(self.eventsActiveSummary[i].unsilencedCount > 0)
+        		maxAlarmRows -= 1;
+            self.renderEventLevel(self.eventsActiveSummary[i]);
+            if(maxAlarmRows == 0)
+            	break;
+        }
+        //self.renderEventLevel(level);
         self.updateSoundPlayer();
     }, function(){}, function(){}, function(){});
     
