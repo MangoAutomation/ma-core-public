@@ -107,8 +107,13 @@ ToolbarUtilities.prototype.setupEventsSummary = function(activeEvents) {
         self.updateSoundPlayer();
     }, function(){}, function(){}, function(){});
     
+    var maxAlarmRows = 4;
     for (var i = 0; i < this.eventsActiveSummary.length; i++) {
+    	if(this.eventsActiveSummary[i].unsilencedCount > 0)
+    		maxAlarmRows -= 1;
         this.renderEventLevel(this.eventsActiveSummary[i]);
+        if(maxAlarmRows == 0)
+        	break;
     }
     this.updateSoundPlayer();
 };
