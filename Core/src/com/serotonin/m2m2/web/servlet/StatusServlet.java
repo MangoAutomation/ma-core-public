@@ -71,7 +71,7 @@ public class StatusServlet extends HttpServlet{
         
 		//Limit to logged in users while running
         //TODO create a nice way of sharing states between ma-priv and core
-		if((lifecycle.getLifecycleState() != 200)||(Common.getUser(request) != null)){
+		if((lifecycle.getLifecycleState() != 200)||(Common.getHttpUser() != null)){
 			data.put("messages", LoggingConsoleRT.instance.getMessagesSince(time));
 		}else{
 			data.put("messages", new ArrayList<String>());
