@@ -79,7 +79,8 @@ public class ExportCsvStreamer implements ExportDataStreamHandler {
         else {
         	if(rdv.getValue().getDataType() == DataTypes.IMAGE)
         		data[4] = imageServletBuilder.buildAndExpand(rdv.getTime(), dataPointId).toUri().toString();
-            data[4] = rdv.getValue().toString();
+        	else
+        		data[4] = rdv.getValue().toString();
             data[5] = textRenderer.getText(rdv.getValue(), TextRenderer.HINT_FULL);
         }
 
