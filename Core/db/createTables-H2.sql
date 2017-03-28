@@ -65,6 +65,7 @@ CREATE TABLE mailingLists (
   id int NOT NULL auto_increment,
   xid varchar(50) NOT NULL,
   name varchar(255) NOT NULL,
+  receiveAlarmEmails INT NOT NULL DEFAULT -3,
   PRIMARY KEY (id)
 );
 ALTER TABLE mailingLists ADD CONSTRAINT mailingListsUn1 UNIQUE (xid);
