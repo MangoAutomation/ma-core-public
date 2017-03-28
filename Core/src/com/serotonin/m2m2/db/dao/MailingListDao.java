@@ -186,7 +186,7 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
         }
     }
 
-    private static final String MAILING_LIST_INSERT = "insert into mailingLists (xid, name) values (?,?)";
+    private static final String MAILING_LIST_INSERT = "insert into mailingLists (xid, name, receiveAlarmEmails) values (?,?,?)";
     private static final String MAILING_LIST_UPDATE = "update mailingLists set xid=?, name=?, receiveAlarmEmails=? where id=?";
 
     public void saveMailingList(final MailingList ml) {
