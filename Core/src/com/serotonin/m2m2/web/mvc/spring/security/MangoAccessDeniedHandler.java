@@ -6,7 +6,6 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,9 +68,8 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
                 // Set the 403 status code.
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     
-                // forward to error page.
-                RequestDispatcher dispatcher = request.getRequestDispatcher(accessDeniedUrl);
-                dispatcher.forward(request, response);
+                // redirect to error page.
+                response.sendRedirect(accessDeniedUrl);
 		    } else {
 		        // REST type request
 		        response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());

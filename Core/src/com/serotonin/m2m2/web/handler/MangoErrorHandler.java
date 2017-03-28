@@ -95,6 +95,7 @@ public class MangoErrorHandler extends ErrorHandler{
 						//TODO There is no longer a way to get a PermissionException here due to the PermissionExceptionFilter.  
 						// However, there is no User in the Security Context at this point which means we cannot successfully do a forward...
 						// need to understand how this is happening.
+						// 
 						//
 						//Are we a PermissionException
 						if(th instanceof PermissionException){
