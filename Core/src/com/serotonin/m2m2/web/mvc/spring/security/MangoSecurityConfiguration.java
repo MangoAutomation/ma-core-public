@@ -179,6 +179,7 @@ public class MangoSecurityConfiguration {
             configuration.setAllowCredentials(Common.envProps.getBoolean("rest.cors.allowCredentials", false));
             configuration.setMaxAge(Common.envProps.getLong("rest.cors.maxAge", 0));
             UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.setAlwaysUseFullPath(true); //Don't chop off the starting /rest stuff
             source.registerCorsConfiguration("/rest/**", configuration);
             return source;
         } else {
