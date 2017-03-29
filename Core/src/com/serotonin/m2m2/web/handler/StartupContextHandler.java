@@ -56,26 +56,27 @@ public class StartupContextHandler extends ResourceHandler{
 			throws IOException, ServletException {
         //Allow access to js and css files
         int requestType = PAGE;
-        if(!request.getMethod().equalsIgnoreCase("GET")&&!request.getMethod().equalsIgnoreCase("OPTIONS")){
-        	response.setHeader("Allow", "GET,OPTIONS");
-        	response.sendError(HttpStatus.SC_METHOD_NOT_ALLOWED, "Only GET,OPTIONS requests allowed during startup.");
-        	return;
-        }
-        
-        if(request.getMethod().equalsIgnoreCase("GET") && request.getPathInfo().startsWith("/rest/")){
-        	//Return options response
-        	response.setStatus(HttpStatus.SC_SERVICE_UNAVAILABLE);
-        	response.setContentLength(0);
-    		ILifecycle lifecycle = Providers.get(ILifecycle.class);
+
+        if(request.getPathInfo().startsWith("/rest/")){
+            //Return options response
+            response.setStatus(HttpStatus.SC_SERVICE_UNAVAILABLE);
+            response.setContentLength(0);
+            ILifecycle lifecycle = Providers.get(ILifecycle.class);
             Float progress = lifecycle.getStartupProgress();
-    		int state = lifecycle.getLifecycleState();
-    		response.setHeader("Mango-Startup-Progress", String.format("%d", progress.intValue()));
-    		response.setHeader("Mango-Startup-State", this.statusServlet.getLifecycleStateMessage(state));
-        	
-        	baseRequest.setHandled(true);
-        	return;
+            int state = lifecycle.getLifecycleState();
+            response.setHeader("Mango-Startup-Progress", String.format("%d", progress.intValue()));
+            response.setHeader("Mango-Startup-State", this.statusServlet.getLifecycleStateMessage(state));
+            
+            baseRequest.setHandled(true);
+            return;
         }
         
+        if(!request.getMethod().equalsIgnoreCase("GET")){
+        	response.setHeader("Allow", "GET");
+        	response.sendError(HttpStatus.SC_METHOD_NOT_ALLOWED, "Only GET requests allowed during startup.");
+        	return;
+        }
+
         if(request.getPathInfo().endsWith(".css") || 
         		request.getPathInfo().endsWith(".js") ||
         		request.getPathInfo().endsWith(".ico") ||
