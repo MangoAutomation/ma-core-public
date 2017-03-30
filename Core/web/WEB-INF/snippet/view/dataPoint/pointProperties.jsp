@@ -325,6 +325,10 @@
             value="<%=Integer.toString(DataPointVO.PlotTypes.SPLINE)%>">
             <fmt:message key="pointEdit.plotType.spline" />
           </sst:option>
+          <sst:option
+            value="<%=Integer.toString(DataPointVO.PlotTypes.BAR)%>">
+            <fmt:message key="pointEdit.plotType.bar" />
+          </sst:option>
         </sst:select></td>
     </tr>
     
