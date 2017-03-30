@@ -868,7 +868,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         
         if(!Common.ROLLUP_CODES.isValidId(rollup))
         	response.addContextualMessage("rollup", "validate.invalidValue");
-        else if(!!validateRollup())
+        else if(!validateRollup())
         	response.addContextualMessage("rollup", "validate.rollup.incompatible", rollup);
 
         pointLocator.validate(response, this);
