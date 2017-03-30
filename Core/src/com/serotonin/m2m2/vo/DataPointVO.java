@@ -993,7 +993,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     	case Rollups.INTEGRAL :
     		return numeric;
     	default :
-    			return false;
+    		return false;
     	}
     }
 
