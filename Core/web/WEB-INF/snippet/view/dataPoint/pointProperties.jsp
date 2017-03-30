@@ -171,14 +171,54 @@
 	 * Reset the Point Properties Inputs depending on Data Type
 	 */
 	function resetPointProperties(dataTypeId) {
+		var rollupNode = $("rollup");
 		if (dataTypeId == <%=DataTypes.NUMERIC%>) {
 			show("unitSection");
 			$("plotType").disabled = false;
+			rollupNode[<%=Common.Rollups.NONE%>].disabled = false;
+			rollupNode[<%=Common.Rollups.AVERAGE%>].disabled = false;
+			rollupNode[<%=Common.Rollups.DELTA%>].disabled = false;
+			rollupNode[<%=Common.Rollups.MINIMUM%>].disabled = false;
+			rollupNode[<%=Common.Rollups.MAXIMUM%>].disabled = false;
+			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].disabled = false;
+			rollupNode[<%=Common.Rollups.SUM%>].disabled = false;
+			rollupNode[<%=Common.Rollups.FIRST%>].disabled = false;
+			rollupNode[<%=Common.Rollups.LAST%>].disabled = false;
+			rollupNode[<%=Common.Rollups.COUNT%>].disabled = false;
+			rollupNode[<%=Common.Rollups.INTEGRAL%>].disabled = false;
+			rollupNode[<%=Common.Rollups.ALL%>].disabled = true;
+			if(rollupNode[$get("rollup")].disabled)
+				$set("rollup", <%=Common.Rollups.NONE%>);
 		} else {
 			hide("unitSection");
 			$("plotType").disabled = true;
 			$set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
+			rollupNode[<%=Common.Rollups.NONE%>].disabled = false;
+			rollupNode[<%=Common.Rollups.AVERAGE%>].disabled = true;
+			rollupNode[<%=Common.Rollups.DELTA%>].disabled = true;
+			rollupNode[<%=Common.Rollups.MINIMUM%>].disabled = true;
+			rollupNode[<%=Common.Rollups.MAXIMUM%>].disabled = true;
+			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].disabled = true;
+			rollupNode[<%=Common.Rollups.SUM%>].disabled = true;
+			rollupNode[<%=Common.Rollups.FIRST%>].disabled = false;
+			rollupNode[<%=Common.Rollups.LAST%>].disabled = false;
+			rollupNode[<%=Common.Rollups.COUNT%>].disabled = false;
+			rollupNode[<%=Common.Rollups.INTEGRAL%>].disabled = true;
+			rollupNode[<%=Common.Rollups.ALL%>].disabled = true;
+			if(rollupNode[$get("rollup")].disabled)
+				$set("rollup", <%=Common.Rollups.NONE%>);
 		}
+		
+		
+		
+// 		switch(dataTypeId) {
+<%-- 		case <%=DataTypes.NUMERIC%> : --%>
+// 			dojo.query("#rollup option").enabled = true;
+<%-- 			dojo.query("#rollup option[value=<%=Common.Rollups.ALL%>]").enabled = false; --%>
+// 			break;
+// 		default :
+// 			dojo.query("#rollup option").enabled = false;
+// 		}
 	}
 	
 	//Register for callbacks when the data type is changed

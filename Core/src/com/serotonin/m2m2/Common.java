@@ -216,7 +216,7 @@ public class Common {
     	int LAST = 8;
     	int COUNT = 9;
     	int INTEGRAL = 10;
-    	int ALL = 12;
+    	int ALL = 11;
     }
     public static ExportCodes ROLLUP_CODES = new ExportCodes();
     static{
