@@ -54,7 +54,7 @@ public class ExampleV2RestController extends AbstractMangoRestV2Controller{
 	}
 	
 
-	@PreAuthorize("hasAllPermissions('superadmin','user')")
+	@PreAuthorize("hasAllPermissions('user')")
 	@ApiOperation(value = "Example User Credentials test", notes = "")
 	@ApiResponses({
 		@ApiResponse(code = 401, message = "Unauthorized user access", response=ResponseEntity.class),

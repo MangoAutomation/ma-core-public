@@ -1,3 +1,6 @@
+*Version 3.0.1
+* Adding env property to control iFrame access via Http headers
+
 *Version 2.8.6*
 * Fix to ensure publishers are not saved with previously deleted data points
 

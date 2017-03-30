@@ -77,7 +77,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetail
 public class MangoSecurityConfiguration {
 
 	//Share between all Configurations
-	static SessionRegistry sessionRegistry = new MangoSessionRegistry();
+	final static SessionRegistry sessionRegistry = new MangoSessionRegistry();
 	final static RequestMatcher browserHtmlRequestMatcher = createBrowserHtmlRequestMatcher();
 	
     @Autowired
@@ -225,13 +225,20 @@ public class MangoSecurityConfiguration {
 	/**
 	 * Temporary Solution to Caching User in Session, called by User Dao when a User is saved or updated.
 	 * 
+	 * Note that the HttpSession info is updated in the Users REST Controller 
+	 * 
 	 * @param old - Cannot be null
 	 * @param new - can be null if user was deleted
 	 */
 	public static void replaceUserInSessions(User old, User user) {
+
+		boolean isEditingCurrentUser = false;
 		
-		//TODO Expire Session
-		//TODO Common.setHttpUser()
+		User currentUser = Common.getHttpUser();
+		if(currentUser != null)
+			isEditingCurrentUser = currentUser.getUsername().equals(old.getUsername());
+		
+		
     	final List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
     	
         for (final Object principal : allPrincipals) {
@@ -242,13 +249,14 @@ public class MangoSecurityConfiguration {
             		//Expire sessions, the user was deleted
             		for(SessionInformation info : sessionInfo){
             			info.expireNow();
-            			sessionRegistry.removeSessionInformation(info.getSessionId());
             		}
             	}else{
-            		//Replace the user's sessions
-            		//TODO Is this really the right way to do this?
+            		//Replace the user's sessions or expire them if they are not I
             		for(SessionInformation info : sessionInfo){
-            			sessionRegistry.registerNewSession(info.getSessionId(), user);
+            			if(isEditingCurrentUser)
+            				sessionRegistry.registerNewSession(info.getSessionId(), user);
+            			else
+            				info.expireNow();
             		}
             	}
             }
