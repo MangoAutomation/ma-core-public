@@ -208,17 +208,6 @@
 			if(rollupNode[$get("rollup")].disabled)
 				$set("rollup", <%=Common.Rollups.NONE%>);
 		}
-		
-		
-		
-// 		switch(dataTypeId) {
-<%-- 		case <%=DataTypes.NUMERIC%> : --%>
-// 			dojo.query("#rollup option").enabled = true;
-<%-- 			dojo.query("#rollup option[value=<%=Common.Rollups.ALL%>]").enabled = false; --%>
-// 			break;
-// 		default :
-// 			dojo.query("#rollup option").enabled = false;
-// 		}
 	}
 	
 	//Register for callbacks when the data type is changed
