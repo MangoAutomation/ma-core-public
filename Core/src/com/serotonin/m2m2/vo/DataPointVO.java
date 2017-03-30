@@ -27,6 +27,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -867,6 +868,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         
         if(!Common.ROLLUP_CODES.isValidId(rollup))
         	response.addContextualMessage("rollup", "validate.invalidValue");
+        else if(!!validateRollup())
+        	response.addContextualMessage("rollup", "validate.rollup.incompatible", rollup);
 
         pointLocator.validate(response, this);
 
@@ -971,6 +974,27 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             return false;
 
         return renderedUnit.isCompatible(unit);
+    }
+    
+    private boolean validateRollup() {
+    	boolean numeric = pointLocator.getDataTypeId() == DataTypes.NUMERIC;
+    	switch(rollup) {
+    	case Rollups.FIRST :
+    	case Rollups.LAST :
+    	case Rollups.COUNT :
+    	case Rollups.NONE :
+    		return true;
+    	case Rollups.AVERAGE :
+    	case Rollups.DELTA :
+    	case Rollups.MINIMUM :
+    	case Rollups.MAXIMUM :
+    	case Rollups.ACCUMULATOR :
+    	case Rollups.SUM :
+    	case Rollups.INTEGRAL :
+    		return numeric;
+    	default :
+    			return false;
+    	}
     }
 
     // default unit is ONE ie no units
