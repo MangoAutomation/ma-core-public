@@ -32,17 +32,17 @@ public class Upgrade16 extends DBUpgrade {
 	
 	private static final String[] h2Column = {
 			"ALTER TABLE mailingLists ADD COLUMN receiveAlarmEmails INT;",
-			"UPDATE TABLE mailingLists SET receiveAlarmEmails=-3;",
+			"UPDATE mailingLists SET receiveAlarmEmails=-3;",
 			"ALTER TABLE mailingLists ALTER COLUMN receiveAlarmEmails INT NOT NULL;"
 	};
 	private static final String[] mysqlColumn = {
 			"ALTER TABLE mailingLists ADD COLUMN receiveAlarmEmails INT;",
-			"UPDATE TABLE mailingLists SET receiveAlarmEmails=-3;",
+			"UPDATE mailingLists SET receiveAlarmEmails=-3;",
 			"ALTER TABLE mailingLists MODIFY COLUMN receiveAlarmEmails INT NOT NULL;"
 	};
 	private static final String[] derbyColumn = {
 			"ALTER TABLE mailingLists ADD COLUMN receiveAlarmEmails INT;",
-			"UPDATE TABLE mailingLists SET receiveAlarmEmails=-3;",
+			"UPDATE mailingLists SET receiveAlarmEmails=-3;",
 			"ALTER TABLE mailingLists ALTER COLUMN receiveAlarmEmails INT NOT NULL;"
 	};
 	private static final String[] mssqlColumn = {
