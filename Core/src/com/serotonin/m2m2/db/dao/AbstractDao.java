@@ -357,7 +357,8 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
                 T vo = get(existingId);
 
                 // Copy the vo
-                T copy = (T)vo.copy();
+                @SuppressWarnings("unchecked")
+				T copy = (T)vo.copy();
                 copy.setId(Common.NEW_ID);
                 copy.setXid(newXid);
                 copy.setName(newName);

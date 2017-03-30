@@ -803,4 +803,53 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		//We only have one monitor so:
 		this.countMonitor.setValue(this.count());
 	}
+
+	/**
+	 * Get the Select statement up to just before the FROM 'table'
+	 * @return
+	 */
+	public String getSelectBaseSql(){
+		return SELECT_ALL_BASE;
+	}
+	
+	/**
+	 * Get the Select All Statment to be used with row mapper
+	 * @return
+	 */
+	public String getSelectAllSql(){
+		return SELECT_ALL;
+	}
+	
+	/**
+	 * Get the Insert SQL Statement
+	 * @return
+	 */
+	public String getInsertSql(){
+		return INSERT;
+	}
+	
+	/**
+	 * Get the Update SQL Statement
+	 * @return
+	 */
+	public String getUpdateSql(){
+		return UPDATE;
+	}
+	
+	public String getDeleteSql(){
+		return DELETE;
+	}
+	
+	public String getCountBaseSql(){
+		return COUNT_BASE;
+	}
+	
+	/**
+	 * Get the count statment
+	 * @return
+	 */
+	public String getCountSql(){
+		return COUNT;
+	}
+	
 }
