@@ -64,7 +64,6 @@ import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoJsonWebTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
@@ -83,8 +82,8 @@ public class MangoSecurityConfiguration {
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
             MangoUserDetailsService userDetails,
-            MangoPasswordAuthenticationProvider passwordAuthenticationProvider,
-            MangoJsonWebTokenAuthenticationProvider tokenAuthProvider
+            MangoPasswordAuthenticationProvider passwordAuthenticationProvider
+            //MangoJsonWebTokenAuthenticationProvider tokenAuthProvider
             ) throws Exception {
         
         auth.userDetailsService(userDetails);
@@ -93,8 +92,8 @@ public class MangoSecurityConfiguration {
             auth.authenticationProvider(def.authenticationProvider());
         }
         
-        auth.authenticationProvider(passwordAuthenticationProvider)
-            .authenticationProvider(tokenAuthProvider);
+        auth.authenticationProvider(passwordAuthenticationProvider);
+            //.authenticationProvider(tokenAuthProvider);
     }
 
     @Bean
@@ -267,8 +266,8 @@ public class MangoSecurityConfiguration {
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have a Authorization header with Bearer token
     // We use a stateless session creation policy and disable CSRF for these requests so that the Token Authorization is not
     // persisted in the session inside the SecurityContext
-    @Configuration
-    @Order(1)
+//    @Configuration
+//    @Order(1)
     public static class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
         AccessDeniedHandler accessDeniedHandler;
         AuthenticationEntryPoint authenticationEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);

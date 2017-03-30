@@ -19,7 +19,6 @@ import java.util.Date;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.security.crypto.codec.Base64;
-import org.springframework.stereotype.Service;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -31,10 +30,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.EllipticCurveProvider;
 
 /**
+ * TODO This is Currently Disabled
+ * 
  * @author Jared Wiltshire
  *
  */
-@Service
+//@Service
 public class JwtService {
     public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.publicKey";
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.privateKey";
