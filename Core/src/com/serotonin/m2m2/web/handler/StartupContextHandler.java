@@ -7,6 +7,8 @@ package com.serotonin.m2m2.web.handler;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +18,13 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
@@ -40,14 +49,39 @@ public class StartupContextHandler extends ResourceHandler{
 	
 	private static final String JSON_CONTENT_TYPE = "application/json";
 	
-	private StatusServlet statusServlet;
+	private final StatusServlet statusServlet;
 	private String pageTemplate;
+	private RequestMatcher pageRequestMatcher;
+	private final String GET = "GET";
 	
 	public StartupContextHandler() throws IOException{
 		setBaseResource(new OverridingFileResource(Resource.newResource(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB),
                 Resource.newResource(Common.MA_HOME + "/" + Constants.DIR_WEB)));
 		this.statusServlet = new StatusServlet();
 
+		//Setup the Request Matcher to:
+		// 1. Match ONLY GET
+		RequestMatcher getMatcher = new RequestMatcher(){
+
+			@Override
+			public boolean matches(HttpServletRequest request) {
+				if(GET.equals(request.getMethod()))
+					return true;
+				else
+					return false;
+			}
+			
+		};
+		// 2. Content type of text/html
+        MediaTypeRequestMatcher mediaMatcher = new MediaTypeRequestMatcher(
+        		new HeaderContentNegotiationStrategy(), MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML);
+        mediaMatcher.setIgnoredMediaTypes(Collections.singleton(MediaType.ALL));
+
+		// 3.  Not XHR Request
+        RequestMatcher notXRequestedWith = new NegatedRequestMatcher(
+                new RequestHeaderRequestMatcher("X-Requested-With", "XMLHttpRequest"));
+
+        this.pageRequestMatcher = new AndRequestMatcher(Arrays.asList(getMatcher, notXRequestedWith, mediaMatcher));
 	}
 	
 	@Override
@@ -103,7 +137,11 @@ public class StartupContextHandler extends ResourceHandler{
         	break;
         	case PAGE:
         	default:
-        		
+        		if(!this.pageRequestMatcher.matches(request)){
+        			response.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE);
+        			return;
+        		}
+        			
         		//Check to see if there are any default pages defined for this
         		String uri = DefaultPagesDefinition.getStartupUri(request, response);
         		if(uri != null){
