@@ -13,9 +13,19 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
+/**
+ * Import Users except for the current user
+ * 
+ * @author Matthew Lohbihler
+ * @author Terry Packer
+ */
 public class UserImporter extends Importer {
-    public UserImporter(JsonObject json) {
+	
+	private User currentUser; 
+	
+    public UserImporter(User currentUser, JsonObject json) {
         super(json);
+        this.currentUser = currentUser;
     }
 
     @Override
@@ -23,7 +33,9 @@ public class UserImporter extends Importer {
         String username = json.getString("username");
         if (StringUtils.isBlank(username))
             addFailureMessage("emport.user.username");
-        else {
+        else if((this.currentUser != null)&&(StringUtils.equals(this.currentUser.getUsername(), username))){
+        	addFailureMessage("emport.user.cannotImportCurrentUser");
+        }else {
             User user = ctx.getUserDao().getUser(username);
             if (user == null) {
                 user = new User();
