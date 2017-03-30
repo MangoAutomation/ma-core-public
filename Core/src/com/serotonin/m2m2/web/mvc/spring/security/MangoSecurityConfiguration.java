@@ -40,6 +40,8 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -227,8 +229,11 @@ public class MangoSecurityConfiguration {
 	 * @param new - can be null if user was deleted
 	 */
 	public static void replaceUserInSessions(User old, User user) {
+		
+		//TODO Expire Session
+		//TODO Common.setHttpUser()
     	final List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
-
+    	
         for (final Object principal : allPrincipals) {
         	//Confirm we are only editing the user that was modified
             if ((principal instanceof User)&&(StringUtils.equals(((User)principal).getUsername(), old.getUsername()))){
@@ -304,10 +309,6 @@ public class MangoSecurityConfiguration {
                 .rememberMe().disable()
                 .logout().disable()
                 .formLogin().disable()
-                .headers()
-                    .frameOptions().sameOrigin()
-                    .cacheControl().disable()
-                    .and()
                 .requestCache()
                     .requestCache(new NullRequestCache())
                     .and()
@@ -316,6 +317,9 @@ public class MangoSecurityConfiguration {
                     .accessDeniedHandler(accessDeniedHandler)
                     .and()
                 .addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
+            
+            //Configure the headers
+            configureHeaders(http);
             
             // Use the MVC Cors Configuration
             if (Common.envProps.getBoolean("rest.cors.enabled", false))
@@ -394,10 +398,6 @@ public class MangoSecurityConfiguration {
                     .and()
                 .rememberMe().disable()
                 .formLogin().disable()
-                .headers()
-                    .frameOptions().sameOrigin()
-                    .cacheControl().disable()
-                    .and()
                 .requestCache()
                     .requestCache(new NullRequestCache())
                     .and()
@@ -407,6 +407,9 @@ public class MangoSecurityConfiguration {
                     .and()
                 .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class)
             	.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
+            
+            //Configure headers
+            configureHeaders(http);
             
             // Use the MVC Cors Configuration
             if (Common.envProps.getBoolean("rest.cors.enabled", false))
@@ -513,12 +516,61 @@ public class MangoSecurityConfiguration {
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler)
                 .and()
-            //Customize the headers here
-            .headers()
-                .frameOptions().sameOrigin()
-                .cacheControl().disable()
-                .and()
             .addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
+            
+            //Customize the headers here
+            configureHeaders(http);
         }
+    }
+    
+    /**
+     * Ensure the headers are properly configured
+     * @param http
+     * @throws Exception
+     */
+    static void configureHeaders(HttpSecurity http) throws Exception{
+    	 String iFrameControl = Common.envProps.getString("web.security.iFrameAccess", "SAMEORIGIN");
+         if(StringUtils.equals(iFrameControl, "SAMEORIGIN")){
+         	http.headers()
+             .frameOptions().sameOrigin()
+             .cacheControl().disable();
+         }else if(StringUtils.equals(iFrameControl, "DENY")){
+        	 http.headers()
+             .frameOptions().deny()
+             .cacheControl().disable();
+         }else if(StringUtils.equals(iFrameControl, "ANY")){
+        	 http.headers()
+        	 .frameOptions().disable()
+             .cacheControl().disable();
+         }else{
+        	 //TODO Ensure these are valid Domains?
+        	 XFrameOptionsHeaderWriter headerWriter = new XFrameOptionsHeaderWriter(new MangoAllowFromStrategy(iFrameControl));
+        	 http.headers().addHeaderWriter(headerWriter)
+        	 .frameOptions().disable()
+             .cacheControl().disable();
+        	 
+         }
+    }
+    
+    /**
+     * Get the 
+     * 
+     * @author Terry Packer
+     */
+    static class MangoAllowFromStrategy implements AllowFromStrategy{
+
+    	String allowedDomain;
+    	
+    	public MangoAllowFromStrategy(String allowed){
+    		this.allowedDomain = allowed;
+    	}
+		/* (non-Javadoc)
+		 * @see org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy#getAllowFromValue(javax.servlet.http.HttpServletRequest)
+		 */
+		@Override
+		public String getAllowFromValue(HttpServletRequest request) {
+			return allowedDomain;
+		}
+    	
     }
 }
