@@ -133,6 +133,8 @@ public class AnalogStatistics implements StatisticsGenerator {
         
         if(firstValue != null)
         	delta = lastValue - firstValue;
+        else
+        	delta = 0;
     }
 
     private void updateAverage(double value, long time) {
