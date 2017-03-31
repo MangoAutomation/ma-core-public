@@ -7,8 +7,9 @@ package com.serotonin.m2m2.web.handler;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,13 +19,19 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.accept.ContentNegotiationManager;
+import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
+import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
@@ -43,55 +50,77 @@ import com.serotonin.provider.Providers;
 public class StartupContextHandler extends ResourceHandler{
     //private final Log LOG = LogFactory.getLog(StartupContextHandler.class);
 	private final String STARTUP_PAGE_TEMPLATE = "startupTemplate.htm";
-	private final static int PAGE = 1;
-	private final static int RESOURCE = 2;
-	private final static int JSON = 3;
-	
-	private static final String JSON_CONTENT_TYPE = "application/json";
-	
+
 	private final StatusServlet statusServlet;
 	private String pageTemplate;
 	private RequestMatcher pageRequestMatcher;
-	private final String GET = "GET";
+    private RequestMatcher resourceRequestMatcher;
+    private RequestMatcher statusRequestMatcher;
+    private RequestMatcher restRequestMatcher;
 	
 	public StartupContextHandler() throws IOException{
 		setBaseResource(new OverridingFileResource(Resource.newResource(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB),
                 Resource.newResource(Common.MA_HOME + "/" + Constants.DIR_WEB)));
 		this.statusServlet = new StatusServlet();
+		
+		final MediaType TEXT_CSS = MediaType.valueOf("text/css");
+        final MediaType APPLICATION_JAVASCRIPT = MediaType.valueOf("application/javascript");
+        final MediaType IMAGE_ICO = MediaType.valueOf("image/x-icon");
+		
+		Map<String, MediaType> mediaTypes = new HashMap<>();
+        mediaTypes.put("css", TEXT_CSS);
+        mediaTypes.put("js", APPLICATION_JAVASCRIPT);
+        mediaTypes.put("map", MediaType.APPLICATION_JSON);
+        mediaTypes.put("json", MediaType.APPLICATION_JSON);
+        
+        mediaTypes.put("ico", IMAGE_ICO);
+        mediaTypes.put("jpg", MediaType.IMAGE_JPEG);
+        mediaTypes.put("jpeg", MediaType.IMAGE_JPEG);
+        mediaTypes.put("gif", MediaType.IMAGE_GIF);
+        mediaTypes.put("png", MediaType.IMAGE_PNG);
 
-		//Setup the Request Matcher to:
-		// 1. Match ONLY GET
-		RequestMatcher getMatcher = new RequestMatcher(){
+		ContentNegotiationStrategy headerStrategy = new HeaderContentNegotiationStrategy();
+        ContentNegotiationStrategy extensionStrategy = new PathExtensionContentNegotiationStrategy(mediaTypes);
+		ContentNegotiationStrategy mixedStrategy = new ContentNegotiationManager(headerStrategy, extensionStrategy);
 
-			@Override
-			public boolean matches(HttpServletRequest request) {
-				if(GET.equals(request.getMethod()))
-					return true;
-				else
-					return false;
-			}
-			
-		};
-		// 2. Content type of text/html
-        MediaTypeRequestMatcher mediaMatcher = new MediaTypeRequestMatcher(
-        		new HeaderContentNegotiationStrategy(), MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML);
-        mediaMatcher.setIgnoredMediaTypes(Collections.singleton(MediaType.ALL));
+		// Match ONLY GET
+		RequestMatcher getMatcher = new AntPathRequestMatcher("/**", HttpMethod.GET.name());
+		
+		// Content type of text/html
+        MediaTypeRequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(
+                headerStrategy, MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML);
+        textHtmlMatcher.setIgnoredMediaTypes(Collections.singleton(MediaType.ALL));
 
-		// 3.  Not XHR Request
+        // Images, CSS etc
+        MediaTypeRequestMatcher resourceMediaTypeMatcher = new MediaTypeRequestMatcher(
+                mixedStrategy, MediaType.valueOf("image/*"), TEXT_CSS,
+                APPLICATION_JAVASCRIPT, MediaType.APPLICATION_JSON);
+        resourceMediaTypeMatcher.setIgnoredMediaTypes(Collections.singleton(MediaType.ALL));
+        
+        RequestMatcher resourcePathsMatcher = new OrRequestMatcher(
+                new AntPathRequestMatcher("/resources/**"),
+                new AntPathRequestMatcher("/images/**"));
+
+		// Not XHR Request
         RequestMatcher notXRequestedWith = new NegatedRequestMatcher(
                 new RequestHeaderRequestMatcher("X-Requested-With", "XMLHttpRequest"));
 
-        this.pageRequestMatcher = new AndRequestMatcher(Arrays.asList(getMatcher, notXRequestedWith, mediaMatcher));
+        // Setup the page Request Matcher to:
+        // 1. Match ONLY GET, 2. Content type of text/html 3. Not XHR Request
+        this.pageRequestMatcher = new AndRequestMatcher(getMatcher, notXRequestedWith, textHtmlMatcher);
+
+        this.resourceRequestMatcher = new AndRequestMatcher(getMatcher, resourcePathsMatcher, resourceMediaTypeMatcher);
+        this.statusRequestMatcher = new AndRequestMatcher(getMatcher, new AntPathRequestMatcher("/status/**"));
+        
+        this.restRequestMatcher = new AntPathRequestMatcher("/rest/**");
 	}
 	
 	@Override
 	public void handle(String target, Request baseRequest,
 			HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
-        //Allow access to js and css files
-        int requestType = PAGE;
 
-        if(request.getPathInfo().startsWith("/rest/")){
+        if (restRequestMatcher.matches(request)) {
             //Return options response
             response.setStatus(HttpStatus.SC_SERVICE_UNAVAILABLE);
             response.setContentLength(0);
@@ -100,66 +129,31 @@ public class StartupContextHandler extends ResourceHandler{
             int state = lifecycle.getLifecycleState();
             response.setHeader("Mango-Startup-Progress", String.format("%d", progress.intValue()));
             response.setHeader("Mango-Startup-State", this.statusServlet.getLifecycleStateMessage(state));
-            
             baseRequest.setHandled(true);
-            return;
-        }
-        
-        if(!request.getMethod().equalsIgnoreCase("GET")){
-        	response.setHeader("Allow", "GET");
-        	response.sendError(HttpStatus.SC_METHOD_NOT_ALLOWED, "Only GET requests allowed during startup.");
-        	return;
-        }
+        } else if (statusRequestMatcher.matches(request)) {
+            statusServlet.handleRequest(request,response);
+            baseRequest.setHandled(true);
+        } else if (resourceRequestMatcher.matches(request)) {
+            super.handle(target, baseRequest, request, response);
+        } else if (pageRequestMatcher.matches(request)) {
+            //Check to see if there are any default pages defined for this
+            String uri = DefaultPagesDefinition.getStartupUri(request, response);
+            if(uri != null){
+                response.sendRedirect(uri);
+            }else{
+                response.setContentType("text/html;charset=utf-8");
+                response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 
-        if(request.getPathInfo().endsWith(".css") || 
-        		request.getPathInfo().endsWith(".js") ||
-        		request.getPathInfo().endsWith(".ico") ||
-        		request.getPathInfo().endsWith(".jpg") ||
-        		request.getPathInfo().endsWith(".gif") ||
-        		request.getPathInfo().endsWith(".png") ||
-        		request.getPathInfo().endsWith(".map")){
-        	requestType = RESOURCE;
-        }else if(request.getPathInfo().endsWith(".json")){
-        	requestType = JSON;
-        }else if(JSON_CONTENT_TYPE.equalsIgnoreCase(request.getContentType())){
-        	requestType = JSON;
+                baseRequest.setHandled(true);
+                //Load page template
+                byte[] fileData = Files.readAllBytes(Paths.get(Common.MA_HOME +  "/" + Constants.DIR_WEB +"/"+ STARTUP_PAGE_TEMPLATE));
+                pageTemplate = new String(fileData, Common.UTF8_CS);
+    
+                String processedTemplate = pageTemplate;
+                response.getWriter().write(processedTemplate);
+            }
+        } else {
+            response.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE);
         }
-
-        switch(requestType){
-        	case RESOURCE:
-        		super.handle(target, baseRequest, request, response);
-        	break;
-        	case JSON:
-        		
-				statusServlet.handleRequest(request,response);
-	            baseRequest.setHandled(true);
-        		
-        	break;
-        	case PAGE:
-        	default:
-        		if(!this.pageRequestMatcher.matches(request)){
-        			response.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE);
-        			return;
-        		}
-        			
-        		//Check to see if there are any default pages defined for this
-        		String uri = DefaultPagesDefinition.getStartupUri(request, response);
-        		if(uri != null){
-        			response.sendRedirect(uri);
-        		}else{
-	        		response.setContentType("text/html;charset=utf-8");
-	                response.setStatus(HttpServletResponse.SC_OK);
-	
-		        	baseRequest.setHandled(true);
-		            //Load page template
-		    		byte[] fileData = Files.readAllBytes(Paths.get(Common.MA_HOME +  "/" + Constants.DIR_WEB +"/"+ STARTUP_PAGE_TEMPLATE));
-		    		pageTemplate = new String(fileData, Common.UTF8_CS);
-		
-		            String processedTemplate = pageTemplate;
-		            response.getWriter().write(processedTemplate);
-        		}
-            break;
-        }
-		
 	}	
 }
