@@ -33,9 +33,13 @@
 			</Policies>
 			<DefaultRolloverStrategy max="10"/>
 		</RollingRandomAccessFile>
+		<MangoFrontendAppender name="frontend">
+			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+		</MangoFrontendAppender>
 		<Async name="async" includeLocation="true">
 			<AppenderRef ref="logfile"/>
 			<AppenderRef ref="stdout" />
+			<AppenderRef ref="frontend" />
 		</Async>
 	</Appenders>
 	<Loggers>
