@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -139,7 +140,8 @@ public class StartupContextHandler extends ResourceHandler{
             //Check to see if there are any default pages defined for this
             String uri = DefaultPagesDefinition.getStartupUri(request, response);
             if(uri != null){
-                response.sendRedirect(uri);
+            	RequestDispatcher dispatcher = request.getRequestDispatcher(uri);
+                dispatcher.forward(request, response);
             }else{
                 response.setContentType("text/html;charset=utf-8");
                 response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
