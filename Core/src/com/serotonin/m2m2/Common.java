@@ -204,6 +204,8 @@ public class Common {
         TIME_PERIOD_CODES.addElement(TimePeriods.YEARS, "YEARS");
     }
 
+    //pointProperties.jsp probably depends on this and ROLLUP_CODES maintaining this ordering
+    // meaning strictly ascending and the same add order to the rollup codes
     public interface Rollups {
     	int NONE = 0;
     	int AVERAGE = 1;

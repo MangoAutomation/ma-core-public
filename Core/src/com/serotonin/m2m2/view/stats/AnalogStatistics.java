@@ -88,12 +88,6 @@ public class AnalogStatistics implements StatisticsGenerator {
             maximumTime = time;
         }
         
-        if(latestValue != null){
-            delta += (doubleValue - latestValue);
-        }else{
-        	delta = doubleValue;
-        }
-        
         updateAverage(doubleValue, time);
 
         sum += value.getDoubleValue();
@@ -136,6 +130,9 @@ public class AnalogStatistics implements StatisticsGenerator {
             //Nothing to integrate
            integral = 0D;
         }
+        
+        if(firstValue != null)
+        	delta = lastValue - firstValue;
     }
 
     private void updateAverage(double value, long time) {
