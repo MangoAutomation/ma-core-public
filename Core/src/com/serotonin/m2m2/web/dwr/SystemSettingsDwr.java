@@ -43,7 +43,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.pair.StringIntPair;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
-import com.serotonin.util.ColorUtils;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 

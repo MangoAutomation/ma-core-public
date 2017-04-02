@@ -52,7 +52,7 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
-import com.serotonin.util.ColorUtils;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
 

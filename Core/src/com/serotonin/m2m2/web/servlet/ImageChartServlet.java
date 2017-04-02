@@ -41,7 +41,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
-import com.serotonin.util.ColorUtils;
+import com.serotonin.m2m2.util.ColorUtils;
 
 public class ImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;

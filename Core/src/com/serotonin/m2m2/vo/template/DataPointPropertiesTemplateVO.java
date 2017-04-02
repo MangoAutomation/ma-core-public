@@ -24,7 +24,7 @@ import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
-import com.serotonin.util.ColorUtils;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 
 /**

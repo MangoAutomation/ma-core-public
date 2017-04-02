@@ -34,7 +34,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
-import com.serotonin.util.ColorUtils;
+import com.serotonin.m2m2.util.ColorUtils;
 
 public class SystemSettingsDao extends BaseDao {
     // Database schema version

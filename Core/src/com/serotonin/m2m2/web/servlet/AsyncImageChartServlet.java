@@ -37,7 +37,7 @@ import com.serotonin.m2m2.view.quantize.TimeSeriesQuantizerCallback;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.pair.LongPair;
 import com.serotonin.timer.sync.Synchronizer;
-import com.serotonin.util.ColorUtils;
+import com.serotonin.m2m2.util.ColorUtils;
 
 /**
  * This class is probably buggy
