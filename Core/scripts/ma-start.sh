@@ -63,6 +63,11 @@ while [ $LOOP_EXIT = false ]; do
         exec >"$SYSERR"
     fi
     
+    #Delete Range.class if it exists
+    if [ ! -z "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
+    	rm "$MA_HOME"/classes/org/jfree/data/Range.class;
+    fi
+    
     # Make sure there are no explicit stop or termination flag files
     rm -f "$MA_HOME"/STOP
     rm -f "$MA_HOME"/TERMINATED

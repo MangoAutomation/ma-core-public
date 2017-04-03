@@ -49,6 +49,11 @@ set EXECJAR=%JAVA_HOME%\bin\jar
 :gotJava
 echo Using Java at %EXECJAVA%
 
+rem Remove Range.class if it exists:
+if exist %MA_HOME%\classes\org\jfree\data\Range.class (
+	del %MA_HOME%\classes\org\jfree\data\Range.class
+)
+
 set JAVAOPTS=
 set JPDA=
 for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
