@@ -28,6 +28,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Long firstTime;
     private Double lastValue;
     private Long lastTime;
+    private Double startValue = null;
     private int count;
     private double delta;
 
@@ -54,7 +55,7 @@ public class AnalogStatistics implements StatisticsGenerator {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
         if (startValue != null) {
-            minimumValue = maximumValue = latestValue = startValue;
+            minimumValue = maximumValue = latestValue = this.startValue = startValue;
             minimumTime = maximumTime = latestTime = periodStart;
         }
     }
@@ -76,6 +77,8 @@ public class AnalogStatistics implements StatisticsGenerator {
         if (firstValue == null) {
             firstValue = doubleValue;
             firstTime = time;
+            if(startValue == null)
+            	startValue = firstValue;
         }
 
         if (minimumValue == null || minimumValue > doubleValue) {
@@ -132,7 +135,7 @@ public class AnalogStatistics implements StatisticsGenerator {
         }
         
         if(firstValue != null)
-        	delta = lastValue - firstValue;
+        	delta = lastValue - startValue;
         else
         	delta = 0;
     }
