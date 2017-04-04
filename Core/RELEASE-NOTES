@@ -1,5 +1,33 @@
-*Version 3.0.1
+*Version 3.0.1*
 * Adding env property to control iFrame access via Http headers
+* Enhanced Spring Security
+* Adding env property to control X-Frame-Options headers
+* Better error handling and responses for invalid web/REST requests
+* Adding Important and Warning alarm levels
+* Adding locale and Name settings to User
+* Ability to send mail to Mailing List for alarms above a desired level
+* Events raised by Event Detectors now contain data point Name + Device Name instead of just Name
+* REST v2 api 
+* Ability to add comments to Data points, Events and Json Data store entries
+* Auto generated XIDs are now UUID values with the XID prefix
+* Improved help files
+* Adding extension support for ma.bat (Windows)
+* New chart settings for data points 
+* New Licensing Simplified point restriction licenses to have one limit for all IAS data source modules
+* Prevent extreme sets - New data point property which prevents a user from sending a value outside the range to the edge device if enabled
+* Adding gpm and kWh Units
+* Improved code generics to simplify new module development
+* Adding Web Socket endpoints for CRUD operations on all database tables
+* Adding database table row counts as system metrics for most tables 
+* Adding System uptime as internal metric
+* Image value enhancements for Image type data points
+* Log4j upgraded to Version 2 for increased performance and lower memory use
+* Jetty upgrade to 9.3.11
+* Spring Core upgrade to 4.3.7
+* H2 Database now case sensitive
+
+*Version 3.0.0
+* Beta release for Evaluation and Testing of new UI
 
 *Version 2.8.6*
 * Fix to ensure publishers are not saved with previously deleted data points
