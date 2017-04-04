@@ -539,7 +539,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	public void jsonRead(JsonReader reader, JsonObject jsonObject)
 			throws JsonException {
         name = jsonObject.getString("name");
-		String text = jsonObject.getString("recieveAlarmEmails");
+		String text = jsonObject.getString("receiveAlarmEmails");
 		if(text != null){
 			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
 		}
