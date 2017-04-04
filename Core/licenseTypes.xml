@@ -91,7 +91,7 @@
 		<price fromType="MangoES">disallow</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
-		<price fromType="variableSpecial">disallow</price>
+		<price fromType="variableSpecial">2500</price>
     </licenseType>
 	
     <licenseType id="Enterprise" status="normal">
@@ -107,7 +107,7 @@
 		<price fromType="Gateway">4800</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
-		<price fromType="variableSpecial">disallow</price>
+		<price fromType="variableSpecial">5000</price>
     </licenseType>
 	
 	<licenseType id="MangoES" status="grant-only">
