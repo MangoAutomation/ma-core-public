@@ -6,8 +6,6 @@ package com.serotonin.m2m2.web.mvc.spring.exception;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -82,13 +80,12 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     	
     	this.storeException(servletRequest, ex);
     	
-    	if(!this.browserHtmlRequestMatcher.matches(servletRequest)){
+    	if(this.browserHtmlRequestMatcher.matches(servletRequest)){
     		
     		String uri = DefaultPagesDefinition.getErrorUri(servletRequest, servletResponse);
-			RequestDispatcher dispatcher = servletRequest.getRequestDispatcher(uri);
             try {
-				dispatcher.forward(servletRequest, servletResponse);
-			} catch (ServletException | IOException e) {
+                servletResponse.sendRedirect(uri);
+			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 			}
     		
