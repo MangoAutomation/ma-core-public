@@ -304,6 +304,8 @@ public class MangoSecurityConfiguration {
                 .authorizeRequests()
                     .antMatchers("/rest/*/login/**").denyAll()
                     .antMatchers("/rest/*/logout/**").denyAll()
+                    .antMatchers(HttpMethod.POST, "/rest/*/login/su").denyAll()
+                    .antMatchers(HttpMethod.POST, "/rest/*/login/exit-su").denyAll()
                     .antMatchers("/rest/*/jwt/**").denyAll()
                     .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
                     .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
@@ -377,10 +379,9 @@ public class MangoSecurityConfiguration {
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                     .and()
                 .authorizeRequests()
-                    .antMatchers("/rest/*/login/**").permitAll()
+                    .antMatchers("/rest/*/login").permitAll()
                     .antMatchers("/rest/*/exception/**").permitAll() //For exception info for a user's session...
-                    .antMatchers(HttpMethod.GET, "/rest/*/login/su").hasRole("ADMIN")
-                    .antMatchers(HttpMethod.GET, "/rest/*/login/exit-su").permitAll() //So you can exit if you are not Admin
+                    .antMatchers(HttpMethod.POST, "/rest/*/login/su").hasRole("ADMIN")
                     .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
                     .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
