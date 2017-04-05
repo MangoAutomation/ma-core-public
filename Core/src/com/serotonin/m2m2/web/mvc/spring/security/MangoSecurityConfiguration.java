@@ -424,10 +424,19 @@ public class MangoSecurityConfiguration {
         }
         
     	@Bean
-    	public SwitchUserFilter switchUserFilter(){
-    		SwitchUserFilter filter = new SwitchUserFilter();
-    		filter.setSwitchUserUrl("/rest/v2/login/su");
-    		filter.setExitUserUrl("/rest/v2/login/exit-su");
+    	public SwitchUserFilter switchUserFilter() {
+    		SwitchUserFilter filter = new SwitchUserFilter() {
+    		    RequestMatcher suMatcher = new AntPathRequestMatcher("/rest/*/login/su", HttpMethod.POST.name());
+                RequestMatcher exitSuMatcher = new AntPathRequestMatcher("/rest/*/login/exit-su", HttpMethod.POST.name());
+    		    
+    		    protected boolean requiresSwitchUser(HttpServletRequest request) {
+                    return suMatcher.matches(request);
+    		    }
+    		    
+    		    protected boolean requiresExitUser(HttpServletRequest request) {
+    		        return exitSuMatcher.matches(request);
+    		    }
+    		};
     		filter.setUserDetailsService(userDetailsService());
     		filter.setSuccessHandler(authenticationSuccessHandler);
     		filter.setUsernameParameter("username");
