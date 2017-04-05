@@ -175,37 +175,37 @@
 		if (dataTypeId == <%=DataTypes.NUMERIC%>) {
 			show("unitSection");
 			$("plotType").disabled = false;
-			rollupNode[<%=Common.Rollups.NONE%>].disabled = false;
-			rollupNode[<%=Common.Rollups.AVERAGE%>].disabled = false;
-			rollupNode[<%=Common.Rollups.DELTA%>].disabled = false;
-			rollupNode[<%=Common.Rollups.MINIMUM%>].disabled = false;
-			rollupNode[<%=Common.Rollups.MAXIMUM%>].disabled = false;
-			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].disabled = false;
-			rollupNode[<%=Common.Rollups.SUM%>].disabled = false;
-			rollupNode[<%=Common.Rollups.FIRST%>].disabled = false;
-			rollupNode[<%=Common.Rollups.LAST%>].disabled = false;
-			rollupNode[<%=Common.Rollups.COUNT%>].disabled = false;
-			rollupNode[<%=Common.Rollups.INTEGRAL%>].disabled = false;
-			rollupNode[<%=Common.Rollups.ALL%>].disabled = true;
-			if(rollupNode[$get("rollup")].disabled)
+			rollupNode[<%=Common.Rollups.NONE%>].hidden = false;
+			rollupNode[<%=Common.Rollups.AVERAGE%>].hidden = false;
+			rollupNode[<%=Common.Rollups.DELTA%>].hidden = false;
+			rollupNode[<%=Common.Rollups.MINIMUM%>].hidden = false;
+			rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = false;
+			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = false;
+			rollupNode[<%=Common.Rollups.SUM%>].hidden = false;
+			rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
+			rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
+			rollupNode[<%=Common.Rollups.COUNT%>].hidden = false;
+			rollupNode[<%=Common.Rollups.INTEGRAL%>].hidden = false;
+			rollupNode[<%=Common.Rollups.ALL%>].hidden = true;
+			if(rollupNode[$get("rollup")].hidden)
 				$set("rollup", <%=Common.Rollups.NONE%>);
 		} else {
 			hide("unitSection");
 			$("plotType").disabled = true;
 			$set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
-			rollupNode[<%=Common.Rollups.NONE%>].disabled = false;
-			rollupNode[<%=Common.Rollups.AVERAGE%>].disabled = true;
-			rollupNode[<%=Common.Rollups.DELTA%>].disabled = true;
-			rollupNode[<%=Common.Rollups.MINIMUM%>].disabled = true;
-			rollupNode[<%=Common.Rollups.MAXIMUM%>].disabled = true;
-			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].disabled = true;
-			rollupNode[<%=Common.Rollups.SUM%>].disabled = true;
-			rollupNode[<%=Common.Rollups.FIRST%>].disabled = false;
-			rollupNode[<%=Common.Rollups.LAST%>].disabled = false;
-			rollupNode[<%=Common.Rollups.COUNT%>].disabled = false;
-			rollupNode[<%=Common.Rollups.INTEGRAL%>].disabled = true;
-			rollupNode[<%=Common.Rollups.ALL%>].disabled = true;
-			if(rollupNode[$get("rollup")].disabled)
+			rollupNode[<%=Common.Rollups.NONE%>].hidden = false;
+			rollupNode[<%=Common.Rollups.AVERAGE%>].hidden = true;
+			rollupNode[<%=Common.Rollups.DELTA%>].hidden = true;
+			rollupNode[<%=Common.Rollups.MINIMUM%>].hidden = true;
+			rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = true;
+			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = true;
+			rollupNode[<%=Common.Rollups.SUM%>].hidden = true;
+			rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
+			rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
+			rollupNode[<%=Common.Rollups.COUNT%>].hidden = false;
+			rollupNode[<%=Common.Rollups.INTEGRAL%>].hidden = true;
+			rollupNode[<%=Common.Rollups.ALL%>].hidden = true;
+			if(rollupNode[$get("rollup")].hidden)
 				$set("rollup", <%=Common.Rollups.NONE%>);
 		}
 	}
