@@ -115,7 +115,7 @@ public class ModuleRegistry {
     	
     	Properties props = new Properties();
     	File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
-        int versionState = UpgradeVersionState.PRODUCTION;
+        int versionState = UpgradeVersionState.DEVELOPMENT;
         int buildNumber = -1;
         if(propFile.exists()) {
 	        //InputStream in = new FileInputStream(propFile);

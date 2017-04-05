@@ -302,7 +302,7 @@ public class ModulesDwr extends BaseDwr {
         
         Properties props = new Properties();
         File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
-        int versionState = UpgradeVersionState.PRODUCTION;
+        int versionState = UpgradeVersionState.DEVELOPMENT;
         if(propFile.exists()) {
 	        InputStream in = new FileInputStream(propFile);
 	        try {
