@@ -19,6 +19,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,6 +32,7 @@ import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * 
@@ -52,13 +55,26 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     	AbstractRestV2Exception.class
     	})
     protected ResponseEntity<Object> handleMangoError(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
-    	this.storeException(request, ex);
     	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
     	AbstractRestV2Exception e = (AbstractRestV2Exception)ex;
     	return handleExceptionInternal(ex, e, new HttpHeaders(), e.getStatus(), req);
     }
     
     //TODO Handle Permission Exception Here
+
+	private final String ACCESS_DENIED = "/exception/accessDenied.jsp";
+	@SuppressWarnings("unused")
+	// XXX Previous code used this page if it was a CSRF exception, but this is not really an invalid session
+    private final String INVALID_SESSION = "/exception/invalidSession.jsp";
+	
+    @ExceptionHandler({ 
+    	//Anything that extends our Base Exception
+    	AccessDeniedException.class
+    	})
+    public ResponseEntity<Object> handleAccessDenied(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
+    	return handleExceptionInternal(ex, null, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
+    }
+
     
     @ExceptionHandler({
     	Exception.class
@@ -81,14 +97,31 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     	this.storeException(servletRequest, ex);
     	
     	if(this.browserHtmlRequestMatcher.matches(servletRequest)){
-    		
-    		String uri = DefaultPagesDefinition.getErrorUri(servletRequest, servletResponse);
-            try {
+    		String uri;
+    		if(status == HttpStatus.FORBIDDEN){
+		        // browser HTML request
+    		    uri = ACCESS_DENIED;
+    		    
+    		    User user = Common.getHttpUser();
+    		    if (user != null) {
+                    uri = DefaultPagesDefinition.getUnauthorizedUri(servletRequest, servletResponse, user);
+                }
+    	        
+    	        // Put exception into request scope (perhaps of use to a view)
+    		    servletRequest.setAttribute(WebAttributes.ACCESS_DENIED_403, ex);
+    
+                // Set the 403 status code.
+                servletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+    		}else{
+	    		uri = DefaultPagesDefinition.getErrorUri(servletRequest, servletResponse);
+	            
+    		}
+    		try {
                 servletResponse.sendRedirect(uri);
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 			}
-    		
     		return null;
     	}else{
         	//Set the content type
