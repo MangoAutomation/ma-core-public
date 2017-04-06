@@ -476,6 +476,7 @@
 		//Not using units anymore getPointProperties(template);
 		template.chartColour = dojo.byId("chartColour").value;
 		template.plotType = dojo.byId("plotType").value;
+		template.rollup = dojo.byId("rollup").value;
 
 		getLoggingProperties(template);
 
@@ -502,6 +503,7 @@
 		//For the point properties (not using units anymore)
 		dojo.byId("chartColour").value = template.chartColour;
 		dojo.byId("plotType").value = template.plotType;
+		dojo.byId("rollup").value = template.rollup;
 		
 		
 		setLoggingProperties(template);
