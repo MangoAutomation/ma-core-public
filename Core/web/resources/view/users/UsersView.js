@@ -83,8 +83,10 @@ UsersView.prototype.setupView = function(){
 		
 		//Setup Permissions Viewer
 		$('#permissionsViewer').on('click', {inputNode: $('#permissions')}, this.showPermissionList.bind(this));
-		
 	} 
+	
+	//Allow Exiting being a switched user
+	$('#exitSu').on('click', this.exitSwitchUser.bind(this));
 	
 	//Setup the users Help Link
 	$('#usersHelp').on('click', {helpId: 'userAdministration'}, this.showHelp.bind(this));
@@ -255,11 +257,25 @@ UsersView.prototype.switchUser = function(username){
 	this.clearErrors();
 	
 	this.api.ajax({
-        url : "/rest/v2/login/su?username=" + encodeURIComponent(username)
+        url : "/rest/v2/login/su?username=" + encodeURIComponent(username),
+        type: 'POST'
     }).then(function(userData){
     	window.location.href = userData.homeUrl;
     }).fail(this.showError);
 };
+
+UsersView.prototype.exitSwitchUser = function(){
+	
+	this.clearErrors();
+	
+	this.api.ajax({
+        url : "/rest/v2/login/exit-su",
+        type: 'POST'
+    }).then(function(userData){
+    	window.location.href = userData.homeUrl;
+    }).fail(this.showError);
+};
+
 
 UsersView.prototype.sendTestEmail = function(){
 	

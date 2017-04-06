@@ -63,7 +63,12 @@
               src="/images/email_go.png"
               title="<fmt:message key="common.sendTestEmail" />" 
               alt="<fmt:message key="common.sendTestEmail" />"     
-            />          
+            />
+            <img id="exitSu" class="ptr"
+               src="/images/cross.png"
+               title="<fmt:message key="security.exitSwitchUser"/>"    
+               alt="<fmt:message key="security.exitSwitchUser" />"
+            />   
         </tr>
         <tr>
           <td colspan="2" id="userMessage" class="formError"></td>
