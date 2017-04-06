@@ -472,11 +472,6 @@
 		<!-- IA Managed Dependencies -->
 		<dependency>
 			<groupId>com.serotonin</groupId>
-			<artifactId>serotonin-json</artifactId>
-			<version>2.0.8</version>
-		</dependency>
-		<dependency>
-			<groupId>com.serotonin</groupId>
 			<artifactId>serotonin-providers</artifactId>
 			<version>2.0.6</version>
 			<exclusions>
