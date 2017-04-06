@@ -42,7 +42,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
@@ -143,7 +142,7 @@ public class MangoSecurityConfiguration {
     
     @Bean
     public RequestCache requestCache() {
-        return new HttpSessionRequestCache();
+        return new NullRequestCache();
     }
     
     // used to dectect if we should do redirects on login/authentication failure/logout etc
@@ -318,9 +317,7 @@ public class MangoSecurityConfiguration {
                 .rememberMe().disable()
                 .logout().disable()
                 .formLogin().disable()
-                .requestCache()
-                    .requestCache(new NullRequestCache())
-                    .and()
+                .requestCache().disable()
                 .exceptionHandling()
                     .authenticationEntryPoint(authenticationEntryPoint)
                     .accessDeniedHandler(accessDeniedHandler)
@@ -406,9 +403,7 @@ public class MangoSecurityConfiguration {
                     .and()
                 .rememberMe().disable()
                 .formLogin().disable()
-                .requestCache()
-                    .requestCache(new NullRequestCache())
-                    .and()
+                .requestCache().disable()
                 .exceptionHandling()
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                     .accessDeniedHandler(accessDeniedHandler)
