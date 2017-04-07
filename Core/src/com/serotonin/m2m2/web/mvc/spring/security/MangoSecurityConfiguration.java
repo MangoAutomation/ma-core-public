@@ -46,6 +46,7 @@ import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -533,6 +534,20 @@ public class MangoSecurityConfiguration {
             //Customize the headers here
             configureHeaders(http);
         }
+    }
+    
+    @Configuration
+    @Order(4)
+    public static class HttpsConfiguration extends WebSecurityConfigurerAdapter {
+
+    	@Override
+        protected void configure(HttpSecurity http) throws Exception {
+            //If using SSL then enable the hsts and secure forwarding
+            if(Common.envProps.getBoolean("ssl.on", false)){
+           	 http.requestMatcher(AnyRequestMatcher.INSTANCE).requiresChannel().anyRequest().requiresSecure()
+           	 .and().headers().httpStrictTransportSecurity();
+            }
+    	}
     }
     
     /**
