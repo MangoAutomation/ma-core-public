@@ -180,7 +180,7 @@
 			rollupNode[<%=Common.Rollups.DELTA%>].hidden = false;
 			rollupNode[<%=Common.Rollups.MINIMUM%>].hidden = false;
 			rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = false;
-			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = false;
+			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = true;
 			rollupNode[<%=Common.Rollups.SUM%>].hidden = false;
 			rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
 			rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
