@@ -314,7 +314,7 @@ public class SimpleParser {
     //
     // Native readers
     private Map<String, Object> readObject() throws JsonException, IOException {
-        Map<String, Object> o = new HashMap<String, Object>();
+        Map<String, Object> o = new HashMap<>();
 
         validateNextChar('{');
         while (!testNextChar('}', true)) {
@@ -329,7 +329,7 @@ public class SimpleParser {
     }
 
     private List<Object> readArray() throws JsonException, IOException {
-        List<Object> arr = new ArrayList<Object>();
+        List<Object> arr = new ArrayList<>();
 
         validateNextChar('[');
         while (!testNextChar(']', true)) {

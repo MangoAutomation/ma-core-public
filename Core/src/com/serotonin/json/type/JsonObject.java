@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class JsonObject extends JsonValue implements Map<String, JsonValue> {
-    private final Map<String, JsonValue> delegate = new HashMap<String, JsonValue>();
+    private final Map<String, JsonValue> delegate = new HashMap<>();
 
     //
     // Map interface
@@ -195,5 +195,13 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
 
     public BigDecimal getBigDecimal(String key) {
         return getJsonNumber(key).bigDecimalValue();
+    }
+
+    @Override
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        for (Map.Entry<String, JsonValue> e : delegate.entrySet())
+            map.put(e.getKey(), e.getValue() == null ? null : e.getValue().toNative());
+        return map;
     }
 }

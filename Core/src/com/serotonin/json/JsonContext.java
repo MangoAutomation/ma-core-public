@@ -83,9 +83,9 @@ import com.serotonin.json.util.Utils;
  * @author Matthew Lohbihler
  */
 public class JsonContext {
-    private final Map<Class<?>, ClassConverter> classConverters = new ConcurrentHashMap<Class<?>, ClassConverter>();
-    private final Map<Class<?>, TypeResolver> typeResolvers = new ConcurrentHashMap<Class<?>, TypeResolver>();
-    private final Map<Class<?>, ObjectFactory> objectFactories = new ConcurrentHashMap<Class<?>, ObjectFactory>();
+    private final Map<Class<?>, ClassConverter> classConverters = new ConcurrentHashMap<>();
+    private final Map<Class<?>, TypeResolver> typeResolvers = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ObjectFactory> objectFactories = new ConcurrentHashMap<>();
     private DefaultConstructorFactory defaultConstructorFactory = new DefaultConstructorFactory();
     private String defaultIncludeHint;
 
@@ -163,7 +163,7 @@ public class JsonContext {
      *            the class to which to bind the serializer
      */
     public <T> void addSerializer(ClassSerializer<T> serializer, Class<?> clazz) {
-        classConverters.put(clazz, new SerializerConverter<T>(serializer));
+        classConverters.put(clazz, new SerializerConverter<>(serializer));
     }
 
     /**
@@ -245,7 +245,7 @@ public class JsonContext {
         // Introspect the class.
         boolean jsonSerializable = JsonSerializable.class.isAssignableFrom(clazz);
         boolean jsonEntity = clazz.isAnnotationPresent(JsonEntity.class);
-        List<SerializableProperty> properties = new ArrayList<SerializableProperty>();
+        List<SerializableProperty> properties = new ArrayList<>();
 
         BeanInfo info;
         try {
@@ -386,7 +386,7 @@ public class JsonContext {
         if (clazz == Object.class)
             return null;
 
-        Map<String, JsonProperty> jsonProperties = new HashMap<String, JsonProperty>();
+        Map<String, JsonProperty> jsonProperties = new HashMap<>();
 
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {

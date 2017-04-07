@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class JsonArray extends JsonValue implements List<JsonValue> {
-    private final List<JsonValue> delegate = new ArrayList<JsonValue>();
+    private final List<JsonValue> delegate = new ArrayList<>();
 
     //
     // List interface
@@ -237,5 +237,13 @@ public class JsonArray extends JsonValue implements List<JsonValue> {
         if (jn == null)
             return new BigDecimal(0);
         return jn.bigDecimalValue();
+    }
+
+    @Override
+    public List<Object> toList() {
+        List<Object> list = new ArrayList<>();
+        for (JsonValue e : delegate)
+            list.add(e == null ? null : e.toNative());
+        return list;
     }
 }

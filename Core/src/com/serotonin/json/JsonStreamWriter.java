@@ -8,7 +8,7 @@ import java.util.Deque;
 public class JsonStreamWriter {
     private final Writer out;
     private final JsonWriter writer;
-    private final Deque<Boolean> firstElementStack = new ArrayDeque<Boolean>();
+    private final Deque<Boolean> firstElementStack = new ArrayDeque<>();
 
     public JsonStreamWriter(Writer out) {
         this.out = out;

@@ -13,6 +13,6 @@ import com.serotonin.json.type.JsonValue;
 public class SetFactory implements ObjectFactory {
     @Override
     public Object create(JsonValue jsonValue) {
-        return new HashSet<Object>();
+        return new HashSet<>();
     }
 }

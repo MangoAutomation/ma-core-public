@@ -73,7 +73,7 @@ public class JsonWriter {
      */
     private String prettyIndent = "  ";
 
-    private final List<Object> alreadySerialized = new ArrayList<Object>();
+    private final List<Object> alreadySerialized = new ArrayList<>();
     private String currentIndent = "";
 
     /**

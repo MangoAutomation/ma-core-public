@@ -1,6 +1,8 @@
 package com.serotonin.json.type;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 abstract public class JsonValue {
     public JsonObject toJsonObject() {
@@ -41,6 +43,14 @@ abstract public class JsonValue {
         return ((JsonNumber) this).bigDecimalValue();
     }
 
+    public List<Object> toList() {
+        throw new ClassCastException(getClass().getName() + " cannot be cast to JsonArray");
+    }
+
+    public Map<String, Object> toMap() {
+        throw new ClassCastException(getClass().getName() + " cannot be cast to JsonObject");
+    }
+
     public Object toNative() {
         if (this instanceof JsonBoolean)
             return ((JsonBoolean) this).toBoolean();
@@ -48,6 +58,10 @@ abstract public class JsonValue {
             return ((JsonString) this).toString();
         if (this instanceof JsonNumber)
             return ((JsonNumber) this).bigDecimalValue();
+        if (this instanceof JsonArray)
+            return toList();
+        if (this instanceof JsonObject)
+            return toMap();
         return this;
     }
 }
