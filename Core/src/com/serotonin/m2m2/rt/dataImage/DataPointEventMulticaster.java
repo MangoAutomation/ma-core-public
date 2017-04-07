@@ -111,5 +111,8 @@ public class DataPointEventMulticaster implements DataPointListener {
     }
 
 	@Override
-	public void pointLogged(PointValueTime value) { }
+	public void pointLogged(PointValueTime value) {
+		a.pointLogged(value);
+		b.pointLogged(value);
+	}
 }
