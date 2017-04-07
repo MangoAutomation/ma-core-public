@@ -49,6 +49,14 @@ public class BackgroundProcessing implements ILifecycle {
     public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
     public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
     
+    //Used to determine the given size of all Task Queues
+    //TODO Remove this and replace with varying size queues
+    // depending on the type of task.  This was placed 
+    // here so we can release 3.0.0 with other features 
+    // and not have to worry about the various problems/testing
+    // for all the different tasks.
+    public static int defaultTaskQueueSize;
+    
     private OrderedRealTimeTimer timer;
     private OrderedThreadPoolExecutor highPriorityService;
     
@@ -283,6 +291,9 @@ public class BackgroundProcessing implements ILifecycle {
     }
     @Override
     public void initialize() {
+    	
+    	//Global Default for now
+    	defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
     	
     	//Adjust the RealTime timer pool now
     	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);

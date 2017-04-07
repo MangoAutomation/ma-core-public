@@ -50,7 +50,6 @@ public class MonitoredValuesTest {
 						System.out.println("Rejected: " + r.toString());
 					}
         		},
-        		1,
         		false);
         timer.init(executor);
 		
