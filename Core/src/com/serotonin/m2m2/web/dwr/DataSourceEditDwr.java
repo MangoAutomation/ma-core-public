@@ -31,6 +31,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
@@ -67,13 +68,18 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     protected ProcessResult tryDataSourceSave(DataSourceVO<?> ds) {
         ProcessResult response = new ProcessResult();
 
+        User user = Common.getUser();
+        if(!Permissions.hasPermission(user, ds.getEditPermission())) {
+        	response.addContextualMessage("dataSource.editPermission", "validate.mustHaveEditPermission");
+        	return response;
+        }
         ds.validate(response);
 
         if (!response.getHasMessages()) {
             Common.runtimeManager.saveDataSource(ds);
             response.addData("id", ds.getId());
             response.addData("vo", ds); //For new table method
-            Common.getUser().setEditDataSource(ds);
+            user.setEditDataSource(ds);
         }
 
         return response;
