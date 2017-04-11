@@ -100,10 +100,10 @@
     </fmt:message>
     </h1>
   </m2m2:moduleDoesNotExist>
-  <m2m2:moduleDoesNotExist name="dashboards">
+  <m2m2:moduleDoesNotExist name="mangoUI">
     <h1 style="color:red">
     <fmt:message key="common.moduleDoesNotExist">
-      <fmt:param value="dashboards"/>
+      <fmt:param value="mangoUI"/>
     </fmt:message>
     </h1>
   </m2m2:moduleDoesNotExist>
