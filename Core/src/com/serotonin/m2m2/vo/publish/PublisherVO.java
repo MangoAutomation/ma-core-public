@@ -404,6 +404,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         	}
         }
         
+        //Could wrap the readInto with a try-catch in case one dataPointId entry is null,
+        // however this would be a silent suppression of the issue, so we have elected not to.
+        // infiniteautomation/ma-core-public#948
     	JsonArray arr = jsonObject.getJsonArray("points");
         if (arr != null) {
             points.clear();
