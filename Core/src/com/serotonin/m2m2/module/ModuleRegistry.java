@@ -137,7 +137,10 @@ public class ModuleRegistry {
         Module core = new Module("core", Common.getVersion().getFullString(), new TranslatableMessage("modules.core.description"),
                 "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, versionState, buildNumber);
 
-        core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
+        if(Common.isInvalid())
+        	core.setLicenseType("Invalid");
+        else
+        	core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
 
     	return core;
