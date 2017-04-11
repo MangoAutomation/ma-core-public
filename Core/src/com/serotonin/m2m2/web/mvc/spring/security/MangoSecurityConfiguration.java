@@ -48,7 +48,6 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
@@ -326,7 +325,7 @@ public class MangoSecurityConfiguration {
             
             //Configure the headers
             configureHeaders(http);
-            configureHSTS(http);
+            configureHSTS(http, false);
             
             // Use the MVC Cors Configuration
             if (Common.envProps.getBoolean("rest.cors.enabled", false))
@@ -414,7 +413,7 @@ public class MangoSecurityConfiguration {
             
             //Configure headers
             configureHeaders(http);
-            configureHSTS(http);
+            configureHSTS(http, false);
             
             // Use the MVC Cors Configuration
             if (Common.envProps.getBoolean("rest.cors.enabled", false))
@@ -475,13 +474,7 @@ public class MangoSecurityConfiguration {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.requestMatcher(new NegatedRequestMatcher(new OrRequestMatcher(
-                    new AntPathRequestMatcher("/resources/**", "GET"),
-                    new AntPathRequestMatcher("/images/**", "GET"),
-                    new AntPathRequestMatcher("/audio/**", "GET"),
-                    new AntPathRequestMatcher("/swagger/**", "GET"),
-                    new AntPathRequestMatcher("/dashboards/**", "GET"),
-                    new AntPathRequestMatcher("/dwr/**/*.js", "GET"))))
+            http
             .sessionManagement()
             	.maximumSessions(10)
             	.maxSessionsPreventsLogin(false)
@@ -534,20 +527,29 @@ public class MangoSecurityConfiguration {
             
             //Customize the headers here
             configureHeaders(http);
-            configureHSTS(http);
+            configureHSTS(http, true);
         }
     }
 
-    static void configureHSTS(HttpSecurity http) throws Exception {
+    static void configureHSTS(HttpSecurity http, boolean requiresSecure) throws Exception {
         // If using SSL then enable the hsts and secure forwarding
         if (Common.envProps.getBoolean("ssl.on", false) && Common.envProps.getBoolean("ssl.hsts.enabled", true)) {
-            http.requiresChannel()
-                .anyRequest()
-                .requiresSecure()
-                .and()
-            .headers()
+            // dont enable "requiresSecure" for REST calls
+            // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
+            // to perform a 302 redirect to https://
+            if (requiresSecure) {
+                http.requiresChannel()
+                    .anyRequest()
+                        .requiresSecure();
+            }
+            http.headers()
                 .httpStrictTransportSecurity()
-                .maxAgeInSeconds(Common.envProps.getLong("ssl.hsts.maxAge", 31536000));
+                .maxAgeInSeconds(Common.envProps.getLong("ssl.hsts.maxAge", 31536000))
+                .includeSubDomains(Common.envProps.getBoolean("ssl.hsts.includeSubDomains", false));
+        } else {
+            http.headers()
+                .httpStrictTransportSecurity()
+                .disable();
         }
     }
     
