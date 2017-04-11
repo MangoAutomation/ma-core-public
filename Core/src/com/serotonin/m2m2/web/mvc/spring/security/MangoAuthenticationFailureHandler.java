@@ -53,13 +53,8 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
                 .build()
                 .toUriString();
             
-            if (this.isUseForward()) {
-                logger.debug("Forwarding to " + uri);
-                request.getRequestDispatcher(uri).forward(request, response);
-            } else {
-                logger.debug("Redirecting to " + uri);
-                this.getRedirectStrategy().sendRedirect(request, response, uri);
-            }
+            logger.debug("Redirecting to " + uri);
+            this.getRedirectStrategy().sendRedirect(request, response, uri);
         } else {
             request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
             // forward the request on to its usual destination (e.g. /rest/v1/login) so the correct response is returned
