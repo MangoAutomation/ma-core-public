@@ -118,7 +118,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     
     public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
     	if(dataPoint.getVO().isPreventSetExtremeValues()) {
-//    		double transformedValue = transformOutboundValue(dataPoint, valueTime);
     		double transformedValue = valueTime.getDoubleValue();
     		if(transformedValue > dataPoint.getVO().getSetExtremeHighLimit() 
     			|| transformedValue < dataPoint.getVO().getSetExtremeLowLimit())
@@ -128,10 +127,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     }
 
     abstract public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
-    
-    protected double transformOutboundValue(DataPointRT dataPoint, PointValueTime valueTime) {
-    	return valueTime.getDoubleValue();
-    }
 
     public void relinquish(DataPointRT dataPoint) {
         throw new ShouldNeverHappenException("not implemented in " + getClass());
