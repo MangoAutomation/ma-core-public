@@ -287,6 +287,14 @@ public class PointFolder implements JsonSerializable {
         return null;
     }
 
+    /**
+     * This method searches for the first point in the folder
+     * with the given name.
+     * 
+     * Use caution as there may be multiple points withe the same name.
+     * @param name
+     * @return
+     */
     public DataPointSummary getPointByName(String name) {
         for (DataPointSummary point : points) {
             if (point.getName().equals(name))
