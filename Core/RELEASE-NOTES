@@ -25,8 +25,9 @@
 * Jetty upgrade to 9.3.11
 * Spring Core upgrade to 4.3.7
 * H2 Database now case sensitive
-* New Module Download Level to allow access to 'Development' and early release modules.  See the System Information area on the System Settingg page.
+* New Module Download Level to allow access to 'Development' and early release modules.  See the System Information area on the System Settings page.
 * Prevent saving a data source if the user saving doesn't have permissions after the source is saved.
+* Support for HTTP/2, note that web browsers will only use HTTP/2 if you enable ssl.on and the ssl.alpn.on env properties
 
 *Version 3.0.0
 * Beta release for Evaluation and Testing of new UI
