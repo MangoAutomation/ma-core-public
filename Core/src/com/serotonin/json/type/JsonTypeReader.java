@@ -76,6 +76,10 @@ public class JsonTypeReader {
             return new JsonBoolean(true);
         if ("false".equals(element))
             return new JsonBoolean(false);
+        if("Infinity".equals(element))
+        	return new JsonNumber(new BigDecimal("1.8e309"));
+    	if("-Infinity".equals(element))
+        	return new JsonNumber(new BigDecimal("-1.8e309"));
         try {
             return new JsonNumber(new BigDecimal(element));
         }
