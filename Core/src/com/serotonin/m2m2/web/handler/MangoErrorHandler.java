@@ -82,7 +82,7 @@ public class MangoErrorHandler extends ErrorHandler{
 						th = th.getCause();
 					
 					//Log it
-					ExceptionUtils.logWebException((Exception)th, request, LOG);
+					ExceptionUtils.logWebException(th, request, LOG);
 					
 					HttpSession sesh = baseRequest.getSession(false);
 					String uri;

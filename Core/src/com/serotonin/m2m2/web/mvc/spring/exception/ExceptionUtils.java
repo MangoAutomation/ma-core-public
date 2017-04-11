@@ -23,7 +23,7 @@ public class ExceptionUtils {
 	 * @param request
 	 * @param log
 	 */
-	public static void logWebException(Exception ex, HttpServletRequest request, Log log){
+	public static void logWebException(Throwable ex, HttpServletRequest request, Log log){
 		StringWriter sw = new StringWriter();
 
 		// Write the request url into the message.
