@@ -38,6 +38,12 @@ import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
 
+/**
+ * Support for Derby removed in 3.0.0+
+ * 
+ * @author Terry Packer
+ */
+@Deprecated
 public class DerbyProxy extends DatabaseProxy {
     private final Log log = LogFactory.getLog(DerbyProxy.class);
 

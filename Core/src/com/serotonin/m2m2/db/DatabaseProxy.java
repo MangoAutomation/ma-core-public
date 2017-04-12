@@ -49,7 +49,7 @@ abstract public class DatabaseProxy {
         DERBY {
             @Override
             DatabaseProxy getImpl() {
-                return new DerbyProxy();
+                throw new ShouldNeverHappenException("Derby database support removed, please convert your database to H2 or MySQL.");
             }
         },
         H2 {
