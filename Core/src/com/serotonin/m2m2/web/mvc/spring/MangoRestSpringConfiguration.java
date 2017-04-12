@@ -24,6 +24,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.util.UrlPathHelper;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,6 +77,19 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		objectMapper = createNewObjectMapper();
 	}
 
+
+	/**
+	 * Create a Path helper that will not URL Decode 
+	 * the context path and request URI but will
+	 * decode the path variables...
+	 * 
+	 */
+    public UrlPathHelper getUrlPathHelper(){
+		UrlPathHelper helper = new UrlPathHelper();
+		helper.setUrlDecode(false);
+		return helper;
+	}
+	
 	/**
 	 * 
 	 * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS Setup
@@ -112,7 +126,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
 	@Override
 	public void configurePathMatch(PathMatchConfigurer configurer) {
-		configurer.setUseSuffixPatternMatch(false);
+		configurer.setUseSuffixPatternMatch(false).setUrlPathHelper(getUrlPathHelper());
 	}
 	
 	/**
