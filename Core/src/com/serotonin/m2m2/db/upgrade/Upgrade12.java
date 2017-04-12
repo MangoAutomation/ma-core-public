@@ -450,9 +450,9 @@ public class Upgrade12 extends DBUpgrade {
 			
 			//Write it out
 			try {
-				generator.writeStartObject();
+//				generator.writeStartObject();
 				generator.writeObject(map);
-				generator.writeEndObject();
+//				generator.writeEndObject();
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 				try{
