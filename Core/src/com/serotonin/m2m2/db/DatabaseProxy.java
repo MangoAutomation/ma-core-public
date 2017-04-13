@@ -49,7 +49,7 @@ abstract public class DatabaseProxy {
         DERBY {
             @Override
             DatabaseProxy getImpl() {
-                throw new ShouldNeverHappenException("Derby database support removed, please convert your database to H2 or MySQL.");
+                throw new ShouldNeverHappenException("Derby database support removed, please convert your database to H2 or MySQL using a 2.x.x version of Mango.");
             }
         },
         H2 {
