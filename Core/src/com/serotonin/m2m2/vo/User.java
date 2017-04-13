@@ -493,7 +493,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + ", phone="
+        return "User [id=" + id + ", username=" + username + ", password=<redacted>" + ", email=" + email + ", phone="
                 + phone + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
                 + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails + ", receiveOwnAuditEvents="
                 + receiveOwnAuditEvents + ", timezone=" + timezone + ", name=" + name + ", locale=" + locale + ", permissions=" + permissions + "]";
