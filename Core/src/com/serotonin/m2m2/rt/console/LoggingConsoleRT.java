@@ -31,7 +31,7 @@ public class LoggingConsoleRT {
 		this.console = new ConcurrentLinkedQueue<LogConsoleMessage>();
 		//Init with at least 1 message
 		TranslatableMessage m = new TranslatableMessage("startup.startingUp");
-		this.console.add(new LogConsoleMessage(m.translate(Translations.getTranslations()) , System.currentTimeMillis()));
+		this.console.add(new LogConsoleMessage(m.translate(Translations.getTranslations()) + "\n", System.currentTimeMillis()));
 	}
 	
 	/**

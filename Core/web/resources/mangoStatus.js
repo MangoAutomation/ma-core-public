@@ -1,13 +1,16 @@
 var lastMessage; //Holds the last received log message
 
-require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready", "dojo/domReady!"], 
-        function(ProgressBar, win, xhr, ready){
+require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready", "dojox/fx/scroll", "dojo/domReady!"], 
+        function(ProgressBar, win, xhr, ready, scroll){
 
     
     
     //Initialized from existing info
 	ready(function(){
 	    getStatus(0);
+	    //Set the tab index so we can see if it has focus
+	    dijit.byId("startupConsole").domNode.tabIndex = "1";
+	    
 	});
     
     var i = 0;
@@ -36,15 +39,23 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
                
                //Combine this block of messages into 1 HTML String
                var newMessages = "";
-               for (var i = data.messages.length - 1; i >= 0; i--) {
-                   newMessages += data.messages[i] + "<br>";
+               for (var i = 0; i < data.messages.length; i++) {
+            	   //Replace any \n with <br> for cleaner messages
+            	   var msg = data.messages[i].replace(/\n/g, "<br />");
+            	   if(msg.startsWith('WARN') || msg.startsWith('ERROR') || msg.startsWith('FATAL')){
+            		   msg = '<span style="color: red">' + msg + "</span>";
+            	   }
+                   newMessages += msg;
                }
                
                //Push it out to the div
                var startupConsole = dijit.byId("startupConsole");
                //var startupConsole = registry.byId("startupConsole");
-               startupConsole.set('content', newMessages + startupConsole.get('content'));
+               startupConsole.set('content', startupConsole.get('content') + newMessages);
                
+               //Scrol to bottom of div if we added a new message
+               if((data.messages.length > 0)&&(document.activeElement != startupConsole.domNode))
+            	   startupConsole.domNode.scrollTop = startupConsole.domNode.scrollHeight;
                
                //Do redirect?
                if(data.startupProgress >= 100){
@@ -62,6 +73,7 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
            },
            error: function(error, ioArgs){
                alert(error);
+               //Kill Polling or Wait and try again?
            }
         });
     }
@@ -72,7 +84,7 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
     function schedulePoll(lastPollTime){
         setTimeout(function(){
             getStatus(lastPollTime);
-        }, 100);
+        }, 1000);
     }
     
 });

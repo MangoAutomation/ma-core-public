@@ -15,7 +15,7 @@
     <div id="startupProgress"></div>
     <div id="startupMessage"></div>
     <div id="startupConsole"
-            style=" height: 200px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
+            style=" height: 500px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
             data-dojo-type="dijit/layout/ContentPane"></div>
     </div>
     
@@ -23,25 +23,16 @@
 var lastMessage; //Holds the last recieved log message
 var pollLock = false; //Ensure we don't overpoll mango
 
-require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window", "dojo/domReady!"], 
-        function(xhr, topic, ProgressBar, win){
-
-    //Setup the console messages target
-    topic.subscribe("startupTopic", function(message) {
-        //Message has members:
-        // duration - int
-        // message - string
-        // type - string
-        var startupConsole = dijit.byId("startupConsole");
-        if (message.type == 'clear')
-            startupConsole.set('content', "");
-        else {
-            startupConsole.set('content', message.message + startupConsole.get('content'));
-        }
-    });
-    
+require(["dojo/_base/xhr", "dijit/ProgressBar", "dojo/_base/window", "dojo/ready", "dojo/domReady!"], 
+        function(xhr, ProgressBar, win, ready){
+	
     //Initialize Existing info
-    getStatus(0);
+	ready(function(){
+	    getStatus(0);
+	    //Set the tab index so we can see if it has focus
+	    dijit.byId("startupConsole").domNode.tabIndex = "1";
+	    
+	});
     
     var pollPeriodMs = 500;
     var i = 0;
@@ -74,17 +65,21 @@ require(["dojo/_base/xhr", "dojo/topic","dijit/ProgressBar", "dojo/_base/window"
                 //Update my messages
                 var startupMessageDiv = dojo.byId("startupMessage");
                 startupMessageDiv.innerHTML = data.state;
-
+                var startupConsole = dijit.byId("startupConsole");
+                var msgContent = '';
                 for(var i=0; i<data.messages.length; i++){
-                    dojo.publish("startupTopic",[{
-                        message:data.messages[i] + "<br>",
-                        type: "message",
-                        duration: -1, //Don't go away
-                        }]
-                    );
+                   	var msg = data.messages[i].replace(/\n/g, "<br />");
+                   	if(msg.startsWith('WARN') || msg.startsWith('ERROR') || msg.startsWith('FATAL')){
+                	   msg = '<span style="color: red">' + msg + "</span>";
+                	}
+                    msgContent = msgContent + msg;
                 }
 
-	
+                startupConsole.set('content', startupConsole.get('content') + msgContent);
+              //Scrol to bottom of div if we added a new message
+                if((data.messages.length > 0)&&(document.activeElement != startupConsole.domNode))
+                	startupConsole.domNode.scrollTop = startupConsole.domNode.scrollHeight;
+                
 	            var redirect = false;
 	            
 	            var progress = 0;
