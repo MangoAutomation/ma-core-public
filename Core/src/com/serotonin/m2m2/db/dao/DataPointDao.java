@@ -724,11 +724,25 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             addFoldersToHeirarchy(ph, f.getId(), folders);
         }
     }
+    
+    private int getMaxFolderId(final PointFolder root) {
+    	int maxId = 0;
+    	if(root == null)
+    		return maxId;
+    	if(root.getId() > maxId)
+    		maxId = root.getId();
+    	for(PointFolder subfolder : root.getSubfolders()) {
+    		int candidate = getMaxFolderId(subfolder);
+    		if(candidate > maxId)
+    			maxId = candidate;
+    	}
+    	return maxId;
+    }
 
     public void savePointHierarchy(final PointFolder root) {
         // Assign ids to the folders.
         final List<Object> params = new ArrayList<>();
-        final AtomicInteger folderId = new AtomicInteger(0);
+        final AtomicInteger folderId = new AtomicInteger(getMaxFolderId(root));
         for (PointFolder sf : root.getSubfolders())
             assignFolderIds(sf, 0, folderId, params);
 
@@ -764,15 +778,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     private void assignFolderIds(PointFolder folder, int parentId, AtomicInteger nextId, List<Object> params) {
-        int id = nextId.incrementAndGet();
-        folder.setId(id);
-        params.add(id);
+    	if(folder.getId() == Common.NEW_ID) {
+	        int id = nextId.incrementAndGet();
+	        folder.setId(id);
+    	}
+    	
+        params.add(folder.getId());
         params.add(parentId);
         params.add(StringUtils.abbreviate(folder.getName(), 100));
         for (DataPointSummary point : folder.getPoints())
-            point.setPointFolderId(id);
+            point.setPointFolderId(folder.getId());
         for (PointFolder sf : folder.getSubfolders())
-            assignFolderIds(sf, id, nextId, params);
+            assignFolderIds(sf, folder.getId(), nextId, params);
     }
 
     void savePointsInFolder(PointFolder folder) {
