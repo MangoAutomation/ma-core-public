@@ -71,6 +71,9 @@
                 alert("<m2m2:translate key="modules.versionCheck.error" escapeDQuotes="true"/> "+ result.data.error);
                 return;
             }
+            if (result.data.upgradesError) {
+            	alert("<m2m2:translate key="modules.versionCheck.majorVersionError" escapeDQuotes="true"/> "+result.data.upgradesError);
+            }
             
             versionCheckData = result.data;
             allModuleMap = {};
