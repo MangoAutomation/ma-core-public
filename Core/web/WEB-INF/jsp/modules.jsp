@@ -71,9 +71,15 @@
                 alert("<m2m2:translate key="modules.versionCheck.error" escapeDQuotes="true"/> "+ result.data.error);
                 return;
             }
-            if (result.data.upgradesError) {
+            if (result.data.upgradesError)
             	alert("<m2m2:translate key="modules.versionCheck.majorVersionError" escapeDQuotes="true"/> "+result.data.upgradesError);
-            }
+            if (result.data.missingModules) {
+        		var messages = "";
+            	for(var k = 0; k < result.data.missingModules.length; k+=1) {
+            		messages += result.data.missingModules[k] + "<br/>";
+            	}
+        		document.getElementById("majorVersionIncompatibility").innerHTML = messages;
+        	}
             
             versionCheckData = result.data;
             allModuleMap = {};
@@ -113,10 +119,13 @@
     	$set($("masterNewInstallCB"), false);
     	if(versionCheckData == null)
     		versionCheck();
-    	else if($get("isInstallUpgrades") || !("updates" in versionCheckData))
+    	else if($get("isInstallUpgrades") || !("updates" in versionCheckData)) {
     		drawLists(versionCheckData.upgrades, versionCheckData.newInstalls)
-    	else
+    		show("majorVersionIncompatibility");
+    	} else {
     		drawLists(versionCheckData.updates, versionCheckData["newInstalls-oldCore"]);
+    		hide("majorVersionIncompatibility");
+    	}
     	mapDependencies();
     }
     
@@ -467,7 +476,7 @@
         <div><input type='checkbox' id='restartCheck' checked="checked"><label for='restartCheck'>&nbsp;<m2m2:translate key="modules.versionCheck.advanced.restart"/></label></div>
       </div>
     </div>
-    
+    <div id="majorVersionIncompatibility" style="display:none; color:red" class="infoData"></div>
     <div id="upgradeModulesButtons">
       <div id="installUpgrades">
       	<input id="isInstallUpgrades" type="checkbox" onclick="toggleInstallUpgrades();"/>

@@ -138,6 +138,8 @@ public class ModulesDwr extends BaseDwr {
                 	result.addData("updates", root.get("updates").toNative());
                 	result.addData("newInstalls-oldCore", root.get("newInstalls-oldCore").toNative());
                 }
+                if(root.containsKey("missingModules"))
+                	result.addData("missingModules", root.getJsonArray("missingModules").toNative());
             }
         }
         catch (UnknownHostException e) {
