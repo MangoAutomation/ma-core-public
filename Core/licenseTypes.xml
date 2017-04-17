@@ -78,6 +78,23 @@
 		<price fromType="variableSpecial">disallow</price>
     </licenseType>
     
+    <licenseType id="Commercial-lite" status="normal">
+        <description>Limited to 500 data points.</description>
+        
+        <features>
+            <dataPointLimit>500</dataPointLimit>
+        </features>
+        
+        <price>1250</price>
+        <price fromVersion="2" fromType="paid">500</price>
+		<price fromType="Gateway">1150</price>
+		<price fromType="MangoES">disallow</price>
+		<price fromType="Commercial">disallow</price>
+		<price fromType="Enterprise">disallow</price>
+		<price fromType="brewersdashboard">disallow</price>
+		<price fromType="variableSpecial">1250</price>
+    </licenseType>
+    
 	<licenseType id="Commercial" status="normal">
         <description>Limited to 1000 data points.</description>
         
@@ -89,6 +106,7 @@
         <price fromVersion="2" fromType="paid">500</price>
 		<price fromType="Gateway">2300</price>
 		<price fromType="MangoES">disallow</price>
+		<price fromType="Commercial-lite">1250</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
 		<price fromType="variableSpecial">2500</price>
