@@ -65,7 +65,7 @@ while [ $LOOP_EXIT = false ]; do
     
     #Delete Range.class if it exists
     if [ ! -z "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
-    	rm "$MA_HOME"/classes/org/jfree/data/Range.class;
+    	rm "$MA_HOME"/classes/org/jfree/data/Range.class >/dev/null 2>&1;
     fi
     
     # Make sure there are no explicit stop or termination flag files
