@@ -21,7 +21,8 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
  */
 public class CompiledScriptExecutor extends ScriptExecutor{
     private static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
-    private static final String SCRIPT_SUFFIX = "\r\n}\r\n__scriptExecutor__();";
+    private static final String SCRIPT_SUFFIX = "\r\n}\r\n";
+    private static final String SCRIPT_POSTFIX = "\r\n__scriptExecutor__();";
     private static ScriptEngine ENGINE;
 
     /**
@@ -33,7 +34,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
     public static CompiledScript compile(String script) throws ScriptException {
 //    	StopWatch stopWatch = new Log4JStopWatch();
 //		stopWatch.start();
-        script =  ScriptUtils.getGlobalFunctions() + SCRIPT_PREFIX + script + SCRIPT_SUFFIX ;
+    	script = SCRIPT_PREFIX + script + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions() + SCRIPT_SUFFIX;
         //TODO Review change 
 //        ensureInit();
 //        CompiledScript compiledScript = ((Compilable) ENGINE).compile(script);
