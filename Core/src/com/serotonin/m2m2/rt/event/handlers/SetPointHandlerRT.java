@@ -4,15 +4,24 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.script.CompiledScript;
+import javax.script.ScriptException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.io.NullWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -20,13 +29,40 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
+import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptLog;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
+import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
 public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
     private static final Log LOG = LogFactory.getLog(SetPointHandlerRT.class);
+    private CompiledScript activeScript;
+    private CompiledScript inactiveScript;
+    public static final PrintWriter NULL_WRITER = new PrintWriter(new NullWriter());
 
     public SetPointHandlerRT(SetPointEventHandlerVO vo) {
         super(vo);
+        if(vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
+        	try {
+        		activeScript = CompiledScriptExecutor.compile(vo.getActiveScript());
+        	} catch(ScriptException e) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", 
+        				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
+        	}
+        } else
+        	activeScript = null;
+        
+        if(vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
+        	try {
+        		inactiveScript = CompiledScriptExecutor.compile(vo.getInactiveScript());
+        	} catch(ScriptException e) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", 
+        				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
+        	}
+        } else
+        	inactiveScript = null;
     }
 
     @Override
@@ -72,6 +108,25 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         }
         else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE) {
             value = DataValue.stringToValue(vo.getActiveValueToSet(), targetDataType);
+        }
+        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
+        	if(activeScript == null) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScript"), evt.getEventType());
+        		return;
+        	}
+        	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
+        	context.put("target", targetPoint);
+        	try { //TODO flesh out script permissions stuff
+	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, new HashMap<String, Object>(), evt.getActiveTimestamp(), 
+	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL));
+	        	value = pvt.getValue();
+        	} catch(ScriptException e) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getCause().getMessage()), evt.getEventType());
+        		return;
+        	} catch(ResultTypeException e) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getMessage()), evt.getEventType());
+        		return;
+        	}
         }
         else
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getActiveAction());
@@ -124,6 +179,25 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         }
         else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE)
             value = DataValue.stringToValue(vo.getInactiveValueToSet(), targetDataType);
+        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
+        	if(inactiveScript == null) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScript"), evt.getEventType());
+        		return;
+        	}
+        	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
+        	context.put("target", targetPoint);
+        	try {
+	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, new HashMap<String, Object>(), evt.getRtnTimestamp(), 
+	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL));
+	        	value = pvt.getValue();
+        	} catch(ScriptException e) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getCause().getMessage()), evt.getEventType());
+        		return;
+        	} catch(ResultTypeException e) {
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getMessage()), evt.getEventType());
+        		return;
+        	}
+        }
         else
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getInactiveAction());
 

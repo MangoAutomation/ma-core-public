@@ -5,11 +5,16 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.script.CompiledScript;
+import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -30,10 +35,18 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.ProcessWorkItem;
+import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptLog;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
+import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -223,17 +236,19 @@ public class EventHandlersDwr extends BaseDwr {
     @DwrPermission(user = true)
     public ProcessResult saveSetPointEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, int targetPointId,
-            int activeAction, String activeValueToSet, int activePointId, int inactiveAction,
-            String inactiveValueToSet, int inactivePointId) {
+            int activeAction, String activeValueToSet, int activePointId, String activeScript, int inactiveAction,
+            String inactiveValueToSet, int inactivePointId, String inactiveScript) {
         SetPointEventHandlerVO handler = new SetPointEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(SetPointEventHandlerDefinition.TYPE_NAME));
         handler.setTargetPointId(targetPointId);
         handler.setActiveAction(activeAction);
         handler.setActiveValueToSet(activeValueToSet);
         handler.setActivePointId(activePointId);
+        handler.setActiveScript(activeScript);
         handler.setInactiveAction(inactiveAction);
         handler.setInactiveValueToSet(inactiveValueToSet);
         handler.setInactivePointId(inactivePointId);
+        handler.setInactiveScript(inactiveScript);
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
@@ -318,5 +333,47 @@ public class EventHandlersDwr extends BaseDwr {
             LOG.warn("Process error", e);
             return new TranslatableMessage("common.default", e.getMessage());
         }
+    }
+    
+    @DwrPermission(user = true)
+    public ProcessResult validateScript(String script, int targetPointId, boolean active) {
+        ProcessResult response = new ProcessResult();
+        TranslatableMessage message;
+
+        DataPointVO target = DataPointDao.instance.getDataPoint(targetPointId);
+        if(target == null || !Common.runtimeManager.isDataPointRunning(targetPointId)){
+        	message = new TranslatableMessage("eventHandlers.noTargetPoint");
+        }else{
+        	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
+            context.put("target", Common.runtimeManager.getDataPoint(targetPointId));
+            int targetDataType = target.getPointLocator().getDataTypeId();
+
+            final StringWriter scriptOut = new StringWriter();
+            final PrintWriter scriptWriter = new PrintWriter(scriptOut);
+
+            try {
+            	CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
+                PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, null, System.currentTimeMillis(),
+                        targetDataType, System.currentTimeMillis(), new ScriptPermissions(), scriptWriter, new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL));
+                if (pvt.getValue() == null)
+                    message = new TranslatableMessage("eventHandlers.script.nullResult");
+                else
+                    message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());
+            	//Add the script logging output
+                response.addData("out", scriptOut.toString().replaceAll("\n", "<br/>"));
+            }
+            catch (ScriptException e) {
+                message = new TranslatableMessage("eventHandlers.script.failure", e.getMessage());
+            }
+            catch (ResultTypeException e) {
+                message = e.getTranslatableMessage();
+            }
+        }
+
+        if(active)
+        	response.addMessage("activeScript", message);
+        else
+        	response.addMessage("inactiveScript", message);
+        return response;
     }
 }

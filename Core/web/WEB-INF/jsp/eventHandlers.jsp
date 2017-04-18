@@ -405,6 +405,8 @@
                 targetPointSelector.set('value',handler.targetPointId);
                 $set("activeAction", handler.activeAction);
                 $set("inactiveAction", handler.inactiveAction);
+                activeEditor.setValue(handler.activeScript);
+                inactiveEditor.setValue(handler.inactiveScript);
             }
             else if (handler.handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>') {
                 emailRecipients.updateRecipientList(handler.activeRecipients);
@@ -528,14 +530,22 @@
         if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>) {
             show("activePointIdRow");
             hide("activeValueToSetRow");
+            hide("activeScriptRow");
         }
         else if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>) {
             hide("activePointIdRow");
             show("activeValueToSetRow");
+            hide("activeScriptRow");
+        }
+        else if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE %>"/>) {
+            hide("activePointIdRow");
+            hide("activeValueToSetRow");
+            show("activeScriptRow");
         }
         else {
             hide("activePointIdRow");
             hide("activeValueToSetRow");
+            hide("activeScriptRow");
         }
     }
     
@@ -544,14 +554,22 @@
         if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>) {
             show("inactivePointIdRow");
             hide("inactiveValueToSetRow");
+            hide("inactiveScriptRow");
         }
         else if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>) {
             hide("inactivePointIdRow");
             show("inactiveValueToSetRow");
+            hide("inactiveScriptRow");
+        }
+        else if (action == <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE %>"/>) {
+            hide("inactivePointIdRow");
+            hide("inactiveValueToSetRow");
+            show("inactiveScriptRow");
         }
         else {
             hide("inactivePointIdRow");
             hide("inactiveValueToSetRow");
+            hide("inactiveScriptRow");
         }
     }
     
@@ -596,8 +614,8 @@
         else if (handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>') {
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, targetPointSelector.value,
-                    $get("activeAction"), $get("setPointValueActive"), activePointSelector.value, $get("inactiveAction"), 
-                    $get("setPointValueInactive"), inactivePointSelector.value, saveEventHandlerCB);
+                    $get("activeAction"), $get("setPointValueActive"), activePointSelector.value, activeEditor.getValue(), $get("inactiveAction"), 
+                    $get("setPointValueInactive"), inactivePointSelector.value, inactiveEditor.getValue(), saveEventHandlerCB);
         }
         else if ('handlerType == <c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
             EventHandlersDwr.saveProcessEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
@@ -632,6 +650,30 @@
         EventHandlersDwr.deleteEventHandler($$(selectedHandlerNode.item, "object").id);
         store.deleteItem(selectedHandlerNode.item);
         hide("handlerEditDiv");
+    }
+    
+    function validateScript(editor, active) {
+    	var script = editor.getValue();
+   		EventHandlersDwr.validateScript(editor.getValue(), targetPointSelector.value, active, function(response) {
+   			if(active) {
+   				showDwrMessages(response.messages);
+   	            hide("activeScriptValidationOutput");
+   	            if (response.data.out){
+   	                output = response.data.out;
+   	                $set("activeScriptValidationOutput", output);
+   	                show("activeScriptValidationOutput");
+   	            }
+   			} else {
+   				showDwrMessages(response.messages);
+   	            hide("inactiveScriptValidationOutput");
+   	            if (response.data.out){
+   	                output = response.data.out;
+   	                $set("inactiveScriptValidationOutput", output);
+   	                show("inactiveScriptValidationOutput");
+   	            }
+   			}
+   				
+   		})
     }
     
     function setUserMessage(msg) {
@@ -742,6 +784,7 @@
                   <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>"><fmt:message key="eventHandlers.action.none"/></option>
                   <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>"><fmt:message key="eventHandlers.action.point"/></option>
                   <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>"><fmt:message key="eventHandlers.action.static"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE %>"/>"><fmt:message key="eventHandlers.action.script"/></option>
                 </select>
               </td>
             </tr>
@@ -756,6 +799,17 @@
               <td class="formField" id="activeValueToSetContent"></td>
             </tr>
             
+            <tr id="activeScriptRow">
+              <td class="formLabelRequired">
+                <fmt:message key="eventHandlers.script"/>
+                <tag:img png="accept" onclick="validateScript(activeEditor, true);" title="common.validate"/>
+              </td>
+              <td class="formField">
+                <div id="activeScript" style="font-family: Courier New !important; position: relative; height:400px; width:700px"></div>
+                <div id="activeScriptValidationOutput" style="display:none;color:green; width: 100%px; overflow: auto"></div>
+			  </td>
+            </tr>
+            
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.inactiveAction"/></td>
               <td class="formField">
@@ -763,6 +817,7 @@
                   <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>"><fmt:message key="eventHandlers.action.none"/></option>
                   <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_POINT_VALUE %>"/>"><fmt:message key="eventHandlers.action.point"/></option>
                   <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE %>"/>"><fmt:message key="eventHandlers.action.static"/></option>
+                  <option value="<c:out value="<%= SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE %>"/>"><fmt:message key="eventHandlers.action.script"/></option>
                 </select>
               </td>
             </tr>
@@ -775,6 +830,17 @@
             <tr id="inactiveValueToSetRow">
               <td class="formLabel"><fmt:message key="eventHandlers.valueToSet"/></td>
               <td class="formField" id="inactiveValueToSetContent"></td>
+            </tr>
+            
+            <tr id="inactiveScriptRow">
+              <td class="formLabelRequired">
+                <fmt:message key="eventHandlers.script"/>
+                <tag:img png="accept" onclick="validateScript(inactiveEditor, false);" title="common.validate"/>
+              </td>
+              <td class="formField">
+                <div id="inactiveScript" style="font-family: Courier New !important; position: relative; height:400px; width:700px"></div>
+                <div id="inactiveScriptValidationOutput" style="display:none;color:green; width: 100%px; overflow: auto"></div>
+			  </td>
             </tr>
           </table>
             
@@ -862,5 +928,19 @@
       </td>
     </tr>
   </table>
+<script src="/resources/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/resources/ace/theme-tomorrow_night_bright.js" type="text/javascript" charset="utf-8"></script>
+<script src="/resources/ace/mode-javascript.js" type="text/javascript" charset="utf-8"></script>
+<script src="/resources/ace/worker-javascript.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  ace.config.set("basePath", "/resources/ace");
+    var activeEditor = ace.edit("activeScript");
+    var inactiveEditor = ace.edit("inactiveScript");
+    activeEditor.setTheme("ace/theme/tomorrow_night_bright");
+    inactiveEditor.setTheme("ace/theme/tomorrow_night_bright");
+    var JavaScriptMode = ace.require("ace/mode/javascript").Mode;
+    activeEditor.getSession().setMode(new JavaScriptMode());
+    inactiveEditor.getSession().setMode(new JavaScriptMode());
+</script>
 </jsp:body>
 </tag:page>

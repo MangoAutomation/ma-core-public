@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import javax.script.ScriptException;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -19,6 +23,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
+import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
@@ -34,12 +39,14 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public static final int SET_ACTION_NONE = 0;
     public static final int SET_ACTION_POINT_VALUE = 1;
     public static final int SET_ACTION_STATIC_VALUE = 2;
+    public static final int SET_ACTION_SCRIPT_VALUE = 3;
 
     public static ExportCodes SET_ACTION_CODES = new ExportCodes();
     static {
         SET_ACTION_CODES.addElement(SET_ACTION_NONE, "NONE", "eventHandlers.action.none");
         SET_ACTION_CODES.addElement(SET_ACTION_POINT_VALUE, "POINT_VALUE", "eventHandlers.action.point");
         SET_ACTION_CODES.addElement(SET_ACTION_STATIC_VALUE, "STATIC_VALUE", "eventHandlers.action.static");
+        SET_ACTION_CODES.addElement(SET_ACTION_SCRIPT_VALUE, "SCRIPT_VALUE", "eventHandlers.action.script");
     }
 	
     private int targetPointId;
@@ -49,6 +56,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     private int inactiveAction;
     private String inactiveValueToSet;
     private int inactivePointId;
+    private String activeScript;
+    private String inactiveScript;
     
     public int getTargetPointId() {
         return targetPointId;
@@ -106,6 +115,22 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         this.inactivePointId = inactivePointId;
     }
     
+    public String getActiveScript() {
+    	return activeScript;
+    }
+    
+    public void setActiveScript(String activeScript) {
+    	this.activeScript = activeScript;
+    }
+    
+    public String getInactiveScript() {
+    	return inactiveScript;
+    }
+    
+    public void setInactiveScript(String inactiveScript) {
+    	this.inactiveScript = inactiveScript;
+    }
+    
     public void validate(ProcessResult response) {
     	super.validate(response);
         DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId);
@@ -127,8 +152,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
                     response.addGenericMessage("eventHandlers.invalidActiveValue");
                 }
             }
-
-            if (activeAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+            else if (activeAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
                 try {
                     Double.parseDouble(activeValueToSet);
                 }
@@ -136,14 +160,22 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
                     response.addGenericMessage("eventHandlers.invalidActiveValue");
                 }
             }
-
-            if (activeAction == SET_ACTION_POINT_VALUE) {
+            else if (activeAction == SET_ACTION_POINT_VALUE) {
                 DataPointVO dpActive = DataPointDao.instance.getDataPoint(activePointId);
 
                 if (dpActive == null)
                     response.addGenericMessage("eventHandlers.invalidActiveSource");
                 else if (dataType != dpActive.getPointLocator().getDataTypeId())
                     response.addGenericMessage("eventHandlers.invalidActiveSourceType");
+            }
+            else if (activeAction == SET_ACTION_SCRIPT_VALUE) {
+            	if(StringUtils.isEmpty(activeScript))
+            		response.addGenericMessage("eventHandlers.invalidActiveScript");
+            	try {
+            		CompiledScriptExecutor.compile(activeScript);
+            	} catch(ScriptException e) {
+            		response.addGenericMessage("eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
+            	}
             }
 
             // Inactive
@@ -155,8 +187,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
                     response.addGenericMessage("eventHandlers.invalidInactiveValue");
                 }
             }
-
-            if (inactiveAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+            else if (inactiveAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
                 try {
                     Double.parseDouble(inactiveValueToSet);
                 }
@@ -164,14 +195,22 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
                     response.addGenericMessage("eventHandlers.invalidInactiveValue");
                 }
             }
-
-            if (inactiveAction == SET_ACTION_POINT_VALUE) {
+            else if (inactiveAction == SET_ACTION_POINT_VALUE) {
                 DataPointVO dpInactive = DataPointDao.instance.getDataPoint(inactivePointId);
 
                 if (dpInactive == null)
                     response.addGenericMessage("eventHandlers.invalidInactiveSource");
                 else if (dataType != dpInactive.getPointLocator().getDataTypeId())
                     response.addGenericMessage("eventHandlers.invalidInactiveSourceType");
+            }
+            else if (inactiveAction == SET_ACTION_SCRIPT_VALUE) {
+            	if(StringUtils.isEmpty(inactiveScript))
+            		response.addGenericMessage("eventHandlers.invalidInactiveScript");
+            	try {
+            		CompiledScriptExecutor.compile(inactiveScript);
+            	} catch(ScriptException e) {
+            		response.addGenericMessage("eventHandlers.invalidInactiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
+            	}
             }
         }
     }
@@ -181,7 +220,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
     
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -192,6 +231,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         out.writeInt(inactiveAction);
         SerializationHelper.writeSafeUTF(out, inactiveValueToSet);
         out.writeInt(inactivePointId);
+        SerializationHelper.writeSafeUTF(out, activeScript);
+        SerializationHelper.writeSafeUTF(out, inactiveScript);
     }
     
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -206,6 +247,17 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             inactiveAction = in.readInt();
             inactiveValueToSet = SerializationHelper.readSafeUTF(in);
             inactivePointId = in.readInt();
+            activeScript = inactiveScript = null;
+        } else if (ver == 2) {
+            targetPointId = in.readInt();
+            activeAction = in.readInt();
+            activeValueToSet = SerializationHelper.readSafeUTF(in);
+            activePointId = in.readInt();
+            inactiveAction = in.readInt();
+            inactiveValueToSet = SerializationHelper.readSafeUTF(in);
+            inactivePointId = in.readInt();
+            activeScript = SerializationHelper.readSafeUTF(in);
+            inactiveScript = SerializationHelper.readSafeUTF(in);
         }
     }
     
@@ -227,6 +279,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         }
         else if (activeAction == SET_ACTION_STATIC_VALUE)
             writer.writeEntry("activeValueToSet", activeValueToSet);
+        else if (activeAction == SET_ACTION_SCRIPT_VALUE)
+        	writer.writeEntry("activeScript", activeScript);
 
         // Inactive
         writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
@@ -237,6 +291,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         }
         else if (inactiveAction == SET_ACTION_STATIC_VALUE)
             writer.writeEntry("inactiveValueToSet", inactiveValueToSet);
+        else if (inactiveAction == SET_ACTION_SCRIPT_VALUE)
+        	writer.writeEntry("inactiveScript", inactiveScript);
     }
     
     @Override
@@ -275,6 +331,12 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if (text != null)
                 activeValueToSet = text;
         }
+        else if (activeAction == SET_ACTION_SCRIPT_VALUE) {
+            text = jsonObject.getString("activeScript");
+            if (text == null)
+            	throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
+            activeValueToSet = text;
+        }
 
         // Inactive
         text = jsonObject.getString("inactiveAction");
@@ -298,6 +360,12 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             text = jsonObject.getString("inactiveValueToSet");
             if (text != null)
                 inactiveValueToSet = text;
+        }
+        else if (inactiveAction == SET_ACTION_SCRIPT_VALUE) {
+            text = jsonObject.getString("inactiveScript");
+            if (text == null)
+            	throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
+            inactiveValueToSet = text;
         }
 
     }
