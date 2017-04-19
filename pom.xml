@@ -186,23 +186,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
       </plugin>
-      <plugin>
-        <groupId>external.atlassian.jgitflow</groupId>
-        <artifactId>jgitflow-maven-plugin</artifactId>
-        <version>1.0-m5.1</version>
-        <configuration>
-          <flowInitContext>
-          <masterBranchName>main</masterBranchName>
-          <developBranchName>development</developBranchName>
-          <featureBranchPrefix>feature-</featureBranchPrefix>
-          <releaseBranchPrefix>release-</releaseBranchPrefix>
-          <hotfixBranchPrefix>hotfix-</hotfixBranchPrefix>
-          <versionTagPrefix>ma-core-</versionTagPrefix>
-          
-          
-       </flowInitContext>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
  <issueManagement>
