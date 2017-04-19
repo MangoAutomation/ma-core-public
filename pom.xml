@@ -25,12 +25,12 @@
  <modules>
    <module>AssemblyDescriptors</module>
    <module>Core</module>
-   <module>../ma-core-private/Core-private</module>
+<!--   <module>../ma-core-private/Core-private</module> -->
    <module>Modules</module>
-   <module>../ma-modules-public</module>
-   <module>../ma-modules-private</module>
-   <module>../ma-modules-proprietary</module>
-   <module>../ma-dashboards</module>
+<!--   <module>../ma-modules-public</module> -->
+<!--   <module>../ma-modules-private</module> -->
+<!--   <module>../ma-modules-proprietary</module> -->
+<!--   <module>../ma-dashboards</module> -->
  </modules>
  <profiles>
     <profile>
