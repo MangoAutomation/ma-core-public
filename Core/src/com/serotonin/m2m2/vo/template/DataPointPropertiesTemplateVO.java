@@ -650,6 +650,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		/* Point Properties */
 		vo.setChartColour(getChartColour());
 		vo.setPlotType(getPlotType());
+		vo.setRollup(getRollup());
 		
 		/* Logging Properties */
 		vo.setLoggingType(getLoggingType());
@@ -678,7 +679,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		vo.setPreventSetExtremeValues(isPreventSetExtremeValues());
 		vo.setSetExtremeLowLimit(getSetExtremeLowLimit());
 		vo.setSetExtremeHighLimit(getSetExtremeHighLimit());
-		
 	}
 	
 	/**
@@ -692,6 +692,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		/* Point Properties */
 		this.setChartColour(vo.getChartColour());
 		this.setPlotType(vo.getPlotType());
+		this.setRollup(vo.getRollup());
 		
 		/* Logging Properties */
 		this.setLoggingType(vo.getLoggingType());
