@@ -134,8 +134,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 				switch (Common.databaseProxy.getType()) {
 				case H2:
-					fullFilePath += ".zip";
-					String[] backupScript = new String[] { "SCRIPT DROP TO '" + fullFilePath + "' COMPRESSION ZIP;" };
+					String[] backupScript = new String[] { "SCRIPT DROP TO '" + fullFilePath + ".zip' COMPRESSION ZIP;" };
 					OutputStream out = createLogOutputStream();
 					Common.databaseProxy.runScript(backupScript, out);
 					break;
@@ -170,12 +169,12 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				}
 
 				File file = new File(fullFilePath + ".zip");
-				if (!file.exists())
-					if (!file.createNewFile()) {
-						LOG.warn("Unable to create backup file: " + fullFilePath);
-						backupFailed(fullFilePath, "Unable to create backup file");
-						return;
-					}
+				if (!file.exists()) {
+					LOG.warn("Unable to create backup file: " + fullFilePath);
+					backupFailed(fullFilePath, "Unable to create backup file");
+					return;
+				}
+				
 				// Store the last successful backup time
 				SystemSettingsDao dao = new SystemSettingsDao();
 				dao.setValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, runtimeString);
