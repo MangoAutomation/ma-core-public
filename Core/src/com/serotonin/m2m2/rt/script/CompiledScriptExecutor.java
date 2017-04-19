@@ -34,7 +34,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
     public static CompiledScript compile(String script) throws ScriptException {
 //    	StopWatch stopWatch = new Log4JStopWatch();
 //		stopWatch.start();
-    	script = SCRIPT_PREFIX + script + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions() + SCRIPT_SUFFIX;
+    	script = SCRIPT_PREFIX + script + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions() + SCRIPT_POSTFIX;
         //TODO Review change 
 //        ensureInit();
 //        CompiledScript compiledScript = ((Compilable) ENGINE).compile(script);
