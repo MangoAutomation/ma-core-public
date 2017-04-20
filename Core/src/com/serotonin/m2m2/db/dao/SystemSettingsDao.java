@@ -791,9 +791,6 @@ public class SystemSettingsDao extends BaseDao {
         Object value = settings.get(key);
         if (value == null)
         	value = getIntValue(key);
-        
-        if(value == null)
-            return null;
 
         if(value instanceof Number)
         	return ((Number) value).intValue();
