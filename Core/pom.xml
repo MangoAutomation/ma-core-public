@@ -1,5 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>mango-parent</artifactId>
+		<groupId>com.infiniteautomation.mango</groupId>
+		<version>3.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<groupId>com.infiniteautomation</groupId>
 	<artifactId>mango</artifactId>
 	<!-- When changing version ensure you change Common.java as well. -->
 	<name>Mango Core</name>
@@ -619,11 +626,4 @@
 		  <version>0.7.0</version>
 		</dependency>
 	</dependencies>
-	<parent>
-		<artifactId>mango-parent</artifactId>
-		<groupId>com.infiniteautomation.mango</groupId>
-		<version>3.0.1-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
-	<groupId>com.infiniteautomation</groupId>
 </project>

@@ -25,14 +25,39 @@
  <modules>
    <module>AssemblyDescriptors</module>
    <module>Core</module>
-<!--   <module>../ma-core-private/Core-private</module> -->
    <module>Modules</module>
-<!--   <module>../ma-modules-public</module> -->
-<!--   <module>../ma-modules-private</module> -->
-<!--   <module>../ma-modules-proprietary</module> -->
-<!--   <module>../ma-dashboards</module> -->
  </modules>
  <profiles>
+    <profile>
+      <id>ma-core-private</id>
+      <modules>
+        <module>../ma-core-private</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ma-modules-public</id>
+      <modules>
+        <module>../ma-modules-public</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ma-modules-private</id>
+      <modules>
+        <module>../ma-modules-private</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ma-modules-proprietary</id>
+      <modules>
+        <module>../ma-modules-proprietary</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>ma-dashboards</id>
+      <modules>
+        <module>../ma-dashboards</module>
+      </modules>
+    </profile>
     <profile>
       <id>core-zip</id>
       <modules>
@@ -185,6 +210,23 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
       </plugin>
+      <plugin>
+      	<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+      	<configuration>
+            <arguments>-DskipTests</arguments>
+            <pushChanges>false</pushChanges>
+            <!-- This generates a lot of commits 
+                but we have to do this in order to have modules 
+                outside the core repo -->
+            <commitByProject>true</commitByProject>
+            <!-- goals will evenually be used by the release:perform -->
+            <goals>install</goals>
+            <preparationGoals>install</preparationGoals>
+            <tagNameFormat>m2m2-core-@{project.version}</tagNameFormat>
+         </configuration>
+      </plugin>
     </plugins>
   </build>
  <issueManagement>
@@ -194,6 +236,6 @@
  <scm>
    <url>https://github.com/infiniteautomation/ma-core-public</url>
    <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
-   <developerConnection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
+   <developerConnection>scm:git:[push=]https://github.com/infiniteautomation/ma-core-public.git[fetch=]https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
  </scm>
 </project>
