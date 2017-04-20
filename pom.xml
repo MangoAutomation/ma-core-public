@@ -236,6 +236,6 @@
  <scm>
    <url>https://github.com/infiniteautomation/ma-core-public</url>
    <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
-   <developerConnection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
+   <developerConnection>scm:git:[push=]https://github.com/infiniteautomation/ma-core-public.git[fetch=]https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
  </scm>
 </project>
