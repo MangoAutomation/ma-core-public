@@ -17,9 +17,8 @@ import org.springframework.jdbc.core.RowMapper;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -34,18 +33,14 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	public static final JsonDataDao instance = new JsonDataDao();
 	
 	private ObjectMapper mapper;
-	private MapType mapType;
+	
 	/**
 	 * @param handler
 	 * @param typeName
 	 */
 	private JsonDataDao() {
 		super(ModuleRegistry.getWebSocketHandlerDefinition("JSON_DATA"), AuditEventType.TYPE_JSON_DATA);
-	
 		mapper = new ObjectMapper();
-		TypeFactory typeFactory = mapper.getTypeFactory();
-		mapType = typeFactory.constructMapType(HashMap.class, String.class, Object.class);
-
 	}
 
 	/* (non-Javadoc)
@@ -131,7 +126,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 		/* (non-Javadoc)
 		 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
 		 */
-		@SuppressWarnings("unchecked")
 		@Override
 		public JsonDataVO mapRow(ResultSet rs, int rowNum)
 				throws SQLException {
@@ -146,7 +140,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 			
 			//Read the data
 			try{
-				vo.setJsonData((Map<String, Object>) mapper.readValue(rs.getClob(++i).getCharacterStream(), mapType));
+				vo.setJsonData(mapper.readTree(rs.getClob(++i).getCharacterStream()));
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 			}
@@ -163,8 +157,8 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public Object readValueFromString(String json) throws JsonParseException, JsonMappingException, IOException{
-		return mapper.readValue(json, mapType);
+	public JsonNode readValueFromString(String json) throws JsonParseException, JsonMappingException, IOException{
+		return mapper.readTree(json);
 	}
 	
 	public String writeValueAsString(Object value) throws JsonProcessingException{
