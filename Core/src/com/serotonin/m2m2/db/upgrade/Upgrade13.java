@@ -40,9 +40,9 @@ public class Upgrade13 extends DBUpgrade {
         "UPDATE users SET locale='';"
     };
     private final String[] mysqlScript = {
-        "ALTER TABLE users ADD COLUMN name varchar(255) NOT NULL DEFAULT '';",
+        "ALTER TABLE users ADD COLUMN name nvarchar(255) NOT NULL DEFAULT '';",
         "UPDATE users SET name='';",
-        "ALTER TABLE users ADD COLUMN locale varchar(50) NOT NULL DEFAULT '';",
+        "ALTER TABLE users ADD COLUMN locale nvarchar(50) NOT NULL DEFAULT '';",
         "UPDATE users SET locale='';"
     };
     private final String[] h2Script = {
