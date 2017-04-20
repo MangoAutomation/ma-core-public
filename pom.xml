@@ -218,6 +218,8 @@
             <arguments>-DskipTests</arguments>
             <pushChanges>false</pushChanges>
             <commitByProject>false</commitByProject>
+            <goals>install</goals>
+            <tagNameFormat>m2m2-core-@{project.version}</tagNameFormat>
          </configuration>
       </plugin>
     </plugins>
