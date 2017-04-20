@@ -78,11 +78,7 @@ abstract public class BaseDwr {
 	public static final String MODEL_ATTR_HAS_UNACKED_EVENT = "hasUnacknowledgedEvent";
 	public static final String MODEL_ATTR_TRANSLATIONS = "bundle";
 
-	protected static EventDao EVENT_DAO;
-
-	public static void initialize() {
-		EVENT_DAO = new EventDao();
-	}
+	public static void initialize() {}
 
 	public BaseDwr() {
 		// Cache the long poll handlers.
@@ -303,7 +299,7 @@ abstract public class BaseDwr {
 
 		if (typeId == UserCommentVO.TYPE_EVENT){
 			c.setCommentType(UserCommentVO.TYPE_EVENT);
-			EVENT_DAO.insertEventComment(c);
+			EventDao.instance.insertEventComment(c);
 		}else if (typeId == UserCommentVO.TYPE_POINT){
 			c.setCommentType(UserCommentVO.TYPE_POINT);
 			UserCommentDao.instance.save(c);
