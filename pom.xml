@@ -25,7 +25,7 @@
  <modules>
    <module>AssemblyDescriptors</module>
    <module>Core</module>
-   <module>../ma-core-private/Core-private</module>
+   <module>../ma-core-private</module>
    <module>Modules</module>
    <module>../ma-modules-public</module>
    <module>../ma-modules-private</module>
