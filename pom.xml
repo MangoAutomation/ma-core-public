@@ -26,11 +26,10 @@
    <module>AssemblyDescriptors</module>
    <module>Core</module>
    <module>Modules</module>
-   <module>CoreBundle</module>
  </modules>
  <profiles>
     <profile>
-      <id>core-private</id>
+      <id>ma-core-private</id>
       <modules>
         <module>../ma-core-private</module>
       </modules>
@@ -38,7 +37,7 @@
     <profile>
       <id>ma-modules-public</id>
       <modules>
-        <module>../ma-modules-proprietary</module>
+        <module>../ma-modules-public</module>
       </modules>
     </profile>
     <profile>
@@ -57,6 +56,12 @@
       <id>ma-dashboards</id>
       <modules>
         <module>../ma-dashboards</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>core-zip</id>
+      <modules>
+        <module>CoreBundle</module>
       </modules>
     </profile>
  </profiles>
