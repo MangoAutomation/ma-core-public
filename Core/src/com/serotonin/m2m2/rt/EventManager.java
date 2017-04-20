@@ -674,7 +674,7 @@ public class EventManager implements ILifecycle {
 	//
 	@Override
 	public void initialize() {
-		eventDao = new EventDao();
+		eventDao = EventDao.instance;
 		userDao = UserDao.instance;
 
 		// Get all active events from the database.
