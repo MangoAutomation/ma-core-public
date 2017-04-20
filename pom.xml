@@ -217,7 +217,10 @@
       	<configuration>
             <arguments>-DskipTests</arguments>
             <pushChanges>false</pushChanges>
-            <commitByProject>false</commitByProject>
+            <!-- This generates a lot of commits 
+                but we have to do this in order to have modules 
+                outside the core repo -->
+            <commitByProject>true</commitByProject>
             <!-- goals will evenually be used by the release:perform -->
             <goals>install</goals>
             <preparationGoals>install</preparationGoals>
