@@ -78,8 +78,6 @@ abstract public class BaseDwr {
 	public static final String MODEL_ATTR_HAS_UNACKED_EVENT = "hasUnacknowledgedEvent";
 	public static final String MODEL_ATTR_TRANSLATIONS = "bundle";
 
-	public static void initialize() {}
-
 	public BaseDwr() {
 		// Cache the long poll handlers.
 		for (LongPollDefinition def : ModuleRegistry
