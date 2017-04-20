@@ -51,7 +51,7 @@ public class UserEventCache implements TimeoutClient{
     public UserEventCache(long timeToLive, final long timeInterval) {
         this.timeToLive = timeToLive;
         this. cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
-        this.dao = new EventDao();
+        this.dao = EventDao.instance;
         this.timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
     }
 

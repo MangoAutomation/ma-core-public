@@ -254,7 +254,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         List<EventInstanceBean> beans = new ArrayList<>();
 
         if (ds != null) {
-            List<EventInstance> events = new EventDao().getPendingEventsForDataSource(ds.getId(), Common.getUser()
+            List<EventInstance> events = EventDao.instance.getPendingEventsForDataSource(ds.getId(), Common.getUser()
                     .getId());
             if (events != null) {
                 for (EventInstance event : events)

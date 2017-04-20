@@ -312,7 +312,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
         data.put("historyCount", sum);
         data.put("topPoints", counts);
-        data.put("eventCount", new EventDao().getEventCount());
+        data.put("eventCount", EventDao.instance.getEventCount());
 
         return data;
     }

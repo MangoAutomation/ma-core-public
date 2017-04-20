@@ -87,7 +87,7 @@ public class PublisherEditController extends ParameterizableViewController {
         Map<String, Object> model = new HashMap<>();
         model.put("publisher", publisherVO);
         if (publisherVO.getId() != Common.NEW_ID) {
-            List<EventInstance> events = new EventDao().getPendingEventsForPublisher(publisherVO.getId(), user.getId());
+            List<EventInstance> events = EventDao.instance.getPendingEventsForPublisher(publisherVO.getId(), user.getId());
             List<EventInstanceBean> beans = new ArrayList<>();
             if (events != null) {
                 Translations translations = ControllerUtils.getTranslations(request);

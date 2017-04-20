@@ -72,7 +72,7 @@ public class EventsDwr extends BaseDwr {
                 pastPeriodCount, pastPeriodType, fromNone, fromYear, fromMonth, fromDay, fromHour, fromMinute,
                 fromSecond, toNone, toYear, toMonth, toDay, toHour, toMinute, toSecond, user.getDateTimeZoneInstance());
 
-        EventDao eventDao = new EventDao();
+        EventDao eventDao = EventDao.instance;
         List<EventInstance> results = eventDao.search(eventId, eventType, status, alarmLevel, getKeywords(keywordStr),
                 dateRange.getL1(), dateRange.getL2(), user.getId(), getTranslations(), from, to, date);
 

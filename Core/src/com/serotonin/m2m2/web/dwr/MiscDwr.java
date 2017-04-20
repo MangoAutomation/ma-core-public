@@ -55,7 +55,7 @@ public class MiscDwr extends BaseDwr {
 
         User user = Common.getUser();
         if (user != null) {
-            boolean result = new EventDao().toggleSilence(eventId, user.getId());
+            boolean result = EventDao.instance.toggleSilence(eventId, user.getId());
             resetLastAlarmLevelChange();
             response.addData("silenced", result);
         }
@@ -70,7 +70,7 @@ public class MiscDwr extends BaseDwr {
         List<Integer> silenced = new ArrayList<Integer>();
         User user = Common.getUser();
         if (user != null) {
-            EventDao eventDao = new EventDao();
+            EventDao eventDao = EventDao.instance;
             for (EventInstance evt : eventDao.getPendingEvents(user.getId())) {
                 if (!evt.isSilenced()) {
                     eventDao.toggleSilence(evt.getId(), user.getId());
@@ -90,7 +90,7 @@ public class MiscDwr extends BaseDwr {
     public int acknowledgeEvent(int eventId) {
         User user = Common.getUser();
         if (user != null) {
-        	EventDao dao = new EventDao();
+        	EventDao dao = EventDao.instance;
         	EventInstance evt = dao.get(eventId);
             Common.eventManager.acknowledgeEvent(evt, System.currentTimeMillis(), user.getId(), null);
             resetLastAlarmLevelChange();
@@ -102,7 +102,7 @@ public class MiscDwr extends BaseDwr {
     public void acknowledgeAllPendingEvents() {
         User user = Common.getUser();
         if (user != null) {
-            EventDao eventDao = new EventDao();
+            EventDao eventDao = EventDao.instance;
             long now = System.currentTimeMillis();
             for (EventInstance evt : eventDao.getPendingEvents(user.getId()))
                 Common.eventManager.acknowledgeEvent(evt, now, user.getId(), null);

@@ -421,7 +421,7 @@ abstract public class BaseDwr {
 		HttpServletRequest httpRequest = WebContextFactory.get()
 				.getHttpServletRequest();
 		User user = Common.getUser(httpRequest);
-		EventDao eventDao = new EventDao();
+		EventDao eventDao = EventDao.instance;
 
 		LongPollData data = getLongPollData(pollSessionId, false);
 		data.updateTimestamp();

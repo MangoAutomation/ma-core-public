@@ -89,7 +89,7 @@ public class EventExportServlet extends HttpServlet {
 			EventExportDefinition def, User user) throws IOException {
         
         final Translations translations = Common.getTranslations();
-        List<EventInstance> events = new EventDao().search(def.getEventId(), def.getEventType(), def.getStatus(),
+        List<EventInstance> events = EventDao.instance.search(def.getEventId(), def.getEventType(), def.getStatus(),
                 def.getAlarmLevel(), def.getKeywords(), def.getDateFrom(), def.getDateTo(), user.getId(), translations,
                 0, Integer.MAX_VALUE, null);
         // Stream the content.

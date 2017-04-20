@@ -25,7 +25,7 @@ public class ImportContext {
     private final UserDao userDao = UserDao.instance;
     private final DataSourceDao dataSourceDao = DataSourceDao.instance;
     private final DataPointDao dataPointDao = DataPointDao.instance;
-    private final EventDao eventDao = new EventDao();
+    private final EventDao eventDao = EventDao.instance;
     private final MailingListDao mailingListDao = MailingListDao.instance;
     private final PublisherDao publisherDao = PublisherDao.instance;
     private final EventHandlerDao eventHandlerDao = EventHandlerDao.instance;

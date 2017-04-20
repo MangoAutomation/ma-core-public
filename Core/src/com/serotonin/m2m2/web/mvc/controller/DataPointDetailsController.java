@@ -114,7 +114,7 @@ public class DataPointDetailsController implements UrlHandler {
             model.put("pointEditor", Permissions.hasDataSourcePermission(user, point.getDataSourceId()));
 
             // Put the events in the model.
-            model.put("events", new EventDao().getEventsForDataPoint(id, user.getId()));
+            model.put("events", EventDao.instance.getEventsForDataPoint(id, user.getId()));
 
             // Put the default history table count into the model. Default to 10.
             int historyLimit = 10;

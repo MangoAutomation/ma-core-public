@@ -285,7 +285,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     @DwrPermission(user = true)
     public List<EventInstanceBean> getAlarms() {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        List<EventInstance> events = new EventDao().getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
+        List<EventInstance> events = EventDao.instance.getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
         List<EventInstanceBean> beans = new ArrayList<>();
         if (events != null) {
             for (EventInstance event : events)
