@@ -48,6 +48,7 @@ import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEve
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
@@ -56,6 +57,7 @@ import com.serotonin.m2m2.vo.event.PointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
@@ -493,6 +495,11 @@ public class Upgrade12 extends DBUpgrade {
 		
         //Save the new ones
         for(AbstractEventDetectorVO<?> vo : detectors){
+        	if(vo instanceof AbstractPointEventDetectorVO) {
+        		AbstractPointEventDetectorVO<?> pedVO = (AbstractPointEventDetectorVO<?>)vo;
+        		if(pedVO.getAlarmLevel() < AlarmLevels.URGENT && pedVO.getAlarmLevel() > AlarmLevels.INFORMATION)
+        			pedVO.setAlarmLevel(pedVO.getAlarmLevel()+2);
+        	}
     		String jsonData = null;
     		try{ 
     			jsonData = EventDetectorDao.instance.writeValueAsString(vo);
