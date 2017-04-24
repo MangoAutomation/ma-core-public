@@ -546,7 +546,6 @@
 	          ${module.version} -
 	          </c:otherwise>
 	        </c:choose>
-          ${module.version} -
           <c:choose>
             <c:when test="${empty module.licenseType}">*** unlicensed ***</c:when>
             <c:otherwise>${module.licenseType}</c:otherwise>
