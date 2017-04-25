@@ -54,6 +54,7 @@
 		<price fromVersion="2" fromType="free">0</price>
 		<price fromVersion="2" fromType="paid">disallow</price>
 		<price fromType="MangoES">disallow</price>
+		<price fromType="Commercial-lite">disallow</price>
 		<price fromType="Commercial">disallow</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
@@ -67,11 +68,13 @@
             <dataPointLimit>100</dataPointLimit>
         </features>
         
-        <price fromVersion="2" fromType="free">200</price>
-        <price fromType="Free">200</price>
-        <price fromType="Trial">200</price>
-        <price fromVersion="2" fromType="paid">200</price>
+        <price>500</price>
+        <price fromVersion="2" fromType="free">500</price>
+        <price fromType="Free">500</price>
+        <price fromType="Trial">500</price>
+        <price fromVersion="2" fromType="paid">500</price>
 		<price fromType="MangoES">disallow</price>
+		<price fromType="Commercial-lite">disallow</price>
 		<price fromType="Commercial">disallow</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
@@ -86,7 +89,7 @@
         </features>
         
         <price>1250</price>
-        <price fromVersion="2" fromType="paid">500</price>
+        <price fromVersion="2" fromType="paid">800</price>
 		<price fromType="Gateway">1150</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="Commercial">disallow</price>
@@ -102,14 +105,14 @@
             <dataPointLimit>1000</dataPointLimit>
         </features>
         
-        <price>2500</price>
-        <price fromVersion="2" fromType="paid">500</price>
-		<price fromType="Gateway">2300</price>
+        <price>2495</price>
+        <price fromVersion="2" fromType="paid">1250</price>
+		<price fromType="Gateway">2000</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="Commercial-lite">1250</price>
 		<price fromType="Enterprise">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
-		<price fromType="variableSpecial">2500</price>
+		<price fromType="variableSpecial">2495</price>
     </licenseType>
 	
     <licenseType id="Enterprise" status="normal">
@@ -119,10 +122,11 @@
             <dataPointLimit>unlimited</dataPointLimit>
         </features>
         
-        <price>5000</price>
-        <price fromVersion="2" fromType="paid">1250</price>
-		<price fromType="Commercial">2500</price>
-		<price fromType="Gateway">4800</price>
+        <price>4995</price>
+        <price fromVersion="2" fromType="paid">2495</price>
+        <price fromType="Commercial-lite">3750</price>
+		<price fromType="Commercial">2495</price>
+		<price fromType="Gateway">4500</price>
 		<price fromType="MangoES">disallow</price>
 		<price fromType="brewersdashboard">disallow</price>
 		<price fromType="variableSpecial">5000</price>
