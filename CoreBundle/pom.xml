@@ -2,12 +2,12 @@
 	<parent>
 	  <groupId>com.infiniteautomation.mango</groupId>
 	  <artifactId>mango-parent</artifactId>
-	  <version>3.0.1</version>
+	  <version>3.0.2-SNAPSHOT</version>
 	  <relativePath>../pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>mango-bundle</artifactId>
-  	<version>3.0.1</version>
+  	<version>3.0.2-SNAPSHOT</version>
 	<name>Mango Core Release Bundle</name>
 	<packaging>jar</packaging>
 	<properties>
@@ -122,7 +122,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>3.0.1</version>
+			<version>3.0.2-SNAPSHOT</version>
 		</dependency>
 		<!--  TODO These should be moved in and used as dependencies to build the zip, but we need to figure out how to remove -SNAPSHOT first -->
 <!-- 		<dependency> -->
