@@ -61,7 +61,7 @@
 		<price fromType="variableSpecial">disallow</price>
     </licenseType>
     
-    <licenseType id="Gateway" status="grant-only">
+    <licenseType id="Gateway" status="normal">
         <description>Limited to 100 data points, NoSQL database, limited reporting</description>
         
         <features>
