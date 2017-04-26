@@ -127,6 +127,20 @@
     	}
     }
     
+    function defaultChecked(name) {
+    	if(/mangoUI/.exec(name) != null)
+    		return true;
+    	if(/dashboardDesigner/.exec(name) != null)
+    		return true;
+    	if(/mangoApi/.exec(name) != null)
+    		return true;
+    	if(/watchlists/.exec(name) != null)
+    		return true;
+    	if(/internal/.exec(name) != null)
+    		return true;
+    	return false;
+    }
+    
     function drawLists(upgradeList, newInstallList) {
     	var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
         // Draw the upgrade list.
@@ -158,7 +172,7 @@
                 allModuleList.push(newInstallList[i]);
                 var name = newInstallList[i].name;
                 s += "<div>";
-                s += "<input type='checkbox' id='"+ name +"Check' class='modCB newInstallCB'>";
+                s += "<input type='checkbox' id='"+ name +"Check'" + (defaultChecked(name) ? " checked='checked'" : "") + " class='modCB newInstallCB'>";
                 s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ newInstallList[i].version +"</label></div>";
                 s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
                 s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
