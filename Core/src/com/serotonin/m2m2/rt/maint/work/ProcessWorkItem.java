@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -63,6 +64,17 @@ public class ProcessWorkItem implements WorkItem {
 
         Common.backgroundProcessing.addWorkItem(out);
         Common.backgroundProcessing.addWorkItem(err);
+        
+        if(LOG.isDebugEnabled() && process.getClass().getName().equals("java.lang.UNIXProcess")) {
+        	try {
+	        	Field f = process.getClass().getDeclaredField("pid");
+	        	f.setAccessible(true);
+	        	LOG.debug("Started command " + command + " on unix system, pid is: " + f.getLong(process));
+	        	f.setAccessible(false);
+        	} catch(Exception e) {
+        		LOG.debug("Error extracting pid from UNIXProcess object");
+        	}
+        }
 
         StringStringPair result = new StringStringPair();
 
