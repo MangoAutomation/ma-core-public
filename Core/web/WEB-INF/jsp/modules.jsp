@@ -144,6 +144,7 @@
     function drawLists(upgradeList, newInstallList) {
     	var notes = "<m2m2:translate key="modules.versionCheck.notes" escapeDQuotes="true"/>";
         // Draw the upgrade list.
+        allModulesList = [];
         if (upgradeList.length > 0) {
             var s = "";
             for (var i=0; i<upgradeList.length; i++) {
