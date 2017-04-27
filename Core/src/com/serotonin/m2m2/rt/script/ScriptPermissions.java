@@ -89,6 +89,9 @@ public class ScriptPermissions implements Serializable{
 			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermission","No User Found");
 			return;
 		}
+		
+		if(user.isAdmin())
+			return;
 			
 		//If superadmin then fine or if not then only allow my groups
 		if((!this.dataSourcePermissions.isEmpty())&&(!Permissions.hasPermission(this.dataSourcePermissions, user.getPermissions()))){
@@ -106,8 +109,40 @@ public class ScriptPermissions implements Serializable{
 			String notGranted = Permissions.implodePermissionGroups(invalid);
 			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermission", notGranted);
 		}
-		
 	}
 	
-	
+	public void validate(ProcessResult response, User user, ScriptPermissions oldPermissions) {
+		if(user.isAdmin())
+			return;
+		
+		Set<String> nonUserPre = Permissions.findInvalidPermissions(oldPermissions.getDataSourcePermissions(), user.getPermissions());
+		Set<String> nonUserPost = Permissions.findInvalidPermissions(this.dataSourcePermissions, user.getPermissions());
+		if(nonUserPre.size() != nonUserPost.size())
+			response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermissionModification", user.getPermissions());
+		else {
+			for(String s : nonUserPre)
+				if(!nonUserPost.contains(s))
+					response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermissionModification", user.getPermissions());
+		}
+		
+		nonUserPre = Permissions.findInvalidPermissions(oldPermissions.getDataPointSetPermissions(), user.getPermissions());
+		nonUserPost = Permissions.findInvalidPermissions(this.dataPointSetPermissions, user.getPermissions());
+		if(nonUserPre.size() != nonUserPost.size())
+			response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermissionModification", user.getPermissions());
+		else {
+			for(String s : nonUserPre)
+				if(!nonUserPost.contains(s))
+					response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermissionModification", user.getPermissions());
+		}
+		
+		nonUserPre = Permissions.findInvalidPermissions(oldPermissions.getDataPointReadPermissions(), user.getPermissions());
+		nonUserPost = Permissions.findInvalidPermissions(this.dataPointReadPermissions, user.getPermissions());
+		if(nonUserPre.size() != nonUserPost.size())
+			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermissionModification", user.getPermissions());
+		else {
+			for(String s : nonUserPre)
+				if(!nonUserPost.contains(s))
+					response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermissionModification", user.getPermissions());
+		}
+	}
 }
