@@ -50,16 +50,17 @@ set EXECJAR=%JAVA_HOME%\bin\jar
 echo Using Java at %EXECJAVA%
 
 rem Remove Range.class if it exists:
-if exist %MA_HOME%\classes\org\jfree\data\Range.class (
-	del %MA_HOME%\classes\org\jfree\data\Range.class
+if exist "%MA_HOME%\classes\org\jfree\data\Range.class" (
+	del "%MA_HOME%\classes\org\jfree\data\Range.class"
 )
 
 set JAVAOPTS=
 set JPDA=
-for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
-	call %MA_HOME%\bin\ext-enabled/%%~nf init
+if exist "%MA_HOME%\bin\ext-enabled" (
+	for /R "%MA_HOME%\bin\ext-enabled" %%f in (*.bat) do (
+		call "%MA_HOME%\bin\ext-enabled/%%~nf" init
+	)
 )
-
 :restart
 if exist "%MA_HOME%"\m2m2-core-*.zip (
 echo Core upgrade found...
@@ -83,13 +84,17 @@ popd
 rem Run the upgrade script that will finish by calling this script to start Mango
 upgrade.bat
 )
-for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
-	call %MA_HOME%\bin\ext-enabled/%%~nf start
+if exist "%MA_HOME%\bin\ext-enabled" (
+	for /R "%MA_HOME%\bin\ext-enabled" %%f in (*.bat) do (
+		call "%MA_HOME%\bin\ext-enabled/%%~nf" start
+	)
 )
 "%EXECJAVA%" %JPDA% %JAVAOPTS% -server -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
 if exist "%MA_HOME%\RESTART" (
-	for /R %MA_HOME%\bin\ext-enabled %%f in (*.bat) do (
-		call %MA_HOME%\bin\ext-enabled/%%~nf restart
+	if exist "%MA_HOME%\bin\ext-enabled" (
+		for /R "%MA_HOME%\bin\ext-enabled" %%f in (*.bat) do (
+			call "%MA_HOME%\bin\ext-enabled/%%~nf" restart
+		)
 	)
 	goto restart
 )
