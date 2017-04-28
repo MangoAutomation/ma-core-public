@@ -513,7 +513,7 @@ public class MangoSecurityConfiguration {
                 .and()
             .csrf()
                 // DWR handles its own CRSF protection (It is set to look at the same cookie in Lifecyle)
-                .ignoringAntMatchers("/dwr/**")
+                .ignoringAntMatchers("/dwr/**", "/httpds")
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
             .requestCache()
