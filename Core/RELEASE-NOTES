@@ -1,3 +1,6 @@
+*Version 3.0.2*
+* Added security exclusion for /httpds
+
 *Version 3.0.1*
 * Adding env property to control iFrame access via Http headers
 * Enhanced Spring Security
