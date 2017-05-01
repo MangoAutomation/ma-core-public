@@ -63,7 +63,7 @@ public class DataPurge {
     private void executeImpl() {
         log.info("Data purge started");
 
-        boolean purgePoints = SystemSettingsDao.getBooleanValue(ENABLE_POINT_DATA_PURGE, true);
+        boolean purgePoints = SystemSettingsDao.getBooleanValue(ENABLE_POINT_DATA_PURGE);
         
         if(purgePoints){
 	        // Get the data point information.

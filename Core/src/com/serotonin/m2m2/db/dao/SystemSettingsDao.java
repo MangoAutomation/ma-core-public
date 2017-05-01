@@ -33,6 +33,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
+import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.util.ColorUtils;
 
@@ -211,7 +212,10 @@ public class SystemSettingsDao extends BaseDao {
     }
     
     public static boolean getBooleanValue(String key) {
-        return getBooleanValue(key, false);
+        Boolean defaultValue = (Boolean) DEFAULT_VALUES.get(key);
+        if (defaultValue == null)
+            return getBooleanValue(key, false);
+        return getBooleanValue(key, defaultValue);
     }
 
     public static boolean getBooleanValue(String key, boolean defaultValue) {
@@ -411,6 +415,8 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);
         
         DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
+        
+        DEFAULT_VALUES.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
 
         //Module Defaults
         Map<String,Object> modDefaults = null;
