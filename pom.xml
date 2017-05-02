@@ -77,7 +77,7 @@
         </snapshots>
         <id>IAS Maven Repository</id>
         <name>Mango Dependencies</name>
-        <url>http://mangoautomation.net:9902/maven-repo/</url>
+        <url>https://maven.mangoautomation.net</url>
     </repository>
  </repositories>
  <build>
@@ -239,5 +239,15 @@
    <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
    <developerConnection>scm:git:[push=]https://github.com/infiniteautomation/ma-core-public.git[fetch=]https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
    <tag>HEAD</tag>
-  </scm>
+ </scm>
+ <distributionManagement>
+	<snapshotRepository>
+        <id>ias-snapshots</id>
+	    <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
+	   </snapshotRepository>
+    <repository>
+        <id>ias-release</id>
+	   	<url>https://maven.mangoautomation.net/repository/ias-release/</url>
+    </repository>
+	</distributionManagement>
 </project>
