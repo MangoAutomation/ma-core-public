@@ -1,5 +1,11 @@
 *Version 3.0.2*
-* Added security exclusion for /httpds
+* Added CSRF exclusion for /httpds
+* Update licensing
+* Log PIDs from ProcessWorkItems
+* Validate script permissions
+* Fix for startup script
+* Add ALPN startup extension for enabling HTTP/2
+* Default name to the username when importing JSON for a user
 
 *Version 3.0.1*
 * Adding env property to control iFrame access via Http headers
