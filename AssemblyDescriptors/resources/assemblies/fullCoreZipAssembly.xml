@@ -32,6 +32,7 @@
         <include>classes/**</include>
         <include>ftl/**</include>
         <include>web/**</include>
+        <include>boot/**</include>
       </includes>
       <excludes>
       	<exclude>web/WEB-INF/filedata/**</exclude>

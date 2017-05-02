@@ -25,8 +25,8 @@
     <profile>
       <id>copy-web</id>
       <properties>
-        <webDirectory>${core.target}/web</webDirectory>
-        <jspWorkDirectory>${core.target}/work/jsp</jspWorkDirectory>
+        <webDirectory>${MA_HOME}/web</webDirectory>
+        <jspWorkDirectory>${MA_HOME}/work/jsp</jspWorkDirectory>
         <maven.test.skip>true</maven.test.skip>
       </properties>
       <build>
@@ -157,7 +157,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                 <configuration>
                   <skip>${skipModuleInstall}</skip>
                   <target>
-                      <copy file="${project.build.directory}/${zipAssemblyName}.zip" todir="${core.target}/web/modules/" />
+                      <copy file="${project.build.directory}/${zipAssemblyName}.zip" todir="${MA_HOME}/web/modules/" />
                   </target>
                 </configuration>
               </execution>
