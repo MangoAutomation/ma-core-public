@@ -77,7 +77,7 @@
         </snapshots>
         <id>IAS Maven Repository</id>
         <name>Mango Dependencies</name>
-        <url>https://maven.mangoautomation.net</url>
+        <url>http://mangoautomation.net:9902/maven-repo/</url>
     </repository>
  </repositories>
  <build>
@@ -227,6 +227,19 @@
             <preparationGoals>install</preparationGoals>
             <tagNameFormat>m2m2-core-@{project.version}</tagNameFormat>
          </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <allowSnapshots>true</allowSnapshots>
+          <includes>
+            <include>com.infiniteautomation.mango:*</include>
+          </includes>
+          <excludes>
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>
