@@ -387,9 +387,9 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(FUTURE_DATE_LIMIT_PERIOD_TYPE, Common.TimePeriods.HOURS);
         DEFAULT_VALUES.put(INSTANCE_DESCRIPTION, "My Mango Automation");
 
-        DEFAULT_VALUES.put(CHART_BACKGROUND_COLOUR, "white");
-        DEFAULT_VALUES.put(PLOT_BACKGROUND_COLOUR, "white");
-        DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "silver");
+        DEFAULT_VALUES.put(CHART_BACKGROUND_COLOUR, "rgba(255,255,255,0)");
+        DEFAULT_VALUES.put(PLOT_BACKGROUND_COLOUR, "rgba(255,255,255,0)");
+        DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "rgba(0,0,0,0.4)");
 
         //Default Backup Settings
         DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
