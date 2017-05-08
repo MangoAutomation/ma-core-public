@@ -16,7 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.HttpStatus;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
@@ -123,7 +123,7 @@ public class StartupContextHandler extends ResourceHandler{
 
         if (restRequestMatcher.matches(request)) {
             //Return options response
-            response.setStatus(HttpStatus.SC_SERVICE_UNAVAILABLE);
+            response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
             response.setContentLength(0);
             ILifecycle lifecycle = Providers.get(ILifecycle.class);
             Float progress = lifecycle.getStartupProgress();
@@ -144,7 +144,7 @@ public class StartupContextHandler extends ResourceHandler{
                 dispatcher.forward(request, response);
             }else{
                 response.setContentType("text/html;charset=utf-8");
-                response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
 
                 baseRequest.setHandled(true);
                 //Load page template
@@ -155,7 +155,7 @@ public class StartupContextHandler extends ResourceHandler{
                 response.getWriter().write(processedTemplate);
             }
         } else {
-            response.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE);
+            response.sendError(HttpStatus.SERVICE_UNAVAILABLE_503);
         }
 	}	
 }
