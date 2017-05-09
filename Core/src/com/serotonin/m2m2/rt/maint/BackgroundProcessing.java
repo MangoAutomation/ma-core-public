@@ -341,6 +341,9 @@ public class BackgroundProcessing implements ILifecycle {
             throw new ShouldNeverHappenException(e);
         }
      	
+    	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
+    	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
+    	
     	//Pull our settings from the System Settings
     	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
     	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);

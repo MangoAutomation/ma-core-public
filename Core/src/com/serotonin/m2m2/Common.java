@@ -102,7 +102,7 @@ public class Common {
     // here so we can release 3.0.0 with other features 
     // and not have to worry about the various problems/testing
     // for all the different tasks.
-    public static int defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
+    public static int defaultTaskQueueSize = 1;
 
     public static String applicationLogo = "/images/logo.png";
     public static String applicationFavicon = "/images/favicon.ico";
