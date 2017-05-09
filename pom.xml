@@ -69,15 +69,25 @@
  <repositories>
     <repository>
         <releases>
-            <enabled>true</enabled>
-            <checksumPolicy>ignore</checksumPolicy>
+            <enabled>false</enabled>
         </releases>
         <snapshots>
             <enabled>true</enabled>
         </snapshots>
-        <id>IAS Maven Repository</id>
+        <id>IAS Maven Snapshot Repository</id>
         <name>Mango Dependencies</name>
-        <url>http://mangoautomation.net:9902/maven-repo/</url>
+        <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
+    </repository>
+    <repository>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+        <id>IAS Maven Release Repository</id>
+        <name>Mango Dependencies</name>
+        <url>https://maven.mangoautomation.net/repository/ias-release/</url>
     </repository>
  </repositories>
  <build>
