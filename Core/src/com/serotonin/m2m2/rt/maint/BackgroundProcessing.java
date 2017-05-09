@@ -428,6 +428,10 @@ public class BackgroundProcessing implements ILifecycle {
         }
     }
     
+    public TaskRejectionHandler getRejectionHandler(){
+    	return this.rejectionHandler;
+    }
+    
     /**
      * Util to get the Current Thread Information
      * @param stackDepth - Depth to trace the stack

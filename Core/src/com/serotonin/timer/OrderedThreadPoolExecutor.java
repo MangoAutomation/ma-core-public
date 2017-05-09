@@ -108,7 +108,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @param unit
 	 * @param workQueue
 	 * @param threadFactory
-	 * @param defaultQueueSize
 	 * @param flushFullQueue
 	 */
 	public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
@@ -122,6 +121,28 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 		this.flushFullQueue = flushFullQueue;
 		super.setRejectedExecutionHandler(this);
 		this.handler = handler;
+	}
+	
+	/**
+	 * 
+	 * Overloaded constructor to allow tuning the task queues
+	 * 
+	 * @param corePoolSize
+	 * @param maximumPoolSize
+	 * @param keepAliveTime
+	 * @param unit
+	 * @param workQueue
+	 * @param threadFactory
+	 * @param flushFullQueue
+	 */
+	public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
+			long keepAliveTime, TimeUnit unit,
+			BlockingQueue<Runnable> workQueue, 
+			ThreadFactory threadFactory, 
+			boolean flushFullQueue) {
+		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+				threadFactory);
+		this.flushFullQueue = flushFullQueue;
 	}
 	
 	/**
