@@ -37,6 +37,7 @@ import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.Task;
+import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
@@ -52,14 +53,16 @@ public class BackgroundProcessing implements ILifecycle {
     //Private access to our timer
     private OrderedRealTimeTimer timer;
     private OrderedThreadPoolExecutor highPriorityService;
-    private TaskRejectionHandler rejectionHandler;
+    private TaskRejectionHandler highPriorityRejectionHandler;
+    private TaskRejectionHandler mediumPriorityRejectionHandler;
+    
     
     //Lower Limits on Pool Sizes for Mango To Run
     public static final int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
     public static final int MED_PRI_MAX_POOL_SIZE_MIN = 1;
     public static final int LOW_PRI_MAX_POOL_SIZE_MIN = 1;
     
-    private ThreadPoolExecutor mediumPriorityService;
+    private OrderedThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
     
     public BackgroundProcessing(){
@@ -104,10 +107,10 @@ public class BackgroundProcessing implements ILifecycle {
     public void addWorkItem(final WorkItem item) {
         try{
 	        if (item.getPriority() == WorkItem.PRIORITY_HIGH){
-	        	timer.execute(new HighPriorityWorkItemRunnable(item));
+	        	timer.execute(new RejectableWorkItemRunnable(item, this.highPriorityRejectionHandler));
 	        }
 	        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM){
-	            mediumPriorityService.execute(new WorkItemRunnable(item));
+	            mediumPriorityService.execute(new TaskWrapper(new RejectableWorkItemRunnable(item, this.mediumPriorityRejectionHandler), this.timer.currentTimeMillis()));
 	        }
 	        else{
 	            lowPriorityService.execute(new WorkItemRunnable(item));
@@ -122,7 +125,7 @@ public class BackgroundProcessing implements ILifecycle {
      * @param reason
      */
     public void rejectedHighPriorityTask(RejectedTaskReason reason){
-    	rejectionHandler.rejectedHighPriorityTask(reason);
+    	highPriorityRejectionHandler.rejectedTask(reason);
     }
     
     
@@ -150,8 +153,8 @@ public class BackgroundProcessing implements ILifecycle {
     	return this.highPriorityService.getLargestPoolSize();
     }    
     
-    public List<OrderedTaskInfo> getOrderedQueueStats(){
-    	return this.highPriorityService.getOrderedQueueInfo();
+    public List<OrderedTaskInfo> getHighPriorityOrderedQueueStats(){
+      	return this.highPriorityService.getOrderedQueueInfo();
     }
     
     /**
@@ -205,6 +208,10 @@ public class BackgroundProcessing implements ILifecycle {
         return getClassCounts(lowPriorityService);
     }
 
+    public List<OrderedTaskInfo> getMediumPriorityOrderedQueueStats(){
+      	return this.mediumPriorityService.getOrderedQueueInfo();
+    }
+    
     public List<WorkItemModel> getHighPriorityServiceItems(){
     	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
     	Iterator<TimerTask> iter = timer.getTasks().iterator();
@@ -221,6 +228,8 @@ public class BackgroundProcessing implements ILifecycle {
     	
     }
  
+    
+    
     /**
      * Set the Core Pool Size, in the medium priority queue this 
      * results in the maximum number of threads that will be run 
@@ -335,7 +344,7 @@ public class BackgroundProcessing implements ILifecycle {
     	try {
         	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
         	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-        	this.rejectionHandler = new TaskRejectionHandler();
+        	this.highPriorityRejectionHandler = new TaskRejectionHandler();
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
@@ -353,8 +362,15 @@ public class BackgroundProcessing implements ILifecycle {
     		maxPoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
     	if(maxPoolSize < corePoolSize)
     		maxPoolSize = corePoolSize;
-        mediumPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2));
+    	mediumPriorityService = new OrderedThreadPoolExecutor(
+    	       		corePoolSize,
+    	       		maxPoolSize,
+    	      		60L,
+    	      		TimeUnit.SECONDS,
+    	            new LinkedBlockingQueue<Runnable>(),
+    	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+    	      		mediumPriorityRejectionHandler,
+    	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false));
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
@@ -431,8 +447,12 @@ public class BackgroundProcessing implements ILifecycle {
         }
     }
     
-    public TaskRejectionHandler getRejectionHandler(){
-    	return this.rejectionHandler;
+    public TaskRejectionHandler getHighPriorityRejectionHandler(){
+    	return this.highPriorityRejectionHandler;
+    }
+
+    public TaskRejectionHandler getMediumPriorityRejectionHandler(){
+    	return this.mediumPriorityRejectionHandler;
     }
     
     /**
@@ -469,16 +489,18 @@ public class BackgroundProcessing implements ILifecycle {
      * @author Terry Packer
      *
      */
-    class HighPriorityWorkItemRunnable extends Task{
+    class RejectableWorkItemRunnable extends Task{
 
-    	WorkItem item;
+    	final WorkItem item;
+    	final TaskRejectionHandler rejectionHandler;
     	
     	/**
 		 * @param name
 		 */
-		public HighPriorityWorkItemRunnable(WorkItem item) {
+		public RejectableWorkItemRunnable(WorkItem item, TaskRejectionHandler rejectionHandler) {
 			super(item.getDescription(), item.getTaskId(), item.getQueueSize());
 			this.item = item;
+			this.rejectionHandler = rejectionHandler;
 		}
 
 		/* (non-Javadoc)
@@ -512,7 +534,7 @@ public class BackgroundProcessing implements ILifecycle {
 		@Override
 		public void rejected(RejectedTaskReason reason) {
 			item.rejected(reason);
-			rejectionHandler.rejectedHighPriorityTask(reason);
+			rejectionHandler.rejectedTask(reason);
 		}
     }
 
