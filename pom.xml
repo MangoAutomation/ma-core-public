@@ -74,7 +74,7 @@
         <snapshots>
             <enabled>true</enabled>
         </snapshots>
-        <id>IAS Maven Snapshot Repository</id>
+        <id>ias-snapshots</id>
         <name>Mango Dependencies</name>
         <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
     </repository>
@@ -85,7 +85,7 @@
         <snapshots>
             <enabled>false</enabled>
         </snapshots>
-        <id>IAS Maven Release Repository</id>
+        <id>ias-releases</id>
         <name>Mango Dependencies</name>
         <url>https://maven.mangoautomation.net/repository/ias-release/</url>
     </repository>
@@ -269,7 +269,7 @@
 	    <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
 	   </snapshotRepository>
     <repository>
-        <id>ias-release</id>
+        <id>ias-releases</id>
 	   	<url>https://maven.mangoautomation.net/repository/ias-release/</url>
     </repository>
 	</distributionManagement>
