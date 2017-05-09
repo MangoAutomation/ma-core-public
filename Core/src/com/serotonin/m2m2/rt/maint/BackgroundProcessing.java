@@ -345,6 +345,7 @@ public class BackgroundProcessing implements ILifecycle {
         	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
         	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
         	this.highPriorityRejectionHandler = new TaskRejectionHandler();
+        	this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
