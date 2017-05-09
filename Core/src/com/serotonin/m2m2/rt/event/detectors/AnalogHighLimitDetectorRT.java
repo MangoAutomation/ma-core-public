@@ -164,4 +164,13 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
             // Deactive the event.
             returnToNormal(highLimitInactiveTime);
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "AnalogHighLimit Detector " + this.vo.getXid();
+	}
+
 }

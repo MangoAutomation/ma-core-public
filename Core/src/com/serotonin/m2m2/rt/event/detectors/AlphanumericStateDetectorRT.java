@@ -37,4 +37,13 @@ public class AlphanumericStateDetectorRT extends StateDetectorRT<AlphanumericSta
         String newAlpha = newValue.getStringValue();
         return StringUtils.equals(newAlpha, vo.getState());
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "AlphanumericState Detector " + this.vo.getXid();
+	}
+
 }

@@ -105,5 +105,12 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 		
 	}
     
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "AnalogChange Detector " + this.vo.getXid();
+	}
 
 }

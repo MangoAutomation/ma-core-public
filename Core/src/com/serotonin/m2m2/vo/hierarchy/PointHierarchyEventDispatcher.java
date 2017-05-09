@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 
 public class PointHierarchyEventDispatcher {
     private final static List<PointHierarchyListener> LISTENERS = new CopyOnWriteArrayList<PointHierarchyListener>();
@@ -22,25 +23,26 @@ public class PointHierarchyEventDispatcher {
 
     public static void firePointHierarchySaved(PointFolder root) {
         for (PointHierarchyListener l : LISTENERS)
-            Common.timer.execute(new DispatcherExecution(l, root));
+            Common.backgroundProcessing.execute(new DispatcherExecution(l, root));
     }
 
     public static void firePointHierarchyCleared() {
         for (PointHierarchyListener l : LISTENERS)
-            Common.timer.execute(new DispatcherExecution(l, null));
+            Common.backgroundProcessing.execute(new DispatcherExecution(l, null));
     }
 
-    static class DispatcherExecution implements Runnable {
+    static class DispatcherExecution extends HighPriorityTask {
         private final PointHierarchyListener l;
         private final PointFolder root;
 
         public DispatcherExecution(PointHierarchyListener l, PointFolder root) {
-            this.l = l;
+            super("Point hierarchy event dispatcher");
+        	this.l = l;
             this.root = root;
         }
 
         @Override
-        public void run() {
+        public void run(long runtime) {
             if (root == null)
                 l.pointHierarchyCleared();
             else

@@ -29,7 +29,6 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
-import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -52,6 +51,7 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.pair.LongPair;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
@@ -1068,6 +1068,30 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		public String getDescription() {
 			return "Batch Writing from batch of size: " + ENTRIES.size(); 
 		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return "BWB";
+		}
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { 
+			instances.remove(this);
+            INSTANCES_MONITOR.setValue(instances.size());
+		}
     }
 
     //
@@ -1285,6 +1309,31 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 		@Override
 		public String getDescription() {
 			return "Batch Updating from batch of size: " + ENTRIES.size();
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return "BUB";
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { 
+			instances.remove(this);
+            INSTANCES_MONITOR.setValue(instances.size());
 		}
     }
 

@@ -32,4 +32,13 @@ public class BinaryStateDetectorRT extends StateDetectorRT<BinaryStateDetectorVO
         boolean newBinary = newValue.getBooleanValue();
         return newBinary == vo.isState();
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "BinaryState Detector " + this.vo.getXid();
+	}
+
 }

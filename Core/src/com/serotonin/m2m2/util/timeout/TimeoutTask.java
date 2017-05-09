@@ -17,7 +17,7 @@ import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
 
 /**
- * A TimeoutTask is run at HighPriority either now 
+ * A TimeoutTask is run at HighPriority either now or at some point in the future
  * 
  *
  */
@@ -26,8 +26,7 @@ public class TimeoutTask extends TimerTask {
 	private final Log LOG = LogFactory.getLog(TimeoutTask.class);
 	
     private final TimeoutClient client;
-    private final RejectedTaskHandler rejectionHandler;
-
+    
     public TimeoutTask(long delay, TimeoutClient client) {
         this(new OneTimeTrigger(delay), client);
     }
@@ -37,12 +36,11 @@ public class TimeoutTask extends TimerTask {
     }
 
     public TimeoutTask(TimerTrigger trigger, TimeoutClient client) {
-        super(trigger);
+        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize());
         this.client = client;
-        this.rejectionHandler = new RejectedHighPriorityTaskEventGenerator();
-        Common.timer.schedule(this);
+        Common.backgroundProcessing.schedule(this);
     }
-
+    
     /**
      * Timeout Task for simulations using custom timers
      * @param trigger
@@ -50,17 +48,9 @@ public class TimeoutTask extends TimerTask {
      * @param timer
      */
     public TimeoutTask(TimerTrigger trigger, TimeoutClient client, AbstractTimer timer) {
-        super(trigger);
+        super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize());
         this.client = client;
-        this.rejectionHandler = new RejectedHighPriorityTaskEventGenerator();
         timer.schedule(this);
-    }
-    
-    public TimeoutTask(TimerTrigger trigger, TimeoutClient client, RejectedTaskHandler handler) {
-        super(trigger);
-        this.client = client;
-        this.rejectionHandler = handler;
-        Common.timer.schedule(this);
     }
     
     @Override
@@ -77,10 +67,6 @@ public class TimeoutTask extends TimerTask {
      */
     @Override
     public void rejected(RejectedTaskReason reason) {
-    	try{
-    		rejectionHandler.rejected(reason);
-    	}catch(Exception e){
-    		LOG.error(e.getMessage(), e);
-    	}
+    	this.client.rejected(reason);
     }
 }

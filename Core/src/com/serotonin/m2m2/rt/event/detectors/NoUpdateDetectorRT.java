@@ -27,4 +27,13 @@ public class NoUpdateDetectorRT extends DifferenceDetectorRT<NoUpdateDetectorVO>
         return new TranslatableMessage("event.detector.noUpdate", vo.njbGetDataPoint().getExtendedName(),
                 getDurationDescription());
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "NoUpdate Detector " + this.vo.getXid();
+	}
+
 }

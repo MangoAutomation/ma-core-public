@@ -21,7 +21,6 @@ import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
-import com.serotonin.m2m2.util.timeout.RejectedTaskHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -30,9 +29,10 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> implements TimeoutClient,RejectedTaskHandler {
+abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> {
 	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
+    private static final String prefix = "POLLINGDS-";
     private Object terminationLock;
 
     protected List<DataPointRT> dataPoints = new ArrayList<>();
@@ -46,6 +46,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     // If polling is done with cron
     private String cronPattern;
 
+    private final TimeoutClient timeoutClient;
     private TimerTask timerTask;
     private volatile Thread jobThread;
 
@@ -62,6 +63,35 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
         this.latestAbortedPollTimes = new ConcurrentLinkedQueue<Long>();
         this.abortedPollLogDelay = Common.envProps.getLong("runtime.datasource.pollAbortedLogFrequency", 3600000);
+        this.timeoutClient = new TimeoutClient(){
+
+			@Override
+			public void scheduleTimeout(long fireTime) {
+				scheduleTimeoutImpl(fireTime);
+			}
+
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+			 */
+			@Override
+			public String getTaskId() {
+				return prefix + vo.getXid();
+			}
+			
+			@Override
+			public String getThreadName() {
+				return "Polling Data Source: " + vo.getXid();
+			}
+			
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
+			 */
+			@Override
+			public void rejected(RejectedTaskReason reason) {
+				incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+			}
+        	
+        };
     }
     
     public void setCronPattern(String cronPattern) {
@@ -111,8 +141,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         	this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName()));
     }
 
-    @Override
-    public void scheduleTimeout(long fireTime) {
+    public void scheduleTimeoutImpl(long fireTime) {
         try {
             jobThread = Thread.currentThread();
             
@@ -132,7 +161,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             doPollNoSync(fireTime);
             
             //Save the poll time and duration
-            this.latestPollTimes.add(new LongLongPair(fireTime, System.currentTimeMillis() - startTs));
+            this.latestPollTimes.add(new LongLongPair(fireTime, Common.backgroundProcessing.currentTimeMillis() - startTs));
             //Trim the Queue
             while(this.latestPollTimes.size() > 10)
             	this.latestPollTimes.poll();
@@ -191,15 +220,6 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             }
         }
     }
-
-    /*
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.util.timeout.RejectedTaskHandler#rejected(com.serotonin.timer.RejectedTaskReason)
-     */
-    @Override
-    public void rejected(final RejectedTaskReason reason){
-    	incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-    }
     
     //
     //
@@ -211,15 +231,16 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             long delay = 0;
             if (quantize){
                 // Quantize the start.
-            	long now = System.currentTimeMillis();
+            	long now = Common.backgroundProcessing.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
-                LOG.debug("First poll should be at: " + (now + delay));
+                if(LOG.isDebugEnabled())
+                	LOG.debug("First poll should be at: " + (now + delay));
             }
-            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this, this);
+            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this.timeoutClient);
         }
         else {
             try {
-                timerTask = new TimeoutTask(new CronTimerTrigger(cronPattern), this, this);
+                timerTask = new TimeoutTask(new CronTimerTrigger(cronPattern), this.timeoutClient);
             }
             catch (ParseException e) {
                 // Should not happen

@@ -32,4 +32,13 @@ public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDe
         int newMultistate = newValue.getIntegerValue();
         return newMultistate == vo.getState();
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "Multistate State Detector " + this.vo.getXid();
+	}
+
 }

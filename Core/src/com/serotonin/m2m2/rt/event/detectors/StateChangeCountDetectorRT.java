@@ -70,7 +70,7 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
         // }
         //
         // if (history.size() > 0)
-        // pointChanged(System.currentTimeMillis(), history.get(0));
+        // pointChanged(Common.backgroundProcessing.currentTimeMillis(), history.get(0));
     }
 
     @Override
@@ -142,4 +142,13 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
                 break;
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "StateChangeCounter " + this.vo.getXid();
+	}
+
 }

@@ -32,7 +32,7 @@ abstract public class TimePeriodChartRenderer extends BaseChartRenderer {
      * Convenience method for getting the start time of the chart period.
      */
     public long getStartTime() {
-        return System.currentTimeMillis() - getDuration();
+        return Common.backgroundProcessing.currentTimeMillis() - getDuration();
     }
 
     public void setStartTime(long t){

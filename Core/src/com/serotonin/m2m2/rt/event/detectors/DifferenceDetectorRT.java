@@ -33,9 +33,9 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
     }
 
     synchronized protected void pointData() {
-    	lastChange = System.currentTimeMillis();
+    	lastChange = Common.backgroundProcessing.currentTimeMillis();
     	if (!eventActive)
-            unscheduleJob(System.currentTimeMillis());
+            unscheduleJob(Common.backgroundProcessing.currentTimeMillis());
         else
             setEventActive(false);
         
@@ -51,9 +51,9 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
             lastChange = latest.getTime();
         else
             // The point may be new or not logged, so don't go active immediately.
-            lastChange = System.currentTimeMillis();
+            lastChange = Common.backgroundProcessing.currentTimeMillis();
 
-        if (lastChange + getDurationMS() < System.currentTimeMillis())
+        if (lastChange + getDurationMS() < Common.backgroundProcessing.currentTimeMillis())
             // Nothing has happened in the time frame, so set the event active.
             setEventActive(true);
         else

@@ -35,14 +35,14 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
      * this job is true.
      */
     public static void start() {
-        Common.timer.schedule(new UpgradeCheck());
+        Common.backgroundProcessing.schedule(new UpgradeCheck());
     }
 
     private final SystemEventType et = new SystemEventType(SystemEventType.TYPE_UPGRADE_CHECK, 0,
             EventType.DuplicateHandling.IGNORE);
 
     public UpgradeCheck() {
-        super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT));
+        super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT), "Upgrade check task", "UpgradeCheck", 0);
         this.availableUpgrades = new IntegerMonitor(UPGRADES_AVAILABLE_MONITOR_ID, new TranslatableMessage("internal.monitor.AVAILABLE_UPGRADE_COUNT"), this);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(this.availableUpgrades);
     }
@@ -53,10 +53,10 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
         	int available = ModulesDwr.upgradesAvailable();
             if (available > 0) {
                 TranslatableMessage m = new TranslatableMessage("modules.event.upgrades");
-                SystemEventType.raiseEvent(et, System.currentTimeMillis(), true, m);
+                SystemEventType.raiseEvent(et, Common.backgroundProcessing.currentTimeMillis(), true, m);
             }
             else
-                Common.eventManager.returnToNormal(et, System.currentTimeMillis(),
+                Common.eventManager.returnToNormal(et, Common.backgroundProcessing.currentTimeMillis(),
                         EventInstance.RtnCauses.RETURN_TO_NORMAL);
             this.availableUpgrades.setValue(available);
         }

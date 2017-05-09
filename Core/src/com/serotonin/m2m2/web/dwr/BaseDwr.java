@@ -290,7 +290,7 @@ abstract public class BaseDwr {
 		UserCommentVO c = new UserCommentVO();
 		c.setXid(UserCommentDao.instance.generateUniqueXid());
 		c.setComment(comment);
-		c.setTs(System.currentTimeMillis());
+		c.setTs(Common.backgroundProcessing.currentTimeMillis());
 		c.setUserId(user.getId());
 		c.setUsername(user.getUsername());
 		c.setReferenceId(referenceId);
@@ -426,7 +426,7 @@ abstract public class BaseDwr {
 
 		LongPollRequest pollRequest = data.getRequest();
 
-		long expireTime = System.currentTimeMillis() + 60000; // One minute
+		long expireTime = Common.backgroundProcessing.currentTimeMillis() + 60000; // One minute
 		LongPollState state = data.getState();
 		int waitTime = SystemSettingsDao
 				.getIntValue(SystemSettingsDao.UI_PERFORMANCE);
@@ -437,7 +437,7 @@ abstract public class BaseDwr {
 		// user-specific event change tracking code.
 		state.setLastAlarmLevelChange(0);
 		while (!pollRequest.isTerminated()
-				&& System.currentTimeMillis() < expireTime) {
+				&& Common.backgroundProcessing.currentTimeMillis() < expireTime) {
 			if (Providers.get(ILifecycle.class).isTerminated()) {
 				pollRequest.setTerminated(true);
 				break;
@@ -725,7 +725,7 @@ abstract public class BaseDwr {
 				.getAttribute(LONG_POLL_DATA_TIMEOUT_KEY);
 		if (lastTimeoutCheck == null)
 			lastTimeoutCheck = 0L;
-		long cutoff = System.currentTimeMillis() - (1000 * 60 * 5); // Five
+		long cutoff = Common.backgroundProcessing.currentTimeMillis() - (1000 * 60 * 5); // Five
 																	// minutes.
 		if (lastTimeoutCheck < cutoff) {
 			synchronized (data) {
@@ -738,7 +738,7 @@ abstract public class BaseDwr {
 			}
 
 			session.setAttribute(LONG_POLL_DATA_TIMEOUT_KEY,
-					System.currentTimeMillis());
+					Common.backgroundProcessing.currentTimeMillis());
 		}
 
 		return data;

@@ -158,4 +158,13 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
         double err = sumErr / count;
         return (float) (1 - err);
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "Smoothness Detector " + this.vo.getXid();
+	}
+
 }

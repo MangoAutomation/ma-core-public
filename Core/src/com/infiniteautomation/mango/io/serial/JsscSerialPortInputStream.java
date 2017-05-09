@@ -18,6 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.io.StreamUtils;
+import com.serotonin.m2m2.Common;
 
 
 /**
@@ -139,7 +140,7 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
             // basically use a thread pool here
             if (listeners.size() > 0) {
                 //Create a new RX Event
-                final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(System.currentTimeMillis());
+                final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(Common.backgroundProcessing.currentTimeMillis());
                 for (final SerialPortProxyEventListener listener : listeners){
                 	SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent, this);
                 	try{

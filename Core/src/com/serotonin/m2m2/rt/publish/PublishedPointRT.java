@@ -67,6 +67,10 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
 			parent.publish(vo, value);
 	}	
 	
+    public String getListenerName(){
+    	return "Published Point With Id" + vo.getDataPointId();
+    }
+    
     public T getVo() {
         return vo;
     }

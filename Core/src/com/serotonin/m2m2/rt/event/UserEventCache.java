@@ -17,6 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
@@ -34,7 +35,7 @@ import com.serotonin.timer.TimerTask;
  * @author Terry Packer
  *
  */
-public class UserEventCache implements TimeoutClient{
+public class UserEventCache extends TimeoutClient{
 	private final Log LOG = LogFactory.getLog(UserEventCache.class);
 	
     private long timeToLive;
@@ -152,7 +153,7 @@ public class UserEventCache implements TimeoutClient{
     // CLEANUP method
     public void cleanup() {
         
-        long now = System.currentTimeMillis();
+        long now = Common.backgroundProcessing.currentTimeMillis();
         ArrayList<Integer> deleteKey = null;
         
 
@@ -194,7 +195,6 @@ public class UserEventCache implements TimeoutClient{
 		}finally{
 			jobThread = null;
 		}
-        Thread.yield();
 	}
 	
 	public void terminate(){
@@ -202,9 +202,26 @@ public class UserEventCache implements TimeoutClient{
             timerTask.cancel();  
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "User event cache cleaner";
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return "UserEventCacheCleaner";
+	}
+
+	
     private class UserEventCacheEntry {
     	
-        private volatile long lastAccessed = System.currentTimeMillis();
+        private volatile long lastAccessed = Common.backgroundProcessing.currentTimeMillis();
         private List<EventInstance> events;
         private ReadWriteLock lock;
         
@@ -224,7 +241,7 @@ public class UserEventCache implements TimeoutClient{
         		return new ArrayList<>(this.events);
         	}finally{
         		this.lock.readLock().unlock();
-        		this.lastAccessed = System.currentTimeMillis();
+        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
         	}
 		}
 
@@ -234,7 +251,7 @@ public class UserEventCache implements TimeoutClient{
         		this.events.add(event);
         	}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = System.currentTimeMillis();
+        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
         	}
         }
 
@@ -254,7 +271,7 @@ public class UserEventCache implements TimeoutClient{
 	        	}
 			}finally{
 				this.lock.writeLock().unlock();
-				this.lastAccessed = System.currentTimeMillis();
+				this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
 			}
         	
 		}
@@ -275,7 +292,7 @@ public class UserEventCache implements TimeoutClient{
 	        	}
 			}finally{
 				this.lock.writeLock().unlock();
-				this.lastAccessed = System.currentTimeMillis();
+				this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
 			}
         }
 
@@ -291,7 +308,7 @@ public class UserEventCache implements TimeoutClient{
 	        	}
 			}finally{
 				this.lock.writeLock().unlock();
-				this.lastAccessed = System.currentTimeMillis();
+				this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
 			}
 			
 		}
@@ -307,7 +324,7 @@ public class UserEventCache implements TimeoutClient{
 	        	}
 			}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = System.currentTimeMillis();
+        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
         	}
 		}
 		public void purgeBefore(long time, String typeName){
@@ -323,7 +340,7 @@ public class UserEventCache implements TimeoutClient{
 	        	}
 			}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = System.currentTimeMillis();
+        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
         	}
 		}
 		/**
@@ -335,9 +352,8 @@ public class UserEventCache implements TimeoutClient{
 				this.events.clear();
 			}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = System.currentTimeMillis();
+        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
         	}
 		}
     }
-	
 }

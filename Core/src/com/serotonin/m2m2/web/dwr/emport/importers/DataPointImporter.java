@@ -62,10 +62,10 @@ public class DataPointImporter extends Importer {
                 }
             	//Read into the VO to get all properties
             	ctx.getReader().readInto(vo, json);
+            	
             	//Override the settings if we need to
                 if(template != null){
                 	template.updateDataPointVO(vo);
-                	
                 }
                 
                 // If the name is not provided, default to the XID

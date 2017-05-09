@@ -122,4 +122,13 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
             // Deactive the event.
             returnToNormal(positiveCusumInactiveTime);
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "PosCusumDetector " + this.vo.getXid();
+	}
+
 }

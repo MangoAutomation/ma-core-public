@@ -26,7 +26,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
      * this job is true.
      */
     public static void start() {
-        Common.timer.schedule(new WorkItemMonitor());
+        Common.backgroundProcessing.schedule(new WorkItemMonitor());
     }
 
     public static final String MAX_STACK_HEIGHT_MONITOR_ID = WorkItemMonitor.class.getName() + ".maxStackHeight";
@@ -104,7 +104,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     private boolean running;
     
     private WorkItemMonitor() {
-        super(new FixedRateTrigger(TIMEOUT, TIMEOUT));
+        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Work item monitor", "WorkItemMonitor", 0);
         this.running = true;
         
         Common.MONITORED_VALUES.addIfMissingStatMonitor(highPriorityActive);

@@ -25,7 +25,7 @@ import com.serotonin.m2m2.util.timeout.TimeoutTask;
  * @author Terry Packer
  *
  */
-public 	class MangoPingPongTracker implements TimeoutClient{
+public 	class MangoPingPongTracker extends TimeoutClient{
 	
 	private static final Log LOG = LogFactory.getLog(MangoPingPongTracker.class);
 			
@@ -68,5 +68,21 @@ public 	class MangoPingPongTracker implements TimeoutClient{
 		}
 		
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "Mango ping pong tracker";
+	}
+
+	private static final String taskId = "MangoPingPongTracker";
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return taskId;
+	}
 }

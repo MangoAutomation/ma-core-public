@@ -36,4 +36,13 @@ public class AlphanumericRegexStateDetectorRT extends StateDetectorRT<Alphanumer
         	return Pattern.compile(vo.getState()).matcher(newAlpha).find();
         return false;
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "AlphanumericRegex Detector " + this.vo.getXid();
+	}
+
 }

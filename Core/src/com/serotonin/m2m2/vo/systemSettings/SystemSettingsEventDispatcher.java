@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 
 /**
+ * 
  * @author Terry Packer
  *
  */
@@ -31,15 +33,15 @@ public class SystemSettingsEventDispatcher {
 
     public static void fireSystemSettingSaved(String key, Object oldValue, Object newValue) {
         for (SystemSettingsListener l : LISTENERS)
-            Common.timer.execute(new DispatcherExecution(l, key, oldValue, newValue, SETTING_SAVED));
+            Common.backgroundProcessing.execute(new DispatcherExecution(l, key, oldValue, newValue, SETTING_SAVED));
     }
 
     public static void fireSystemSettingRemoved(String key, Object lastValue) {
         for (SystemSettingsListener l : LISTENERS)
-            Common.timer.execute(new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
+            Common.backgroundProcessing.execute(new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
     }
 
-    static class DispatcherExecution implements Runnable {
+    static class DispatcherExecution extends HighPriorityTask {
         private final SystemSettingsListener l;
         private final String key;
         private final Object oldValue;
@@ -47,7 +49,8 @@ public class SystemSettingsEventDispatcher {
         private final int operation;
 
         public DispatcherExecution(SystemSettingsListener l,String key,  Object oldValue, Object newValue, int operation) {
-            this.l = l;
+        	super("System settings event dispatcher");
+        	this.l = l;
             this.key = key;
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -55,7 +58,7 @@ public class SystemSettingsEventDispatcher {
         }
 
         @Override
-        public void run() {
+        public void run(long runtime) {
             switch(operation){
             case SETTING_SAVED:
             	l.SystemSettingsSaved(key, oldValue, newValue);

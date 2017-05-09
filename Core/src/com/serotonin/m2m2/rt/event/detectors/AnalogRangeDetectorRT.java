@@ -155,4 +155,13 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT<AnalogRang
             // Deactive the event.
             returnToNormal(rangeInactiveTime);
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+	 */
+	@Override
+	public String getThreadNameImpl() {
+		return "AnalogLowLimit Detector " + this.vo.getXid();
+	}
+
 }

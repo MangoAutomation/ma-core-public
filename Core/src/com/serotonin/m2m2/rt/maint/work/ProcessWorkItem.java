@@ -19,6 +19,7 @@ import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * @author Matthew Lohbihler
@@ -46,7 +47,7 @@ public class ProcessWorkItem implements WorkItem {
         }
         catch (IOException e) {
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_PROCESS_FAILURE),
-                    System.currentTimeMillis(), false,
+                    Common.backgroundProcessing.currentTimeMillis(), false,
                     new TranslatableMessage("event.process.failure", command, e.getMessage()));
         }
     }
@@ -56,6 +57,30 @@ public class ProcessWorkItem implements WorkItem {
 		return "Process: " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
 	}
     
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		//TODO Better handling by sending in an XID as this is always unique for work items...
+		return "ProcessWorkItem-" + this.hashCode();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+	 */
+	@Override
+	public int getQueueSize() {
+		return Common.defaultTaskQueueSize;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) { }
+
+	
     public static StringStringPair executeProcessCommand(String command, int timeoutSeconds) throws IOException {
         Process process = Runtime.getRuntime().exec(command);
 
@@ -159,7 +184,29 @@ public class ProcessWorkItem implements WorkItem {
     	public String getDescription() {
     		return "ProcessTimeout : " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
     	}
-        
+    	
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { }
+
     }
 
     static class InputReader implements WorkItem {
@@ -219,6 +266,28 @@ public class ProcessWorkItem implements WorkItem {
     		return "Input Reader: " + state;
     	}
         
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 0;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) { }
+
     }
     //    
     // public static void main(String[] args) throws Exception {
@@ -251,9 +320,5 @@ public class ProcessWorkItem implements WorkItem {
     // System.out.println("out: "+ out.getInput());
     // System.out.println("err: "+ err.getInput());
     // }
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-	 */
 
 }

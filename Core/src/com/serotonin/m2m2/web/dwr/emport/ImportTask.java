@@ -20,6 +20,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.BackgroundContext;
+import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointImporter;
@@ -33,7 +34,6 @@ import com.serotonin.m2m2.web.dwr.emport.importers.SystemSettingsImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.TemplateImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.UserImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.VirtualSerialPortImporter;
-import com.serotonin.util.ProgressiveTask;
 
 /**
  * @author Matthew Lohbihler
@@ -48,7 +48,15 @@ public class ImportTask extends ProgressiveTask {
     private final List<Importer> importers = new ArrayList<Importer>();
     private final List<ImportItem> importItems = new ArrayList<ImportItem>();
 
+    /**
+     * Create an ordered task that can be queue to run one after another
+     * @param root
+     * @param translations
+     * @param user
+     */
     public ImportTask(JsonObject root, Translations translations, User user) {
+    	super("JSON import task", "JsonImport", Common.defaultTaskQueueSize);
+    	
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
         this.user = user;
@@ -93,7 +101,7 @@ public class ImportTask extends ProgressiveTask {
             importItems.add(importItem);
         }
 
-        Common.timer.execute(this);
+        Common.backgroundProcessing.execute(this);
     }
 
     private List<JsonValue> nonNullList(JsonObject root, String key) {

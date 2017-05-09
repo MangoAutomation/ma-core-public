@@ -25,12 +25,13 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherRT<T extends PublishedPointVO> implements TimeoutClient {
+abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutClient {
     public static final int POINT_DISABLED_EVENT = 1;
     public static final int QUEUE_SIZE_WARNING_EVENT = 2;
 
@@ -145,23 +146,23 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
                     lm = new TranslatableMessage("event.publish.pointMissing", badPointId);
                 else
                     lm = new TranslatableMessage("event.publish.pointDisabled", disabledPoint.getXid());
-                Common.eventManager.raiseEvent(pointDisabledEventType, System.currentTimeMillis(), true,
+                Common.eventManager.raiseEvent(pointDisabledEventType, Common.backgroundProcessing.currentTimeMillis(), true,
                         vo.getAlarmLevel(POINT_DISABLED_EVENT, AlarmLevels.URGENT), lm, createEventContext());
             }
             else
                 // Everything is good
-                Common.eventManager.returnToNormal(pointDisabledEventType, System.currentTimeMillis());
+                Common.eventManager.returnToNormal(pointDisabledEventType, Common.backgroundProcessing.currentTimeMillis());
         }
     }
 
     void fireQueueSizeWarningEvent() {
-        Common.eventManager.raiseEvent(queueSizeWarningEventType, System.currentTimeMillis(), true, 
+        Common.eventManager.raiseEvent(queueSizeWarningEventType, Common.backgroundProcessing.currentTimeMillis(), true, 
         		vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT),
                 new TranslatableMessage("event.publish.queueSize", vo.getCacheWarningSize()), createEventContext());
     }
 
     void deactivateQueueSizeWarningEvent() {
-        Common.eventManager.returnToNormal(queueSizeWarningEventType, System.currentTimeMillis());
+        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.backgroundProcessing.currentTimeMillis());
     }
 
     protected Map<String, Object> createEventContext() {
@@ -252,4 +253,20 @@ abstract public class PublisherRT<T extends PublishedPointVO> implements Timeout
             jobThread = null;
         }
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+	 */
+	@Override
+	public String getThreadName() {
+		return "Pubisher: " + vo.getXid();
+	}
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+	 */
+	@Override
+	public String getTaskId() {
+		return "PUB-" + vo.getXid();
+	}
+
 }

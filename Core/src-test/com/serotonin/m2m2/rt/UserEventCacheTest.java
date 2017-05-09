@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -127,7 +128,7 @@ public class UserEventCacheTest extends MangoTestBase{
 			for(int i=0; i<EVENT_COUNT; i++){
 				EventInstance e = new EventInstance(
 						eventType,
-						System.currentTimeMillis(), 
+						Common.backgroundProcessing.currentTimeMillis(), 
 						true,
 						AlarmLevels.CRITICAL,
 						message,
@@ -142,7 +143,7 @@ public class UserEventCacheTest extends MangoTestBase{
 			//Return them to normal
 			for(EventInstance e : allEvents){
 				e.setAcknowledgedByUserId(1);
-				e.setAcknowledgedTimestamp(System.currentTimeMillis());
+				e.setAcknowledgedTimestamp(Common.backgroundProcessing.currentTimeMillis());
 				for(int userId=0; userId<USER_COUNT; userId++)
 					parent.cache.updateEvent(userId, e);
 			}
@@ -188,7 +189,7 @@ public class UserEventCacheTest extends MangoTestBase{
 				parent.cache.getAllEvents(userId);
 				
 				//Purge some 
-				parent.cache.purgeEventsBefore(System.currentTimeMillis() - 100);
+				parent.cache.purgeEventsBefore(Common.backgroundProcessing.currentTimeMillis() - 100);
 			}
 			
 			//Purge all events

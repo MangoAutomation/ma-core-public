@@ -40,7 +40,6 @@ public class DataPurge {
     private final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = DataPointDao.instance;
-    private final DataSourceDao dataSourceDao = DataSourceDao.instance;
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
     private long deletedSamples;
     private long deletedFiles;
@@ -48,7 +47,7 @@ public class DataPurge {
 
     public static void schedule() {
         try {
-            Common.timer.schedule(new DataPurgeTask());
+            Common.backgroundProcessing.schedule(new DataPurgeTask());
         }
         catch (ParseException e) {
             throw new ShouldNeverHappenException(e);
@@ -110,7 +109,7 @@ public class DataPurge {
             }
             else {
                 // Check the data source level.
-                DataSourceVO<?> ds = dataSourceDao.getDataSource(dataPoint.getDataSourceId());
+                DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();
@@ -252,7 +251,7 @@ public class DataPurge {
             // Test trigger for running every 5 minutes.
             //super(new CronTimerTrigger("0 0/5 * * * ?"));
             // Trigger to run at 3:05am every day
-            super(new CronTimerTrigger("0 5 3 * * ?"));
+            super(new CronTimerTrigger("0 5 3 * * ?"), "Data purge task", "DataPurge", 0);
         }
 
         @Override

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -24,7 +25,7 @@ public class RhinoScriptTestData {
 	public static List<List<PointValueTime>> numericPvts;
 	
 	static {
-		long currentTime = System.currentTimeMillis();
+		long currentTime = Common.backgroundProcessing.currentTimeMillis();
 		long relativeTime;
 		numericPvts = new ArrayList<List<PointValueTime>>();
 		for(int i=0; i<pointCount; i++){

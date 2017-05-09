@@ -23,11 +23,11 @@ public class MemoryCheck extends TimerTask {
      * this job is true.
      */
     public static void start() {
-        Common.timer.schedule(new MemoryCheck());
+        Common.backgroundProcessing.schedule(new MemoryCheck());
     }
 
     public MemoryCheck() {
-        super(new FixedRateTrigger(TIMEOUT, TIMEOUT));
+        super(new FixedRateTrigger(TIMEOUT, TIMEOUT), "Memory check task", "MemCheck", 0);
     }
 
     @Override

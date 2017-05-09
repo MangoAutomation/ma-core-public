@@ -20,6 +20,7 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.RealTimeTimer;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * 
@@ -50,7 +51,6 @@ public class MonitoredValuesTest {
 						System.out.println("Rejected: " + r.toString());
 					}
         		},
-        		1,
         		false);
         timer.init(executor);
 		
@@ -72,6 +72,30 @@ public class MonitoredValuesTest {
 			public void scheduleTimeout(long fireTime) {
 				IntegerMonitor mon = (IntegerMonitor) MONITORED_VALUES.getValueMonitor(MONITOR_ID);
 				mon.addValue(1);
+			}
+
+			@Override
+			public String getThreadName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public String getTaskId() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public int getQueueSize() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public void rejected(RejectedTaskReason reason) {
+				// TODO Auto-generated method stub
+				
 			}}, timer );
 		
 		//Start a task to count down
@@ -80,6 +104,30 @@ public class MonitoredValuesTest {
 			public void scheduleTimeout(long fireTime) {
 				IntegerMonitor mon = (IntegerMonitor) MONITORED_VALUES.getValueMonitor(MONITOR_ID);
 				mon.addValue(-1);
+			}
+
+			@Override
+			public String getThreadName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public String getTaskId() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public int getQueueSize() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public void rejected(RejectedTaskReason reason) {
+				// TODO Auto-generated method stub
+				
 			}}, timer );
 		
 		//Start a task to read
@@ -88,6 +136,30 @@ public class MonitoredValuesTest {
 			public void scheduleTimeout(long fireTime) {
 				IntegerMonitor mon = (IntegerMonitor) MONITORED_VALUES.getValueMonitor(MONITOR_ID);
 				mon.getValue();
+			}
+
+			@Override
+			public String getThreadName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public String getTaskId() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public int getQueueSize() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public void rejected(RejectedTaskReason reason) {
+				// TODO Auto-generated method stub
+				
 			}}, timer );
 		//Start a task to reset
 		new TimeoutTask(new FixedRateTrigger(0, period), new TimeoutClient(){
@@ -95,6 +167,30 @@ public class MonitoredValuesTest {
 			public void scheduleTimeout(long fireTime) {
 				IntegerMonitor mon = (IntegerMonitor) MONITORED_VALUES.getValueMonitor(MONITOR_ID);
 				mon.reset();
+			}
+
+			@Override
+			public String getThreadName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public String getTaskId() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public int getQueueSize() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public void rejected(RejectedTaskReason reason) {
+				// TODO Auto-generated method stub
+				
 			}}, timer );
 		
 		while(true){
