@@ -9,22 +9,10 @@
 	<artifactId>mango-bundle</artifactId>
   	<version>3.0.3-SNAPSHOT</version>
 	<name>Mango Core Release Bundle</name>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 	<properties>
 	</properties>
 	<repositories>
-	    <repository>
-		<id>mango-core</id>
-		<name>Mango Dependencies</name>
-		<releases>
-			<enabled>true</enabled>
-			<checksumPolicy>ignore</checksumPolicy>
-		</releases>
-		<snapshots>
-			<enabled>true</enabled>
-		</snapshots>
-		<url>file://${project.basedir}/../Core/maven-local</url>
-	</repository>  
 	</repositories>
 	<build>
 		<resources>
@@ -124,12 +112,18 @@
 			<artifactId>ma-priv</artifactId>
 			<version>3.0.3-SNAPSHOT</version>
 		</dependency>
-		<!--  TODO These should be moved in and used as dependencies to build the zip, but we need to figure out how to remove -SNAPSHOT first -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.infiniteautomation.mango</groupId> -->
-<!-- 			<artifactId>proprietary-modules-dist</artifactId> -->
-<!-- 			<version>${project.parent.version}</version> -->
-<!-- 			<type>zip</type> -->
-<!-- 		</dependency> -->
+		<!-- ma-modules-public -->
+		<dependency>
+			<groupId>com.infiniteautomation.mango</groupId>
+			<artifactId>ascii-ds</artifactId>
+			<version>3.0.2-SNAPSHOT</version>
+			<type>zip</type>	
+		</dependency>
+		<dependency>
+			<groupId>com.infiniteautomation.mango</groupId>
+			<artifactId>mango-api</artifactId>
+			<version>3.0.2-SNAPSHOT</version>
+			<type>zip</type>	
+		</dependency>
 	</dependencies>
 </project>

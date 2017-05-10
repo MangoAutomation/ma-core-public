@@ -36,6 +36,7 @@
       </includes>
       <excludes>
       	<exclude>web/WEB-INF/filedata/**</exclude>
+      	<exclude>web/modules/**</exclude>
       </excludes>
     </fileSet>
     <fileSet>
@@ -119,25 +120,26 @@
       <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
     </dependencySet>
-<!--     <dependencySet> -->
-<!--       	<includes> -->
-<!-- 			<include>*:zip</include> -->
-<!-- 		</includes> -->
-<!--     	<outputDirectory>web/modules</outputDirectory> -->
-<!--     	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.version}.${artifact.extension}</outputFileNameMapping> -->
-<!--     	<useProjectArtifact>false</useProjectArtifact> -->
-<!--     </dependencySet> -->
+    <dependencySet>
+      	<includes>
+			<include>com.infiniteautomation.mango:*:zip:*</include>
+		</includes>
+    	<outputDirectory>web/modules</outputDirectory>
+    	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.version}.${artifact.extension}</outputFileNameMapping>
+    	<useProjectArtifact>false</useProjectArtifact>
+    </dependencySet>
   </dependencySets>
 <!--   <moduleSets> -->
 <!--   	    <moduleSet> -->
 <!-- 				<useAllReactorProjects>true</useAllReactorProjects> -->
 <!--   	    	<includes> -->
-<!-- 				<include>com.infiniteautomation.mango:excel-reports</include> -->
+<!-- 				<include>*:mango-api</include> -->
 <!-- 			</includes> -->
 <!--   	    	<binaries> -->
 <!--   	    		<attachmentClassifier>zip</attachmentClassifier>  -->
 <!--   	    		<outputDirectory>web/modules</outputDirectory> -->
 <!--   	    		<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping> -->
+<!--   	    		<unpack>false</unpack> -->
 <!--   	    	</binaries> -->
 <!--     </moduleSet> -->
 <!--   </moduleSets> -->
