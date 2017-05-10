@@ -684,7 +684,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         @Override
         public int getPriority() {
-            return WorkItem.PRIORITY_HIGH;
+            return WorkItem.PRIORITY_MEDIUM;
         }
 
 		/* (non-Javadoc)
