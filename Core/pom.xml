@@ -13,21 +13,16 @@
 	<properties>
 		<webDirectory>${project.basedir}/web</webDirectory>
 		<jspWorkDirectory>${project.basedir}/work/jsp</jspWorkDirectory>
+		<skipDownloadModule>true</skipDownloadModule>
 	</properties>
-	<repositories>
-	    <repository>
-		<id>mango-core</id>
-		<name>Mango Dependencies</name>
-		<releases>
-			<enabled>true</enabled>
-			<checksumPolicy>ignore</checksumPolicy>
-		</releases>
-		<snapshots>
-			<enabled>true</enabled>
-		</snapshots>
-		<url>file://${project.basedir}/maven-local</url>
-	</repository>  
-	</repositories>
+	<profiles>
+		<profile>
+	      <id>download-module</id>
+	      <properties>
+	        <skipDownloadModule>false</skipDownloadModule>
+	      </properties>
+	    </profile>
+	</profiles>
 	<build>
 		<directory>maven-target</directory>
 		<sourceDirectory>src</sourceDirectory>
@@ -84,17 +79,10 @@
 					</execution>
 				</executions>
 				<dependencies>
-					<!-- Exclude apache-jsp here so patched classes in Core are used -->
 					<dependency>
 						<groupId>org.eclipse.jetty</groupId>
 						<artifactId>apache-jsp</artifactId>
 						<version>${jettyVersion}</version>
-<!-- 						<exclusions> -->
-<!-- 							<exclusion> -->
-<!-- 								<groupId>org.mortbay.jasper</groupId> -->
-<!-- 								<artifactId>apache-jsp</artifactId> -->
-<!-- 							</exclusion> -->
-<!-- 						</exclusions> -->
 					</dependency>
 					<dependency>
 						<groupId>com.infiniteautomation</groupId>
@@ -144,6 +132,21 @@
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                	<skip>${skipDownloadModule}</skip>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>com.infiniteautomation.mango</groupId>
+                            <artifactId>${moduleName}</artifactId>
+                            <version>${moduleVersion}</version>
+                            <type>zip</type>
+                        </artifactItem>
+                    </artifactItems>
+                    <outputDirectory>${MA_HOME}/web/modules</outputDirectory>
+                    <stripVersion>false</stripVersion>
+                    <stripClassifier>false</stripClassifier>
+                    <useBaseVersion>false</useBaseVersion>
+                </configuration>
             </plugin>
 		</plugins>
 		<pluginManagement>
