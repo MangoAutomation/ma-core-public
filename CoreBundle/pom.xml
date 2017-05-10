@@ -277,13 +277,13 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>controlCore-ds</artifactId>
+			<artifactId>controlcore-ds</artifactId>
 			<version>3.0.2-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>dataFile-ds</artifactId>
+			<artifactId>datafile-ds</artifactId>
 			<version>3.0.2-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
@@ -343,7 +343,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>oneWire-ds</artifactId>
+			<artifactId>onewire-ds</artifactId>
 			<version>3.0.2-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
