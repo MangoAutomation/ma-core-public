@@ -65,6 +65,33 @@
         <module>CoreBundle</module>
       </modules>
     </profile>
+    <profile>
+    	<!-- Profile to release to maven.mangoautomation.net via the release plugin -->
+		<id>releases</id>
+		<build>
+			<plugins>
+				<plugin>
+					<groupId>org.sonatype.plugins</groupId>
+					<artifactId>nexus-staging-maven-plugin</artifactId>
+					<version>1.5.1</version>
+					<executions>
+						<execution>
+							<id>default-deploy</id>
+							<phase>deploy</phase>
+							<goals>
+								<goal>deploy</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<serverId>ias-releases</serverId>
+						<nexusUrl>https://maven.mangoautomation.net/</nexusUrl>
+						<skipStaging>true</skipStaging>
+					</configuration>
+				</plugin>
+			</plugins>
+		</build>   	
+    </profile>
  </profiles>
  <repositories>
     <repository>
@@ -224,7 +251,6 @@
       <plugin>
       	<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
       	<configuration>
             <arguments>-DskipTests</arguments>
             <pushChanges>false</pushChanges>
@@ -248,6 +274,8 @@
             <include>com.infiniteautomation.mango:*</include>
           </includes>
           <excludes>
+          	<!-- On its own release schedule and deprecated anyway -->
+          	<exclude>com.infiniteautomation.mango:dashboards</exclude>
           </excludes>
         </configuration>
       </plugin>
