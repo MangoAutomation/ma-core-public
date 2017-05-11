@@ -117,6 +117,30 @@
         <url>https://maven.mangoautomation.net/repository/ias-release/</url>
     </repository>
  </repositories>
+ <pluginRepositories>
+    <pluginRepository>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+        <id>ias-snapshots</id>
+        <name>Mango Dependencies</name>
+        <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
+    </pluginRepository>
+    <pluginRepository>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+        <id>ias-releases</id>
+        <name>Mango Dependencies</name>
+        <url>https://maven.mangoautomation.net/repository/ias-release/</url>
+    </pluginRepository>
+ </pluginRepositories>
  <build>
     <directory>maven-target</directory>
     <pluginManagement>
