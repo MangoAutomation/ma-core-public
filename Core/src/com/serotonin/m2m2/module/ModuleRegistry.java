@@ -53,6 +53,12 @@ import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandler
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.settings.DatabaseSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.FiledataCountSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.FiledataSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.NoSqlDatabaseSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.TimezoneSettingDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.shared.DependencyData;
 import com.serotonin.m2m2.vo.User;
@@ -102,6 +108,7 @@ public class ModuleRegistry {
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
     private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
+    private static List<ReadOnlySettingDefinition<?>> READ_ONLY_SETTING_DEFINITIONS;
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
@@ -560,7 +567,7 @@ public class ModuleRegistry {
     
     //
     //
-    // AngularJS Module special handling
+    // System Settings special handling
     //
     public static List<SystemSettingsDefinition> getSystemSettingsDefinitions() {
     	ensureSystemSettingsDefinitions();
@@ -583,6 +590,36 @@ public class ModuleRegistry {
                     	list.add(def);
                     }
                     SYSTEM_SETTINGS_DEFINITIONS = list;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // Read Only Settings special handling
+    //
+    public static List<ReadOnlySettingDefinition<?>> getReadOnlySettingDefinitions() {
+    	ensureReadOnlySettingDefinitions();
+        return READ_ONLY_SETTING_DEFINITIONS;
+    }
+
+    private static void ensureReadOnlySettingDefinitions() {
+        if (READ_ONLY_SETTING_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (READ_ONLY_SETTING_DEFINITIONS == null) {
+                    List<ReadOnlySettingDefinition<?>> list = new ArrayList<ReadOnlySettingDefinition<?>>();
+                    for(ReadOnlySettingDefinition<?> def : Module.getDefinitions(preDefaults, ReadOnlySettingDefinition.class)){
+                    	list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (ReadOnlySettingDefinition<?> def : module.getDefinitions(ReadOnlySettingDefinition.class))
+                        	list.add(def);
+                    }
+                    for(ReadOnlySettingDefinition<?> def : Module.getDefinitions(postDefaults, ReadOnlySettingDefinition.class)){
+                    	list.add(def);
+                    }
+                    READ_ONLY_SETTING_DEFINITIONS = list;
                 }
             }
         }
@@ -822,6 +859,14 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
+        
+        /* Read Only Settings */
+        preDefaults.add(new TimezoneSettingDefinition());
+        preDefaults.add(new DatabaseTypeSettingDefinition());
+        preDefaults.add(new DatabaseSizeSettingDefinition());
+        preDefaults.add(new FiledataSizeSettingDefinition());
+        preDefaults.add(new FiledataCountSettingDefinition());
+        preDefaults.add(new NoSqlDatabaseSizeSettingDefinition());
         
     }
 
