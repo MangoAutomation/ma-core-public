@@ -15,13 +15,6 @@
 	<repositories>
 	</repositories>
 	<build>
-		<resources>
-			<resource>
-				<directory>resources</directory>
-				<filtering>true</filtering>
-				<targetPath>${project.build.directory}/m2m2-core-${project.parent.version}</targetPath>
-			</resource>
-		</resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -114,17 +107,6 @@
 		</dependency>
 		<!-- ma-modules-public -->
 		<dependency>
-			<groupId>com.infiniteautomation</groupId>
-			<artifactId>mango</artifactId>
-			<version>${project.parent.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>ma-priv</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
-		</dependency>
-		<!-- ma-modules-public -->
-		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ascii-ds</artifactId>
 			<version>3.1.0-SNAPSHOT</version>
@@ -200,7 +182,7 @@
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mbus-ds</artifactId>
 			<version>3.1.0-SNAPSHOT</version>
-			<type>zip</type>	
+			<type>zip</type>
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>

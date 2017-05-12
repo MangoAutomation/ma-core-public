@@ -47,11 +47,13 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${project.build.directory}</directory>
-      <outputDirectory>work/jsp</outputDirectory>
+      <!-- release.properties inclusion with filtering the build number in -->
+      <directory>${basedir}/resources</directory>
+      <outputDirectory></outputDirectory>
       <includes>
         <include>release.properties</include>
       </includes>
+      <filtered>true</filtered>
     </fileSet>
     <!-- Empty Dirs -->
     <fileSet>
@@ -113,34 +115,27 @@
   </fileSets>
   <dependencySets>
     <dependencySet>
-    	<excludes>
-    		<exclude>*:zip</exclude>
-    		<exclude>*:pom</exclude>
-    	</excludes>
-      <outputDirectory>lib</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
+    	<!-- lib Folder -->
+    	<includes>
+    		<include>*:*</include>
+    	</includes>
+      	<excludes>
+      		<exclude>com.infiniteautomation.mango:*:zip:*</exclude>
+      	</excludes>
+     	<outputDirectory>lib</outputDirectory>
+      	<useProjectArtifact>false</useProjectArtifact>
+      	<useTransitiveDependencies>true</useTransitiveDependencies>
+      	<useTransitiveFiltering>true</useTransitiveFiltering>
     </dependencySet>
     <dependencySet>
+    	<!-- Module Zips -->
       	<includes>
 			<include>com.infiniteautomation.mango:*:zip:*</include>
 		</includes>
     	<outputDirectory>web/modules</outputDirectory>
     	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.version}.${artifact.extension}</outputFileNameMapping>
     	<useProjectArtifact>false</useProjectArtifact>
+    	<useTransitiveDependencies>false</useTransitiveDependencies>
     </dependencySet>
   </dependencySets>
-<!--   <moduleSets> -->
-<!--   	    <moduleSet> -->
-<!-- 				<useAllReactorProjects>true</useAllReactorProjects> -->
-<!--   	    	<includes> -->
-<!-- 				<include>*:mango-api</include> -->
-<!-- 			</includes> -->
-<!--   	    	<binaries> -->
-<!--   	    		<attachmentClassifier>zip</attachmentClassifier>  -->
-<!--   	    		<outputDirectory>web/modules</outputDirectory> -->
-<!--   	    		<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping> -->
-<!--   	    		<unpack>false</unpack> -->
-<!--   	    	</binaries> -->
-<!--     </moduleSet> -->
-<!--   </moduleSets> -->
 </assembly>	
