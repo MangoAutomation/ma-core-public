@@ -9,6 +9,21 @@
 		<directory>maven-target</directory>
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
+
+	    <resources>
+	        <resource>
+	            <directory>src</directory>
+	            <includes>
+	                <include>**/*.js</include>
+	                <include>**/*.xml</include>
+	                <include>**/*.dtd</include>
+	                <include>**/*.xsd</include>
+	                <include>**/*.properties</include>
+	                <include>**/*.html</include>
+	            </includes>
+	        </resource>
+	    </resources>
+
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -86,7 +101,6 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.0</version>
 		</dependency>
-
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
