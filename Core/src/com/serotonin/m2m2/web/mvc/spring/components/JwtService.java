@@ -74,9 +74,8 @@ public class JwtService {
     }
 
     private void saveKeyPair() {
-        SystemSettingsDao ssDao = new SystemSettingsDao();
-        ssDao.setValue(PUBLIC_KEY_SYSTEM_SETTING, writeKey(keyPair.getPublic()));
-        ssDao.setValue(PRIVATE_KEY_SYSTEM_SETTING, writeKey(keyPair.getPrivate()));
+    	SystemSettingsDao.instance.setValue(PUBLIC_KEY_SYSTEM_SETTING, writeKey(keyPair.getPublic()));
+    	SystemSettingsDao.instance.setValue(PRIVATE_KEY_SYSTEM_SETTING, writeKey(keyPair.getPrivate()));
     }
     
     private void loadKeyPair() {

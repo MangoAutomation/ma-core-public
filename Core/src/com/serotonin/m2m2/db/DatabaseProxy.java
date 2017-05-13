@@ -137,15 +137,14 @@ abstract public class DatabaseProxy {
                     sourceProxy.terminate(false);
                 }
                 else {
-                     SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
 
                     // Record the current version.
-                    systemSettingsDao.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                	SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                             Integer.toString(Common.getDatabaseSchemaVersion()));
 
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
-                    systemSettingsDao.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+                	SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
                     
                     /**
                      * Add a startup task to run after the Audit system is ready 

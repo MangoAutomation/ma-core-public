@@ -56,7 +56,7 @@ abstract public class DBUpgrade extends BaseDao {
                     schemaVersion = 1;
                 else {
                     // Probably a new module. Put the current code version into the database.
-                    new SystemSettingsDao().setIntValue(settingsKey, codeVersion);
+                	SystemSettingsDao.instance.setIntValue(settingsKey, codeVersion);
                     schemaVersion = codeVersion;
                 }
             }
@@ -96,7 +96,7 @@ abstract public class DBUpgrade extends BaseDao {
                 LOG.warn("Upgrading '" + moduleName + "' from " + schemaVersion + " to "
                         + upgrade.getNewSchemaVersion());
                 upgrade.upgrade();
-                new SystemSettingsDao().setValue(settingsKey, upgrade.getNewSchemaVersion());
+                SystemSettingsDao.instance.setValue(settingsKey, upgrade.getNewSchemaVersion());
             }
             catch (Exception e) {
                 throw new ShouldNeverHappenException(e);

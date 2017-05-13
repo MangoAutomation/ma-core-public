@@ -24,7 +24,7 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
             // If this is the first login to the instance by an admin...
             if (Permissions.hasAdmin(user) && SystemSettingsDao.getBooleanValue(SystemSettingsDao.NEW_INSTANCE, false)) {
                 // Remove the flag
-                new SystemSettingsDao().removeValue(SystemSettingsDao.NEW_INSTANCE);
+            	SystemSettingsDao.instance.removeValue(SystemSettingsDao.NEW_INSTANCE);
 
                 // If there is a page to which to forward, do so. This could be null.
                 uri = DefaultPagesDefinition.getFirstLoginUri(request, response);

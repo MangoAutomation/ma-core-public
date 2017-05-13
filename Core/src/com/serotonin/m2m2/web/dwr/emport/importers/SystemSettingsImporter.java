@@ -35,7 +35,6 @@ public class SystemSettingsImporter extends Importer{
 	protected void importImpl() {
 		
 		try {
-			SystemSettingsDao dao = new SystemSettingsDao();
 			Map<String, Object> settings = new HashMap<String,Object>();
 			
             //Finish reading it in.
@@ -49,20 +48,17 @@ public class SystemSettingsImporter extends Importer{
             // Now validate it. Use a new response object so we can distinguish errors in this vo from
             // other errors.
             ProcessResult voResponse = new ProcessResult();
-            dao.validate(settings, voResponse);
+            SystemSettingsDao.instance.validate(settings, voResponse);
             if (voResponse.getHasMessages())
                 setValidationMessages(voResponse, "emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()));
             else {
-            	dao.updateSettings(settings);
+            	SystemSettingsDao.instance.updateSettings(settings);
                 addSuccessMessage(false, "emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()));
             }
         }
         catch (Exception e) {
             addFailureMessage("emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()), e.getMessage());
         }
-        
-		
-		
 	}
 
 }

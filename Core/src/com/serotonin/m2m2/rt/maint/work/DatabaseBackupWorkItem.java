@@ -171,8 +171,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				}
 				
 				// Store the last successful backup time
-				SystemSettingsDao dao = new SystemSettingsDao();
-				dao.setValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, runtimeString);
+				SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, runtimeString);
 
 				// Clean up old files, keeping the correct number as the history
 				File[] files = getBackupFiles(this.backupLocation);

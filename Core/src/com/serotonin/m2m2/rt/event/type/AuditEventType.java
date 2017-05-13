@@ -91,9 +91,7 @@ public class AuditEventType extends EventType {
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
         EventTypeVO et = getEventType(subtype);
         et.setAlarmLevel(alarmLevel);
-
-        SystemSettingsDao dao = new SystemSettingsDao();
-        dao.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel);
+        SystemSettingsDao.instance.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel);
     }
 
     public static void raiseAddedEvent(String auditEventType, AbstractVO<?> o) {

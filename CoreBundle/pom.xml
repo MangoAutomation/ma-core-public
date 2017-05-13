@@ -11,30 +11,13 @@
 	<name>Mango Core Release Bundle</name>
 	<packaging>pom</packaging>
 	<properties>
+		<!-- Pass in during build -DbuildNumber=xxx used by Jenkins -->
+		<buildNumber>-1</buildNumber>
 	</properties>
 	<repositories>
 	</repositories>
 	<build>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                <doCheck>false</doCheck>
-                <doUpdate>false</doUpdate>
-                <format>{0}</format>
-                <items><item>buildNumber</item></items>
-                </configuration>
-          </plugin>
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>

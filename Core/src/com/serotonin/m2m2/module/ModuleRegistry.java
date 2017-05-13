@@ -53,11 +53,15 @@ import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandler
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
+import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseSizeSettingDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeSettingDefinition;
 import com.serotonin.m2m2.module.definitions.settings.FiledataCountSettingDefinition;
 import com.serotonin.m2m2.module.definitions.settings.FiledataSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.LanguageSettingListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.NoSqlDatabaseSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.TimezoneSettingDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.shared.DependencyData;
@@ -109,7 +113,8 @@ public class ModuleRegistry {
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
     private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
     private static List<ReadOnlySettingDefinition<?>> READ_ONLY_SETTING_DEFINITIONS;
-
+    private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
+    
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
@@ -599,6 +604,36 @@ public class ModuleRegistry {
     //
     // Read Only Settings special handling
     //
+    public static List<SystemSettingsListenerDefinition> getSystemSettingListenerDefinitions() {
+    	ensureSystemSettingsListenerDefinitions();
+        return SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
+    }
+
+    private static void ensureSystemSettingsListenerDefinitions() {
+        if (SYSTEM_SETTINGS_LISTENER_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (SYSTEM_SETTINGS_LISTENER_DEFINITIONS == null) {
+                    List<SystemSettingsListenerDefinition> list = new ArrayList<SystemSettingsListenerDefinition>();
+                    for(SystemSettingsListenerDefinition def : Module.getDefinitions(preDefaults, SystemSettingsListenerDefinition.class)){
+                    	list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (SystemSettingsListenerDefinition def : module.getDefinitions(SystemSettingsListenerDefinition.class))
+                        	list.add(def);
+                    }
+                    for(SystemSettingsListenerDefinition def : Module.getDefinitions(postDefaults, SystemSettingsListenerDefinition.class)){
+                    	list.add(def);
+                    }
+                    SYSTEM_SETTINGS_LISTENER_DEFINITIONS = list;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // Read Only Settings special handling
+    //
     public static List<ReadOnlySettingDefinition<?>> getReadOnlySettingDefinitions() {
     	ensureReadOnlySettingDefinitions();
         return READ_ONLY_SETTING_DEFINITIONS;
@@ -868,6 +903,11 @@ public class ModuleRegistry {
         preDefaults.add(new FiledataCountSettingDefinition());
         preDefaults.add(new NoSqlDatabaseSizeSettingDefinition());
         
+        /* System Settings Listeners */
+        preDefaults.add(new ThreadPoolSettingsListenerDefinition());
+        preDefaults.add(new LanguageSettingListenerDefinition());
+        preDefaults.add(new BackupSettingsListenerDefinition());
+        preDefaults.add(new DatabaseBackupSettingsListenerDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,

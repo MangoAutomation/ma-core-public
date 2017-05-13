@@ -71,7 +71,7 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public Map<String, Object> getInitData() {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         Permissions.ensureDataSourcePermission(user);
 
         Map<String, Object> model = new HashMap<>();
@@ -219,7 +219,7 @@ public class EventHandlersDwr extends BaseDwr {
     @DwrPermission(user = true)
     public String createSetValueContent(int pointId, String valueStr, String idSuffix) {
         DataPointVO pointVO = DataPointDao.instance.getDataPoint(pointId);
-        Permissions.ensureDataSourcePermission(Common.getUser(), pointVO.getDataSourceId());
+        Permissions.ensureDataSourcePermission(Common.getHttpUser(), pointVO.getDataSourceId());
 
         DataValue value = DataValue.stringToValue(valueStr, pointVO.getPointLocator().getDataTypeId());
 
@@ -292,7 +292,7 @@ public class EventHandlersDwr extends BaseDwr {
     private ProcessResult save(String eventType, String eventSubtype, int eventTypeRef1, int eventTypeRef2,
             AbstractEventHandlerVO<?> vo, int handlerId, String xid, String alias, boolean disabled) {
         EventTypeVO type = new EventTypeVO(eventType, eventSubtype, eventTypeRef1, eventTypeRef2);
-        Permissions.ensureEventTypePermission(Common.getUser(), type);
+        Permissions.ensureEventTypePermission(Common.getHttpUser(), type);
 
         vo.setId(handlerId);
         vo.setXid(StringUtils.isBlank(xid) ? EventHandlerDao.instance.generateUniqueXid() : xid);
@@ -312,7 +312,7 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void deleteEventHandler(int handlerId) {
-        Permissions.ensureEventTypePermission(Common.getUser(), EventHandlerDao.instance.getEventHandlerType(handlerId));
+        Permissions.ensureEventTypePermission(Common.getHttpUser(), EventHandlerDao.instance.getEventHandlerType(handlerId));
         EventHandlerDao.instance.deleteEventHandler(handlerId);
     }
 
@@ -320,7 +320,7 @@ public class EventHandlersDwr extends BaseDwr {
     public TranslatableMessage testProcessCommand(String command, int timeout) {
     	
     	//Ensure only Data Source Level users can access this
-    	Permissions.ensureDataSourcePermission(Common.getUser());
+    	Permissions.ensureDataSourcePermission(Common.getHttpUser());
     	
         if (StringUtils.isBlank(command))
             return null;

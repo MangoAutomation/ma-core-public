@@ -321,7 +321,7 @@ public class SystemSettingsDwr extends BaseDwr {
             String password, boolean tls, int contentType) {
         
     	ProcessResult response = new ProcessResult();
-    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+    	SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
 
     	if(port < 0)
     		response.addContextualMessage(SystemSettingsDao.EMAIL_SMTP_PORT, "validate.cannotBeNegative");
@@ -348,7 +348,7 @@ public class SystemSettingsDwr extends BaseDwr {
     public ProcessResult saveSiteAnalytics(String siteAnalyticsHead, String siteAnalyticsBody) {
         
     	ProcessResult response = new ProcessResult();
-    	SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+    	SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
 
     	//TODO Add some validation, not sure what yet
     	
@@ -366,11 +366,10 @@ public class SystemSettingsDwr extends BaseDwr {
     		int medPriorityCorePoolSize, int lowPriorityCorePoolSize) {
         ProcessResult response = new ProcessResult();
         
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         
         if(highPriorityCorePoolSize > 0){
         	systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
-        	Common.backgroundProcessing.setHighPriorityServiceCorePoolSize(highPriorityCorePoolSize);
         }else{
         	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
         }
@@ -381,7 +380,6 @@ public class SystemSettingsDwr extends BaseDwr {
         	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }else{
             systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, highPriorityMaxPoolSize);
-            Common.backgroundProcessing.setHighPriorityServiceMaximumPoolSize(highPriorityMaxPoolSize);
         }
         
         //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
@@ -389,10 +387,7 @@ public class SystemSettingsDwr extends BaseDwr {
         if(medPriorityCorePoolSize >= BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN){
         	//Due to the pool type we should set these to the same values
         	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE, medPriorityCorePoolSize);
-        	Common.backgroundProcessing.setMediumPriorityServiceMaximumPoolSize(medPriorityCorePoolSize);
-        	
         	systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, medPriorityCorePoolSize);
-        	Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(medPriorityCorePoolSize);
         }else{
         	response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
         }
@@ -400,10 +395,7 @@ public class SystemSettingsDwr extends BaseDwr {
         if(lowPriorityCorePoolSize > BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
         	//Due to the pool type we should set these to the same values
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, lowPriorityCorePoolSize);
-        	Common.backgroundProcessing.setLowPriorityServiceMaximumPoolSize(lowPriorityCorePoolSize);
-
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);
-        	Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(lowPriorityCorePoolSize);
         }else{
         	response.addContextualMessage(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
@@ -417,7 +409,7 @@ public class SystemSettingsDwr extends BaseDwr {
         saveEmailSettings(host, port, from, name, auth, username, password, tls, contentType);
 
         // Get the web context information
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
 
         Map<String, Object> result = new HashMap<>();
         try {
@@ -449,7 +441,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveHttpSettings(boolean useProxy, String host, int port, String username, String password) {
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
         systemSettingsDao.setBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY, useProxy);
         systemSettingsDao.setValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER, host);
         systemSettingsDao.setIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT, port);
@@ -468,7 +460,7 @@ public class SystemSettingsDwr extends BaseDwr {
             int urgentAlarmPurgePeriods, int criticalAlarmPurgePeriodType, int criticalAlarmPurgePeriods,
             int lifeSafetyAlarmPurgePeriodType, int lifeSafetyAlarmPurgePeriods, int eventPurgePeriodType,
             int eventPurgePeriods, int uiPerformance, int futureDateLimitPeriodType, int futureDateLimitPeriods) {
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
         systemSettingsDao.setIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE, pointDataPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS, pointDataPurgePeriods);
 
@@ -515,14 +507,14 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveInfoSettings(String instanceDescription, String upgradeVersionState) {
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
         systemSettingsDao.setValue(SystemSettingsDao.INSTANCE_DESCRIPTION, instanceDescription);
         systemSettingsDao.setValue(SystemSettingsDao.UPGRADE_VERSION_STATE, upgradeVersionState);
     }
 
     @DwrPermission(admin = true)
     public void saveSystemPermissions(String datasource, List<StringStringPair> modulePermissions) {
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         systemSettingsDao.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
         for (StringStringPair p : modulePermissions)
             systemSettingsDao.setValue(p.getKey(), p.getValue());
@@ -559,7 +551,7 @@ public class SystemSettingsDwr extends BaseDwr {
         }
 
         if (!response.getHasMessages()) {
-            SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+            SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
             systemSettingsDao.setValue(SystemSettingsDao.CHART_BACKGROUND_COLOUR, chartBackgroundColour);
             systemSettingsDao.setValue(SystemSettingsDao.PLOT_BACKGROUND_COLOUR, plotBackgroundColour);
             systemSettingsDao.setValue(SystemSettingsDao.PLOT_GRIDLINE_COLOUR, plotGridlineColour);
@@ -570,9 +562,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveLanguageSettings(String language) {
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
-        systemSettingsDao.setValue(SystemSettingsDao.LANGUAGE, language);
-        Common.setSystemLanguage(language);
+    	SystemSettingsDao.instance.setValue(SystemSettingsDao.LANGUAGE, language);
     }
 
     @DwrPermission(admin = true)
@@ -595,7 +585,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveSettings(Map<String, String> settings) {
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
 
         for (Map.Entry<String, String> entry : settings.entrySet())
             systemSettingsDao.setValue(entry.getKey(), entry.getValue());
@@ -611,9 +601,8 @@ public class SystemSettingsDwr extends BaseDwr {
     public ProcessResult saveBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods,
             int backupHour, int backupMinute, int backupHistory, boolean backupEnabled) {
         ProcessResult result = new ProcessResult();
-        boolean updateTask = true;
 
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         //Validate
         File tmp = new File(backupFileLocation);
         if (!tmp.exists()) {
@@ -638,14 +627,12 @@ public class SystemSettingsDwr extends BaseDwr {
             systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_HOUR, backupHour);
         }
         else {
-            updateTask = false;
             result.addContextualMessage(SystemSettingsDao.BACKUP_HOUR, "systemSettings.validation.backupHourInvalid");
         }
         if ((backupMinute < 60) && (backupMinute >= 0)) {
             systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_MINUTE, backupMinute);
         }
         else {
-            updateTask = false;
             result.addContextualMessage(SystemSettingsDao.BACKUP_MINUTE,
                     "systemSettings.validation.backupMinuteInvalid");
         }
@@ -655,7 +642,6 @@ public class SystemSettingsDwr extends BaseDwr {
             systemSettingsDao.setIntValue(SystemSettingsDao.BACKUP_FILE_COUNT, backupHistory);
         }
         else {
-            updateTask = false;
             result.addContextualMessage(SystemSettingsDao.BACKUP_FILE_COUNT,
                     "systemSettings.validation.backupFileCountInvalid");
         }
@@ -663,13 +649,6 @@ public class SystemSettingsDwr extends BaseDwr {
         boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, !backupEnabled);
         if (backupEnabled != oldBackupEnabled) {
             systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
-        }
-
-        if (updateTask) {
-            //Reschedule the task
-            BackupWorkItem.unschedule();
-            if (backupEnabled)
-                BackupWorkItem.schedule();
         }
 
         return result;
@@ -697,7 +676,7 @@ public class SystemSettingsDwr extends BaseDwr {
     public ProcessResult saveChartSettings(boolean allowAnonymousChartView) {
         ProcessResult result = new ProcessResult();
 
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
 
         systemSettingsDao.setBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, allowAnonymousChartView);
 
@@ -714,9 +693,8 @@ public class SystemSettingsDwr extends BaseDwr {
     public ProcessResult saveDatabaseBackupSettings(String backupFileLocation, int backupPeriodType, int backupPeriods,
             int backupHour, int backupMinute, int backupHistory, boolean backupEnabled) {
         ProcessResult result = new ProcessResult();
-        boolean updateTask = true;
 
-        SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         //Validate
         File tmp = new File(backupFileLocation);
         if (!tmp.exists()) {
@@ -741,7 +719,6 @@ public class SystemSettingsDwr extends BaseDwr {
             systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR, backupHour);
         }
         else {
-            updateTask = false;
             result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_HOUR,
                     "systemSettings.validation.backupHourInvalid");
         }
@@ -749,7 +726,6 @@ public class SystemSettingsDwr extends BaseDwr {
             systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE, backupMinute);
         }
         else {
-            updateTask = false;
             result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_MINUTE,
                     "systemSettings.validation.backupMinuteInvalid");
         }
@@ -759,7 +735,6 @@ public class SystemSettingsDwr extends BaseDwr {
             systemSettingsDao.setIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT, backupHistory);
         }
         else {
-            updateTask = false;
             result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT,
                     "systemSettings.validation.backupFileCountInvalid");
         }
@@ -768,13 +743,6 @@ public class SystemSettingsDwr extends BaseDwr {
                 !backupEnabled);
         if (backupEnabled != oldBackupEnabled) {
             systemSettingsDao.setBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, backupEnabled);
-        }
-
-        if (updateTask) {
-            //Reschedule the task
-            DatabaseBackupWorkItem.unschedule();
-            if (backupEnabled)
-                DatabaseBackupWorkItem.schedule();
         }
 
         return result;

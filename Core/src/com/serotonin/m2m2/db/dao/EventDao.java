@@ -49,6 +49,10 @@ public class EventDao extends BaseDao {
 	
 	public static final EventDao instance = new EventDao();
 	
+	private EventDao(){
+		
+	}
+	
     private static final int MAX_PENDING_EVENTS = 100;
 
     public void saveEvent(EventInstance event) {

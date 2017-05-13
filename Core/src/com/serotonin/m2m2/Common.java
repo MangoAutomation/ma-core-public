@@ -677,7 +677,7 @@ public class Common {
     public static void setSystemLanguage(String language) {
         if (parseLocale(language) == null)
             throw new IllegalArgumentException("Locale for given language not found: " + language);
-        new SystemSettingsDao().setValue(SystemSettingsDao.LANGUAGE, language);
+        SystemSettingsDao.instance.setValue(SystemSettingsDao.LANGUAGE, language);
         systemLanguage = null;
         systemTranslations = null;
     }

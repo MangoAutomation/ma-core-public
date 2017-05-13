@@ -96,8 +96,7 @@ public class VirtualSerialPortConfigDao {
      * @param configs
      */
     private void updateSystemSettings(List<VirtualSerialPortConfig> configs){
-    	SystemSettingsDao dao = new SystemSettingsDao();
-    	dao.setJsonObjectValue(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY, configs);
+    	SystemSettingsDao.instance.setJsonObjectValue(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY, configs);
     	//Reload the serial ports
     	try {
 			Common.serialPortManager.refreshFreeCommPorts();

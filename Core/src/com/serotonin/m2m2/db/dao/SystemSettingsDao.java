@@ -155,7 +155,12 @@ public class SystemSettingsDao extends BaseDao {
     //Download update settings
     public static final String UPGRADE_VERSION_STATE = "upgradeVersionState";
     
+    public static SystemSettingsDao instance = new SystemSettingsDao();
 
+    private SystemSettingsDao(){
+    	
+    }
+    
     // Value cache
     private static final Map<String, String> cache = new HashMap<>();
 

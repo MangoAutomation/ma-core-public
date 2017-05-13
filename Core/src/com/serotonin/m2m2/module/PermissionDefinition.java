@@ -73,10 +73,9 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     			}
     		}
     		if(!newGroups.isEmpty()){
-				SystemSettingsDao systemSettingsDao = new SystemSettingsDao();
 				if(groups != null)
 					newGroups = groups + newGroups;
-				systemSettingsDao.setValue(getPermissionTypeName(), newGroups);
+				SystemSettingsDao.instance.setValue(getPermissionTypeName(), newGroups);
 			}
     	}
     }
