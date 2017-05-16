@@ -1,3 +1,9 @@
+*Version 3.1.0*
+* Better view into task scheduling system and tracking of rejected tasks
+* Improved system settings validation
+* Fixed bug with system settings import where sometimes bad values could be saved
+* Finer grained version control for Module dependencies
+
 *Version 3.0.2*
 * Added CSRF exclusion for /httpds
 * Update licensing
