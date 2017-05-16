@@ -55,14 +55,20 @@ import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewP
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.DatabaseSizeSettingDefinition;
-import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeSettingDefinition;
-import com.serotonin.m2m2.module.definitions.settings.FiledataCountSettingDefinition;
-import com.serotonin.m2m2.module.definitions.settings.FiledataSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.DiskInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.EventsCountInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.FiledataCountInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.FiledataSizeInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.LanguageSettingListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.NoSqlDatabaseSizeSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.LoadAverageInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.NoSqlPointValueDatabaseSizeInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.OperatingSystemInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.PointHistoryCountInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseBackupFileListInfoDefinition;
+import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseSizeInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.TimezoneSettingDefinition;
+import com.serotonin.m2m2.module.definitions.settings.TimezoneInfoDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.shared.DependencyData;
 import com.serotonin.m2m2.vo.User;
@@ -112,7 +118,7 @@ public class ModuleRegistry {
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
     private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
-    private static List<ReadOnlySettingDefinition<?>> READ_ONLY_SETTING_DEFINITIONS;
+    private static Map<String, SystemInfoDefinition<?>> SYSTEM_INFO_DEFINITIONS;
     private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
     
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
@@ -634,27 +640,31 @@ public class ModuleRegistry {
     //
     // Read Only Settings special handling
     //
-    public static List<ReadOnlySettingDefinition<?>> getReadOnlySettingDefinitions() {
-    	ensureReadOnlySettingDefinitions();
-        return READ_ONLY_SETTING_DEFINITIONS;
+    public static Map<String, SystemInfoDefinition<?>> getSystemInfoDefinitions() {
+    	ensureSystemInfoDefinitions();
+        return new HashMap<String, SystemInfoDefinition<?>>(SYSTEM_INFO_DEFINITIONS);
+    }
+    
+    public static SystemInfoDefinition<?> getSystemInfoDefinition(String key){
+    	return SYSTEM_INFO_DEFINITIONS.get(key);
     }
 
-    private static void ensureReadOnlySettingDefinitions() {
-        if (READ_ONLY_SETTING_DEFINITIONS == null) {
+    private static void ensureSystemInfoDefinitions() {
+        if (SYSTEM_INFO_DEFINITIONS == null) {
             synchronized (LOCK) {
-                if (READ_ONLY_SETTING_DEFINITIONS == null) {
-                    List<ReadOnlySettingDefinition<?>> list = new ArrayList<ReadOnlySettingDefinition<?>>();
-                    for(ReadOnlySettingDefinition<?> def : Module.getDefinitions(preDefaults, ReadOnlySettingDefinition.class)){
-                    	list.add(def);
+                if (SYSTEM_INFO_DEFINITIONS == null) {
+                    Map<String, SystemInfoDefinition<?>> map = new HashMap<String, SystemInfoDefinition<?>>();
+                    for(SystemInfoDefinition<?> def : Module.getDefinitions(preDefaults, SystemInfoDefinition.class)){
+                    	map.put(def.getKey(), def);
                     }
                     for (Module module : MODULES.values()) {
-                        for (ReadOnlySettingDefinition<?> def : module.getDefinitions(ReadOnlySettingDefinition.class))
-                        	list.add(def);
+                        for (SystemInfoDefinition<?> def : module.getDefinitions(SystemInfoDefinition.class))
+                        	map.put(def.getKey(), def);
                     }
-                    for(ReadOnlySettingDefinition<?> def : Module.getDefinitions(postDefaults, ReadOnlySettingDefinition.class)){
-                    	list.add(def);
+                    for(SystemInfoDefinition<?> def : Module.getDefinitions(postDefaults, SystemInfoDefinition.class)){
+                    	map.put(def.getKey(), def);
                     }
-                    READ_ONLY_SETTING_DEFINITIONS = list;
+                    SYSTEM_INFO_DEFINITIONS = map;
                 }
             }
         }
@@ -896,12 +906,19 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
         
         /* Read Only Settings */
-        preDefaults.add(new TimezoneSettingDefinition());
-        preDefaults.add(new DatabaseTypeSettingDefinition());
-        preDefaults.add(new DatabaseSizeSettingDefinition());
-        preDefaults.add(new FiledataSizeSettingDefinition());
-        preDefaults.add(new FiledataCountSettingDefinition());
-        preDefaults.add(new NoSqlDatabaseSizeSettingDefinition());
+        preDefaults.add(new TimezoneInfoDefinition());
+        preDefaults.add(new DatabaseTypeInfoDefinition());
+        preDefaults.add(new SqlDatabaseSizeInfoDefinition());
+        preDefaults.add(new FiledataSizeInfoDefinition());
+        preDefaults.add(new FiledataCountInfoDefinition());
+        preDefaults.add(new NoSqlPointValueDatabaseSizeInfoDefinition());
+        preDefaults.add(new SqlDatabaseBackupFileListInfoDefinition());
+        preDefaults.add(new PointHistoryCountInfoDefinition());
+        preDefaults.add(new EventsCountInfoDefinition());
+        preDefaults.add(new DiskInfoDefinition());
+        preDefaults.add(new LoadAverageInfoDefinition());
+        preDefaults.add(new OperatingSystemInfoDefinition());
+        preDefaults.add(new DiskInfoDefinition());
         
         /* System Settings Listeners */
         preDefaults.add(new ThreadPoolSettingsListenerDefinition());

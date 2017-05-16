@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+ * @author Terry Packer
+ */
 package com.serotonin.m2m2.db;
 
 import java.io.File;
@@ -10,6 +14,11 @@ import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
 
+/**
+ * Base class for NoSQL Databases
+ * 
+ * @author Terry Packer
+ */
 abstract public class NoSQLProxy {
     public abstract void initialize();
     public abstract void shutdown();
@@ -38,12 +47,11 @@ abstract public class NoSQLProxy {
 	
 	
 	/**
-	 * return this size of the database in bytes
+	 * return this size of the database(s) in bytes
 	 * @return
 	 */
-	public long getDatabaseSizeInBytes(){
+	public long getDatabaseSizeInBytes(String storeName){
 		return DirectoryUtils.getSize(new File(getDatabasePath())).getSize();
 	}
-	
 
 }

@@ -38,11 +38,11 @@ import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.pair.StringIntPair;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
-import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
@@ -291,7 +291,8 @@ public class SystemSettingsDwr extends BaseDwr {
         //Do we have any NoSQL Data
         long noSqlSize = 0L;
         if (Common.databaseProxy.getNoSQLProxy() != null) {
-            noSqlSize = Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes();
+        	String pointValueStoreName = Common.envProps.getString("db.nosql.pointValueStoreName", "mangoTSDB");
+            noSqlSize = Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointValueStoreName);
             data.put("noSqlDatabaseSize", DirectoryUtils.bytesDescription(noSqlSize));
         }
 

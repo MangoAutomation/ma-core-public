@@ -4,24 +4,19 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import java.io.File;
-
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.ReadOnlySettingDefinition;
-import com.serotonin.util.DirectoryInfo;
-import com.serotonin.util.DirectoryUtils;
+import com.serotonin.m2m2.module.SystemInfoDefinition;
 
 /**
  * Class to define Read only settings/information that can be provided
  * 
  * @author Terry Packer
  */
-public class FiledataSizeSettingDefinition extends ReadOnlySettingDefinition<Integer>{
+public class NoSqlPointValueDatabaseSizeInfoDefinition extends SystemInfoDefinition<Long>{
 
-	public final String KEY = "filedataCount";
+	public final String KEY = "noSqlPointValueDatabaseSize";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
 	 */
@@ -34,17 +29,13 @@ public class FiledataSizeSettingDefinition extends ReadOnlySettingDefinition<Int
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
 	 */
 	@Override
-	public Integer getValue() {
-        DirectoryInfo fileDatainfo = DirectoryUtils.getSize(new File(Common.getFiledataPath()));
-        return fileDatainfo.getCount();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getDescription()
-	 */
-	@Override
-	public TranslatableMessage getDescription() {
-		return new TranslatableMessage("systemSettings.filedataCount");
+	public Long getValue() {
+        long noSqlSize = 0L;
+        if (Common.databaseProxy.getNoSQLProxy() != null) {
+        	String pointValueStoreName = Common.envProps.getString("db.nosql.pointValueStoreName", "mangoTSDB");
+            noSqlSize = Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointValueStoreName);
+        }
+        return noSqlSize;
 	}
 
 	/* (non-Javadoc)

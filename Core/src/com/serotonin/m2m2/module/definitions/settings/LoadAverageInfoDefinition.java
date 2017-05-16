@@ -4,20 +4,21 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.ReadOnlySettingDefinition;
+import com.serotonin.m2m2.module.SystemInfoDefinition;
 
 /**
  * Class to define Read only settings/information that can be provided
  * 
  * @author Terry Packer
  */
-public class DatabaseTypeSettingDefinition extends ReadOnlySettingDefinition<String>{
+public class LoadAverageInfoDefinition extends SystemInfoDefinition<Double>{
 
-	public final String KEY = "databaseType";
+	public final String KEY = "loadAverage";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
 	 */
@@ -30,16 +31,12 @@ public class DatabaseTypeSettingDefinition extends ReadOnlySettingDefinition<Str
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
 	 */
 	@Override
-	public String getValue() {
-		return Common.databaseProxy.getType().name();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getDescription()
-	 */
-	@Override
-	public TranslatableMessage getDescription() {
-		return new TranslatableMessage("systemSettings.databaseType");
+	public Double getValue() {
+        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+        if(osBean != null)
+        	return osBean.getSystemLoadAverage();
+        else
+        	return 0D;
 	}
 
 	/* (non-Javadoc)

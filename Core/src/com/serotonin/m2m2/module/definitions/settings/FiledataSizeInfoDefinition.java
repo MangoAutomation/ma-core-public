@@ -4,20 +4,23 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
+import java.io.File;
+
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.ReadOnlySettingDefinition;
+import com.serotonin.m2m2.module.SystemInfoDefinition;
+import com.serotonin.util.DirectoryInfo;
+import com.serotonin.util.DirectoryUtils;
 
 /**
  * Class to define Read only settings/information that can be provided
  * 
  * @author Terry Packer
  */
-public class DatabaseSizeSettingDefinition extends ReadOnlySettingDefinition<Long>{
+public class FiledataSizeInfoDefinition extends SystemInfoDefinition<Integer>{
 
-	public final String KEY = "databaseSize";
+	public final String KEY = "filedataCount";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
 	 */
@@ -30,17 +33,9 @@ public class DatabaseSizeSettingDefinition extends ReadOnlySettingDefinition<Lon
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
 	 */
 	@Override
-	public Long getValue() {
-        // Database size
-        return Common.databaseProxy.getDatabaseSizeInBytes();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getDescription()
-	 */
-	@Override
-	public TranslatableMessage getDescription() {
-		return new TranslatableMessage("systemSettings.databaseSize");
+	public Integer getValue() {
+        DirectoryInfo fileDatainfo = DirectoryUtils.getSize(new File(Common.getFiledataPath()));
+        return fileDatainfo.getCount();
 	}
 
 	/* (non-Javadoc)

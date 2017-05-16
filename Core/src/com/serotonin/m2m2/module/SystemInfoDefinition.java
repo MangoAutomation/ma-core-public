@@ -4,15 +4,12 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleElementDefinition;
-
 /**
  * Class to define Read only settings/information that can be provided
  * 
  * @author Terry Packer
  */
-public abstract class ReadOnlySettingDefinition<T> extends ModuleElementDefinition{
+public abstract class SystemInfoDefinition<T> extends ModuleElementDefinition{
 
 	/**
 	 * Get the key for the read only setting, used to request this information from the REST api
@@ -25,10 +22,4 @@ public abstract class ReadOnlySettingDefinition<T> extends ModuleElementDefiniti
 	 * @return
 	 */
 	abstract public T getValue();
-	
-	/**
-	 * Get the translation of the description of the setting
-	 * @return
-	 */
-	abstract public TranslatableMessage getDescription();
 }

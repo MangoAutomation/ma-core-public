@@ -77,12 +77,12 @@ public 	class MangoPingPongTracker extends TimeoutClient{
 		return "Mango ping pong tracker";
 	}
 
-	private static final String taskId = "MangoPingPongTracker";
+	private static final String taskId = "MangoPingPongTracker-";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
 	 */
 	@Override
 	public String getTaskId() {
-		return taskId;
+		return taskId + session.getId();
 	}
 }
