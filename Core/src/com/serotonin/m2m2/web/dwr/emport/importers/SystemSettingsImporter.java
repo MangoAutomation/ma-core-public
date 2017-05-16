@@ -41,8 +41,19 @@ public class SystemSettingsImporter extends Importer{
 			for(String key : json.keySet()){
 				JsonValue value = json.get(key);
 				//Don't import null values or database schemas
-				if((value != null)&&(!key.startsWith(SystemSettingsDao.DATABASE_SCHEMA_VERSION)))
-					settings.put(key, value.toNative());
+				if((value != null)&&(!key.startsWith(SystemSettingsDao.DATABASE_SCHEMA_VERSION))){
+					Object o = value.toNative();
+					if(o instanceof String){
+						//Could be an export code so try and convert it
+						Integer id = SystemSettingsDao.instance.convertToValueFromCode(key, (String)o);
+						if(id != null)
+							settings.put(key, id);
+						else
+							settings.put(key, o);
+					}else{
+						settings.put(key, o);
+					}	
+				}
 			}
 
             // Now validate it. Use a new response object so we can distinguish errors in this vo from

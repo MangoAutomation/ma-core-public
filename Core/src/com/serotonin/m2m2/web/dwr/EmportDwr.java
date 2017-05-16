@@ -73,7 +73,7 @@ public class EmportDwr extends BaseDwr {
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
             data.put(POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
-            data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getSystemSettingsForExport());
+            data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
         if (ArrayUtils.contains(exportElements, TEMPLATES))
             data.put(TEMPLATES, TemplateDao.instance.getAll());
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))

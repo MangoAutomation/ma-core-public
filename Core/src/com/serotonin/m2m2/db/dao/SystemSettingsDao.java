@@ -433,94 +433,6 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
-    /**
-     * Get the values currently in the database and prepare for export
-     * 
-     * @return
-     */
-    public Map<String,Object> getSystemSettingsForExport() {
-    	
-    	final Map<String,Object> settings = new HashMap<String,Object>();
-    	
-    	ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
-            
-            public void processRow(ResultSet rs) throws SQLException {
-            	String settingName = rs.getString(1);
-
-            	//Don't export any passwords or schema numbers
-            	if((!settingName.toLowerCase().contains("password")&&!settingName.startsWith(SystemSettingsDao.DATABASE_SCHEMA_VERSION))){
-            		String settingValue = rs.getString(2);
-                	//Convert Numbers to Integers
-                	try{
-                		settings.put(settingName, Integer.parseInt(settingValue));
-                	}catch(NumberFormatException e){
-                		
-                		//Are we a boolean
-                		if(settingValue.equalsIgnoreCase("y")){
-                			settings.put(settingName, new Boolean(true));
-                		}else if(settingValue.equalsIgnoreCase("n")){
-                			settings.put(settingName, new Boolean(false));
-                		}else{
-                			//Must be a string
-                			settings.put(settingName, settingValue);
-                		}
-                		
-                	}
-            	}
-            }
-    	});
-    	
-    	convertSettings(settings);
-    	
-    	return settings;
-    }
-
-    /**
-     * Convert any Export Codes to their String rep
-	 * @param settings
-	 */
-	private void convertSettings(Map<String, Object> settings) {
-		
-		Object setting = settings.get(EMAIL_CONTENT_TYPE);
-		if((setting != null)&&(setting instanceof Integer)){
-			int code = (Integer)setting;
-			settings.put(EMAIL_CONTENT_TYPE, MangoEmailContent.CONTENT_TYPE_CODES.getCode(code));
-		}
-		
-		convertPeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(SYSTEM_EVENT_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(AUDIT_EVENT_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(WARNING_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(EVENT_PURGE_PERIOD_TYPE, settings);
-		convertPeriodType(BACKUP_PERIOD_TYPE, settings);
-		convertPeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings);
-		
-	}
-
-	/**
-	 * @param pointDataPurgePeriodType
-	 * @param settings
-	 */
-	private void convertPeriodType(String key,
-			Map<String, Object> settings) {
-		
-		Object setting = settings.get(key);
-		if((setting != null)&&(setting instanceof Integer)){
-			int code = (Integer)setting;
-			settings.put(key, Common.TIME_PERIOD_CODES.getCode(code));
-		}
-		
-	}
-
 	/**
      * Save values to the table by replacing old values and inserting new ones
      * caution, there is no checking on quality of the values being saved use
@@ -535,12 +447,20 @@ public class SystemSettingsDao extends BaseDao {
     		String setting = it.next();
     		//Lookup the setting to see if it exists
     		Object value = settings.get(setting);
+    		
     		String stringValue;
     		if(value instanceof Boolean){
     			if((Boolean)value)
     				stringValue = "Y";
     			else
     				stringValue = "N";
+    		}else if(value instanceof String){
+    			//Can we convert the value to ensure we don't save the String values
+    			Integer converted = convertToValueFromCode(setting, (String)value);
+    			if(converted != null)
+    				stringValue = converted.toString();
+    			else
+    				stringValue = value.toString();
     		}else{
     			stringValue = value.toString();
     		}
@@ -603,6 +523,7 @@ public class SystemSettingsDao extends BaseDao {
 		validatePeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings, response);
 
 		validatePeriodType(EVENT_PURGE_PERIOD_TYPE, settings, response);
+		validatePeriodType(FUTURE_DATE_LIMIT_PERIOD_TYPE, settings, response);
 		
 		//Should validate language not sure how yet
 		
@@ -752,6 +673,36 @@ public class SystemSettingsDao extends BaseDao {
         	response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
         
+        //Validate Upgrade Version State
+        setting = settings.get(UPGRADE_VERSION_STATE);
+		if(setting != null){
+			if(setting instanceof Number){
+				//Legacy Integer Value
+				try{
+					int value = ((Number)setting).intValue();
+				
+					switch(value){
+					case UpgradeVersionState.DEVELOPMENT:
+					case UpgradeVersionState.ALPHA:
+					case UpgradeVersionState.BETA:
+					case UpgradeVersionState.RELEASE_CANDIDATE:
+					case UpgradeVersionState.PRODUCTION:
+						break;
+					default:
+						response.addContextualMessage(UPGRADE_VERSION_STATE, "validate.invalidValue");
+						break;
+					}
+				}catch(NumberFormatException e){
+					response.addContextualMessage(UPGRADE_VERSION_STATE, "validate.illegalValue");
+				}
+			}else{
+				//Must be a code
+				if(Common.VERSION_STATE_CODES.getId((String)setting) < 0)
+					response.addContextualMessage(UPGRADE_VERSION_STATE, "emport.error.invalid", UPGRADE_VERSION_STATE, (String)setting,
+							Common.VERSION_STATE_CODES.getCodeList());
+			}
+		}
+        
         //Validate the Module Settings
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions())
         	def.validateSettings(settings, response);
@@ -836,7 +787,10 @@ public class SystemSettingsDao extends BaseDao {
 		case EVENT_PURGE_PERIOD_TYPE:
 		case BACKUP_PERIOD_TYPE:
 		case DATABASE_BACKUP_PERIOD_TYPE:
+		case FUTURE_DATE_LIMIT_PERIOD_TYPE:
 			return Common.TIME_PERIOD_CODES.getId(code); 
+		case UPGRADE_VERSION_STATE:
+			return Common.VERSION_STATE_CODES.getId(code);
 		}
 		
 		//Now try the SystemSettingsDefinitions
@@ -876,7 +830,10 @@ public class SystemSettingsDao extends BaseDao {
 		case EVENT_PURGE_PERIOD_TYPE:
 		case BACKUP_PERIOD_TYPE:
 		case DATABASE_BACKUP_PERIOD_TYPE:
-			return Common.TIME_PERIOD_CODES.getCode(value); 
+		case FUTURE_DATE_LIMIT_PERIOD_TYPE:
+			return Common.TIME_PERIOD_CODES.getCode(value);
+		case UPGRADE_VERSION_STATE:
+			return Common.VERSION_STATE_CODES.getCode(value);
 		}
 		
 		//Now try the SystemSettingsDefinitions
@@ -889,6 +846,30 @@ public class SystemSettingsDao extends BaseDao {
 		return null;
 	}
 
+	/**
+	 * Make a copy of the map and convert any Export codes into their values
+	 * @param settings
+	 * @return
+	 */
+	public Map<String, Object> convertCodesToValues(Map<String, Object> settings){
+		Map<String, Object> values = new HashMap<String,Object>(settings.size());
+
+		Iterator<String> it = settings.keySet().iterator();
+		String key;
+		while(it.hasNext()){
+			key = it.next();
+    		Object value = settings.get(key);
+    		if(value instanceof String){
+	    		Integer code = convertToValueFromCode(key, (String)value);
+	    		if(code != null)
+	    			values.put(key, code);
+    		}else{
+    			values.put(key, value);
+    		}
+		}
+		return values;
+	}
+	
 	/**
 	 * Return all settings (if no setting is saved return default value) whilst converting to Export Codes where necessary
 	 * 
