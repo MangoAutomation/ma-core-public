@@ -1,5 +1,6 @@
 *Version 3.1.0*
 * Better view into task scheduling system and tracking of rejected tasks
+* Reduced system overhead when tasks are being rejected
 * Improved system settings validation
 * Fixed bug with system settings import where sometimes bad values could be saved
 * Finer grained version control for Module dependencies
