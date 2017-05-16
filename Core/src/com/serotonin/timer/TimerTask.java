@@ -37,9 +37,10 @@ public abstract class TimerTask extends Task{
         return trigger.getTimer();
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.timer.TimerTask#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
+     */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
 		Common.backgroundProcessing.rejectedHighPriorityTask(reason);

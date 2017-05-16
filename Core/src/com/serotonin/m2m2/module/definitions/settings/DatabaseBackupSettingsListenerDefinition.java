@@ -21,7 +21,7 @@ public class DatabaseBackupSettingsListenerDefinition extends SystemSettingsList
 	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsSaved(java.lang.String, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void SystemSettingsSaved(String key, Object oldValue, Object newValue) {
+	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
         //Reschedule the task
         DatabaseBackupWorkItem.unschedule();
         if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, true))
@@ -32,7 +32,7 @@ public class DatabaseBackupSettingsListenerDefinition extends SystemSettingsList
 	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsRemoved(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public void SystemSettingsRemoved(String key, Object lastValue) {
+	public void SystemSettingsRemoved(String key, String lastValue) {
 		//NoOp
 	}
 

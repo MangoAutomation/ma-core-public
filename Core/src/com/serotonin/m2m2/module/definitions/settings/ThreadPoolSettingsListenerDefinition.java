@@ -21,8 +21,8 @@ public class ThreadPoolSettingsListenerDefinition extends SystemSettingsListener
 	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsSaved(java.lang.String, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void SystemSettingsSaved(String key, Object oldValue, Object newValue) {
-		Integer value = (Integer)newValue;
+	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+		Integer value = Integer.parseInt(newValue);
 		switch(key){
 		case SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE:
         	Common.backgroundProcessing.setHighPriorityServiceCorePoolSize(value);
@@ -49,7 +49,7 @@ public class ThreadPoolSettingsListenerDefinition extends SystemSettingsListener
 	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsRemoved(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public void SystemSettingsRemoved(String key, Object lastValue) {
+	public void SystemSettingsRemoved(String key, String lastValue) {
 		//NoOp
 	}
 

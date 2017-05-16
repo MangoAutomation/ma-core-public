@@ -190,7 +190,7 @@ public class BackupWorkItem implements WorkItem {
         data.put(EmportDwr.PUBLISHERS, PublisherDao.instance.getPublishers());
         data.put(EmportDwr.EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
         data.put(EmportDwr.POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
-        data.put(EmportDwr.SYSTEM_SETTINGS, SystemSettingsDao.instance.getSystemSettingsForExport());
+        data.put(EmportDwr.SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
         data.put(EmportDwr.TEMPLATES, TemplateDao.instance.getAllDataPointTemplates());
         data.put(EmportDwr.JSON_DATA, JsonDataDao.instance.getAll());
         data.put(EmportDwr.VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());

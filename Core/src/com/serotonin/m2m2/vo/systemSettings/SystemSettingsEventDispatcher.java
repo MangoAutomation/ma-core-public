@@ -10,7 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.util.timeout.HighPriorityTask;
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * Dispatch events for System settings changes
@@ -66,11 +67,11 @@ public class SystemSettingsEventDispatcher {
      * @param oldValue
      * @param newValue
      */
-    public static void fireSystemSettingSaved(String key, Object oldValue, Object newValue) {
+    public static void fireSystemSettingSaved(String key, String oldValue, String newValue) {
         List<SystemSettingsListener> listeners = LISTENER_MAP.get(key);
         if(listeners != null)
 	    	for (SystemSettingsListener l : listeners){
-	        		Common.backgroundProcessing.execute(new DispatcherExecution(l, key, oldValue, newValue, SETTING_SAVED));
+	        		Common.backgroundProcessing.addWorkItem(new DispatcherExecution(l, key, oldValue, newValue, SETTING_SAVED));
 	        }
     }
 
@@ -79,22 +80,22 @@ public class SystemSettingsEventDispatcher {
      * @param key
      * @param lastValue
      */
-    public static void fireSystemSettingRemoved(String key, Object lastValue) {
+    public static void fireSystemSettingRemoved(String key, String lastValue) {
         List<SystemSettingsListener> listeners = LISTENER_MAP.get(key);
         if(listeners != null)
         for (SystemSettingsListener l : listeners)
-            Common.backgroundProcessing.execute(new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
+            Common.backgroundProcessing.addWorkItem(new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
     }
 
-    static class DispatcherExecution extends HighPriorityTask {
+    static class DispatcherExecution implements WorkItem {
+    	private final String description = "System settings event dispatcher for: ";
         private final SystemSettingsListener l;
         private final String key;
-        private final Object oldValue;
-        private final Object newValue;
+        private final String oldValue;
+        private final String newValue;
         private final int operation;
 
-        public DispatcherExecution(SystemSettingsListener l,String key,  Object oldValue, Object newValue, int operation) {
-        	super("System settings event dispatcher");
+        public DispatcherExecution(SystemSettingsListener l, String key,  String oldValue, String newValue, int operation) {
         	this.l = l;
             this.key = key;
             this.oldValue = oldValue;
@@ -103,7 +104,7 @@ public class SystemSettingsEventDispatcher {
         }
 
         @Override
-        public void run(long runtime) {
+        public void execute() {
             switch(operation){
             case SETTING_SAVED:
             	l.SystemSettingsSaved(key, oldValue, newValue);
@@ -113,5 +114,46 @@ public class SystemSettingsEventDispatcher {
             	break;
             }
         }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getPriority()
+		 */
+		@Override
+		public int getPriority() {
+			return WorkItem.PRIORITY_MEDIUM;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+		 */
+		@Override
+		public String getDescription() {
+			return description + key;
+		}
+
+		private final String TASK_ID = "SYSTEM_SETTINGS_LISTENER_";
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+		 */
+		@Override
+		public String getTaskId() {
+			return TASK_ID + key ;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getQueueSize()
+		 */
+		@Override
+		public int getQueueSize() {
+			return 100;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			//No special handling
+		}
     }
 }

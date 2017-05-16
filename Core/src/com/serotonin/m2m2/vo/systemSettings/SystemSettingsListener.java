@@ -20,14 +20,14 @@ public interface SystemSettingsListener {
 	 * @param oldValue
 	 * @param newValue
 	 */
-	public void SystemSettingsSaved(String key, Object oldValue, Object newValue);
+	public void SystemSettingsSaved(String key, String oldValue, String newValue);
 	
 	/**
 	 * A setting is being removed
 	 * @param key
 	 * @param lastValue
 	 */
-	public void SystemSettingsRemoved(String key, Object lastValue);
+	public void SystemSettingsRemoved(String key, String lastValue);
 
 	/**
 	 * Return a list of any settings you want to listen for changes to

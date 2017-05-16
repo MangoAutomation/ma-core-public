@@ -76,7 +76,8 @@ abstract public class SystemSettingsDefinition extends ModuleElementDefinition {
 	/**
 	 * Validate the settings.  The general idea is to use the Settings key as the contextual key when generating error messages
 	 * 
-	 * Note: The setting(s) may not be present in the map, which should not invalidate the response.
+	 * Note: The setting(s) may not be present in the map, which should not invalidate the response.  Also note the settings will
+	 *  have values of the ExportCode Id, not the code
 	 * 
 	 * @param settings
 	 * @param response

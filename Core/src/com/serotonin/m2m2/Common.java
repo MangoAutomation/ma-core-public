@@ -251,6 +251,15 @@ public class Common {
     	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_LOW, "PRIORITY_LOW");
     }
     
+    public static ExportCodes VERSION_STATE_CODES = new ExportCodes();
+    static{
+    	VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT", "systemSettings.upgradeState.development");
+    	VERSION_STATE_CODES.addElement(UpgradeVersionState.ALPHA, "ALPHA", "systemSettings.upgradeState.alpha");
+    	VERSION_STATE_CODES.addElement(UpgradeVersionState.BETA, "BETA", "systemSettings.upgradeState.beta");
+    	VERSION_STATE_CODES.addElement(UpgradeVersionState.RELEASE_CANDIDATE, "RELEASE_CANDIDATE", "systemSettings.upgradeState.releaseCanditate");
+    	VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION", "systemSettings.upgradeState.production");
+    }
+    
     /**
      * Returns the length of time in milliseconds that the
      * 
@@ -677,7 +686,6 @@ public class Common {
     public static void setSystemLanguage(String language) {
         if (parseLocale(language) == null)
             throw new IllegalArgumentException("Locale for given language not found: " + language);
-        SystemSettingsDao.instance.setValue(SystemSettingsDao.LANGUAGE, language);
         systemLanguage = null;
         systemTranslations = null;
     }

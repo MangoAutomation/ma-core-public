@@ -21,16 +21,15 @@ public class LanguageSettingListenerDefinition extends SystemSettingsListenerDef
 	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsSaved(java.lang.String, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void SystemSettingsSaved(String key, Object oldValue, Object newValue) {
-        String language = (String)newValue;
-		Common.setSystemLanguage(language);
+	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+		Common.setSystemLanguage(newValue);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsRemoved(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public void SystemSettingsRemoved(String key, Object lastValue) {
+	public void SystemSettingsRemoved(String key, String lastValue) {
 		//NoOp
 	}
 
