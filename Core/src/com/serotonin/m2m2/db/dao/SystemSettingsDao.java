@@ -188,9 +188,10 @@ public class SystemSettingsDao extends BaseDao {
             if (!cache.containsKey(key)) {
                 result = new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
                         new Object[] { key }, String.class, null);
-                cache.put(key, result);
                 if (result == null)
                     result = defaultValue;
+                else
+                	cache.put(key, result); //Only store non-null defaults
             }
             else
                 result = defaultValue;

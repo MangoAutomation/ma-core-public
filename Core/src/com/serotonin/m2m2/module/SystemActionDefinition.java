@@ -4,82 +4,28 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.util.Map;
-
-import com.serotonin.m2m2.i18n.ProcessResult;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.serotonin.m2m2.util.timeout.SystemActionTask;
 
 /**
- * This class provides a means to insert a section into the system settings page. Use this if you need to store values
- * in the system settings table that users are allowed to modify.
+ * This class proaction that can be actived via the REST system-action endpoint.
  * 
- * @author Matthew Lohbihler
+ * @author Terry Packer
  */
 abstract public class SystemActionDefinition extends ModuleElementDefinition {
-    public static Integer getIntegerValue(Object value) {
-    	if(value == null)
-    		return null;
-    	if(value instanceof Number)
-    		return ((Number)value).intValue();
-    	if(value instanceof String)
-    		return Integer.parseInt((String)value);
-    	if(value instanceof Integer)
-    		return (Integer)value;
-    	return null;
-    }
-    
-    public static Double getDoubleValue(Object value) {
-    	if(value == null)
-    		return null;
-    	if(value instanceof Number)
-    		return ((Number)value).doubleValue();
-    	if(value instanceof String)
-    		return Double.parseDouble((String)value);
-    	if(value instanceof Double)
-    		return (Double)value;
-    	return null;
-    }
+
     /**
-     * The reference key to the description used as the section header.
+     * The reference key to the action.  Should be unique across all Modules and Mango Core
      * 
      * @return the reference key
      */
-    abstract public String getDescriptionKey();
+    abstract public String getKey();
 
     /**
-     * The module relative path to the JSP file that provides the user interface for editing the system settings.
-     * 
-     * @return the path
-     */
-    abstract public String getSectionJspPath();
-    
-    /**
-     * Get the default values for the defined system settings
+     * Create the Task with input that will be scheduled and run
+     * @param input
      * @return
      */
-    abstract public Map<String, Object> getDefaultValues();
-    
-    /**
-     * Potentially convert a value from a code to its integer value
-     * @param key - Key of setting
-     * @param code - String export code value
-     * @return Intger if convertable, else null
-     */
-    abstract public Integer convertToValueFromCode(String key, String code);
+    abstract public SystemActionTask getTask(final JsonNode input);
 
-	/**
-	 * @param key - Key of setting
-	 * @param value - Integer value for code
-	 * @return String export code
-	 */
-	abstract public String convertToCodeFromValue(String key, Integer value);
-
-	/**
-	 * Validate the settings.  The general idea is to use the Settings key as the contextual key when generating error messages
-	 * 
-	 * Note: The setting(s) may not be present in the map, which should not invalidate the response.
-	 * 
-	 * @param settings
-	 * @param response
-	 */
-	abstract public void validateSettings(Map<String, Object> settings, ProcessResult response);
 }

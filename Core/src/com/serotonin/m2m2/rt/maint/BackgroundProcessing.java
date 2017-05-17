@@ -85,7 +85,7 @@ public class BackgroundProcessing implements ILifecycle {
     }
     
 	/**
-	 * Schedule a timeout task to run
+	 * Schedule a timeout task to run at high priority
 	 * @param task
 	 */
 	public void schedule(TimeoutTask task) {
@@ -93,11 +93,19 @@ public class BackgroundProcessing implements ILifecycle {
 	}
     
 	/**
-	 * Schedule a timer task to run
+	 * Schedule a timer task to run at high priority
 	 * @param task
 	 */
 	public void schedule(TimerTask task) {
 		this.timer.schedule(task);
+	}
+	
+	/**
+	 * Run tasks @ medium priority
+	 * @param task
+	 */
+	public void executeMediumPriorityTask(TimerTask task){
+		this.mediumPriorityService.execute(new TaskWrapper(task, this.timer.currentTimeMillis()));
 	}
     		
     /**

@@ -51,7 +51,9 @@ public class BackupWorkItem implements WorkItem {
     
     private static BackupSettingsTask task; //Static holder to re-schedule task if necessary
     private String backupLocation; //Location of backup directory on disk
-
+    private volatile boolean finished = false;
+    private volatile boolean cancelled = false;
+    
     /**
      * Statically Schedule a Timer Task that will run this work item.
      * 
@@ -126,6 +128,8 @@ public class BackupWorkItem implements WorkItem {
 				fullFilePath += filename;
 			}
 
+			if(cancelled)
+				return;
 			//Collect the json backup data
 			String jsonData = getBackup();
 			
@@ -172,6 +176,8 @@ public class BackupWorkItem implements WorkItem {
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
 	                    Common.backgroundProcessing.currentTimeMillis(), false,
 	                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
+			}finally{
+				this.finished = true;
 			}
 		}
 	}
@@ -275,4 +281,15 @@ public class BackupWorkItem implements WorkItem {
 	@Override
 	public void rejected(RejectedTaskReason reason) { }
 
+	public void cancel(){
+		this.cancelled = true;
+	}
+	
+	public boolean isFinished(){
+		return this.finished;
+	}
+	
+	public void setBackupLocation(String location){
+		this.backupLocation = location;
+	}
 }

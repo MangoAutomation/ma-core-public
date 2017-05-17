@@ -20,7 +20,7 @@ public class TaskWrapper implements Runnable{
 	
 	@Override
 	final public void run(){
-	    task.runTask(executionTime);
+		task.runTask(executionTime);
 	}
 	
     public long getExecutionTime(){
@@ -29,5 +29,9 @@ public class TaskWrapper implements Runnable{
 
 	public Task getTask() {
 		return task;
+	}
+	
+	public boolean cancel(){
+		return this.task.cancel();
 	}
 }

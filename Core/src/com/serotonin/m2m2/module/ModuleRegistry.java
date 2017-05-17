@@ -33,6 +33,10 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
 import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
+import com.serotonin.m2m2.module.definitions.actions.ConfigurationBackupActionDefinition;
+import com.serotonin.m2m2.module.definitions.actions.PurgeAllEventsActionDefinition;
+import com.serotonin.m2m2.module.definitions.actions.PurgeAllPointValuesActionDefinition;
+import com.serotonin.m2m2.module.definitions.actions.PurgeWithPurgeSettingsActionDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
@@ -120,6 +124,7 @@ public class ModuleRegistry {
     private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
     private static Map<String, SystemInfoDefinition<?>> SYSTEM_INFO_DEFINITIONS;
     private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
+    private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
@@ -638,7 +643,7 @@ public class ModuleRegistry {
     
     //
     //
-    // Read Only Settings special handling
+    // System Info Settings special handling
     //
     public static Map<String, SystemInfoDefinition<?>> getSystemInfoDefinitions() {
     	ensureSystemInfoDefinitions();
@@ -665,6 +670,40 @@ public class ModuleRegistry {
                     	map.put(def.getKey(), def);
                     }
                     SYSTEM_INFO_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // System Action Settings special handling
+    //
+    public static Map<String, SystemActionDefinition> getSystemActionDefinitions() {
+    	ensureSystemActionDefinitions();
+        return new HashMap<String, SystemActionDefinition>(SYSTEM_ACTION_DEFINITIONS);
+    }
+    
+    public static SystemActionDefinition getSystemActionDefinition(String key){
+    	return SYSTEM_ACTION_DEFINITIONS.get(key);
+    }
+
+    private static void ensureSystemActionDefinitions() {
+        if (SYSTEM_ACTION_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (SYSTEM_ACTION_DEFINITIONS == null) {
+                    Map<String, SystemActionDefinition> map = new HashMap<>();
+                    for(SystemActionDefinition def : Module.getDefinitions(preDefaults, SystemActionDefinition.class)){
+                    	map.put(def.getKey(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (SystemActionDefinition def : module.getDefinitions(SystemActionDefinition.class))
+                        	map.put(def.getKey(), def);
+                    }
+                    for(SystemActionDefinition def : Module.getDefinitions(postDefaults, SystemActionDefinition.class)){
+                    	map.put(def.getKey(), def);
+                    }
+                    SYSTEM_ACTION_DEFINITIONS = map;
                 }
             }
         }
@@ -925,6 +964,12 @@ public class ModuleRegistry {
         preDefaults.add(new LanguageSettingListenerDefinition());
         preDefaults.add(new BackupSettingsListenerDefinition());
         preDefaults.add(new DatabaseBackupSettingsListenerDefinition());
+        
+        /* System Actions */
+        preDefaults.add(new PurgeAllPointValuesActionDefinition());
+        preDefaults.add(new PurgeAllEventsActionDefinition());
+        preDefaults.add(new PurgeWithPurgeSettingsActionDefinition());
+        preDefaults.add(new ConfigurationBackupActionDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
