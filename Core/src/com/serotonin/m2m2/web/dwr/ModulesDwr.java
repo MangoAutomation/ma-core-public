@@ -496,7 +496,7 @@ public class ModulesDwr extends BaseDwr {
                 catch (IOException e) {
                     // If anything bad happens during the copy, try to clean out the download files again.
                     cleanDownloads();
-
+                    finished = true;
                     LOG.warn(e);
                     throw new ShouldNeverHappenException(e);
                 }

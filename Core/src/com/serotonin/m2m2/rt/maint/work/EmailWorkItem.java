@@ -113,6 +113,8 @@ public class EmailWorkItem implements WorkItem {
 	 */
 	@Override
 	public String getDescription() {
-		return "Sending email from " + this.fromAddress.toString() + " about " + this.subject; 
+		if(fromAddress != null)
+			return "Sending email from " + this.fromAddress.toString() + " about " + this.subject;
+		return "Sending email about " + this.subject;
 	}
 }
