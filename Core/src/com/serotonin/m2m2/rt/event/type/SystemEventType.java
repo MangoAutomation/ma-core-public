@@ -35,7 +35,7 @@ public class SystemEventType extends EventType {
     //
     // Static stuff
     //
-    private static final String SYSTEM_SETTINGS_PREFIX = "systemEventAlarmLevel.";
+    public static final String SYSTEM_SETTINGS_PREFIX = "systemEventAlarmLevel.";
 
     public static final String TYPE_SYSTEM_STARTUP = "SYSTEM_STARTUP";
     public static final String TYPE_SYSTEM_SHUTDOWN = "SYSTEM_SHUTDOWN";
@@ -84,10 +84,12 @@ public class SystemEventType extends EventType {
         }
         return null;
     }
+    
+    public static List<EventTypeVO> getAllRegisteredEventTypes(){
+    	return EVENT_TYPES;
+    }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
-        EventTypeVO et = getEventType(subtype);
-        et.setAlarmLevel(alarmLevel);
         SystemSettingsDao.instance.setIntValue(SYSTEM_SETTINGS_PREFIX + subtype, alarmLevel);
     }
 

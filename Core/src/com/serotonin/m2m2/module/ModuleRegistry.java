@@ -74,6 +74,8 @@ import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseSizeInfoDefinit
 import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.TimezoneInfoDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
+import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
+import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.shared.DependencyData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -964,6 +966,8 @@ public class ModuleRegistry {
         preDefaults.add(new LanguageSettingListenerDefinition());
         preDefaults.add(new BackupSettingsListenerDefinition());
         preDefaults.add(new DatabaseBackupSettingsListenerDefinition());
+        preDefaults.add(new AuditEventTypeSettingsListenerDefinition());
+        preDefaults.add(new SystemEventTypeSettingsListenerDefinition());
         
         /* System Actions */
         preDefaults.add(new PurgeAllPointValuesActionDefinition());

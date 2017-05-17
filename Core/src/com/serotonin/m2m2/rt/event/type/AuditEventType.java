@@ -36,14 +36,14 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.AuditEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
-public class AuditEventType extends EventType {
+public class AuditEventType extends EventType{
     //
     //
     // Static stuff
     //
 	private static final Log LOG = LogFactory.getLog(AuditEventType.class);
 	
-    private static final String AUDIT_SETTINGS_PREFIX = "auditEventAlarmLevel.";
+    public static final String AUDIT_SETTINGS_PREFIX = "auditEventAlarmLevel.";
 
     public static final String TYPE_DATA_SOURCE = "DATA_SOURCE";
     public static final String TYPE_DATA_POINT = "DATA_POINT";
@@ -87,10 +87,12 @@ public class AuditEventType extends EventType {
         }
         return null;
     }
+    
+    public static List<EventTypeVO> getAllRegisteredEventTypes(){
+    	return EVENT_TYPES;
+    }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
-        EventTypeVO et = getEventType(subtype);
-        et.setAlarmLevel(alarmLevel);
         SystemSettingsDao.instance.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel);
     }
 
