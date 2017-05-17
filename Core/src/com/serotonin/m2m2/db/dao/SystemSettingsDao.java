@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
@@ -25,8 +26,8 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -34,8 +35,8 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.DataPurge;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.util.ColorUtils;
+import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
 public class SystemSettingsDao extends BaseDao {
     // Database schema version
@@ -162,7 +163,7 @@ public class SystemSettingsDao extends BaseDao {
     }
     
     // Value cache
-    private static final Map<String, String> cache = new HashMap<>();
+    private static final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public static String getValue(String key) {
     	Object defaultValue = DEFAULT_VALUES.get(key);
