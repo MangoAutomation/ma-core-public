@@ -6,6 +6,8 @@
 * Fix for startup script
 * Add ALPN startup extension for enabling HTTP/2
 * Default name to the username when importing JSON for a user
+* Prevent upgrade downloader from getting stuck if a file is created/moved while downloading
+* Fix NPE in rejected email work items
 
 *Version 3.0.1*
 * Adding env property to control iFrame access via Http headers
