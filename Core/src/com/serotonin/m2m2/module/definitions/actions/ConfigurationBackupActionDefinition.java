@@ -5,9 +5,12 @@
 package com.serotonin.m2m2.module.definitions.actions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
+import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.SystemActionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.timer.OneTimeTrigger;
@@ -31,8 +34,24 @@ public class ConfigurationBackupActionDefinition extends SystemActionDefinition{
 	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getWorkItem(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	public SystemActionTask getTask(final JsonNode input) {
+	public SystemActionTask getTaskImpl(final JsonNode input) {
 		return new Action();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getPermissionTypeName()
+	 */
+	@Override
+	protected String getPermissionTypeName() {
+		return ConfigurationBackupActionPermissionDefinition.PERMISSION;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.SystemActionDefinition#validate(com.fasterxml.jackson.databind.JsonNode)
+	 */
+	@Override
+	protected RestValidationResult validateImpl(JsonNode input) throws ValidationFailedRestException {
+		return null;
 	}
 	
 	/**
@@ -47,7 +66,7 @@ public class ConfigurationBackupActionDefinition extends SystemActionDefinition{
 		private volatile boolean cancelled;
 		
 		public Action(){
-			super(new OneTimeTrigger(0l), "Configuration Backup", "CONFIG_BACKUP", 5);
+			super(new OneTimeTrigger(0l), "Configuration Backup Poller", "CONFIG_BACKUP_POLLER", 5);
 			this.item = new BackupWorkItem();
 		}
 
@@ -68,6 +87,14 @@ public class ConfigurationBackupActionDefinition extends SystemActionDefinition{
 					try {
 						Thread.sleep(800);
 					} catch (InterruptedException e) { 	}
+			}
+			
+			//Did it work?
+			if(item.isFailed()){
+				this.results.put("failed", item.isFailed());
+			}else{
+				//Add the filename of the backup
+				this.results.put("backupFile", item.getFilename());
 			}
 			
 		}

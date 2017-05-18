@@ -49,7 +49,11 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	private static DatabaseBackupTask task; // Static holder to re-schedule task
 											// if necessary
 	private String backupLocation; // Location of backup directory on disk
-
+    private volatile boolean finished = false;
+    private volatile boolean cancelled = false;
+    private volatile boolean failed = false;
+    private String filename;
+    
 	/**
 	 * Statically Schedule a Timer Task that will run this work item.
 	 * 
@@ -124,6 +128,9 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				fullFilePath += filename;
 			}
 
+			if(cancelled)
+				return;
+			
 			// Execute the Backup
 			try {
 
@@ -165,10 +172,14 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 				File file = new File(fullFilePath + ".zip");
 				if (!file.exists()) {
+					failed = true;
 					LOG.warn("Unable to create backup file: " + fullFilePath);
 					backupFailed(fullFilePath, "Unable to create backup file");
 					return;
 				}
+				
+				//Save the filename
+				this.filename = file.getAbsolutePath();
 				
 				// Store the last successful backup time
 				SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, runtimeString);
@@ -190,7 +201,10 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 			} catch (Exception e) {
 				LOG.warn(e);
+				failed = true;
 				backupFailed(fullFilePath, e.getMessage());
+			}finally{
+				finished = true;
 			}
 		}
 	}
@@ -532,7 +546,35 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		// TODO Auto-generated method stub
-		
+		//No Special handling
+	}
+
+	/**
+	 * @param backupLocation2
+	 */
+	public void setBackupLocation(String location) {
+		this.backupLocation = location;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isFinished() {
+		return this.finished;
+	}
+
+	public boolean isFailed(){
+		return this.failed;
+	}
+	
+	/**
+	 * 
+	 */
+	public void cancel() {
+		this.cancelled = true;
+	}
+	
+	public String getFilename(){
+		return this.filename;
 	}
 }

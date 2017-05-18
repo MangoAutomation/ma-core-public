@@ -7,9 +7,10 @@ package com.serotonin.m2m2.module.definitions.actions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
-import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.SystemActionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
+import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.timer.OneTimeTrigger;
 
@@ -17,9 +18,9 @@ import com.serotonin.timer.OneTimeTrigger;
  * 
  * @author Terry Packer
  */
-public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
+public class SqlRestoreActionDefinition extends SystemActionDefinition{
 
-	private final String KEY = "purgeAllEvents";
+	private final String KEY = "sqlRestore";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getKey()
 	 */
@@ -33,7 +34,8 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 	 */
 	@Override
 	public SystemActionTask getTaskImpl(final JsonNode input) {
-		return new Action();
+		JsonNode filename = input.get("filename");
+		return new Action(filename.asText());
 	}
 	
 	/* (non-Javadoc)
@@ -41,7 +43,7 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 	 */
 	@Override
 	protected String getPermissionTypeName() {
-		return PurgeAllEventsActionPermissionDefinition.PERMISSION;
+		return SqlRestoreActionPermissionDefinition.PERMISSION;
 	}
 
 	/* (non-Javadoc)
@@ -49,7 +51,12 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 	 */
 	@Override
 	protected RestValidationResult validateImpl(JsonNode input) throws ValidationFailedRestException {
-		return null;
+		RestValidationResult result = new RestValidationResult();
+		
+		JsonNode node = input.get("filename");
+		if(node == null)
+			result.addRequiredError("filename");
+		return result;
 	}
 	
 	/**
@@ -59,9 +66,12 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 	 * @author Terry Packer
 	 */
 	class Action extends SystemActionTask{
+
+		private String filename;
 		
-		public Action(){
-			super(new OneTimeTrigger(0l), "Purge All Events", "EVENT_FULL_PURGE", 5);
+		public Action(String filename){
+			super(new OneTimeTrigger(0l), "SQL Database Restore", "DATABASE_RESTORE", 5);
+			this.filename = filename;
 		}
 
 		/* (non-Javadoc)
@@ -69,8 +79,11 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 		 */
 		@Override
 		public void runImpl(long runtime) {
-	        int cnt = Common.eventManager.purgeAllEvents();
-			this.results.put("deleted", cnt);
+			ProcessResult result = DatabaseBackupWorkItem.restore(filename);
+			if(result.getHasMessages()){
+				this.results.put("messages", result.getMessages());
+				this.results.put("failed", true);
+			}
 		}
 	}
 }

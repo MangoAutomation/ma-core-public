@@ -37,6 +37,8 @@ import com.serotonin.m2m2.module.definitions.actions.ConfigurationBackupActionDe
 import com.serotonin.m2m2.module.definitions.actions.PurgeAllEventsActionDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeAllPointValuesActionDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeWithPurgeSettingsActionDefinition;
+import com.serotonin.m2m2.module.definitions.actions.SqlBackupActionDefinition;
+import com.serotonin.m2m2.module.definitions.actions.SqlRestoreActionDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
@@ -54,8 +56,15 @@ import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEve
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.PurgeAllPointValuesActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.PurgeWithPurgeSettingsActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SqlBackupActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
@@ -119,6 +128,7 @@ public class ModuleRegistry {
     private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
     private static Map<String, EventHandlerDefinition> EVENT_HANDLER_DEFINITIONS;
     private static Map<String, EventDetectorDefinition> EVENT_DETECTOR_DEFINITIONS;
+    private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
     private static Map<String, WebSocketDefinition> WEB_SOCKET_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
@@ -520,6 +530,41 @@ public class ModuleRegistry {
     
     //
     //
+    // Permission Definitions special handling
+    //
+    public static Map<String, PermissionDefinition> getPermissionDefinitions() {
+    	ensurePermissionDefinitions();
+        return new HashMap<String, PermissionDefinition>(PERMISSION_DEFINITIONS);
+    }
+    
+    public static PermissionDefinition getPermissionDefinition(String key){
+    	ensurePermissionDefinitions();
+    	return PERMISSION_DEFINITIONS.get(key);
+    }
+
+    private static void ensurePermissionDefinitions() {
+        if (PERMISSION_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (PERMISSION_DEFINITIONS == null) {
+                    Map<String, PermissionDefinition> map = new HashMap<String, PermissionDefinition>();
+                    for(PermissionDefinition def : Module.getDefinitions(preDefaults, PermissionDefinition.class)){
+                    	map.put(def.getPermissionTypeName(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (PermissionDefinition def : module.getDefinitions(PermissionDefinition.class))
+                        	map.put(def.getPermissionTypeName(), def);
+                    }
+                    for(PermissionDefinition def : Module.getDefinitions(postDefaults, PermissionDefinition.class)){
+                    	map.put(def.getPermissionTypeName(), def);
+                    }
+                    PERMISSION_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
     // WebSocketHandler special handling
     //
     public static WebSocketDefinition getWebSocketHandlerDefinition(String type) {
@@ -653,6 +698,7 @@ public class ModuleRegistry {
     }
     
     public static SystemInfoDefinition<?> getSystemInfoDefinition(String key){
+    	ensureSystemInfoDefinitions();
     	return SYSTEM_INFO_DEFINITIONS.get(key);
     }
 
@@ -687,6 +733,7 @@ public class ModuleRegistry {
     }
     
     public static SystemActionDefinition getSystemActionDefinition(String key){
+    	ensureSystemActionDefinitions();
     	return SYSTEM_ACTION_DEFINITIONS.get(key);
     }
 
@@ -946,6 +993,15 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
         
+        /* Permissions Settings */
+        preDefaults.add(new SuperadminPermissionDefinition());
+        preDefaults.add(new ConfigurationBackupActionPermissionDefinition());
+        preDefaults.add(new PurgeAllEventsActionPermissionDefinition());
+        preDefaults.add(new PurgeAllPointValuesActionPermissionDefinition());
+        preDefaults.add(new PurgeWithPurgeSettingsActionPermissionDefinition());
+        preDefaults.add(new SqlBackupActionPermissionDefinition());
+        preDefaults.add(new SqlRestoreActionPermissionDefinition());        
+        
         /* Read Only Settings */
         preDefaults.add(new TimezoneInfoDefinition());
         preDefaults.add(new DatabaseTypeInfoDefinition());
@@ -974,6 +1030,9 @@ public class ModuleRegistry {
         preDefaults.add(new PurgeAllEventsActionDefinition());
         preDefaults.add(new PurgeWithPurgeSettingsActionDefinition());
         preDefaults.add(new ConfigurationBackupActionDefinition());
+        preDefaults.add(new SqlBackupActionDefinition());
+        preDefaults.add(new SqlRestoreActionDefinition());
+
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,

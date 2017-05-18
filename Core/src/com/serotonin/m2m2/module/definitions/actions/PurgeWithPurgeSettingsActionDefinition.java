@@ -5,8 +5,11 @@
 package com.serotonin.m2m2.module.definitions.actions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
+import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.SystemActionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.PurgeWithPurgeSettingsActionPermissionDefinition;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.timer.OneTimeTrigger;
@@ -30,8 +33,24 @@ public class PurgeWithPurgeSettingsActionDefinition extends SystemActionDefiniti
 	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getWorkItem(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	public SystemActionTask getTask(final JsonNode input) {
+	public SystemActionTask getTaskImpl(final JsonNode input) {
 		return new Action();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getPermissionTypeName()
+	 */
+	@Override
+	protected String getPermissionTypeName() {
+		return PurgeWithPurgeSettingsActionPermissionDefinition.PERMISSION;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.SystemActionDefinition#validate(com.fasterxml.jackson.databind.JsonNode)
+	 */
+	@Override
+	protected RestValidationResult validateImpl(JsonNode input) throws ValidationFailedRestException {
+		return null;
 	}
 	
 	/**

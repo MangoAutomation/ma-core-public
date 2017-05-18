@@ -53,6 +53,8 @@ public class BackupWorkItem implements WorkItem {
     private String backupLocation; //Location of backup directory on disk
     private volatile boolean finished = false;
     private volatile boolean cancelled = false;
+    private volatile boolean failed = false;
+    private String filename;
     
     /**
      * Statically Schedule a Timer Task that will run this work item.
@@ -138,6 +140,7 @@ public class BackupWorkItem implements WorkItem {
 				File file = new File(fullFilePath);
 				if(!file.exists())
 					if(!file.createNewFile()){
+						failed = true;
 						LOG.warn("Unable to create backup file: " + fullFilePath);
 			            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
 			                    Common.backgroundProcessing.currentTimeMillis(), false,
@@ -149,6 +152,10 @@ public class BackupWorkItem implements WorkItem {
 				BufferedWriter bw = new BufferedWriter(fw);
 				bw.write(jsonData);
 				bw.close();
+				
+				//Save the filename
+				this.filename = file.getAbsolutePath();
+				
 				//Store the last successful backup time
 				SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,runtimeString);
 				
@@ -173,6 +180,7 @@ public class BackupWorkItem implements WorkItem {
 		        
 			}catch(Exception e){
 				LOG.warn(e);
+				failed = true;
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
 	                    Common.backgroundProcessing.currentTimeMillis(), false,
 	                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
@@ -289,7 +297,15 @@ public class BackupWorkItem implements WorkItem {
 		return this.finished;
 	}
 	
+	public boolean isFailed(){
+		return this.failed;
+	}
+	
 	public void setBackupLocation(String location){
 		this.backupLocation = location;
+	}
+	
+	public String getFilename(){
+		return this.filename;
 	}
 }

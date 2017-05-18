@@ -8,8 +8,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.SystemActionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SqlBackupActionPermissionDefinition;
+import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.timer.OneTimeTrigger;
 
@@ -17,9 +19,9 @@ import com.serotonin.timer.OneTimeTrigger;
  * 
  * @author Terry Packer
  */
-public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
+public class SqlBackupActionDefinition extends SystemActionDefinition{
 
-	private final String KEY = "purgeAllEvents";
+	private final String KEY = "sqlBackup";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getKey()
 	 */
@@ -41,7 +43,7 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 	 */
 	@Override
 	protected String getPermissionTypeName() {
-		return PurgeAllEventsActionPermissionDefinition.PERMISSION;
+		return SqlBackupActionPermissionDefinition.PERMISSION;
 	}
 
 	/* (non-Javadoc)
@@ -60,8 +62,12 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 	 */
 	class Action extends SystemActionTask{
 		
+		private final DatabaseBackupWorkItem item;
+		private volatile boolean cancelled;
+		
 		public Action(){
-			super(new OneTimeTrigger(0l), "Purge All Events", "EVENT_FULL_PURGE", 5);
+			super(new OneTimeTrigger(0l), "SQL Database Backup Action", "DATABASE_BACKUP_ACTION", 5);
+			this.item = new DatabaseBackupWorkItem();
 		}
 
 		/* (non-Javadoc)
@@ -69,8 +75,47 @@ public class PurgeAllEventsActionDefinition extends SystemActionDefinition{
 		 */
 		@Override
 		public void runImpl(long runtime) {
-	        int cnt = Common.eventManager.purgeAllEvents();
-			this.results.put("deleted", cnt);
+        	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+			item.setBackupLocation(backupLocation);
+			Common.backgroundProcessing.addWorkItem(item);
+			
+			//As a medium priority task we can just wait here until we are done
+			while(true){
+				if(item.isFinished())
+					break;
+				else
+					try {
+						Thread.sleep(800);
+					} catch (InterruptedException e) { 	}
+			}
+			
+			//Did it work?
+			if(item.isFailed()){
+				this.results.put("failed", item.isFailed());
+			}else{
+				//Add the filename of the backup
+				this.results.put("backupFile", item.getFilename());
+			}
 		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.SystemActionTask#cancel()
+		 */
+		@Override
+		public boolean cancel() {
+			boolean result = super.cancel();
+			this.cancelled = true;
+			this.item.cancel();
+			return result;
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.timer.Task#isCancelled()
+		 */
+		@Override
+		public boolean isCancelled() {
+			return this.cancelled;
+		}
+		
 	}
 }
