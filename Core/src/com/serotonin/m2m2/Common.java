@@ -166,6 +166,12 @@ public class Common {
             try {
                 version = loadCoreVersionFromReleaseProperties(version);
             } catch (Throwable t) {}
+            
+            // check for possible license subversion
+            if (version.getMajorVersion() != COMPILED_CORE_VERSION.getMajorVersion()) {
+                throw new RuntimeException("Version from release.properties does not match compiled major version " + COMPILED_CORE_VERSION.getMajorVersion());
+            }
+            
             this.version = version;
         }
     }
@@ -180,10 +186,16 @@ public class Common {
             } catch (Exception e1) { }
 
             String versionStr = props.getProperty(ModuleUtils.Constants.PROP_VERSION);
+            String buildNumberStr = props.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
+            
             if (versionStr != null) {
                 try {
                     version = Version.valueOf(versionStr);
                 } catch (com.github.zafarkhaja.semver.ParseException e) { }
+            }
+            
+            if (buildNumberStr != null) {
+                version = version.setBuildMetadata(buildNumberStr);
             }
         }
         
