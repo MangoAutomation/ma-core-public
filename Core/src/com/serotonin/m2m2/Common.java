@@ -44,6 +44,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.CompiledCoreVersion;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.serotonin.ShouldNeverHappenException;
@@ -151,25 +152,25 @@ public class Common {
      * particular to the schema, but is still required to update the system settings so that the database has the
      * correct version.
      */
-    
-    public static final Version COMPILED_CORE_VERSION = Version.valueOf("3.0.3-SNAPSHOT");
-    
+
     public static final Version getVersion() {
         return CoreVersion.INSTANCE.version;
     }
     
     private enum CoreVersion {
-        INSTANCE(COMPILED_CORE_VERSION);
+        INSTANCE();
         final Version version;
         
-        CoreVersion(Version version) {
+        CoreVersion() {
+            Version version = CompiledCoreVersion.VERSION;
+            
             try {
                 version = loadCoreVersionFromReleaseProperties(version);
             } catch (Throwable t) {}
             
             // check for possible license subversion
-            if (version.getMajorVersion() != COMPILED_CORE_VERSION.getMajorVersion()) {
-                throw new RuntimeException("Version from release.properties does not match compiled major version " + COMPILED_CORE_VERSION.getMajorVersion());
+            if (version.getMajorVersion() != CompiledCoreVersion.VERSION.getMajorVersion()) {
+                throw new RuntimeException("Version from release.properties does not match compiled major version " + CompiledCoreVersion.VERSION.getMajorVersion());
             }
             
             this.version = version;

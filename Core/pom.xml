@@ -148,6 +148,21 @@
                     <useBaseVersion>false</useBaseVersion>
                 </configuration>
             </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>templating-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                    <id>filtering-java-templates</id>
+                    <goals>
+                        <goal>filter-sources</goal>
+                    </goals>
+                    <configuration>
+                      <sourceDirectory>${project.basedir}/java-templates</sourceDirectory>
+                    </configuration>
+                </execution>
+              </executions>
+            </plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
