@@ -15,6 +15,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -25,7 +26,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.validation.StringValidation;
 
-public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>> extends AbstractVO<AbstractEventHandlerVO<?>> {
+public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
 
     //TODO Replace this with superclass name,enabled when we redo the UI
@@ -38,7 +39,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>
     //
     private EventType eventType; 
     
-    private EventHandlerDefinition definition;
+    private EventHandlerDefinition<T> definition;
 
     /**
      * Create the runtime handler
@@ -86,11 +87,11 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>
 		this.eventType = eventType;
 	}
 
-	public EventHandlerDefinition getDefinition() {
+	public EventHandlerDefinition<T> getDefinition() {
 		return definition;
 	}
 
-	public void setDefinition(EventHandlerDefinition definition) {
+	public void setDefinition(EventHandlerDefinition<T> definition) {
 		this.definition = definition;
 	}
 
@@ -113,9 +114,10 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<?>
             response.addContextualMessage("xid", "validate.xidUsed");
     }
 
-    @Override
-    protected EventHandlerDao getDao(){
-    	return EventHandlerDao.instance;
+    @SuppressWarnings("unchecked")
+	@Override
+    protected AbstractDao<T> getDao(){
+    	return (AbstractDao<T>)EventHandlerDao.instance;
     }
     //
     //

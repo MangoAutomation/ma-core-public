@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import com.serotonin.m2m2.module.EventHandlerDefinition;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.ProcessEventHandlerModel;
@@ -14,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.ProcessEventHand
  * @author Terry Packer
  *
  */
-public class ProcessEventHandlerDefinition extends EventHandlerDefinition{
+public class ProcessEventHandlerDefinition extends EventHandlerDefinition<ProcessEventHandlerVO>{
 	
 	public static final String TYPE_NAME = "PROCESS";
 	public static final String DESC_KEY = "eventHandlers.type.process";
@@ -39,7 +38,7 @@ public class ProcessEventHandlerDefinition extends EventHandlerDefinition{
 	 * @see com.serotonin.m2m2.module.EventHandlerDefinition#createEventHandlerVO()
 	 */
 	@Override
-	protected AbstractEventHandlerVO<?> createEventHandlerVO() {
+	protected ProcessEventHandlerVO createEventHandlerVO() {
 		return new ProcessEventHandlerVO();
 	}
 

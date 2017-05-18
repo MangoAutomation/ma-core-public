@@ -13,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHan
  * @author Terry Packer
  *
  */
-public abstract class EventHandlerDefinition extends ModuleElementDefinition{
+public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>> extends ModuleElementDefinition{
 
     /**
      * An internal identifier for this type of Event Handler. Must be unique within an MA instance, and is recommended
@@ -36,14 +36,14 @@ public abstract class EventHandlerDefinition extends ModuleElementDefinition{
      * 
      * @return a new instance of the event handler.
      */
-    abstract protected AbstractEventHandlerVO<?> createEventHandlerVO();
+    abstract protected T createEventHandlerVO();
 
     
     /**
      * Used by MA core code to create a new event handler instances as required. Should not be used by client code.
      */
-    public final AbstractEventHandlerVO<?> baseCreateEventHandlerVO() {
-        AbstractEventHandlerVO<?> handler = createEventHandlerVO();
+    public final T baseCreateEventHandlerVO() {
+        T handler = createEventHandlerVO();
         handler.setDefinition(this);
         return handler;
     }

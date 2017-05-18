@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import com.serotonin.m2m2.module.EventHandlerDefinition;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHandlerModel;
@@ -14,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHan
  * @author Terry Packer
  *
  */
-public class SetPointEventHandlerDefinition extends EventHandlerDefinition{
+public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPointEventHandlerVO>{
 	
 	public static final String TYPE_NAME = "SET_POINT";
 	public static final String DESC_KEY = "eventHandlers.type.setPoint";
@@ -39,7 +38,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition{
 	 * @see com.serotonin.m2m2.module.EventHandlerDefinition#createEventHandlerVO()
 	 */
 	@Override
-	protected AbstractEventHandlerVO<?> createEventHandlerVO() {
+	protected SetPointEventHandlerVO createEventHandlerVO() {
 		return new SetPointEventHandlerVO();
 	}
 

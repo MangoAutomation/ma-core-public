@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import com.serotonin.m2m2.module.EventHandlerDefinition;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandlerModel;
@@ -14,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandle
  * @author Terry Packer
  *
  */
-public class EmailEventHandlerDefinition extends EventHandlerDefinition{
+public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEventHandlerVO>{
 
 	public static final String TYPE_NAME = "EMAIL";
 	public static final String DESC_KEY = "eventHandlers.type.email";
@@ -39,7 +38,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition{
 	 * @see com.serotonin.m2m2.module.EventHandlerDefinition#createEventHandlerVO()
 	 */
 	@Override
-	protected AbstractEventHandlerVO<?> createEventHandlerVO() {
+	protected EmailEventHandlerVO createEventHandlerVO() {
 		return new EmailEventHandlerVO();
 	}
 
