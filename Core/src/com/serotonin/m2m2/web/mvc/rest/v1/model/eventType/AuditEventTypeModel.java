@@ -93,8 +93,8 @@ public class AuditEventTypeModel extends EventTypeModel{
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getDuplicateHandling()
 	 */
 	@Override
-	public int getDuplicateHandling() {
-		return DuplicateHandling.ALLOW;
+	public String getDuplicateHandling() {
+		return EventType.DUPLICATE_HANDLING_CODES.getCode(DuplicateHandling.ALLOW);
 	}
 
 	/* (non-Javadoc)

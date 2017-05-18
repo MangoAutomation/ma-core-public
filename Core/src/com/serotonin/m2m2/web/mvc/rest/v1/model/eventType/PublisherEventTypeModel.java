@@ -59,8 +59,8 @@ public class PublisherEventTypeModel extends EventTypeModel{
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getDuplicateHandling()
 	 */
 	@Override
-	public int getDuplicateHandling() {
-		return EventType.DuplicateHandling.IGNORE;
+	public String getDuplicateHandling() {
+		return EventType.DUPLICATE_HANDLING_CODES.getCode(EventType.DuplicateHandling.IGNORE);
 	}
 
 	/* (non-Javadoc)

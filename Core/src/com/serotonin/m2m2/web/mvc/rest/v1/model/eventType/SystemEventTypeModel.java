@@ -41,12 +41,12 @@ public class SystemEventTypeModel extends EventTypeModel{
 		this.refId1 = refId1;
 	}
 
-	public int getDuplicateHandling() {
-		return duplicateHandling;
+	public String getDuplicateHandling() {
+		return EventType.DUPLICATE_HANDLING_CODES.getCode(duplicateHandling);
 	}
 
-	public void setDuplicateHandling(int duplicateHandling) {
-		this.duplicateHandling = duplicateHandling;
+	public void setDuplicateHandling(String duplicateHandling) {
+		this.duplicateHandling = EventType.DUPLICATE_HANDLING_CODES.getId(duplicateHandling);
 	}
 
 	/* (non-Javadoc)

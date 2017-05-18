@@ -21,7 +21,7 @@ public abstract class EventTypeModel{
 	
 	abstract public boolean isRateLimited();
 	
-	abstract public int getDuplicateHandling();
+	abstract public String getDuplicateHandling();
 	
 	/**
 	 * Create an instance of the Event Type

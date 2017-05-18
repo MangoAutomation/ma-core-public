@@ -126,6 +126,14 @@ abstract public class EventType implements JsonSerializable {
         int ALLOW = 4;
     }
 
+    public static ExportCodes DUPLICATE_HANDLING_CODES = new ExportCodes();
+    static{
+    	DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.DO_NOT_ALLOW, "DO_NOT_ALLOW");
+    	DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.IGNORE, "IGNORE");
+    	DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.IGNORE_SAME_MESSAGE, "IGNORE_SAME_MESSAGE");
+    	DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.ALLOW, "ALLOW");
+    }
+    
     abstract public String getEventType();
 
     abstract public String getEventSubtype();

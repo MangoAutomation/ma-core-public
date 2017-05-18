@@ -41,12 +41,12 @@ public class DataSourceEventTypeModel extends EventTypeModel{
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getDuplicateHandling()
 	 */
 	@Override
-	public int getDuplicateHandling() {
-		return this.duplicateHandling;
+	public String getDuplicateHandling() {
+		return EventType.DUPLICATE_HANDLING_CODES.getCode(this.duplicateHandling);
 	}
 	
-	public void setDuplicateHandling(int duplicateHandling){
-		this.duplicateHandling = duplicateHandling;
+	public void setDuplicateHandling(String duplicateHandling){
+		this.duplicateHandling = EventType.DUPLICATE_HANDLING_CODES.getId(duplicateHandling);
 	}
 
 	public int getDataSourceId() {

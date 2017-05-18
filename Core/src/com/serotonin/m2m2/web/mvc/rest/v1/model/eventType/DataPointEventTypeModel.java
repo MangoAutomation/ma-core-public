@@ -77,11 +77,11 @@ public class DataPointEventTypeModel extends EventTypeModel{
 		this.pointEventDetectorId = pointEventDetectorId;
 	}
 
-	public int getDuplicateHandling() {
-		return duplicateHandling;
+	public String getDuplicateHandling() {
+		return EventType.DUPLICATE_HANDLING_CODES.getCode(duplicateHandling);
 	}
 
 	public void setDuplicateHandling(int duplicateHandling) {
-		this.duplicateHandling = duplicateHandling;
+		this.duplicateHandling = EventType.DUPLICATE_HANDLING_CODES.getId(duplicateHandling);
 	}
 }
