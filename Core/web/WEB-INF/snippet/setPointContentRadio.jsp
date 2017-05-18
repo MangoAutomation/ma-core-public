@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 --%>
-<input type="hidden" id="setPointValue${idSuffix}" value=""/>
+<input type="hidden" id="setPointValue${idSuffix}" value="${valueStr}"/>
 <input type="radio"${text == point.textRenderer.zeroLabel ? " checked=\"checked\"" : ""} 
         name="setPointValueRB${idSuffix}" id="setPointValueRBF${idSuffix}" 
         onclick="$('setPointValue${idSuffix}').value = 'false'"/>

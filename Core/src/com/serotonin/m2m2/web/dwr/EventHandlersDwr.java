@@ -228,7 +228,7 @@ public class EventHandlersDwr extends BaseDwr {
         model.put("idSuffix", idSuffix);
         model.put("text", pointVO.getTextRenderer().getText(value, TextRenderer.HINT_FULL));
         model.put("rawText", pointVO.getTextRenderer().getText(value, TextRenderer.HINT_RAW));
-
+        model.put("valueStr", valueStr);
         String snippet = pointVO.getTextRenderer().getSetPointSnippetFilename();
         return generateContent(WebContextFactory.get().getHttpServletRequest(), snippet, model);
     }
