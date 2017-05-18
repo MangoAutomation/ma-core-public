@@ -4,9 +4,6 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -28,7 +24,6 @@ import org.springframework.web.servlet.mvc.Controller;
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
-import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
@@ -88,7 +83,6 @@ import com.serotonin.m2m2.module.definitions.settings.TimezoneInfoDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
-import com.serotonin.m2m2.shared.DependencyData;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -119,7 +113,7 @@ public class ModuleRegistry {
 	
     private static final Object LOCK = new Object();
     private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
-    private static final Map<String, DependencyData> MISSING_DEPENDENCIES = new LinkedHashMap<String, DependencyData>();
+    private static final Map<String, String> MISSING_DEPENDENCIES = new LinkedHashMap<>();
     private static final List<Module> UNLOADED_MODULES = new CopyOnWriteArrayList<>();
 
     private static Map<String, DataSourceDefinition> DATA_SOURCE_DEFINITIONS;
@@ -151,30 +145,8 @@ public class ModuleRegistry {
      * @return
      */
     public static Module getCoreModule(){
-    	
-    	Properties props = new Properties();
-    	File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
-        int versionState = UpgradeVersionState.DEVELOPMENT;
-        int buildNumber = -1;
-        if(propFile.exists()) {
-	        //InputStream in = new FileInputStream(propFile);
-	        try(InputStream in = new FileInputStream(propFile)){
-	        	props.load(in);
-	        } catch (Exception e1) { }
-	        String buildNumberStr = props.getProperty("buildNumber");
-	        String currentVersionState = props.getProperty("versionState");
-	        try {
-	        	if(currentVersionState != null)
-	        		versionState = Integer.valueOf(currentVersionState);
-	        } catch(NumberFormatException e) { }
-	        try {
-	        	if(buildNumberStr != null)
-	        		buildNumber = Integer.valueOf(buildNumberStr);
-	        } catch(NumberFormatException e) { }
-        }
-    	
-        Module core = new Module("core", Common.getVersion().getFullString(), new TranslatableMessage("modules.core.description"),
-                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, versionState, buildNumber, false);
+        Module core = new Module("core", Common.getVersion(), new TranslatableMessage("modules.core.description"),
+                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, false);
 
         if(Common.isInvalid())
         	core.setLicenseType("Invalid");
@@ -233,7 +205,7 @@ public class ModuleRegistry {
      * @param moduleName
      * @param version
      */
-    public static void addMissingDependency(String moduleName, DependencyData version){
+    public static void addMissingDependency(String moduleName, String version){
     	MISSING_DEPENDENCIES.put(moduleName, version);
     }
     
@@ -243,7 +215,7 @@ public class ModuleRegistry {
      * Users must not modify this list.
      * @return
      */
-    public static Map<String, DependencyData> getMissingDependencies(){
+    public static Map<String, String> getMissingDependencies(){
     	return MISSING_DEPENDENCIES;
     }
     

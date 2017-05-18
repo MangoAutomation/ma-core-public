@@ -27,6 +27,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
+import com.github.zafarkhaja.semver.Version;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonException;
@@ -168,7 +169,9 @@ public class ModulesDwr extends BaseDwr {
             Map<String, String> jsonModules = new HashMap<>();
             json.put("modules", jsonModules);
 
-            jsonModules.put("core", Common.getVersion().getFullString());
+            Version coreVersion = Common.getVersion();
+            
+            jsonModules.put("core", coreVersion.toString());
             for (StringStringPair module : modules)
                 jsonModules.put(module.getKey(), module.getValue());
 
@@ -326,13 +329,14 @@ public class ModulesDwr extends BaseDwr {
         Map<String, String> jsonModules = new HashMap<>();
         json.put("modules", jsonModules);
 
-        jsonModules.put("core", Common.getVersion().getFullString());
+        Version coreVersion = Common.getVersion();
+        jsonModules.put("core", coreVersion.toString());
         for (Module module : modules)
-            jsonModules.put(module.getName(), module.getVersionAndState());
+            jsonModules.put(module.getName(), module.getVersion().toString());
         
         //Add in the unloaded modules so we don't re-download them if we don't have to
         for(Module module : ModuleRegistry.getUnloadedModules())
-        	jsonModules.put(module.getName(), module.getVersionAndState());
+        	jsonModules.put(module.getName(), module.getVersion().toString());
 
         StringWriter stringWriter = new StringWriter();
         new JsonWriter(Common.JSON_CONTEXT, stringWriter).writeObject(json);

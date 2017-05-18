@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
@@ -56,7 +57,7 @@ public class Module {
     }
 
     private final String name;
-    private final String version;
+    private final Version version;
     private String licenseType;
     private final TranslatableMessage description;
     private final String vendor;
@@ -70,8 +71,6 @@ public class Module {
     private final Set<String> locales = new HashSet<>();
     private String graphics;
     private String emailTemplates;
-    private final int versionState;
-    private final int buildNumber;
     private final boolean signed;
 
     /**
@@ -83,8 +82,8 @@ public class Module {
      * @param vendor
      * @param vendorUrl
      */
-    public Module(String name, String version, TranslatableMessage description, String vendor, String vendorUrl,
-            String dependencies, int loadOrder, int versionState, int buildNumber, boolean signed) {
+    public Module(String name, Version version, TranslatableMessage description, String vendor, String vendorUrl,
+            String dependencies, int loadOrder, boolean signed) {
         this.name = name;
         this.version = version;
         this.description = description;
@@ -92,8 +91,6 @@ public class Module {
         this.vendorUrl = vendorUrl;
         this.dependencies = dependencies;
         this.loadOrder = loadOrder;
-        this.versionState = versionState;
-        this.buildNumber = buildNumber;
         this.signed = signed;
     }
 
@@ -211,16 +208,12 @@ public class Module {
     /**
      * @return the module's version
      */
-    public String getVersion() {
+    public Version getVersion() {
         return version;
     }
     
-    public int getVersionState() {
-    	return versionState;
-    }
-    
-    public String getVersionAndState() {
-    	return version + "-" + versionState;
+    public String getNormalVersion() {
+        return version.getNormalVersion();
     }
 
     public String getLicenseType() {
@@ -251,8 +244,8 @@ public class Module {
         return loadOrder;
     }
     
-    public int getBuildNumber(){
-    	return this.buildNumber;
+    public String getBuildNumber(){
+    	return this.version.getBuildMetadata();
     }
     
     public boolean isSigned() {
