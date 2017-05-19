@@ -7,12 +7,13 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.SmoothnessDetectorEventDetectorModel;
 
 /**
  * @author Terry Packer
  *
  */
-public class SmoothnessEventDetectorDefinition extends PointEventDetectorDefinition{
+public class SmoothnessEventDetectorDefinition extends PointEventDetectorDefinition<SmoothnessDetectorVO>{
 
 	public static final String TYPE_NAME = "SMOOTHNESS";
 		
@@ -36,7 +37,7 @@ public class SmoothnessEventDetectorDefinition extends PointEventDetectorDefinit
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
 	 */
 	@Override
-	protected AbstractEventDetectorVO<?> createEventDetectorVO() {
+	protected AbstractEventDetectorVO<SmoothnessDetectorVO> createEventDetectorVO() {
 		return new SmoothnessDetectorVO();
 	}
 
@@ -44,9 +45,16 @@ public class SmoothnessEventDetectorDefinition extends PointEventDetectorDefinit
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override
-	public AbstractEventDetectorModel<?> createModel(
-			AbstractEventDetectorVO<?> vo) {
-		return null;
+	public AbstractEventDetectorModel<SmoothnessDetectorVO> createModel(
+			AbstractEventDetectorVO<SmoothnessDetectorVO> vo) {
+		return new SmoothnessDetectorEventDetectorModel((SmoothnessDetectorVO)vo);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
+	 */
+	@Override
+	public Class<?> getModelClass() {
+		return SmoothnessDetectorEventDetectorModel.class;
+	}
 }

@@ -5,12 +5,13 @@
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
 import com.serotonin.m2m2.module.EventDetectorDefinition;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 /**
  * @author Terry Packer
  *
  */
-public abstract class PointEventDetectorDefinition extends EventDetectorDefinition{
+public abstract class PointEventDetectorDefinition<T extends AbstractPointEventDetectorVO<T>> extends EventDetectorDefinition<T>{
 
 	public static final String SOURCE_ID_COLUMN_NAME = "dataPointId";
 	public static final String SOURCE_TYPE_NAME = "DATA_POINT";

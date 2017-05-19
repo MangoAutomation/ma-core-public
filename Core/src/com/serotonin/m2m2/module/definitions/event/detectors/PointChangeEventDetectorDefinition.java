@@ -7,12 +7,13 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.PointChangeEventDetectorModel;
 
 /**
  * @author Terry Packer
  *
  */
-public class PointChangeEventDetectorDefinition extends PointEventDetectorDefinition{
+public class PointChangeEventDetectorDefinition extends PointEventDetectorDefinition<PointChangeDetectorVO>{
 
 	public static final String TYPE_NAME = "POINT_CHANGE";
 		
@@ -36,7 +37,7 @@ public class PointChangeEventDetectorDefinition extends PointEventDetectorDefini
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
 	 */
 	@Override
-	protected AbstractEventDetectorVO<?> createEventDetectorVO() {
+	protected AbstractEventDetectorVO<PointChangeDetectorVO> createEventDetectorVO() {
 		return new PointChangeDetectorVO();
 	}
 
@@ -44,9 +45,16 @@ public class PointChangeEventDetectorDefinition extends PointEventDetectorDefini
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override
-	public AbstractEventDetectorModel<?> createModel(
-			AbstractEventDetectorVO<?> vo) {
-		return null;
+	public AbstractEventDetectorModel<PointChangeDetectorVO> createModel(
+			AbstractEventDetectorVO<PointChangeDetectorVO> vo) {
+		return new PointChangeEventDetectorModel((PointChangeDetectorVO) vo);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
+	 */
+	@Override
+	public Class<?> getModelClass() {
+		return PointChangeEventDetectorModel.class;
+	}
 }

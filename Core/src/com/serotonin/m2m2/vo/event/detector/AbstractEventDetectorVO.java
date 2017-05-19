@@ -12,6 +12,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -24,25 +25,25 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  * @author Terry Packer
  *
  */
-public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<?>> extends AbstractVO<AbstractEventDetectorVO<?>>{
+public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<T>> extends AbstractVO<T>{
 
 	private static final long serialVersionUID = 1L;
 
 	public static final String XID_PREFIX = "ED_";
 	
 	/* Source of the detector */
-	private int sourceId;
+	protected int sourceId;
 	
 	/**
 	 * Our defintion
 	 */
-	protected EventDetectorDefinition definition;
+	protected EventDetectorDefinition<T> definition;
 	
 	/**
      * Return the Model Representation of the Event Detector Source
      * @return
      */
-    public AbstractEventDetectorModel<?> asModel(){
+    public AbstractEventDetectorModel<T> asModel(){
     	return this.definition.createModel(this);
     }
 	
@@ -112,17 +113,18 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		sourceId = id;
 	}
 	
-	public EventDetectorDefinition getDefinition() {
+	public EventDetectorDefinition<T> getDefinition() {
 		return definition;
 	}
 
-	public void setDefinition(EventDetectorDefinition definition) {
+	public void setDefinition(EventDetectorDefinition<T> definition) {
 		this.definition = definition;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected EventDetectorDao getDao(){
-		return EventDetectorDao.instance;
+	protected AbstractDao<T> getDao(){
+		return (AbstractDao<T>) EventDetectorDao.instance;
 	}
 	
     @Override

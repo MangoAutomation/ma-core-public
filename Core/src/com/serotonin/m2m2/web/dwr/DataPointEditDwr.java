@@ -190,7 +190,7 @@ public class DataPointEditDwr extends BaseDwr {
     @DwrPermission(user = true)
     public AbstractPointEventDetectorVO<?> addEventDetector(String typeName, int newId) {
         DataPointVO dp = getDataPoint();
-        EventDetectorDefinition definition = ModuleRegistry.getEventDetectorDefinition(typeName);
+        EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(typeName);
         
         AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) definition.baseCreateEventDetectorVO();
         ped.setXid(EventDetectorDao.instance.generateUniqueXid());

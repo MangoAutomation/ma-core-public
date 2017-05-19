@@ -7,12 +7,13 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AnalogHighLimitEventDetectorModel;
 
 /**
  * @author Terry Packer
  *
  */
-public class AnalogHighLimitEventDetectorDefinition extends PointEventDetectorDefinition{
+public class AnalogHighLimitEventDetectorDefinition extends PointEventDetectorDefinition<AnalogHighLimitDetectorVO>{
 
 	public static final String TYPE_NAME = "HIGH_LIMIT";
 		
@@ -36,7 +37,7 @@ public class AnalogHighLimitEventDetectorDefinition extends PointEventDetectorDe
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
 	 */
 	@Override
-	protected AbstractEventDetectorVO<?> createEventDetectorVO() {
+	protected AbstractEventDetectorVO<AnalogHighLimitDetectorVO> createEventDetectorVO() {
 		return new AnalogHighLimitDetectorVO();
 	}
 
@@ -44,9 +45,17 @@ public class AnalogHighLimitEventDetectorDefinition extends PointEventDetectorDe
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override
-	public AbstractEventDetectorModel<?> createModel(
-			AbstractEventDetectorVO<?> vo) {
-		return null;
+	public AbstractEventDetectorModel<AnalogHighLimitDetectorVO> createModel(
+			AbstractEventDetectorVO<AnalogHighLimitDetectorVO> vo) {
+		return new AnalogHighLimitEventDetectorModel((AnalogHighLimitDetectorVO)vo);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
+	 */
+	@Override
+	public Class<?> getModelClass() {
+		return AnalogHighLimitEventDetectorModel.class;
 	}
 
 }

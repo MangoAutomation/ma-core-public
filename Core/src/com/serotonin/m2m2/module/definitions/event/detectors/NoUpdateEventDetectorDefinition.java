@@ -7,12 +7,13 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.NoUpdateDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.NoUpdateEventDetectorModel;
 
 /**
  * @author Terry Packer
  *
  */
-public class NoUpdateEventDetectorDefinition extends PointEventDetectorDefinition{
+public class NoUpdateEventDetectorDefinition extends PointEventDetectorDefinition<NoUpdateDetectorVO>{
 
 	public static final String TYPE_NAME = "NO_UPDATE";
 		
@@ -36,7 +37,7 @@ public class NoUpdateEventDetectorDefinition extends PointEventDetectorDefinitio
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
 	 */
 	@Override
-	protected AbstractEventDetectorVO<?> createEventDetectorVO() {
+	protected AbstractEventDetectorVO<NoUpdateDetectorVO> createEventDetectorVO() {
 		return new NoUpdateDetectorVO();
 	}
 
@@ -44,9 +45,15 @@ public class NoUpdateEventDetectorDefinition extends PointEventDetectorDefinitio
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override
-	public AbstractEventDetectorModel<?> createModel(
-			AbstractEventDetectorVO<?> vo) {
-		return null;
+	public AbstractEventDetectorModel<NoUpdateDetectorVO> createModel(AbstractEventDetectorVO<NoUpdateDetectorVO> vo) {
+		return new NoUpdateEventDetectorModel((NoUpdateDetectorVO)vo);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
+	 */
+	@Override
+	public Class<?> getModelClass() {
+		return NoUpdateEventDetectorModel.class;
+	}
 }

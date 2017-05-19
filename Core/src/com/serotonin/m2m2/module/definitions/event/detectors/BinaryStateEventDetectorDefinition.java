@@ -7,12 +7,13 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.BinaryStateDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.BinaryStateEventDetectorModel;
 
 /**
  * @author Terry Packer
  *
  */
-public class BinaryStateEventDetectorDefinition extends PointEventDetectorDefinition{
+public class BinaryStateEventDetectorDefinition extends PointEventDetectorDefinition<BinaryStateDetectorVO>{
 
 	public static final String TYPE_NAME = "BINARY_STATE";
 		
@@ -36,7 +37,7 @@ public class BinaryStateEventDetectorDefinition extends PointEventDetectorDefini
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
 	 */
 	@Override
-	protected AbstractEventDetectorVO<?> createEventDetectorVO() {
+	protected AbstractEventDetectorVO<BinaryStateDetectorVO> createEventDetectorVO() {
 		return new BinaryStateDetectorVO();
 	}
 
@@ -44,9 +45,16 @@ public class BinaryStateEventDetectorDefinition extends PointEventDetectorDefini
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override
-	public AbstractEventDetectorModel<?> createModel(
-			AbstractEventDetectorVO<?> vo) {
-		return null;
+	public AbstractEventDetectorModel<BinaryStateDetectorVO> createModel(AbstractEventDetectorVO<BinaryStateDetectorVO> vo) {
+		return new BinaryStateEventDetectorModel((BinaryStateDetectorVO) vo);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
+	 */
+	@Override
+	public Class<?> getModelClass() {
+		return BinaryStateEventDetectorModel.class;
 	}
 
 }

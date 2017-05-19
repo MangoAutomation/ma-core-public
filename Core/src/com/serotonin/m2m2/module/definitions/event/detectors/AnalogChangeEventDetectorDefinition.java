@@ -7,12 +7,13 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AnalogChangeEventDetectorModel;
 
 /**
  * @author Terry Packer
  *
  */
-public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefinition{
+public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefinition<AnalogChangeDetectorVO>{
 
 	public static final String TYPE_NAME = "ANALOG_CHANGE";
 		
@@ -36,7 +37,7 @@ public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefin
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
 	 */
 	@Override
-	protected AbstractEventDetectorVO<?> createEventDetectorVO() {
+	protected AbstractEventDetectorVO<AnalogChangeDetectorVO> createEventDetectorVO() {
 		return new AnalogChangeDetectorVO();
 	}
 
@@ -44,9 +45,17 @@ public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefin
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override
-	public AbstractEventDetectorModel<?> createModel(
-			AbstractEventDetectorVO<?> vo) {
-		return null;
+	public AbstractEventDetectorModel<AnalogChangeDetectorVO> createModel(
+			AbstractEventDetectorVO<AnalogChangeDetectorVO> vo) {
+		return new AnalogChangeEventDetectorModel((AnalogChangeDetectorVO) vo);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
+	 */
+	@Override
+	public Class<?> getModelClass() {
+		return AnalogChangeEventDetectorModel.class;
 	}
 
 }

@@ -12,6 +12,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -63,6 +64,9 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
         return ArrayUtils.contains(supportedDataTypes, dataType);
     }
 
+    public int[] getSupportedDataTypes(){
+    	return supportedDataTypes;
+    }
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#isRtnApplicable()
 	 */
@@ -73,7 +77,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	
 	@Override
     public EventTypeVO getEventType() {
-        return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, dataPoint.getId(), id, getDescription(),
+        return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, sourceId, id, getDescription(),
                 alarmLevel);
     }
 	
@@ -97,30 +101,30 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     }
     
     protected boolean getBoolean(JsonObject json, String name) throws JsonException {
-        Boolean b = json.getBoolean(name);
-        if (b == null)
+        JsonValue o = json.get(name);
+    	if(o == null)
             throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return b;
+        return o.toBoolean();
     }
 
     protected String getString(JsonObject json, String name) throws JsonException {
-        String s = json.getString(name);
-        if (s == null)
+        JsonValue o = json.get(name);
+    	if(o == null)
             throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return s;
+        return json.getString(name);
     }
     
     protected double getDouble(JsonObject json, String name) throws JsonException {
-        Double d = json.getDouble(name);
-        if (d == null)
+        JsonValue o = json.get(name);
+    	if(o == null)
             throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return d;
+        return json.getDouble(name);
     }
 
     protected int getInt(JsonObject json, String name) throws JsonException {
-        Integer i = json.getInt(name);
-        if (i == null)
+        JsonValue o = json.get(name);
+    	if(o == null)
             throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return i;
+        return json.getInt(name);
     }
 }

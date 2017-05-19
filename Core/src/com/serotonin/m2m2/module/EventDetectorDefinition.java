@@ -13,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDe
  * @author Terry Packer
  *
  */
-public abstract class EventDetectorDefinition extends ModuleElementDefinition{
+public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<T>> extends ModuleElementDefinition{
 
 	/**
 	 * Name of the column in the event detectors into which to store the source id
@@ -50,22 +50,31 @@ public abstract class EventDetectorDefinition extends ModuleElementDefinition{
      * 
      * @return a new instance of the event detector.
      */
-    abstract protected AbstractEventDetectorVO<?> createEventDetectorVO();
+    abstract protected AbstractEventDetectorVO<T> createEventDetectorVO();
 
     /**
      * Create a model from the VO
      * @param vo
      * @return
      */
-    abstract public AbstractEventDetectorModel<?> createModel(AbstractEventDetectorVO<?> vo);
+    abstract public AbstractEventDetectorModel<T> createModel(AbstractEventDetectorVO<T> vo);
+    
+	/**
+	 * Get the class of the model
+	 * 
+	 * @return
+	 */
+	abstract public Class<?> getModelClass();
+
     
     /**
      * Used by MA core code to create a new event detector instances as required. Should not be used by client code.
      */
-    public final AbstractEventDetectorVO<?> baseCreateEventDetectorVO() {
-        AbstractEventDetectorVO<?> detector = createEventDetectorVO();
+    public final AbstractEventDetectorVO<T> baseCreateEventDetectorVO() {
+        AbstractEventDetectorVO<T> detector = createEventDetectorVO();
         detector.setDefinition(this);
         return detector;
     }
+
 
 }

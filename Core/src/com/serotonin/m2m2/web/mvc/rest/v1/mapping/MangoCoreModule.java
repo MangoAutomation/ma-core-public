@@ -10,6 +10,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.SuperclassModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
@@ -41,7 +42,7 @@ public class MangoCoreModule extends SimpleModule {
 		this.addDeserializer(AbstractPublishedPointModel.class, new PublishedPointModelDeserializer());
 		this.addDeserializer(AbstractEventHandlerModel.class, new AbstractEventHandlerModelDeserializer());
 		this.addDeserializer(EventTypeModel.class, new EventTypeModelDeserializer());
-		
+		this.addDeserializer(AbstractEventDetectorModel.class, new AbstractEventDetectorModelDeserializer());
 		super.setupModule(context);
 	}
 }

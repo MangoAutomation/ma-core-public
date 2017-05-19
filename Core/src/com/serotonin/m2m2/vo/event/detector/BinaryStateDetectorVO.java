@@ -58,5 +58,7 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
                     state, TextRenderer.HINT_SPECIFIC), durationDesc);
         return message;
 	}
+	
+	
 
 }
