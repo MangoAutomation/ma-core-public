@@ -10,7 +10,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
+import com.serotonin.m2m2.web.mvc.rest.IMangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -29,7 +29,7 @@ public class FilteredPageQueryStream<VO extends AbstractBasicVO, MODEL, DAO exte
 	 * @param node
 	 * @param queryCallback
 	 */
-	public FilteredPageQueryStream(DAO dao, MangoVoRestController<VO, MODEL, DAO> controller, ASTNode node,
+	public FilteredPageQueryStream(DAO dao, IMangoVoRestController<VO, MODEL, DAO> controller, ASTNode node,
 			FilteredQueryStreamCallback<VO> queryCallback) {
 		super(dao, controller, node, queryCallback);
 		this.countCallback = new CountQueryStreamCallback();

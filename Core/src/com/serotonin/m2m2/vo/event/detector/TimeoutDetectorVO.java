@@ -11,6 +11,8 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
@@ -50,6 +52,19 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
             return null;
         return Common.getPeriodDescription(durationType, duration);
     }
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		super.validate(response);
+		
+        if (!Common.TIME_PERIOD_CODES.isValidId(durationType, TimePeriods.MILLISECONDS, TimePeriods.SECONDS, TimePeriods.MINUTES, TimePeriods.HOURS))
+            response.addContextualMessage("durationType", "validate.invalidValue");
+        if (duration <= 0)
+            response.addContextualMessage("duration", "validate.greaterThanZero");
+	}
 	
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {

@@ -43,7 +43,12 @@ public class JScienceModule extends SimpleModule {
     }
 
     private class UnitJsonSerializer extends StdScalarSerializer<Unit> {
-        protected UnitJsonSerializer() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		protected UnitJsonSerializer() {
             super(Unit.class);
         }
 
@@ -64,9 +69,7 @@ public class JScienceModule extends SimpleModule {
     }
 
     private class UnitJsonDeserializer extends StdScalarDeserializer<Unit> {
-        /**
-		 * 
-		 */
+
 		private static final long serialVersionUID = 1L;
 
 		protected UnitJsonDeserializer() {
@@ -87,7 +90,10 @@ public class JScienceModule extends SimpleModule {
     }
 
     private class ProductUnitJsonSerializer extends StdScalarSerializer<ProductUnit> {
-        protected ProductUnitJsonSerializer() {
+
+		private static final long serialVersionUID = 1L;
+
+		protected ProductUnitJsonSerializer() {
             super(ProductUnit.class);
         }
 

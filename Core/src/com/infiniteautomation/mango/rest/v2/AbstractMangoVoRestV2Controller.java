@@ -1,8 +1,8 @@
 /**
- * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
+ * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+ *
  */
-package com.serotonin.m2m2.web.mvc.rest.v1;
+package com.infiniteautomation.mango.rest.v2;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,10 +32,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
+ * 
  * @author Terry Packer
- *
  */
-public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends MangoRestController implements IMangoVoRestController<VO, MODEL, DAO>{
+public abstract class AbstractMangoVoRestV2Controller <VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends AbstractMangoRestV2Controller implements IMangoVoRestController<VO, MODEL, DAO>{
 
 	protected DAO dao;
 	
@@ -48,7 +48,7 @@ public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, D
 	 * Construct a Controller using the default callback
 	 * @param dao
 	 */
-	public MangoVoRestController(DAO dao){
+	public AbstractMangoVoRestV2Controller(DAO dao){
 		this.dao = dao;
 		this.modelMap = new HashMap<String,String>();
 		this.appenders = new HashMap<String, SQLColumnQueryAppender>();
@@ -107,16 +107,8 @@ public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, D
 	})
 	@RequestMapping(method = RequestMethod.GET, produces={"application/json"}, value = "/explain-query")
     public ResponseEntity<TableModel> getTableModel(HttpServletRequest request) {
-        
         RestProcessResult<TableModel> result = new RestProcessResult<TableModel>(HttpStatus.OK);
-        
-        this.checkUser(request, result);
-        if(result.isOk()){
- 	        result.addRestMessage(getSuccessMessage());
-	        return result.createResponseEntity(this.getQueryAttributeModel());
-        }
-        
-        return result.createResponseEntity();
+        return result.createResponseEntity(this.getQueryAttributeModel());
     }
 	
 	/**
@@ -141,61 +133,27 @@ public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, D
 		return model;
 	}
 	
-	/**
-	 * Append an AND Restriction to a query
-	 * @param query - can be null
-	 * @param restriction
-	 * @return
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.web.mvc.rest.swagger.IMangoVoRestController#getModelMap()
 	 */
-	protected ASTNode addAndRestriction(ASTNode query, ASTNode restriction){
-		//Root query node
-		ASTNode root = null;
-		
-		if(query == null){
-			root = restriction;
-		}else if(query.getName().equalsIgnoreCase("and")){
-			root = query.addArgument(restriction);
-		}else{
-			root = new ASTNode("and", restriction, query);
-		}
-		return root;
-	}
-	
-	/**
-	 * Append an OR restriction to the query
-	 * @param query - can be null
-	 * @param restriction
-	 * @return
-	 */
-	protected ASTNode addOrRestriction(ASTNode query, ASTNode restriction){
-		//Root query node
-		ASTNode root = null;
-		
-		if(query == null){
-			root = restriction;
-		}else if(query.getName().equalsIgnoreCase("or")){
-			root = query.addArgument(restriction);
-		}else{
-			root = new ASTNode("or", restriction, query);
-		}
-		return root;
-	}
-	
-
 	@Override
 	public Map<String,String> getModelMap(){
 		return this.modelMap;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.web.mvc.rest.swagger.IMangoVoRestController#getAppenders()
+	 */
 	@Override
 	public Map<String, SQLColumnQueryAppender> getAppenders(){
 		return this.appenders;
 	}
 	
-	/**
-	 * Create a Model
-	 * @param vo
-	 * @return
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.web.mvc.rest.swagger.IMangoVoRestController#createModel(com.serotonin.m2m2.vo.AbstractBasicVO)
 	 */
 	@Override
 	public abstract MODEL createModel(VO vo);

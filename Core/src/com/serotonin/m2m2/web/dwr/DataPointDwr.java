@@ -293,9 +293,9 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @DwrPermission(user = true)
     public ProcessResult getEventDetectorOptions(int dataTypeId) {
         ProcessResult response = new ProcessResult();
-        List<EventDetectorDefinition> definitions = ModuleRegistry.getEventDetectorDefinitions();
+        List<EventDetectorDefinition<?>> definitions = ModuleRegistry.getEventDetectorDefinitions();
         List<StringStringPair> list = new ArrayList<StringStringPair>();
-        for(EventDetectorDefinition definition : definitions){
+        for(EventDetectorDefinition<?> definition : definitions){
         	AbstractEventDetectorVO<?> vo = definition.baseCreateEventDetectorVO();
         	if(vo instanceof AbstractPointEventDetectorVO){
 	        	AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)vo;

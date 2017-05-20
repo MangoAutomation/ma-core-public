@@ -13,6 +13,8 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -28,7 +30,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	private static final long serialVersionUID = 1L;
 
 	public static final String XID_PREFIX = "PED_";
-
 
     private int alarmLevel;
 
@@ -80,6 +81,38 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
         return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, sourceId, id, getDescription(),
                 alarmLevel);
     }
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		super.validate(response);
+		
+		if(this.dataPoint == null)
+			this.dataPoint = DataPointDao.instance.get(sourceId);
+		
+		//We currently don't check to see if the point exists
+		// because of SQL constraints
+		
+		//Is valid data type
+		boolean valid = false;
+		for(int type : this.supportedDataTypes){
+			if(type == this.dataPoint.getPointLocator().getDataTypeId()){
+				valid = true;
+				break;
+			}
+		}
+		if(!valid){
+			//Add message
+			response.addContextualMessage("dataPoint.pointLocator.dataType", "validate.invalidValue");
+		}
+		
+		//Is valid alarm level
+	    if (!AlarmLevels.CODES.isValidId(alarmLevel))
+	    	response.addContextualMessage("alarmLevel", "validate.invalidValue");
+	 
+	}
 	
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {

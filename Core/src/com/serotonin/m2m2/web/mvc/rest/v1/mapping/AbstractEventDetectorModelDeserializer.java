@@ -42,7 +42,7 @@ public class AbstractEventDetectorModelDeserializer extends StdDeserializer<Abst
 		if(def == null)
 			throw new ModelNotFoundException(typeName);
 
-	    AbstractEventDetectorModel model = (AbstractEventDetectorModel<?>) mapper.treeToValue(tree, def.getModelClass());
+	    AbstractEventDetectorModel<?> model = (AbstractEventDetectorModel<?>) mapper.treeToValue(tree, def.getModelClass());
 	    model.setDefinition(def);
 	    return model;
 	}

@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+ *
+ */
 package com.serotonin.m2m2;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;

@@ -117,8 +117,9 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		return definition;
 	}
 
-	public void setDefinition(EventDetectorDefinition<T> definition) {
-		this.definition = definition;
+	@SuppressWarnings("unchecked")
+	public void setDefinition(EventDetectorDefinition<?> definition) {
+		this.definition = (EventDetectorDefinition<T>) definition;
 	}
 
 	@SuppressWarnings("unchecked")

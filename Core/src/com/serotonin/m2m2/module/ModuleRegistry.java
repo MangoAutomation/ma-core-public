@@ -126,8 +126,8 @@ public class ModuleRegistry {
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
     private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
     private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
-    private static Map<String, EventHandlerDefinition> EVENT_HANDLER_DEFINITIONS;
-    private static Map<String, EventDetectorDefinition> EVENT_DETECTOR_DEFINITIONS;
+    private static Map<String, EventHandlerDefinition<?>> EVENT_HANDLER_DEFINITIONS;
+    private static Map<String, EventDetectorDefinition<?>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
     private static Map<String, WebSocketDefinition> WEB_SOCKET_DEFINITIONS;
 
@@ -452,14 +452,14 @@ public class ModuleRegistry {
     //
     // Event Handler special handling
     //
-    public static EventHandlerDefinition getEventHandlerDefinition(String type) {
+    public static EventHandlerDefinition<?> getEventHandlerDefinition(String type) {
         ensureEventHandlerDefinitions();
         return EVENT_HANDLER_DEFINITIONS.get(type);
     }
     
-    public static List<EventHandlerDefinition> getEventHandlerDefinitions(){
+    public static List<EventHandlerDefinition<?>> getEventHandlerDefinitions(){
     	ensureEventHandlerDefinitions();
-        return new ArrayList<EventHandlerDefinition>(EVENT_HANDLER_DEFINITIONS.values());
+        return new ArrayList<EventHandlerDefinition<?>>(EVENT_HANDLER_DEFINITIONS.values());
     }
 
     public static Set<String> getEventHandlerDefinitionTypes() {
@@ -471,15 +471,15 @@ public class ModuleRegistry {
         if (EVENT_HANDLER_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (EVENT_HANDLER_DEFINITIONS == null) {
-                    Map<String, EventHandlerDefinition> map = new HashMap<String, EventHandlerDefinition>();
-                    for(EventHandlerDefinition def : Module.getDefinitions(preDefaults, EventHandlerDefinition.class)){
+                    Map<String, EventHandlerDefinition<?>> map = new HashMap<String, EventHandlerDefinition<?>>();
+                    for(EventHandlerDefinition<?> def : Module.getDefinitions(preDefaults, EventHandlerDefinition.class)){
                     	map.put(def.getEventHandlerTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
-                        for (EventHandlerDefinition def : module.getDefinitions(EventHandlerDefinition.class))
+                        for (EventHandlerDefinition<?> def : module.getDefinitions(EventHandlerDefinition.class))
                             map.put(def.getEventHandlerTypeName(), def);
                     }
-                    for(EventHandlerDefinition def : Module.getDefinitions(postDefaults, EventHandlerDefinition.class)){
+                    for(EventHandlerDefinition<?> def : Module.getDefinitions(postDefaults, EventHandlerDefinition.class)){
                     	map.put(def.getEventHandlerTypeName(), def);
                     }
                     EVENT_HANDLER_DEFINITIONS = map;
@@ -492,14 +492,14 @@ public class ModuleRegistry {
     //
     // Event Detector special handling
     //
-    public static EventDetectorDefinition getEventDetectorDefinition(String type) {
+    public static EventDetectorDefinition<?> getEventDetectorDefinition(String type) {
         ensureEventDetectorDefinitions();
         return EVENT_DETECTOR_DEFINITIONS.get(type);
     }
     
-    public static List<EventDetectorDefinition> getEventDetectorDefinitions(){
+    public static List<EventDetectorDefinition<?>> getEventDetectorDefinitions(){
     	ensureEventDetectorDefinitions();
-        return new ArrayList<EventDetectorDefinition>(EVENT_DETECTOR_DEFINITIONS.values());
+        return new ArrayList<EventDetectorDefinition<?>>(EVENT_DETECTOR_DEFINITIONS.values());
     }
 
     public static Set<String> getEventDetectorDefinitionTypes() {
@@ -511,15 +511,15 @@ public class ModuleRegistry {
         if (EVENT_DETECTOR_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (EVENT_DETECTOR_DEFINITIONS == null) {
-                    Map<String, EventDetectorDefinition> map = new HashMap<String, EventDetectorDefinition>();
-                    for(EventDetectorDefinition def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
+                    Map<String, EventDetectorDefinition<?>> map = new HashMap<String, EventDetectorDefinition<?>>();
+                    for(EventDetectorDefinition<?> def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
                     	map.put(def.getEventDetectorTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
-                        for (EventDetectorDefinition def : module.getDefinitions(EventDetectorDefinition.class))
+                        for (EventDetectorDefinition<?> def : module.getDefinitions(EventDetectorDefinition.class))
                             map.put(def.getEventDetectorTypeName(), def);
                     }
-                    for(EventDetectorDefinition def : Module.getDefinitions(postDefaults, EventDetectorDefinition.class)){
+                    for(EventDetectorDefinition<?> def : Module.getDefinitions(postDefaults, EventDetectorDefinition.class)){
                     	map.put(def.getEventDetectorTypeName(), def);
                     }
                     EVENT_DETECTOR_DEFINITIONS = map;

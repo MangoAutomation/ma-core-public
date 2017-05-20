@@ -4,19 +4,16 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
 import javax.servlet.http.HttpServletRequest;
-
-import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.RQLParser;
 
 import org.springframework.http.HttpStatus;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.rest.BaseMangoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.ResourceCreatedMessage;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessage;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
@@ -25,10 +22,8 @@ import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
  * @author Terry Packer
  * 
  */
-public abstract class MangoRestController{
+public abstract class MangoRestController extends BaseMangoRestController{
 
-	//private static final Log LOG = LogFactory.getLog(MangoRestController.class);
-	
 	/**
 	 * Check to see if a User is logged in
 	 * 
@@ -98,11 +93,4 @@ public abstract class MangoRestController{
 		return new RestMessage(HttpStatus.INTERNAL_SERVER_ERROR, new TranslatableMessage("common.default", content));
 	}
 	
-	protected ASTNode parseRQLtoAST(HttpServletRequest request) throws UnsupportedEncodingException {
-		RQLParser parser = new RQLParser();
-		String query = request.getQueryString();
-		if(query == null)
-			return null;
-        return parser.parse(query);
-	}
 }

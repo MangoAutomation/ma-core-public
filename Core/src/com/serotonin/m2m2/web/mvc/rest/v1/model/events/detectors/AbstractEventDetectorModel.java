@@ -65,7 +65,7 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	 * @param def
 	 */
 	@JsonIgnore
-	public void setDefinition(EventDetectorDefinition<T> def) {
+	public void setDefinition(EventDetectorDefinition<?> def) {
 		this.data.setDefinition(def);
 	}
 

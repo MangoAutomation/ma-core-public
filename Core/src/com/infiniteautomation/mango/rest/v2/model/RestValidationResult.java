@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
+import com.serotonin.m2m2.i18n.ProcessMessage;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessageLevel;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestValidationMessage;
@@ -21,8 +23,29 @@ public class RestValidationResult {
 
 	private final List<RestValidationMessage> messages;
 	
+	/**
+	 * For adding validation results from a VO
+	 * @param result
+	 */
+	public RestValidationResult(ProcessResult result){
+		this();
+		for(ProcessMessage message : result.getMessages()){
+			this.addError(message.getContextualMessage(), message.getContextKey());
+		}
+	}
+	
 	public RestValidationResult(){
 		this.messages = new ArrayList<RestValidationMessage>();
+	}
+	
+	/**
+	 * Create a result with one message
+	 * @param msg
+	 * @param property
+	 */
+	public RestValidationResult(TranslatableMessage msg, String property){
+		this();
+		this.addError(msg, property);
 	}
 	
 	public List<RestValidationMessage> getMessages(){

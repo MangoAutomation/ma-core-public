@@ -92,9 +92,9 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		map.put("data", Types.CLOB);
 		
 		//Build our ordered column set from the Module Registry
-		List<EventDetectorDefinition> defs = ModuleRegistry.getEventDetectorDefinitions();
+		List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
 		this.sourceTypeToColumnNameMap = new LinkedHashMap<String, String>(defs.size());
-		for(EventDetectorDefinition def : defs){
+		for(EventDetectorDefinition<?> def : defs){
 			this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), this.TABLE_PREFIX + "." + def.getSourceIdColumnName());
 			map.put(def.getSourceIdColumnName(), Types.INTEGER);
 		}

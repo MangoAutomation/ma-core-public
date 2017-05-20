@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
+import com.serotonin.m2m2.web.mvc.rest.IMangoVoRestController;
 
 /**
  * @author Terry Packer
@@ -16,13 +16,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
  */
 public class VoStreamCallback<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends QueryStreamCallback<VO> {
 
-	protected MangoVoRestController<VO, MODEL, DAO> controller;
+	protected IMangoVoRestController<VO, MODEL, DAO> controller;
 	
 	/**
 	 * 
 	 * @param controller
 	 */
-	public VoStreamCallback(MangoVoRestController<VO, MODEL, DAO> controller){
+	public VoStreamCallback(IMangoVoRestController<VO, MODEL, DAO> controller){
 		this.controller = controller;
 	}
 	

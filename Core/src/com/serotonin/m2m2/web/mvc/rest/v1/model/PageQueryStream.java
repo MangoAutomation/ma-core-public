@@ -9,7 +9,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
+import com.serotonin.m2m2.web.mvc.rest.IMangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -29,7 +29,7 @@ public class PageQueryStream<VO extends AbstractBasicVO, MODEL, DAO extends Abst
 	 * @param query
 	 * @param queryCallback
 	 */
-	public PageQueryStream(DAO dao, MangoVoRestController<VO, MODEL, DAO> controller, ASTNode node, QueryStreamCallback<VO> queryCallback) {
+	public PageQueryStream(DAO dao, IMangoVoRestController<VO, MODEL, DAO> controller, ASTNode node, QueryStreamCallback<VO> queryCallback) {
 		super(dao, controller, node, queryCallback);
 		this.countCallback = new QueryStreamCallback<Long>();
 	}

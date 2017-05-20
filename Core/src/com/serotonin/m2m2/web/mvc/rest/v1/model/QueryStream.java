@@ -6,14 +6,14 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import java.io.IOException;
 
-import net.jazdw.rql.parser.ASTNode;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.MangoVoRestController;
+import com.serotonin.m2m2.web.mvc.rest.IMangoVoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -25,7 +25,7 @@ public class QueryStream<VO extends AbstractBasicVO, MODEL, DAO extends Abstract
 	protected DAO dao;
 	protected ASTNode root;
 	protected QueryStreamCallback<VO> queryCallback;
-	protected MangoVoRestController<VO, MODEL, DAO> controller;
+	protected IMangoVoRestController<VO, MODEL, DAO> controller;
 	protected StreamableSqlQuery<VO> results;
 	
 	/**
@@ -35,7 +35,7 @@ public class QueryStream<VO extends AbstractBasicVO, MODEL, DAO extends Abstract
 	 * @param limit
 	 * @param or
 	 */
-	public QueryStream(DAO dao, MangoVoRestController<VO, MODEL, DAO> controller, ASTNode root, QueryStreamCallback<VO> queryCallback) {
+	public QueryStream(DAO dao, IMangoVoRestController<VO, MODEL, DAO> controller, ASTNode root, QueryStreamCallback<VO> queryCallback) {
 		this.dao = dao;
 		this.controller = controller;
 		this.root = root;

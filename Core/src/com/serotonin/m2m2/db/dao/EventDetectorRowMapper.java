@@ -60,7 +60,7 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 	public AbstractEventDetectorVO<?> mapRow(ResultSet rs, int rowNum)
 			throws SQLException {
 		
-		EventDetectorDefinition definition = ModuleRegistry.getEventDetectorDefinition(rs.getString(this.firstColumn + 3));
+		EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(rs.getString(this.firstColumn + 3));
 		if(definition == null)
 			throw new ShouldNeverHappenException("Event Detector defintion of type: " + rs.getString(this.firstColumn + 3) + " not found." );
 		

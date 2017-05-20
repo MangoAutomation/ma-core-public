@@ -55,7 +55,7 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
 	}
 
 	@JsonIgnore
-	public void setDefinition(EventHandlerDefinition<T> def) {
+	public void setDefinition(EventHandlerDefinition<?> def) {
 		this.data.setDefinition(def);
 	}
 	

@@ -4,8 +4,11 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
@@ -57,6 +60,17 @@ public class AlphanumericStateDetectorVO extends TimeoutDetectorVO<AlphanumericS
             message = new TranslatableMessage("event.detectorVo.statePeriod", dataPoint.getTextRenderer().getText(
                     state, TextRenderer.HINT_SPECIFIC), durationDesc);
         return message;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		super.validate(response);
+		
+		if(StringUtils.isEmpty(state))
+			response.addContextualMessage("state", "validate.cannotContainEmptyString");
 	}
 
 }

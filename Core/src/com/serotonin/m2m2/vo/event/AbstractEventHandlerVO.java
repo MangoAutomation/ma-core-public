@@ -91,8 +91,9 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 		return definition;
 	}
 
-	public void setDefinition(EventHandlerDefinition<T> definition) {
-		this.definition = definition;
+	@SuppressWarnings("unchecked")
+	public void setDefinition(EventHandlerDefinition<?> definition) {
+		this.definition = (EventHandlerDefinition<T>) definition;
 	}
 
 	@Override
