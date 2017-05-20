@@ -56,7 +56,10 @@ import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEve
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.filestore.CoreFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
@@ -137,6 +140,7 @@ public class ModuleRegistry {
     private static Map<String, SystemInfoDefinition<?>> SYSTEM_INFO_DEFINITIONS;
     private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
+    private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
     
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
@@ -760,6 +764,41 @@ public class ModuleRegistry {
     
     //
     //
+    // File Store special handling
+    //
+    public static Map<String, FileStoreDefinition> getFileStoreDefinitions() {
+    	ensureFileStoreDefinitions();
+        return new HashMap<String, FileStoreDefinition>(FILE_STORE_DEFINITIONS);
+    }
+    
+    public static FileStoreDefinition getFileStoreDefinition(String name){
+    	ensureFileStoreDefinitions();
+    	return FILE_STORE_DEFINITIONS.get(name);
+    }
+
+    private static void ensureFileStoreDefinitions() {
+        if (FILE_STORE_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (FILE_STORE_DEFINITIONS == null) {
+                    Map<String, FileStoreDefinition> map = new HashMap<>();
+                    for(FileStoreDefinition def : Module.getDefinitions(preDefaults, FileStoreDefinition.class)){
+                    	map.put(def.getStoreName(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (FileStoreDefinition def : module.getDefinitions(FileStoreDefinition.class))
+                        	map.put(def.getStoreName(), def);
+                    }
+                    for(FileStoreDefinition def : Module.getDefinitions(postDefaults, FileStoreDefinition.class)){
+                    	map.put(def.getStoreName(), def);
+                    }
+                    FILE_STORE_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
     // Generic handling
     //
     public static <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
@@ -1001,6 +1040,9 @@ public class ModuleRegistry {
         preDefaults.add(new PurgeWithPurgeSettingsActionPermissionDefinition());
         preDefaults.add(new SqlBackupActionPermissionDefinition());
         preDefaults.add(new SqlRestoreActionPermissionDefinition());        
+        preDefaults.add(new CoreFileStoreReadPermissionDefinition());
+        preDefaults.add(new CoreFileStoreWritePermissionDefinition());
+        
         
         /* Read Only Settings */
         preDefaults.add(new TimezoneInfoDefinition());
@@ -1033,6 +1075,8 @@ public class ModuleRegistry {
         preDefaults.add(new SqlBackupActionDefinition());
         preDefaults.add(new SqlRestoreActionDefinition());
 
+        /* File Store */
+        preDefaults.add(new CoreFileStoreDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,

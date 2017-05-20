@@ -112,6 +112,13 @@
       	<exclude>*/**</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>filestore</outputDirectory>
+      <excludes>
+      	<exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>
