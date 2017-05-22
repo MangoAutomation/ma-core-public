@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
@@ -33,6 +34,14 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
 	public void setState(boolean state) {
 		this.state = state;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+//	@Override
+//	public void validate(ProcessResult response) {
+//		super.validate(response);
+//	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()

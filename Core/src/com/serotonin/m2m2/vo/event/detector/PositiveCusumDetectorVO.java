@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PositiveCusumDetectorRT;
@@ -42,6 +43,19 @@ public class PositiveCusumDetectorVO extends TimeoutDetectorVO<PositiveCusumDete
 
 	public void setWeight(double weight) {
 		this.weight = weight;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		super.validate(response);
+		
+		if(limit == Double.POSITIVE_INFINITY || limit == Double.NEGATIVE_INFINITY || limit == Double.NaN)
+			response.addContextualMessage("limit", "validate.invalidValue");
+		if(weight == Double.POSITIVE_INFINITY || weight == Double.NEGATIVE_INFINITY || weight == Double.NaN)
+			response.addContextualMessage("weight", "validate.invalidValue");
 	}
 
 	/* (non-Javadoc)

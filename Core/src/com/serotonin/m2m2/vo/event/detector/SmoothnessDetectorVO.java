@@ -12,6 +12,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.SmoothnessDetectorRT;
@@ -48,6 +49,19 @@ public class SmoothnessDetectorVO extends TimeoutDetectorVO<SmoothnessDetectorVO
 
 	public void setBoxcar(double boxcar) {
 		this.boxcar = boxcar;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		super.validate(response);
+		
+		if(limit == Double.POSITIVE_INFINITY || limit == Double.NEGATIVE_INFINITY || limit == Double.NaN)
+			response.addContextualMessage("limit", "validate.invalidValue");
+		if(boxcar <= 2)
+			response.addContextualMessage("boxcar", "validate.greaterThan", 2);
 	}
 
 	/* (non-Javadoc)

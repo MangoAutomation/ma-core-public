@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.StateChangeCountDetectorRT;
@@ -32,6 +33,17 @@ public class StateChangeCountDetectorVO extends TimeoutDetectorVO<StateChangeCou
 
 	public void setChangeCount(int changeCount) {
 		this.changeCount = changeCount;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		super.validate(response);
+		
+		if(changeCount <= 1)
+			response.addContextualMessage("changeCount", "pointEdit.detectors.invalidChangeCount");
 	}
 
 	/* (non-Javadoc)
