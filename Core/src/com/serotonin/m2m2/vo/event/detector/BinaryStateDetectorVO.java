@@ -34,14 +34,6 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
 	public void setState(boolean state) {
 		this.state = state;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-//	@Override
-//	public void validate(ProcessResult response) {
-//		super.validate(response);
-//	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()

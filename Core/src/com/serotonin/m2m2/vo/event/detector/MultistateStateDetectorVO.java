@@ -33,14 +33,6 @@ public class MultistateStateDetectorVO extends TimeoutDetectorVO<MultistateState
 	public void setState(int state) {
 		this.state = state;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-//	@Override
-//	public void validate(ProcessResult response) {
-//		super.validate(response);
-//	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()
