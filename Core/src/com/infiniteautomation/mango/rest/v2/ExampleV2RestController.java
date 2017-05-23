@@ -7,16 +7,20 @@ package com.infiniteautomation.mango.rest.v2;
 import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.session.SessionInformation;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.HandlerMapping;
 
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
 import com.serotonin.m2m2.LicenseViolatedException;
@@ -135,5 +139,24 @@ public class ExampleV2RestController extends AbstractMangoRestV2Controller{
 		return new ResponseEntity<Object>(HttpStatus.OK);
 	}
 	
+	@PreAuthorize("isAdmin()")
+	@ApiOperation(value = "Example Path matching", notes = "")
+	@ApiResponses({
+		@ApiResponse(code = 401, message = "Unauthorized user access", response=ResponseEntity.class),
+	})
+	@RequestMapping( method = {RequestMethod.GET}, value = {"/{resourceId}/**"}, produces = {"application/json"} )
+	public ResponseEntity<String> matchPath(@AuthenticationPrincipal User user,
+			@ApiParam(value="Resource id", required=true, allowMultiple=false) @PathVariable String resourceId, 
+			HttpServletRequest request) {
+		
+	    String path = (String) request.getAttribute(
+	            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+	    String bestMatchPattern = (String ) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+
+	    AntPathMatcher apm = new AntPathMatcher();
+	    String finalPath = apm.extractPathWithinPattern(bestMatchPattern, path);
+		
+		return new ResponseEntity<String>(finalPath, HttpStatus.OK);
+	}
 	
 }
