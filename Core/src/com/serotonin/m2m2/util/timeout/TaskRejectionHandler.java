@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -17,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.OrderedThreadPoolExecutor.OrderedTaskCollection;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
@@ -37,18 +40,22 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	private long staleTaskStatsPeriod = 100000000;
 	
 	/* Period to wait before logging another rejection for a given task */
-	private int logPeriod = 1000;
+	private int logPeriod;
 	
-	/* Map of rejected tasks and thier stats */
+	/* Map of rejected tasks and their stats */
 	private final Map<String, RejectedTaskStats> statsMap;
 	
+	private final Queue<RejectedTaskStats> unOrderedRejections;
+	private long lastUnorderedRejection;
+	
 	/**
-	 * TODO Do we want a task ID?
 	 * Create the task rejection handler
 	 */
 	public TaskRejectionHandler(){
 		super(new FixedRateTrigger(0, 10000), "TaskRejectionHandler cleaner");
+		this.logPeriod = Common.envProps.getInt("runtime.taskRejectionLogPeriod", 10000);
 		this.statsMap = new ConcurrentHashMap<String, RejectedTaskStats>();
+		this.unOrderedRejections = new ConcurrentLinkedQueue<>();
 	}
 
 	/**
@@ -58,21 +65,29 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	public void rejectedTask(RejectedTaskReason reason){
 		
 		String id = reason.getTask().getId();
-
-		RejectedTaskStats stats = this.statsMap.get(id);
-		if(stats == null){
-			stats = new RejectedTaskStats(id, reason.getTask().getName(), this.logPeriod);
-			this.statsMap.put(id, stats);
+		if(id != null){
+			RejectedTaskStats stats = this.statsMap.get(id);
+			if(stats == null){
+				stats = new RejectedTaskStats(id, reason.getTask().getName(), this.logPeriod);
+				this.statsMap.put(id, stats);
+			}
+	
+			//Is it time to
+			if(log.isWarnEnabled() && stats.update(reason))
+				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
+		}else{
+			//Task without an ID was rejected
+			long now = Common.backgroundProcessing.currentTimeMillis();
+			if(log.isWarnEnabled() && (now  > (lastUnorderedRejection + logPeriod))){
+				lastUnorderedRejection = now;
+				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
+			}
+			this.unOrderedRejections.add(new RejectedTaskStats(null, reason.getTask().getName(), this.logPeriod));
 		}
-
-		//Is it time to
-		if(stats.update(reason) && log.isDebugEnabled())
-			log.debug("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
 	}
 	
 	/*
 	 * This will be called by the Executor when Runnable's are not executable due to pool constraints
-	 * this shouldn't happen in the high priority pool.
 	 * (non-Javadoc)
 	 * @see java.util.concurrent.RejectedExecutionHandler#rejectedExecution(java.lang.Runnable, java.util.concurrent.ThreadPoolExecutor)
 	 */
@@ -80,6 +95,12 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
 		if(r instanceof TaskWrapper){
 			TaskWrapper wrapper = (TaskWrapper)r;
+			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
+			wrapper.getTask().rejected(reason);
+			this.rejectedTask(reason);
+		}else if (r instanceof OrderedTaskCollection){
+			//Pool must be full since the entire collection was rejected
+			TaskWrapper wrapper = ((OrderedTaskCollection)r).getWrapper();
 			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
 			wrapper.getTask().rejected(reason);
 			this.rejectedTask(reason);
@@ -110,6 +131,13 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 		Iterator<String> it = this.statsMap.keySet().iterator();
 		while(it.hasNext()){
 			RejectedTaskStats stats = this.statsMap.get(it.next());
+			if(now > stats.getLastAccess() + this.staleTaskStatsPeriod)
+				it.remove();
+		}
+
+		Iterator<RejectedTaskStats> uIt = this.unOrderedRejections.iterator();
+		while(uIt.hasNext()){
+			RejectedTaskStats stats = uIt.next();
 			if(now > stats.getLastAccess() + this.staleTaskStatsPeriod)
 				it.remove();
 		}

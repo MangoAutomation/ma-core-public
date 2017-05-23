@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 */
 public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements RejectedExecutionHandler{
 
+	
 	//Task to queue map
 	private final Map<String, LimitedTaskQueue> keyedTasks = new HashMap<String, LimitedTaskQueue>();
 
@@ -163,6 +164,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 */
 	@Override
 	public void setRejectedExecutionHandler(RejectedExecutionHandler handler) {
+		super.setRejectedExecutionHandler(this);
 		this.handler = handler;
 	}
 	
@@ -233,11 +235,14 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                     keyedTasks.remove(t.wrapper.task.id);
                 }else{
                 	//Could be trouble, but let it fail if it must
-                    //execute(t.dependencyQueue.poll());
+                    execute(t.dependencyQueue.poll());
                 }
 			}
 			this.handler.rejectedExecution(t.wrapper, e);
 			
+		}else if(r instanceof TaskWrapper){
+			TaskWrapper wrapper = (TaskWrapper)r;
+			wrapper.task.rejected(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.executionTime, wrapper.task, e));
 		}else{
 			if(this.handler != null){
 				//Pass it along
@@ -285,7 +290,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      * the entire queue is removed from the keyed tasks map
      *
      */
-    class OrderedTaskCollection implements Runnable{
+    public class OrderedTaskCollection implements Runnable{
 
         private final LimitedTaskQueue dependencyQueue;
         private final TaskWrapper wrapper;
@@ -332,6 +337,10 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
         public String toString(){
         	return this.wrapper.task.toString();
         }
+        
+        public TaskWrapper getWrapper(){
+        	return this.wrapper;
+        }
     }
     
     /**
@@ -365,12 +374,12 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 		 */
 		public boolean add(OrderedTaskCollection c, Executor ex) {
 			//Add task to end of queue if there is room
-			if(this.size() < limit){
+			if((limit == Task.UNLIMITED_QUEUE_SIZE) || this.size() < limit){
 				boolean result = super.add(c);
 				info.updateCurrentQueueSize(this.size());
 				return result;
 			}else{
-				if(limit > 0){
+				if(this.size() == limit){
 					c.setRejectedReason(RejectedTaskReason.TASK_QUEUE_FULL);
 					c.rejected(ex);
 				}else{

@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.i18n;
 
+import com.serotonin.m2m2.Common;
+
 /**
  * @author Matthew Lohbihler
  */
@@ -31,5 +33,13 @@ public class TranslatableException extends Exception {
 
     public TranslatableMessage getTranslatableMessage() {
         return translatableMessage;
+    }
+    
+    /* (non-Javadoc)
+     * @see java.lang.Throwable#getMessage()
+     */
+    @Override
+    public String getMessage() {
+    	return this.translatableMessage.translate(Common.getTranslations());
     }
 }

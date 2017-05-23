@@ -359,12 +359,18 @@ public class BackgroundProcessing implements ILifecycle {
             throw new ShouldNeverHappenException(e);
         }
      	
+    	//Adjust the high priority pool sizes now
+    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+    	this.highPriorityService.setCorePoolSize(corePoolSize);
+    	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
+    	
     	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
     	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
     	
     	//Pull our settings from the System Settings
-    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
-    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
+    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
     	
     	//Sanity check to ensure the pool sizes are appropriate
     	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)

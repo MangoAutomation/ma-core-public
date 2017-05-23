@@ -14,6 +14,9 @@ import org.apache.commons.lang3.StringUtils;
  *
  */
 public abstract class Task{
+	
+	public static final int UNLIMITED_QUEUE_SIZE = -1;
+	
 	/**
      * This object is used to control access to the TimerTask internals.
      */

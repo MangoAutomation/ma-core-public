@@ -133,7 +133,6 @@ class TimerThread extends Thread {
                     	this.executeTask(wrapper);
                     }
                     catch (RejectedExecutionException e) {
-                        LOG.warn("Rejected task: " + task.getName(), e);
                         this.taskRejected(executionTime, task, e);
                     }
                 }

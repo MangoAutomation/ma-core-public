@@ -36,6 +36,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
@@ -47,7 +48,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     // Configuration data.
     private final DataPointVO vo;
     private final DataSourceVO<?> dsVo;
-    private final PointLocatorRT pointLocator;
+    private final PointLocatorRT<?> pointLocator;
 
     // Runtime data.
     private volatile PointValueTime pointValue;
@@ -71,7 +72,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
      */
     private double toleranceOrigin;
 
-    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
+    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
         this.vo = vo;
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
@@ -92,7 +93,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param initial cache
      * @param timer
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
+    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
         this(vo, pointLocator, dsVo, initialCache);
         this.timer = timer;
     }
@@ -105,7 +106,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 	 * @param DataPoint
 	 * @param Point Locator RT
 	 */
-	public DataPointRT(DataPointVO dp, PointLocatorRT rt) {
+	public DataPointRT(DataPointVO dp, PointLocatorRT<?> rt) {
 		this(dp, rt, DataSourceDao.instance.get(dp.getDataSourceId()), null);
 	}
 
@@ -119,7 +120,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param pointLocator
      * @param timer
      */
-    public DataPointRT(DataPointVO dp, PointLocatorRT pointLocator, AbstractTimer timer) {
+    public DataPointRT(DataPointVO dp, PointLocatorRT<?> pointLocator, AbstractTimer timer) {
         this(dp, pointLocator, DataSourceDao.instance.get(dp.getDataSourceId()), null);
         this.timer = timer;
     }
@@ -562,7 +563,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends PointLocatorRT> T getPointLocator() {
+    public <T extends PointLocatorRT<?>> T getPointLocator() {
         return (T) pointLocator;
     }
 
@@ -709,7 +710,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 		 */
 		@Override
 		public int getQueueSize() {
-			return Common.defaultTaskQueueSize;
+			return Task.UNLIMITED_QUEUE_SIZE;
 		}
 
 		/* (non-Javadoc)

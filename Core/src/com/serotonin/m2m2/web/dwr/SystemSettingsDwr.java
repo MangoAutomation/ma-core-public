@@ -393,7 +393,7 @@ public class SystemSettingsDwr extends BaseDwr {
         	response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
         }
 
-        if(lowPriorityCorePoolSize > BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
+        if(lowPriorityCorePoolSize >= BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
         	//Due to the pool type we should set these to the same values
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE, lowPriorityCorePoolSize);
         	systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);

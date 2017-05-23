@@ -14,6 +14,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * This class is used at startup to initialize data sources in parallel.
@@ -165,6 +166,15 @@ public class DataSourceGroupInitializer {
 		public boolean cancel() {
 			this.parent.removeRunningTask(this);
 			return super.cancel();
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.HighPriorityTask#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			this.parent.removeRunningTask(this);
+			super.rejected(reason);
 		}
 	}
 	
