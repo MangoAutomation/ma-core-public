@@ -72,6 +72,7 @@ public class Module {
     private String emailTemplates;
     private final int versionState;
     private final int buildNumber;
+    private final boolean signed;
 
     /**
      * Module constructor. Should not be used by client code.
@@ -83,7 +84,7 @@ public class Module {
      * @param vendorUrl
      */
     public Module(String name, String version, TranslatableMessage description, String vendor, String vendorUrl,
-            String dependencies, int loadOrder, int versionState, int buildNumber) {
+            String dependencies, int loadOrder, int versionState, int buildNumber, boolean signed) {
         this.name = name;
         this.version = version;
         this.description = description;
@@ -93,6 +94,7 @@ public class Module {
         this.loadOrder = loadOrder;
         this.versionState = versionState;
         this.buildNumber = buildNumber;
+        this.signed = signed;
     }
 
     /**
@@ -231,6 +233,10 @@ public class Module {
     
     public int getBuildNumber(){
     	return this.buildNumber;
+    }
+    
+    public boolean isSigned() {
+    	return signed;
     }
 
     public ModuleLicense license() {

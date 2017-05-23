@@ -174,7 +174,7 @@ public class ModuleRegistry {
         }
     	
         Module core = new Module("core", Common.getVersion().getFullString(), new TranslatableMessage("modules.core.description"),
-                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, versionState, buildNumber);
+                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, versionState, buildNumber, false);
 
         if(Common.isInvalid())
         	core.setLicenseType("Invalid");
