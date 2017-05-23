@@ -17,6 +17,7 @@
 /maven-target
 /databases
 /backup
+/filestore
 /dist/
 /web/WEB-INF/tags/*
 !/web/WEB-INF/tags/*.tag
