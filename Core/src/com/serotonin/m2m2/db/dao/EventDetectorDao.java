@@ -209,7 +209,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	 */
 	public int getSourceId(int id, String sourceType) {
 		String sourceIdColumn = getSourceIdColumnName(sourceType);
-		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + " WHERE id=?", new Object[]{id}, Integer.class, -1);
+		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + "AS " + this.tablePrefix + " WHERE id=?", new Object[]{id}, Integer.class, -1);
 	}
 	
 	@Override
@@ -217,6 +217,18 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		throw new ShouldNeverHappenException("Not possible as XIDs are not unique");
 	}
 
+	/**
+	 * Get an Event Detector based on sourceId and Xid uniqueness
+	 * @param xid
+	 * @param sourceType
+	 * @param sourceId
+	 * @return
+	 */
+	public AbstractEventDetectorVO<?> getByXid(String xid, String sourceType, int sourceId){
+		String sourceIdColumn = getSourceIdColumnName(sourceType);
+		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + " AS  "  + this.TABLE_PREFIX +  " WHERE xid=? AND " + sourceIdColumn + "=?", new Object[]{xid, sourceId}, getRowMapper(), null);
+	}
+	
 	/**
 	 * Get the column name for the source id using the source type
 	 * @param sourceType
@@ -245,5 +257,24 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		}
 		
 		return index;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.AbstractDao#isXidUnique(java.lang.String, int)
+	 */
+	@Override
+	public boolean isXidUnique(String xid, int excludeId) {
+		throw new ShouldNeverHappenException("XIDs are not unique without a source ID to compare.");
+	}
+
+	/**
+	 * This method diverges with the normal uniqueness checks 
+	 * because it requires the sourceID 
+	 */
+	public boolean isXidUnique(String xid, int id, String sourceType, int sourceId) {
+		String sourceIdColumn = getSourceIdColumnName(sourceType);
+
+		 return ejt.queryForInt("select count(*) from " + tableName + " AS " + this.TABLE_PREFIX + " where xid=? AND id<>? AND " + sourceIdColumn + "=?" , new Object[] { xid, id,
+	                sourceId }, 0) == 0;
 	}
 }

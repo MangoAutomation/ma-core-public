@@ -14,12 +14,14 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.validation.StringValidation;
 
 /**
  * @author Terry Packer
@@ -128,7 +130,36 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		return (AbstractDao<T>) EventDetectorDao.instance;
 	}
 	
-    @Override
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.vo.AbstractVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+	 */
+	@Override
+	public void validate(ProcessResult response) {
+		//Can't validate uniqueness of XID so we don't call super
+        if (StringUtils.isBlank(xid))
+            response.addContextualMessage("xid", "validate.required");
+        else if (StringValidation.isLengthGreaterThan(xid, 50))
+            response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+        else if (!isXidUnique(xid, definition.getSourceTypeName(), sourceId))
+            response.addContextualMessage("xid", "validate.xidUsed");
+
+        if (StringUtils.isBlank(name))
+            response.addContextualMessage("name", "validate.required");
+        else if (StringValidation.isLengthGreaterThan(name, 255))
+            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+	}
+	
+    /**
+	 * @param xid
+	 * @param sourceTypeName
+	 * @param sourceId2
+	 * @return
+	 */
+	protected boolean isXidUnique(String xid, String sourceType, int sourceId) {
+		return EventDetectorDao.instance.isXidUnique(xid, id, sourceType, sourceId);
+	}
+
+	@Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("type", this.definition.getEventDetectorTypeName());
         writer.writeEntry("sourceType", this.definition.getSourceTypeName());
