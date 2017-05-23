@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
 import com.infiniteautomation.mango.io.serial.SerialPortProxy;
 import com.serotonin.json.JsonException;
@@ -53,7 +54,8 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
     
 	@JsonProperty
 	private String portName;
-	
+
+	@JsonIgnore
 	private int type;
 	
 	public void validate(ProcessResult response){
@@ -79,13 +81,20 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	public void setPortName(String portName) {
 		this.portName = portName;
 	}
-
+	
 	public int getType() {
 		return type;
 	}
 
 	public void setType(int type) {
 		this.type = type;
+	}
+	
+	public String getPortType(){
+		return PORT_TYPE_CODES.getCode(type);
+	}
+	public void setPortType(String code){
+		this.type = PORT_TYPE_CODES.getId(code);
 	}
 
 	public abstract SerialPortProxy createProxy(SerialPortIdentifier id);

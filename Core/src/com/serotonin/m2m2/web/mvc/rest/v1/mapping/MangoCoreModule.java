@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.mapping;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.SuperclassModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
@@ -43,6 +44,7 @@ public class MangoCoreModule extends SimpleModule {
 		this.addDeserializer(AbstractEventHandlerModel.class, new AbstractEventHandlerModelDeserializer());
 		this.addDeserializer(EventTypeModel.class, new EventTypeModelDeserializer());
 		this.addDeserializer(AbstractEventDetectorModel.class, new AbstractEventDetectorModelDeserializer());
+		this.addDeserializer(VirtualSerialPortConfig.class, new VirtualSerialPortConfigDeserializer());
 		super.setupModule(context);
 	}
 }
