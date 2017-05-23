@@ -119,6 +119,10 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 		while(it.hasNext())
 			all.add(this.statsMap.get(it.next()));
 		
+		//Now add in all the tasks without IDs
+		Iterator<RejectedTaskStats> noIds = this.unOrderedRejections.iterator();
+		while(noIds.hasNext())
+			all.add(noIds.next());
 		return all;
 	}
 
