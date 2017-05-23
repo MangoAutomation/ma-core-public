@@ -59,7 +59,7 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
             request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
             // forward the request on to its usual destination (e.g. /rest/v1/login) so the correct response is returned
             request.getRequestDispatcher(request.getRequestURI()).forward(request, response);
-            //TODO Log this failure with the username
+            saveExceptionImpl(request, exception);
         }
     }
     
