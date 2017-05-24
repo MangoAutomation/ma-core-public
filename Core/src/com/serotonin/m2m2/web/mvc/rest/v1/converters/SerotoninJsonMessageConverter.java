@@ -60,14 +60,19 @@ public class SerotoninJsonMessageConverter extends AbstractHttpMessageConverter<
 	protected Object readInternal(Class<? extends Object> clazz, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
 		
-		//First get the definition for the model so we can create a real object
-		ModelDefinition def = findModelDefinition(clazz);
-		AbstractRestModel<?> model = def.createModel();
 		InputStreamReader isReader = new InputStreamReader(inputMessage.getBody());
 		JsonTypeReader typeReader = new JsonTypeReader(isReader);
         try {
             JsonValue value = typeReader.read();
-            JsonReader reader = new JsonReader(Common.JSON_CONTEXT, value);
+            
+        	if(clazz.equals(JsonValue.class))
+        		return value;
+            
+            //First get the definition for the model so we can create a real object
+    		ModelDefinition def = findModelDefinition(clazz);
+    		AbstractRestModel<?> model = def.createModel();
+    		JsonReader reader = new JsonReader(Common.JSON_CONTEXT, value);
+    		
             if (value instanceof JsonObject) {
             	//TODO Should do some pre-validation or something to ensure we are 
             	// importing the right thing?
