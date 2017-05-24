@@ -278,7 +278,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 return;
         }
 
-        if (newValue.getTime() > Common.backgroundProcessing.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
+        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             LOG.warn("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getStringValue()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime(), new Exception());
@@ -409,7 +409,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             	
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                intervalStartTime = Common.backgroundProcessing.currentTimeMillis();
+                intervalStartTime = Common.timer.currentTimeMillis();
                 if(averagingValues.size() > 0) {
                 	AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime,
                 			null, averagingValues, intervalValue);
@@ -727,7 +727,17 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     // Lifecycle
     //
-    @Override
+    /*
+     * For future use if we want to allow data points to startup
+     *  in safe mode, will require changes to RuntimeManager
+     * (non-Javadoc)
+     * @see com.serotonin.util.ILifecycle#initialize(boolean)
+     */
+    public void initialize(boolean safe){
+    	if(!safe)
+    		initialize();
+    }
+    
     public void initialize() {
         // Get the latest value for the point from the database.
         pointValue = valueCache.getLatestPointValue();

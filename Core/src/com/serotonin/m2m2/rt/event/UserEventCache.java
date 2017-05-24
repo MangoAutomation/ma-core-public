@@ -42,7 +42,11 @@ public class UserEventCache extends TimeoutClient{
     private Map<Integer, UserEventCacheEntry> cacheMap;
     private final EventDao dao;
     private TimerTask timerTask;
-    private volatile Thread jobThread; //So we don't run multiple cleanups at once
+    
+    //Task management
+    private boolean running;
+    private Thread jobThread;
+    private Object terminationLock;
     
     /**
      * 
@@ -54,13 +58,7 @@ public class UserEventCache extends TimeoutClient{
         this. cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
         this.dao = EventDao.instance;
         this.timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
-    }
-
-    public UserEventCache(long timeToLive, final long timeInterval, EventDao dao) {
-        this.timeToLive = timeToLive;
-        this. cacheMap = new ConcurrentHashMap<Integer, UserEventCacheEntry>();
-        this.dao = dao;
-        this.timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
+        this.running = true;
     }
     
     
@@ -152,8 +150,10 @@ public class UserEventCache extends TimeoutClient{
     
     // CLEANUP method
     public void cleanup() {
-        
-        long now = Common.backgroundProcessing.currentTimeMillis();
+        if(!running)
+        	return;
+
+        long now = Common.timer.currentTimeMillis();
         ArrayList<Integer> deleteKey = null;
         
 
@@ -199,9 +199,38 @@ public class UserEventCache extends TimeoutClient{
 	
 	public void terminate(){
         if (timerTask != null)
-            timerTask.cancel();  
+            timerTask.cancel();
+        this.running = false;
 	}
 	
+	public void joinTermination(){
+        if (jobThread == null)
+            return;
+
+        terminationLock = new Object();
+
+        int tries = 30;
+        while (true) {
+            synchronized (terminationLock) {
+                Thread localThread = jobThread;
+                if (localThread == null)
+                    break;
+
+                try {
+                    terminationLock.wait(10000);
+                }
+                catch (InterruptedException e) {
+                    // no op
+                }
+
+                if (jobThread != null) {
+                    if (tries-- > 0)
+                        LOG.warn("Waiting for UserEventCache cleaner task to stop");
+                }
+            }
+        }
+        LOG.info("UserEventCache cleaner task terminated.");
+	}
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
 	 */
@@ -221,7 +250,7 @@ public class UserEventCache extends TimeoutClient{
 	
     private class UserEventCacheEntry {
     	
-        private volatile long lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+        private volatile long lastAccessed = Common.timer.currentTimeMillis();
         private List<EventInstance> events;
         private ReadWriteLock lock;
         
@@ -241,7 +270,7 @@ public class UserEventCache extends TimeoutClient{
         		return new ArrayList<>(this.events);
         	}finally{
         		this.lock.readLock().unlock();
-        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+        		this.lastAccessed = Common.timer.currentTimeMillis();
         	}
 		}
 
@@ -251,7 +280,7 @@ public class UserEventCache extends TimeoutClient{
         		this.events.add(event);
         	}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+        		this.lastAccessed = Common.timer.currentTimeMillis();
         	}
         }
 
@@ -271,7 +300,7 @@ public class UserEventCache extends TimeoutClient{
 	        	}
 			}finally{
 				this.lock.writeLock().unlock();
-				this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+				this.lastAccessed = Common.timer.currentTimeMillis();
 			}
         	
 		}
@@ -292,7 +321,7 @@ public class UserEventCache extends TimeoutClient{
 	        	}
 			}finally{
 				this.lock.writeLock().unlock();
-				this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+				this.lastAccessed = Common.timer.currentTimeMillis();
 			}
         }
 
@@ -308,7 +337,7 @@ public class UserEventCache extends TimeoutClient{
 	        	}
 			}finally{
 				this.lock.writeLock().unlock();
-				this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+				this.lastAccessed = Common.timer.currentTimeMillis();
 			}
 			
 		}
@@ -324,7 +353,7 @@ public class UserEventCache extends TimeoutClient{
 	        	}
 			}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+        		this.lastAccessed = Common.timer.currentTimeMillis();
         	}
 		}
 		public void purgeBefore(long time, String typeName){
@@ -340,7 +369,7 @@ public class UserEventCache extends TimeoutClient{
 	        	}
 			}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+        		this.lastAccessed = Common.timer.currentTimeMillis();
         	}
 		}
 		/**
@@ -352,7 +381,7 @@ public class UserEventCache extends TimeoutClient{
 				this.events.clear();
 			}finally{
         		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.backgroundProcessing.currentTimeMillis();
+        		this.lastAccessed = Common.timer.currentTimeMillis();
         	}
 		}
     }

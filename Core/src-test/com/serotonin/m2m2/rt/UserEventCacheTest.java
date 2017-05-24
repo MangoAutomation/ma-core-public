@@ -32,6 +32,9 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 /**
  * A benchmarking test to validate changes to the UserEventCache
  * 
+ * TODO this will fail since the UserEventCache now uses EventDao.instance
+ * so we need to fix up the Mocks to be able to swap that with the mocked dao
+ * 
  * @author Terry Packer
  *
  */
@@ -69,7 +72,7 @@ public class UserEventCacheTest extends MangoTestBase{
     //@Test
 	public void benchmark(){
 		
-		this.cache = new UserEventCache(15 * 60000,  60000, eventDao);
+		this.cache = new UserEventCache(15 * 60000,  60000);
 
 		//Setup EventThread
 		EventGeneratorThread egt = new EventGeneratorThread(this);
@@ -128,7 +131,7 @@ public class UserEventCacheTest extends MangoTestBase{
 			for(int i=0; i<EVENT_COUNT; i++){
 				EventInstance e = new EventInstance(
 						eventType,
-						Common.backgroundProcessing.currentTimeMillis(), 
+						Common.timer.currentTimeMillis(), 
 						true,
 						AlarmLevels.CRITICAL,
 						message,
@@ -143,7 +146,7 @@ public class UserEventCacheTest extends MangoTestBase{
 			//Return them to normal
 			for(EventInstance e : allEvents){
 				e.setAcknowledgedByUserId(1);
-				e.setAcknowledgedTimestamp(Common.backgroundProcessing.currentTimeMillis());
+				e.setAcknowledgedTimestamp(Common.timer.currentTimeMillis());
 				for(int userId=0; userId<USER_COUNT; userId++)
 					parent.cache.updateEvent(userId, e);
 			}
@@ -189,7 +192,7 @@ public class UserEventCacheTest extends MangoTestBase{
 				parent.cache.getAllEvents(userId);
 				
 				//Purge some 
-				parent.cache.purgeEventsBefore(Common.backgroundProcessing.currentTimeMillis() - 100);
+				parent.cache.purgeEventsBefore(Common.timer.currentTimeMillis() - 100);
 			}
 			
 			//Purge all events

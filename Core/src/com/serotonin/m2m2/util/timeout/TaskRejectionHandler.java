@@ -77,7 +77,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
 		}else{
 			//Task without an ID was rejected
-			long now = Common.backgroundProcessing.currentTimeMillis();
+			long now = Common.timer.currentTimeMillis();
 			if(log.isWarnEnabled() && (now  > (lastUnorderedRejection + logPeriod))){
 				lastUnorderedRejection = now;
 				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
@@ -131,7 +131,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 */
 	@Override
 	public void run(long runtime) {
-		long now = Common.backgroundProcessing.currentTimeMillis();
+		long now = Common.timer.currentTimeMillis();
 		Iterator<String> it = this.statsMap.keySet().iterator();
 		while(it.hasNext()){
 			RejectedTaskStats stats = this.statsMap.get(it.next());

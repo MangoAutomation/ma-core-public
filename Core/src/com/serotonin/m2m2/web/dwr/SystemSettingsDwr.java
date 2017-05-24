@@ -569,7 +569,7 @@ public class SystemSettingsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public void purgeNow() {
         DataPurge dataPurge = new DataPurge();
-        dataPurge.execute(Common.backgroundProcessing.currentTimeMillis());
+        dataPurge.execute(Common.timer.currentTimeMillis());
     }
 
     @DwrPermission(admin = true)

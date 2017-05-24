@@ -40,7 +40,7 @@ public 	class RejectedTaskStats {
 	 * @return
 	 */
 	public boolean update(RejectedTaskReason reason){
-		long now = Common.backgroundProcessing.currentTimeMillis();
+		long now = Common.timer.currentTimeMillis();
 		totalRejections++;
 		
 		//Track individual reasons

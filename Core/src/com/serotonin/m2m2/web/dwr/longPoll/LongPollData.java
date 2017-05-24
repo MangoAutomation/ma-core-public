@@ -38,7 +38,7 @@ public class LongPollData implements HttpSessionBindingListener, Serializable {
     }
 
     public void updateTimestamp() {
-        timestamp = Common.backgroundProcessing.currentTimeMillis();
+        timestamp = Common.timer.currentTimeMillis();
     }
 
     public long getTimestamp() {

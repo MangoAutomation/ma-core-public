@@ -45,7 +45,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
@@ -313,7 +313,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
     
     public void checkAddPoint() {
-    	ILifecycle lifecycle = Providers.get(ILifecycle.class);
+    	IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
     	Integer limit = lifecycle.dataPointLimit();
     	if(limit != null && this.countMonitor.getValue() >= limit) {
     		String licenseType;

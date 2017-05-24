@@ -195,8 +195,19 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     //
     // Lifecycle
     //
+    /*
+     * For future use if we want to allow some data sources to startup in safe mode
+     *  will require RuntimeManagerChanges
+     * (non-Javadoc)
+     * @see com.serotonin.util.ILifecycle#initialize(boolean)
+     */
     @Override
-    public void initialize() {
+    public void initialize(boolean safe) {
+    	if(!safe)
+    		initialize();
+    }
+
+    public void initialize(){
         // no op
     }
 

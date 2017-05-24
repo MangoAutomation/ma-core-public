@@ -24,7 +24,7 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
 	synchronized protected void scheduleJob() {
         if (getDurationMS() > 0)
-            scheduleJob(Common.backgroundProcessing.currentTimeMillis() + getDurationMS());
+            scheduleJob(Common.timer.currentTimeMillis() + getDurationMS());
         else
             // Otherwise call the event active immediately.
             setEventActive(true);

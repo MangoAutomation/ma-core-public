@@ -273,7 +273,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 			} catch (Exception e) {
 				LOG.error(e);
 				SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-						Common.backgroundProcessing.currentTimeMillis(), false,
+						Common.timer.currentTimeMillis(), false,
 						new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));
 
 			}

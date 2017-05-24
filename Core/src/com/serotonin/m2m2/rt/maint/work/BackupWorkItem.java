@@ -143,7 +143,7 @@ public class BackupWorkItem implements WorkItem {
 						failed = true;
 						LOG.warn("Unable to create backup file: " + fullFilePath);
 			            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-			                    Common.backgroundProcessing.currentTimeMillis(), false,
+			                    Common.timer.currentTimeMillis(), false,
 			                    new TranslatableMessage("event.backup.failure", fullFilePath, "Unable to create backup file"));
 	
 						return;
@@ -182,7 +182,7 @@ public class BackupWorkItem implements WorkItem {
 				LOG.warn(e);
 				failed = true;
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-	                    Common.backgroundProcessing.currentTimeMillis(), false,
+	                    Common.timer.currentTimeMillis(), false,
 	                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
 			}finally{
 				this.finished = true;
@@ -253,7 +253,7 @@ public class BackupWorkItem implements WorkItem {
         	}catch(Exception e){
         		LOG.error(e);
 	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-	                    Common.backgroundProcessing.currentTimeMillis(), false,
+	                    Common.timer.currentTimeMillis(), false,
 	                    new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));
 
         	}

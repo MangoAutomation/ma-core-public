@@ -97,7 +97,7 @@ public class PointValueFacade {
         
         if (insertFinal && !list.isEmpty()) {
         	PointValueTime finalValue = list.get(list.size()-1);
-        	long endTime = Common.backgroundProcessing.currentTimeMillis();
+        	long endTime = Common.timer.currentTimeMillis();
         	
         	// don't insert the final value if it already exists
         	if (finalValue != null && finalValue.getTime() != endTime) {
@@ -144,7 +144,7 @@ public class PointValueFacade {
         if (insertFinal && !list.isEmpty()) {
         	PointValueTime finalValue = list.get(list.size()-1);
         	// don't insert final value in the future
-        	long endTime = to <= Common.backgroundProcessing.currentTimeMillis() ? to : Common.backgroundProcessing.currentTimeMillis();
+        	long endTime = to <= Common.timer.currentTimeMillis() ? to : Common.timer.currentTimeMillis();
         	
         	// don't insert the final value if it already exists
         	if (finalValue != null && finalValue.getTime() != endTime) {

@@ -42,12 +42,12 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     private static final char[] TOKEN_OR = { '|', '|' };
     private static final char[] TOKEN_AND = { '&', '&' };
 
-    private final CompoundEventDetectorVO vo;
+    private final CompoundEventDetectorVO<?> vo;
     private CompoundDetectorEventType eventType;
     private LogicalOperator condition;
     private boolean currentState;
 
-    public CompoundEventDetectorRT(CompoundEventDetectorVO vo) {
+    public CompoundEventDetectorRT(CompoundEventDetectorVO<?> vo) {
         this.vo = vo;
     }
 
@@ -193,7 +193,7 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     public void raiseFailureEvent(LocalizableMessage message) {
     	//TODO Implement
 //        SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_COMPOUND_DETECTOR_FAILURE, vo.getId());
-//        SystemEventType.raiseEvent(eventType, Common.backgroundProcessing.currentTimeMillis(), false, message);
+//        SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
 //        vo.setDisabled(true);
 //        new CompoundEventDetectorDao().saveCompoundEventDetector(vo);
         
@@ -233,7 +233,8 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     // /
     //
     //
-    public void initialize() throws LifecycleException {
+    @Override
+    public void initialize(boolean safe) throws LifecycleException {
         // Validate the condition statement.
         try {
             condition = parseConditionStatement(vo.getCondition());
@@ -259,15 +260,15 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
         // Evaluate the current state.
         currentState = condition.evaluate();
         if (currentState)
-            raiseEvent(Common.backgroundProcessing.currentTimeMillis());
+            raiseEvent(Common.timer.currentTimeMillis());
         else
-            returnToNormal(Common.backgroundProcessing.currentTimeMillis());
+            returnToNormal(Common.timer.currentTimeMillis());
     }
 
     public void terminate() {
         if (condition != null)
             condition.terminate(this);
-        returnToNormal(Common.backgroundProcessing.currentTimeMillis());
+        returnToNormal(Common.timer.currentTimeMillis());
     }
 
     public void joinTermination() {

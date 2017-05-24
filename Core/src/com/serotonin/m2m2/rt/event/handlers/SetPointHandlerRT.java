@@ -221,7 +221,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             message = new TranslatableMessage("event.setPointFailed", message);
         else
             message = new TranslatableMessage("event.setPointFailed.alias", vo.getAlias(), message);
-        SystemEventType.raiseEvent(eventType, Common.backgroundProcessing.currentTimeMillis(), false, message);
+        SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
     }
 
     //

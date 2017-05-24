@@ -140,7 +140,7 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
             // basically use a thread pool here
             if (listeners.size() > 0) {
                 //Create a new RX Event
-                final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(Common.backgroundProcessing.currentTimeMillis());
+                final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(Common.timer.currentTimeMillis());
                 for (final SerialPortProxyEventListener listener : listeners){
                 	SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent, this);
                 	try{

@@ -44,10 +44,10 @@ public class ChartExportServlet extends HttpServlet {
             return;
         
         long from = def.getFrom() == null ? -1 : def.getFrom().getMillis();
-        long to = def.getTo() == null ? Common.backgroundProcessing.currentTimeMillis() : def.getTo().getMillis();
+        long to = def.getTo() == null ? Common.timer.currentTimeMillis() : def.getTo().getMillis();
 
         //Add in the necessary headers
-        long currentTime = Common.backgroundProcessing.currentTimeMillis();
+        long currentTime = Common.timer.currentTimeMillis();
         response.setDateHeader("Expires", currentTime);
         response.setDateHeader("Last-Modified", currentTime);
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");

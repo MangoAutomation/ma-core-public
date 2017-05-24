@@ -23,7 +23,7 @@ import com.serotonin.io.StreamUtils;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -119,7 +119,7 @@ public class ModulesController implements UrlHandler {
         StreamUtils.writeFile(licenseFile, responseData);
 
         // Reload the license file.
-        Providers.get(ILifecycle.class).loadLic();
+        Providers.get(IMangoLifecycle.class).loadLic();
 
         return true;
     }

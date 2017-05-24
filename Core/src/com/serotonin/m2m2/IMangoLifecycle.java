@@ -3,7 +3,7 @@ package com.serotonin.m2m2;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.provider.Provider;
 
-public interface ILifecycle extends Provider {
+public interface IMangoLifecycle extends Provider {
 	
     boolean isTerminated();
 

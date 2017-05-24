@@ -29,7 +29,7 @@ abstract public class AutoShutOff extends Thread {
     }
 
     public void update() {
-        lastQuery = Common.backgroundProcessing.currentTimeMillis();
+        lastQuery = Common.timer.currentTimeMillis();
     }
 
     @Override
@@ -37,7 +37,7 @@ abstract public class AutoShutOff extends Thread {
         running = true;
 
         while (running) {
-            if (Common.backgroundProcessing.currentTimeMillis() - lastQuery > timeout) {
+            if (Common.timer.currentTimeMillis() - lastQuery > timeout) {
                 running = false;
                 shutOff();
                 break;

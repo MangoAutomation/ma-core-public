@@ -70,7 +70,7 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
         // }
         //
         // if (history.size() > 0)
-        // pointChanged(Common.backgroundProcessing.currentTimeMillis(), history.get(0));
+        // pointChanged(Common.timer.currentTimeMillis(), history.get(0));
     }
 
     @Override

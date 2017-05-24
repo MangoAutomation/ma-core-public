@@ -32,7 +32,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -290,7 +290,7 @@ abstract public class BaseDwr {
 		UserCommentVO c = new UserCommentVO();
 		c.setXid(UserCommentDao.instance.generateUniqueXid());
 		c.setComment(comment);
-		c.setTs(Common.backgroundProcessing.currentTimeMillis());
+		c.setTs(Common.timer.currentTimeMillis());
 		c.setUserId(user.getId());
 		c.setUsername(user.getUsername());
 		c.setReferenceId(referenceId);
@@ -426,7 +426,7 @@ abstract public class BaseDwr {
 
 		LongPollRequest pollRequest = data.getRequest();
 
-		long expireTime = Common.backgroundProcessing.currentTimeMillis() + 60000; // One minute
+		long expireTime = Common.timer.currentTimeMillis() + 60000; // One minute
 		LongPollState state = data.getState();
 		int waitTime = SystemSettingsDao
 				.getIntValue(SystemSettingsDao.UI_PERFORMANCE);
@@ -437,8 +437,8 @@ abstract public class BaseDwr {
 		// user-specific event change tracking code.
 		state.setLastAlarmLevelChange(0);
 		while (!pollRequest.isTerminated()
-				&& Common.backgroundProcessing.currentTimeMillis() < expireTime) {
-			if (Providers.get(ILifecycle.class).isTerminated()) {
+				&& Common.timer.currentTimeMillis() < expireTime) {
+			if (Providers.get(IMangoLifecycle.class).isTerminated()) {
 				pollRequest.setTerminated(true);
 				break;
 			}
@@ -725,7 +725,7 @@ abstract public class BaseDwr {
 				.getAttribute(LONG_POLL_DATA_TIMEOUT_KEY);
 		if (lastTimeoutCheck == null)
 			lastTimeoutCheck = 0L;
-		long cutoff = Common.backgroundProcessing.currentTimeMillis() - (1000 * 60 * 5); // Five
+		long cutoff = Common.timer.currentTimeMillis() - (1000 * 60 * 5); // Five
 																	// minutes.
 		if (lastTimeoutCheck < cutoff) {
 			synchronized (data) {
@@ -738,7 +738,7 @@ abstract public class BaseDwr {
 			}
 
 			session.setAttribute(LONG_POLL_DATA_TIMEOUT_KEY,
-					Common.backgroundProcessing.currentTimeMillis());
+					Common.timer.currentTimeMillis());
 		}
 
 		return data;

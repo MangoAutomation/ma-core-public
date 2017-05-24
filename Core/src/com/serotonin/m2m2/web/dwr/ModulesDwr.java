@@ -39,7 +39,7 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.ICoreLicense;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -81,7 +81,7 @@ public class ModulesDwr extends BaseDwr {
         synchronized(SHUTDOWN_TASK_LOCK){
 	        if (SHUTDOWN_TASK == null) {
 	            long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
-	            ILifecycle lifecycle = Providers.get(ILifecycle.class);
+	            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
 	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, true);
 	            //Get the redirect page
 	            result.addData("shutdownUri", "/shutdown.htm");
@@ -102,7 +102,7 @@ public class ModulesDwr extends BaseDwr {
 	            long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
 	
 	            //Ensure our lifecycle state is set to PRE_SHUTDOWN
-	            ILifecycle lifecycle = Providers.get(ILifecycle.class);
+	            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
 	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, false);
 	            //Get the redirect page
 	            result.addData("shutdownUri", "/shutdown.htm");
@@ -538,7 +538,7 @@ public class ModulesDwr extends BaseDwr {
                 
                 synchronized(SHUTDOWN_TASK_LOCK){
 	                if (SHUTDOWN_TASK == null) {
-	                    ILifecycle lifecycle = Providers.get(ILifecycle.class);
+	                    IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
 	                    SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true);
 	                }
                 }

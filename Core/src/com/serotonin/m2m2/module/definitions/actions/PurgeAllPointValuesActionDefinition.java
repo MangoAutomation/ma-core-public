@@ -10,6 +10,7 @@ import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.SystemActionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllPointValuesActionPermissionDefinition;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.timer.OneTimeTrigger;
 
@@ -69,8 +70,10 @@ public class PurgeAllPointValuesActionDefinition extends SystemActionDefinition{
 		 */
 		@Override
 		public void runImpl(long runtime) {
-			long cnt = Common.runtimeManager.purgeDataPointValues();
-			this.results.put("deleted", cnt);
+			if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+				long cnt = Common.runtimeManager.purgeDataPointValues();
+				this.results.put("deleted", cnt);
+			}
 		}
 	}
 }

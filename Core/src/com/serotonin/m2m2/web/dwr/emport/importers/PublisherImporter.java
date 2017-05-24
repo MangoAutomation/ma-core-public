@@ -5,10 +5,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -55,8 +57,12 @@ public class PublisherImporter extends Importer {
                 else {
                     // Sweet. Save it.
                     boolean isnew = vo.isNew();
-                    Common.runtimeManager.savePublisher(vo);
-                    addSuccessMessage(isnew, "emport.publisher.prefix", xid);
+                    if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+	                    Common.runtimeManager.savePublisher(vo);
+	                    addSuccessMessage(isnew, "emport.publisher.prefix", xid);
+                    }else{
+                    	addFailureMessage(new ProcessMessage("Runtime manager not running publisher with xid : " + vo.getXid() + " not saved."));
+                    }
                 }
             }
             catch (TranslatableJsonException e) {

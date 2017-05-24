@@ -18,7 +18,7 @@ abstract public class SendThread extends Thread implements ILifecycle {
     }
 
     @Override
-    public void initialize() {
+    public void initialize(boolean safe) {
         running = true;
         start();
     }

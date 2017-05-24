@@ -53,10 +53,10 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
         	int available = ModulesDwr.upgradesAvailable();
             if (available > 0) {
                 TranslatableMessage m = new TranslatableMessage("modules.event.upgrades");
-                SystemEventType.raiseEvent(et, Common.backgroundProcessing.currentTimeMillis(), true, m);
+                SystemEventType.raiseEvent(et, Common.timer.currentTimeMillis(), true, m);
             }
             else
-                Common.eventManager.returnToNormal(et, Common.backgroundProcessing.currentTimeMillis(),
+                Common.eventManager.returnToNormal(et, Common.timer.currentTimeMillis(),
                         EventInstance.RtnCauses.RETURN_TO_NORMAL);
             this.availableUpgrades.setValue(available);
         }

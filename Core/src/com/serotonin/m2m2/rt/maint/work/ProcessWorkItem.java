@@ -47,7 +47,7 @@ public class ProcessWorkItem implements WorkItem {
         }
         catch (IOException e) {
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_PROCESS_FAILURE),
-                    Common.backgroundProcessing.currentTimeMillis(), false,
+                    Common.timer.currentTimeMillis(), false,
                     new TranslatableMessage("event.process.failure", command, e.getMessage()));
         }
     }

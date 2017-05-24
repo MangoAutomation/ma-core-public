@@ -29,7 +29,7 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -149,7 +149,7 @@ abstract public class DatabaseProxy {
                     /**
                      * Add a startup task to run after the Audit system is ready 
                      */
-                    Providers.get(ILifecycle.class).addStartupTask(new Runnable() {
+                    Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
                         @Override
                         public void run() {
                         	// New database. Create a default user.

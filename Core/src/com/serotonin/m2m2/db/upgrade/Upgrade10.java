@@ -7,7 +7,7 @@ package com.serotonin.m2m2.db.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
@@ -31,7 +31,7 @@ public class Upgrade10 extends DBUpgrade {
         /**
          * Add a startup task to run after the Audit system is ready 
          */
-        Providers.get(ILifecycle.class).addStartupTask(new Runnable() {
+        Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
             @Override
             public void run() {
                 DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();

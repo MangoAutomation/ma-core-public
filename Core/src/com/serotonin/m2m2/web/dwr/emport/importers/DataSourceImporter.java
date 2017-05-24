@@ -5,10 +5,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -55,8 +57,12 @@ public class DataSourceImporter extends Importer {
                 else {
                     // Sweet. Save it.
                     boolean isnew = vo.isNew();
-                    Common.runtimeManager.saveDataSource(vo);
-                    addSuccessMessage(isnew, "emport.dataSource.prefix", xid);
+                    if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+                    	Common.runtimeManager.saveDataSource(vo);
+                    	addSuccessMessage(isnew, "emport.dataSource.prefix", xid);
+                    }else{
+                    	addFailureMessage(new ProcessMessage("Runtime manager not running, data source with xid: " + xid + "not saved."));
+                    }
                 }
             }
             catch (TranslatableJsonException e) {

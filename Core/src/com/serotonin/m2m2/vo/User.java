@@ -170,14 +170,14 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     public void valueBound(HttpSessionBindingEvent evt) {
         // User is bound to a session when logged in. Notify the event manager.
         SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, id),
-                Common.backgroundProcessing.currentTimeMillis(), true, new TranslatableMessage("event.login", username, remoteAddr));
+                Common.timer.currentTimeMillis(), true, new TranslatableMessage("event.login", username, remoteAddr));
     }
 
     @Override
     public void valueUnbound(HttpSessionBindingEvent evt) {
         // User is unbound from a session when logged out or the session expires.
         SystemEventType.returnToNormal(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, id),
-                Common.backgroundProcessing.currentTimeMillis());
+                Common.timer.currentTimeMillis());
 
         // Terminate any testing utility
         if (testingUtility != null)

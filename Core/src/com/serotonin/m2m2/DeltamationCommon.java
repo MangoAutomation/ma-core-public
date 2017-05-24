@@ -310,7 +310,7 @@ public class DeltamationCommon {
             break;
         case FIXED_TO_NOW:
             startOut = startIn;
-            endOut = Common.backgroundProcessing.currentTimeMillis();
+            endOut = Common.timer.currentTimeMillis();
             break;
         case INCEPTION_TO_FIXED:
             startOut = 0;
@@ -318,10 +318,10 @@ public class DeltamationCommon {
             break;
         case INCEPTION_TO_NOW:
             startOut = 0;
-            endOut = Common.backgroundProcessing.currentTimeMillis();
+            endOut = Common.timer.currentTimeMillis();
             break;
         default:
-            endOut = Common.backgroundProcessing.currentTimeMillis();
+            endOut = Common.timer.currentTimeMillis();
             startOut = endOut - (long) (86400000L * (long) periodEnum.getCode()); //24Hrs
             break;
         }

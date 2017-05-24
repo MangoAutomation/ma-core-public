@@ -42,7 +42,7 @@ public class DataSourceGroupInitializer {
 	 * @param threadPoolSize
 	 */
 	public DataSourceGroupInitializer(StartPriority startPriority, List<DataSourceVO<?>> group, boolean logMetrics, int threadPoolSize) {
-		this.startPriority = startPriority;;
+		this.startPriority = startPriority;
 		this.group = group;
 		this.useMetrics = logMetrics;
 		this.threadPoolSize = threadPoolSize;
@@ -55,10 +55,10 @@ public class DataSourceGroupInitializer {
 	 */
 	public List<DataSourceVO<?>> initialize() {
 		
-		long startTs = Common.backgroundProcessing.currentTimeMillis();
+		long startTs = Common.timer.currentTimeMillis();
 		if(this.group == null){
 			if(this.useMetrics)
-				LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs));
+				LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.timer.currentTimeMillis() - startTs));
 			return polling;
 		}
 		
@@ -106,7 +106,7 @@ public class DataSourceGroupInitializer {
 		}
 		
 		if(this.useMetrics)
-			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs) + "ms");
+			LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.timer.currentTimeMillis() - startTs) + "ms");
 
 		return polling;
 	}

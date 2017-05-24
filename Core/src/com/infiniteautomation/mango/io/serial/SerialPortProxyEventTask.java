@@ -23,7 +23,7 @@ public class SerialPortProxyEventTask extends Thread {
 	
 	
 	public SerialPortProxyEventTask(SerialPortProxyEventListener listener, SerialPortProxyEvent event, SerialPortProxyEventCompleteListener completeListener){
-		this.creationTime = Common.backgroundProcessing.currentTimeMillis();
+		this.creationTime = Common.timer.currentTimeMillis();
 		this.listener = listener;
 		this.event = event;
 		this.completeListener = completeListener;
@@ -36,13 +36,13 @@ public class SerialPortProxyEventTask extends Thread {
 			if(LOG.isDebugEnabled())
 				LOG.debug("Running event created at: " + this.event.getCreationTime());
 			
-			this.event.setTimeExecuted(Common.backgroundProcessing.currentTimeMillis());
+			this.event.setTimeExecuted(Common.timer.currentTimeMillis());
 			listener.serialEvent(this.event);
 		}catch(Exception e){
 			LOG.error(e);
 		}finally{
 			//I'm done here
-			this.completeListener.eventComplete(Common.backgroundProcessing.currentTimeMillis(), this);
+			this.completeListener.eventComplete(Common.timer.currentTimeMillis(), this);
 		}
 	}
 	

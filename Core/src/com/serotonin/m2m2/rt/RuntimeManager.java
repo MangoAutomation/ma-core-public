@@ -48,8 +48,9 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.util.ILifecycle;
 
-public class RuntimeManager {
+public class RuntimeManager implements ILifecycle{
     private static final Log LOG = LogFactory.getLog(RuntimeManager.class);
 
     private final Map<Integer, DataSourceRT<? extends DataSourceVO<?>>> runningDataSources = new ConcurrentHashMap<>();
@@ -69,17 +70,36 @@ public class RuntimeManager {
      * Store of enabled publishers
      */
     private final List<PublisherRT<?>> runningPublishers = new CopyOnWriteArrayList<PublisherRT<?>>();
+    
+    /**
+     * State machine allowed order:
+     * PRE_INITIALIZE
+     * INITIALIZE
+     * RUNNING
+     * TERMINATE
+     * POST_TERMINATE
+     * TERMINATED
+     * 
+     */
+    private int state = PRE_INITIALIZE;
 
-    private boolean started = false;
-
+    /**
+     * Check the state of the RuntimeManager
+     *  useful if you are a task that may run before/after the RUNNING state
+     * @return
+     */
+    public int getState(){
+    	return state;
+    }
     //
     // Lifecycle
+    @Override
     synchronized public void initialize(boolean safe) {
-        if (started)
-            throw new ShouldNeverHappenException("RuntimeManager already started");
+        if (state != PRE_INITIALIZE)
+            return;
 
         // Set the started indicator to true.
-        started = true;
+        state = INITIALIZE;
         
         //Get the RTM defs from modules
         List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
@@ -134,7 +154,7 @@ public class RuntimeManager {
         rtmdIndex = startRTMDefs(defs, safe, rtmdIndex, Integer.MAX_VALUE);
 
         // Start the publishers that are enabled
-        long pubStart = Common.backgroundProcessing.currentTimeMillis();
+        long pubStart = Common.timer.currentTimeMillis();
         PublisherDao publisherDao = DaoRegistry.publisherDao;
         List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getPublishers();
         LOG.info("Starting " + publishers.size() + " Publishers...");
@@ -149,7 +169,7 @@ public class RuntimeManager {
                     startPublisher(vo);
             }
         }
-        LOG.info(publishers.size() + " Publisher's started in " +  (Common.backgroundProcessing.currentTimeMillis() - pubStart) + "ms");
+        LOG.info(publishers.size() + " Publisher's started in " +  (Common.timer.currentTimeMillis() - pubStart) + "ms");
         
         //Schedule the Backup Tasks if necessary
         // No way to set the default value for Bools in SystemSettingsDao so must do here
@@ -162,15 +182,15 @@ public class RuntimeManager {
 	        }
 
         }
-        
+        //This is a bit of a misnomer since we startup the data sources in separate threads and don't callback when running.
+        this.state = RUNNING;
     }
 
     synchronized public void terminate() {
-        if (!started)
-            throw new ShouldNeverHappenException("RuntimeManager not yet started");
-
-        started = false;
-
+        if (state != RUNNING)
+            return;
+        state = TERMINATE;
+        
         for (PublisherRT<? extends PublishedPointVO> publisher : runningPublishers)
             stopPublisher(publisher.getId());
 
@@ -211,9 +231,14 @@ public class RuntimeManager {
 
         // Run everything else.
         rtmdIndex = stopRTMDefs(defs, rtmdIndex, Integer.MIN_VALUE);
+        
     }
 
     public void joinTermination() {
+    	if(state != TERMINATE)
+    		return;
+    	state = POST_TERMINATE;
+    	
         for (Entry<Integer, DataSourceRT<? extends DataSourceVO<?>>> entry : runningDataSources.entrySet()) {
             DataSourceRT<? extends DataSourceVO<?>> dataSource = entry.getValue();
             try {
@@ -223,6 +248,7 @@ public class RuntimeManager {
                 LOG.error("Error stopping data source " + dataSource.getId(), e);
             }
         }
+        state = TERMINATED;
     }
 
     private int startRTMDefs(List<RuntimeManagerDefinition> defs, boolean safe, int fromIndex, int toPriority) {
@@ -288,7 +314,7 @@ public class RuntimeManager {
      * @param vo
      * @return
      */
-    boolean initializeDataSourceStartup(DataSourceVO<?> vo) {
+    boolean initializeDataSourceStartup(DataSourceVO<?> vo) {    	
     	long startTime = System.nanoTime();
 
         // If the data source is already running, just quit.
@@ -296,7 +322,7 @@ public class RuntimeManager {
             return false;
 
         // Ensure that the data source is enabled.
-        Assert.isTrue(vo.isEnabled());
+        Assert.isTrue(vo.isEnabled(), "Data source not enabled.");
 
         // Create and initialize the runtime version of the data source.
         DataSourceRT<? extends DataSourceVO<?>> dataSource = vo.createDataSourceRT();
@@ -314,7 +340,7 @@ public class RuntimeManager {
         if (DaoRegistry.pointValueDao instanceof EnhancedPointValueDao) {
             EnhancedPointValueDao pvDao = (EnhancedPointValueDao) DaoRegistry.pointValueDao;
             
-            // XXX Find the maximum cache size for all point in the datasource
+            // Find the maximum cache size for all point in the datasource
             // This number of values will be retrieved for all points in the datasource
             // If even one point has a high cache size this *may* cause issues
             int maxCacheSize = 0;
@@ -364,25 +390,7 @@ public class RuntimeManager {
 
     private void stopDataSource(int id) {
         synchronized (runningDataSources) {
-
-            DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(id);
-            if (dataSource == null)
-                return;
-	        try{	
-	            // Stop the data points.
-	            for (DataPointRT p : dataPoints.values()) {
-	                if (p.getDataSourceId() == id)
-	                    stopDataPoint(p.getId());
-	            }
-	
-	            runningDataSources.remove(dataSource.getId());
-	            dataSource.terminate();
-	
-	            dataSource.joinTermination();
-	            LOG.info("Data source '" + dataSource.getName() + "' stopped");
-        	}catch(Exception e){
-        		LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
-        	}
+        	stopDataSourceShutdown(id);
         }
     }
     
@@ -390,7 +398,7 @@ public class RuntimeManager {
      * Should only be called at Shutdown as synchronization has been reduced for performance
      */
     void stopDataSourceShutdown(int id) {
-
+    	
         DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(id);
         if (dataSource == null)
             return;
@@ -417,7 +425,7 @@ public class RuntimeManager {
     //
     // Data points
     //
-    public void saveDataPoint(DataPointVO point) {
+    public void saveDataPoint(DataPointVO point) {    	
         stopDataPoint(point.getId());
 
         // Since the point's data type may have changed, we must ensure that the other attrtibutes are still ok with
@@ -468,7 +476,7 @@ public class RuntimeManager {
      * @param latestValue 
      */
     private void startDataPointStartup(DataPointVO vo, List<PointValueTime> initialCache) {
-        Assert.isTrue(vo.isEnabled());
+        Assert.isTrue(vo.isEnabled(), "Data point not enabled");
 
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO<?>> ds = getRunningDataSource(vo.getDataSourceId());
@@ -506,7 +514,6 @@ public class RuntimeManager {
             			+ " disabling point."
             			, e);
             	//TODO Fire Alarm to warn user.
-            	//Common.eventManager.raiseEvent(type, time, rtnApplicable, alarmLevel, message, context);
             	dataPoint.getVO().setEnabled(false);
             	saveDataPoint(dataPoint.getVO()); //Stop it
             }
@@ -581,7 +588,7 @@ public class RuntimeManager {
     }
 
     public void removeDataPointListener(int dataPointId, DataPointListener l) {
-        DataPointListener listeners = DataPointEventMulticaster.remove(dataPointListeners.get(dataPointId), l);
+    	DataPointListener listeners = DataPointEventMulticaster.remove(dataPointListeners.get(dataPointId), l);
         if (listeners == null)
             dataPointListeners.remove(dataPointId);
         else
@@ -595,7 +602,7 @@ public class RuntimeManager {
     //
     // Point values
     public void setDataPointValue(int dataPointId, DataValue value, SetPointSource source) {
-        setDataPointValue(dataPointId, new PointValueTime(value, Common.backgroundProcessing.currentTimeMillis()), source);
+        setDataPointValue(dataPointId, new PointValueTime(value, Common.timer.currentTimeMillis()), source);
     }
 
     public void setDataPointValue(int dataPointId, PointValueTime valueTime, SetPointSource source) {
@@ -658,7 +665,7 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
-        long before = DateUtils.minus(Common.backgroundProcessing.currentTimeMillis(), periodType, periodCount);
+        long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(dataPointId, before);
     }
 
@@ -683,7 +690,7 @@ public class RuntimeManager {
     }
 
     public long purgeDataPointValues(int dataPointId, long before) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
+       long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
         if (count > 0)
             updateDataPointValuesRT(dataPointId);
         return count;
@@ -723,7 +730,7 @@ public class RuntimeManager {
     }
 
     public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
-        // If the data source is running, stop it.
+        // If the publisher is running, stop it.
         stopPublisher(vo.getId());
 
         // In case this is a new publisher, we need to save to the database first so that it has a proper id.
@@ -740,8 +747,8 @@ public class RuntimeManager {
             if (isPublisherRunning(vo.getId()))
                 return;
 
-            // Ensure that the data source is enabled.
-            Assert.isTrue(vo.isEnabled());
+            // Ensure that the publisher is enabled.
+            Assert.isTrue(vo.isEnabled(), "Publisher not enabled");
 
             // Create and start the runtime version of the publisher.
             PublisherRT<?> publisher = vo.createPublisherRT();
@@ -763,6 +770,5 @@ public class RuntimeManager {
             runningPublishers.remove(publisher);
         }
     }
-
 
 }

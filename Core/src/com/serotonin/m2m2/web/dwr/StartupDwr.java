@@ -9,7 +9,7 @@ import java.util.List;
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
 
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
@@ -30,7 +30,7 @@ public class StartupDwr {
 		
 		ProcessResult result = new ProcessResult();
 		
-		ILifecycle lifecycle = Providers.get(ILifecycle.class);
+		IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
     	float progress =  lifecycle.getStartupProgress();
     	float shutdownProgress = lifecycle.getShutdownProgress();
 

@@ -60,9 +60,29 @@ public class EventManager implements ILifecycle {
 	private UserDao userDao;
 	private long lastAlarmTimestamp = 0;
 	private int highestActiveAlarmLevel = 0;
-
+    /**
+     * State machine allowed order:
+     * PRE_INITIALIZE
+     * INITIALIZE
+     * RUNNING
+     * TERMINATE
+     * POST_TERMINATE
+     * TERMINATED
+     * 
+     */
+    private int state = PRE_INITIALIZE;
+    
+    /**
+     * Check the state of the EventManager
+     *  useful if you are a task that may run before/after the RUNNING state
+     * @return
+     */
+    public int getState(){
+    	return state;
+    }
+	
 	//Cache for all active events for a logged in user, allow entries to remain un-accessed for 15 minutes and cleanup cache every minute
-	private final UserEventCache userEventCache = new UserEventCache(15 * 60000,  60000);
+	private final UserEventCache userEventCache = new UserEventCache(15 * 60000,  1000); //60000);
 	
 	//
 	//
@@ -80,6 +100,8 @@ public class EventManager implements ILifecycle {
 	public void raiseEvent(EventType type, long time, boolean rtnApplicable,
 			int alarmLevel, TranslatableMessage message,
 			Map<String, Object> context) {
+		if(state != RUNNING)
+			return;
 		
 		if(alarmLevel == AlarmLevels.IGNORE)
 			return;
@@ -158,7 +180,7 @@ public class EventManager implements ILifecycle {
 		if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
 			eventDao.insertUserEvents(evt.getId(), eventUserIds, true);
 			if (autoAckMessage == null)
-				lastAlarmTimestamp = Common.backgroundProcessing.currentTimeMillis();
+				lastAlarmTimestamp = Common.timer.currentTimeMillis();
 		}
 
 		if (evt.isRtnApplicable()){
@@ -230,7 +252,7 @@ public class EventManager implements ILifecycle {
 	}
 
 	private boolean isRecent(EventType type, TranslatableMessage message) {
-		long cutoff = Common.backgroundProcessing.currentTimeMillis() - RECENT_EVENT_PERIOD;
+		long cutoff = Common.timer.currentTimeMillis() - RECENT_EVENT_PERIOD;
 		
 		recentEventsLock.writeLock().lock();
 		try{
@@ -350,6 +372,7 @@ public class EventManager implements ILifecycle {
 	 * @param alternateAckSource
 	 */
 	public void acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource){
+
 		eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
 		//Fill in the info if someone on the other end wants it
 		evt.setAcknowledgedByUserId(userId);
@@ -384,7 +407,7 @@ public class EventManager implements ILifecycle {
 	 * @return
 	 */
 	public int purgeAllEvents(){
-		
+
 		activeEventsLock.writeLock().lock();
 		try{
 			activeEvents.clear();
@@ -410,7 +433,7 @@ public class EventManager implements ILifecycle {
 	 * @return
 	 */
 	public int purgeEventsBefore(final long time){
-		
+
 		activeEventsLock.writeLock().lock();
 		try{
 			ListIterator<EventInstance> it = activeEvents.listIterator();
@@ -447,7 +470,7 @@ public class EventManager implements ILifecycle {
 	 * @return
 	 */
 	public int purgeEventsBefore(final long time, final String typeName){
-		
+
 		activeEventsLock.writeLock().lock();
 		try{
 			ListIterator<EventInstance> it = activeEvents.listIterator();
@@ -484,7 +507,7 @@ public class EventManager implements ILifecycle {
 	 * @return
 	 */
 	public int purgeEventsBefore(final long time, final int alarmLevel){
-		
+
 		activeEventsLock.writeLock().lock();
 		try{
 			ListIterator<EventInstance> it = activeEvents.listIterator();
@@ -519,7 +542,7 @@ public class EventManager implements ILifecycle {
 	// Canceling events.
 	//
 	public void cancelEventsForDataPoint(int dataPointId) {
-		
+
 		List<EventInstance> dataPointEvents = new ArrayList<EventInstance>();
 		activeEventsLock.writeLock().lock();
 		try{
@@ -535,7 +558,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 
-		deactivateEvents(dataPointEvents, Common.backgroundProcessing.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+		deactivateEvents(dataPointEvents, Common.timer.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		recentEventsLock.writeLock().lock();
 		try{
@@ -555,7 +578,7 @@ public class EventManager implements ILifecycle {
 	 * @param dataSourceId
 	 */
 	public void cancelEventsForDataSource(int dataSourceId) {
-		
+
 		List<EventInstance> dataSourceEvents = new ArrayList<EventInstance>();
 		activeEventsLock.writeLock().lock();
 		try{
@@ -571,7 +594,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 
-		deactivateEvents(dataSourceEvents, Common.backgroundProcessing.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+		deactivateEvents(dataSourceEvents, Common.timer.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		recentEventsLock.writeLock().lock();
 		try{
@@ -591,7 +614,7 @@ public class EventManager implements ILifecycle {
 	 * @param publisherId
 	 */
 	public void cancelEventsForPublisher(int publisherId) {
-		
+
 		List<EventInstance> publisherEvents = new ArrayList<EventInstance>();
 		activeEventsLock.writeLock().lock();
 		try{
@@ -607,7 +630,7 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 		
-		deactivateEvents(publisherEvents, Common.backgroundProcessing.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+		deactivateEvents(publisherEvents, Common.timer.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
 
 		recentEventsLock.writeLock().lock();
 		try{
@@ -674,7 +697,11 @@ public class EventManager implements ILifecycle {
 	// Lifecycle interface
 	//
 	@Override
-	public void initialize() {
+	public void initialize(boolean safe) {
+		if((state != PRE_INITIALIZE) || safe)
+			return;
+		state = INITIALIZE;
+		
 		eventDao = EventDao.instance;
 		userDao = UserDao.instance;
 
@@ -686,18 +713,26 @@ public class EventManager implements ILifecycle {
 			activeEventsLock.writeLock().unlock();
 		}
 		
-		lastAlarmTimestamp = Common.backgroundProcessing.currentTimeMillis();
+		lastAlarmTimestamp = Common.timer.currentTimeMillis();
 		resetHighestAlarmLevel(lastAlarmTimestamp);
+		state = RUNNING;
 	}
 
 	@Override
 	public void terminate() {
+        if (state != RUNNING)
+            return;
+        state = TERMINATE;
 		// no op
+		this.userEventCache.terminate();
 	}
 
 	@Override
 	public void joinTermination() {
-		// no op
+		if(state != TERMINATE)
+			return;
+		this.userEventCache.joinTermination();
+		state = TERMINATED;
 	}
 
 	//

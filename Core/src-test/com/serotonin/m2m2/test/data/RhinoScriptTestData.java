@@ -25,7 +25,7 @@ public class RhinoScriptTestData {
 	public static List<List<PointValueTime>> numericPvts;
 	
 	static {
-		long currentTime = Common.backgroundProcessing.currentTimeMillis();
+		long currentTime = Common.timer.currentTimeMillis();
 		long relativeTime;
 		numericPvts = new ArrayList<List<PointValueTime>>();
 		for(int i=0; i<pointCount; i++){

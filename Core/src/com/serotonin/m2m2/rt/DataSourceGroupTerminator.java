@@ -14,6 +14,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 
 /**
@@ -50,10 +51,10 @@ public class DataSourceGroupTerminator {
 	 */
 	public void terminate() {
 
-		long startTs = Common.backgroundProcessing.currentTimeMillis();
+		long startTs = Common.timer.currentTimeMillis();
 		if(this.group == null){
 			if(this.useMetrics)
-				LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs));
+				LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (Common.timer.currentTimeMillis() - startTs));
 			return;
 		}
 		
@@ -98,7 +99,7 @@ public class DataSourceGroupTerminator {
 		}
 		
 		if(this.useMetrics)
-			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (Common.backgroundProcessing.currentTimeMillis() - startTs) + "ms");
+			LOG.info("Termination of " + this.group.size() + " " + this.startPriority.name() + " priority data sources took " + (Common.timer.currentTimeMillis() - startTs) + "ms");
 
 		return;
 	}
@@ -153,6 +154,15 @@ public class DataSourceGroupTerminator {
 		public boolean cancel() {
 			this.parent.removeRunningTask(this);
 			return super.cancel();
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.serotonin.m2m2.util.timeout.HighPriorityTask#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			this.parent.removeRunningTask(this);
+			super.rejected(reason);
 		}
 	}
 	

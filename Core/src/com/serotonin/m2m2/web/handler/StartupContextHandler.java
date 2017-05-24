@@ -36,7 +36,7 @@ import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.web.OverridingFileResource;
 import com.serotonin.m2m2.web.servlet.StatusServlet;
@@ -125,7 +125,7 @@ public class StartupContextHandler extends ResourceHandler{
             //Return options response
             response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
             response.setContentLength(0);
-            ILifecycle lifecycle = Providers.get(ILifecycle.class);
+            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
             Float progress = lifecycle.getStartupProgress();
             int state = lifecycle.getLifecycleState();
             response.setHeader("Mango-Startup-Progress", String.format("%d", progress.intValue()));

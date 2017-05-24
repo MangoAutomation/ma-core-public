@@ -32,6 +32,6 @@ public class MockDataSourceRT extends DataSourceRT<MockDataSourceVO>{
 	public void setPointValueImpl(DataPointRT dataPoint, PointValueTime newValue,
 			SetPointSource source) {
 		dataPoint.setPointValue(newValue, source);
-	}	
+	}
 	
 }

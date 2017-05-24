@@ -99,7 +99,7 @@ public class EmailWorkItem implements WorkItem {
                 to += addr.getAddress();
             }
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_EMAIL_SEND_FAILURE),
-                    Common.backgroundProcessing.currentTimeMillis(), false,
+                    Common.timer.currentTimeMillis(), false,
                     new TranslatableMessage("event.email.failure", subject, to, e.getMessage()));
         }
         finally {

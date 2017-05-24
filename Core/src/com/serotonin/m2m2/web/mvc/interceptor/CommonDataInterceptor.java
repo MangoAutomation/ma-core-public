@@ -11,7 +11,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
@@ -27,7 +27,7 @@ public class CommonDataInterceptor implements HandlerInterceptor {
         request.setAttribute("lang", ControllerUtils.getLocale(request).getLanguage());
         //If database isn't ready we can't do this
         //TODO Maybe do this differently?
-        ILifecycle lifecycle = Providers.get(ILifecycle.class);
+        IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
     	if(lifecycle.getStartupProgress() >= 100f){
     		request.setAttribute("instanceDescription", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
     		//Only output the site analytics if we are NOT on the system settings page

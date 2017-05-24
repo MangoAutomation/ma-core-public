@@ -12,6 +12,7 @@ import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -103,8 +104,12 @@ public class DataPointImporter extends Importer {
 
                     boolean isnew = vo.isNew();
                     try {
-                    	Common.runtimeManager.saveDataPoint(vo);
-                    	addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
+                    	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+                    		Common.runtimeManager.saveDataPoint(vo);
+                    		addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
+                    	}else{
+                    		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
+                    	}
                     } catch(LicenseViolatedException e) {
                     	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
                     }

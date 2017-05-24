@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ILifecycle;
+import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.console.LoggingConsoleRT;
@@ -49,7 +49,7 @@ public class StatusServlet extends HttpServlet{
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		ILifecycle lifecycle = Providers.get(ILifecycle.class);
+		IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
 		
 		String timeString = request.getParameter("time");
 		long time = -1;

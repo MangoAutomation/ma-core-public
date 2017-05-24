@@ -146,23 +146,23 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
                     lm = new TranslatableMessage("event.publish.pointMissing", badPointId);
                 else
                     lm = new TranslatableMessage("event.publish.pointDisabled", disabledPoint.getXid());
-                Common.eventManager.raiseEvent(pointDisabledEventType, Common.backgroundProcessing.currentTimeMillis(), true,
+                Common.eventManager.raiseEvent(pointDisabledEventType, Common.timer.currentTimeMillis(), true,
                         vo.getAlarmLevel(POINT_DISABLED_EVENT, AlarmLevels.URGENT), lm, createEventContext());
             }
             else
                 // Everything is good
-                Common.eventManager.returnToNormal(pointDisabledEventType, Common.backgroundProcessing.currentTimeMillis());
+                Common.eventManager.returnToNormal(pointDisabledEventType, Common.timer.currentTimeMillis());
         }
     }
 
     void fireQueueSizeWarningEvent() {
-        Common.eventManager.raiseEvent(queueSizeWarningEventType, Common.backgroundProcessing.currentTimeMillis(), true, 
+        Common.eventManager.raiseEvent(queueSizeWarningEventType, Common.timer.currentTimeMillis(), true, 
         		vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT),
                 new TranslatableMessage("event.publish.queueSize", vo.getCacheWarningSize()), createEventContext());
     }
 
     void deactivateQueueSizeWarningEvent() {
-        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.backgroundProcessing.currentTimeMillis());
+        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.timer.currentTimeMillis());
     }
 
     protected Map<String, Object> createEventContext() {
@@ -179,7 +179,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
 
     protected void initialize(SendThread sendThread) {
         this.sendThread = sendThread;
-        sendThread.initialize();
+        sendThread.initialize(false);
 
         for (T p : vo.getPoints())
             pointRTs.add(new PublishedPointRT<T>(p, this));

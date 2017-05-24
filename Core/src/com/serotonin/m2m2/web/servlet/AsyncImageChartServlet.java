@@ -95,7 +95,7 @@ public class AsyncImageChartServlet extends BaseInfoServlet {
                 pointIdStart = 4;
             }
             else {
-                from = Common.backgroundProcessing.currentTimeMillis() - Long.parseLong(imageBits[1]);
+                from = Common.timer.currentTimeMillis() - Long.parseLong(imageBits[1]);
                 to = -1;
                 pointIdStart = 2;
             }

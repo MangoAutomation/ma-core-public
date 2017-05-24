@@ -117,7 +117,7 @@ public class ImageChartServlet extends BaseInfoServlet {
                 pointIdStart = 4;
             }
             else {
-                from = Common.backgroundProcessing.currentTimeMillis() - Long.parseLong(imageBits[1]);
+                from = Common.timer.currentTimeMillis() - Long.parseLong(imageBits[1]);
                 to = -1;
                 pointIdStart = 2;
             }
@@ -246,7 +246,7 @@ public class ImageChartServlet extends BaseInfoServlet {
     }
 
     private void tryCachePurge() {
-        long now = Common.backgroundProcessing.currentTimeMillis();
+        long now = Common.timer.currentTimeMillis();
         if (lastCachePurgeTime + CACHE_PURGE_INTERVAL < now) {
             List<String> toBePurged = new ArrayList<String>();
             for (String key : cachedImages.keySet()) {
@@ -258,7 +258,7 @@ public class ImageChartServlet extends BaseInfoServlet {
             for (String key : toBePurged)
                 cachedImages.remove(key);
 
-            lastCachePurgeTime = Common.backgroundProcessing.currentTimeMillis();
+            lastCachePurgeTime = Common.timer.currentTimeMillis();
         }
     }
 
@@ -268,11 +268,11 @@ public class ImageChartServlet extends BaseInfoServlet {
 
         CacheElement(byte[] data) {
             this.data = data;
-            lastAccessTime = Common.backgroundProcessing.currentTimeMillis();
+            lastAccessTime = Common.timer.currentTimeMillis();
         }
 
         byte[] getData() {
-            lastAccessTime = Common.backgroundProcessing.currentTimeMillis();
+            lastAccessTime = Common.timer.currentTimeMillis();
             return data;
         }
 

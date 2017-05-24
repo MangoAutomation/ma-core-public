@@ -161,7 +161,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             doPollNoSync(fireTime);
             
             //Save the poll time and duration
-            this.latestPollTimes.add(new LongLongPair(fireTime, Common.backgroundProcessing.currentTimeMillis() - startTs));
+            this.latestPollTimes.add(new LongLongPair(fireTime, Common.timer.currentTimeMillis() - startTs));
             //Trim the Queue
             while(this.latestPollTimes.size() > 10)
             	this.latestPollTimes.poll();
@@ -231,7 +231,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             long delay = 0;
             if (quantize){
                 // Quantize the start.
-            	long now = Common.backgroundProcessing.currentTimeMillis();
+            	long now = Common.timer.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
                 if(LOG.isDebugEnabled())
                 	LOG.debug("First poll should be at: " + (now + delay));

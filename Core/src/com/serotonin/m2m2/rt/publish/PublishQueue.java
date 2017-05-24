@@ -85,7 +85,7 @@ public class PublishQueue<T extends PublishedPointVO> {
     }
 
     private void sizeCheck() {
-        long now = Common.backgroundProcessing.currentTimeMillis();
+        long now = Common.timer.currentTimeMillis();
         if (lastSizeCheck + SIZE_CHECK_DELAY < now) {
             lastSizeCheck = now;
             int size = queue.size();

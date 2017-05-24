@@ -19,7 +19,31 @@
 package com.serotonin.util;
 
 public interface ILifecycle {
-    void initialize() throws LifecycleException;
+	/**
+	 * Initialize only if not in safe mode
+	 * @param safe
+	 * @throws LifecycleException
+	 */
+    void initialize(boolean safe) throws LifecycleException;
+
+    /**
+     * Begin the termination process
+     * @throws LifecycleException
+     */
     void terminate() throws LifecycleException;
+    
+    /**
+     * Wait for the task to terminate gracefully for some time 
+     * and then kill forcefully
+     */
     void joinTermination();
+    
+    //States for state machines
+    public static final int NOT_STARTED = 0;
+    public static final int PRE_INITIALIZE = 10;
+    public static final int INITIALIZE = 20;
+    public static final int RUNNING = 30;
+    public static final int TERMINATE = 40;
+    public static final int POST_TERMINATE = 50;
+    public static final int TERMINATED = 60;
 }
