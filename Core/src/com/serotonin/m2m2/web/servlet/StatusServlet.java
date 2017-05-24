@@ -70,8 +70,7 @@ public class StatusServlet extends HttpServlet{
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, sw);
         
 		//Limit to logged in users while running
-        //TODO create a nice way of sharing states between ma-priv and core
-		if((lifecycle.getLifecycleState() != 200)||(Common.getHttpUser() != null)){
+		if((lifecycle.getLifecycleState() != IMangoLifecycle.RUNNING)||(Common.getHttpUser() != null)){
 			data.put("messages", LoggingConsoleRT.instance.getMessagesSince(time));
 		}else{
 			data.put("messages", new ArrayList<String>());
@@ -82,7 +81,7 @@ public class StatusServlet extends HttpServlet{
     	data.put("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
     	
     	//Can only get the Startup URI once the database is initalized
-    	if(lifecycle.getLifecycleState() > 100){
+    	if(lifecycle.getLifecycleState() > IMangoLifecycle.DATABASE_INITIALIZE){
     		Common.envProps.getBoolean("", false);
     		Boolean isSsl = Common.envProps.getBoolean("ssl.on", false);
     		String uri;
@@ -126,50 +125,57 @@ public class StatusServlet extends HttpServlet{
 	 */
 	public String getLifecycleStateMessage(int state){
 		switch(state){
-		case 0:
+		case IMangoLifecycle.NOT_STARTED:
 			return this.translations.translate("startup.state.notStarted");
-		case 10:
+		case IMangoLifecycle.WEB_SERVER_INITIALIZE:
 			return this.translations.translate("startup.state.webServerInitialize");
-		case 20:
+		case IMangoLifecycle.PRE_INITIALIZE:
 			return this.translations.translate("startup.state.preInitialize");
-		case 30:
+		case IMangoLifecycle.TIMER_INITIALIZE:
 			return this.translations.translate("startup.state.timerInitialize");
-		case 40:
+		case IMangoLifecycle.JSON_INITIALIZE:
 			return this.translations.translate("startup.state.jsonInitialize");
-		case 50:
+		case IMangoLifecycle.EPOLL_INITIALIZE:
 			return this.translations.translate("startup.state.epollInitialize");
-		case 60:
+		case IMangoLifecycle.LICENSE_CHECK:
 			return this.translations.translate("startup.state.licenseCheck");
-		case 70:
+		case IMangoLifecycle.FREEMARKER_INITIALIZE:
 			return this.translations.translate("startup.state.freeMarkerInitialize");
-		case 80:
+		case IMangoLifecycle.DATABASE_INITIALIZE:
 			return this.translations.translate("startup.state.databaseInitialize");
-		case 90:
+		case IMangoLifecycle.POST_DATABASE_INITIALIZE:
 			return this.translations.translate("startup.state.postDatabaseInitialize");
-		case 100:
+		case IMangoLifecycle.UTILITIES_INITIALIZE:
 			return this.translations.translate("startup.state.utilitesInitialize");
-		case 110:
+		case IMangoLifecycle.EVENT_MANAGER_INITIALIZE:
 			return this.translations.translate("startup.state.eventManagerInitialize");
-		case 150:
+		case IMangoLifecycle.RUNTIME_MANAGER_INITIALIZE:
 			return this.translations.translate("startup.state.runtimeManagerInitialize");
-		case 160:
+		case IMangoLifecycle.MAINTENANCE_INITIALIZE:
 			return this.translations.translate("startup.state.maintenanceInitialize");
-		case 170:
+		case IMangoLifecycle.IMAGE_SET_INITIALIZE:
 			return this.translations.translate("startup.state.imageSetInitialize");
-		case 175:
+		case IMangoLifecycle.WEB_SERVER_FINALIZE:
 			return this.translations.translate("startup.state.webServerFinalize");
-		case 180:
+		case IMangoLifecycle.POST_INITIALIZE:
 			return this.translations.translate("startup.state.postInitialize");
-		case 190:
+		case IMangoLifecycle.STARTUP_TASKS_RUNNING:
 			return this.translations.translate("startup.state.startupTasksRunning");
-		case 200:
+		case IMangoLifecycle.RUNNING:
 			return this.translations.translate("startup.state.running");
-		case 210:
+		case IMangoLifecycle.PRE_TERMINATE:
 			return this.translations.translate("shutdown.state.preTerminate");
-		case 220:
+		case IMangoLifecycle.SHUTDOWN_TASKS_RUNNING:
 			return this.translations.translate("shutdown.state.shutdownTasksRunning");
-		case 230:
+		case IMangoLifecycle.WEB_SERVER_TERMINATE:
 			return this.translations.translate("shutdown.state.webServerTerminate");
+		case IMangoLifecycle.RUNTIME_MANAGER_TERMINATE:
+		case IMangoLifecycle.UNINSTALLL_MODULES:
+		case IMangoLifecycle.EPOLL_TERMINATE:
+		case IMangoLifecycle.TIMER_TERMINATE:
+		case IMangoLifecycle.EVENT_MANAGER_TERMINATE:
+		case IMangoLifecycle.DATABASE_TERMINATE:
+		case IMangoLifecycle.TERMINATED:
 		default:
 			return this.translations.translate("startup.state.unknown");
 		}
