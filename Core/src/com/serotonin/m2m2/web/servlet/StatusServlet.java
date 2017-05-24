@@ -82,8 +82,19 @@ public class StatusServlet extends HttpServlet{
     	data.put("state", getLifecycleStateMessage(lifecycle.getLifecycleState()));
     	
     	//Can only get the Startup URI once the database is initalized
-    	if(lifecycle.getLifecycleState() > 100)
-    		data.put("startupUri", DefaultPagesDefinition.getLoginUri(request,response));
+    	if(lifecycle.getLifecycleState() > 100){
+    		Common.envProps.getBoolean("", false);
+    		Boolean isSsl = Common.envProps.getBoolean("ssl.on", false);
+    		String uri;
+    		if(isSsl){
+    			int port = Common.envProps.getInt("ssl.port", 443);
+    			uri = "https://" + request.getServerName() + ":" + port +  DefaultPagesDefinition.getLoginUri(request,response);
+    					
+    		}else{
+    			uri = DefaultPagesDefinition.getLoginUri(request,response);
+    		}
+    		data.put("startupUri", uri);
+    	}
     	
         try {
 			writer.writeObject(data);
