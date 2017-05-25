@@ -61,16 +61,16 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	
 	public void validate(ProcessResult response){
 		if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
+            response.addContextualMessage("virtualSerialPortXid", "validate.required");
 		
 		 if (StringUtils.isBlank(portName))
-	            response.addContextualMessage("portName", "validate.required");
+	            response.addContextualMessage("virtualSerialPortName", "validate.required");
 		 
 		 if(portName != null && Common.serialPortManager.isPortNameRegexMatch(portName))
-			 response.addContextualMessage("portName", "virtualSerialPorts.validate.portMatchesOsPort");
+			 response.addContextualMessage("virtualSerialPortName", "virtualSerialPorts.validate.portMatchesOsPort");
 		 
 		 if(!response.getHasMessages() && VirtualSerialPortConfigDao.instance.isPortNameUsed(xid, portName))
-			 response.addContextualMessage("portName", "");
+			 response.addContextualMessage("virtualSerialPortName", "virtualSerialPorts.validate.portNameUsed");
 	}
 	
     public String getXid() {

@@ -746,11 +746,12 @@
  		}
     	
     	var saveCallback = function(result){
+    		stopImageFader("saveVirtualSerialPortImg");
+    		if(editingVirtualSerialPortXid !== -1)
+        		stopImageFader("dv"+ editingVirtualSerialPortXid +"Img");
     		if (result.hasMessages)
                 showDwrMessages(result.messages, "virtualSerialPortValidationMessages");
             else {
-            	if(editingVirtualSerialPortXid !== -1)
-            		stopImageFader("dv"+ editingVirtualSerialPortXid +"Img");
                 displayVirtualSerialPorts(result.data.ports);
                 
                 showDwrMessages([{
@@ -762,7 +763,7 @@
                 
                 displayVirtualSerialPorts(result.data.ports);
                 hide('virtualSerialPortConfigDiv');
-                stopImageFader("saveVirtualSerialPortImg");
+                
             	editingVirtualSerialPortXid = -1;
             }
  		};
