@@ -5,6 +5,8 @@
 package com.serotonin.m2m2;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -40,6 +43,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
+import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.CompiledCoreVersion;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.serotonin.ShouldNeverHappenException;
@@ -54,7 +59,7 @@ import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
-import com.serotonin.m2m2.shared.VersionData;
+import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.DocumentationManifest;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -147,20 +152,55 @@ public class Common {
      * particular to the schema, but is still required to update the system settings so that the database has the
      * correct version.
      */
-    public static final VersionData getVersion() {
-        return new VersionData(getMajorVersion(), getMinorVersion(), getMicroVersion());
+
+    public static final Version getVersion() {
+        return CoreVersion.INSTANCE.version;
+    }
+    
+    private enum CoreVersion {
+        INSTANCE();
+        final Version version;
+        
+        CoreVersion() {
+            Version version = CompiledCoreVersion.VERSION;
+            
+            try {
+                version = loadCoreVersionFromReleaseProperties(version);
+            } catch (Throwable t) {}
+            
+            // check for possible license subversion
+            if (version.getMajorVersion() != CompiledCoreVersion.VERSION.getMajorVersion()) {
+                throw new RuntimeException("Version from release.properties does not match compiled major version " + CompiledCoreVersion.VERSION.getMajorVersion());
+            }
+            
+            this.version = version;
+        }
     }
 
-    public static final int getMajorVersion() {
-        return 3;
-    }
+    private static final Version loadCoreVersionFromReleaseProperties(Version version) {
+        Properties props = new Properties();
+        File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
 
-    public static final int getMinorVersion() {
-        return 1;
-    }
+        if (propFile.exists()) {
+            try (InputStream in = new FileInputStream(propFile)) {
+                props.load(in);
+            } catch (Exception e1) { }
 
-    public static final int getMicroVersion() {
-        return 0;
+            String versionStr = props.getProperty(ModuleUtils.Constants.PROP_VERSION);
+            String buildNumberStr = props.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
+            
+            if (versionStr != null) {
+                try {
+                    version = Version.valueOf(versionStr);
+                } catch (com.github.zafarkhaja.semver.ParseException e) { }
+            }
+            
+            if (buildNumberStr != null) {
+                version = version.setBuildMetadata(buildNumberStr);
+            }
+        }
+        
+        return version;
     }
 
     public static final int getDatabaseSchemaVersion() {

@@ -67,13 +67,7 @@ public class ModulesController implements UrlHandler {
         json.put("modules", jsonModules);
 
         for (Module module : modules) {
-            if (module.getName().equals("core")) {
-                //Don't add that core module as it might have the build number in the version
-                jsonModules.put("core", Common.getVersion().getFullString());
-            }
-            else {
-                jsonModules.put(module.getName(), module.getVersion());
-            }
+            jsonModules.put(module.getName(), module.getVersion().toString());
         }
 
         try {
