@@ -143,7 +143,10 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		configurer.favorPathExtension(false).ignoreAcceptHeader(false)
 				.favorParameter(true)
 				.useJaf(false) // TODO get maven jar to use application types
-				.defaultContentType(MediaType.TEXT_HTML)
+				// dont set default to text/html, we dont want this for REST
+				// it causes Accept: */* headers to map to Accept: text/html
+				// which causes hell for finding acceptable content types
+				//.defaultContentType(MediaType.TEXT_HTML)
 				//Add Some file extension default mappings
 				// mediaType("html", MediaType.TEXT_HTML).
 				.mediaType("xml", MediaType.APPLICATION_XML) // TODO add jaxb
