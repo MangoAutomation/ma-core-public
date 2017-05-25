@@ -52,7 +52,7 @@ import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
-import com.serotonin.m2m2.util.timeout.TimeoutTask;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.http.HttpUtils4;
@@ -62,7 +62,7 @@ public class ModulesDwr extends BaseDwr {
     
     private static final List<ModuleNotificationListener> listeners = new CopyOnWriteArrayList<ModuleNotificationListener>();
     
-    private static TimeoutTask SHUTDOWN_TASK;
+    private static Thread SHUTDOWN_TASK;
     private static final Object SHUTDOWN_TASK_LOCK = new Object();
     
     private static UpgradeDownloader UPGRADE_DOWNLOADER;
@@ -82,7 +82,7 @@ public class ModulesDwr extends BaseDwr {
 	        if (SHUTDOWN_TASK == null) {
 	            long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
 	            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, true);
+	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, true, Common.getHttpUser());
 	            //Get the redirect page
 	            result.addData("shutdownUri", "/shutdown.htm");
 	        }
@@ -103,7 +103,7 @@ public class ModulesDwr extends BaseDwr {
 	
 	            //Ensure our lifecycle state is set to PRE_SHUTDOWN
 	            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, false);
+	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, false, Common.getHttpUser());
 	            //Get the redirect page
 	            result.addData("shutdownUri", "/shutdown.htm");
 	        }
@@ -200,7 +200,7 @@ public class ModulesDwr extends BaseDwr {
 	        // Ensure that 2 downloads cannot start at the same time.
 	        if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
 	                if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
-	                    UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart);
+	                    UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getHttpUser());
 	                    Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
 	                }
 	                else
@@ -364,6 +364,7 @@ public class ModulesDwr extends BaseDwr {
         private final File coreDir = new File(Common.MA_HOME);
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
         private volatile boolean cancelled = false;
+        private User user;
 
         /**
          * Only allow 1 to be scheduled all others will be rejected
@@ -371,11 +372,12 @@ public class ModulesDwr extends BaseDwr {
          * @param backup
          * @param restart
          */
-        public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart) {
+        public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart, User user) {
         	super("Upgrade downloader", "UpgradeDownloader", 0);
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;
+            this.user = user;
         }
         
         @Override
@@ -539,7 +541,7 @@ public class ModulesDwr extends BaseDwr {
                 synchronized(SHUTDOWN_TASK_LOCK){
 	                if (SHUTDOWN_TASK == null) {
 	                    IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-	                    SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true);
+	                    SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true, user);
 	                }
                 }
                 for(ModuleNotificationListener listener : listeners)

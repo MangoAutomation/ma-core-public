@@ -2,14 +2,10 @@ package com.serotonin.timer;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 abstract public class AbstractTimer {
     abstract public boolean isInitialized();
 
     abstract public long currentTimeMillis();
-
-    abstract public void execute(Runnable command);
 
     /**
      * Execute a task with optional ordering if the Timer implementation supports this.
@@ -17,24 +13,11 @@ abstract public class AbstractTimer {
      */
     abstract public void execute(Task command);
 
-    public void execute(Runnable command, String name) {
-        if (StringUtils.isBlank(name))
-            execute(command);
-        else
-            execute(new NamedRunnable(command, name));
-    }
-
-    abstract public void execute(ScheduledRunnable command, long fireTime);
-
-
-
-    public void execute(ScheduledRunnable command, long fireTime, String name) {
-        if (StringUtils.isBlank(name))
-            execute(command, fireTime);
-        else
-            execute(new ScheduledNamedRunnable(command, name), fireTime);
-    }
-
+    /**
+     * Schedule a task to run on this timer
+     * @param task
+     * @return
+     */
     final public TimerTask schedule(TimerTask task) {
         if (task.getTimer() == this)
             throw new IllegalStateException("Task already scheduled or cancelled");

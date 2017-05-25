@@ -26,7 +26,7 @@ public class InputStreamEPollProviderImpl implements InputStreamEPollProvider {
                 if (inputStreamEPoll == null) {
                     inputStreamEPoll = new InputStreamEPoll();
                     Providers.get(TimerProvider.class).getTimer()
-                            .execute(inputStreamEPoll, inputStreamEPoll.getClass().getSimpleName());
+                            .execute(inputStreamEPoll);
                 }
             }
         }

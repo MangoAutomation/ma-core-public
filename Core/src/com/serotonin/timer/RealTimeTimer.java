@@ -73,37 +73,11 @@ public class RealTimeTimer extends AbstractTimer{
         }
     }
 
-    /**
-     * A convenience method that executes the given command in the executor service immediately.
-     * 
-     * @param command
-     * @throws ExecutionRejectedException
-     */
-    @Override
-    public void execute(Runnable command) {
-        if (thread == null)
-            throw new IllegalStateException("Run init first");
-        thread.execute(command);
-    }
-
     @Override
     public void execute(Task command) {
         if (thread == null)
             throw new IllegalStateException("Run init first");
         thread.execute(new TaskWrapper(command, this.currentTimeMillis()));
-    }
-    
-    /**
-     * A convenience method that executes the given command in the executor service immediately.
-     * 
-     * @param command
-     * @throws ExecutionRejectedException
-     */
-    @Override
-    public void execute(ScheduledRunnable command, long fireTime) {
-        if (thread == null)
-            throw new IllegalStateException("Run init first");
-        thread.execute(command, fireTime);
     }
 
     /**

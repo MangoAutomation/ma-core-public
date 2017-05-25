@@ -1,6 +1,6 @@
 package com.serotonin.m2m2;
 
-import com.serotonin.m2m2.util.timeout.TimeoutTask;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.provider.Provider;
 
 public interface IMangoLifecycle extends Provider {
@@ -55,7 +55,7 @@ public interface IMangoLifecycle extends Provider {
      * @param b
      * @return
      */
-    TimeoutTask scheduleShutdown(long timeout, boolean b);
+    Thread scheduleShutdown(long timeout, boolean b, User user);
 
     /**
      * @return

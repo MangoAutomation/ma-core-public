@@ -58,15 +58,6 @@ public class SimulationTimer extends AbstractTimer {
         currentTime = time;
     }
 
-    @Override
-    public void execute(Runnable command) {
-        command.run();
-    }
-
-    @Override
-    public void execute(ScheduledRunnable command, long fireTime) {
-        command.run(fireTime);
-    }
 
     @Override
     protected void scheduleImpl(TimerTask task) {

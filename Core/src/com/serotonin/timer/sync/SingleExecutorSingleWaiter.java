@@ -4,7 +4,10 @@
  */
 package com.serotonin.timer.sync;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.timer.AbstractTimer;
+import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
 
 /**
  * This class is useful when an exclusive, long-running task gets called more often than is practical. For example, a
@@ -42,15 +45,16 @@ public class SingleExecutorSingleWaiter {
         timer.execute(new TaskWrapper(executing));
     }
 
-    class TaskWrapper implements Runnable {
+    class TaskWrapper extends Task {
         private final Runnable command;
 
         public TaskWrapper(Runnable command) {
+        	super(command.getClass().getSimpleName());
             this.command = command;
         }
 
         @Override
-        public void run() {
+        public void run(long runtime) {
             try {
                 command.run();
             }
@@ -66,6 +70,14 @@ public class SingleExecutorSingleWaiter {
                 }
             }
         }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			Common.backgroundProcessing.rejectedHighPriorityTask(reason);
+		}
     }
     //
     //    public static void main(String[] args) throws Exception {

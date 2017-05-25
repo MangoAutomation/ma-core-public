@@ -20,6 +20,8 @@
 
 package com.serotonin.util;
 
+import com.serotonin.timer.RejectedTaskReason;
+
 /**
  * @author Matthew Lohbihler
  *
@@ -40,4 +42,11 @@ public interface ProgressiveTaskListener {
      * Notification that the task has been completed. Should only be called once for the task.
      */
     void taskCompleted();
+    
+    /**
+     * Notification that the task was rejected from the pool, note 
+     * by this point it has already been registered with the rejection handler
+     * @param reason
+     */
+    void taskRejected(RejectedTaskReason reason);
 }

@@ -10,14 +10,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.Common;
+import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
+
 /**
  * Asynchronous process execution. An arbitrary number of processes can be added to an instance of this class. The
  * associated callback instance will be notified of process events when they occur.
  * 
  * @author Matthew Lohbihler
  */
-public class ProcessEPoll implements Runnable {
-    static final Log LOG = LogFactory.getLog(ProcessEPoll.class);
+public class ProcessEPoll extends Task {
+    /**
+	 * @param name
+	 */
+	public ProcessEPoll() {
+		super("ProcessEPoll");
+	}
+
+	static final Log LOG = LogFactory.getLog(ProcessEPoll.class);
     private static final Charset UTF8_CS = Charset.forName("UTF-8");
 
     private final List<ProcessWrapper> processes = new CopyOnWriteArrayList<ProcessWrapper>();
@@ -147,7 +158,8 @@ public class ProcessEPoll implements Runnable {
             throw new IllegalStateException("ProcessEPoll methods called directly from callback. Use another thread");
     }
 
-    public void run() {
+    @Override
+    public void run(long runtime) {
         try {
             synchronized (this) {
                 thread = Thread.currentThread();
@@ -521,4 +533,12 @@ public class ProcessEPoll implements Runnable {
             System.err.println(id + ") Terminated");
         }
     }
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		Common.backgroundProcessing.rejectedHighPriorityTask(reason);
+	}
 }

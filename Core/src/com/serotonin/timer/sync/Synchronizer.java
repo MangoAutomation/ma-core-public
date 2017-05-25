@@ -2,13 +2,13 @@ package com.serotonin.timer.sync;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.timer.AbstractTimer;
-import com.serotonin.timer.RealTimeTimer;
+import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
 
 /**
  * This class acts as a synchronizing monitor where an arbitrary number of tasks can be added with string identifiers.
@@ -118,7 +118,7 @@ public class Synchronizer<T extends Runnable> {
 
     public T getTask(String name) {
         for (TaskWrapper tw : tasks) {
-            if (StringUtils.equals(name, tw.name))
+            if (StringUtils.equals(name, tw.getName()))
                 return tw.task;
         }
         return null;
@@ -135,22 +135,17 @@ public class Synchronizer<T extends Runnable> {
         return result;
     }
 
-    class TaskWrapper implements Runnable {
-        final String name;
+    class TaskWrapper extends Task {
         final T task;
         private volatile boolean complete;
 
         public TaskWrapper(String name, T task) {
-            this.name = name;
+        	super(name);
             this.task = task;
         }
 
-        public String getName() {
-            return name;
-        }
-
         @Override
-        public void run() {
+        public void run(long runtime) {
             try {
                 task.run();
             }
@@ -168,6 +163,14 @@ public class Synchronizer<T extends Runnable> {
         public boolean isComplete() {
             return complete;
         }
+
+		/* (non-Javadoc)
+		 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
+		 */
+		@Override
+		public void rejected(RejectedTaskReason reason) {
+			Common.backgroundProcessing.rejectedHighPriorityTask(reason);
+		}
     }
 
 //    public static void main(String[] args) {

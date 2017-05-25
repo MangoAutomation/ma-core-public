@@ -82,7 +82,11 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 				lastUnorderedRejection = now;
 				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
 			}
-			this.unOrderedRejections.add(new RejectedTaskStats(null, reason.getTask().getName(), this.logPeriod));
+			//TODO if we want we could track these by Name here since the name probably is unique but this 
+			// would take processor time from the CPU and is not necessary
+			RejectedTaskStats stats = new RejectedTaskStats(null, reason.getTask().getName(), this.logPeriod);
+			stats.update(reason);
+			this.unOrderedRejections.add(stats);
 		}
 	}
 	

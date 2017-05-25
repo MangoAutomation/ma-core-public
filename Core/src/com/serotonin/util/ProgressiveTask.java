@@ -1,23 +1,38 @@
 package com.serotonin.util;
 
+import com.serotonin.m2m2.Common;
+import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
+
 /**
  * @author Matthew Lohbihler
  */
-abstract public class ProgressiveTask implements Runnable {
+abstract public class ProgressiveTask extends Task {
     private boolean cancelled = false;
     protected boolean completed = false;
     private ProgressiveTaskListener listener;
 
-    public ProgressiveTask() {
-        // no op
-    }
-
-    public ProgressiveTask(ProgressiveTaskListener l) {
+    public ProgressiveTask(String name, ProgressiveTaskListener l) {
+    	super(name);
         listener = l;
     }
+    
+    /**
+     * Create an ordered and limited queue task
+     * @param name
+     * @param id
+     * @param queueSize
+     * @param l
+     */
+    public ProgressiveTask(String name, String id, int queueSize, ProgressiveTaskListener l) {
+    	super(name, id, queueSize);
+        listener = l;
+    }
+    
 
-    public void cancel() {
+    public boolean cancel() {
         cancelled = true;
+        return super.cancel();
     }
 
     public boolean isCancelled() {
@@ -28,7 +43,7 @@ abstract public class ProgressiveTask implements Runnable {
         return completed;
     }
 
-    public final void run() {
+    public final void run(long runtime) {
         while (true) {
             if (isCancelled()) {
                 declareFinished(true);
@@ -60,6 +75,17 @@ abstract public class ProgressiveTask implements Runnable {
                 l.taskCompleted();
         }
     }
+    
+	/* (non-Javadoc)
+	 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
+	 */
+	@Override
+	public void rejected(RejectedTaskReason reason) {
+		 ProgressiveTaskListener l = listener;
+	        if (l != null)
+	        	l.taskRejected(reason);
+		Common.backgroundProcessing.rejectedHighPriorityTask(reason);
+	}
 
     /**
      * Implementers of this method MUST return from it occasionally so that the cancelled status can be checked. Each
