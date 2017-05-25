@@ -433,7 +433,6 @@ public class BackgroundProcessing implements ILifecycle {
     	if(state != TERMINATE)
     		return;
     	state = POST_TERMINATE;
-    	boolean highDone = false;
         boolean medDone = false;
         boolean lowDone = false;
         
@@ -468,7 +467,7 @@ public class BackgroundProcessing implements ILifecycle {
             //Wait for the high tasks now
             rewaits = Common.envProps.getInt("runtime.shutdown.highTimeout", 60) - rewaits;
             while(rewaits > 0){
-            	if(!highDone && highPriorityService.awaitTermination(1, TimeUnit.SECONDS))
+            	if(highPriorityService.awaitTermination(1, TimeUnit.SECONDS))
             		break;
             	if(rewaits % 5 == 0)
                     log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + highPriorityService.getActiveCount() +
