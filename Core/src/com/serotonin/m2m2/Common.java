@@ -157,6 +157,10 @@ public class Common {
         return CoreVersion.INSTANCE.version;
     }
     
+    public static final Version normalizeVersion(Version version) {
+        return Version.forIntegers(version.getMajorVersion(), version.getMinorVersion(), version.getPatchVersion());
+    }
+    
     private enum CoreVersion {
         INSTANCE();
         final Version version;
