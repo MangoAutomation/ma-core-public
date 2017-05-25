@@ -30,6 +30,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
+import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
@@ -122,6 +123,8 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 			}
+    		return null;
+    	}else if(ex.getClass().equals(ResourceNotFoundException.class)){
     		return null;
     	}else{
         	//Set the content type

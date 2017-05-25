@@ -5,8 +5,6 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.publisher;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
@@ -37,20 +35,13 @@ public abstract class AbstractPublishedPointModel<T extends PublishedPointVO> ex
 	@CSVColumnSetter(order=0, header="modelType")
 	public void setModelType(String typeName){ }
 	
-	@CSVColumnGetter(order=1, header="dataPointXid")
-	public String getDataPointXid(){
-		//TODO Performance is poor here for a large list of points...
-		DataPointVO vo = DataPointDao.instance.get(this.data.getDataPointId());
-		if(vo != null)
-			return vo.getXid();
-		else
-			return null;
+	@CSVColumnGetter(order=1, header="dataPointId")
+	public int getDataPointId(){
+		return this.data.getDataPointId();
 	}
-	@CSVColumnSetter(order=1, header="dataPointXid")
-	public void setDataPointXid(String xid){
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo != null)
-			this.data.setDataPointId(vo.getId());
+	@CSVColumnSetter(order=1, header="dataPointId")
+	public void setDataPointId(int dataPointId){
+		this.data.setDataPointId(dataPointId);
 	}
 	
 	/**

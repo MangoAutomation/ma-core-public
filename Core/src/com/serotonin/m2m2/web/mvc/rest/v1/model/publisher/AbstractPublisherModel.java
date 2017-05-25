@@ -21,19 +21,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractActionVoModel;
  * @author Terry Packer
  *
  */
-public class AbstractPublisherModel<T extends PublisherVO<P>, P extends PublishedPointVO> extends AbstractActionVoModel<PublisherVO<?>> {
+public class AbstractPublisherModel<T extends PublisherVO<P>, P extends PublishedPointVO> extends AbstractActionVoModel<T> {
 
-	/* Cast of Publisher */
-	protected T data;
-	protected List<? extends AbstractPublishedPointModel<P>> points;
-	
 	/**
 	 * @param data
 	 */
-	public AbstractPublisherModel(T data, List<? extends AbstractPublishedPointModel<P>> points) {
+	public AbstractPublisherModel(T data) {
 		super(data);
-		this.data = data;
-		this.points = points;
 	}
 	
 	/*
@@ -49,23 +43,20 @@ public class AbstractPublisherModel<T extends PublisherVO<P>, P extends Publishe
 			throw new RestValidationFailedException(this, result);
 		}
 	}
-
-	@JsonIgnore
-	@Override
-	public T getData(){
-		//Convert point models
-		List<P> publishedPoints = new ArrayList<P>();
-		for(AbstractPublishedPointModel<P> model : this.points)
-			publishedPoints.add(model.getData());
-		this.data.setPoints(publishedPoints);
-		return this.data;
+	
+	@SuppressWarnings("unchecked")
+	public List<? extends AbstractPublishedPointModel<P>> getPoints(){
+		List<AbstractPublishedPointModel<P>> publishedPoints = new ArrayList<>();
+		for(P point : this.data.getPoints())
+			publishedPoints.add((AbstractPublishedPointModel<P>) point.asModel());
+		return publishedPoints;
 	}
 	
-	public List<? extends AbstractPublishedPointModel<P>> getPoints(){
-		return this.points;
-	}
 	public void setPoints(List<? extends AbstractPublishedPointModel<P>> points){
-		this.points = points;
+		List<P> publishedPoints = new ArrayList<>();
+		for(AbstractPublishedPointModel<P> model : points)
+			publishedPoints.add(model.getData());
+		this.data.setPoints(publishedPoints);
 	}
 	
 	public String getPublishType(){
