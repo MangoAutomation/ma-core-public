@@ -90,6 +90,15 @@ public class VirtualSerialPortConfigDao {
     	}
     	return false;
     }
+    
+    public boolean isPortNameUsed(String xid, String portName) {
+    	List<VirtualSerialPortConfig> configs = getAll();
+    	for(VirtualSerialPortConfig config : configs) {
+    		if(config.getPortName().equals(portName) && !config.getXid().equals(xid))
+    			return true;
+    	}
+    	return false;
+    }
 	
     /**
      * Save all of them, overwrite existing

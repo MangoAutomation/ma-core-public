@@ -17,6 +17,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -64,6 +65,12 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 		
 		 if (StringUtils.isBlank(portName))
 	            response.addContextualMessage("portName", "validate.required");
+		 
+		 if(portName != null && Common.serialPortManager.isPortNameRegexMatch(portName))
+			 response.addContextualMessage("portName", "virtualSerialPorts.validate.portMatchesOsPort");
+		 
+		 if(!response.getHasMessages() && VirtualSerialPortConfigDao.instance.isPortNameUsed(xid, portName))
+			 response.addContextualMessage("portName", "");
 	}
 	
     public String getXid() {
@@ -139,7 +146,4 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 		VirtualSerialPortConfig other = (VirtualSerialPortConfig)obj;
 		return this.xid.equals(other.getXid());
 	}
-	
-    
-    
 }

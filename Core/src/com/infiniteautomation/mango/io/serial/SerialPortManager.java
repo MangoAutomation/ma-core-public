@@ -183,7 +183,18 @@ public class SerialPortManager {
 		return null;
 	}
 
-
+	public boolean isPortNameRegexMatch(String portName) {
+		switch(SerialNativeInterface.getOsType()){
+    	case SerialNativeInterface.OS_LINUX:
+    		return Pattern.matches(Common.envProps.getString("serial.port.linux.regex", "((cu|ttyS|ttyUSB|ttyACM|ttyAMA|rfcomm|ttyO|COM)[0-9]{1,3}|rs(232|485)-[0-9])"), portName);
+    	case SerialNativeInterface.OS_MAC_OS_X:
+            return Pattern.matches(Common.envProps.getString("serial.port.osx.regex","(cu|tty)..*"), portName); //Was "tty.(serial|usbserial|usbmodem).*")
+    	case SerialNativeInterface.OS_WINDOWS:
+            return Pattern.matches(Common.envProps.getString("serial.port.windows.regex",""), portName);
+    	default:
+        	 return false;
+		}
+	}
 
 	/**
 	 * @param string
