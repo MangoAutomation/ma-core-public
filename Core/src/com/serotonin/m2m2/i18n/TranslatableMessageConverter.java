@@ -6,13 +6,13 @@ package com.serotonin.m2m2.i18n;
 
 import java.util.Locale;
 
-import org.directwebremoting.WebContextFactory;
 import org.directwebremoting.convert.StringConverter;
 import org.directwebremoting.extend.MarshallException;
 import org.directwebremoting.extend.OutboundContext;
 import org.directwebremoting.extend.OutboundVariable;
 
-import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Matthew Lohbihler
@@ -20,7 +20,10 @@ import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
 public class TranslatableMessageConverter extends StringConverter {
     @Override
     public OutboundVariable convertOutbound(Object data, OutboundContext outctx) throws MarshallException {
-        Locale locale = ControllerUtils.getLocale(WebContextFactory.get().getHttpServletRequest());
+		User user = Common.getHttpUser();
+		Locale locale = Locale.forLanguageTag(user.getLocale());
+		if(locale == null)
+			locale = Common.getLocale();
         TranslatableMessage message = (TranslatableMessage) data;
         String s = message.translate(Translations.getTranslations(locale));
         return super.convertOutbound(s, outctx);

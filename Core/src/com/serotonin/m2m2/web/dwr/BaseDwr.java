@@ -68,7 +68,6 @@ import com.serotonin.m2m2.web.dwr.longPoll.LongPollHandler;
 import com.serotonin.m2m2.web.dwr.longPoll.LongPollRequest;
 import com.serotonin.m2m2.web.dwr.longPoll.LongPollState;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
-import com.serotonin.m2m2.web.mvc.controller.ControllerUtils;
 import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.content.ContentGenerator;
@@ -371,20 +370,11 @@ abstract public class BaseDwr {
 
 	protected static Locale getLocale() {
 		User user = Common.getHttpUser();
-		if(user != null){
-			String localeStr = user.getLocale();
-			if(!StringUtils.isEmpty(localeStr)){
-		        String[] parts = localeStr.split("_");
-		        if (parts.length == 1)
-		            return new Locale(parts[0]);
-		        else if (parts.length == 2)
-		            return new Locale(parts[0], parts[1]);
-		        else if (parts.length == 3)
-		            return new Locale(parts[0], parts[1], parts[2]);
-		        throw new IllegalArgumentException("Locale for given language not found: " + localeStr);	
-			}
-		}
-		return Common.getLocale();
+		Locale locale = Locale.forLanguageTag(user.getLocale());
+		if(locale != null)
+			return locale;
+		else
+			return Common.getLocale();
 	}
 
 	public static String generateContent(HttpServletRequest request,
