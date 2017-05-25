@@ -89,6 +89,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 			@Override
 			public void rejected(RejectedTaskReason reason) {
 				incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+				Common.backgroundProcessing.rejectedHighPriorityTask(reason);
 			}
         	
         };

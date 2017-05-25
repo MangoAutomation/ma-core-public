@@ -7,7 +7,6 @@ package com.serotonin.timer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -308,12 +307,14 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
             	this.wrapper.run();
             } finally {
                 Runnable nextTask = null;
-                synchronized (keyedTasks){
-                    if (this.dependencyQueue.isEmpty()){
+                if (this.dependencyQueue.isEmpty()){
+                	//Remove the Collection
+                	synchronized (keyedTasks){
                     	keyedTasks.remove(wrapper.task.id);
-                    }else{
-                        nextTask = this.dependencyQueue.poll();
                     }
+            	}else{
+            		//Have something in our queue, process it now
+                    nextTask = this.dependencyQueue.poll();
                 }
                 // Update our task info
                 this.dependencyQueue.info.addExecutionTime(System.currentTimeMillis() - start);
@@ -461,15 +462,10 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @return
 	 */
 	public List<OrderedTaskInfo> getOrderedQueueInfo() {
-		//TODO Speed this up
 		List<OrderedTaskInfo> stats = new ArrayList<OrderedTaskInfo>(keyedTasks.size());
 		synchronized(keyedTasks){
-			Iterator<String> keys = keyedTasks.keySet().iterator();
-			while(keys.hasNext()){
-				String key = keys.next();
-				LimitedTaskQueue queue = keyedTasks.get(key);
+			for(LimitedTaskQueue queue : keyedTasks.values())
 				stats.add(queue.info);
-			}
 		}
 		return stats;
 	}
