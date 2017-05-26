@@ -42,16 +42,6 @@
     <filter-name>Translations</filter-name>
     <filter-class>com.serotonin.m2m2.web.filter.TranslationsFilter</filter-class>
   </filter>
-  
-  <!-- GZIP Compression Enabling -->
-  <filter>
-    <filter-name>GzipFilter</filter-name>
-      <filter-class>org.eclipse.jetty.servlets.GzipFilter</filter-class>
-        <init-param>
-          <param-name>mimeTypes</param-name>
-          <param-value>text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml,application/json,text/javascript,application/x-javascript</param-value>
-        </init-param>
-  </filter>
 
   <filter>
     <description>Filter to ensure we properly decode/encode URLs for the REST API</description>
@@ -84,12 +74,7 @@
     <filter-name>CharacterEncodingFilter</filter-name>
     <url-pattern>/rest/*</url-pattern>
   </filter-mapping>
-
-  <filter-mapping>
-    <filter-name>GzipFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
-  
+ 
   <filter-mapping>
     <filter-name>CharacterSet</filter-name>
     <url-pattern>*.htm</url-pattern>
