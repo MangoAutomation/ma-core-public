@@ -56,7 +56,8 @@ create table userComments (
   commentType int not null,
   typeKey int not null,
   ts bigint not null,
-  commentText varchar(1024) not null
+  commentText varchar(1024) not null,
+  primary key (id)
 ) engine=InnoDB;
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
 alter table userComments add constraint userCommentsUn1 unique (xid);
