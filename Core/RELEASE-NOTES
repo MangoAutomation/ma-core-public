@@ -4,6 +4,7 @@
 * Improved system settings validation
 * Fixed bug with system settings import where sometimes bad values could be saved
 * Finer grained version control for Module dependencies
+* Fixed bug in point hierarchy when deleting folders
 
 *Version 3.0.2*
 * Added CSRF exclusion for /httpds
