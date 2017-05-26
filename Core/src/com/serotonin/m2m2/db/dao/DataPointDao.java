@@ -763,7 +763,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 if (folderId.get() > 0) {
                     StringBuilder sql = new StringBuilder();
                     sql.append("INSERT INTO dataPointHierarchy (id, parentId, name) VALUES ");
-                    for (int i = 0; i < folderId.get(); i++) {
+                    for (int i = 0; i < params.size()/3; i++) { //three fields per folder
                         if (i > 0)
                             sql.append(",");
                         sql.append("(?,?,?)");
