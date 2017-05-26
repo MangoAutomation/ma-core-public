@@ -54,7 +54,8 @@ CREATE TABLE userComments (
   commentType int NOT NULL,
   typeKey int NOT NULL,
   ts bigint NOT NULL,
-  commentText varchar(1024) NOT NULL
+  commentText varchar(1024) NOT NULL,
+  PRIMARY KEY (id)
 );
 ALTER TABLE userComments ADD CONSTRAINT userCommentsFk1 FOREIGN KEY (userId) REFERENCES users(id);
 ALTER TABLE userComments ADD CONSTRAINT userCommentsUn1 UNIQUE (xid);
