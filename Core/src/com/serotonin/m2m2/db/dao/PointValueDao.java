@@ -21,6 +21,7 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -122,6 +123,22 @@ public interface PointValueDao {
     public void getPointValuesBetween(List<Integer> pointIds, long from, long to,
             MappedRowCallback<IdPointValueTime> callback);
 
+    /**
+     * Query the given time series, including the nearest sample both before the 'from' timestamp and after the 'to'
+     * timestamp. This query facilitates charting of values, where for continuity in the chart the values immediately
+     * before and after the time range are required.
+     * 
+     * @param seriesId
+     *            the target time series
+     * @param from
+     *            the timestamp from which to query (inclusive)
+     * @param to
+     *            the timestamp to which to query (exclusive)
+     * @param callback
+     *            the query callback
+     */
+    public void wideQuery(int pointId, long from, long to, final WideQueryCallback<PointValueTime> callback);
+    
     /**
      * Delete values < time
      * @param pointId

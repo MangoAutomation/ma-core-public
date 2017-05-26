@@ -32,6 +32,7 @@ import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.db.WideQueryCallback;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
@@ -524,6 +525,22 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 dataPointId, from, to }, new PointValueRowMapper(), callback);
     }
 
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.PointValueDao#wideQuery(int, long, long, com.serotonin.db.WideQueryCallback)
+	 */
+	@Override
+	public void wideQuery(int pointId, long from, long to, WideQueryCallback<PointValueTime> callback) {
+		//TODO Improve performance by using one statement
+		callback.preQuery(this.getPointValueBefore(pointId, from));
+		this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>(){
+			@Override
+			public void row(PointValueTime value, int index) {
+				callback.sample(value, index);
+			}
+		});
+		callback.postQuery(this.getPointValueAfter(pointId, to));
+	}
+    
     class PointValueRowMapper implements RowMapper<PointValueTime> {
         @Override
         public PointValueTime mapRow(ResultSet rs, int rowNum) throws SQLException {
