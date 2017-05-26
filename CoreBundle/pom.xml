@@ -97,6 +97,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
+			<artifactId>envcan-ds</artifactId>
+			<version>3.1.0-SNAPSHOT</version>
+			<type>zip</type>	
+		</dependency>
+		<dependency>
+			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>graphicalviews-view</artifactId>
 			<version>3.1.0-SNAPSHOT</version>
 			<type>zip</type>	
@@ -473,7 +479,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>dashboards</artifactId>
-			<version>3.5.1-SNAPSHOT</version>
+			<version>3.6.0-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
 		<dependency>
