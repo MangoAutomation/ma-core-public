@@ -77,7 +77,7 @@ public class DataPurge {
 	
 	        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
         }else{
-        	log.info("Purge for data points no enabled, skipping.");
+        	log.info("Purge for data points not enabled, skipping.");
         }
 
         // File data purge
