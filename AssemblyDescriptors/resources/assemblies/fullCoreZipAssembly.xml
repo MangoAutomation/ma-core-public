@@ -140,7 +140,7 @@
 			<include>com.infiniteautomation.mango:*:zip:*</include>
 		</includes>
     	<outputDirectory>web/modules</outputDirectory>
-    	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.version}.${artifact.extension}</outputFileNameMapping>
+    	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
     	<useProjectArtifact>false</useProjectArtifact>
     	<useTransitiveDependencies>false</useTransitiveDependencies>
     </dependencySet>
