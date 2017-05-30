@@ -183,19 +183,15 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     public static String getValue(String key, String defaultValue) {
-        String result = cache.get(key);
+        String result = cache.computeIfAbsent(key, (k) -> {
+            return new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
+                    new Object[] { k }, String.class, null);
+        });
+        
         if (result == null) {
-            if (!cache.containsKey(key)) {
-                result = new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
-                        new Object[] { key }, String.class, null);
-                if (result == null)
-                    result = defaultValue;
-                else
-                	cache.put(key, result); //Only store non-null defaults
-            }
-            else
-                result = defaultValue;
+            result = defaultValue;
         }
+        
         return result;
     }
 
@@ -251,10 +247,8 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     public void setValue(final String key, final String value) {
-        String oldValue = cache.get(key);
-
         // Update the cache
-        cache.put(key, value);
+        String oldValue = cache.put(key, value);
 
         // Update the database
         final ExtendedJdbcTemplate ejt2 = ejt;
@@ -292,10 +286,8 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     public void removeValue(String key) {
-        String lastValue = cache.get(key);
-
         // Remove the value from the cache
-        cache.remove(key);
+        String lastValue = cache.remove(key);
 
         // Reset the cached values too.
         FUTURE_DATE_LIMIT = -1;
