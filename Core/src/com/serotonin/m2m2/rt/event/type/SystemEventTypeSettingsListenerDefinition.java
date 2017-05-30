@@ -22,7 +22,7 @@ public class SystemEventTypeSettingsListenerDefinition extends SystemSettingsLis
 	@Override
 	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
         String[] parts = key.split(SystemEventType.SYSTEM_SETTINGS_PREFIX);
- 		EventTypeVO et = AuditEventType.getEventType(parts[1]);
+ 		EventTypeVO et = SystemEventType.getEventType(parts[1]);
         et.setAlarmLevel(Integer.parseInt(newValue));
 	}
 
