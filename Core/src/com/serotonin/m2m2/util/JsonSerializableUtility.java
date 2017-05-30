@@ -176,6 +176,9 @@ public class JsonSerializableUtility {
 	
 	protected boolean differentRecursive(Object from, Object to) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
 
+		if(!from.getClass().equals(to.getClass()))
+			return true;
+		
 		List<SerializableProperty> properties = findProperties(from.getClass());
 		
 		//Check the serialized annotations
