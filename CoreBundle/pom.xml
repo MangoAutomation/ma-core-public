@@ -12,7 +12,7 @@
 	<packaging>pom</packaging>
 	<properties>
 		<!-- Pass in during build -DbuildNumber=xxx used by Jenkins -->
-		<buildNumber>-1</buildNumber>
+		<buildNumber>0</buildNumber>
 	</properties>
 	<repositories>
 	</repositories>
