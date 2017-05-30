@@ -76,6 +76,14 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     	return handleExceptionInternal(ex, null, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
     }
 
+    @ExceptionHandler({
+    	ResourceNotFoundException.class
+    })
+    public ResponseEntity<Object> handleResourceNotFound(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
+    	this.storeException(request, ex);
+    	response.setStatus(HttpStatus.NOT_FOUND.value());
+    	return null;
+    }
     
     @ExceptionHandler({
     	Exception.class
@@ -123,8 +131,6 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 			} catch (IOException e) {
 				LOG.error(e.getMessage(), e);
 			}
-    		return null;
-    	}else if(ex.getClass().equals(ResourceNotFoundException.class)){
     		return null;
     	}else{
         	//Set the content type
