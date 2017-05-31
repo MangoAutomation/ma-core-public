@@ -21,7 +21,9 @@ public class TranslatableMessageConverter extends StringConverter {
     @Override
     public OutboundVariable convertOutbound(Object data, OutboundContext outctx) throws MarshallException {
 		User user = Common.getHttpUser();
-		Locale locale = Locale.forLanguageTag(user.getLocale());
+		Locale locale = null;
+		if(user != null)
+			locale = Locale.forLanguageTag(user.getLocale());
 		if(locale == null)
 			locale = Common.getLocale();
         TranslatableMessage message = (TranslatableMessage) data;
