@@ -1,10 +1,25 @@
 *Version 3.1.0*
 * Better view into task scheduling system and tracking of rejected tasks
 * Reduced system overhead when tasks are being rejected
+* Made medium priority tasks ordered based on the type of task to ensure they run in the correct order
 * Improved system settings validation
+* Improved saving system settings performance
 * Fixed bug with system settings import where sometimes bad values could be saved
 * Finer grained version control for Module dependencies
 * Fixed bug in point hierarchy when deleting folders
+* Publishers REST core features fully implemented
+* Event Detectors REST core features fully implemented
+* Event Handlers REST core features fully implemented
+* Fix bug in Audit tracking for event detectors
+* Added wide query support for point values, improves efficiency for chart queries
+* Upgraded GZip compression for pages/resources
+* More stable startup and shutdown in situations where failures may occur
+* Increased priority of shutdown task to highest possible
+* Adding validation when saving/modifying event detectors
+* Added 'System Action Definitions' to allow exposing various system tasks to be started via REST
+* Fixed bug in MySQL create table statement for userComments table
+* Validating virtual serial ports to not be able to have system port names or existing virtual port names
+* Virtual serial port REST core features fully implemented
 
 *Version 3.0.2*
 * Added CSRF exclusion for /httpds
@@ -14,6 +29,8 @@
 * Fix for startup script
 * Add ALPN startup extension for enabling HTTP/2
 * Default name to the username when importing JSON for a user
+* Prevent upgrade downloader from getting stuck if a file is created/moved while downloading
+* Fix NPE in rejected email work items
 
 *Version 3.0.1*
 * Adding env property to control iFrame access via Http headers
