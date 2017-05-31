@@ -18,6 +18,8 @@
   <compilerTargetVersion>1.8</compilerTargetVersion>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   <mango.build.versionState>0</mango.build.versionState>
+  <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+  <buildNumber>${maven.build.timestamp}</buildNumber>
  </properties>
  <organization>
    <name>Infinite Automation</name>

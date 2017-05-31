@@ -11,8 +11,6 @@
 	<name>Mango Core Release Bundle</name>
 	<packaging>pom</packaging>
 	<properties>
-		<!-- Pass in during build -DbuildNumber=xxx used by Jenkins -->
-		<buildNumber>0</buildNumber>
 	</properties>
 	<repositories>
 	</repositories>
