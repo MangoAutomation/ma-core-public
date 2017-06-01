@@ -49,4 +49,15 @@
 		<nature>org.apache.derby.ui.derbyEngine</nature>
 		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 	</natures>
+	<filteredResources>
+		<filter>
+			<id>1496332370675</id>
+			<name></name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-databases</arguments>
+			</matcher>
+		</filter>
+	</filteredResources>
 </projectDescription>
