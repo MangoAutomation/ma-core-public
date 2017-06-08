@@ -168,6 +168,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setObjectMapper(getObjectMapper());
+        converters.add(new ResourceHttpMessageConverter());
 		converters.add(converter);
 		converters.add(new CsvMessageConverter());
 		converters.add(new CsvRowMessageConverter());
@@ -176,7 +177,6 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new ByteArrayHttpMessageConverter());
 		converters.add(new HtmlHttpMessageConverter());
 		converters.add(new SerotoninJsonMessageConverter());
-		converters.add(new ResourceHttpMessageConverter());
 		
 		//Now is a good time to register our Sero Json Converter
 		Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
