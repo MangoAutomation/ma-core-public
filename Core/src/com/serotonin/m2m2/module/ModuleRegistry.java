@@ -52,6 +52,7 @@ import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDef
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.CoreFileStoreDefinition;
+import com.serotonin.m2m2.module.definitions.filestore.PublicFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
@@ -1049,6 +1050,7 @@ public class ModuleRegistry {
 
         /* File Store */
         preDefaults.add(new CoreFileStoreDefinition());
+        preDefaults.add(new PublicFileStoreDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,

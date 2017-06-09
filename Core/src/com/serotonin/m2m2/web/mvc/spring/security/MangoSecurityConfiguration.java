@@ -308,6 +308,7 @@ public class MangoSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
                     .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
+                    .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
                     .antMatchers(HttpMethod.OPTIONS).permitAll()
                     .anyRequest().authenticated()
                     .and()
@@ -382,6 +383,7 @@ public class MangoSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
                     .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
+                    .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
                     .antMatchers(HttpMethod.OPTIONS).permitAll()
                     .anyRequest().authenticated()
                     .and()
