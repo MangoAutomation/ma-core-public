@@ -123,6 +123,9 @@ public class Common {
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
 
+    // epoch time in seconds of last upgrade/install of core or modules
+    public static int lastUpgrade = 0;
+
     //
     // License
     static InstanceLicense license;

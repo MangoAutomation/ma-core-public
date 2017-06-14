@@ -155,6 +155,10 @@ public class SystemSettingsDao extends BaseDao {
     
     //Download update settings
     public static final String UPGRADE_VERSION_STATE = "upgradeVersionState";
+
+    // Last install/upgrade of Mango Core or modules
+    public static final String LAST_UPGRADE = "lastUpgrade";
+    public static final String CORE_VERSION_LAST_START = "coreVersionLastStart";
     
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
