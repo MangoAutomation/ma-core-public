@@ -51,7 +51,7 @@ public class MangoShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
         boolean restNoStore = Common.envProps.getBoolean("web.cache.noStore.rest", true);
         boolean resourcesNoStore = Common.envProps.getBoolean("web.cache.noStore.resources", false);
 	    
-	    defaultHeader = noStore ? NO_STORE : String.format(MAX_AGE_TEMPLATE, Common.envProps.getLong("web.cache.maxAge", 3600L));
+	    defaultHeader = noStore ? NO_STORE : String.format(MAX_AGE_TEMPLATE, Common.envProps.getLong("web.cache.maxAge", 0L));
         restHeader = restNoStore ? NO_STORE : String.format(MAX_AGE_TEMPLATE, Common.envProps.getLong("web.cache.maxAge.rest", 0L));
         resourcesHeader = resourcesNoStore ? NO_STORE : String.format(MAX_AGE_TEMPLATE, Common.envProps.getLong("web.cache.maxAge.resources", 86400L));
 	}
