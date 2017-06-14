@@ -1,0 +1,38 @@
+/**
+ * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+ *
+ */
+package com.serotonin.m2m2.module.definitions.settings;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
+
+/**
+ * Sets Common.lastUpgrade
+ * @author Jared Wiltshire
+ */
+public class LastUpgradeSettingsListenerDefinition extends SystemSettingsListenerDefinition{
+
+	@Override
+	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+	    if (SystemSettingsDao.LAST_UPGRADE.equals(key)) {
+	        Common.lastUpgrade = Integer.parseInt(newValue);
+	    }
+	}
+
+	@Override
+	public void SystemSettingsRemoved(String key, String lastValue) {
+	    
+	}
+
+	@Override
+	public List<String> getKeys() {
+		List<String> keys = new ArrayList<String>();
+		keys.add(SystemSettingsDao.LAST_UPGRADE);
+		return keys;
+	}
+}

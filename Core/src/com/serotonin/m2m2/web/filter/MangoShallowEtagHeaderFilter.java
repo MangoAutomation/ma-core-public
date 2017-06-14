@@ -26,8 +26,8 @@ import com.serotonin.m2m2.Common;
  */
 public class MangoShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
 
-    static final String MAX_AGE_TEMPLATE = "max-age=%d, must-revalidate";
-    static final String NO_STORE = "no-cache, no-store, max-age=0, must-revalidate";
+    public static final String MAX_AGE_TEMPLATE = "max-age=%d, must-revalidate";
+    public static final String NO_STORE = "no-cache, no-store, max-age=0, must-revalidate";
 
 	final RequestMatcher restMatcher;
     final RequestMatcher resourcesMatcher;
