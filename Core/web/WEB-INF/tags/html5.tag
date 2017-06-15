@@ -30,11 +30,13 @@
         <meta name="description" content="Mango Automation from Infinite Automation Systems">
         <meta name="copyright" content="&copy;2015 Infinite Automation Systems, Inc.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+  		<script>this.mangoLastUpgrade=${lastUpgrade}</script>
 
-        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="apple-touch-icon.png?v=${lastUpgrade}">
 
-        <link rel="icon" href="<%= Common.applicationFavicon %>"/>
-        <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
+        <link rel="icon" href="<%= Common.applicationFavicon %>?v=${lastUpgrade}"/>
+        <link rel="shortcut icon" href="<%= Common.applicationFavicon %>?v=${lastUpgrade}"/>
         
         <c:choose>
           <c:when test="${replaceStyles == true}">
@@ -45,20 +47,20 @@
           <c:otherwise>
             <%-- included with bootstrap?
             <link rel="stylesheet" href="/resources/normalize.css">--%>
-            <link rel="stylesheet" type="text/css" href="/resources/bootstrap/css/bootstrap.min.css"/>
-            <%--<link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css">
-            <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css">--%>
-            <link rel="stylesheet" type="text/css" href="/resources/main.css"/>
+            <link rel="stylesheet" type="text/css" href="/resources/bootstrap/css/bootstrap.min.css?v=${lastUpgrade}"/>
+            <%--<link rel="stylesheet" href="/resources/fonts/Roboto/Roboto.css?v=${lastUpgrade}">
+            <link rel="stylesheet" href="/resources/fonts/OpenSans/OpenSans.css?v=${lastUpgrade}">--%>
+            <link rel="stylesheet" type="text/css" href="/resources/main.css?v=${lastUpgrade}"/>
             <%-- For now we need to include the floating pane CSS to use the help popup --%>
-            <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/FloatingPane.css"/>
-            <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/ResizeHandle.css"/>
+            <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/FloatingPane.css?v=${lastUpgrade}"/>
+            <link rel="stylesheet" type="text/css" href="/resources/dojox/layout/resources/ResizeHandle.css?v=${lastUpgrade}"/>
             <!-- JSP styles fragment -->
             <jsp:invoke fragment="styles"/>
             <!-- / JSP styles fragment -->
           </c:otherwise>
         </c:choose>
         
-        <script type="text/javascript" src="/resources/modernizr-2.8.3.min.js"></script>
+        <script type="text/javascript" src="/resources/modernizr-2.8.3.min.js?v=${lastUpgrade}"></script>
       <c:choose>
         <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
       </c:choose>
@@ -97,9 +99,9 @@
           </c:when>
           <c:otherwise>
             <%-- Template scripts TODO work out how the loader can use the  versioned java script URL--%>
-            <script type="text/javascript" src="/resources/loaderConfig.js"></script>
-            <script type="text/javascript"  src="/resources/require.js"></script>
-            <script type="text/javascript"  src="/resources/main.js"></script>
+            <script type="text/javascript" src="/resources/loaderConfig.js?v=${lastUpgrade}"></script>
+            <script type="text/javascript"  src="/resources/require.js?v=${lastUpgrade}"></script>
+            <script type="text/javascript"  src="/resources/main.js?v=${lastUpgrade}"></script>
             <!-- JSP scripts fragment -->
             <jsp:invoke fragment="scripts"/>
             <!-- / JSP scripts fragment -->

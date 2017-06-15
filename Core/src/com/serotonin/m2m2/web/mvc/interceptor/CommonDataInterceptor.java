@@ -37,6 +37,8 @@ public class CommonDataInterceptor implements HandlerInterceptor {
     		}
     	}
     	request.setAttribute("NEW_ID", Common.NEW_ID);
+    	
+        request.setAttribute("lastUpgrade", Common.lastUpgrade);
         
         return true;
     }

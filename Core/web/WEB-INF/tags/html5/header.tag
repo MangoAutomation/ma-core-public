@@ -7,7 +7,7 @@
 <%@tag import="com.serotonin.m2m2.Common"%>
 
 <header>
-<img id="application_logo" src="<%=Common.applicationLogo%>" alt="Logo" />
+<img id="application_logo" src="<%=Common.applicationLogo%>?v=${lastUpgrade}" alt="Logo" />
 <c:if test="${!empty instanceDescription}"><span class="instance-description">${instanceDescription}</span></c:if>
 <div class="event-summary">
     <div class="level-summary none-event" style="display:none"></div>

@@ -55,19 +55,21 @@
   <meta name="DESCRIPTION" content="Mango Automation from Infinite Automation Systems"/>
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
+  <script>this.mangoLastUpgrade=${lastUpgrade}</script>
+  
   <c:if test="${empty dojoURI}">
 	<c:set var="dojoURI">/resources/</c:set>
   </c:if>
   
   <!-- Style -->
-  <link rel="icon" href="<%= Common.applicationFavicon %>"/>
-  <link rel="shortcut icon" href="<%= Common.applicationFavicon %>"/>
+  <link rel="icon" href="<%= Common.applicationFavicon %>?v=${lastUpgrade}"/>
+  <link rel="shortcut icon" href="<%= Common.applicationFavicon %>?v=${lastUpgrade}"/>
 
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css"/>  
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css"/> 
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css"/> 
-  <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css"/>
-  <link rel="stylesheet" type="text/css" href="/resources/common.css"/>
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/editor/plugins/resources/css/StatusBar.css?v=${lastUpgrade}"/>  
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojox/layout/resources/FloatingPane.css?v=${lastUpgrade}"/> 
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dijit/themes/${theme}/${theme}.css?v=${lastUpgrade}"/> 
+  <link rel="stylesheet" type="text/css" href="${dojoURI}dojo/resources/dojo.css?v=${lastUpgrade}"/>
+  <link rel="stylesheet" type="text/css" href="/resources/common.css?v=${lastUpgrade}"/>
   
   <c:forEach items="<%= Common.moduleStyles %>" var="modStyle">
     <link rel="stylesheet" type="text/css" href="/${modStyle}"/></c:forEach>
@@ -76,23 +78,23 @@
   <jsp:invoke fragment="styles"/>
   
   <!-- Scripts -->
-  <script type="text/javascript" src="/resources/loaderConfig.js" data-loader="Dojo"></script>
-  <script type="text/javascript" src="${dojoURI}dojo/dojo.js" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
-  <script type="text/javascript" src="/dwr/engine.js"></script>
-  <script type="text/javascript" src="/dwr/util.js"></script>
-  <script type="text/javascript" src="/dwr/interface/MiscDwr.js"></script>
-  <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js"></script>
-  <script type="text/javascript" src="/resources/common.js"></script>
+  <script type="text/javascript" src="/resources/loaderConfig.js?v=${lastUpgrade}" data-loader="Dojo"></script>
+  <script type="text/javascript" src="${dojoURI}dojo/dojo.js?v=${lastUpgrade}" data-dojo-config="has:{'dojo-firebug': true}, async: false, parseOnLoad: true, isDebug:true, extraLocale: ['${lang}']"></script>
+  <script type="text/javascript" src="/dwr/engine.js?v=${lastUpgrade}"></script>
+  <script type="text/javascript" src="/dwr/util.js?v=${lastUpgrade}"></script>
+  <script type="text/javascript" src="/dwr/interface/MiscDwr.js?v=${lastUpgrade}"></script>
+  <script type="text/javascript" src="/resources/soundmanager2-nodebug-jsmin.js?v=${lastUpgrade}"></script>
+  <script type="text/javascript" src="/resources/common.js?v=${lastUpgrade}"></script>
 
   <c:forEach items="${dwr}" var="dwrname">
-    <script type="text/javascript" src="/dwr/interface/${dwrname}.js"></script></c:forEach>
+    <script type="text/javascript" src="/dwr/interface/${dwrname}.js?v=${lastUpgrade}"></script></c:forEach>
   <c:forEach items="${js}" var="jspath">
-    <script type="text/javascript" src="${jspath}"></script></c:forEach>
+    <script type="text/javascript" src="${jspath}?v=${lastUpgrade}"></script></c:forEach>
   <script type="text/javascript">
     mango.i18n = <sst:convert obj="${clientSideMessages}"/>;
   </script>
   <c:if test="${!simple}">
-    <script type="text/javascript" src="/resources/header.js"></script>
+    <script type="text/javascript" src="/resources/header.js?v=${lastUpgrade}"></script>
     <script type="text/javascript">
       dwr.util.setEscapeHtml(false);
       <c:if test="${!empty sessionUser}">
@@ -118,7 +120,7 @@
     </script>
   </c:if>
   <c:forEach items="<%= Common.moduleScripts %>" var="modScript">
-    <script type="text/javascript" src="/${modScript}"></script></c:forEach>
+    <script type="text/javascript" src="/${modScript}?v=${lastUpgrade}"></script></c:forEach>
   <c:choose>
     <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
   </c:choose>
