@@ -15,7 +15,7 @@ for (var i = scriptTags.length - 1; i >= 0; i--) {
     var scriptSrc = script.getAttribute('src');
     if (!scriptSrc) continue;
     
-    if (scriptSrc.indexOf(scriptSuffix, scriptSrc.length - scriptSuffix.length) !== -1) {
+    if (scriptSrc.indexOf(scriptSuffix) >= 0) {
         loader = script.getAttribute('data-loader') || 'RequireJS';
         break;
     }
@@ -23,6 +23,7 @@ for (var i = scriptTags.length - 1; i >= 0; i--) {
 
 var config = {
     baseUrl : '/resources',
+    urlArgs: 'v=' + root.mangoLastUpgrade,
     paths: {
         'mango': 'mango-2.0',
         'mango/mobile': './mango/mobile',
@@ -227,6 +228,8 @@ else if (loader === 'Dojo') {
 		name:'dojox',
 		location:'./dojox'
 	}];
+    
+    config.cacheBust = 'v=' + root.mangoLastUpgrade;
 
     config.paths['baseUrl'] = '.';
     config.paths['amcharts/amcharts'] = './shims/amcharts/amcharts';
