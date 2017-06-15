@@ -23,7 +23,7 @@ fi
 
 # If there is a pid file, use it to kill the Java process.
 if [ -f "$MA_HOME"/bin/ma.pid ]; then
-    echo `date` 'ma.stop: stop initiated...' >> "$MA_HOME"/logs/ma-script.log
+    echo `date` 'ma-stop: stop initiated...' >> "$MA_HOME"/logs/ma-script.log
     # Write a flag to the start script that the app was explicitly stopped.
     echo pleaseStop > "$MA_HOME"/STOP
     kill `cat "$MA_HOME"/bin/ma.pid`
