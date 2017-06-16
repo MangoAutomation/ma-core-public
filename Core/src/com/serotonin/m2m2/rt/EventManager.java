@@ -273,6 +273,10 @@ public class EventManager implements ILifecycle {
 		return false;
 	}
 
+	public void returnToNormal(EventType type, long time) {
+		returnToNormal(type, time, AlarmLevels.URGENT, EventInstance.RtnCauses.RETURN_TO_NORMAL);
+	}
+	
 	public void returnToNormal(EventType type, long time, int alarmLevel) {
 		returnToNormal(type, time, alarmLevel, EventInstance.RtnCauses.RETURN_TO_NORMAL);
 	}
