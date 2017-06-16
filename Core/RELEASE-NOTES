@@ -1,3 +1,9 @@
+*Version 3.1.1*
+* Add a public file store
+* Stores the last upgrade time
+* Configurable max-age time for page, resource and REST caching
+* Add cache busting url parameter
+
 *Version 3.1.0*
 * Better view into task scheduling system and tracking of rejected tasks
 * Reduced system overhead when tasks are being rejected
