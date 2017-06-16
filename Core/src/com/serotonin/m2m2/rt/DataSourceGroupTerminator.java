@@ -138,8 +138,14 @@ public class DataSourceGroupTerminator {
 		@Override
 		public void run(long runtime) {
 			try{
-				for(DataSourceRT<? extends DataSourceVO<?>> config : subgroup)
-					Common.runtimeManager.stopDataSourceShutdown(config.getId());
+				for(DataSourceRT<? extends DataSourceVO<?>> config : subgroup){
+					try{
+						Common.runtimeManager.stopDataSourceShutdown(config.getId());
+					}catch(Exception e){
+						//Ensure that if one fails to stop we still attempt to stop the others
+						LOG.error(e.getMessage(), e);
+					}
+				}
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 			}finally{
