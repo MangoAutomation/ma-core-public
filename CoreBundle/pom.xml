@@ -452,7 +452,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mqttClientDataSource</artifactId>
-			<version>3.1.1-SNAPSHOT</version>
+			<version>3.1.2-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
 		<dependency>
@@ -464,7 +464,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>dashboard-designer</artifactId>
-			<version>3.1.1-SNAPSHOT</version>
+			<version>3.1.2-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
 		<dependency>
@@ -476,7 +476,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>advanced-components</artifactId>
-			<version>3.1.1-SNAPSHOT</version>
+			<version>3.1.2-SNAPSHOT</version>
 			<type>zip</type>	
 		</dependency>
 		<!-- ma-dashboards -->
