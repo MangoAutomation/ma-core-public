@@ -148,8 +148,13 @@ public class DataSourceGroupInitializer {
 			try{
 				List<DataSourceVO<?>> polling = new ArrayList<DataSourceVO<?>>();
 				for(DataSourceVO<?> config : subgroup){
-					if(Common.runtimeManager.initializeDataSourceStartup(config))
-						polling.add(config);
+					try{
+						if(Common.runtimeManager.initializeDataSourceStartup(config))
+							polling.add(config);
+					}catch(Exception e){
+						//Ensure only 1 can fail at a time
+						LOG.error(e.getMessage(), e);
+					}
 				}
 				this.parent.addPollingDataSources(polling);
 			}catch(Exception e){
