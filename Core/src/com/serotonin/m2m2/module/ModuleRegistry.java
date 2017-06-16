@@ -58,6 +58,7 @@ import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermis
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllPointValuesActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeWithPurgeSettingsActionPermissionDefinition;
@@ -1016,6 +1017,7 @@ public class ModuleRegistry {
         preDefaults.add(new SqlRestoreActionPermissionDefinition());        
         preDefaults.add(new CoreFileStoreReadPermissionDefinition());
         preDefaults.add(new CoreFileStoreWritePermissionDefinition());
+        preDefaults.add(new PublicFileStoreWritePermissionDefinition());
         
         
         /* Read Only Settings */

@@ -22,7 +22,7 @@ public class SuperadminPermissionDefinition extends PermissionDefinition{
 	 */
 	@Override
 	public String getPermissionKey() {
-		return "permissions.superadmin";
+		return "systemSettings.permissions.superadmin";
 	}
 
 	/* (non-Javadoc)
