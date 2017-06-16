@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -28,5 +31,12 @@ public class CoreFileStoreReadPermissionDefinition extends PermissionDefinition{
 	public String getPermissionTypeName() {
 		return TYPE_NAME;
 	}
+
+    @Override
+    public List<String> getDefaultGroups() {
+        List<String> groups = new ArrayList<String>();
+        groups.add("user");
+        return groups;
+    }
 
 }
