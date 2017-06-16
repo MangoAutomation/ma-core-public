@@ -11,6 +11,7 @@ import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -57,7 +58,7 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
             }
             else
                 Common.eventManager.returnToNormal(et, Common.timer.currentTimeMillis(),
-                        EventInstance.RtnCauses.RETURN_TO_NORMAL);
+                        EventInstance.RtnCauses.RETURN_TO_NORMAL, AlarmLevels.URGENT);
             this.availableUpgrades.setValue(available);
         }
         catch (Exception e) {

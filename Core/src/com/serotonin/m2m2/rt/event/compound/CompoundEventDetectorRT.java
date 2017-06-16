@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventDetectorListener;
 import com.serotonin.m2m2.rt.event.SimpleEventDetector;
 import com.serotonin.m2m2.rt.event.type.CompoundDetectorEventType;
@@ -59,7 +60,7 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     }
 
     private void returnToNormal(long time) {
-        Common.eventManager.returnToNormal(eventType, time);
+        Common.eventManager.returnToNormal(eventType, time, AlarmLevels.URGENT); //Not a real implementation since the raiaeEvent isn't
     }
 
     public static LogicalOperator parseConditionStatement(String condition) throws ConditionParseException {

@@ -104,7 +104,8 @@ public class SystemEventType extends EventType {
     }
 
     public static void returnToNormal(SystemEventType type, long time) {
-        Common.eventManager.returnToNormal(type, time);
+    	EventTypeVO vo = getEventType(type.getSystemEventType());
+        Common.eventManager.returnToNormal(type, time, vo.getAlarmLevel());
     }
 
     //

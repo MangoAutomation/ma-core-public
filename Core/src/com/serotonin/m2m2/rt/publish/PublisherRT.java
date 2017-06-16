@@ -151,7 +151,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
             }
             else
                 // Everything is good
-                Common.eventManager.returnToNormal(pointDisabledEventType, Common.timer.currentTimeMillis());
+                Common.eventManager.returnToNormal(pointDisabledEventType, Common.timer.currentTimeMillis(), 
+                		vo.getAlarmLevel(POINT_DISABLED_EVENT, AlarmLevels.URGENT));
         }
     }
 
@@ -162,7 +163,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     }
 
     void deactivateQueueSizeWarningEvent() {
-        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.timer.currentTimeMillis());
+        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.timer.currentTimeMillis(), 
+        		vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT));
     }
 
     protected Map<String, Object> createEventContext() {

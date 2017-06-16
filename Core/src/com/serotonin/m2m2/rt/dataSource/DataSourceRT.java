@@ -155,7 +155,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
     protected void returnToNormal(int eventId, long time) {
         DataSourceEventType type = getEventType(eventId);
-        Common.eventManager.returnToNormal(type, time);
+        Common.eventManager.returnToNormal(type, time, type.getAlarmLevel());
     }
 
     private DataSourceEventType getEventType(int eventId) {

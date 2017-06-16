@@ -45,7 +45,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     }
 
     protected void returnToNormal(long time) {
-        Common.eventManager.returnToNormal(getEventType(), time);
+        Common.eventManager.returnToNormal(getEventType(), time, vo.getAlarmLevel());
     }
 
     protected Map<String, Object> createEventContext() {
