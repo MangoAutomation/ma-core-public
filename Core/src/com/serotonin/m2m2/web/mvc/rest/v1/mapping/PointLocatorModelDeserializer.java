@@ -36,6 +36,8 @@ public class PointLocatorModelDeserializer extends AbstractModelDeserializer<Poi
 			JsonProcessingException {
 		ObjectMapper mapper = (ObjectMapper) jp.getCodec();  
 		JsonNode tree = jp.readValueAsTree();
+		if(!tree.hasNonNull("modelType"))
+			throw new IOException("No modelType field found for point locator model.");
 	    ModelDefinition definition = findModelDefinition(tree.get("modelType").asText());
 	    return (PointLocatorModel<?>) mapper.treeToValue(tree, definition.getModelClass());
 	}
