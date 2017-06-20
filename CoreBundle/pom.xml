@@ -2,12 +2,12 @@
 	<parent>
 	  <groupId>com.infiniteautomation.mango</groupId>
 	  <artifactId>mango-parent</artifactId>
-	  <version>3.1.1-SNAPSHOT</version>
+	  <version>3.1.1</version>
 	  <relativePath>../pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>mango-bundle</artifactId>
-  	<version>3.1.1-SNAPSHOT</version>
+  	<version>3.1.1</version>
 	<name>Mango Core Release Bundle</name>
 	<packaging>pom</packaging>
 	<properties>
@@ -84,7 +84,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>3.1.1-SNAPSHOT</version>
+			<version>3.1.1</version>
 		</dependency>
 		<!-- ma-modules-public -->
 		<dependency>
