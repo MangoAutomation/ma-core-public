@@ -3,7 +3,7 @@
  <groupId>com.infiniteautomation.mango</groupId>
  <artifactId>mango-parent</artifactId>
  <!-- When changing version ensure you change Common.java as well. -->
- <version>3.1.1</version>
+ <version>3.1.2-SNAPSHOT</version>
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
@@ -320,7 +320,7 @@
    <url>https://github.com/infiniteautomation/ma-core-public</url>
    <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
    <developerConnection>scm:git:[push=]https://github.com/infiniteautomation/ma-core-public.git[fetch=]https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
-   <tag>m2m2-core-3.1.1</tag>
+   <tag>HEAD</tag>
  </scm>
  <distributionManagement>
 	<snapshotRepository>
