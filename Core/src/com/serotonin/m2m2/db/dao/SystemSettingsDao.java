@@ -849,22 +849,17 @@ public class SystemSettingsDao extends BaseDao {
 	 * @param settings
 	 * @return
 	 */
-	public Map<String, Object> convertCodesToValues(Map<String, Object> settings){
-		Map<String, Object> values = new HashMap<String,Object>(settings.size());
-
-		Iterator<String> it = settings.keySet().iterator();
-		String key;
-		while(it.hasNext()){
-			key = it.next();
-    		Object value = settings.get(key);
-    		if(value instanceof String){
-	    		Integer code = convertToValueFromCode(key, (String)value);
-	    		if(code != null)
-	    			values.put(key, code);
-    		}else{
-    			values.put(key, value);
-    		}
-		}
+	public Map<String, Object> convertCodesToValues(Map<String, Object> settings) {
+		Map<String, Object> values = new HashMap<String,Object>(settings);
+		
+		values.replaceAll((key, value) -> {
+		    if (value instanceof String) {
+		        Integer code = convertToValueFromCode(key, (String) value);
+		        if (code != null) return code;
+		    }
+		    return value;
+		});
+		
 		return values;
 	}
 	
