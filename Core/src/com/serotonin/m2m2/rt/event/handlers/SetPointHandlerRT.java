@@ -118,7 +118,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	context.put("target", targetPoint);
         	try { //TODO flesh out script permissions stuff
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, new HashMap<String, Object>(), evt.getActiveTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL));
+	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), null);
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getCause().getMessage()), evt.getEventType());
@@ -188,7 +188,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	context.put("target", targetPoint);
         	try {
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, new HashMap<String, Object>(), evt.getRtnTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL));
+	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), null);
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getCause().getMessage()), evt.getEventType());

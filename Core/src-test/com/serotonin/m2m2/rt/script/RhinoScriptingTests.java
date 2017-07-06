@@ -63,7 +63,7 @@ public class RhinoScriptingTests {
 			CompiledScript s = CompiledScriptExecutor.compile(script);
 			PointValueTime pvt = CompiledScriptExecutor.execute(s,
 					context, null, Common.timer.currentTimeMillis(),
-					DataTypes.NUMERIC, -1, permissions, scriptWriter, scriptLog);
+					DataTypes.NUMERIC, -1, permissions, scriptWriter, scriptLog, null);
 			assertNotNull(pvt);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -354,7 +354,7 @@ public class EventHandlersDwr extends BaseDwr {
             try {
             	CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
                 PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, null, System.currentTimeMillis(),
-                        targetDataType, System.currentTimeMillis(), new ScriptPermissions(), scriptWriter, new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL));
+                        targetDataType, System.currentTimeMillis(), new ScriptPermissions(), scriptWriter, new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), null);
                 if (pvt.getValue() == null)
                     message = new TranslatableMessage("eventHandlers.script.nullResult");
                 else
