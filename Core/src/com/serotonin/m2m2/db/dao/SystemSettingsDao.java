@@ -252,7 +252,12 @@ public class SystemSettingsDao extends BaseDao {
 
     public void setValue(final String key, final String value) {
         // Update the cache
-        String oldValue = cache.put(key, value);
+        String oldValue;
+        if (value == null) {
+            oldValue = cache.remove(key);
+        } else {
+            oldValue = cache.put(key, value);
+        }
 
         // Update the database
         final ExtendedJdbcTemplate ejt2 = ejt;
