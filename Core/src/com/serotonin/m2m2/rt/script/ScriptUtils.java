@@ -127,8 +127,11 @@ public class ScriptUtils {
      * @param engine
      * @param engineScope
      */
-    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, PointValueSetter setter){
-    	engineScope.put("RuntimeManager", new RuntimeManagerScriptUtility(permissions));
+    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, PointValueSetter setter, boolean testRun){
+    	if(testRun)
+    		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptTestUtility(permissions));
+    	else
+    		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptUtility(permissions));
     	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
     	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
     }

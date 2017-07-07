@@ -25,11 +25,11 @@ public class RuntimeManagerScriptUtility{
 	
 	private static final Log LOG = LogFactory.getLog(RuntimeManagerScriptUtility.class);
 	
-	private static final int DOES_NOT_EXIST = -1;  //Point or Data Soure Does not exist
-	private static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
-	private static final int OPERATION_SUCCESSFUL = 1; //Operation worked
+	protected static final int DOES_NOT_EXIST = -1;  //Point or Data Soure Does not exist
+	protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
+	protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
 	
-	private ScriptPermissions permissions;
+	protected ScriptPermissions permissions;
 	public RuntimeManagerScriptUtility(ScriptPermissions permissions){
 		this.permissions = permissions;
 	}

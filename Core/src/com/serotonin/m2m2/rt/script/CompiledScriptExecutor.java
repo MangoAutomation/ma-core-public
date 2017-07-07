@@ -63,7 +63,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
      */
     public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
-           ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log, PointValueSetter setter) throws ScriptException, ResultTypeException {
+           ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log, PointValueSetter setter, boolean testRun) throws ScriptException, ResultTypeException {
        
 //    	StopWatch stopWatch = new Log4JStopWatch();
 //		stopWatch.start();
@@ -73,7 +73,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
         ScriptEngine engine = script.getEngine();
 
         //Prepare the Engine
-        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, permissions, scriptWriter, log, setter);
+        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, permissions, scriptWriter, log, setter, testRun);
         
         // Execute.
         Object result;
