@@ -140,7 +140,6 @@ public class ScriptContextVariable implements Serializable{
      * @throws JsonException
      */
     public static String jsonReadVarContext(JsonObject json, List<ScriptContextVariable> context, boolean isContextUpdate) throws JsonException {
-    	String myName = null;
     	JsonArray jsonContext = json.getJsonArray("context");
         if (jsonContext != null) {
             context.clear();
@@ -172,7 +171,7 @@ public class ScriptContextVariable implements Serializable{
                 context.add(new ScriptContextVariable(dp.getId(), var, isContextUpdate));
             }
         }
-        return myName;
+        return json.getString("variableName");
     }
 	
 }
