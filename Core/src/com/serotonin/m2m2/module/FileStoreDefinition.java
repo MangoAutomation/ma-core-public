@@ -23,7 +23,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 public abstract class FileStoreDefinition extends ModuleElementDefinition {
 	
 	//Root directory within core
-	private static final String ROOT = "filestore";
+	public static final String ROOT = "filestore";
+	public static final String FILE_STORE_LOCATION_SYSTEM_SETTING = "filestore.location";
 	
     /**
      * The name of the store.  Should be unique across all Modules and Mango Core
@@ -75,6 +76,10 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @return
      */
 	public File getRoot(){
+	    String location = Common.envProps.getString(FILE_STORE_LOCATION_SYSTEM_SETTING);
+	    if (location != null && !location.isEmpty()) {
+	        return new File(location, getStoreName());
+	    }
 		return new File(new File(Common.MA_HOME, ROOT), getStoreName());
 	}
     
