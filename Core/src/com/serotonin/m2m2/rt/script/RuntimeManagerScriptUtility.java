@@ -53,7 +53,7 @@ public class RuntimeManagerScriptUtility{
 				return OPERATION_NO_CHANGE;
 			
 			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-			if(dsRt == null)
+			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
 				return OPERATION_NO_CHANGE;
 			
 			Common.runtimeManager.forcePointRead(vo.getId());
@@ -92,20 +92,17 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int enableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo)){
-				vo.setEnabled(true);
-				try{
-					Common.runtimeManager.saveDataSource(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
+			vo.setEnabled(true);
+			try{
+				Common.runtimeManager.saveDataSource(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -117,20 +114,17 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int disableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo)){
-				vo.setEnabled(false);
-				try{
-					Common.runtimeManager.saveDataSource(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
+			vo.setEnabled(false);
+			try{
+				Common.runtimeManager.saveDataSource(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -165,21 +159,18 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int enableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo)){
-				DataPointDao.instance.setEventDetectors(vo);
-				vo.setEnabled(true);
-				try{
-					Common.runtimeManager.saveDataPoint(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
+			DataPointDao.instance.setEventDetectors(vo);
+			vo.setEnabled(true);
+			try{
+				Common.runtimeManager.saveDataPoint(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
 	}
@@ -191,23 +182,21 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int disableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo)){
-				DataPointDao.instance.setEventDetectors(vo);
-				vo.setEnabled(false);
-				try{
-					Common.runtimeManager.saveDataPoint(vo);
-				}catch(Exception e){
-					LOG.error(e.getMessage(), e);
-					throw e;
-				}
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
+			DataPointDao.instance.setEventDetectors(vo);
+			vo.setEnabled(false);
+			try{
+				Common.runtimeManager.saveDataPoint(vo);
+			}catch(Exception e){
+				LOG.error(e.getMessage(), e);
+				throw e;
+			}
+			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
+
 	}
 	
 	public void sleep(long time) {

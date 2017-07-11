@@ -34,7 +34,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 				return OPERATION_NO_CHANGE;
 			
 			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-			if(dsRt == null)
+			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
 				return OPERATION_NO_CHANGE;
 			
 			//forcePointRead
@@ -53,14 +53,11 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int enableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
 			return DOES_NOT_EXIST;
-		else if(!vo.isEnabled()){
-			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo)){
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
-		}else
+		else if(!vo.isEnabled())
+			return OPERATION_SUCCESSFUL;
+		else
 			return OPERATION_NO_CHANGE;
 	}
 
@@ -72,14 +69,11 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int disableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
 			return DOES_NOT_EXIST;
-		else if(vo.isEnabled()){
-			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo)){
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
-		}else
+		else if(vo.isEnabled())
+			return OPERATION_SUCCESSFUL;
+		else
 			return OPERATION_NO_CHANGE;
 	}
 	
@@ -91,14 +85,11 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int enableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
 			return DOES_NOT_EXIST;
-		else if(!vo.isEnabled()){
-			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo)){
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
-		}else
+		else if(!vo.isEnabled())
+			return OPERATION_SUCCESSFUL;
+		else
 			return OPERATION_NO_CHANGE;
 	}
 
@@ -110,14 +101,11 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int disableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null)
+		if(vo == null || Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
 			return DOES_NOT_EXIST;
-		else if(vo.isEnabled()){
-			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo)){
-				return OPERATION_SUCCESSFUL;
-			}else
-				return DOES_NOT_EXIST; //No permissions
-		}else
+		else if(vo.isEnabled())
+			return OPERATION_SUCCESSFUL;
+		else
 			return OPERATION_NO_CHANGE;
 	}
 	
