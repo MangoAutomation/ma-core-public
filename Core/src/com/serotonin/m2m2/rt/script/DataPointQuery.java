@@ -32,10 +32,10 @@ public class DataPointQuery{
 
 	private ScriptPermissions permissions;
 	private ScriptEngine engine;
-	private PointValueSetter setter;
+	private ScriptPointValueSetter setter;
 	private RQLParser parser;
 	
-	public DataPointQuery(ScriptPermissions permissions, ScriptEngine engine, PointValueSetter setter){
+	public DataPointQuery(ScriptPermissions permissions, ScriptEngine engine, ScriptPointValueSetter setter){
 		this.permissions = permissions;
 		this.engine = engine;
 		this.setter = setter;

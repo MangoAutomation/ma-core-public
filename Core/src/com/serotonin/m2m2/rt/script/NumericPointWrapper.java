@@ -18,7 +18,7 @@ import com.serotonin.m2m2.view.stats.AnalogStatistics;
  * @author Matthew Lohbihler
  */
 public class NumericPointWrapper extends AbstractPointWrapper {
-    public NumericPointWrapper(IDataPointValueSource point, ScriptEngine engine, PointValueSetter setter) {
+    public NumericPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         super(point, engine, setter);
     }
 

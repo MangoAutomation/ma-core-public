@@ -127,7 +127,7 @@ public class ScriptUtils {
      * @param engine
      * @param engineScope
      */
-    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, PointValueSetter setter, boolean testRun){
+    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, ScriptPointValueSetter setter, boolean testRun){
     	if(testRun)
     		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptTestUtility(permissions));
     	else
@@ -145,7 +145,7 @@ public class ScriptUtils {
     }
 
     public static AbstractPointWrapper wrapPoint(ScriptEngine engine, IDataPointValueSource point,
-            PointValueSetter setter) {
+            ScriptPointValueSetter setter) {
         int dt = point.getDataTypeId();
         if (dt == DataTypes.BINARY)
             return new BinaryPointWrapper(point, engine, setter);
@@ -235,7 +235,7 @@ public class ScriptUtils {
                 DataTypes.getDataTypeMessage(toDataTypeId)));
     }
 
-    public static void addToContext(ScriptEngine engine, String varName, DataPointRT dprt, PointValueSetter setCallback) {
+    public static void addToContext(ScriptEngine engine, String varName, DataPointRT dprt, ScriptPointValueSetter setCallback) {
         engine.put(varName, wrapPoint(engine, dprt, setCallback));
         List<String> points = getPointList(engine);
         if (points != null)

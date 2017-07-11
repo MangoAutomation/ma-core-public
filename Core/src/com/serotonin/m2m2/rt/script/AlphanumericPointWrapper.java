@@ -19,7 +19,7 @@ import com.serotonin.m2m2.view.stats.ValueChangeCounter;
  */
 public class AlphanumericPointWrapper extends AbstractPointWrapper {
 	
-    public AlphanumericPointWrapper(IDataPointValueSource point, ScriptEngine engine, PointValueSetter setter) {
+    public AlphanumericPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         super(point, engine, setter);
     }
 

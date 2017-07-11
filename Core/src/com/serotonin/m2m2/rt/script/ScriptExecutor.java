@@ -104,7 +104,7 @@ public class ScriptExecutor {
     protected static Bindings prepareEngine(ScriptEngine engine, Map<String, 
     		IDataPointValueSource> context, Map<String, Object> additionalContext,
     		long runtime, ScriptPermissions permissions, 
-    		PrintWriter scriptWriter, ScriptLog log, PointValueSetter setter, boolean testRun){
+    		PrintWriter scriptWriter, ScriptLog log, ScriptPointValueSetter setter, boolean testRun){
         
     	ScriptUtils.prepareEngine(engine);
     	

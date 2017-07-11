@@ -18,7 +18,7 @@ import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
  * @author Matthew Lohbihler
  */
 abstract public class DistinctPointWrapper extends AbstractPointWrapper {
-    public DistinctPointWrapper(IDataPointValueSource point, ScriptEngine engine, PointValueSetter setter) {
+    public DistinctPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         super(point, engine, setter);
     }
 

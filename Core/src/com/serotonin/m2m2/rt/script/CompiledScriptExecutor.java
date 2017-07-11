@@ -63,7 +63,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
      */
     public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
-           ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log, PointValueSetter setter, boolean testRun) throws ScriptException, ResultTypeException {
+           ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log, ScriptPointValueSetter setter, boolean testRun) throws ScriptException, ResultTypeException {
        
 //    	StopWatch stopWatch = new Log4JStopWatch();
 //		stopWatch.start();

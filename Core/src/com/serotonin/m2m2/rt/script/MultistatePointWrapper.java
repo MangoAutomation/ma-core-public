@@ -15,7 +15,7 @@ import com.serotonin.m2m2.util.DateUtils;
  * @author Matthew Lohbihler
  */
 public class MultistatePointWrapper extends DistinctPointWrapper {
-    public MultistatePointWrapper(IDataPointValueSource point, ScriptEngine engine, PointValueSetter setter) {
+    public MultistatePointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         super(point, engine, setter);
     }
 

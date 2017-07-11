@@ -21,9 +21,9 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 abstract public class AbstractPointWrapper {
     protected final IDataPointValueSource point;
     protected final ScriptEngine engine;
-    protected final PointValueSetter setter;
+    protected final ScriptPointValueSetter setter;
 
-    AbstractPointWrapper(IDataPointValueSource point, ScriptEngine engine, PointValueSetter setter) {
+    AbstractPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         this.point = point;
         this.engine = engine;
         this.setter = setter;
