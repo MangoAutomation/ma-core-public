@@ -34,26 +34,44 @@ public class UnitUtil {
 
     static {
         // register some labels
-        localFormat.label(BTU, "btu"); addedUnitLabels.add("btu");
-        localFormat.label(THERM, "thm"); addedUnitLabels.add("thm");
-        localFormat.label(PSI, "psi"); addedUnitLabels.add("psi");
+        addLabel(BTU, "btu");
+        addLabel(THERM, "thm");
+        addLabel(PSI, "psi");
+        addLabel(NonSI.FOOT.pow(3).divide(NonSI.MINUTE), "cfm");
         
-        localFormat.label(NonSI.REVOLUTION.divide(NonSI.MINUTE), "rpm");
-        addedUnitLabels.add("rpm");
-        localFormat.label(Unit.ONE.divide(1000000), "ppm");
-        addedUnitLabels.add("ppm");
-        localFormat.label(Unit.ONE.divide(1000000000), "ppb");
-        addedUnitLabels.add("ppb");
-        localFormat.label(NonSI.GALLON_LIQUID_US.divide(NonSI.MINUTE), "gpm");
-        addedUnitLabels.add("gpm");
-        localFormat.label(SI.WATT.times(1000).divide(NonSI.HOUR), "kWh");
-        addedUnitLabels.add("kWh");
+        addAlias(NonSI.REVOLUTION.divide(NonSI.MINUTE), "rpm");
+        addAlias(Unit.ONE.divide(1000000), "ppm");
+        addAlias(Unit.ONE.divide(1000000000), "ppb");
+        
+        addAlias(NonSI.GALLON_LIQUID_US.divide(NonSI.MINUTE), "gpm");
+        
+        addAlias(SI.WATT.times(NonSI.HOUR), "Wh");
+        addAlias(SI.KILO(SI.WATT).times(NonSI.HOUR), "kWh");
+        addAlias(SI.MEGA(SI.WATT).times(NonSI.HOUR), "MWh");
 
+        addAlias(SI.VOLT.times(SI.AMPERE), "VAR");
+        addAlias(SI.KILO(SI.VOLT).times(SI.AMPERE), "kVAR");
+        addAlias(SI.MEGA(SI.VOLT).times(SI.AMPERE), "MVAR");
+        
+        addAlias(SI.VOLT.times(SI.AMPERE), "VA");
+        addAlias(SI.KILO(SI.VOLT).times(SI.AMPERE), "kVA");
+        addAlias(SI.MEGA(SI.VOLT).times(SI.AMPERE), "MVA");
+        
+        addAlias(Unit.ONE, "pf");
+        
         //Define any aliases
-        localFormat.alias(SI.CELSIUS, "Celsius"); // easier to type
-        addedUnitLabels.add("Celsius");
-        localFormat.alias(NonSI.FAHRENHEIT, "Fahrenheit");
-        addedUnitLabels.add("Fahrenheit");
+        addAlias(SI.CELSIUS, "Celsius"); // easier to type
+        addAlias(NonSI.FAHRENHEIT, "Fahrenheit");
+    }
+    
+    public static void addLabel(Unit<?> unit, String label) {
+        localFormat.label(unit, label);
+        addedUnitLabels.add(label);
+    }
+    
+    public static void addAlias(Unit<?> unit, String alias) {
+        localFormat.alias(unit, alias);
+        addedUnitLabels.add(alias);
     }
 
     @SuppressWarnings("deprecation")
