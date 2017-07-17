@@ -274,6 +274,30 @@ Runtime member which is the same as the Object that wraps the context points for
 <p>Note: The runtime is the object you would expect to see by adding a point to the script context.  This is the object 
 that contains the .ago(), .past() and .prev() methods as described above.  Use caution as this member is null if the data point is not enabled.</p>
 
+<h2>Data Source Queries</h2>
+<p>Data sources can be queried in much the same way. There is one method, <code>DataSourceQuery.query(stringRql);</code> A returned
+object will contain:</p>
+<ul>
+  <li>name - String</li>
+  <li>xid - String</li>
+  <li>enabled - boolean</li>
+  <li>type - String</li>
+  <li>points - List&lt;DataPointWrapper&gt;</li>
+</ul>
+
+<h2>JsonEmport utility</h2>
+<p>The JsonEmport utility provides methods to pass JSON or get JSON as one would through an import/export page. One should take care
+not to import points on the data source / script or the data source itself, lest the possibility to lock up the script exists. 
+This utility is accessible through the context key "JsonEmport" and has the following functions:</p>
+<ul>	
+<li>getFullConfiguration(): String</li>
+<li>getConfiguration(String): String</li> 
+<li>dataPointQuery(rql): String</li>
+<li>dataSourceQuery(rql): String</li> 
+<li>doImport(String): void</li>
+<li>doImportGetStatus(String): List&lt;String&gt;</li>
+</ul>
+
 <h3>RQL</h3>
 <p>
 RQL is a query language that is highly flexible, more info <a href="https://github.com/persvr/rql" target="rql">here</a>.

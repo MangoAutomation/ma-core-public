@@ -128,12 +128,16 @@ public class ScriptUtils {
      * @param engineScope
      */
     public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, ScriptPointValueSetter setter, boolean testRun){
-    	if(testRun)
+    	if(testRun) {
     		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptTestUtility(permissions));
-    	else
+    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptTestUtility(permissions));
+    	} else {
     		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptUtility(permissions));
+    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptUtility(permissions));
+    	}
     	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
     	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
+    	
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {

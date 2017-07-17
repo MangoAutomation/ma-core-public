@@ -42,11 +42,11 @@ public class ImportTask extends ProgressiveTask {
 	
 	private static Log LOG = LogFactory.getLog(ImportTask.class);
 	
-    private final ImportContext importContext;
+    protected final ImportContext importContext;
     private final User user;
 
-    private final List<Importer> importers = new ArrayList<Importer>();
-    private final List<ImportItem> importItems = new ArrayList<ImportItem>();
+    protected final List<Importer> importers = new ArrayList<Importer>();
+    protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
 
     /**
      * Create an ordered task that can be queue to run one after another
@@ -121,9 +121,9 @@ public class ImportTask extends ProgressiveTask {
         return importContext.getResult();
     }
 
-    private int importerIndex;
-    private boolean importerSuccess;
-    private boolean importedItems;
+    protected int importerIndex;
+    protected boolean importerSuccess;
+    protected boolean importedItems;
 
     @Override
     protected void runImpl() {
