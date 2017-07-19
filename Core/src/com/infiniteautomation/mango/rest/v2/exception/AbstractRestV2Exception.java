@@ -26,20 +26,17 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 	protected final TranslatableMessage translatableMessage;
 	
 	public AbstractRestV2Exception(HttpStatus httpCode, MangoRestErrorCode mangoCode, TranslatableMessage message) {
-		super(message.translate(Common.getTranslations()));
 		this.httpCode = httpCode;
 		this.mangoCode = mangoCode;
 		this.translatableMessage = message;
 	}
 	
 	public AbstractRestV2Exception(HttpStatus httpCode, TranslatableMessage message) {
-		super(message.translate(Common.getTranslations()));
 		this.httpCode = httpCode;
 		this.mangoCode = null;
 		this.translatableMessage = message;
 	}
 
-	
 	public AbstractRestV2Exception(HttpStatus httpCode, MangoRestErrorCode mangoCode, Exception e){
 		super(e);
 		this.httpCode = httpCode;
@@ -76,10 +73,6 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 			return mangoCode.name();
 		else
 			return null;
-	}
-	
-	public TranslatableMessage getTranslatableMessage(){
-		return this.translatableMessage;
 	}
 
 	/* (non-Javadoc)
