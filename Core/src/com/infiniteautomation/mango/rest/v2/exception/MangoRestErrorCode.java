@@ -16,7 +16,7 @@ package com.infiniteautomation.mango.rest.v2.exception;
  * 
  * @author Terry Packer
  */
-public enum MangoRestErrorCode {
+public enum MangoRestErrorCode implements IMangoRestErrorCode {
 
 	//**** 0000 - 999 Reserved for Modules ****
 	
