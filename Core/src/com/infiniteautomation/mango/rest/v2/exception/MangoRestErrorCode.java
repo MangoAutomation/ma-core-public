@@ -7,6 +7,8 @@ package com.infiniteautomation.mango.rest.v2.exception;
 /**
  * Error Codes for Mango Rest Errors
  * 
+ * 0-999 Series for Module Custom Errors
+ * 
  * 4000 Series are for Bad Request Http Status
  * 
  * 5000 Series are for Internal Server Error Http Status
@@ -15,6 +17,8 @@ package com.infiniteautomation.mango.rest.v2.exception;
  * @author Terry Packer
  */
 public enum MangoRestErrorCode {
+
+	//**** 0000 - 999 Reserved for Modules ****
 	
 	//***** 4000 Series *****
 	
