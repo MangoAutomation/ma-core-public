@@ -22,27 +22,17 @@ import com.serotonin.m2m2.vo.User;
  */
 public class TranslatableMessageSerializer extends JsonSerializer<TranslatableMessage>{
 
-	private static final String KEY = "key";
-	private static final String MESSAGE = "message";
-	private static final String ARGS = "args";
-
 	/* (non-Javadoc)
 	 * @see com.fasterxml.jackson.databind.JsonSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)
 	 */
 	@Override
 	public void serialize(TranslatableMessage msg, JsonGenerator jgen, SerializerProvider provider)
 			throws IOException, JsonProcessingException {
-		
 		if(msg != null){
-			jgen.writeStartObject();
 			User user = Common.getHttpUser();
-			jgen.writeStringField(KEY, msg.getKey());
-			jgen.writeStringField(MESSAGE, msg.translate(Translations.getTranslations(getLocale(user))));
-			jgen.writeObjectField(ARGS, msg.getArgs());
-			jgen.writeEndObject();
+			jgen.writeString(msg.translate(Translations.getTranslations(getLocale(user))));
 		}else
 			jgen.writeNull();
-		
 	}
 	
 	/**
@@ -50,12 +40,13 @@ public class TranslatableMessageSerializer extends JsonSerializer<TranslatableMe
 	 * @param user
 	 * @return
 	 */
-	private Locale getLocale(User user){
-		Locale locale = Locale.forLanguageTag(user.getLocale());
-		if(locale != null)
-			return locale;
-		else
-			return Common.getLocale();
+	private Locale getLocale(User user) {
+	    if (user != null) {
+	        String localeStr = user.getLocale();
+	        if (localeStr != null && !localeStr.isEmpty()) {
+	            return Locale.forLanguageTag(user.getLocale());
+	        }
+	    }
+        return Common.getLocale();
 	}
-	
 }
