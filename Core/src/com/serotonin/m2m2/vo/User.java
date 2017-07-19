@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -572,7 +573,12 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	    if (locale == null || locale.isEmpty()) {
 	        return Common.getLocale();
 	    }
-	    return Locale.forLanguageTag(locale);
+	    
+	    try {
+	        return new Locale.Builder().setLanguageTag(locale).build();
+	    } catch (IllformedLocaleException e) {
+	        return Common.getLocale();
+	    }
 	}
 	
 	/**
