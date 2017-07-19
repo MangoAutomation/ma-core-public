@@ -11,11 +11,13 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.core.Authentication;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
@@ -47,6 +49,21 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	public boolean hasDataSourcePermission(){
 		User user =  (User) this.getPrincipal();
 		return user.isDataSourcePermission();
+	}
+	
+	/**
+	 * Does this User have edit access for this data source
+	 * @param xid
+	 * @return
+	 */
+	public boolean hasDataSourceXidPermission(String xid){
+		User user =  (User) this.getPrincipal();
+		if(user.isAdmin())
+			return true;
+		DataSourceVO<?> dsvo = DataSourceDao.instance.getByXid(xid);
+		if((dsvo == null)||(!Permissions.hasDataSourcePermission(user, dsvo)))
+			return false;
+		return true;
 	}
 	
 	/**
