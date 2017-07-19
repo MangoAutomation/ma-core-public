@@ -30,23 +30,9 @@ public class TranslatableMessageSerializer extends JsonSerializer<TranslatableMe
 			throws IOException, JsonProcessingException {
 		if(msg != null){
 			User user = Common.getHttpUser();
-			jgen.writeString(msg.translate(Translations.getTranslations(getLocale(user))));
+			Locale locale = user == null ? Common.getLocale() : user.getLocaleObject();
+			jgen.writeString(msg.translate(Translations.getTranslations(locale)));
 		}else
 			jgen.writeNull();
-	}
-	
-	/**
-	 * Get the local for a user if there isn't one use the System's Local
-	 * @param user
-	 * @return
-	 */
-	private Locale getLocale(User user) {
-	    if (user != null) {
-	        String localeStr = user.getLocale();
-	        if (localeStr != null && !localeStr.isEmpty()) {
-	            return Locale.forLanguageTag(user.getLocale());
-	        }
-	    }
-        return Common.getLocale();
 	}
 }

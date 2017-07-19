@@ -568,15 +568,19 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 		return "event.audit.user";
 	}
 	
+	public Locale getLocaleObject() {
+	    if (locale == null || locale.isEmpty()) {
+	        return Common.getLocale();
+	    }
+	    return Locale.forLanguageTag(locale);
+	}
+	
 	/**
 	 * Get the translations for a User's locale
 	 * @return
 	 */
 	public Translations getTranslations(){
-        Locale langLocale = Locale.forLanguageTag(locale);
-        if(langLocale == null)
-        	langLocale = Common.getLocale();
-        return Translations.getTranslations(langLocale);
+        return Translations.getTranslations(getLocaleObject());
 	}
 	
 	/**
