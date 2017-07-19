@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -33,6 +34,7 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -564,6 +566,17 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	@Override
 	public String getTypeKey() {
 		return "event.audit.user";
+	}
+	
+	/**
+	 * Get the translations for a User's locale
+	 * @return
+	 */
+	public Translations getTranslations(){
+        Locale langLocale = Locale.forLanguageTag(locale);
+        if(langLocale == null)
+        	langLocale = Common.getLocale();
+        return Translations.getTranslations(langLocale);
 	}
 	
 	/**
