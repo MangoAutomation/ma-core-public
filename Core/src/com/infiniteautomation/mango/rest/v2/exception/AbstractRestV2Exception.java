@@ -25,11 +25,7 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 	protected final IMangoRestErrorCode mangoCode;
 	protected final TranslatableMessage translatableMessage;
 	
-	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message) {
-	    if (!(mangoCode instanceof MangoRestErrorCode) && mangoCode.getCode() >= 1000) {
-	        throw new IllegalArgumentException ("Custom status codes must be < 1000");
-	    }
-	    
+	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message) {    
 		this.httpCode = httpCode;
 		this.mangoCode = mangoCode;
 		this.translatableMessage = message;
@@ -43,11 +39,6 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 
 	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Exception e){
 		super(e);
-		
-		if (!(mangoCode instanceof MangoRestErrorCode) && mangoCode.getCode() >= 1000) {
-            throw new IllegalArgumentException ("Custom status codes must be < 1000");
-        }
-		
 		this.httpCode = httpCode;
 		this.mangoCode = mangoCode;
 		this.translatableMessage = null;
