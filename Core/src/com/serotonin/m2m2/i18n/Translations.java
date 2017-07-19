@@ -32,24 +32,14 @@ public class Translations {
     }
 
     public static Translations getTranslations(Locale locale) {
-        Translations translations = TRANSLATIONS_CACHE.get(locale);
-
-        if (translations == null) {
-            synchronized (TRANSLATIONS_CACHE) {
-                translations = TRANSLATIONS_CACHE.get(locale);
-                if (translations == null) {
-                    try {
-                        translations = new Translations(locale);
-                    }
-                    catch (IOException e) {
-                        LOG.warn("Error while loading translations", e);
-                    }
-                    TRANSLATIONS_CACHE.put(locale, translations);
-                }
+        return TRANSLATIONS_CACHE.computeIfAbsent(locale, (l) -> {
+            try {
+                return new Translations(l);
+            } catch (IOException e) {
+                LOG.warn("Error while loading translations", e);
+                return null;
             }
-        }
-
-        return translations;
+        });
     }
 
     public static void clearCache() {
