@@ -1,3 +1,6 @@
+*Version 3.1.2*
+* Fix bug where bulk data point permissions changes were not picked up in the Point Hierarchy
+
 *Version 3.1.1*
 * Add a public file store
 * Stores the last upgrade time
