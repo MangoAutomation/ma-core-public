@@ -376,6 +376,12 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         	}
         }
         writer.writeEntry("additionalContext", context);
+        
+        JsonObject permissions = new JsonObject();
+        permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
+        permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
+        permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
+        writer.writeEntry("scriptPermissions", permissions);
     }
     
     @Override
@@ -473,6 +479,21 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         	this.additionalContext = additionalContext;
         } else
         	this.additionalContext = new ArrayList<>();
+        
+        JsonObject permissions = jsonObject.getJsonObject("scriptPermissions");
+        ScriptPermissions scriptPermissions = new ScriptPermissions();
+        if(permissions != null) {
+        	String perm = permissions.getString(ScriptPermissions.DATA_SOURCE);
+        	if(perm != null)
+        		scriptPermissions.setDataSourcePermissions(perm);
+        	perm = permissions.getString(ScriptPermissions.DATA_POINT_READ);
+        	if(perm != null)
+        		scriptPermissions.setDataPointReadPermissions(perm);
+        	perm = permissions.getString(ScriptPermissions.DATA_POINT_SET);
+        	if(perm != null)
+        		scriptPermissions.setDataPointSetPermissions(perm);
+        }
+    	this.scriptPermissions = new ScriptPermissions();
     }
     
     
