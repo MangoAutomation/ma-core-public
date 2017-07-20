@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.rt.console;
 
-import org.apache.log4j.Level;
-
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.view.stats.ITime;
 
@@ -98,27 +96,4 @@ public class LogEvent implements ITime{
 		//no-op
 	}
 
-	public String getPrettyLevel(){
-		switch(this.level){
-		case Level.TRACE_INT:
-			return "<font color='white'>Trace</font>";
-		case Level.DEBUG_INT:
-			return "<font color='green'>Debug</font>";
-		case Level.INFO_INT:
-			return "<font color='blue'>Info</font>";
-		case Level.WARN_INT:
-			return "<font color='orange'>Warn</font>";
-		case Level.ERROR_INT:
-			return "<font color='red'>Error</font>";
-		case Level.FATAL_INT:
-			return "<font color='dark-red'>Fatal</font>";
-		default:
-			return "Unknown";
-		}
-	}
-	
-	public void setPrettyLevel(String level){
-		//no-op
-	}
-	
 }
