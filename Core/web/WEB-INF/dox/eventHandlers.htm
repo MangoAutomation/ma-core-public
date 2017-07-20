@@ -93,6 +93,14 @@
   dragging its corner. One can include other FTL files if they are on the loader path, which begins at Mango/ftl/ . To replicate the 
   existing event template, you must add "html" or "text" in front of the include paths when setting the custom template.
 </p>
+<p>
+  Points may be added as <b>Additional context</b> to appear in the model in the 'additionalContext' object using their <b>template key</b>.
+  Additional context points have the following hash (object) fields:
+</p>
+<ul><li>templateKey - the identifier in the additional context hash (object)</li>
+<li>name - the point's name</li>
+<li>deviceName - the device name for the point</li>
+<li>values - a sequence (list) of rendered point value times</li></ul>
 
 <h1>Editing set point handlers</h1>
 <p>
@@ -101,6 +109,12 @@
   possible if the event was raised by a "value changed" point event detector, and the data type of the target is the 
   same as the data type of the source. To have the target be set with the source value, check the <b>Use source 
   value</b> box. Otherwise, enter the value to which to set the target in the <b>Value to set</b> area.
+</p>
+
+<p>
+  It is also possible to use a script to compute the value to set to the target point. Set point scripts can have
+  data points added into the context of the event, and the target point is always added under the key "target". If a
+  point is disabled it will simply not be added to the context, so typeof(disabledVariableName) === "undefined"
 </p>
 
 <h1>Editing process handlers</h1>

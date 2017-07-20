@@ -28,6 +28,7 @@ import org.joda.time.DateTime;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -271,22 +272,44 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             if(additionalContext == null || pointValueCount <= 0)
             	model.put("additionalContext", new HashMap<>(0));
             else {
-            	Map<String, List<RenderedPointValueTime>> context = new HashMap<>();
+            	Map<String, Map<String, Object>> context = new HashMap<>();
             	for(IntStringPair pair : additionalContext) {
+            		Map<String, Object> point = new HashMap<String, Object>();
             		DataPointRT rt = Common.runtimeManager.getDataPoint(pair.getKey());
+            		List<PointValueTime> pointValues;
+            		List<RenderedPointValueTime> renderedPointValues;
+            		DataPointVO dpvo;
             		if(rt != null) {
-            			List<PointValueTime> pointValues = rt.getLatestPointValues(pointValueCount);
-            			if(pointValues != null && pointValues.size() > 0) {
-            				List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
+            			dpvo = rt.getVO();
+            			pointValues = rt.getLatestPointValues(pointValueCount);
+            			renderedPointValues = new ArrayList<RenderedPointValueTime>();
+            			if(pointValues != null && pointValues.size() > 0)
             				for(PointValueTime pvt : pointValues) {
             					RenderedPointValueTime rpvt = new RenderedPointValueTime();
             					rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
                                 rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
                                 renderedPointValues.add(rpvt);
             				}
-            				context.put(pair.getValue(), renderedPointValues);
-            			}
+            		} else {
+            			dpvo = DataPointDao.instance.get(pair.getKey());
+            			if(dpvo == null)
+            				continue;
+            			
+            			pointValues = Common.databaseProxy.newPointValueDao()
+            					.getLatestPointValues(pair.getKey(), pointValueCount);
+            			renderedPointValues = new ArrayList<RenderedPointValueTime>();
+        				for(PointValueTime pvt : pointValues) {
+        					RenderedPointValueTime rpvt = new RenderedPointValueTime();
+        					rpvt.setValue(Functions.getRenderedText(dpvo, pvt));
+                            rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
+                            renderedPointValues.add(rpvt);
+        				}
             		}
+            		point.put("values", renderedPointValues);
+    				point.put("deviceName", dpvo.getDeviceName());
+    				point.put("name", dpvo.getName());
+    				point.put("contextKey", pair.getValue());
+    				context.put(pair.getValue(), point);
             	}
             	model.put("additionalContext", context);
             }
