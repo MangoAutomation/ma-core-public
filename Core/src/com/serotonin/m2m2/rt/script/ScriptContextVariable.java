@@ -150,7 +150,7 @@ public class ScriptContextVariable implements Serializable{
                 JsonObject jo = jv.toJsonObject();
                 String xid = jo.getString("dataPointXid");
                 if (xid == null)
-                    throw new TranslatableJsonException("emport.error.meta.missing", "dataPointXid");
+                    throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
 
                 DataPointVO dp = dataPointDao.getDataPoint(xid);
                 if (dp == null){
@@ -163,7 +163,7 @@ public class ScriptContextVariable implements Serializable{
                 if (var == null){
                 	var = jo.getString("variableName");
                 	if(var == null)
-                		 throw new TranslatableJsonException("emport.error.meta.missing", "varName");
+                		 throw new TranslatableJsonException("emport.error.context.missing", "varName");
                 }
                 
                 //Default for legacy systems

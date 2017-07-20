@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
@@ -149,17 +150,17 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
-        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false, null, null);
+        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false, null, null, null);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
         sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), 
-        		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate());
+        		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
             String alias, boolean includeSystemInfo, int pointValueCount, boolean includeLogs, String handlerXid,
-            String customTemplate) {
+            String customTemplate, List<IntStringPair> additionalContext) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
                     SystemEventType.TYPE_EMAIL_SEND_FAILURE)) {
@@ -226,6 +227,8 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             	model.put("threadList", getThreadsList());
             }
 
+            int type = SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
+            
             //If we are a point event then add the value
             if(evt.getEventType() instanceof DataPointEventType){
             	DataPointVO dp = (DataPointVO)evt.getContext().get("point");
@@ -237,8 +240,6 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             				pointValues = rt.getLatestPointValues(pointValueCount);
             			if((pointValues != null)&&(pointValues.size() > 0)){
             				
-            				int type = SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
-
             				if (type == MangoEmailContent.CONTENT_TYPE_HTML || type == MangoEmailContent.CONTENT_TYPE_BOTH){
             					List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
 	            				for(PointValueTime pvt : pointValues){
@@ -264,6 +265,30 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             			}
             		}
             	}
+            }
+            
+            //Build the additional context for the email model
+            if(additionalContext == null || pointValueCount <= 0)
+            	model.put("additionalContext", new HashMap<>(0));
+            else {
+            	Map<String, List<RenderedPointValueTime>> context = new HashMap<>();
+            	for(IntStringPair pair : additionalContext) {
+            		DataPointRT rt = Common.runtimeManager.getDataPoint(pair.getKey());
+            		if(rt != null) {
+            			List<PointValueTime> pointValues = rt.getLatestPointValues(pointValueCount);
+            			if(pointValues != null && pointValues.size() > 0) {
+            				List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
+            				for(PointValueTime pvt : pointValues) {
+            					RenderedPointValueTime rpvt = new RenderedPointValueTime();
+            					rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
+                                rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
+                                renderedPointValues.add(rpvt);
+            				}
+            				context.put(pair.getValue(), renderedPointValues);
+            			}
+            		}
+            	}
+            	model.put("additionalContext", context);
             }
             
             MangoEmailContent content;

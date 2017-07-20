@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.WebContextFactory;
 
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -35,6 +36,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -237,7 +239,8 @@ public class EventHandlersDwr extends BaseDwr {
     public ProcessResult saveSetPointEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, int targetPointId,
             int activeAction, String activeValueToSet, int activePointId, String activeScript, int inactiveAction,
-            String inactiveValueToSet, int inactivePointId, String inactiveScript) {
+            String inactiveValueToSet, int inactivePointId, String inactiveScript, List<IntStringPair> additionalContext,
+            ScriptPermissions scriptPermissions) {
         SetPointEventHandlerVO handler = new SetPointEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(SetPointEventHandlerDefinition.TYPE_NAME));
         handler.setTargetPointId(targetPointId);
@@ -249,6 +252,8 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setInactiveValueToSet(inactiveValueToSet);
         handler.setInactivePointId(inactivePointId);
         handler.setInactiveScript(inactiveScript);
+        handler.setAdditionalContext(additionalContext);
+        handler.setScriptPermissions(scriptPermissions);
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
@@ -258,7 +263,7 @@ public class EventHandlersDwr extends BaseDwr {
             List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, int escalationDelayType,
             int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
             boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo, 
-            int includePointValueCount, boolean includeLogfile) {
+            int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext) {
         EmailEventHandlerVO handler = new EmailEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
         handler.setActiveRecipients(activeRecipients);
@@ -273,6 +278,7 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setIncludeSystemInfo(includeSystemInfo);
         handler.setIncludePointValueCount(includePointValueCount);
         handler.setIncludeLogfile(includeLogfile);
+        handler.setAdditionalContext(additionalContext);
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
@@ -336,7 +342,8 @@ public class EventHandlersDwr extends BaseDwr {
     }
     
     @DwrPermission(user = true)
-    public ProcessResult validateScript(String script, int targetPointId, boolean active) {
+    public ProcessResult validateScript(String script, int targetPointId, boolean active, 
+    		List<IntStringPair> additionalContext, ScriptPermissions scriptPermissions) {
         ProcessResult response = new ProcessResult();
         TranslatableMessage message;
 
@@ -345,7 +352,13 @@ public class EventHandlersDwr extends BaseDwr {
         	message = new TranslatableMessage("eventHandlers.noTargetPoint");
         }else{
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
-            context.put("target", Common.runtimeManager.getDataPoint(targetPointId));
+            context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, Common.runtimeManager.getDataPoint(targetPointId));
+            for(IntStringPair cxt : additionalContext) {
+    			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
+    			if(dprt != null)
+    				context.put(cxt.getValue(), dprt);
+    		}
+            
             int targetDataType = target.getPointLocator().getDataTypeId();
 
             final StringWriter scriptOut = new StringWriter();
@@ -354,7 +367,7 @@ public class EventHandlersDwr extends BaseDwr {
             try {
             	CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
                 PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, null, System.currentTimeMillis(),
-                        targetDataType, System.currentTimeMillis(), new ScriptPermissions(), scriptWriter, new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL));
+                        targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter, new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL));
                 if (pvt.getValue() == null)
                     message = new TranslatableMessage("eventHandlers.script.nullResult");
                 else
