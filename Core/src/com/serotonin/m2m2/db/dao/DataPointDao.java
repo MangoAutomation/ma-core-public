@@ -1426,6 +1426,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 							rt.getVO().setSetPermission(existingPermissions);
 					}
 				}
+				
+				//clear the cache to pickup our changes
+				if(count > 0)
+					clearPointHierarchyCache();
+				
 				return count;
             }finally{
             	if(stmt != null) { stmt.close(); }
