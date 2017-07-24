@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.script;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 import javax.script.Bindings;
@@ -63,7 +64,8 @@ public class CompiledScriptExecutor extends ScriptExecutor{
      */
     public static PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
-           ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log, ScriptPointValueSetter setter, boolean testRun) throws ScriptException, ResultTypeException {
+           ScriptPermissions permissions, PrintWriter scriptWriter, ScriptLog log, ScriptPointValueSetter setter,
+           List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptException, ResultTypeException {
        
 //    	StopWatch stopWatch = new Log4JStopWatch();
 //		stopWatch.start();
@@ -73,7 +75,8 @@ public class CompiledScriptExecutor extends ScriptExecutor{
         ScriptEngine engine = script.getEngine();
 
         //Prepare the Engine
-        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, permissions, scriptWriter, log, setter, testRun);
+        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, permissions, 
+        		scriptWriter, log, setter, importExclusions, testRun);
         
         // Execute.
         Object result;

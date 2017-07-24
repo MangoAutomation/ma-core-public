@@ -127,13 +127,14 @@ public class ScriptUtils {
      * @param engine
      * @param engineScope
      */
-    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, ScriptPointValueSetter setter, boolean testRun){
+    public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, 
+    		ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
     	if(testRun) {
     		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptTestUtility(permissions));
-    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptTestUtility(permissions));
+    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptTestUtility(permissions, importExclusions));
     	} else {
     		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptUtility(permissions));
-    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptUtility(permissions));
+    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptUtility(permissions, importExclusions));
     	}
     	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
     	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));

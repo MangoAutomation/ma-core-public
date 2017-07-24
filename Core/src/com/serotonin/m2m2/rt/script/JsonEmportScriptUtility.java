@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.json.type.JsonValue;
@@ -39,11 +40,13 @@ public class JsonEmportScriptUtility {
 	
 	private final boolean admin;
 	private final RQLParser parser;
+	private final List<JsonImportExclusion> importExclusions;
 	
-	public JsonEmportScriptUtility(ScriptPermissions permissions) {
+	public JsonEmportScriptUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
 		admin = Permissions.hasPermission(permissions.getDataSourcePermissions(), SuperadminPermissionDefinition.GROUP_NAME) &&
 				Permissions.hasPermission(permissions.getDataPointSetPermissions(), SuperadminPermissionDefinition.GROUP_NAME);
 		this.parser = new RQLParser();
+		this.importExclusions = importExclusions;
 	}
 	
 	public String getFullConfiguration() {
@@ -151,6 +154,8 @@ public class JsonEmportScriptUtility {
 			JsonTypeReader reader = new JsonTypeReader(json);
 			JsonValue value = reader.read();
 			JsonObject jo = value.toJsonObject();
+			if(importExclusions != null)
+				doExclusions(jo);
 			ScriptImportTask sit = new ScriptImportTask(jo, false);
 			while(!sit.isCompleted() && !sit.isCancelled())
 				try { Thread.sleep(1000); } catch(InterruptedException e) {} //Take a break.
@@ -162,12 +167,31 @@ public class JsonEmportScriptUtility {
 			JsonTypeReader reader = new JsonTypeReader(json);
 			JsonValue value = reader.read();
 			JsonObject jo = value.toJsonObject();
+			if(importExclusions != null)
+				doExclusions(jo);
 			ScriptImportTask sit = new ScriptImportTask(jo, true);
 			while(!sit.isCompleted() && !sit.isCancelled())
 				try { Thread.sleep(1000); } catch(InterruptedException e) {} //Take a break.
 			return sit.getMessages();
 		}
 		return null;
+	}
+	
+	private void doExclusions(JsonObject jo) {
+		for(JsonImportExclusion exclusion : importExclusions) {
+			if(jo.containsKey(exclusion.getImporterType())) {
+				JsonArray ja = jo.getJsonArray(exclusion.getImporterType());
+				int size = ja.size();
+				for(int k = 0; k < size; k+=1) {
+					JsonObject obj = ja.getJsonObject(k);
+					if(obj.containsKey(exclusion.getKey()) && obj.getString(exclusion.getKey()).equals(exclusion.getValue())) {
+						ja.remove(k);
+						k -= 1;
+						size -= 1;
+					}
+				}
+			}
+		}
 	}
 	
 	class ScriptImportTask extends ImportTask {

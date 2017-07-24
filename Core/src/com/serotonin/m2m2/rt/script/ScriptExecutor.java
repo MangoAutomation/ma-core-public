@@ -103,8 +103,8 @@ public class ScriptExecutor {
      */
     protected static Bindings prepareEngine(ScriptEngine engine, Map<String, 
     		IDataPointValueSource> context, Map<String, Object> additionalContext,
-    		long runtime, ScriptPermissions permissions, 
-    		PrintWriter scriptWriter, ScriptLog log, ScriptPointValueSetter setter, boolean testRun){
+    		long runtime, ScriptPermissions permissions, PrintWriter scriptWriter,
+    		ScriptLog log, ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
         
     	ScriptUtils.prepareEngine(engine);
     	
@@ -114,7 +114,7 @@ public class ScriptExecutor {
         //Add Permissions Required Utilities
         //TODO Bubble PointValueSetter back up to top
         if(permissions != null)
-        	ScriptUtils.prepareUtilities(permissions, engine, engineScope, setter, testRun);
+        	ScriptUtils.prepareUtilities(permissions, engine, engineScope, setter, importExclusions, testRun);
         
         if(additionalContext != null){
         	Set<Entry<String,Object>> entries = additionalContext.entrySet();

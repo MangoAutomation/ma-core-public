@@ -5,8 +5,8 @@ import java.util.List;
 
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
-	public JsonEmportScriptTestUtility(ScriptPermissions permissions) {
-		super(permissions);
+	public JsonEmportScriptTestUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
+		super(permissions, importExclusions);
 	}
 	
 	@Override
