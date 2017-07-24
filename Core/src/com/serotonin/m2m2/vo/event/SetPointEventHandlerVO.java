@@ -493,7 +493,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         	if(perm != null)
         		scriptPermissions.setDataPointSetPermissions(perm);
         }
-    	this.scriptPermissions = new ScriptPermissions();
+    	this.scriptPermissions = scriptPermissions;
     }
     
     
