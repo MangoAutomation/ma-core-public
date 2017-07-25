@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.rt.event.handlers;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.script.CompiledScript;
@@ -30,16 +32,19 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
 import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
+import com.serotonin.m2m2.web.dwr.EmportDwr;
 
 public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
     private static final Log LOG = LogFactory.getLog(SetPointHandlerRT.class);
     private CompiledScript activeScript;
     private CompiledScript inactiveScript;
+    private final List<JsonImportExclusion> importExclusions;
     public static final PrintWriter NULL_WRITER = new PrintWriter(new NullWriter());
 
     public SetPointHandlerRT(SetPointEventHandlerVO vo) {
@@ -63,6 +68,17 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	}
         } else
         	inactiveScript = null;
+        
+        if(activeScript != null || inactiveScript != null) {
+        	importExclusions = new ArrayList<JsonImportExclusion>();
+        	importExclusions.add(new JsonImportExclusion("xid", vo.getXid()) {
+				@Override
+				public String getImporterType() {
+					return EmportDwr.EVENT_HANDLERS;
+				}
+        	});
+        } else
+        	importExclusions = null;
     }
 
     @Override
@@ -118,7 +134,8 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	context.put("target", targetPoint);
         	try { //TODO flesh out script permissions stuff
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, new HashMap<String, Object>(), evt.getActiveTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), null, false);
+	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), 
+	        			null, importExclusions, false);
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getCause().getMessage()), evt.getEventType());
@@ -188,7 +205,8 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	context.put("target", targetPoint);
         	try {
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, new HashMap<String, Object>(), evt.getRtnTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), null, false);
+	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL),
+	        			null, importExclusions, false);
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getCause().getMessage()), evt.getEventType());

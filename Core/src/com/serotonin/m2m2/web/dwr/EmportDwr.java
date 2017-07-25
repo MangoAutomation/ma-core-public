@@ -52,6 +52,7 @@ public class EmportDwr extends BaseDwr {
     public static final String TEMPLATES = "templates";
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
     public static final String JSON_DATA = "jsonData";
+    public static final String EVENT_DETECTORS = "eventDetectors";
     
 
     @DwrPermission(admin = true)
@@ -80,6 +81,7 @@ public class EmportDwr extends BaseDwr {
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))
             data.put(JSON_DATA, JsonDataDao.instance.getAll());
+        //No entry for event detectors. They're affixed to data points in the export.
         
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {

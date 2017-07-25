@@ -102,11 +102,11 @@ public class DataPointImporter extends Importer {
 	                    }
                     }
 
-                    boolean isnew = vo.isNew();
+                    boolean isNew = vo.isNew();
                     try {
                     	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
                     		Common.runtimeManager.saveDataPoint(vo);
-                    		addSuccessMessage(isnew, "emport.dataPoint.prefix", xid);
+                    		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     	}else{
                     		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
                     	}
