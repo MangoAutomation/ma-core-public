@@ -6,6 +6,9 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.List;
 
+import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
+import com.serotonin.m2m2.rt.script.DataPointWrapper;
+
 /**
  * @author Matthew Lohbihler
  */
@@ -29,7 +32,8 @@ public interface IDataPointValueSource {
     List<PointValueTime> getPointValuesBetween(long from, long to);
 
     PointValueTime getPointValueAt(long time);
-
     
     int getDataTypeId();
+    
+    DataPointWrapper getDataPointWrapper(AbstractPointWrapper wrapper);
 }

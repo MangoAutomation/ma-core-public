@@ -118,4 +118,9 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 		return null;
 	}
 
+	@Override
+	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper wrapper) {
+		return null;
+	}
+
 }

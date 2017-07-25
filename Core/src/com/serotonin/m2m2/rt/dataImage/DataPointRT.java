@@ -26,6 +26,8 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
+import com.serotonin.m2m2.rt.script.DataPointWrapper;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.AnalogStatistics;
@@ -812,6 +814,11 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 		for(PointValueTime pvt : this.valueCache.getCacheContents())
 			copy.add(pvt);
 		return copy;
+	}
+
+	@Override
+	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
+		return new DataPointWrapper(vo, rtWrapper);
 	}
 
 }

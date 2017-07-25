@@ -22,6 +22,7 @@ abstract public class AbstractPointWrapper {
     protected final IDataPointValueSource point;
     protected final ScriptEngine engine;
     protected final ScriptPointValueSetter setter;
+    private DataPointWrapper voWrapper = null;
 
     AbstractPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         this.point = point;
@@ -110,10 +111,14 @@ abstract public class AbstractPointWrapper {
     public void set(Object value) {
         set(value, getContext().getRuntime());
     }
-
+    
     public void set(Object value, long timestamp) {
+    	set(value, timestamp, null);
+    }
+
+    public void set(Object value, long timestamp, String annotation) {
         if (setter != null)
-            setter.set(point, value, timestamp);
+            setter.set(point, value, timestamp, annotation);
     }
     
     //New methods exposed September 2014
@@ -167,6 +172,17 @@ abstract public class AbstractPointWrapper {
     }
     
     /**
+     * Get the wrapper for the data point's vo
+     * @param
+     * @return vo of wrapper data point, as DataPointWrapper
+     */
+    public DataPointWrapper getDataPointWrapper(){
+    	if(voWrapper == null)
+    		voWrapper = point.getDataPointWrapper(this);
+    	return voWrapper;
+    }
+    
+    /**
      * Append method descriptions
      * The { and } for the object will be added afterwards.
      * @param builder
@@ -199,11 +215,14 @@ abstract public class AbstractPointWrapper {
     	builder.append("lastValue(count): ").append("PointValueTime").append(",\n ");
     	builder.append("set(value): ").append(",\n ");
     	builder.append("set(value, timestamp): ").append(",\n ");
+    	builder.append("set(value, timestamp, annotation): ").append(",\n ");
     	builder.append("pointValuesBetween(timestamp, timestamp): PointValueTime[],\n ");
     	builder.append("pointValuesSince(timestamp): PointValueTime[],\n ");
     	builder.append("pointValuesBefore(timestamp): PointValueTime[],\n ");
     	builder.append("pointValuesAfter(timestamp): PointValueTime[],\n ");
     	builder.append("pointValueAt(timestamp): PointValueTime,\n ");
+    	builder.append("pointValueAt(timestamp): PointValueTime,\n ");
+    	builder.append("getDataPointWrapper(): DataPointWrapper,\n ");
 
     	this.helpImpl(builder);
     	

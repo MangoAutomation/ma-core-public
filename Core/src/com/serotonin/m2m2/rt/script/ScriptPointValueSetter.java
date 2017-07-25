@@ -13,7 +13,7 @@ public abstract class ScriptPointValueSetter {
 	}
 	
 	//Ensure points are settable and the setter has permissions
-	public void set(IDataPointValueSource point, Object value, long timestamp) {
+	public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
 		DataPointRT dprt = (DataPointRT) point;
 
         if(!dprt.getVO().getPointLocator().isSettable())
@@ -22,8 +22,8 @@ public abstract class ScriptPointValueSetter {
         if(permissions != null && !Permissions.hasPermission(dprt.getVO().getSetPermission(), permissions.getDataPointSetPermissions()))
         	throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", dprt.getVO().getXid()));
         
-        setImpl(point, value, timestamp);
+        setImpl(point, value, timestamp, annotation);
 	}
 	
-	protected abstract void setImpl(IDataPointValueSource point, Object value, long timestamp);
+	protected abstract void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation);
 }

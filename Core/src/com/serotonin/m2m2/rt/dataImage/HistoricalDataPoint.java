@@ -4,7 +4,10 @@ import java.util.List;
 
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
+import com.serotonin.m2m2.rt.script.DataPointWrapper;
 import com.serotonin.timer.SimulationTimer;
 
 public class HistoricalDataPoint implements IDataPointValueSource {
@@ -78,4 +81,9 @@ public class HistoricalDataPoint implements IDataPointValueSource {
     public PointValueTime getPointValueAt(long time) {
         return Common.databaseProxy.newPointValueDao().getPointValueAt(id, time);
     }
+
+	@Override
+	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
+		return new DataPointWrapper(DataPointDao.instance.get(id), rtWrapper);
+	}
 }
