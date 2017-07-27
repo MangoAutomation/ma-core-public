@@ -7,15 +7,20 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.script.ScriptException;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -24,7 +29,9 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHandlerModel;
@@ -40,6 +47,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public static final int SET_ACTION_POINT_VALUE = 1;
     public static final int SET_ACTION_STATIC_VALUE = 2;
     public static final int SET_ACTION_SCRIPT_VALUE = 3;
+    
+    public static final String TARGET_CONTEXT_KEY = "target";
 
     public static ExportCodes SET_ACTION_CODES = new ExportCodes();
     static {
@@ -58,6 +67,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     private int inactivePointId;
     private String activeScript;
     private String inactiveScript;
+    private ScriptPermissions scriptPermissions;
+    private List<IntStringPair> additionalContext;
     
     public int getTargetPointId() {
         return targetPointId;
@@ -129,6 +140,22 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     
     public void setInactiveScript(String inactiveScript) {
     	this.inactiveScript = inactiveScript;
+    }
+    
+    public ScriptPermissions getScriptPermissions() {
+    	return scriptPermissions;
+    }
+    
+    public void setScriptPermissions(ScriptPermissions scriptPermissions) {
+    	this.scriptPermissions = scriptPermissions;
+    }
+    
+    public List<IntStringPair> getAdditionalContext() {
+    	return additionalContext;
+    }
+    
+    public void setAdditionalContext(List<IntStringPair> additionalContext) {
+    	this.additionalContext = additionalContext;
     }
     
     public void validate(ProcessResult response) {
@@ -212,6 +239,31 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             		response.addGenericMessage("eventHandlers.invalidInactiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             	}
             }
+            
+            List<String> varNameSpace = new ArrayList<String>();
+            varNameSpace.add(TARGET_CONTEXT_KEY);
+            for(IntStringPair cxt : additionalContext) {
+            	if(DataPointDao.instance.get(cxt.getKey()) == null)
+            		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
+            	
+            	String varName = cxt.getValue();
+                if (StringUtils.isBlank(varName)) {
+                    response.addGenericMessage("validate.allVarNames");
+                    break;
+                }
+
+                if (!VarNames.validateVarName(varName)) {
+                    response.addGenericMessage("validate.invalidVarName", varName);
+                    break;
+                }
+
+                if (varNameSpace.contains(varName)) {
+                    response.addGenericMessage("validate.duplicateVarName", varName);
+                    break;
+                }
+
+                varNameSpace.add(varName);
+            }
         }
     }
     
@@ -220,7 +272,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 2;
+    private static final int version = 3;
     
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -233,8 +285,11 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         out.writeInt(inactivePointId);
         SerializationHelper.writeSafeUTF(out, activeScript);
         SerializationHelper.writeSafeUTF(out, inactiveScript);
+        out.writeObject(additionalContext);
+        out.writeObject(scriptPermissions);
     }
     
+    @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
 
@@ -248,6 +303,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             inactiveValueToSet = SerializationHelper.readSafeUTF(in);
             inactivePointId = in.readInt();
             activeScript = inactiveScript = null;
+            additionalContext = new ArrayList<IntStringPair>();
+            scriptPermissions = new ScriptPermissions();
         } else if (ver == 2) {
             targetPointId = in.readInt();
             activeAction = in.readInt();
@@ -258,6 +315,20 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             inactivePointId = in.readInt();
             activeScript = SerializationHelper.readSafeUTF(in);
             inactiveScript = SerializationHelper.readSafeUTF(in);
+            additionalContext = new ArrayList<IntStringPair>();
+            scriptPermissions = new ScriptPermissions();
+        } else if (ver == 3) {
+            targetPointId = in.readInt();
+            activeAction = in.readInt();
+            activeValueToSet = SerializationHelper.readSafeUTF(in);
+            activePointId = in.readInt();
+            inactiveAction = in.readInt();
+            inactiveValueToSet = SerializationHelper.readSafeUTF(in);
+            inactivePointId = in.readInt();
+            activeScript = SerializationHelper.readSafeUTF(in);
+            inactiveScript = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            scriptPermissions = (ScriptPermissions) in.readObject();
         }
     }
     
@@ -293,6 +364,24 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             writer.writeEntry("inactiveValueToSet", inactiveValueToSet);
         else if (inactiveAction == SET_ACTION_SCRIPT_VALUE)
         	writer.writeEntry("inactiveScript", inactiveScript);
+        
+        JsonArray context = new JsonArray();
+        for(IntStringPair pnt : additionalContext) {
+        	DataPointVO dpvo = DataPointDao.instance.get(pnt.getKey());
+        	if(dpvo != null) {
+        		JsonObject point = new JsonObject();
+        		point.put("dataPointXid", dpvo.getXid());
+        		point.put("contextKey", pnt.getValue());
+        		context.add(point);
+        	}
+        }
+        writer.writeEntry("additionalContext", context);
+        
+        JsonObject permissions = new JsonObject();
+        permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
+        permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
+        permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
+        writer.writeEntry("scriptPermissions", permissions);
     }
     
     @Override
@@ -368,6 +457,43 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             inactiveValueToSet = text;
         }
 
+        JsonArray context = jsonObject.getJsonArray("additionalContext");
+        if(context != null) {
+        	List<IntStringPair> additionalContext = new ArrayList<>();
+        	for(JsonValue jv : context) {
+        		JsonObject jo = jv.toJsonObject();
+        		String dataPointXid = jo.getString("dataPointXid");
+        		if(dataPointXid == null)
+        			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
+        		
+        		DataPointVO dpvo = DataPointDao.instance.getByXid(dataPointXid);
+        		if(dpvo == null)
+        			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
+        		
+        		String contextKey = jo.getString("contextKey");
+        		if(contextKey == null)
+        			throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
+        		
+        		additionalContext.add(new IntStringPair(dpvo.getId(), contextKey));
+        	}
+        	this.additionalContext = additionalContext;
+        } else
+        	this.additionalContext = new ArrayList<>();
+        
+        JsonObject permissions = jsonObject.getJsonObject("scriptPermissions");
+        ScriptPermissions scriptPermissions = new ScriptPermissions();
+        if(permissions != null) {
+        	String perm = permissions.getString(ScriptPermissions.DATA_SOURCE);
+        	if(perm != null)
+        		scriptPermissions.setDataSourcePermissions(perm);
+        	perm = permissions.getString(ScriptPermissions.DATA_POINT_READ);
+        	if(perm != null)
+        		scriptPermissions.setDataPointReadPermissions(perm);
+        	perm = permissions.getString(ScriptPermissions.DATA_POINT_SET);
+        	if(perm != null)
+        		scriptPermissions.setDataPointSetPermissions(perm);
+        }
+    	this.scriptPermissions = scriptPermissions;
     }
     
     

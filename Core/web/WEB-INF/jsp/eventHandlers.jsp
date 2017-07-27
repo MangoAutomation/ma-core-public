@@ -31,6 +31,7 @@
     dojo.require("dojo.data.ItemFileWriteStore");
     dojo.require("dojo.store.Memory");
     dojo.require("dijit.form.FilteringSelect");
+    dojo.require("dijit.form.ComboBox");
     
     var allPoints;
     var defaultHandlerId;
@@ -39,6 +40,8 @@
     var inactiveRecipients;
     var store;
     var targetPointSelector,activePointSelector,inactivePointSelector;
+    
+    var contextArray = new Array(); 
     
     // Define a convenience function for unwrapping values in the store.
     function $$(item, attr, value) {
@@ -61,6 +64,8 @@
             var pointNode, dataSourceNode, publisherNode, etNode, wid;
             
             allPoints = data.allPoints;
+            
+            dojo.forEach(allPoints, function(item) { item.fancyName = item.name; });
             
             //Create the filtering Selects for the points
             targetPointSelector = new dijit.form.FilteringSelect({
@@ -94,7 +99,55 @@
                 highlightMatch: "all",
                 queryExpr: "*\${0}*",
                 required: true
-            }, "inactivePointId");            
+            }, "inactivePointId");
+            emailAdditionalContextSelector = new dijit.form.ComboBox({
+                store: new dojo.store.Memory({data: allPoints}),
+                labelType: "html",
+                labelAttr: "fancyName",
+                searchAttr: "name",
+                autoComplete: false,
+                style: "width: 254px;",
+                queryExpr: "*\${0}*",
+                highlightMatch: "all",
+                required: false,
+                dropDownPosition: ["above"],
+                onChange: function(point) {
+                    if (this.item) {
+                        selectPoint(this.item.id);
+                        this.loadAndOpenDropDown();
+                        this.set('displayedValue',pointLookupText);
+                        if(typeof(this._startSearch) == 'function')
+                            this._startSearch(pointLookupText); //Dangerous because could change, but works!
+                   }
+                },
+                onKeyUp: function(event){
+                    pointLookupText = this.get('displayedValue');
+                }
+            }, "emailAdditionalContextSelector");
+            setpointAdditionalContextSelector = new dijit.form.ComboBox({
+                store: new dojo.store.Memory({data: allPoints}),
+                labelType: "html",
+                labelAttr: "fancyName",
+                searchAttr: "name",
+                autoComplete: false,
+                style: "width: 254px;",
+                queryExpr: "*\${0}*",
+                highlightMatch: "all",
+                required: false,
+                dropDownPosition: ["above"],
+                onChange: function(point) {
+                    if (this.item) {
+                        selectPoint(this.item.id);
+                        this.loadAndOpenDropDown();
+                        this.set('displayedValue',pointLookupText);
+                        if(typeof(this._startSearch) == 'function')
+                            this._startSearch(pointLookupText); //Dangerous because could change, but works!
+                   }
+                },
+                onKeyUp: function(event){
+                    pointLookupText = this.get('displayedValue');
+                }
+            }, "setpointAdditionalContextSelector");
             
             emailRecipients = new mango.erecip.EmailRecipients("emailRecipients",
                     "<m2m2:translate key="eventHandlers.recipTestEmailMessage" escapeDQuotes="true"/>",
@@ -379,6 +432,7 @@
         targetPointSelector.store = new dojo.store.Memory();
         for (var i=0; i<allPoints.length; i++) {
             dp = allPoints[i];
+            dp.fancyName = dp.name
             if (dp.settable)
                targetPointSelector.store.put(dp);
         }        
@@ -407,6 +461,11 @@
                 $set("inactiveAction", handler.inactiveAction);
                 activeEditor.setValue(handler.activeScript);
                 inactiveEditor.setValue(handler.inactiveScript);
+                setScriptPermissions(handler.scriptPermissions);
+                contextArray = new Array();
+                for(var k = 0; k < handler.additionalContext.length; k+=1)
+                	addToContextArray(handler.additionalContext[k].key, handler.additionalContext[k].value)
+                writeContextArray("setpointContextTable");
             }
             else if (handler.handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>') {
                 emailRecipients.updateRecipientList(handler.activeRecipients);
@@ -421,6 +480,10 @@
                 $set("includePointValueCount", handler.includePointValueCount);
                 inactiveRecipients.updateRecipientList(handler.inactiveRecipients);
                 $set("customTemplate", handler.customTemplate);
+                contextArray = new Array();
+                for(var k = 0; k < handler.additionalContext.length; k+=1)
+                	addToContextArray(handler.additionalContext[k].key, handler.additionalContext[k].value)
+                writeContextArray("emailContextTable");
             }
             else if (handler.handlerType == '<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
                 $set("activeProcessCommand", handler.activeProcessCommand);
@@ -450,10 +513,18 @@
             $set("inactiveProcessCommand", "");
             $set("inactiveProcessTimeout", 15);
             $set("includePointValueCount", 10);
+            $set("customTemplate", "");
+            
             // Clear the recipient lists.
             emailRecipients.updateRecipientList();
             escalRecipients.updateRecipientList();
             inactiveRecipients.updateRecipientList();
+            contextArray = new Array();
+            writeContextArray("emailContextTable");
+            writeContextArray("setpointContextTable");
+            
+            // Clear the script permissions.
+            setScriptPermissions({"scriptDataSourcePermission":"", "scriptDataPointReadPermission":"", "scriptDataPointSetPermission":""});
         }
         
         // Set the use source value checkbox.
@@ -606,16 +677,18 @@
             var emailList = emailRecipients.createRecipientArray();
             var escalList = escalRecipients.createRecipientArray();
             var inactiveList = inactiveRecipients.createRecipientArray();
+            var context = createContextArray();
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("customTemplate"), $get("sendEscalation"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
-                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), saveEventHandlerCB);
+                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), context, saveEventHandlerCB);
         }
         else if (handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>') {
+        	var context = createContextArray();
             EventHandlersDwr.saveSetPointEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, targetPointSelector.value,
                     $get("activeAction"), $get("setPointValueActive"), activePointSelector.value, activeEditor.getValue(), $get("inactiveAction"), 
-                    $get("setPointValueInactive"), inactivePointSelector.value, inactiveEditor.getValue(), saveEventHandlerCB);
+                    $get("setPointValueInactive"), inactivePointSelector.value, inactiveEditor.getValue(), context, getScriptPermissions(), saveEventHandlerCB);
         }
         else if ('handlerType == <c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
             EventHandlersDwr.saveProcessEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
@@ -654,7 +727,8 @@
     
     function validateScript(editor, active) {
     	var script = editor.getValue();
-   		EventHandlersDwr.validateScript(editor.getValue(), targetPointSelector.value, active, function(response) {
+   		EventHandlersDwr.validateScript(editor.getValue(), targetPointSelector.value, active, 
+   				createContextArray(), getScriptPermissions(), function(response) {
    			if(active) {
    				showDwrMessages(response.messages);
    	            hide("activeScriptValidationOutput");
@@ -706,6 +780,119 @@
         else
             hide("inactiveAddresses2");
     }
+    
+    //Controls for the extra context table in email handlers
+    function selectPoint(pointId){
+      if(!alreadyAddedToContextArray(pointId)){
+          addToContextArray(pointId, "p"+pointId);
+          var handlerType = $get(handlerTypeSelect);
+          if(handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>')
+          	writeContextArray("emailContextTable");
+          else if(handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>')
+        	  writeContextArray("setpointContextTable");
+      }
+  }
+  
+  function addToContextArray(pointId, templateKey) {
+      var data = getElement(allPoints, pointId);
+      if (data) {
+          
+          //Were we already added
+          
+          // Missing names imply that the point was deleted, so ignore.
+          contextArray[contextArray.length] = {
+              pointId : pointId,
+              pointName : data.name,
+              pointType : data.dataTypeMessage,
+              templateKey : templateKey
+          };
+          //Disable in list
+          data.fancyName = "<span class='disabled'>"+ data.name +"</span>";
+      }
+  }
+  
+  function removeFromContextArray(pointId) {
+      for (var i=contextArray.length-1; i>=0; i--) {
+          if (contextArray[i].pointId == pointId)
+              contextArray.splice(i, 1);
+      }
+      writeContextArray("emailContextTable");
+      var data = getElement(allPoints, pointId);
+      if(data)
+          data.fancyName = data.name;
+  }
+    
+    function writeContextArray(contextTable) {
+      dwr.util.removeAllRows(contextTable);
+      if (contextArray.length == 0) {
+          show($(contextTable + "Empty"));
+          hide($(contextTable + "Headers"));
+      }
+      else {
+          hide($(contextTable + "Empty"));
+          show($(contextTable + "Headers"));
+          dwr.util.addRows(contextTable, contextArray,
+              [
+                  function(data) { return data.pointName; },
+                  function(data) { return data.pointType; },
+                  function(data) {
+                          return "<input type='text' value='"+ data.templateKey +"' class='formLong' "+
+                                  "onblur='updateTemplateKey("+ data.pointId +", this.value)'/>";
+                  },
+                  function(data) { 
+                          return "<img src='images/bullet_delete.png' class='ptr' "+
+                                  "onclick='removeFromContextArray("+ data.pointId +")'/>";
+                  }
+              ],
+              {
+                  rowCreator:function(options) {
+                      var tr = document.createElement("tr");
+                      tr.className = "smRow"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
+                      return tr;
+                  },
+                  cellCreator:function(options) {
+                      var td = document.createElement("td");
+                      if (options.cellNum == 3){
+                          td.align = "center";
+                          td.id = "updateContextTd_" + options.rowData.pointId;
+                      }
+                      return td;
+                  }
+              });
+      }
+  }
+    
+  /**
+   * Does the context array already have this item
+   */
+  function alreadyAddedToContextArray(id){
+	  for(var i=0; i<contextArray.length; i++){
+	   if(contextArray[i].pointId == id)
+		   return true;
+	  }
+	  
+	  return false;
+  }
+  
+  function createContextArray() {
+      //Array of ScriptContextVariables {dataPointId, templateKey}
+      var context = new Array();
+      for (var i=0; i<contextArray.length; i++) {
+          var ctxVar = {
+                  key : contextArray[i].pointId,
+                  value : contextArray[i].templateKey,
+          };
+          context[context.length] = ctxVar;
+      }
+      return context;
+  }
+  
+  function updateTemplateKey(pointId, templateKey) {
+      for (var i=contextArray.length-1; i>=0; i--) {
+          if (contextArray[i].pointId == pointId)
+              contextArray[i].templateKey = templateKey;
+      }
+  }
   </script>
   <table class="borderDiv marB"><tr><td>
     <tag:img png="cog" title="eventHandlers.eventHandlers"/>
@@ -745,9 +932,10 @@
                   <option value="<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>"><fmt:message key="eventHandlers.type.setPoint"/></option>
                   <option value="<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>"><fmt:message key="eventHandlers.type.process"/></option>
                 </select>
-                <tag:img id="handler1Img" png="cog_wrench" title="eventHandlers.type.setPointHandler" style="display:none;"/>
-                <tag:img id="handler2Img" png="cog_email" title="eventHandlers.type.emailHandler" style="display:none;"/>
-                <tag:img id="handler3Img" png="cog_process" title="eventHandlers.type.processHandler" style="display:none;"/>
+                <%-- hardcoded the TYPE_NAMEs --%>
+                <tag:img id="handlerSET_POINTImg" png="cog_wrench" title="eventHandlers.type.setPointHandler" style="display:none;"/>
+                <tag:img id="handlerEMAILImg" png="cog_email" title="eventHandlers.type.emailHandler" style="display:none;"/>
+                <tag:img id="handlerPROCESSImg" png="cog_process" title="eventHandlers.type.processHandler" style="display:none;"/>
               </td>
             </tr>
             
@@ -842,14 +1030,54 @@
                 <div id="inactiveScriptValidationOutput" style="display:none;color:green; width: 100%px; overflow: auto"></div>
 			  </td>
             </tr>
+            <tr><td class="horzSeparator" colspan="2"></td></tr>
+            <tag:scriptPermissions></tag:scriptPermissions>
+            <tr><td class="formLabel"><fmt:message key="eventHandlers.additionalContext"/></td>
+              <td><select id="setpointAdditionalContextSelector"></select></td>
+            </tr>
+            <tr><td colspan="2">
+              <table cellspacing="1" id="contextContainer" width="100%">
+		        <tbody id="setpointContextTableEmpty" style="display:none;">
+		          <tr><td style='text-align:center;'><fmt:message key="eventHandlers.additionalContextEmpty"/></td></tr>
+		        </tbody>
+		        <tbody id="setpointContextTableHeaders" style="display:none;">
+		          <tr class="smRowHeader">
+		            <td><fmt:message key="common.pointName"/></td>
+		            <td><fmt:message key="dsEdit.pointDataType"/></td>
+		            <td><fmt:message key="pointEdit.text.key"/></td>
+		            <td></td>
+		          </tr>
+		        </tbody>
+		        <tbody id="setpointContextTable"></tbody>
+		      </table></td>
+		    </tr>
           </table>
             
           <table id="handler<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>" style="display:none; width: 100%">
             <tbody id="emailRecipients"></tbody>
             
             <tr><td class="horzSeparator" colspan="2"></td></tr>
+            <tr><td class="formLabel"><fmt:message key="eventHandlers.additionalContext"/></td>
+              <td><select id="emailAdditionalContextSelector"></select></td>
+            </tr>
+            <tr><td colspan="2">
+              <table cellspacing="1" id="contextContainer" width="100%">
+		        <tbody id="emailContextTableEmpty" style="display:none;">
+		          <tr><td style='text-align:center;'><fmt:message key="eventHandlers.additionalContextEmpty"/></td></tr>
+		        </tbody>
+		        <tbody id="emailContextTableHeaders" style="display:none;">
+		          <tr class="smRowHeader">
+		            <td><fmt:message key="common.pointName"/></td>
+		            <td><fmt:message key="dsEdit.pointDataType"/></td>
+		            <td><fmt:message key="pointEdit.text.key"/></td>
+		            <td></td>
+		          </tr>
+		        </tbody>
+		        <tbody id="emailContextTable"></tbody>
+		      </table></td>
+		    </tr>
             <tr><td class="formLabel"><fmt:message key="eventHandlers.customTemplate"/></td>
-            <td class="formField"><textarea id="customTemplate"></textarea></td>
+              <td class="formField"><textarea id="customTemplate"></textarea></td></tr>
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.includeSystemInfo"/></td>
               <td class="formField"><input id="includeSystemInfo" type="checkbox" /></td>

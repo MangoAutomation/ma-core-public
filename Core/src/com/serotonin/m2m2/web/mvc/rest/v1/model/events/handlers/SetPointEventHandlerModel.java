@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers;
 
+import java.util.List;
+
+import com.serotonin.db.pair.IntStringPair;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
 /**
@@ -93,5 +97,21 @@ public class SetPointEventHandlerModel extends AbstractEventHandlerModel<SetPoin
     
     public void setInactiveScript(String inactiveScript){
     	this.data.setInactiveScript(inactiveScript);
+    }
+    
+    public List<IntStringPair> getAdditionalContext() {
+    	return this.data.getAdditionalContext();
+    }
+    
+    public void setAdditionalContext(List<IntStringPair> additionalContext) {
+    	this.data.setAdditionalContext(additionalContext);
+    }
+    
+    public ScriptPermissions getScriptPermissions() {
+    	return this.data.getScriptPermissions();
+    }
+    
+    public void setScriptPermissions(ScriptPermissions scriptPermissions) {
+    	this.data.setScriptPermissions(scriptPermissions);
     }
 }

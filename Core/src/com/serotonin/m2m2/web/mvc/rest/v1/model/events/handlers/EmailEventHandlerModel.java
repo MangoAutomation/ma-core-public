@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
@@ -144,4 +145,11 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 		this.data.setCustomTemplate(customTemplate);
 	}
 	
+	public List<IntStringPair> getAdditionalContext() {
+		return this.data.getAdditionalContext();
+	}
+	
+	public void setAdditionalContext(List<IntStringPair> additionalContext) {
+		this.data.setAdditionalContext(additionalContext);
+	}
 }

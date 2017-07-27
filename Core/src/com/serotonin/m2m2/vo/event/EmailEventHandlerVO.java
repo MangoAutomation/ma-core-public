@@ -7,21 +7,29 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.util.VarNames;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandlerModel;
@@ -58,6 +66,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private int includePointValueCount = 10;
     private boolean includeLogfile;
     private String customTemplate;
+    private List<IntStringPair> additionalContext;
     
     public List<RecipientListEntryBean> getActiveRecipients() {
         return activeRecipients;
@@ -153,6 +162,14 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	public void setCustomTemplate(String customTemplate) {
 		this.customTemplate = customTemplate;
 	}
+	
+	public List<IntStringPair> getAdditionalContext() {
+		return additionalContext;
+	}
+	
+	public void setAdditionalContext(List<IntStringPair> additionalContext) {
+		this.additionalContext = additionalContext;
+	}
 
 	@Override
 	public void validate(ProcessResult response) {
@@ -171,6 +188,30 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             if (inactiveRecipients.isEmpty())
                 response.addGenericMessage("eventHandlers.noInactiveRecips");
         }
+        
+        List<String> varNameSpace = new ArrayList<String>();
+        for(IntStringPair cxt : additionalContext) {
+        	if(DataPointDao.instance.get(cxt.getKey()) == null)
+        		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
+        	
+        	String varName = cxt.getValue();
+            if (StringUtils.isBlank(varName)) {
+                response.addGenericMessage("validate.allVarNames");
+                break;
+            }
+
+            if (!VarNames.validateVarName(varName)) {
+                response.addGenericMessage("validate.invalidVarName", varName);
+                break;
+            }
+
+            if (varNameSpace.contains(varName)) {
+                response.addGenericMessage("validate.duplicateVarName", varName);
+                break;
+            }
+
+            varNameSpace.add(varName);
+        }
 	}
     
 	//
@@ -178,7 +219,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 2;
+    private static final int version = 3;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
     	out.writeInt(version);
@@ -194,6 +235,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         out.writeInt(includePointValueCount);
         out.writeBoolean(includeLogfile);
         SerializationHelper.writeSafeUTF(out, customTemplate);
+        out.writeObject(additionalContext);
     }
 	
     @SuppressWarnings("unchecked")
@@ -215,6 +257,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
             customTemplate = null;
+            additionalContext = new ArrayList<IntStringPair>();
         }
         else if (ver == 2) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -232,6 +275,25 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = new ArrayList<IntStringPair>();
+        }
+        else if (ver == 3) {
+        	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
         }
     }
     
@@ -255,6 +317,18 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         writer.writeEntry("includePointValueCount", includePointValueCount);
         writer.writeEntry("includeLogfile", includeLogfile);
         writer.writeEntry("customTemplate", customTemplate);
+        
+        JsonArray context = new JsonArray();
+        for(IntStringPair pnt : additionalContext) {
+        	DataPointVO dpvo = DataPointDao.instance.get(pnt.getKey());
+        	if(dpvo != null) {
+        		JsonObject point = new JsonObject();
+        		point.put("dataPointXid", dpvo.getXid());
+        		point.put("contextKey", pnt.getValue());
+        		context.add(point);
+        	}
+        }
+        writer.writeEntry("additionalContext", context);
     }
     
     @SuppressWarnings("unchecked")
@@ -321,6 +395,28 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         
         customTemplate = jsonObject.getString("customTemplate");
         
+        JsonArray context = jsonObject.getJsonArray("additionalContext");
+        if(context != null) {
+        	List<IntStringPair> additionalContext = new ArrayList<>();
+        	for(JsonValue jv : context) {
+        		JsonObject jo = jv.toJsonObject();
+        		String dataPointXid = jo.getString("dataPointXid");
+        		if(dataPointXid == null)
+        			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
+        		
+        		DataPointVO dpvo = DataPointDao.instance.getByXid(dataPointXid);
+        		if(dpvo == null)
+        			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
+        		
+        		String contextKey = jo.getString("contextKey");
+        		if(contextKey == null)
+        			throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
+        		
+        		additionalContext.add(new IntStringPair(dpvo.getId(), contextKey));
+        	}
+        	this.additionalContext = additionalContext;
+        } else
+        	this.additionalContext = new ArrayList<>();
     }
     
     @Override

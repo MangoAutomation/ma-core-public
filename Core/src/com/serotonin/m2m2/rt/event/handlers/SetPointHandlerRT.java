@@ -18,6 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.NullWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -131,11 +132,17 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         		return;
         	}
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
-        	context.put("target", targetPoint);
-        	try { //TODO flesh out script permissions stuff
+        	context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, targetPoint);
+        	try {
+        		for(IntStringPair cxt : vo.getAdditionalContext()) {
+        			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
+        			if(dprt != null)
+        				context.put(cxt.getValue(), dprt);
+        		}
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, new HashMap<String, Object>(), evt.getActiveTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), 
+	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), 
 	        			null, importExclusions, false);
+
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getCause().getMessage()), evt.getEventType());

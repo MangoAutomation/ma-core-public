@@ -21,6 +21,9 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  */
 public class ScriptPermissions implements Serializable{
 	
+	public static final String DATA_SOURCE = "scriptDataSourcePermission";
+	public static final String DATA_POINT_READ = "scriptDataPointReadPermission";
+	public static final String DATA_POINT_SET = "scriptDataPointSetPermission";
 	/**
 	 * 
 	 */
@@ -84,9 +87,9 @@ public class ScriptPermissions implements Serializable{
 	
 	public void validate(ProcessResult response, User user){
 		if(user == null){
-			response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermission","No User Found");
-			response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermission","No User Found");
-			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermission","No User Found");
+			response.addContextualMessage(DATA_SOURCE, "validate.invalidPermission","No User Found");
+			response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermission","No User Found");
+			response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermission","No User Found");
 			return;
 		}
 		
@@ -97,17 +100,17 @@ public class ScriptPermissions implements Serializable{
 		if((!this.dataSourcePermissions.isEmpty())&&(!Permissions.hasPermission(this.dataSourcePermissions, user.getPermissions()))){
 			Set<String> invalid = Permissions.findInvalidPermissions(this.dataSourcePermissions, user.getPermissions());
 			String notGranted = Permissions.implodePermissionGroups(invalid);
-			response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermission", notGranted);
+			response.addContextualMessage(DATA_SOURCE, "validate.invalidPermission", notGranted);
 		}
 		if((!this.dataPointSetPermissions.isEmpty())&&(!Permissions.hasPermission(this.dataPointSetPermissions, user.getPermissions()))){
 			Set<String> invalid = Permissions.findInvalidPermissions(this.dataPointSetPermissions, user.getPermissions());
 			String notGranted = Permissions.implodePermissionGroups(invalid);
-			response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermission", notGranted);
+			response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermission", notGranted);
 		}
 		if((!this.dataPointReadPermissions.isEmpty())&&(!Permissions.hasPermission(this.dataPointReadPermissions, user.getPermissions()))){
 			Set<String> invalid = Permissions.findInvalidPermissions(this.dataPointReadPermissions, user.getPermissions());
 			String notGranted = Permissions.implodePermissionGroups(invalid);
-			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermission", notGranted);
+			response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermission", notGranted);
 		}
 	}
 	
@@ -118,31 +121,31 @@ public class ScriptPermissions implements Serializable{
 		Set<String> nonUserPre = Permissions.findInvalidPermissions(oldPermissions.getDataSourcePermissions(), user.getPermissions());
 		Set<String> nonUserPost = Permissions.findInvalidPermissions(this.dataSourcePermissions, user.getPermissions());
 		if(nonUserPre.size() != nonUserPost.size())
-			response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermissionModification", user.getPermissions());
+			response.addContextualMessage(DATA_SOURCE, "validate.invalidPermissionModification", user.getPermissions());
 		else {
 			for(String s : nonUserPre)
 				if(!nonUserPost.contains(s))
-					response.addContextualMessage("scriptDataSourcePermission", "validate.invalidPermissionModification", user.getPermissions());
+					response.addContextualMessage(DATA_SOURCE, "validate.invalidPermissionModification", user.getPermissions());
 		}
 		
 		nonUserPre = Permissions.findInvalidPermissions(oldPermissions.getDataPointSetPermissions(), user.getPermissions());
 		nonUserPost = Permissions.findInvalidPermissions(this.dataPointSetPermissions, user.getPermissions());
 		if(nonUserPre.size() != nonUserPost.size())
-			response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermissionModification", user.getPermissions());
+			response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermissionModification", user.getPermissions());
 		else {
 			for(String s : nonUserPre)
 				if(!nonUserPost.contains(s))
-					response.addContextualMessage("scriptDataPointSetPermission", "validate.invalidPermissionModification", user.getPermissions());
+					response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermissionModification", user.getPermissions());
 		}
 		
 		nonUserPre = Permissions.findInvalidPermissions(oldPermissions.getDataPointReadPermissions(), user.getPermissions());
 		nonUserPost = Permissions.findInvalidPermissions(this.dataPointReadPermissions, user.getPermissions());
 		if(nonUserPre.size() != nonUserPost.size())
-			response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermissionModification", user.getPermissions());
+			response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermissionModification", user.getPermissions());
 		else {
 			for(String s : nonUserPre)
 				if(!nonUserPost.contains(s))
-					response.addContextualMessage("scriptDataPointReadPermission", "validate.invalidPermissionModification", user.getPermissions());
+					response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermissionModification", user.getPermissions());
 		}
 	}
 }
