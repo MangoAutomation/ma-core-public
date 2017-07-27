@@ -28,16 +28,21 @@ import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
 import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
+import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
+import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
+import com.serotonin.m2m2.rt.script.ScriptUtils;
 import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
 
@@ -47,6 +52,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
     private CompiledScript inactiveScript;
     private final List<JsonImportExclusion> importExclusions;
     public static final PrintWriter NULL_WRITER = new PrintWriter(new NullWriter());
+    private final SetCallback setCallback;
 
     public SetPointHandlerRT(SetPointEventHandlerVO vo) {
         super(vo);
@@ -80,6 +86,11 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	});
         } else
         	importExclusions = null;
+        
+        if(activeScript != null || inactiveScript != null)
+        	setCallback = new SetCallback(vo.getScriptPermissions());
+        else
+        	setCallback = null;
     }
 
     @Override
@@ -141,7 +152,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         		}
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, new HashMap<String, Object>(), evt.getActiveTimestamp(), 
 	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), 
-	        			null, importExclusions, false);
+	        			setCallback, importExclusions, false);
 
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
@@ -213,7 +224,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	try {
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, new HashMap<String, Object>(), evt.getRtnTimestamp(), 
 	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL),
-	        			null, importExclusions, false);
+	        			setCallback, importExclusions, false);
 	        	value = pvt.getValue();
         	} catch(ScriptException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getCause().getMessage()), evt.getEventType());
@@ -268,5 +279,41 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
     public void raiseRecursionFailureEvent() {
         raiseFailureEvent(new TranslatableMessage("event.setPoint.recursionFailure"), null);
+    }
+    
+    class SetCallback extends ScriptPointValueSetter {
+        public SetCallback(ScriptPermissions permissions) {
+			super(permissions);
+		}
+
+		/*
+         * (non-Javadoc)
+         * 
+         * @see
+         * com.serotonin.mango.util.script.ScriptPointValueSetter#setImpl(com.serotonin.mango.rt.dataImage.IDataPointValueSource,
+         * java.lang.Object, long)
+         */
+        @Override
+        public void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+            DataPointRT dprt = (DataPointRT) point;
+
+            // We may, however, need to coerce the given value.
+            try {
+                DataValue mangoValue = ScriptUtils.coerce(value, dprt.getDataTypeId());
+                SetPointSource source;
+                PointValueTime newValue = new PointValueTime(mangoValue, timestamp);
+                if(StringUtils.isBlank(annotation))
+                	source = SetPointHandlerRT.this;
+                else
+                	source = new OneTimePointAnnotation(SetPointHandlerRT.this, annotation);
+                
+                DataSourceRT<? extends DataSourceVO<?>> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
+                dsrt.setPointValue(dprt, newValue, source);
+            }
+            catch (ResultTypeException e) {
+                // Raise an event
+            	raiseFailureEvent(e.getTranslatableMessage(), null);
+            }
+        }
     }
 }
