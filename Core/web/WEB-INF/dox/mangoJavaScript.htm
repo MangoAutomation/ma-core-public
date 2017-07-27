@@ -86,6 +86,15 @@ The following fields can be useful for conversions:</p>
 <p>
   The <b>pointValueAt(timestamp)</b> function returns the a point value/time object that was recorded exactly at the timestamp, or null if there is not one.
 </p>
+<p>
+  The <b>set(value)</b> function attempts to set the value to the context point through the point's data source (i.e. sending the set out to the device).
+</p>
+<p>
+  The <b>set(value, timestamp)</b> function is the same as set(value) but with a timestamp for the new value supplied. Use new Date().getTime() to get the current time.
+</p>
+<p>
+  The <b>set(value, timestamp, annotation)</b> function is the same as set(value, timestamp) but also sets the annotation on the point value to the supplied annotation.
+</p>
 
 <h1>Statistics objects</h1>
 <p>Statistics objects are returned from the past(), prev(), and previous(), getStats(from, to) functions. (See "Context objects" above.) The properties of the object returned depend upon the data type of point upon which they were generated. Time values in objects are stored as integers, but but represent the number of milliseconds since midnight Jan 1, 1970.</p>
@@ -286,9 +295,9 @@ object will contain:</p>
 </ul>
 
 <h2>JsonEmport utility</h2>
-<p>The JsonEmport utility provides methods to pass JSON or get JSON as one would through an import/export page. One should take care
-not to import points on the data source / script or the data source itself, lest the possibility to lock up the script exists. 
-This utility is accessible through the context key "JsonEmport" and has the following functions:</p>
+<p>The JsonEmport utility provides methods to pass JSON or get JSON as one would through an import/export page. A script cannot save itself
+through the emport utility. If it tried, that item in the JSON will be ignored. This utility is accessible through the context 
+key "JsonEmport" and has the following functions:</p>
 <ul>	
 <li>getFullConfiguration(): String</li>
 <li>getConfiguration(String): String</li> 
