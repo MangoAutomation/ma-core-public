@@ -12,6 +12,7 @@ import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
 
 /**
  * @author Matthew Lohbihler
@@ -87,7 +88,7 @@ public class SetPointWorkItem implements WorkItem {
 	 */
 	@Override
 	public int getQueueSize() {
-		return Common.defaultTaskQueueSize;
+		return Task.UNLIMITED_QUEUE_SIZE;
 	}
 	
 	/* (non-Javadoc)
