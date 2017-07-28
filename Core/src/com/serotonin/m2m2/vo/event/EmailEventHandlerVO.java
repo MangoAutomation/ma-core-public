@@ -66,7 +66,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private int includePointValueCount = 10;
     private boolean includeLogfile;
     private String customTemplate;
-    private List<IntStringPair> additionalContext;
+    private List<IntStringPair> additionalContext = new ArrayList<IntStringPair>();
     
     public List<RecipientListEntryBean> getActiveRecipients() {
         return activeRecipients;
@@ -190,27 +190,31 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }
         
         List<String> varNameSpace = new ArrayList<String>();
-        for(IntStringPair cxt : additionalContext) {
-        	if(DataPointDao.instance.get(cxt.getKey()) == null)
-        		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
-        	
-        	String varName = cxt.getValue();
-            if (StringUtils.isBlank(varName)) {
-                response.addGenericMessage("validate.allVarNames");
-                break;
-            }
-
-            if (!VarNames.validateVarName(varName)) {
-                response.addGenericMessage("validate.invalidVarName", varName);
-                break;
-            }
-
-            if (varNameSpace.contains(varName)) {
-                response.addGenericMessage("validate.duplicateVarName", varName);
-                break;
-            }
-
-            varNameSpace.add(varName);
+        if(additionalContext != null){
+	        for(IntStringPair cxt : additionalContext) {
+	        	if(DataPointDao.instance.get(cxt.getKey()) == null)
+	        		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
+	        	
+	        	String varName = cxt.getValue();
+	            if (StringUtils.isBlank(varName)) {
+	                response.addGenericMessage("validate.allVarNames");
+	                break;
+	            }
+	
+	            if (!VarNames.validateVarName(varName)) {
+	                response.addGenericMessage("validate.invalidVarName", varName);
+	                break;
+	            }
+	
+	            if (varNameSpace.contains(varName)) {
+	                response.addGenericMessage("validate.duplicateVarName", varName);
+	                break;
+	            }
+	
+	            varNameSpace.add(varName);
+	        }
+        }else{
+        	additionalContext = new ArrayList<>();
         }
 	}
     
