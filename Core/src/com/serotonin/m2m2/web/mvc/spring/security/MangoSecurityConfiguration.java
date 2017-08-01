@@ -510,6 +510,8 @@ public class MangoSecurityConfiguration {
                 .antMatchers("/modules/**").denyAll()
                 // Access to *.shtm files must be authenticated
                 .antMatchers("/**/*.shtm").authenticated()
+                //Access to protected folder
+                .antMatchers("/protected/**").authenticated()
                 // Default to permit all
                 .anyRequest().permitAll()
                 .and()
