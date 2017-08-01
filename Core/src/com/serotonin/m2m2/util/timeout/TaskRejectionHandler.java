@@ -66,11 +66,9 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 		
 		String id = reason.getTask().getId();
 		if(id != null){
-			RejectedTaskStats stats = this.statsMap.get(id);
-			if(stats == null){
-				stats = new RejectedTaskStats(id, reason.getTask().getName(), this.logPeriod);
-				this.statsMap.put(id, stats);
-			}
+			RejectedTaskStats stats = this.statsMap.computeIfAbsent(id, (k) -> {
+				return new RejectedTaskStats(id, reason.getTask().getName(), this.logPeriod);
+			});
 	
 			//Is it time to
 			if(log.isWarnEnabled() && stats.update(reason))
