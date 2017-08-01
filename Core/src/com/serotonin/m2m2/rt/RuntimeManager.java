@@ -583,16 +583,15 @@ public class RuntimeManager implements ILifecycle{
     }
 
     public void addDataPointListener(int dataPointId, DataPointListener l) {
-        DataPointListener listeners = dataPointListeners.get(dataPointId);
-        dataPointListeners.put(dataPointId, DataPointEventMulticaster.add(listeners, l));
+    	dataPointListeners.compute(dataPointId, (k, v) -> {
+	        return DataPointEventMulticaster.add(v, l);
+    	});
     }
 
     public void removeDataPointListener(int dataPointId, DataPointListener l) {
-    	DataPointListener listeners = DataPointEventMulticaster.remove(dataPointListeners.get(dataPointId), l);
-        if (listeners == null)
-            dataPointListeners.remove(dataPointId);
-        else
-            dataPointListeners.put(dataPointId, listeners);
+    	dataPointListeners.compute(dataPointId, (k, v) -> {
+    		return DataPointEventMulticaster.remove(v, l);
+    	});
     }
 
     public DataPointListener getDataPointListeners(int dataPointId) {
