@@ -67,18 +67,21 @@ public class ImageChartServlet extends BaseInfoServlet {
     	
         String imageInfo = request.getPathInfo();
 
-        CacheElement ce = cachedImages.get(imageInfo);
-        byte[] data;
-        if (ce == null) {
-            data = getImageData(imageInfo, request);
-            if (data == null)
-                return;
-            cachedImages.put(imageInfo, new CacheElement(data));
-        }
-        else
-            data = ce.getData();
+        CacheElement ce = cachedImages.compute(imageInfo, (k, v) -> {
+        	if(v == null) {
+        		try {
+        			byte[] data = getImageData(imageInfo, request);
+					if(data == null)
+	        			return null;
+	        		return new CacheElement(data);
+				} catch (IOException e) {
+					return null;
+				}
+        	}
+        	return v;
+        });
 
-        ImageChartUtils.writeChart(response, data);
+        ImageChartUtils.writeChart(response, ce.getData());
 
         tryCachePurge();
     }
