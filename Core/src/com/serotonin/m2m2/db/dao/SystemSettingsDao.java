@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -433,6 +434,18 @@ public class SystemSettingsDao extends BaseDao {
         	if(modDefaults != null)
         		DEFAULT_VALUES.putAll(modDefaults);
         	modDefaults = null;
+        }
+        
+        for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
+        	String defaultValue = "";
+        	if(def.getValue().getDefaultGroups() != null)
+        		for(String s : def.getValue().getDefaultGroups()) {
+        			if(defaultValue.isEmpty())
+        				defaultValue += s;
+        			else
+        				defaultValue += ","+s;
+        		}
+        	DEFAULT_VALUES.put(def.getKey(), defaultValue);
         }
     }
 
