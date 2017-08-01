@@ -103,14 +103,11 @@ public class UserEventCache extends TimeoutClient{
      * @return
      */
     public List<EventInstance> getAllEvents(Integer userId) {
-        UserEventCacheEntry c = cacheMap.get(userId);
-        if (c == null){
-            List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
-        	cacheMap.put(userId, new UserEventCacheEntry(userEvents));
-        	return userEvents;
-        }else {
-            return c.getEvents();
-        }
+        UserEventCacheEntry c = cacheMap.computeIfAbsent(userId, (k) -> {
+        	List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
+        	return new UserEventCacheEntry(userEvents);
+        });
+        return c.getEvents();
     }
     
     /**
