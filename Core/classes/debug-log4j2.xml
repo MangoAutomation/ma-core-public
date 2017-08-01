@@ -50,7 +50,7 @@
 		<Logger name="com.serotonin.m2m2.persistent" level="debug"/>
 		<Logger name="com.serotonin" level="warn"/>
 		<Logger name="com.infiniteautomation" level="debug"/>
-		<Logger name="org.perf4j.TimingLogger" level="info"/>
+		<Logger name="com.serotonin.log.LogStopWatch" level="info"/>
 		<Logger name="com.serotonin.modbus4j" level="info"/>
 		<Logger name="org.tinytsdb" level="debug"/>
 		<Logger name="com.mangofactory" level="debug"/>

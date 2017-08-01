@@ -6,9 +6,7 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.List;
 
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 
@@ -69,9 +67,9 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 	 * @return
 	 */
 	public List<T> immediateQuery(){
-        StopWatch stopWatch = null;
+		LogStopWatch stopWatch = null;
         if(this.useMetrics)
-        	 stopWatch = new Log4JStopWatch();
+        	 stopWatch = new LogStopWatch();
 		
 		List<T> list = this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper());
 		if(this.useMetrics)
@@ -86,9 +84,9 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 		if(countSql == null)
 			return 0;
 
-        StopWatch stopWatch = null;
+		LogStopWatch stopWatch = null;
         if(this.useMetrics)
-        	 stopWatch = new Log4JStopWatch();
+        	 stopWatch = new LogStopWatch();
 
         long count = this.dao.queryForObject(countSql, countArgs.toArray(), Long.class , new Long(0));
         if(this.useMetrics)

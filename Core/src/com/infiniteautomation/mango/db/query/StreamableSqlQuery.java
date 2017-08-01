@@ -11,11 +11,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 
@@ -77,9 +76,9 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	 * Execute the Query
 	 */
 	public void query() throws IOException{
-        StopWatch stopWatch = null;
+		LogStopWatch stopWatch = null;
         if(this.useMetrics)
-        	 stopWatch = new Log4JStopWatch();
+        	 stopWatch = new LogStopWatch();
         try{
 	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs, stream);
 	        ResultSet rs = statement.executeQuery();
@@ -112,9 +111,9 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	public void count() throws IOException{
 		if(countSql == null)
 			return;
-        StopWatch stopWatch = null;
+		LogStopWatch stopWatch = null;
         if(this.useMetrics)
-        	 stopWatch = new Log4JStopWatch();
+        	 stopWatch = new LogStopWatch();
         try{
 	        PreparedStatement statement = this.dao.createPreparedStatement(countSql, countArgs, stream);
 	        try{

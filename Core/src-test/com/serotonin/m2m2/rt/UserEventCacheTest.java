@@ -16,9 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
 
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -85,7 +84,7 @@ public class UserEventCacheTest extends MangoTestBase{
 			when(eventDao.getAllUnsilencedEvents(i)).thenReturn(new ArrayList<EventInstance>());
 		}
 		
-		StopWatch timer = new Log4JStopWatch();
+		LogStopWatch timer = new LogStopWatch();
 		
 		//Start User Threads
 		for(UserThread ut : userThreads)
@@ -103,7 +102,7 @@ public class UserEventCacheTest extends MangoTestBase{
 				}
 			}
 		}
-		timer.stop();
+		timer.stop("");
 	}
 	
 	class EventGeneratorThread extends Thread{

@@ -6,11 +6,9 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
 
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -64,9 +62,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public List<PointValueTime> getPointValues(int pointId, long since) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getPointValues(pointId, since);
-    	stopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + "){" + values.size() +"}");
+    	LogStopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + "){" + values.size() +"}");
     	return values;
 	}
 
@@ -76,9 +74,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public List<PointValueTime> getPointValuesBetween(int pointId, long from,
 			long to) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getPointValuesBetween(pointId, from,to);
-    	stopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + "){" + values.size() +"}");
+    	LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + "){" + values.size() +"}");
     	return values;
 
 	}
@@ -88,9 +86,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public List<PointValueTime> getLatestPointValues(int pointId, int limit) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit);
-		stopWatch.stop("getLatestPointValues(pointId,limit) (" + pointId + ", " + limit + "){" + values.size() +"}");
+		LogStopWatch.stop("getLatestPointValues(pointId,limit) (" + pointId + ", " + limit + "){" + values.size() +"}");
     	return values;
 	}
 
@@ -100,9 +98,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public List<PointValueTime> getLatestPointValues(int pointId, int limit,
 			long before) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit,before);
-		stopWatch.stop("getLatestPointValues(pointId,limit,before) (" + pointId +", " + limit + ", " + before + "){" + values.size() +"}");
+		LogStopWatch.stop("getLatestPointValues(pointId,limit,before) (" + pointId +", " + limit + ", " + before + "){" + values.size() +"}");
     	return values;
 	}
 
@@ -111,9 +109,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getLatestPointValue(int pointId) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.getLatestPointValue(pointId);
-		stopWatch.stop("getLatestPointValue(pointId) (" + pointId + "){" + (value != null ? 1 : 0) + "}");
+		LogStopWatch.stop("getLatestPointValue(pointId) (" + pointId + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -122,9 +120,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getPointValueBefore(int pointId, long time) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.getPointValueBefore(pointId,time);
-    	stopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
+    	LogStopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -133,9 +131,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getPointValueAfter(int pointId, long time) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.getPointValueAfter(pointId,time);
-		stopWatch.stop("getPointValueAfter(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
+		LogStopWatch.stop("getPointValueAfter(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -144,9 +142,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime getPointValueAt(int pointId, long time) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.getPointValueAt(pointId,time);
-		stopWatch.stop("getPointValueAt(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
+		LogStopWatch.stop("getPointValueAt(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}");
     	return value;
 	}
 
@@ -156,9 +154,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public void getPointValuesBetween(int pointId, long from, long to,
 			MappedRowCallback<PointValueTime> callback) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.getPointValuesBetween(pointId,from,to,callback);
-		stopWatch.stop("getPointValuesBetween(pointId,from,to,callback) + (" + pointId + ", " + from + ", " + to + ", " + callback.toString() + ")");
+		LogStopWatch.stop("getPointValuesBetween(pointId,from,to,callback) + (" + pointId + ", " + from + ", " + to + ", " + callback.toString() + ")");
 	}
 
 	/* (non-Javadoc)
@@ -167,7 +165,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 	@Override
 	public void getPointValuesBetween(List<Integer> pointIds, long from,
 			long to, MappedRowCallback<IdPointValueTime> callback) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.getPointValuesBetween(pointIds,from,to,callback);
     	String sqlIn = "[";
 		for(int i=0; i<pointIds.size(); i++){
@@ -176,7 +174,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-		stopWatch.stop("getPointValuesBetween(pointIds,from,to,callback) ("+ sqlIn + ", " + from + ", " + to + ", " + callback.toString() + ")" );
+		LogStopWatch.stop("getPointValuesBetween(pointIds,from,to,callback) ("+ sqlIn + ", " + from + ", " + to + ", " + callback.toString() + ")" );
 		
 	}
 
@@ -185,9 +183,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public void wideQuery(int pointId, long from, long to, WideQueryCallback<PointValueTime> callback) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.wideQuery(pointId, from , to, callback);
-		stopWatch.stop("wideQuery(pointId,from,to,callback) ("+ pointId + ", " + from + ", " + to + ", " + callback.toString() + ")" );
+		LogStopWatch.stop("wideQuery(pointId,from,to,callback) ("+ pointId + ", " + from + ", " + to + ", " + callback.toString() + ")" );
 	}
 	
 	/* (non-Javadoc)
@@ -195,9 +193,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValuesBefore(int pointId, long time) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.deletePointValuesBefore(pointId,time);
-		stopWatch.stop("deletePointValuesBefore(pointId,time) (" + pointId + ", " + time + ")");
+		LogStopWatch.stop("deletePointValuesBefore(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 
 	}
@@ -207,9 +205,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValues(int pointId) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.deletePointValues(pointId);
-		stopWatch.stop("deletePointValues(pointId) (" + pointId + ")");
+		LogStopWatch.stop("deletePointValues(pointId) (" + pointId + ")");
     	return value;
 	}
 
@@ -218,9 +216,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deleteAllPointData() {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.deleteAllPointData();
-		stopWatch.stop("deleteAllPointData()");
+		LogStopWatch.stop("deleteAllPointData()");
     	return value;
 	}
 
@@ -229,9 +227,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deleteOrphanedPointValues() {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.deleteOrphanedPointValues();
-		stopWatch.stop("deleteOrphanedPointValues()");
+		LogStopWatch.stop("deleteOrphanedPointValues()");
     	return value;
 	}
 
@@ -240,9 +238,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public void deleteOrphanedPointValueAnnotations() {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.deleteOrphanedPointValueAnnotations();
-		stopWatch.stop("deleteOrphanedPointValueAnnotations()");
+		LogStopWatch.stop("deleteOrphanedPointValueAnnotations()");
     	return;
 		
 	}
@@ -252,9 +250,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long dateRangeCount(int pointId, long from, long to) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.dateRangeCount(pointId, from, to);
-		stopWatch.stop("dateRangeCount(pointId,from,to) (" + pointId + ", " + from + ", " + to + ")");
+		LogStopWatch.stop("dateRangeCount(pointId,from,to) (" + pointId + ", " + from + ", " + to + ")");
     	return value;
 	}
 
@@ -263,9 +261,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long getInceptionDate(int pointId) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.getInceptionDate(pointId);
-		stopWatch.stop("getInceptionDate(pointId) (" + pointId + ")"); 
+		LogStopWatch.stop("getInceptionDate(pointId) (" + pointId + ")"); 
     	return value;
 	}
 
@@ -274,7 +272,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long getStartTime(List<Integer> pointIds) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long result = dao.getStartTime(pointIds);
 
     	String sqlIn = "[";
@@ -284,7 +282,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-		stopWatch.stop("getStartTime(pointIds) (" + sqlIn + ")");
+		LogStopWatch.stop("getStartTime(pointIds) (" + sqlIn + ")");
     	return result;
 	}
 
@@ -293,7 +291,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long getEndTime(List<Integer> pointIds) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long result = dao.getEndTime(pointIds);
 		
     	String sqlIn = "[";
@@ -303,7 +301,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-    	stopWatch.stop("getEndTime(pointIds) (" + sqlIn + ")");
+    	LogStopWatch.stop("getEndTime(pointIds) (" + sqlIn + ")");
     	return result;
 	}
 
@@ -312,7 +310,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public LongPair getStartAndEndTime(List<Integer> pointIds) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		LongPair result = dao.getStartAndEndTime(pointIds);
 		
     	String sqlIn = "[";
@@ -322,7 +320,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 				sqlIn += ",";
 		}
 		sqlIn += "]";
-		stopWatch.stop("getStartAndEndTime(pointIds) + (" + sqlIn + ")");
+		LogStopWatch.stop("getStartAndEndTime(pointIds) + (" + sqlIn + ")");
     	return result;
 	}
 
@@ -331,9 +329,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public List<Long> getFiledataIds(int pointId) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<Long> value = dao.getFiledataIds(pointId);
-		stopWatch.stop("getFiledataIds(pointId) (" + pointId + ")");
+		LogStopWatch.stop("getFiledataIds(pointId) (" + pointId + ")");
     	return value;
 	}
 
@@ -342,9 +340,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public void updatePointValueAsync(int id, PointValueTime pvt, SetPointSource source) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.updatePointValueAsync(id, pvt, source);
-		stopWatch.stop("updatePointValueAsync(id, ts, source) (" + id + ", pvt)");
+		LogStopWatch.stop("updatePointValueAsync(id, ts, source) (" + id + ", pvt)");
 		
 	}
 
@@ -353,9 +351,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public PointValueTime updatePointValueSync(int dataPointId, PointValueTime pvt, SetPointSource source) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.updatePointValueSync(dataPointId, pvt, source);
-		stopWatch.stop("updatePointValuesSync(dataPointId, ts, source) (" + dataPointId + ", pvt, source)" );
+		LogStopWatch.stop("updatePointValuesSync(dataPointId, ts, source) (" + dataPointId + ", pvt, source)" );
     	return value;
 	}
 
@@ -365,9 +363,9 @@ public class PointValueDaoMetrics implements PointValueDao{
 	 */
 	@Override
 	public long deletePointValue(int dataPointId, long ts) {
-		StopWatch stopWatch = new Log4JStopWatch();
+		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.deletePointValue(dataPointId, ts);
-		stopWatch.stop("deletePointValue(dataPointId, ts) + (" + dataPointId + ", " + ts + ")");
+		LogStopWatch.stop("deletePointValue(dataPointId, ts) + (" + dataPointId + ", " + ts + ")");
     	return value;
 	}
 	

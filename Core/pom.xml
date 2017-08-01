@@ -504,11 +504,6 @@
 			<version>1.5.0-b01</version>
 		</dependency>
 		<dependency>
-			<groupId>org.perf4j</groupId>
-			<artifactId>perf4j</artifactId>
-			<version>0.9.16</version>
-		</dependency>
-		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>1.4.181</version>
