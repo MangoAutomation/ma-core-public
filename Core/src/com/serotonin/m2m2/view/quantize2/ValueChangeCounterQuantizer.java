@@ -10,9 +10,9 @@ import com.serotonin.m2m2.view.stats.ValueChangeCounter;
 
 public class ValueChangeCounterQuantizer extends AbstractDataQuantizer {
     public static void quantize(BucketCalculator bucketCalculator, DataValue startValue, List<IValueTime> data,
-            DataValue endValue, StatisticsGeneratorQuantizerCallback<ValueChangeCounter> callback) {
+            StatisticsGeneratorQuantizerCallback<ValueChangeCounter> callback) {
         ValueChangeCounterQuantizer qt = new ValueChangeCounterQuantizer(bucketCalculator, startValue, callback);
-        qt.data(data, endValue);
+        qt.data(data);
     }
 
     private final StatisticsGeneratorQuantizerCallback<ValueChangeCounter> callback;
@@ -35,10 +35,10 @@ public class ValueChangeCounterQuantizer extends AbstractDataQuantizer {
     }
 
     @Override
-    protected void closePeriod(DataValue endValue) {
+    protected void closePeriod() {
         if (valueChangeCounter != null) {
             valueChangeCounter.done();
-            callback.quantizedStatistics(valueChangeCounter, endValue == null);
+            callback.quantizedStatistics(valueChangeCounter);
         }
     }
 }

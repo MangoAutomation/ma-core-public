@@ -38,17 +38,16 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private StartsAndRuntime sar;
 
     public StartsAndRuntimeList(long periodStart, long periodEnd, PointValueTime startVT,
-            List<? extends IValueTime> values, PointValueTime endVT) {
-        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue(), values, endVT == null ? null : endVT
-                .getValue());
+            List<? extends IValueTime> values) {
+        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue(), values);
     }
 
     public StartsAndRuntimeList(long periodStart, long periodEnd, DataValue startValue,
-            List<? extends IValueTime> values, DataValue endValue) {
+            List<? extends IValueTime> values) {
         this(periodStart, periodEnd, startValue);
         for (IValueTime vt : values)
             addValueTime(vt);
-        done(endValue);
+        done();
     }
 
     public StartsAndRuntimeList(long periodStart, long periodEnd, DataValue startValue) {
@@ -94,11 +93,8 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     }
 
     @Override
-    public void done(IValueTime endVT) {
-        done(endVT == null ? null : endVT.getValue());
-    }
+    public void done() {
 
-    public void done(DataValue endValue) {
         // If there is a current SAR, update 
         // if (endValue != null && sar != null)
         if (sar != null)

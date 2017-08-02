@@ -37,18 +37,15 @@ public class AnalogStatistics implements StatisticsGenerator {
     private long latestTime;
     private long totalDuration;
 
-    public AnalogStatistics(long periodStart, long periodEnd, IValueTime startVT, List<? extends IValueTime> values,
-            IValueTime endVT) {
-        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue().getDoubleValue(), values,
-                endVT == null ? null : endVT.getValue().getDoubleValue());
+    public AnalogStatistics(long periodStart, long periodEnd, IValueTime startVT, List<? extends IValueTime> values) {
+        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue().getDoubleValue(), values);
     }
 
-    public AnalogStatistics(long periodStart, long periodEnd, Double startValue, List<? extends IValueTime> values,
-            Double endValue) {
+    public AnalogStatistics(long periodStart, long periodEnd, Double startValue, List<? extends IValueTime> values) {
         this(periodStart, periodEnd, startValue);
         for (IValueTime p : values)
             addValueTime(p);
-        done(endValue);
+        done();
     }
 
     public AnalogStatistics(long periodStart, long periodEnd, Double startValue) {
@@ -100,25 +97,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     }
 
     @Override
-    public void done(IValueTime endVT) {
-        done(endVT == null ? null : endVT.getValue().getDoubleValue());
-    }
-
-    public void done(Double endValue) {
-    	
-    	if (endValue != null){
-            // There is an end value (after the period), so add the weighted latest value to the average, using the period end for
-            // duration calculation.
-            updateAverage(endValue, periodEnd);
-            
-            //TODO Interpolate the latestValue to endValue and add that to the delta
-        }else{
-            //Even without an end value we need to flush the latest value
-        	// into the average for the rest of the period.
-        	// We use latestValue so it doesn't effect the delta
-        	if(latestValue != null)
-        		updateAverage(latestValue, periodEnd);
-        }
+    public void done() {
         
         //Average will not be null when we have at least one value in period AND an end value
         // OR more than 1 value in the period

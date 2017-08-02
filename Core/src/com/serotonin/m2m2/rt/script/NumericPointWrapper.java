@@ -72,8 +72,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     public AnalogStatisticsWrapper getStats(long from, long to) {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
-        PointValueTime end = point.getPointValueAfter(to);
-        AnalogStatistics stats = new AnalogStatistics(from, to, start, values, end);
+        AnalogStatistics stats = new AnalogStatistics(from, to, start, values);
         AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
         return wrapper;
     }

@@ -24,14 +24,13 @@ public class StartsAndRuntimeListTest {
             values.add(new PointValueTime(3, 12000));
             values.add(new PointValueTime(2, 16000));
 
-            System.out.println(new StartsAndRuntimeList(1000, 21000, startValue, values, null));
-            System.out.println(new StartsAndRuntimeList(1500, 26000, startValue, values, null));
-            System.out.println(new StartsAndRuntimeList(1000, 21000, (DataValue) null, values, null));
-            System.out.println(new StartsAndRuntimeList(1500, 26000, (DataValue) null, values, null));
+            System.out.println(new StartsAndRuntimeList(1000, 21000, startValue, values));
+            System.out.println(new StartsAndRuntimeList(1500, 26000, startValue, values));
+            System.out.println(new StartsAndRuntimeList(1000, 21000, (DataValue) null, values));
+            System.out.println(new StartsAndRuntimeList(1500, 26000, (DataValue) null, values));
 
-            System.out.println(new StartsAndRuntimeList(0, 30000, (DataValue) null, new ArrayList<PointValueTime>(),
-                    null));
-            System.out.println(new StartsAndRuntimeList(0, 30000, startValue, new ArrayList<PointValueTime>(), null));
+            System.out.println(new StartsAndRuntimeList(0, 30000, (DataValue) null, new ArrayList<PointValueTime>()));
+            System.out.println(new StartsAndRuntimeList(0, 30000, startValue, new ArrayList<PointValueTime>()));
         }
 
         System.out.println();
@@ -48,14 +47,13 @@ public class StartsAndRuntimeListTest {
             values.add(new PointValueTime(false, 12000));
             values.add(new PointValueTime(true, 16000));
 
-            System.out.println(new StartsAndRuntimeList(1000, 21000, startValue, values, null));
-            System.out.println(new StartsAndRuntimeList(1500, 26000, startValue, values, null));
-            System.out.println(new StartsAndRuntimeList(1000, 21000, (DataValue) null, values, null));
-            System.out.println(new StartsAndRuntimeList(1500, 26000, (DataValue) null, values, null));
+            System.out.println(new StartsAndRuntimeList(1000, 21000, startValue, values));
+            System.out.println(new StartsAndRuntimeList(1500, 26000, startValue, values));
+            System.out.println(new StartsAndRuntimeList(1000, 21000, (DataValue) null, values));
+            System.out.println(new StartsAndRuntimeList(1500, 26000, (DataValue) null, values));
 
-            System.out.println(new StartsAndRuntimeList(0, 30000, (DataValue) null, new ArrayList<PointValueTime>(),
-                    null));
-            System.out.println(new StartsAndRuntimeList(0, 30000, startValue, new ArrayList<PointValueTime>(), null));
+            System.out.println(new StartsAndRuntimeList(0, 30000, (DataValue) null, new ArrayList<PointValueTime>()));
+            System.out.println(new StartsAndRuntimeList(0, 30000, startValue, new ArrayList<PointValueTime>()));
         }
     }
 }

@@ -15,5 +15,5 @@ public interface StatisticsGeneratorQuantizerCallback<T extends StatisticsGenera
      *            occurred in the current time period. I.e. you should check if done is true and, e.g. if stats.count >
      *            0 if you want to exclude periods.
      */
-    void quantizedStatistics(T statisticsGenerator, boolean done);
+    void quantizedStatistics(T statisticsGenerator);
 }

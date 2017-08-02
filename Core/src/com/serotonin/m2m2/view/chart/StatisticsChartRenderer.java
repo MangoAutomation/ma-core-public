@@ -68,10 +68,8 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
         List<PointValueTime> values = pointValueFacade.getPointValuesBetween(startTime, endTime);
 
         PointValueTime startVT = null;
-        PointValueTime endVT = null;
         if (!values.isEmpty()) {
             startVT = pointValueFacade.getPointValueBefore(startTime);
-            endVT = pointValueFacade.getPointValueAfter(endTime);
         }
 
         // Generate statistics on the values.
@@ -80,13 +78,13 @@ public class StatisticsChartRenderer extends TimePeriodChartRenderer {
         if (values.size() > 0) {
             if (dataTypeId == DataTypes.BINARY || dataTypeId == DataTypes.MULTISTATE) {
                 // Runtime stats
-                StartsAndRuntimeList stats = new StartsAndRuntimeList(startTime, endTime, startVT, values, endVT);
+                StartsAndRuntimeList stats = new StartsAndRuntimeList(startTime, endTime, startVT, values);
                 model.put("start", startVT != null ? startTime : stats.getFirstTime());
                 model.put("end", endTime);
                 model.put("startsAndRuntimes", stats.getData());
             }
             else if (dataTypeId == DataTypes.NUMERIC) {
-                AnalogStatistics stats = new AnalogStatistics(startTime, endTime, startVT, values, endVT);
+                AnalogStatistics stats = new AnalogStatistics(startTime, endTime, startVT, values);
                 model.put("start", startVT != null ? startTime : stats.getFirstTime());
                 model.put("end", endTime);
                 model.put("minimum", stats.getMinimumValue());

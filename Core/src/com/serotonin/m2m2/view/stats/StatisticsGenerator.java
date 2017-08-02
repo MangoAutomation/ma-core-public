@@ -29,10 +29,8 @@ public interface StatisticsGenerator {
     /**
      * Used to end a period
      * 
-     * @param endValue
-     *            the first value to occur after the period
      */
-    void done(IValueTime endValue);
+    void done();
 
     /**
      * @return the start time of the period

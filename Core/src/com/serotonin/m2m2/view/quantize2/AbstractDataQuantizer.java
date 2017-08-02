@@ -30,10 +30,10 @@ abstract public class AbstractDataQuantizer {
         openPeriod(periodFrom, periodTo, lastValue);
     }
 
-    public void data(List<IValueTime> data, DataValue endValue) {
+    public void data(List<IValueTime> data) {
         for (IValueTime vt : data)
             data(vt.getValue(), vt.getTime());
-        done(endValue);
+        done();
     }
 
     public void data(IValueTime vt) {
@@ -48,28 +48,33 @@ abstract public class AbstractDataQuantizer {
             throw new IllegalArgumentException("Data is after end time");
 
         while (time >= periodTo.getMillis())
-            nextPeriod(value);
+            nextPeriod(value, time);
 
         dataInPeriod(value, time);
 
         lastValue = value;
     }
 
-    public void done(DataValue endValue) {
+    /**
+     * Called when no further data will be added to the Quantizer
+     */
+    public void done() {
         while (periodTo.isBefore(bucketCalculator.getEndTime()))
-            nextPeriod(endValue);
-        closePeriod(endValue);
+            nextPeriod(null, periodTo.getMillis());
+        closePeriod();
     }
 
     /**
      * @param endValue
      *            the value that occurs next after the end of this period.
+     * @param time 
+     * 			  the time that the endValue occurred        
      */
-    private void nextPeriod(DataValue endValue) {
-        closePeriod(endValue);
+    private void nextPeriod(DataValue endValue, long time) {
+        closePeriod();
         periodFrom = periodTo;
         periodTo = bucketCalculator.getNextPeriodTo();
-        openPeriod(periodFrom, periodTo, lastValue);
+        openPeriod(periodFrom, periodTo, periodFrom.getMillis() == time ? endValue : lastValue);
     }
 
     /**
@@ -98,7 +103,7 @@ abstract public class AbstractDataQuantizer {
      * Tells the quantizer that there is no more data for the period.
      * 
      * @param done
-     *            indicates that there will never be any more data given to any other
+     *            indicates that there will never be any more data in this period
      */
-    abstract protected void closePeriod(DataValue endValue);
+    abstract protected void closePeriod();
 }

@@ -10,9 +10,9 @@ import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
 
 public class StartsAndRuntimeListQuantizer extends AbstractDataQuantizer {
     public static void quantize(BucketCalculator bucketCalculator, DataValue startValue, List<IValueTime> data,
-            DataValue endValue, StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList> callback) {
+    	StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList> callback) {
         StartsAndRuntimeListQuantizer qt = new StartsAndRuntimeListQuantizer(bucketCalculator, startValue, callback);
-        qt.data(data, endValue);
+        qt.data(data);
     }
 
     private final StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList> callback;
@@ -35,10 +35,10 @@ public class StartsAndRuntimeListQuantizer extends AbstractDataQuantizer {
     }
 
     @Override
-    protected void closePeriod(DataValue endValue) {
+    protected void closePeriod() {
         if (startsAndRuntimeList != null) {
-            startsAndRuntimeList.done(endValue);
-            callback.quantizedStatistics(startsAndRuntimeList, endValue == null);
+            startsAndRuntimeList.done();
+            callback.quantizedStatistics(startsAndRuntimeList);
         }
     }
 }

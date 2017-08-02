@@ -74,10 +74,6 @@ public class ValueChangeCounter implements StatisticsGenerator {
     }
 
     @Override
-    public void done(IValueTime endVT) {
-        done();
-    }
-
     public void done() {
         // no op
     }

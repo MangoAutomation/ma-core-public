@@ -14,9 +14,9 @@ import com.serotonin.m2m2.view.stats.IValueTime;
 
 public class AnalogStatisticsQuantizer extends AbstractDataQuantizer {
     public static void quantize(BucketCalculator bucketCalculator, DataValue startValue, List<IValueTime> data,
-            DataValue endValue, StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {
+    		StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {
         AnalogStatisticsQuantizer qt = new AnalogStatisticsQuantizer(bucketCalculator, startValue, callback);
-        qt.data(data, endValue);
+        qt.data(data);
     }
 
     private final StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback;
@@ -40,10 +40,10 @@ public class AnalogStatisticsQuantizer extends AbstractDataQuantizer {
     }
 
     @Override
-    protected void closePeriod(DataValue endValue) {
+    protected void closePeriod() {
         if (analogStatistics != null) {
-            analogStatistics.done(endValue == null ? null : endValue.getDoubleValue());
-            callback.quantizedStatistics(analogStatistics, endValue == null);
+            analogStatistics.done();
+            callback.quantizedStatistics(analogStatistics);
         }
     }
 }
