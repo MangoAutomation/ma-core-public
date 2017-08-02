@@ -52,10 +52,13 @@ import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDef
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.CoreFileStoreDefinition;
+import com.serotonin.m2m2.module.definitions.filestore.DocsFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.PublicFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreReadPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
@@ -1018,6 +1021,8 @@ public class ModuleRegistry {
         preDefaults.add(new CoreFileStoreReadPermissionDefinition());
         preDefaults.add(new CoreFileStoreWritePermissionDefinition());
         preDefaults.add(new PublicFileStoreWritePermissionDefinition());
+        preDefaults.add(new DocsFileStoreReadPermissionDefinition());
+        preDefaults.add(new DocsFileStoreWritePermissionDefinition());
         
         
         /* Read Only Settings */
@@ -1055,6 +1060,7 @@ public class ModuleRegistry {
         /* File Store */
         preDefaults.add(new CoreFileStoreDefinition());
         preDefaults.add(new PublicFileStoreDefinition());
+        preDefaults.add(new DocsFileStoreDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
