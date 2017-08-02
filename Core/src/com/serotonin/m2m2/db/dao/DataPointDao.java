@@ -348,18 +348,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 "insert into dataPoints (xid, dataSourceId, name, deviceName, enabled, pointFolderId, loggingType, " //
                         + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
                         + "purgeOverride, purgeType, purgePeriod, defaultCacheSize, discardExtremeValues, " //
-                        + "engineeringUnits, readPermission, setPermission, templateId, rollup, data) " //
-                        + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
+                        + "engineeringUnits, readPermission, setPermission, templateId, rollup, dataTypeId, data) " //
+                        + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
                 new Object[] { dp.getXid(), dp.getDataSourceId(), dp.getName(), dp.getDeviceName(),
                         boolToChar(dp.isEnabled()), dp.getPointFolderId(), dp.getLoggingType(),
                         dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(),
                         dp.getTolerance(), boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(), SerializationHelper.writeObject(dp) }, //
+                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(), dp.getPointLocator().getDataTypeId(), SerializationHelper.writeObject(dp) }, //
                 new int[] { Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BINARY }));
+                        Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BINARY }));
 
         // Save the relational information.
         saveEventDetectors(dp);
@@ -398,18 +398,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 "update dataPoints set xid=?, name=?, deviceName=?, enabled=?, pointFolderId=?, loggingType=?, " //
                         + "intervalLoggingPeriodType=?, intervalLoggingPeriod=?, intervalLoggingType=?, " //
                         + "tolerance=?, purgeOverride=?, purgeType=?, purgePeriod=?, defaultCacheSize=?, " //
-                        + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, templateId=?, rollup=?, data=? " //
-                        + "where id=?", //
+                        + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, "//
+                        + "templateId=?, rollup=?, dataTypeId=?, data=? where id=?", //
                 new Object[] { dp.getXid(), dp.getName(), dp.getDeviceName(), boolToChar(dp.isEnabled()),
                         dp.getPointFolderId(), dp.getLoggingType(), dp.getIntervalLoggingPeriodType(),
                         dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(), dp.getTolerance(),
                         boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(), SerializationHelper.writeObject(dp), dp.getId() }, //
+                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(),
+                        dp.getPointLocator().getDataTypeId(), SerializationHelper.writeObject(dp), dp.getId() }, //
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                        Types.INTEGER, Types.BINARY, Types.INTEGER });
+                        Types.INTEGER, Types.INTEGER, Types.BINARY, Types.INTEGER });
     }
 
     public void deleteDataPoints(final int dataSourceId) {
@@ -854,7 +855,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
-                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup()};
+                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup(), vo.getPointLocator().getDataTypeId()};
     }
 
     /*
@@ -898,6 +899,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("setPermission", Types.VARCHAR); // Set permission
         map.put("templateId", Types.INTEGER); //Template ID FK
         map.put("rollup", Types.INTEGER); //Common.Rollups type
+        map.put("dataTypeId", Types.INTEGER); //Common.Rollups type
 
         return map;
     }
@@ -1037,6 +1039,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
         map.put("dataSourceEditPermission", new IntStringPair(Types.VARCHAR, "ds.editPermission"));
         map.put("templateName", new IntStringPair(Types.VARCHAR, "template.name"));
+        map.put("dataTypeId", new IntStringPair(Types.VARCHAR, "dp.dataTypeId"));
         return map;
     }
 
