@@ -190,6 +190,14 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         return dp;
     }
     
+    /**
+     * Get all data point Ids in the table
+     * @return
+     */
+    public List<Integer> getDataPointIds(){
+    	return queryForList("SELECT id FROM dataPoints" , Integer.class);
+    }
+    
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
     	private static final int EVENT_DETECTOR_FIRST_COLUMN = 27;
     	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, 5);

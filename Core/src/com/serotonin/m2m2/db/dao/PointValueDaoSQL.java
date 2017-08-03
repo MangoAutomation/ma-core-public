@@ -694,14 +694,36 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 time }, 0, 0);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesBeforeWithoutCount(int, long)
+     */
+    @Override
+    public boolean deletePointValuesBeforeWithoutCount(int dataPointId, long time){
+    	return deletePointValuesBefore(dataPointId, time) > 0;
+    }
+    
     @Override
     public long deletePointValues(int dataPointId) {
         return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { dataPointId }, 0, 0);
     }
 
+    public boolean deletePointValuesWithoutCount(int dataPointId) {
+        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { dataPointId }, 0, 0) > 0;
+    }
+    
     @Override
     public long deleteAllPointData() {
         return deletePointValues("delete from pointValues", null, 0, 0);
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#deleteAllPointDataWithoutCount()
+     */
+    @Override
+    public void deleteAllPointDataWithoutCount() {
+        deletePointValues("delete from pointValues", null, 0, 0);
     }
 
     @Override
@@ -710,6 +732,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 5000, 100000);
     }
 
+    @Override
+    public void deleteOrphanedPointValuesWithoutCount() {
+        deletePointValues("DELETE FROM pointValues WHERE dataPointId NOT IN (SELECT ID FROM dataPoints)", null,
+                5000, 100000);
+    }
+    
     @Override
     public void deleteOrphanedPointValueAnnotations() {
         RowMapper<Long> rm = new RowMapper<Long>() {

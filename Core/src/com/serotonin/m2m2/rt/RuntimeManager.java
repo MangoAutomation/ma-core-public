@@ -663,6 +663,14 @@ public class RuntimeManager implements ILifecycle{
         return count;
     }
 
+    public void purgeDataPointValuesWithoutCount() {
+        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
+        pointValueDao.deleteAllPointDataWithoutCount();
+        for (Integer id : dataPoints.keySet())
+            updateDataPointValuesRT(id);
+        return;
+    }
+    
     public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
         long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(dataPointId, before);
@@ -674,6 +682,17 @@ public class RuntimeManager implements ILifecycle{
         return count;
     }
     
+	/**
+	 * @param id
+	 */
+	public boolean purgeDataPointValuesWithoutCount(int dataPointId) {
+		if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(dataPointId)){
+			updateDataPointValuesRT(dataPointId);
+			return true;
+		}else
+			return false;
+	}
+	
     /**
      * Purge a value at a given time
      * @param dataPointId
@@ -695,6 +714,21 @@ public class RuntimeManager implements ILifecycle{
         return count;
     }
 
+    /**
+     * Purge values before a given time
+     * @param dataPointId
+     * @param before
+     * @return true if any data was deleted
+     */
+    public boolean purgeDataPointValuesWithoutCount(int dataPointId, long before) {
+        if(Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(dataPointId, before)){
+             updateDataPointValuesRT(dataPointId);
+             return true;
+        }else
+         return false;
+     }
+
+    
     private void updateDataPointValuesRT(int dataPointId) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
         if (dataPoint != null)
