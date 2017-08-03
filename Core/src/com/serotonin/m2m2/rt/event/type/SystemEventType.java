@@ -21,7 +21,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
@@ -54,27 +53,27 @@ public class SystemEventType extends EventType {
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<>();
 
     public static void initialize() {
-        addEventType(TYPE_SYSTEM_STARTUP, "event.system.startup", AlarmLevels.INFORMATION);
-        addEventType(TYPE_SYSTEM_SHUTDOWN, "event.system.shutdown", AlarmLevels.INFORMATION);
-        addEventType(TYPE_MAX_ALARM_LEVEL_CHANGED, "event.system.maxAlarmChanged", AlarmLevels.NONE);
-        addEventType(TYPE_USER_LOGIN, "event.system.userLogin", AlarmLevels.INFORMATION);
-        addEventType(TYPE_SET_POINT_HANDLER_FAILURE, "event.system.setPoint", AlarmLevels.URGENT);
-        addEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email", AlarmLevels.INFORMATION);
-        addEventType(TYPE_PROCESS_FAILURE, "event.system.process", AlarmLevels.URGENT);
-        addEventType(TYPE_LICENSE_CHECK, "event.system.licenseCheck", AlarmLevels.URGENT);
-        addEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure", AlarmLevels.URGENT);
-        addEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck", AlarmLevels.INFORMATION);
-        addEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem", AlarmLevels.URGENT);
-        addEventType(TYPE_MISSING_MODULE_DEPENDENCY, "event.system.missingModuleDepDesc", AlarmLevels.URGENT);
+        addEventType(TYPE_SYSTEM_STARTUP, "event.system.startup");
+        addEventType(TYPE_SYSTEM_SHUTDOWN, "event.system.shutdown");
+        addEventType(TYPE_MAX_ALARM_LEVEL_CHANGED, "event.system.maxAlarmChanged");
+        addEventType(TYPE_USER_LOGIN, "event.system.userLogin");
+        addEventType(TYPE_SET_POINT_HANDLER_FAILURE, "event.system.setPoint");
+        addEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email");
+        addEventType(TYPE_PROCESS_FAILURE, "event.system.process");
+        addEventType(TYPE_LICENSE_CHECK, "event.system.licenseCheck");
+        addEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure");
+        addEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck");
+        addEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem");
+        addEventType(TYPE_MISSING_MODULE_DEPENDENCY, "event.system.missingModuleDepDesc");
         
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
-            addEventType(def.getTypeName(), def.getDescriptionKey(), def.getDefaultAlarmLevel());
+            addEventType(def.getTypeName(), def.getDescriptionKey());
     }
 
-    private static void addEventType(String subtype, String key, int defaultAlarmLevel) {
+    private static void addEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
         EVENT_TYPES.add(new EventTypeVO(EventType.EventTypeNames.SYSTEM, subtype, 0, 0, new TranslatableMessage(key),
-                SystemSettingsDao.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype, defaultAlarmLevel)));
+                SystemSettingsDao.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype)));
     }
 
     public static EventTypeVO getEventType(String subtype) {
