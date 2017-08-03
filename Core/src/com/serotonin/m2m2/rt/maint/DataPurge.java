@@ -43,6 +43,7 @@ public class DataPurge {
     private final DataPointDao dataPointDao = DataPointDao.instance;
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
     private long deletedSamples;
+    private boolean anyDeletedSamples;
     private long deletedFiles;
     private long deletedEvents;
     private final List<Long> fileIds = new ArrayList<Long>();
@@ -65,14 +66,19 @@ public class DataPurge {
         log.info("Data purge started");
 
         boolean purgePoints = SystemSettingsDao.getBooleanValue(ENABLE_POINT_DATA_PURGE);
+        boolean countPointValues = SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
         
         if(purgePoints){
 	        // Get the data point information.
 	        List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
 	        for (DataPointVO dataPoint : dataPoints)
-	            purgePoint(dataPoint);
-	
-	        deletedSamples += pointValueDao.deleteOrphanedPointValues();
+	            purgePoint(dataPoint, countPointValues);
+	        
+	        if(countPointValues)
+	        	deletedSamples += pointValueDao.deleteOrphanedPointValues();
+	        else
+	        	pointValueDao.deleteOrphanedPointValuesWithoutCount();
+	        
 	        pointValueDao.deleteOrphanedPointValueAnnotations();
 	
 	        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
@@ -93,13 +99,19 @@ public class DataPurge {
             def.execute(runtime);
     }
 
-    private void purgePoint(DataPointVO dataPoint) {
+    private void purgePoint(DataPointVO dataPoint, boolean countPointValues) {
         if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
         	log.info("Purging all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
-        	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING)
-        		deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
+        	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+        		if(countPointValues)
+        			deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
+        		else{
+        			if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId()))
+        				anyDeletedSamples = true;
+        		}
+        	}
         }
         else {
             // Determine the purging properties to use.
@@ -128,8 +140,14 @@ public class DataPurge {
             DateTime cutoff = new DateTime(runtime);
             cutoff = DateUtils.truncateDateTime(cutoff, Common.TimePeriods.DAYS);
             cutoff = DateUtils.minus(cutoff, purgeType, purgePeriod);
-            if(Common.runtimeManager.getState() == RuntimeManager.RUNNING)
-            	deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(), cutoff.getMillis());
+            if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+            	if(countPointValues)
+            		deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(), cutoff.getMillis());
+            	else{
+            		if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId(), cutoff.getMillis()))
+            			anyDeletedSamples = true;
+            	}
+            }
 
             // If this is an image data type, get the point value ids.
             if (dataPoint.getPointLocator().getDataTypeId() == DataTypes.IMAGE)
@@ -274,6 +292,9 @@ public class DataPurge {
 		this.deletedEvents = deletedEvents;
 	}
 
+	public boolean isAnyDeletedSamples(){
+		return anyDeletedSamples;
+	}
 
 
 	static class DataPurgeTask extends TimerTask {

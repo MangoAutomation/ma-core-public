@@ -199,6 +199,18 @@ public class PointValueDaoMetrics implements PointValueDao{
     	return value;
 
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesBeforeWithoutCount(int, long)
+	 */
+	@Override
+	public boolean deletePointValuesBeforeWithoutCount(int pointId, long time){
+		LogStopWatch LogStopWatch = new LogStopWatch();
+		boolean value = dao.deletePointValuesBeforeWithoutCount(pointId,time);
+		LogStopWatch.stop("deletePointValuesBeforeWithoutCount(pointId,time) (" + pointId + ", " + time + ")");
+    	return value;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValues(int)
@@ -211,6 +223,18 @@ public class PointValueDaoMetrics implements PointValueDao{
     	return value;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesWithoutCount(int)
+	 */
+	@Override
+	public boolean deletePointValuesWithoutCount(int pointId) {
+		LogStopWatch LogStopWatch = new LogStopWatch();
+		boolean value = dao.deletePointValuesWithoutCount(pointId);
+		LogStopWatch.stop("deletePointValuesWithoutCount(pointId) (" + pointId + ")");
+    	return value;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deleteAllPointData()
 	 */
@@ -220,6 +244,17 @@ public class PointValueDaoMetrics implements PointValueDao{
 		long value = dao.deleteAllPointData();
 		LogStopWatch.stop("deleteAllPointData()");
     	return value;
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deleteAllPointDataWithoutCount()
+	 */
+	@Override
+	public void deleteAllPointDataWithoutCount() {
+		LogStopWatch LogStopWatch = new LogStopWatch();
+		dao.deleteAllPointDataWithoutCount();
+		LogStopWatch.stop("deleteAllPointDataWithoutCount()");
 	}
 
 	/* (non-Javadoc)
@@ -231,6 +266,16 @@ public class PointValueDaoMetrics implements PointValueDao{
 		long value = dao.deleteOrphanedPointValues();
 		LogStopWatch.stop("deleteOrphanedPointValues()");
     	return value;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deleteOrphanedPointValuesWithoutCount()
+	 */
+	@Override
+	public void deleteOrphanedPointValuesWithoutCount() {
+		LogStopWatch LogStopWatch = new LogStopWatch();
+		dao.deleteOrphanedPointValuesWithoutCount();
+		LogStopWatch.stop("deleteOrphanedPointValuesWithoutCount()");
 	}
 
 	/* (non-Javadoc)

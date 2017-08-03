@@ -146,6 +146,14 @@ public interface PointValueDao {
      * @return
      */
     public long deletePointValuesBefore(int pointId, long time);
+    
+    /**
+     * Delete values < time and don't count what was deleted
+     * @param pointId
+     * @param time
+     * @return
+     */
+    public boolean deletePointValuesBeforeWithoutCount(int pointId, long time);
 
     /**
      * Delete all values
@@ -155,16 +163,34 @@ public interface PointValueDao {
     public long deletePointValues(int pointId);
 
     /**
+     * Delete all values
+     * @param pointId
+     * @return true if any data was deleted
+     */
+    public boolean deletePointValuesWithoutCount(int pointId);
+    
+    /**
      * Delete values for all points
      * @return
      */
     public long deleteAllPointData();
 
     /**
+     * Delete values for all points without counting them
+     * @return
+     */
+    public void deleteAllPointDataWithoutCount();
+    
+    /**
      * Delete any point values that are no longer tied to a point in the Data Points table
      * @return
      */
     public long deleteOrphanedPointValues();
+    
+	/**
+	 * Delete any point values that are no longer tied to a point in the Data Points table but don't count the amount deleted
+	 */
+	public void deleteOrphanedPointValuesWithoutCount();
 
     /**
      * SQL Specific to delete annotations if they are stored elsewhere
@@ -241,4 +267,5 @@ public interface PointValueDao {
 	 * @return
 	 */
 	public long deletePointValue(int dataPointId, long ts);
+
 }

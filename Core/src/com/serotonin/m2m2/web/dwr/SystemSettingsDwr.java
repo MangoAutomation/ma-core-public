@@ -104,6 +104,7 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS));
         
         settings.put(DataPurge.ENABLE_POINT_DATA_PURGE, SystemSettingsDao.getBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, true));
+        settings.put(SystemSettingsDao.POINT_DATA_PURGE_COUNT, SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT));
 
         settings.put(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,
                 SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
