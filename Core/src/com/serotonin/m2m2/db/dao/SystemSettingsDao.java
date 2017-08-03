@@ -31,9 +31,14 @@ import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.util.ColorUtils;
@@ -429,6 +434,40 @@ public class SystemSettingsDao extends BaseDao {
         
         DEFAULT_VALUES.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
 
+        // Add built-in system event type defaults
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.NONE);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, AlarmLevels.URGENT);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_PROCESS_FAILURE, AlarmLevels.URGENT);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_LICENSE_CHECK, AlarmLevels.URGENT);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_BACKUP_FAILURE, AlarmLevels.URGENT);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_UPGRADE_CHECK, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_REJECTED_WORK_ITEM, AlarmLevels.URGENT);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, AlarmLevels.URGENT);
+
+        // Add module system event type defaults
+        for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
+            DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel());
+        
+        // Add built-in audit event type defaults
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_HANDLER, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_TEMPLATE, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER_COMMENT, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION);
+        
+        // Add module audit event type defaults
+        for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
+            DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION);
+        }
+        
         //Module Defaults
         Map<String,Object> modDefaults = null;
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){

@@ -77,7 +77,7 @@ public class AuditEventType extends EventType{
     private static void addEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
         EVENT_TYPES.add(new EventTypeVO(EventType.EventTypeNames.AUDIT, subtype, 0, 0, new TranslatableMessage(key),
-                SystemSettingsDao.getIntValue(AUDIT_SETTINGS_PREFIX + subtype, AlarmLevels.INFORMATION)));
+                SystemSettingsDao.getIntValue(AUDIT_SETTINGS_PREFIX + subtype)));
     }
 
     public static EventTypeVO getEventType(String subtype) {
