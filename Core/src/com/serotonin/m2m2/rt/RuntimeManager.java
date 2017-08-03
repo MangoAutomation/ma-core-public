@@ -172,12 +172,11 @@ public class RuntimeManager implements ILifecycle{
         LOG.info(publishers.size() + " Publisher's started in " +  (Common.timer.currentTimeMillis() - pubStart) + "ms");
         
         //Schedule the Backup Tasks if necessary
-        // No way to set the default value for Bools in SystemSettingsDao so must do here
         if(!safe){
-	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED,true)){
+	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED)){
 	       		BackupWorkItem.schedule();
 	        }
-	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED,true)){
+	        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED)){
 	       		DatabaseBackupWorkItem.schedule();
 	        }
 

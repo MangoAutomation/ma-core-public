@@ -433,6 +433,8 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
         
         DEFAULT_VALUES.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
+        DEFAULT_VALUES.put(DATABASE_BACKUP_ENABLED, true);
+        DEFAULT_VALUES.put(BACKUP_ENABLED, true);
 
         // Add built-in system event type defaults
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION);

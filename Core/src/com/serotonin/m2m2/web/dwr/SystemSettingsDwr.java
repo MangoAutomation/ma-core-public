@@ -205,7 +205,7 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT));
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.BACKUP_ENABLED,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, true));
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED));
 
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,
@@ -241,7 +241,7 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT));
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.DATABASE_BACKUP_ENABLED,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, true));
+                SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED));
 
         // Permissions
         settings.put(SystemSettingsDao.PERMISSION_DATASOURCE,
@@ -648,10 +648,7 @@ public class SystemSettingsDwr extends BaseDwr {
                     "systemSettings.validation.backupFileCountInvalid");
         }
 
-        boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED, !backupEnabled);
-        if (backupEnabled != oldBackupEnabled) {
-            systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
-        }
+        systemSettingsDao.setBooleanValue(SystemSettingsDao.BACKUP_ENABLED, backupEnabled);
 
         return result;
     }
@@ -741,11 +738,7 @@ public class SystemSettingsDwr extends BaseDwr {
                     "systemSettings.validation.backupFileCountInvalid");
         }
 
-        boolean oldBackupEnabled = SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED,
-                !backupEnabled);
-        if (backupEnabled != oldBackupEnabled) {
-            systemSettingsDao.setBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, backupEnabled);
-        }
+        systemSettingsDao.setBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, backupEnabled);
 
         return result;
     }
