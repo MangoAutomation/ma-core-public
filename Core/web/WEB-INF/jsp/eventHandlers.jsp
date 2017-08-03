@@ -811,12 +811,12 @@
       }
   }
   
-  function removeFromContextArray(pointId) {
+  function removeFromContextArray(pointId, contextTable) {
       for (var i=contextArray.length-1; i>=0; i--) {
           if (contextArray[i].pointId == pointId)
               contextArray.splice(i, 1);
       }
-      writeContextArray("emailContextTable");
+      writeContextArray(contextTable);
       var data = getElement(allPoints, pointId);
       if(data)
           data.fancyName = data.name;
@@ -841,7 +841,7 @@
                   },
                   function(data) { 
                           return "<img src='images/bullet_delete.png' class='ptr' "+
-                                  "onclick='removeFromContextArray("+ data.pointId +")'/>";
+                                  "onclick='removeFromContextArray("+ data.pointId +", \"" + contextTable + "\")'/>";
                   }
               ],
               {
