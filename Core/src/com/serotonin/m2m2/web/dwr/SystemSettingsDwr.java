@@ -453,7 +453,8 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveMiscSettings(int pointDataPurgePeriodType, int pointDataPurgePeriods,
-            int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods, boolean pointDataPurgeEnabled, int dataSourceEventPurgePeriodType,
+            int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods, boolean pointDataPurgeEnabled, 
+            boolean countPurgedPointValues, int dataSourceEventPurgePeriodType,
             int dataSourceEventPurgePeriods, int systemEventPurgePeriodType, int systemEventPurgePeriods,
             int publisherEventPurgePeriodType, int publisherEventPurgePeriods, int auditEventPurgePeriodType,
             int auditEventPurgePeriods, int noneAlarmPurgePeriodType, int noneAlarmPurgePeriods,
@@ -471,6 +472,7 @@ public class SystemSettingsDwr extends BaseDwr {
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS, dataPointEventPurgePeriods);
         
         systemSettingsDao.setBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, pointDataPurgeEnabled);
+        systemSettingsDao.setBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT, countPurgedPointValues);
         
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE,
                 dataSourceEventPurgePeriodType);
@@ -575,8 +577,14 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public TranslatableMessage purgeAllData() {
-        long cnt = Common.runtimeManager.purgeDataPointValues();
-        return new TranslatableMessage("systemSettings.purgeDataComplete", cnt);
+    	boolean countPointValues = SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
+		if(countPointValues){
+			long cnt = Common.runtimeManager.purgeDataPointValues();
+			return new TranslatableMessage("systemSettings.purgeDataComplete", cnt);
+		}else{
+			Common.runtimeManager.purgeDataPointValuesWithoutCount();
+			return new TranslatableMessage("systemSettings.purgeDataCompleteNoCount");
+		}
     }
 
     @DwrPermission(admin = true)
