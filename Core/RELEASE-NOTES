@@ -1,3 +1,27 @@
+*Version 3.2.0*
+* Fix incorrect kWh unit
+* Importing script permissions bugfix
+* Logfiles will now be limited to a maximum of 20 at 5mb each
+* Testing scripts with the RuntimeManager utility will no longer change the state of data sources or points
+* Allow setting point values from Point Links and Event Handlers
+* Ability for scripts to launch imports
+* Ability for script points to access Data Point Summary
+* Adding event detector JSON importer 
+* Email event handler can now add data points to ftl model for use in template
+* Logfiles now always created at MA_HOME/logs
+* Performance improvements
+* Adding docs filestore for core
+* System setting to allow disable counting purged point samples for performance
+
+*Version 3.1.2*
+* Fix bug where bulk data point permissions changes were not picked up in the Point Hierarchy
+
+*Version 3.1.1*
+* Add a public file store
+* Stores the last upgrade time
+* Configurable max-age time for page, resource and REST caching
+* Add cache busting url parameter
+
 *Version 3.1.0*
 * Better view into task scheduling system and tracking of rejected tasks
 * Reduced system overhead when tasks are being rejected
