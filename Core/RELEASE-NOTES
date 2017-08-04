@@ -3,7 +3,7 @@
 * Importing script permissions bugfix
 * Logfiles will now be limited to a maximum of 20 at 5mb each
 * Testing scripts with the RuntimeManager utility will no longer change the state of data sources or points
-* Allow setting point values from Point Links and Event Handlers
+* Allow setting point values from Point Links, Event Handlers and Meta Points
 * Ability for scripts to launch imports
 * Ability for script points to access Data Point Summary
 * Adding event detector JSON importer 
