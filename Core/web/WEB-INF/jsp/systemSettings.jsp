@@ -82,7 +82,8 @@
             $set("<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>);
             
             $set("<c:out value="<%= DataPurge.ENABLE_POINT_DATA_PURGE %>"/>", settings.<c:out value="<%= DataPurge.ENABLE_POINT_DATA_PURGE %>"/>);
-            
+            $set("<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_COUNT %>"/>);
+                       
             $set("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE %>"/>);
@@ -433,6 +434,7 @@
                 $get("<c:out value="<%= SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS %>"/>"),
                 
                 $get("<c:out value="<%= DataPurge.ENABLE_POINT_DATA_PURGE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_COUNT %>"/>"),
                 
                 $get("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS %>"/>"),
@@ -1302,6 +1304,10 @@
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.enablePurgePointData"/></td>
         <td class="formField"><input id="<c:out value="<%= DataPurge.ENABLE_POINT_DATA_PURGE %>"/>" type="checkbox"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.countPurgedPointData"/></td>
+        <td class="formField"><input id="<c:out value="<%= SystemSettingsDao.POINT_DATA_PURGE_COUNT %>"/>" type="checkbox"/></td>
       </tr>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.purgeDataPointEvents"/></td>

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.SystemActionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllPointValuesActionPermissionDefinition;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -71,8 +72,14 @@ public class PurgeAllPointValuesActionDefinition extends SystemActionDefinition{
 		@Override
 		public void runImpl(long runtime) {
 			if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-				long cnt = Common.runtimeManager.purgeDataPointValues();
-				this.results.put("deleted", cnt);
+				boolean countPointValues = SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
+				if(countPointValues){
+					long cnt = Common.runtimeManager.purgeDataPointValues();
+					this.results.put("deleted", cnt);
+				}else{
+					Common.runtimeManager.purgeDataPointValuesWithoutCount();
+					this.results.put("deleted", -1);
+				}
 			}
 		}
 	}

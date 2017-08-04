@@ -75,6 +75,7 @@ public class PurgeWithPurgeSettingsActionDefinition extends SystemActionDefiniti
 			this.results.put("deletedPointValues", dataPurge.getDeletedSamples());
 			this.results.put("deletedFiles", dataPurge.getDeletedFiles());
 			this.results.put("deletedEvents", dataPurge.getDeletedEvents());
+			this.results.put("anyDeletedSamples", dataPurge.isAnyDeletedSamples());
 		}
 	}
 }
