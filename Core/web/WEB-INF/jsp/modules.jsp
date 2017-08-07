@@ -287,7 +287,13 @@
             }
         }
         
-        checkDependencies(checkedModules);
+        if(!checkDependencies(checkedModules)){
+        	//Bad dependency, clean up and abort
+        	hide("upgradeModulesThrobber");
+        	enableButton("downloadUpgradesBtn");
+        	enableButton("isInstallUpgrades");
+        	return;
+        }
         
         ModulesDwr.startDownloads(checkedModules, $get("backupCheck"), $get("restartCheck"), function(error) {
             // Check if there was an error with the selected modules.
@@ -316,11 +322,12 @@
 	    		for(var i = 0; i<allModuleMap[key].dependencies.length; i+=1) {
 	    			if(!(allModuleMap[key].dependencies[i] in helperMap) && allModuleMap[key].dependencies[i] in allModuleMap) {
 	    				alert("<m2m2:translate key="modules.dependencyMissing" escapeDQuotes="true"/>");
-	    				return;
+	    				return false;
 	    			}
 	    		}
     		}
     	}
+    	return true;
     }
     
     function cancelUpgrade() {
