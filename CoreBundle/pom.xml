@@ -481,12 +481,6 @@
 		<!-- ma-dashboards -->
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>dashboards</artifactId>
-			<version>3.7.0-SNAPSHOT</version>
-			<type>zip</type>	
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
 			<version>3.2.1-SNAPSHOT</version>
 			<type>zip</type>	
