@@ -16,6 +16,8 @@ import javax.script.ScriptException;
 
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
  * @author Matthew Lohbihler
@@ -25,6 +27,10 @@ public class CompiledScriptExecutor extends ScriptExecutor{
     private static final String SCRIPT_SUFFIX = "\r\n}\r\n";
     private static final String SCRIPT_POSTFIX = "\r\n__scriptExecutor__();";
     private static ScriptEngine ENGINE;
+
+    public static final DataValue UNCHANGED = new BinaryValue(false);
+    public static final String UNCHANGED_KEY = "UNCHANGED";
+
 
     /**
      * Compile a script for the common Engine

@@ -49,6 +49,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public static final int SET_ACTION_SCRIPT_VALUE = 3;
     
     public static final String TARGET_CONTEXT_KEY = "target";
+    public static final String EVENT_CONTEXT_KEY = "event";
 
     public static ExportCodes SET_ACTION_CODES = new ExportCodes();
     static {
