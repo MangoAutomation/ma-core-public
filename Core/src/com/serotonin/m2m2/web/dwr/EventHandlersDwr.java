@@ -380,7 +380,7 @@ public class EventHandlersDwr extends BaseDwr {
                         new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), null, null, true);
                 if (pvt.getValue() == null)
                     message = new TranslatableMessage("eventHandlers.script.nullResult");
-                else if(CompiledScriptExecutor.UNCHANGED.equals(pvt.getValue()))
+                else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue())
                 	message = new TranslatableMessage("eventHandlers.script.successUnchanged");
                 else
                     message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());

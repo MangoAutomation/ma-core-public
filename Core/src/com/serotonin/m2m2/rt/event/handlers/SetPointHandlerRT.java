@@ -170,7 +170,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getActiveAction());
 
         // Queue a work item to perform the set point.
-        if(!CompiledScriptExecutor.UNCHANGED.equals(value))
+        if(CompiledScriptExecutor.UNCHANGED != value)
         	Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
                 evt.getActiveTimestamp()), this));
     }
