@@ -31,7 +31,7 @@ public class ScriptUtils {
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
     public static final String TIMESTAMP_CONTEXT_KEY = "TIMESTAMP";
-
+    
     public static ScriptEngine newEngine() {
         ScriptEngineManager manager = new ScriptEngineManager();
         return manager.getEngineByName("js");
@@ -138,7 +138,7 @@ public class ScriptUtils {
     	}
     	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
     	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
-    	
+    	engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {

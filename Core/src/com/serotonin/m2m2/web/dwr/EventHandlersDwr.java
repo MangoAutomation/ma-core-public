@@ -40,11 +40,15 @@ import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.ProcessWorkItem;
 import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
@@ -67,6 +71,7 @@ import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
 import com.serotonin.m2m2.web.dwr.beans.EventSourceBean;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
+import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 public class EventHandlersDwr extends BaseDwr {
     private static final Log LOG = LogFactory.getLog(EventHandlersDwr.class);
@@ -353,11 +358,15 @@ public class EventHandlersDwr extends BaseDwr {
         }else{
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
             context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, Common.runtimeManager.getDataPoint(targetPointId));
+            
             for(IntStringPair cxt : additionalContext) {
     			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
     			if(dprt != null)
     				context.put(cxt.getValue(), dprt);
     		}
+            
+            Map<String, Object> otherContext = new HashMap<String, Object>();
+            otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
             
             int targetDataType = target.getPointLocator().getDataTypeId();
 
@@ -366,11 +375,13 @@ public class EventHandlersDwr extends BaseDwr {
 
             try {
             	CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-                PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, null, System.currentTimeMillis(),
+                PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
                         targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter, 
                         new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), null, null, true);
                 if (pvt.getValue() == null)
                     message = new TranslatableMessage("eventHandlers.script.nullResult");
+                else if(CompiledScriptExecutor.UNCHANGED.equals(pvt.getValue()))
+                	message = new TranslatableMessage("eventHandlers.script.successUnchanged");
                 else
                     message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());
             	//Add the script logging output
@@ -389,5 +400,41 @@ public class EventHandlersDwr extends BaseDwr {
         else
         	response.addMessage("inactiveScript", message);
         return response;
+    }
+    
+    private EventInstanceWrapper getTestEvent() {
+    	EventInstance ei = new EventInstance(new EventType() {
+
+			@Override
+			public String getEventType() {
+				return EventType.EventTypeNames.SYSTEM;
+			}
+
+			@Override
+			public String getEventSubtype() {
+				return "Set Point Handler Test";
+			}
+
+			@Override
+			public int getDuplicateHandling() {
+				return DuplicateHandling.IGNORE;
+			}
+
+			@Override
+			public int getReferenceId1() {
+				return -1;
+			}
+
+			@Override
+			public int getReferenceId2() {
+				return -2;
+			}
+
+			@Override
+			public EventTypeModel asModel() {
+				return null; //Not to be used
+			}}, Common.timer.currentTimeMillis(), false, AlarmLevels.INFORMATION, 
+    			new TranslatableMessage("common.test"), null);
+    	return new EventInstanceWrapper(ei);
     }
 }

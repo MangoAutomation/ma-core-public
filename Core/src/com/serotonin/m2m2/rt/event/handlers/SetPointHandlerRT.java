@@ -34,6 +34,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
 import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
@@ -144,13 +145,15 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	}
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         	context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, targetPoint);
+        	Map<String, Object> additionalContext = new HashMap<String, Object>();
+        	additionalContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, new EventInstanceWrapper(evt));
         	try {
         		for(IntStringPair cxt : vo.getAdditionalContext()) {
         			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
         			if(dprt != null)
         				context.put(cxt.getValue(), dprt);
         		}
-	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, new HashMap<String, Object>(), evt.getActiveTimestamp(), 
+	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, additionalContext, evt.getActiveTimestamp(), 
 	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), 
 	        			setCallback, importExclusions, false);
 
@@ -167,7 +170,8 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getActiveAction());
 
         // Queue a work item to perform the set point.
-        Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
+        if(!CompiledScriptExecutor.UNCHANGED.equals(value))
+        	Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
                 evt.getActiveTimestamp()), this));
     }
 
