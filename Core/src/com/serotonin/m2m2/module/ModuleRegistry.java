@@ -81,7 +81,6 @@ import com.serotonin.m2m2.module.definitions.settings.LastUpgradeSettingsListene
 import com.serotonin.m2m2.module.definitions.settings.LoadAverageInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.NoSqlPointValueDatabaseSizeInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.OperatingSystemInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.PointHistoryCountInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseBackupFileListInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseSizeInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
@@ -1033,7 +1032,6 @@ public class ModuleRegistry {
         preDefaults.add(new FiledataCountInfoDefinition());
         preDefaults.add(new NoSqlPointValueDatabaseSizeInfoDefinition());
         preDefaults.add(new SqlDatabaseBackupFileListInfoDefinition());
-        preDefaults.add(new PointHistoryCountInfoDefinition());
         preDefaults.add(new EventsCountInfoDefinition());
         preDefaults.add(new DiskInfoDefinition());
         preDefaults.add(new LoadAverageInfoDefinition());
