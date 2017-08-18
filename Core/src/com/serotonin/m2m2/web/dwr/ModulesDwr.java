@@ -332,11 +332,13 @@ public class ModulesDwr extends BaseDwr {
         Version coreVersion = Common.getVersion();
         jsonModules.put("core", coreVersion.toString());
         for (Module module : modules)
-            jsonModules.put(module.getName(), module.getVersion().toString());
+        	if(!module.isMarkedForDeletion())
+        		jsonModules.put(module.getName(), module.getVersion().toString());
         
         //Add in the unloaded modules so we don't re-download them if we don't have to
         for(Module module : ModuleRegistry.getUnloadedModules())
-        	jsonModules.put(module.getName(), module.getVersion().toString());
+        	if(!module.isMarkedForDeletion())
+        		jsonModules.put(module.getName(), module.getVersion().toString());
 
         StringWriter stringWriter = new StringWriter();
         new JsonWriter(Common.JSON_CONTEXT, stringWriter).writeObject(json);
