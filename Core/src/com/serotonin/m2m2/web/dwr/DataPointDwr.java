@@ -58,7 +58,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
      * Default Constructor
      */
     public DataPointDwr() {
-        super(DataPointDao.instance, "dataPoints");
+        super(DataPointDao.instance, DataPointDao.instance.tableName);
         LOG = LogFactory.getLog(DataPointDwr.class);
     }
 

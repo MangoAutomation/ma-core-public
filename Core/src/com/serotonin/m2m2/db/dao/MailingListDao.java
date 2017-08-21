@@ -47,11 +47,11 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
 	}
     
     public String generateUniqueXid() {
-        return generateUniqueXid(MailingList.XID_PREFIX, "mailingLists");
+        return generateUniqueXid(MailingList.XID_PREFIX, SchemaDefinition.MAILING_LISTS_TABLE);
     }
 
     public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, "mailingLists");
+        return isXidUnique(xid, excludeId, SchemaDefinition.MAILING_LISTS_TABLE);
     }
 
     private static final String MAILING_LIST_SELECT = "select id, xid, name, receiveAlarmEmails from mailingLists ";

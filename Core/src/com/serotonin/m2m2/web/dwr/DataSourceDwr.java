@@ -56,7 +56,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * Default Constructor
      */
     public DataSourceDwr() {
-        super(DataSourceDao.instance, "dataSources", (DataSourceRTM<DataSourceVO<?>>) DataSourceRTM.instance, "dataSources");
+        super(DataSourceDao.instance, DataSourceDao.instance.tableName, (DataSourceRTM<DataSourceVO<?>>) DataSourceRTM.instance, DataSourceDao.instance.tableName);
         LOG = LogFactory.getLog(DataSourceDwr.class);
     }
 

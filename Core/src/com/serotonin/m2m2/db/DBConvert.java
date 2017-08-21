@@ -61,10 +61,10 @@ public class DBConvert {
 
     private List<String> getCoreTableNames() {
         List<String> tableNames = new ArrayList<>();
-        tableNames.add("systemSettings");
+        tableNames.add(SchemaDefinition.SYSTEM_SETTINGS_TABLE);
         tableNames.add(SchemaDefinition.USERS_TABLE);
         tableNames.add(SchemaDefinition.USER_COMMENTS_TABLE);
-        tableNames.add("mailingLists");
+        tableNames.add(SchemaDefinition.MAILING_LISTS_TABLE);
         tableNames.add("mailingListInactive");
         tableNames.add("mailingListMembers");
         tableNames.add(SchemaDefinition.TEMPLATES_TABLE);
