@@ -22,5 +22,7 @@ public class SchemaDefinition {
 	public static final String EVENT_DETECTOR_TABLE = "eventDetectors";
 	public static final String PUBLISHERS_TABLE = "publishers";
 	public static final String USERS_TABLE = "users";
+	public static final String MAILING_LISTS_TABLE = "mailingLists";
+	public static final String SYSTEM_SETTINGS_TABLE = "systemSettings";
 	
 }

@@ -28,6 +28,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -173,7 +174,7 @@ public class EventHandlersDwr extends BaseDwr {
                     publishers.add(source);
                 }
             }
-            model.put("publishers", publishers);
+            model.put(SchemaDefinition.PUBLISHERS_TABLE, publishers);
 
             // Get the system events
             List<EventTypeVO> systemEvents = new ArrayList<>();
@@ -211,14 +212,14 @@ public class EventHandlersDwr extends BaseDwr {
         }
 
         // Get the mailing lists.
-        model.put("mailingLists", MailingListDao.instance.getMailingLists());
+        model.put(SchemaDefinition.MAILING_LISTS_TABLE, MailingListDao.instance.getMailingLists());
 
         // Get the users.
-        model.put("users", UserDao.instance.getUsers());
+        model.put(SchemaDefinition.USERS_TABLE, UserDao.instance.getUsers());
 
         model.put("allPoints", allPoints);
-        model.put("dataPoints", dataPoints);
-        model.put("dataSources", dataSources);
+        model.put(SchemaDefinition.DATAPOINTS_TABLE, dataPoints);
+        model.put(SchemaDefinition.DATASOURCES_TABLE, dataSources);
 
         return model;
     }

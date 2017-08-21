@@ -49,7 +49,7 @@ public class TemplateDwr extends BaseDwr{
     public ProcessResult getDataPointTemplates(int dataTypeId) {
     	ProcessResult result = new ProcessResult();
     	List<DataPointPropertiesTemplateVO> templates = dao.getDataPointTemplatesByDataTypeId(dataTypeId);
-    	result.addData("templates", templates);
+    	result.addData(TemplateDao.instance.tableName, templates);
     	
     	return result;
     }
@@ -85,7 +85,7 @@ public class TemplateDwr extends BaseDwr{
     	List<DataPointSummary> summaries = new ArrayList<DataPointSummary>(dataPoints.size());
     	for(DataPointVO dp: dataPoints)
     		summaries.add(new DataPointSummary(dp));
-    	response.addData("dataPoints", summaries);
+    	response.addData(DataPointDao.instance.tableName, summaries);
     	return response;
     }
     

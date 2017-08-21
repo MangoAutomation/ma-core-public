@@ -900,8 +900,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     @Override
     protected List<JoinClause> getJoins() {
     	List<JoinClause> joins = new ArrayList<JoinClause>();
-    	joins.add(new JoinClause(JOIN, "dataSources", "ds", "ds.id = dp.dataSourceId"));
-    	joins.add(new JoinClause(LEFT_JOIN, "templates", "template", "template.id = dp.templateId"));
+    	joins.add(new JoinClause(JOIN, SchemaDefinition.DATASOURCES_TABLE, "ds", "ds.id = dp.dataSourceId"));
+    	joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.TEMPLATES_TABLE, "template", "template.id = dp.templateId"));
     	return joins;
     }
     

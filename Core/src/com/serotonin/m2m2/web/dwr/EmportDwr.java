@@ -25,6 +25,7 @@ import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -41,18 +42,18 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * @author Matthew Lohbihler
  */
 public class EmportDwr extends BaseDwr {
-    public static final String EVENT_HANDLERS = "eventHandlers";
-    public static final String DATA_SOURCES = "dataSources";
-    public static final String DATA_POINTS = "dataPoints";
-    public static final String USERS = "users";
+    public static final String EVENT_HANDLERS = SchemaDefinition.EVENT_HANDLER_TABLE;
+    public static final String DATA_SOURCES = SchemaDefinition.DATASOURCES_TABLE;
+    public static final String DATA_POINTS = SchemaDefinition.DATAPOINTS_TABLE;
+    public static final String USERS = SchemaDefinition.USERS_TABLE;
     public static final String POINT_HIERARCHY = "pointHierarchy";
-    public static final String MAILING_LISTS = "mailingLists";
-    public static final String PUBLISHERS = "publishers";
-    public static final String SYSTEM_SETTINGS = "systemSettings";
-    public static final String TEMPLATES = "templates";
+    public static final String MAILING_LISTS = SchemaDefinition.MAILING_LISTS_TABLE;
+    public static final String PUBLISHERS = SchemaDefinition.PUBLISHERS_TABLE;
+    public static final String SYSTEM_SETTINGS = SchemaDefinition.SYSTEM_SETTINGS_TABLE;
+    public static final String TEMPLATES = SchemaDefinition.TEMPLATES_TABLE;
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
-    public static final String JSON_DATA = "jsonData";
-    public static final String EVENT_DETECTORS = "eventDetectors";
+    public static final String JSON_DATA = SchemaDefinition.JSON_DATA_TABLE;
+    public static final String EVENT_DETECTORS = SchemaDefinition.EVENT_DETECTOR_TABLE;
     
 
     @DwrPermission(admin = true)
