@@ -122,12 +122,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     @Override
     public String generateUniqueXid() {
-        return generateUniqueXid(DataSourceVO.XID_PREFIX, "dataSources");
-    }
-
-    @Override
-    public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, "dataSources");
+        return generateUniqueXid(DataSourceVO.XID_PREFIX, tableName);
     }
 
     public void saveDataSource(final T vo) {
