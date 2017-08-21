@@ -104,12 +104,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
     @Override
     public String generateUniqueXid() {
-        return generateUniqueXid(DataPointVO.XID_PREFIX, "dataPoints");
-    }
-
-    @Override
-    public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, "dataPoints");
+        return generateUniqueXid(DataPointVO.XID_PREFIX, tableName);
     }
 
     public String getExtendedPointName(int dataPointId) {
