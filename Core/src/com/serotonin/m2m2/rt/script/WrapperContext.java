@@ -49,8 +49,8 @@ public class WrapperContext {
 
     @Override
     public String toString() {
-        return "{millisInPast(periodType, count), millisInPrev(periodType, count), "
-                + "millisInPrevious(periodType, count)}";
+        return "{\nmillisInPast(periodType, count): long,\nmillisInPrev(periodType, count): long,\n"
+                + "millisInPrevious(periodType, count): long,\ngetRuntime(): long\n}";
     }
 
     public String getHelp() {
