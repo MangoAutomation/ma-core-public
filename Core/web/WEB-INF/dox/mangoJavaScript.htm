@@ -96,6 +96,7 @@ The following fields can be useful for conversions:</p>
   The <b>set(value, timestamp, annotation)</b> function is the same as set(value, timestamp) but also sets the annotation on the point value to the supplied annotation.
 </p>
 
+
 <h1>Statistics objects</h1>
 <p>Statistics objects are returned from the past(), prev(), and previous(), getStats(from, to) functions. (See "Context objects" above.) The properties of the object returned depend upon the data type of point upon which they were generated. Time values in objects are stored as integers, but but represent the number of milliseconds since midnight Jan 1, 1970.</p>
 <p><b>Note 1:</b> getStats(from, to) operates on timestamps, usage:</p>
@@ -206,6 +207,27 @@ format - See <a href="https://docs.oracle.com/javase/8/docs/api/java/time/format
 timestamp - milliseconds since epoch 
 timezoneId - timezone to use
 return - String formatted date
+
+
+<h2>CONTEXT</h2>
+This utility holds the timestamp of the runtime (not the time of the event that triggered it) and a few methods for computing period milliseconds.
+
+<h3>getRuntime()</h3>
+return - the runtime in milliseconds for this run of the script
+
+<h3>millisInPast(periodType, count)</h3>
+periodType - integer corresponding with time period type, as defined in Common.TimePeriods
+count - the number of periods
+returns - the current runtime minus a count of periodType
+
+<h3>millisInPrev(periodType, count)</h3>
+periodType - integer corresponding with time period type, as defined in Common.TimePeriods
+count - the number of periods
+returns - the current runtime minus a count of periodType, bookended to the periodType.
+
+<h3>millisInPrevious(periodType, count)</h3>
+see millisInPrev(periodType, count)
+
 
 <h2>RuntimeManager</h2>
 This utility is accessible via RuntimeManager.{method}.
