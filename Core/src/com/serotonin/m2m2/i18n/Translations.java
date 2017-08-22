@@ -32,14 +32,35 @@ public class Translations {
     }
 
     public static Translations getTranslations(Locale locale) {
+        Translations cachedTranslations;
+        if ((cachedTranslations = TRANSLATIONS_CACHE.get(locale)) != null) {
+            return cachedTranslations;
+        }
+        
+        Locale parentLocale = getParentLocale(locale);
+        final Translations parentTranslations = parentLocale != null ? getTranslations(parentLocale) : null;
+
         return TRANSLATIONS_CACHE.computeIfAbsent(locale, (l) -> {
             try {
-                return new Translations(l);
+                return new Translations(l, parentTranslations);
             } catch (IOException e) {
                 LOG.warn("Error while loading translations", e);
                 return null;
             }
         });
+    }
+    
+    public static Locale getParentLocale(Locale locale) {
+        if (!StringUtils.isBlank(locale.getLanguage())) {
+            if (!StringUtils.isBlank(locale.getCountry())) {
+                if (!StringUtils.isBlank(locale.getVariant())) {
+                    return new Locale(locale.getLanguage(), locale.getCountry());
+                }
+                return new Locale(locale.getLanguage());
+            }
+            return new Locale("");
+        }
+        return null;
     }
 
     public static void clearCache() {
@@ -51,12 +72,11 @@ public class Translations {
     private final Map<String, String> pairs = new HashMap<String, String>();
     private final Map<String, Map<String, String>> namespaces = new HashMap<String, Map<String, String>>();
 
-    private Translations(Locale locale) throws IOException {
+    private Translations(Locale locale, Translations parent) throws IOException {
+        this.parent = parent;
+        
         StringBuilder sb = new StringBuilder();
-
         sb.append(BASE_NAME);
-
-        Locale parentLocale = null;
 
         if (!StringUtils.isBlank(locale.getLanguage())) {
             sb.append('_').append(locale.getLanguage());
@@ -64,13 +84,8 @@ public class Translations {
                 sb.append('_').append(locale.getCountry());
                 if (!StringUtils.isBlank(locale.getVariant())) {
                     sb.append('_').append(locale.getVariant());
-                    parentLocale = new Locale(locale.getLanguage(), locale.getCountry());
                 }
-                else
-                    parentLocale = new Locale(locale.getLanguage());
             }
-            else
-                parentLocale = new Locale("");
         }
 
         name = sb.toString();
@@ -99,11 +114,6 @@ public class Translations {
                 namespacedTranslations.put(key, translation);
             }
         }
-
-        if (parentLocale != null)
-            parent = Translations.getTranslations(parentLocale);
-        else
-            parent = null;
     }
 
     public String getName() {
