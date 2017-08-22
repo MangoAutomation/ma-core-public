@@ -108,7 +108,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public String getExtendedPointName(int dataPointId) {
-        DataPointVO vo = getDataPoint(dataPointId);
+        DataPointVO vo = getDataPoint(dataPointId, false);
         if (vo == null)
             return "?";
         return vo.getExtendedName();

@@ -360,7 +360,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     public void validate(ProcessResult response) {
         if (handlerType == TYPE_SET_POINT) {
-            DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId);
+            DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId, false);
 
             if (dp == null)
                 response.addGenericMessage("eventHandlers.noTargetPoint");
@@ -390,7 +390,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (activeAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpActive = DataPointDao.instance.getDataPoint(activePointId);
+                    DataPointVO dpActive = DataPointDao.instance.getDataPoint(activePointId, false);
 
                     if (dpActive == null)
                         response.addGenericMessage("eventHandlers.invalidActiveSource");
@@ -418,7 +418,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpInactive = DataPointDao.instance.getDataPoint(inactivePointId);
+                    DataPointVO dpInactive = DataPointDao.instance.getDataPoint(inactivePointId, false);
 
                     if (dpInactive == null)
                         response.addGenericMessage("eventHandlers.invalidInactiveSource");
@@ -679,14 +679,14 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
         writer.writeEntry("handlerType", TYPE_CODES.getCode(handlerType));
 
         if (handlerType == TYPE_SET_POINT) {
-            DataPointVO dp = dataPointDao.getDataPoint(targetPointId);
+            DataPointVO dp = dataPointDao.getDataPoint(targetPointId, false);
             if (dp != null)
                 writer.writeEntry("targetPointId", dp.getXid());
 
             // Active
             writer.writeEntry("activeAction", SET_ACTION_CODES.getCode(activeAction));
             if (activeAction == SET_ACTION_POINT_VALUE) {
-                dp = dataPointDao.getDataPoint(activePointId);
+                dp = dataPointDao.getDataPoint(activePointId, false);
                 if (dp != null)
                     writer.writeEntry("activePointId", dp.getXid());
             }
@@ -696,7 +696,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             // Inactive
             writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
             if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                dp = dataPointDao.getDataPoint(inactivePointId);
+                dp = dataPointDao.getDataPoint(inactivePointId, false);
                 if (dp != null)
                     writer.writeEntry("inactivePointId", dp.getXid());
             }

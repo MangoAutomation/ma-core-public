@@ -54,7 +54,7 @@ public class DataPointAccess implements JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("dataPointXid", DataPointDao.instance.getDataPoint(dataPointId).getXid());
+        writer.writeEntry("dataPointXid", DataPointDao.instance.getDataPoint(dataPointId, false).getXid());
         writer.writeEntry("permission", ACCESS_CODES.getCode(permission));
     }
 

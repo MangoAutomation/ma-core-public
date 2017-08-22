@@ -51,7 +51,7 @@ public class DataPointEventType extends EventType {
     @Override
     public int getDataSourceId() {
         if (dataSourceId == -1){
-        	DataPointVO vo = DataPointDao.instance.getDataPoint(dataPointId);
+        	DataPointVO vo = DataPointDao.instance.getDataPoint(dataPointId, false);
         	if(vo != null) //In case the point has been deleted
         		dataSourceId = vo.getDataSourceId();
         }
@@ -128,7 +128,7 @@ public class DataPointEventType extends EventType {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         DataPointDao dataPointDao = DataPointDao.instance;
-        writer.writeEntry("dataPointXID", dataPointDao.getDataPoint(dataPointId).getXid());
+        writer.writeEntry("dataPointXID", dataPointDao.getDataPoint(dataPointId, false).getXid());
         writer.writeEntry("detectorXID", EventDetectorDao.instance.getXid(pointEventDetectorId));
     }
 

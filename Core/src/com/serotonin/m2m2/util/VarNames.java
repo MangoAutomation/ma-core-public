@@ -32,7 +32,7 @@ public class VarNames {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (IntStringPair ivp : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(ivp.getKey());
+            DataPointVO dp = dataPointDao.getDataPoint(ivp.getKey(), false);
             if (first)
                 first = false;
             else
@@ -52,7 +52,7 @@ public class VarNames {
         DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (IntStringPair p : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(p.getKey());
+            DataPointVO dp = dataPointDao.getDataPoint(p.getKey(), false);
             if (dp != null) {
                 JsonObject point = new JsonObject();
                 pointList.add(point);

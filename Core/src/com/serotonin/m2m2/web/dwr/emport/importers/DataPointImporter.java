@@ -93,7 +93,7 @@ public class DataPointImporter extends Importer {
 	                    //Compare this point to the existing point in DB to ensure
 	                    // that we aren't moving a point to a different type of Data Source
 	                
-	                    DataPointVO oldPoint = ctx.getDataPointDao().getDataPoint(vo.getId());
+	                    DataPointVO oldPoint = ctx.getDataPointDao().getDataPoint(vo.getId(), false);
 	                    
 	                    //Does the old point have a different data source?
 	                    if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
