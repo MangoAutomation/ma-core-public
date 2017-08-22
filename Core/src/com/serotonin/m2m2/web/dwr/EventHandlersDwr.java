@@ -353,7 +353,7 @@ public class EventHandlersDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
         TranslatableMessage message;
 
-        DataPointVO target = DataPointDao.instance.getDataPoint(targetPointId);
+        DataPointVO target = DataPointDao.instance.getDataPoint(targetPointId, false);
         if(target == null || !Common.runtimeManager.isDataPointRunning(targetPointId)){
         	message = new TranslatableMessage("eventHandlers.noTargetPoint");
         }else{

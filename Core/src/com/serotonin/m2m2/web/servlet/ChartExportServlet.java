@@ -114,7 +114,7 @@ public class ChartExportServlet extends HttpServlet {
         };
 
         for (int pointId : def.getPointIds()) {
-            DataPointVO dp = dataPointDao.getDataPoint(pointId);
+            DataPointVO dp = dataPointDao.getDataPoint(pointId, false);
             if (Permissions.hasDataPointReadPermission(user, dp)) {
                 ExportPointInfo pointInfo = new ExportPointInfo();
                 pointInfo.setXid(dp.getXid());
@@ -184,7 +184,7 @@ public class ChartExportServlet extends HttpServlet {
         };
 
         for (int pointId : def.getPointIds()) {
-            DataPointVO dp = dataPointDao.getDataPoint(pointId);
+            DataPointVO dp = dataPointDao.getDataPoint(pointId, false);
             if (Permissions.hasDataPointReadPermission(user, dp)) {
                 ExportPointInfo pointInfo = new ExportPointInfo();
                 pointInfo.setXid(dp.getXid());

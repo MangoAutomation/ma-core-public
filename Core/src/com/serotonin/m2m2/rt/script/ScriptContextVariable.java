@@ -100,7 +100,7 @@ public class ScriptContextVariable implements Serializable{
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (ScriptContextVariable ivp : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(ivp.getDataPointId());
+            DataPointVO dp = dataPointDao.getDataPoint(ivp.getDataPointId(), false);
             if (first){
                 first = false;
             }else
@@ -120,7 +120,7 @@ public class ScriptContextVariable implements Serializable{
         DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (ScriptContextVariable p : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(p.getDataPointId());
+            DataPointVO dp = dataPointDao.getDataPoint(p.getDataPointId(), false);
             if (dp != null) {
                 JsonObject point = new JsonObject();
                 pointList.add(point);

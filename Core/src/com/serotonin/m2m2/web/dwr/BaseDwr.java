@@ -264,7 +264,7 @@ abstract public class BaseDwr {
 	@DwrPermission(user = true)
 	public void forcePointRead(int pointId) {
 		User user = Common.getUser();
-		DataPointVO point = DataPointDao.instance.getDataPoint(pointId);
+		DataPointVO point = DataPointDao.instance.getDataPoint(pointId, false);
 
 		// Check permissions.
 		Permissions.ensureDataPointReadPermission(user, point);

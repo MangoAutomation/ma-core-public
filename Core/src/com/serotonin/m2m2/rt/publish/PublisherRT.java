@@ -25,7 +25,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.timer.FixedRateTrigger;
-import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
 /**
@@ -130,7 +129,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         for (PublishedPointRT<T> rt : pointRTs) {
             if (!rt.isPointEnabled()) {
                 badPointId = rt.getVo().getDataPointId();
-                disabledPoint = DaoRegistry.dataPointDao.getDataPoint(badPointId);
+                disabledPoint = DaoRegistry.dataPointDao.getDataPoint(badPointId, false);
                 break;
             }
         }
