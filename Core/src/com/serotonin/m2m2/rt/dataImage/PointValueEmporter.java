@@ -16,8 +16,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -280,7 +280,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     DataSourceVO<?> getDataSource(int dataSourceId) {
         DataSourceVO<?> ds = cachedDataSources.get(dataSourceId);
         if (ds == null) {
-            ds = DaoRegistry.dataSourceDao.get(dataSourceId);
+            ds = DataSourceDao.instance.get(dataSourceId);
             if (ds != null)
                 cachedDataSources.put(dataSourceId, ds);
         }

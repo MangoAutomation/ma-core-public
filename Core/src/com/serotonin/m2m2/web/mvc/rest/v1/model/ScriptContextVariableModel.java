@@ -5,7 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -41,7 +41,7 @@ public class ScriptContextVariableModel {
 	 * @param variable
 	 */
 	public ScriptContextVariableModel(ScriptContextVariable variable){
-		DataPointVO vo = DaoRegistry.dataPointDao.get(variable.getDataPointId());
+		DataPointVO vo = DataPointDao.instance.getDataPoint(variable.getDataPointId(), false);
 		if(vo != null)
 			this.dataPointXid = vo.getXid();
 		this.variableName = variable.getVariableName();
@@ -75,9 +75,9 @@ public class ScriptContextVariableModel {
 	public ScriptContextVariable createVariable(){
 		int dataPointId = Common.NEW_ID;
 		if(this.dataPointXid != null){
-			DataPointVO vo = DaoRegistry.dataPointDao.getByXid(this.dataPointXid);
-			if(vo != null)
-				dataPointId = vo.getId();
+			Integer id = DataPointDao.instance.getDataPointIdByXid(this.dataPointXid);
+			if(id != null)
+				dataPointId = id;
 		}
 		return new ScriptContextVariable(dataPointId, variableName, contextUpdate);
 	}

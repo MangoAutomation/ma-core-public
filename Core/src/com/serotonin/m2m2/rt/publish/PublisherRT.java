@@ -12,6 +12,7 @@ import java.util.Map;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -73,7 +74,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     public Object getPersistentData(String key) {
         synchronized (persistentDataLock) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>)  DaoRegistry.publisherDao.getPersistentData(vo.getId());
+            Map<String, Object> map = (Map<String, Object>)  PublisherDao.instance.getPersistentData(vo.getId());
             if (map != null)
                 return map.get(key);
             return null;
@@ -86,16 +87,15 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
      * called in the terminate method, but may also be called regularly for failover purposes.
      */
     public void setPersistentData(String key, Object persistentData) {
-        PublisherDao dao = DaoRegistry.publisherDao;
         synchronized (persistentDataLock) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) dao.getPersistentData(vo.getId());
+            Map<String, Object> map = (Map<String, Object>) PublisherDao.instance.getPersistentData(vo.getId());
             if (map == null)
                 map = new HashMap<String, Object>();
 
             map.put(key, persistentData);
 
-            dao.savePersistentData(vo.getId(), map);
+            PublisherDao.instance.savePersistentData(vo.getId(), map);
         }
     }
 
@@ -129,7 +129,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         for (PublishedPointRT<T> rt : pointRTs) {
             if (!rt.isPointEnabled()) {
                 badPointId = rt.getVo().getDataPointId();
-                disabledPoint = DaoRegistry.dataPointDao.getDataPoint(badPointId, false);
+                disabledPoint = DataPointDao.instance.getDataPoint(badPointId, false);
                 break;
             }
         }

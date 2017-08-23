@@ -19,7 +19,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -65,7 +65,7 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
         if (session != null && user != null) {
             
             // Update the last login time.
-            DaoRegistry.userDao.recordLogin(user.getId());
+            UserDao.instance.recordLogin(user.getId());
             
             // Set the IP Address for the session
             user.setRemoteAddr(request.getRemoteAddr());

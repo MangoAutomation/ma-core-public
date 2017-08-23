@@ -15,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DuplicateKeyException;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -81,7 +80,7 @@ public class TemplateDwr extends BaseDwr{
     @DwrPermission(user = true)
     public ProcessResult findPointsWithTemplate(DataPointPropertiesTemplateVO vo){
     	ProcessResult response = new ProcessResult();
-    	List<DataPointVO> dataPoints = DaoRegistry.dataPointDao.getByTemplate(vo.getId(), false);
+    	List<DataPointVO> dataPoints = DataPointDao.instance.getByTemplate(vo.getId(), false);
     	List<DataPointSummary> summaries = new ArrayList<DataPointSummary>(dataPoints.size());
     	for(DataPointVO dp: dataPoints)
     		summaries.add(new DataPointSummary(dp));
