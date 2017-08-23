@@ -30,7 +30,7 @@ public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefin
 	 */
 	@Override
 	public String getDescriptionKey() {
-		return "pointEdit.detectors.change";
+		return "pointEdit.detectors.analogChange";
 	}
 
 	/* (non-Javadoc)

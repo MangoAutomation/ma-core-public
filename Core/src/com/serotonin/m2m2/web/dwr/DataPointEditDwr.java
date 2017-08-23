@@ -32,6 +32,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO;
@@ -238,6 +239,20 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setNotLower(notLower);
         ped.setUseResetLimit(useResetLimit);
         ped.setResetLimit(resetLimit);
+        ped.setDuration(duration);
+        ped.setDurationType(durationType);
+        ped.setAlarmLevel(alarmLevel);
+    }
+    
+    @DwrPermission(user = true)
+    public void updateAnalogChangeDetector(int pedId, String xid, String alias, double limit, 
+            boolean checkIncrease, boolean checkDecrease, int duration, int durationType, int alarmLevel) {
+        AnalogChangeDetectorVO ped = (AnalogChangeDetectorVO)getEventDetector(pedId);
+        ped.setXid(xid);
+        ped.setAlias(alias);
+        ped.setLimit(limit);
+        ped.setCheckIncrease(checkIncrease);
+        ped.setCheckDecrease(checkDecrease);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
