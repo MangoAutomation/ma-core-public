@@ -17,7 +17,6 @@ import org.apache.commons.logging.LogFactory;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -46,6 +45,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
     private static final String prefix = "INTVL_LOG-";
+    private static final boolean enhanced = Common.databaseProxy.newPointValueDao() instanceof EnhancedPointValueDao;
 
     // Configuration data.
     private final DataPointVO vo;
@@ -78,7 +78,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         this.vo = vo;
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
-        if (DaoRegistry.pointValueDao instanceof EnhancedPointValueDao) {
+        if (enhanced) {
             valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache);
         } else {
             valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);

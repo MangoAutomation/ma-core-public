@@ -14,7 +14,7 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -68,7 +68,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		this.deviceName = summary.getDeviceName();
 		this.pointName = summary.getName();
 		
-		DataPointVO vo = DaoRegistry.dataPointDao.get(summary.getId());
+		DataPointVO vo = DataPointDao.instance.getDataPoint(summary.getId(), false);
 		//Get Unit
         if (vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
             this.unit = ""; //"boolean";

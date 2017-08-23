@@ -21,7 +21,6 @@ import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
@@ -114,13 +113,13 @@ public class RuntimeManager implements ILifecycle{
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
         
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        List<DataSourceVO<?>> configs = DaoRegistry.dataSourceDao.getDataSources();
+        List<DataSourceVO<?>> configs = DataSourceDao.instance.getDataSources();
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
             if (config.isEnabled()) {
                 if (safe) {
                     config.setEnabled(false);
-                    DaoRegistry.dataSourceDao.saveDataSource(config);
+                    DataSourceDao.instance.saveDataSource(config);
                 }
                 else if (config.getDefinition() != null) {
                     List<DataSourceVO<?>> priorityList = priorityMap.get(config.getDefinition().getStartPriority());
@@ -155,15 +154,14 @@ public class RuntimeManager implements ILifecycle{
 
         // Start the publishers that are enabled
         long pubStart = Common.timer.currentTimeMillis();
-        PublisherDao publisherDao = DaoRegistry.publisherDao;
-        List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getPublishers();
+        List<PublisherVO<? extends PublishedPointVO>> publishers = PublisherDao.instance.getPublishers();
         LOG.info("Starting " + publishers.size() + " Publishers...");
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
         	LOG.info("Starting publisher: " + vo.getName());
             if (vo.isEnabled()) {
                 if (safe) {
                     vo.setEnabled(false);
-                    publisherDao.savePublisher(vo);
+                    PublisherDao.instance.savePublisher(vo);
                 }
                 else
                     startPublisher(vo);
@@ -293,7 +291,7 @@ public class RuntimeManager implements ILifecycle{
         stopDataSource(vo.getId());
 
         // In case this is a new data source, we need to save to the database first so that it has a proper id.
-        DaoRegistry.dataSourceDao.saveDataSource(vo);
+        DataSourceDao.instance.saveDataSource(vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -333,11 +331,11 @@ public class RuntimeManager implements ILifecycle{
         }
 
         // Add the enabled points to the data source.
-        List<DataPointVO> dataSourcePoints = DaoRegistry.dataPointDao.getDataPointsForDataSourceStart(vo.getId());
+        List<DataPointVO> dataSourcePoints = DataPointDao.instance.getDataPointsForDataSourceStart(vo.getId());
         
         Map<Integer, List<PointValueTime>> latestValuesMap = null;
-        if (DaoRegistry.pointValueDao instanceof EnhancedPointValueDao) {
-            EnhancedPointValueDao pvDao = (EnhancedPointValueDao) DaoRegistry.pointValueDao;
+        PointValueDao pvDao = Common.databaseProxy.newPointValueDao();
+        if (pvDao instanceof EnhancedPointValueDao) {
             
             // Find the maximum cache size for all point in the datasource
             // This number of values will be retrieved for all points in the datasource
@@ -349,7 +347,7 @@ public class RuntimeManager implements ILifecycle{
             }
             
             try {
-                latestValuesMap = pvDao.getLatestPointValuesForDataSource(vo, maxCacheSize);
+                latestValuesMap = ((EnhancedPointValueDao)pvDao).getLatestPointValuesForDataSource(vo, maxCacheSize);
             } catch (Exception e) {
                 LOG.error("Failed to get latest point values for datasource " + vo.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
             }
@@ -450,7 +448,7 @@ public class RuntimeManager implements ILifecycle{
                 peds.remove();
         }
 
-        DaoRegistry.dataPointDao.saveDataPoint(point);
+        DataPointDao.instance.saveDataPoint(point);
 
         if (point.isEnabled())
             startDataPoint(point, null);
@@ -655,16 +653,14 @@ public class RuntimeManager implements ILifecycle{
     }
 
     public long purgeDataPointValues() {
-        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
-        long count = pointValueDao.deleteAllPointData();
+        long count = Common.databaseProxy.newPointValueDao().deleteAllPointData();
         for (Integer id : dataPoints.keySet())
             updateDataPointValuesRT(id);
         return count;
     }
 
     public void purgeDataPointValuesWithoutCount() {
-        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
-        pointValueDao.deleteAllPointDataWithoutCount();
+        Common.databaseProxy.newPointValueDao().deleteAllPointDataWithoutCount();
         for (Integer id : dataPoints.keySet())
             updateDataPointValuesRT(id);
         return;
