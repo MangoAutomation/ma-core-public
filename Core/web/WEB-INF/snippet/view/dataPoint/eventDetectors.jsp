@@ -18,6 +18,7 @@
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.PositiveCusumEventDetectorDefinition"%>
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition"%>
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition"%>
 
 <div>
   <table>
@@ -158,6 +159,56 @@
       <tr id="eventDetector_TEMPLATE_ResetRow" style="display:none">
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
+      </tr>
+      <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
+    </tbody>
+    
+    <tbody id="detectorType<%= AnalogChangeEventDetectorDefinition.TYPE_NAME %>">
+      <tr><td class="horzSeparator" colspan="2"></td></tr>
+      <tr>
+        <td class="formLabelRequired">
+          <tag:img png="delete" title="common.delete" onclick="pointEventDetectorEditor.deleteDetector(getPedId(this))"/>
+          <fmt:message key="pointEdit.detectors.type"/>
+        </td>
+        <td class="formField"><fmt:message key="pointEdit.detectors.analogChangeDet"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Xid" type="text" class="formFullLength"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.alias"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Alias" type="text" class="formFullLength"/></td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="common.alarmLevel"/></td>
+        <td class="formField">
+          <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
+                  onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
+          <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.state"/></td>
+        <td class="formField">
+          <select id="eventDetector_TEMPLATE_State">
+            <option value="3"><fmt:message key="pointEdit.detectors.change"/></option>
+            <option value="2"><fmt:message key="pointEdit.detectors.analogChange.increase"/></option>
+            <option value="1"><fmt:message key="pointEdit.detectors.analogChange.decrease"/></option>
+          </select>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.analogChangeLimit"/></td>
+        <td class="formField"><input id="eventDetector_TEMPLATE_Limit" type="text" class="formShort"/></td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.duration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
@@ -775,6 +826,18 @@
               if(detector.useResetLimit === true)
                 	changeUseResetLimit(true, detector.id);
           }
+          else if (detector.detectorType == '<%= AnalogChangeEventDetectorDefinition.TYPE_NAME %>') {
+        	  var state = 0;
+        	  if(detector.checkIncrease)
+        		  state |= 2;
+        	  if(detector.checkDecrease)
+        		  state |= 1;
+        	  
+        	  $set("eventDetector"+ detector.id +"State", String(state));
+        	  $set("eventDetector"+ detector.id +"Limit", detector.limit);
+              $set("eventDetector"+ detector.id +"Duration", detector.duration);
+              $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+          }
           else if (detector.detectorType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.state ? "true" : "false");
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
@@ -944,6 +1007,25 @@
                       DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, useReset,
                               weight, duration, durationType, alarmLevel, saveCB);
                   }
+              }
+              else if (pedType == '<%= AnalogChangeEventDetectorDefinition.TYPE_NAME %>') {
+            	  var state = parseInt($get("eventDetector"+ pedId +"State"))
+            	  var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
+            	  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
+                  var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+            	  
+            	  if (isNaN(limit))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
+                  else if (isNaN(duration))
+                      errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingDuration"/>";
+                  else if (duration < 0)
+                      errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
+            	  else if(state == 0 || state & 0b11 != state)
+            		  errorMessage = "<fmt:message key="pointEdit.detectors.analogChange.invalidState"/>";
+           		  else {
+           			  saveCBCount++;
+           			  DataPointEditDwr.updateAnalogChangeDetector(pedId, xid, alias, limit, (state & 0x2) != 0, (state & 0x1) != 0, duration, durationType, alarmLevel, saveCB);
+           		  }
               }
               else if (pedType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State");

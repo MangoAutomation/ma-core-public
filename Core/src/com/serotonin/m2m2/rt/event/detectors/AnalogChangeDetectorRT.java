@@ -4,10 +4,19 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
+
+import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * TODO This class is a work in progress and IS NOT USABLE in its current state. 
@@ -40,21 +49,37 @@ import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
  * @author Terry Packer
  */
 public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetectorVO> {
-
     /**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being
      * raised during the duration of a single high limit exceed.
      */
     private boolean eventActive;
     
-    /**
-     * State field.  The total cumulative change
-     * @param vo
-     */
-	private Double cumulativeChange;
+    private double max = -Double.MAX_VALUE;
+    private double min = Double.MAX_VALUE;
+    private final long durationMillis;
+    
+    private final List<PointValueTime> periodValues;
 	
     public AnalogChangeDetectorRT(AnalogChangeDetectorVO vo) {
         super(vo);
+        this.durationMillis = Common.getMillis(vo.getDurationType(), vo.getDuration());
+        PointValueDao pvd = Common.databaseProxy.newPointValueDao();
+        long now = Common.timer.currentTimeMillis();
+        periodValues = new ArrayList<>();
+        PointValueTime periodStartValue = pvd.getPointValueBefore(vo.getSourceId(), now - durationMillis + 1);
+        if(periodStartValue != null)
+            periodValues.add(periodStartValue);
+        periodValues.addAll(pvd.getPointValues(vo.getSourceId(), now - durationMillis + 1));
+        
+        Iterator<PointValueTime> iter = periodValues.iterator();
+        while(iter.hasNext()) {
+            PointValueTime pvt = iter.next();
+            if(pvt.getDoubleValue() > max)
+                max = pvt.getDoubleValue();
+            if(pvt.getDoubleValue() < min)
+                min = pvt.getDoubleValue();
+        }
     }
 
     @Override
@@ -63,35 +88,108 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
-        if(vo.isNotHigher()){
-        	//Not Higher than 
-            if (durationDescription == null)
-                return new TranslatableMessage("event.detector.highLimitNotHigher", name, prettyLimit);
-            return new TranslatableMessage("event.detector.highLimitNotHigherPeriod", name, prettyLimit, durationDescription);
-        }else{
-        	//Higher than
-            if (durationDescription == null)
-                return new TranslatableMessage("event.detector.highLimit", name, prettyLimit);
-            return new TranslatableMessage("event.detector.highLimitPeriod", name, prettyLimit, durationDescription);
-        }
+        if(vo.isCheckIncrease() && vo.isCheckDecrease())
+            return new TranslatableMessage("event.detector.analogChangePeriod", name, prettyLimit, durationDescription);
+        else if(vo.isCheckIncrease())
+            return new TranslatableMessage("event.detector.analogIncreasePeriod", name, prettyLimit, durationDescription);
+        else if(vo.isCheckDecrease())
+            return new TranslatableMessage("event.detector.analogDecreasePeriod", name, prettyLimit, durationDescription);
+        else
+            throw new ShouldNeverHappenException("Illegal state for analog change detector" + vo.getXid());
     }
 
     @Override
 	public boolean isEventActive() {
         return eventActive;
     }
+    
+    private void pruneValueList(long time) {
+        long cutoff = time - durationMillis;
+        boolean recomputeMinimum = false, recomputeMaximum = false;
+//        while(iter.hasNext()) {
+//            PointValueTime pvt = iter.next();
+//            if(pvt.getTime() < cutoff) {
+//                if(pvt.getDoubleValue() >= max) {
+//                    recomputeMaximum = true;
+//                }
+//                if(pvt.getDoubleValue() <= min)
+//                    recomputeMinimum = true;
+//                iter.remove();
+//            }
+//        }
+        
+        Collections.sort(periodValues);
+        while(periodValues.size() > 1) {
+            PointValueTime pvt1 = periodValues.get(0);
+            PointValueTime pvt2 = periodValues.get(1);
+            if(pvt2.getTime() <= cutoff) {
+                if(pvt1.getDoubleValue() >= max)
+                    recomputeMaximum = true;
+                if(pvt1.getDoubleValue() <= min)
+                    recomputeMinimum = true;
+                periodValues.remove(0);
+            } else {
+                break;
+            }
+        }
+        
+        recomputeMaximum |= periodValues.size() <= 1;
+        recomputeMinimum |= periodValues.size() <= 1;
+        
+        if(recomputeMaximum || recomputeMinimum) {
+            double newMax = -Double.MAX_VALUE;
+            double newMin = Double.MAX_VALUE;
+            Iterator<PointValueTime> iter = periodValues.iterator();
+            while(iter.hasNext()) {
+                PointValueTime pvt = iter.next();
+                if(pvt.getDoubleValue() > newMax)
+                    newMax = pvt.getDoubleValue();
+                if(pvt.getDoubleValue() < newMin)
+                    newMin = pvt.getDoubleValue();
+            }
+            if(recomputeMaximum)
+                max = newMax;
+            if(recomputeMinimum)
+                min = newMin;
+        }
+    }
+    
+    private boolean checkNewValue(PointValueTime newValue) {
+        boolean active = false;
+        if(periodValues.size() > 0) {
+            if(vo.isCheckIncrease() && newValue.getDoubleValue() > min + vo.getLimit()) {
+                active = true;
+            }
+            if(vo.isCheckDecrease() && newValue.getDoubleValue() < max - vo.getLimit()) {
+                active = true;
+            }
+        }
+        
+        periodValues.add(newValue);
+        if(newValue.getDoubleValue() > max)
+            max = newValue.getDoubleValue();
+        if(newValue.getDoubleValue() < min)
+            min = newValue.getDoubleValue();
+        return active;
+    }
 
     @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-    	
-    	//Ensure we are ready to track changes, we may be at the start of an interval
-    	
-    	//Track the cumulative change, ( over a given time period if required )
-    	this.cumulativeChange = this.cumulativeChange + (newValue.getDoubleValue() - oldValue.getDoubleValue());
-    	
-    	if(this.cumulativeChange > this.vo.getLimit()){
-    		//Fire Event and 
-    	}
+        boolean raised = false;
+        synchronized(periodValues) {
+        	unscheduleJob();
+        	pruneValueList(newValue.getTime());
+        	raised = checkNewValue(newValue);
+        	scheduleJob(Common.timer.currentTimeMillis() + durationMillis);
+        }
+        
+        if(raised && !eventActive) {
+            raiseEvent(newValue.getTime(), null);
+            eventActive = true;
+        } else if(!raised && eventActive) {
+            returnToNormal(newValue.getTime());
+            eventActive = false;
+        }
     }
     
 	/* 
@@ -101,8 +199,13 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 	 */
 	@Override
 	protected void scheduleTimeoutImpl(long fireTime) {
-		
-		
+		synchronized(periodValues) {
+		    periodValues.clear();
+		    max = -Double.MAX_VALUE;
+		    min = Double.MAX_VALUE;
+		    returnToNormal(fireTime);
+		    eventActive = false;
+		}
 	}
     
 	/* (non-Javadoc)

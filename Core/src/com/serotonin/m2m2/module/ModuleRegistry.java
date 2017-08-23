@@ -36,6 +36,7 @@ import com.serotonin.m2m2.module.definitions.actions.SqlBackupActionDefinition;
 import com.serotonin.m2m2.module.definitions.actions.SqlRestoreActionDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;
@@ -928,6 +929,8 @@ public class ModuleRegistry {
         preDefaults.add(new SmoothnessEventDetectorDefinition());
         preDefaults.add(new StateChangeCountEventDetectorDefinition());
         preDefaults.add(new NoUpdateEventDetectorDefinition());
+        //TODO uncomment when ready to test and release
+//        preDefaults.add(new AnalogChangeEventDetectorDefinition());
         
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
