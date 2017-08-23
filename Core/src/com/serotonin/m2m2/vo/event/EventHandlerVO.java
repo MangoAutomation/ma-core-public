@@ -745,10 +745,10 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
         if (handlerType == TYPE_SET_POINT) {
             String xid = jsonObject.getString("targetPointId");
             if (xid != null) {
-                DataPointVO vo = dataPointDao.getDataPoint(xid);
-                if (vo == null)
+                Integer id = dataPointDao.getDataPointIdByXid(xid);
+                if (id == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
-                targetPointId = vo.getId();
+                targetPointId = id;
             }
 
             // Active
@@ -763,10 +763,10 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (activeAction == SET_ACTION_POINT_VALUE) {
                 xid = jsonObject.getString("activePointId");
                 if (xid != null) {
-                    DataPointVO vo = dataPointDao.getDataPoint(xid);
-                    if (vo == null)
+                    Integer id = dataPointDao.getDataPointIdByXid(xid);
+                    if (id == null)
                         throw new TranslatableJsonException("emport.error.missingPoint", xid);
-                    activePointId = vo.getId();
+                    activePointId = id;
                 }
             }
             else if (activeAction == SET_ACTION_STATIC_VALUE) {
@@ -787,10 +787,10 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (inactiveAction == SET_ACTION_POINT_VALUE) {
                 xid = jsonObject.getString("inactivePointId");
                 if (xid != null) {
-                    DataPointVO vo = dataPointDao.getDataPoint(xid);
-                    if (vo == null)
+                    Integer id = dataPointDao.getDataPointIdByXid(xid);
+                    if (id == null)
                         throw new TranslatableJsonException("emport.error.missingPoint", xid);
-                    inactivePointId = vo.getId();
+                    inactivePointId = id;
                 }
             }
             else if (inactiveAction == SET_ACTION_STATIC_VALUE) {
