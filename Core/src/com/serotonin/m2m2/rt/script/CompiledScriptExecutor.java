@@ -31,7 +31,6 @@ public class CompiledScriptExecutor extends ScriptExecutor{
     public static final DataValue UNCHANGED = new BinaryValue(false);
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
-
     /**
      * Compile a script for the common Engine
      * @param script
@@ -81,7 +80,7 @@ public class CompiledScriptExecutor extends ScriptExecutor{
         ScriptEngine engine = script.getEngine();
 
         //Prepare the Engine
-        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, permissions, 
+        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, timestamp, permissions, 
         		scriptWriter, log, setter, importExclusions, testRun);
         
         // Execute.

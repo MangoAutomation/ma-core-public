@@ -215,6 +215,9 @@ This utility holds the timestamp of the runtime (not the time of the event that 
 <h3>getRuntime()</h3>
 return - the runtime in milliseconds for this run of the script
 
+<h3>getTimestamp()</h3>
+return - the timestamp of the event that triggered execution
+
 <h3>millisInPast(periodType, count)</h3>
 periodType - integer corresponding with time period type, as defined in Common.TimePeriods
 count - the number of periods
@@ -227,6 +230,15 @@ returns - the current runtime minus a count of periodType, bookended to the peri
 
 <h3>millisInPrevious(periodType, count)</h3>
 see millisInPrev(periodType, count)
+
+<h3>useRuntime()</h3>
+set CONTEXT to use the runtime to compute past and previous. This is the default.
+
+<h3>useTimestamp()</h3>
+set CONTEXT to use the timestamp to compute past and previous.
+
+<h3>setComputeTime(long)</h3>
+set the time to compute past and previous relative to.
 
 
 <h2>RuntimeManager</h2>

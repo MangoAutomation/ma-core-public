@@ -11,13 +11,25 @@ import com.serotonin.m2m2.util.DateUtils;
  */
 public class WrapperContext {
     private final long runtime;
-
+    private final long timestamp;
+    private long compute;
+    
     public WrapperContext(long runtime) {
+        this.runtime = this.timestamp = this.compute = runtime;
+    }
+
+    public WrapperContext(long runtime, long timestamp) {
         this.runtime = runtime;
+        this.timestamp = timestamp;
+        this.compute = runtime;
     }
 
     public long getRuntime() {
         return runtime;
+    }
+    
+    public long getTimestamp() {
+        return timestamp;
     }
 
     public long millisInPrev(int periodType) {
@@ -33,7 +45,7 @@ public class WrapperContext {
     }
 
     public long millisInPrevious(int periodType, int count) {
-        long to = DateUtils.truncate(runtime, periodType);
+        long to = DateUtils.truncate(compute, periodType);
         long from = DateUtils.minus(to, periodType, count);
         return to - from;
     }
@@ -43,17 +55,30 @@ public class WrapperContext {
     }
 
     public long millisInPast(int periodType, int count) {
-        long from = DateUtils.minus(runtime, periodType, count);
-        return runtime - from;
+        long from = DateUtils.minus(compute, periodType, count);
+        return compute - from;
     }
 
     @Override
     public String toString() {
         return "{\nmillisInPast(periodType, count): long,\nmillisInPrev(periodType, count): long,\n"
-                + "millisInPrevious(periodType, count): long,\ngetRuntime(): long\n}";
+                + "millisInPrevious(periodType, count): long,\ngetRuntime(): long,\nuseTimestamp(): void,\n"
+                + "useRuntime(): void,\n setComputeTime(long): void\n}";
     }
 
     public String getHelp() {
         return toString();
+    }
+    
+    public void useTimestamp() {
+        compute = timestamp;
+    }
+    
+    public void useRuntime() {
+        compute = runtime;
+    }
+    
+    public void setComputeTime(long time) {
+        compute = time;
     }
 }
