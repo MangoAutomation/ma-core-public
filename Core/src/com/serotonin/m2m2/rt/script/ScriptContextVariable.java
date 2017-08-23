@@ -151,8 +151,8 @@ public class ScriptContextVariable implements Serializable{
                 if (xid == null)
                     throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
 
-                DataPointVO dp = dataPointDao.getDataPoint(xid);
-                if (dp == null){
+                Integer dpid = dataPointDao.getDataPointIdByXid(xid);
+                if (dpid == null){
                 	//This can also happen if the point is in its own context (Bug from legacy systems).
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
                 }
@@ -168,7 +168,7 @@ public class ScriptContextVariable implements Serializable{
                 //Default for legacy systems
                 if(jo.containsKey("updateContext"))
                 	isContextUpdate = jo.getBoolean("updateContext");
-                context.add(new ScriptContextVariable(dp.getId(), var, isContextUpdate));
+                context.add(new ScriptContextVariable(dpid, var, isContextUpdate));
             }
         }
         return json.getString("variableName");

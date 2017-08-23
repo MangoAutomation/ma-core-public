@@ -333,11 +333,11 @@ public class DeltamationCommon {
         DataPointDao points = DataPointDao.instance;
         
         String xid = jsonObject.getString(name);
-        DataPointVO point = points.getDataPoint(xid);
-        if (point == null) {
+        Integer dpid = points.getDataPointIdByXid(xid);
+        if (dpid == null) {
             throw new TranslatableJsonException("validate.pointMissing", name, xid);
         }
-        return point.getId();
+        return dpid;
     }
     
     public static DataPointVO validatePoint(int pointId, String name, ProcessResult response) {

@@ -75,15 +75,15 @@ public class VarNames {
                 if (xid == null)
                     throw new TranslatableJsonException("emport.error.meta.missing", "dataPointXid");
 
-                DataPointVO dp = dataPointDao.getDataPoint(xid);
-                if (dp == null)
+                Integer dpid = dataPointDao.getDataPointIdByXid(xid);
+                if (dpid == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
 
                 String var = jo.getString("varName");
                 if (var == null)
                     throw new TranslatableJsonException("emport.error.meta.missing", "varName");
 
-                context.add(new IntStringPair(dp.getId(), var));
+                context.add(new IntStringPair(dpid, var));
             }
         }
     }

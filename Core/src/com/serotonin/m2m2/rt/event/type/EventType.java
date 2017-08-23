@@ -21,7 +21,6 @@ import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.ExportNames;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -253,10 +252,10 @@ abstract public class EventType implements JsonSerializable {
         String xid = json.getString(name);
         if (xid == null)
             throw new TranslatableJsonException("emport.error.eventType.missing.reference", name);
-        DataPointVO dp = DataPointDao.instance.getDataPoint(xid);
-        if (dp == null)
+        Integer dpid = DataPointDao.instance.getDataPointIdByXid(xid);
+        if (dpid == null)
             throw new TranslatableJsonException("emport.error.eventType.invalid.reference", name, xid);
-        return dp.getId();
+        return dpid;
     }
 
     protected int getPointEventDetectorId(JsonObject json, String dpName, String pedName) throws JsonException {

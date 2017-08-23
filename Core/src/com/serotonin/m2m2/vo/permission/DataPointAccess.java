@@ -16,7 +16,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.ExportCodes;
-import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Matthew Lohbihler
@@ -64,10 +63,10 @@ public class DataPointAccess implements JsonSerializable {
         if (StringUtils.isBlank(text))
             throw new TranslatableJsonException("emport.error.permission.missing", "dataPointXid");
 
-        DataPointVO dp = DataPointDao.instance.getDataPoint(text);
-        if (dp == null)
+        Integer dpid = DataPointDao.instance.getDataPointIdByXid(text);
+        if (dpid == null)
             throw new TranslatableJsonException("emport.error.missingPoint", text);
-        dataPointId = dp.getId();
+        dataPointId = dpid;
 
         text = jsonObject.getString("permission");
         if (StringUtils.isBlank(text))

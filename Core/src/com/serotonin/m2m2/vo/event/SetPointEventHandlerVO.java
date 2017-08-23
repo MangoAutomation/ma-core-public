@@ -391,10 +391,10 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     	DataPointDao dataPointDao = DataPointDao.instance;
         String xid = jsonObject.getString("targetPointId");
         if (xid != null) {
-            DataPointVO vo = dataPointDao.getDataPoint(xid);
-            if (vo == null)
+            Integer id = dataPointDao.getDataPointIdByXid(xid);
+            if (id == null)
                 throw new TranslatableJsonException("emport.error.missingPoint", xid);
-            targetPointId = vo.getId();
+            targetPointId = id;
         }
 
         // Active
@@ -409,10 +409,10 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         if (activeAction == SET_ACTION_POINT_VALUE) {
             xid = jsonObject.getString("activePointId");
             if (xid != null) {
-                DataPointVO vo = dataPointDao.getDataPoint(xid);
-                if (vo == null)
+                Integer id = dataPointDao.getDataPointIdByXid(xid);
+                if (id == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
-                activePointId = vo.getId();
+                activePointId = id;
             }
         }
         else if (activeAction == SET_ACTION_STATIC_VALUE) {
@@ -439,10 +439,10 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         if (inactiveAction == SET_ACTION_POINT_VALUE) {
             xid = jsonObject.getString("inactivePointId");
             if (xid != null) {
-                DataPointVO vo = dataPointDao.getDataPoint(xid);
-                if (vo == null)
+                Integer id = dataPointDao.getDataPointIdByXid(xid);
+                if (id == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
-                inactivePointId = vo.getId();
+                inactivePointId = id;
             }
         }
         else if (inactiveAction == SET_ACTION_STATIC_VALUE) {
@@ -466,15 +466,15 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         		if(dataPointXid == null)
         			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
         		
-        		DataPointVO dpvo = DataPointDao.instance.getByXid(dataPointXid);
-        		if(dpvo == null)
+        		Integer id = DataPointDao.instance.getDataPointIdByXid(dataPointXid);
+        		if(id == null)
         			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
         		
         		String contextKey = jo.getString("contextKey");
         		if(contextKey == null)
         			throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
         		
-        		additionalContext.add(new IntStringPair(dpvo.getId(), contextKey));
+        		additionalContext.add(new IntStringPair(id, contextKey));
         	}
         	this.additionalContext = additionalContext;
         } else
