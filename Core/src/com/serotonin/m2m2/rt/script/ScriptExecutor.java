@@ -103,12 +103,12 @@ public class ScriptExecutor {
      */
     protected static Bindings prepareEngine(ScriptEngine engine, Map<String, 
     		IDataPointValueSource> context, Map<String, Object> additionalContext,
-    		long runtime, ScriptPermissions permissions, PrintWriter scriptWriter,
+    		long runtime, long timestamp, ScriptPermissions permissions, PrintWriter scriptWriter,
     		ScriptLog log, ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
         
     	ScriptUtils.prepareEngine(engine);
     	
-    	ScriptUtils.wrapperContext(engine, new WrapperContext(runtime));
+    	ScriptUtils.wrapperContext(engine, new WrapperContext(runtime, timestamp));
         Bindings engineScope = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
         //Add Permissions Required Utilities
