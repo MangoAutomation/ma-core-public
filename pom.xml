@@ -23,7 +23,7 @@
  </properties>
  <organization>
    <name>Infinite Automation</name>
-   <url>http://www.infiniteautomation.com/</url>
+   <url>https://www.infiniteautomation.com/</url>
  </organization>
  <modules>
    <module>AssemblyDescriptors</module>
