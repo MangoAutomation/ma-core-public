@@ -17,9 +17,8 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogChangeDetectorRT;
+import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
 
 /** * 
  * TODO Class is a work in progress, not wired in or tested yet.
@@ -33,6 +32,17 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 
 	private static final long serialVersionUID = 1L;
 	
+	public interface UpdateEventType {
+	    int CHANGES_ONLY = 1;
+        int LOGGED_ONLY = 2;
+	}
+	
+	public static final ExportCodes UPDATE_EVENT_TYPE_CODES = new ExportCodes();
+    static{
+        UPDATE_EVENT_TYPE_CODES.addElement(UpdateEventType.CHANGES_ONLY, "CHANGES_ONLY", "publisherEdit.publishType.changesOnly");   
+        UPDATE_EVENT_TYPE_CODES.addElement(UpdateEventType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");  
+    }
+	
 	//Maximum change allowed before firing event
 	@JsonProperty
 	private double limit; 
@@ -40,7 +50,7 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	private boolean checkIncrease = true;
 	@JsonProperty
     private boolean checkDecrease = true;
-	private int updateEvent = PublishType.LOGGED_ONLY;
+	private int updateEvent = UpdateEventType.LOGGED_ONLY;
 	
 
 	public AnalogChangeDetectorVO() {
@@ -108,7 +118,7 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	@Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
 	    super.jsonWrite(writer);
-	    writer.writeEntry("valueEventType", PublisherVO.PUBLISH_TYPE_CODES.getCode(updateEvent));
+	    writer.writeEntry("valueEventType", UPDATE_EVENT_TYPE_CODES.getCode(updateEvent));
 	}
 
 	@Override
@@ -116,10 +126,10 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	    super.jsonRead(reader, jsonObject);
 	    String valueEventTypeCode = jsonObject.getString("valueEventType");
 	    if(valueEventTypeCode != null) {
-            int candidate = PublisherVO.PUBLISH_TYPE_CODES.getId(valueEventTypeCode);
+            int candidate = UPDATE_EVENT_TYPE_CODES.getId(valueEventTypeCode);
             if(candidate == -1)
                 throw new TranslatableJsonException("emport.error.invalid", "publishType", 
-                        valueEventTypeCode, PublisherVO.PUBLISH_TYPE_CODES.getCodeList());
+                        valueEventTypeCode, UPDATE_EVENT_TYPE_CODES.getCodeList());
             updateEvent = candidate;
 	    }
 	}

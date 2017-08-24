@@ -19,7 +19,7 @@
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition"%>
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition"%>
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition"%>
-<%@page import="com.serotonin.m2m2.vo.publish.PublisherVO" %>
+<%@page import="com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO"%>
 
 <div>
   <table>
@@ -203,7 +203,7 @@
       <tr>
         <td class="formLabelRequired"><fmt:message key="publisherEdit.updateEvent"/></td>
         <td class="formField">
-        	<tag:exportCodesOptions id="eventDetector_TEMPLATE_UpdateEvent" optionList="<%= PublisherVO.PUBLISH_TYPE_CODES.getIdKeys() %>"/>
+        	<tag:exportCodesOptions id="eventDetector_TEMPLATE_UpdateEvent" optionList="<%= AnalogChangeDetectorVO.UPDATE_EVENT_TYPE_CODES.getIdKeys() %>"/>
       </tr>
       
       <tr>

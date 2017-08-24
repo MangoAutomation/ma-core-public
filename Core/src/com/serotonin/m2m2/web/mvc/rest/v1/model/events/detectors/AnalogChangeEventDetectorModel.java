@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors;
 
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  * 
@@ -46,10 +45,10 @@ public class AnalogChangeEventDetectorModel extends TimeoutDetectorModel<AnalogC
     }
     
     public String getUpdateEvent() {
-        return PublisherVO.PUBLISH_TYPE_CODES.getCode(this.data.getUpdateEvent());
+        return AnalogChangeDetectorVO.UPDATE_EVENT_TYPE_CODES.getCode(this.data.getUpdateEvent());
     }
     
     public void setUpdateEvent(String updateEventCode) {
-        this.data.setUpdateEvent(PublisherVO.PUBLISH_TYPE_CODES.getId(updateEventCode));
+        this.data.setUpdateEvent(AnalogChangeDetectorVO.UPDATE_EVENT_TYPE_CODES.getId(updateEventCode));
     }
 }

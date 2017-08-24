@@ -15,7 +15,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -185,19 +184,13 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 
     @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        if(valueEventType == PublishType.CHANGES_ONLY)
-            handleValue(newValue);
-    }
-    
-    @Override
-    public void pointUpdated(PointValueTime newValue) {
-        if(valueEventType == PublishType.ALL)
+        if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.CHANGES_ONLY)
             handleValue(newValue);
     }
     
     @Override
     public void pointLogged(PointValueTime value) {
-        if(valueEventType == PublishType.LOGGED_ONLY)
+        if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY)
             handleValue(value);
     }
     
