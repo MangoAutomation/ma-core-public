@@ -47,6 +47,14 @@
   limit for at least the given duration before the detector becomes active. Events raised by this detector will 
   automatically return to normal when the condition is no longer satisfied.
 </p>
+<h1>Analog change</h1>
+<p>
+  This detector applies only to Numeric points. The <b>state</b> determines if the detector checks for increases, decreases or
+  either change. The <b>limit</b> determines the amount the point can change. The <b>update event</b> stipulates if only logged values
+  should be considered. Values within the <b>Duration</b> of now and the value of the point at the beginning of the checked period are used
+  to assess if the event is active. If a point has one value 0 one hour ago and one value 1 now, and the change detector had a limit of 1,
+  then it would be active regardless of the duration setting since at the point had value 0 when it got value 1.
+</p>
 <h1>Range</h1>
 <p>
   This detector applies only to Numeric points. The <b>Low range limit</b> and <b>High range limit</b>define the range which the detector becomes 
