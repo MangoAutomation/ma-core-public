@@ -27,13 +27,4 @@ public class AnalogChangeEventDetectorModel extends TimeoutDetectorModel<AnalogC
 	public void setLimit(double limit) {
 		this.data.setLimit(limit);
 	}
-
-	public boolean isNotHigher() {
-		return this.data.isNotHigher();
-	}
-
-	public void setNotHigher(boolean notHigher) {
-		this.data.setNotHigher(notHigher);
-	}
-	
 }

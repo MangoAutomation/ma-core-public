@@ -571,7 +571,6 @@ public class Upgrade12 extends DBUpgrade {
             	acd.setDuration(rs.getInt(8));
             	acd.setDurationType(rs.getInt(9));
             	acd.setLimit(rs.getDouble(7));
-            	acd.setNotHigher(rs.getBoolean(10));
             	return acd;
             case PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT:
             	AnalogHighLimitDetectorVO ahld = (AnalogHighLimitDetectorVO)new AnalogHighLimitEventDetectorDefinition().baseCreateEventDetectorVO();
