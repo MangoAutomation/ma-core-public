@@ -175,8 +175,8 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     @Override
     protected List<JoinClause> getJoins() {
     	List<JoinClause> joins = new ArrayList<JoinClause>();
-    	joins.add(new JoinClause(LEFT_JOIN, "users", "u", "evt.ackUserId = u.id"));
-    	joins.add(new JoinClause(LEFT_JOIN, "userEvents", "ue", "evt.id=ue.eventId"));
+    	joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USERS_TABLE, "u", "evt.ackUserId = u.id"));
+    	joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USER_EVENTS_TABLE, "ue", "evt.id=ue.eventId"));
     	return joins;
     }
 	
