@@ -19,6 +19,7 @@
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition"%>
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition"%>
 <%@page import="com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition"%>
+<%@page import="com.serotonin.m2m2.vo.publish.PublisherVO" %>
 
 <div>
   <table>
@@ -197,6 +198,12 @@
             <option value="1"><fmt:message key="pointEdit.detectors.analogChange.decrease"/></option>
           </select>
         </td>
+      </tr>
+      
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="publisherEdit.updateEvent"/></td>
+        <td class="formField">
+        	<tag:exportCodesOptions id="eventDetector_TEMPLATE_UpdateEvent" optionList="<%= PublisherVO.PUBLISH_TYPE_CODES.getIdKeys() %>"/>
       </tr>
       
       <tr>
@@ -837,6 +844,7 @@
         	  $set("eventDetector"+ detector.id +"Limit", detector.limit);
               $set("eventDetector"+ detector.id +"Duration", detector.duration);
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
+              $set("eventDetector"+ detector.id +"UpdateEvent", detector.updateEvent);
           }
           else if (detector.detectorType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
               $set("eventDetector"+ detector.id +"State", detector.state ? "true" : "false");
@@ -1013,6 +1021,7 @@
             	  var limit = parseFloat($get("eventDetector"+ pedId +"Limit"));
             	  var duration = parseInt($get("eventDetector"+ pedId +"Duration"));
                   var durationType = parseInt($get("eventDetector"+ pedId +"DurationType"));
+                  var updateEvent = parseInt($get("eventDetector"+pedId+"UpdateEvent"));
             	  
             	  if (isNaN(limit))
                       errorMessage = "<fmt:message key="pointEdit.detectors.errorParsingLimit"/>";
@@ -1024,7 +1033,7 @@
             		  errorMessage = "<fmt:message key="pointEdit.detectors.analogChange.invalidState"/>";
            		  else {
            			  saveCBCount++;
-           			  DataPointEditDwr.updateAnalogChangeDetector(pedId, xid, alias, limit, (state & 0x2) != 0, (state & 0x1) != 0, duration, durationType, alarmLevel, saveCB);
+           			  DataPointEditDwr.updateAnalogChangeDetector(pedId, xid, alias, limit, (state & 0x2) != 0, (state & 0x1) != 0, duration, durationType, alarmLevel, updateEvent, saveCB);
            		  }
               }
               else if (pedType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {

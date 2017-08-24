@@ -4,15 +4,24 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.io.IOException;
+
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonReader;
+import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogChangeDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
 
-/**
+/** * 
  * TODO Class is a work in progress, not wired in or tested yet.
  *      This will require uncommenting the line in the ModuleRegistry
  *      pertaining to this detector's definition
@@ -31,6 +40,7 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	private boolean checkIncrease = true;
 	@JsonProperty
     private boolean checkDecrease = true;
+	private int updateEvent = PublishType.LOGGED_ONLY;
 	
 
 	public AnalogChangeDetectorVO() {
@@ -60,6 +70,14 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
     public void setCheckDecrease(boolean checkDecrease) {
         this.checkDecrease = checkDecrease;
     }
+    
+    public int getUpdateEvent() {
+        return updateEvent;
+    }
+    
+    public void setUpdateEvent(int updateEvent) {
+        this.updateEvent = updateEvent;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()
@@ -85,6 +103,25 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
             return new TranslatableMessage("event.detectorVo.analogDecreasePeriod", prettyLimit, durationDescription);
         else
             throw new ShouldNeverHappenException("Illegal state for analog change detector" + xid);
+	}
+	
+	@Override
+    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
+	    super.jsonWrite(writer);
+	    writer.writeEntry("valueEventType", PublisherVO.PUBLISH_TYPE_CODES.getCode(updateEvent));
+	}
+
+	@Override
+    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+	    super.jsonRead(reader, jsonObject);
+	    String valueEventTypeCode = jsonObject.getString("valueEventType");
+	    if(valueEventTypeCode != null) {
+            int candidate = PublisherVO.PUBLISH_TYPE_CODES.getId(valueEventTypeCode);
+            if(candidate == -1)
+                throw new TranslatableJsonException("emport.error.invalid", "publishType", 
+                        valueEventTypeCode, PublisherVO.PUBLISH_TYPE_CODES.getCodeList());
+            updateEvent = candidate;
+	    }
 	}
 
 }
