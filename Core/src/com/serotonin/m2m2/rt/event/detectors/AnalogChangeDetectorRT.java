@@ -15,6 +15,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
+import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -58,6 +59,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
     private double max = -Double.MAX_VALUE;
     private double min = Double.MAX_VALUE;
     private final long durationMillis;
+    private final int valueEventType;
     
     private final List<PointValueTime> periodValues;
 	
@@ -80,6 +82,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             if(pvt.getDoubleValue() < min)
                 min = pvt.getDoubleValue();
         }
+        valueEventType = vo.getUpdateEvent();
     }
 
     @Override
@@ -106,17 +109,6 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
     private void pruneValueList(long time) {
         long cutoff = time - durationMillis;
         boolean recomputeMinimum = false, recomputeMaximum = false;
-//        while(iter.hasNext()) {
-//            PointValueTime pvt = iter.next();
-//            if(pvt.getTime() < cutoff) {
-//                if(pvt.getDoubleValue() >= max) {
-//                    recomputeMaximum = true;
-//                }
-//                if(pvt.getDoubleValue() <= min)
-//                    recomputeMinimum = true;
-//                iter.remove();
-//            }
-//        }
         
         Collections.sort(periodValues);
         while(periodValues.size() > 1) {
@@ -172,15 +164,14 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             min = newValue.getDoubleValue();
         return active;
     }
-
-    @Override
-    public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+    
+    private void handleValue(PointValueTime newValue) {
         boolean raised = false;
         synchronized(periodValues) {
-        	unscheduleJob();
-        	pruneValueList(newValue.getTime());
-        	raised = checkNewValue(newValue);
-        	scheduleJob(Common.timer.currentTimeMillis() + durationMillis);
+            unscheduleJob();
+            pruneValueList(newValue.getTime());
+            raised = checkNewValue(newValue);
+            scheduleJob(Common.timer.currentTimeMillis() + durationMillis);
         }
         
         if(raised && !eventActive) {
@@ -191,6 +182,24 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             eventActive = false;
         }
     }
+
+    @Override
+    public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+        if(valueEventType == PublishType.CHANGES_ONLY)
+            handleValue(newValue);
+    }
+    
+    @Override
+    public void pointUpdated(PointValueTime newValue) {
+        if(valueEventType == PublishType.ALL)
+            handleValue(newValue);
+    }
+    
+    @Override
+    public void pointLogged(PointValueTime value) {
+        if(valueEventType == PublishType.LOGGED_ONLY)
+            handleValue(value);
+    }
     
 	/* 
 	 * Call to check changes and see if we have changed enough
@@ -200,7 +209,12 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 	@Override
 	protected void scheduleTimeoutImpl(long fireTime) {
 		synchronized(periodValues) {
+		    PointValueTime lastValue = null;
+		    if(periodValues.size() > 0)
+		        lastValue = periodValues.get(periodValues.size()-1);
 		    periodValues.clear();
+		    if(lastValue != null)
+		        periodValues.add(lastValue);
 		    max = -Double.MAX_VALUE;
 		    min = Double.MAX_VALUE;
 		    returnToNormal(fireTime);

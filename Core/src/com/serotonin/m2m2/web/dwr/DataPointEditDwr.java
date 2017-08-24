@@ -246,7 +246,7 @@ public class DataPointEditDwr extends BaseDwr {
     
     @DwrPermission(user = true)
     public void updateAnalogChangeDetector(int pedId, String xid, String alias, double limit, 
-            boolean checkIncrease, boolean checkDecrease, int duration, int durationType, int alarmLevel) {
+            boolean checkIncrease, boolean checkDecrease, int duration, int durationType, int alarmLevel, int updateEvent) {
         AnalogChangeDetectorVO ped = (AnalogChangeDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setAlias(alias);
@@ -256,6 +256,7 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setDuration(duration);
         ped.setDurationType(durationType);
         ped.setAlarmLevel(alarmLevel);
+        ped.setUpdateEvent(updateEvent);
     }
 
     @DwrPermission(user = true)
