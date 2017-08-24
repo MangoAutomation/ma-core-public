@@ -74,7 +74,7 @@ public class DBConvert {
         tableNames.add("pointValueAnnotations");
         tableNames.add(SchemaDefinition.EVENT_DETECTOR_TABLE);
         tableNames.add(SchemaDefinition.EVENTS_TABLE);
-        tableNames.add("userEvents");
+        tableNames.add(SchemaDefinition.USER_EVENTS_TABLE);
         tableNames.add(SchemaDefinition.EVENT_HANDLER_TABLE);
         tableNames.add(SchemaDefinition.PUBLISHERS_TABLE);
         tableNames.add("dataPointHierarchy");
