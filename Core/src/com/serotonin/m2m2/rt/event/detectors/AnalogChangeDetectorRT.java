@@ -206,10 +206,13 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 		    if(periodValues.size() > 0)
 		        lastValue = periodValues.get(periodValues.size()-1);
 		    periodValues.clear();
-		    if(lastValue != null)
+		    if(lastValue != null) {
 		        periodValues.add(lastValue);
-		    max = -Double.MAX_VALUE;
-		    min = Double.MAX_VALUE;
+		        min = max = lastValue.getDoubleValue();
+		    } else {
+    		    max = -Double.MAX_VALUE;
+    		    min = Double.MAX_VALUE;
+		    }
 		    returnToNormal(fireTime);
 		    eventActive = false;
 		}
