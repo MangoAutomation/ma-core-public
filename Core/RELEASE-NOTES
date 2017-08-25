@@ -1,3 +1,9 @@
+*Version 3.2.1*
+* Fix in Translations to prevent hung boot in some locales
+* Performance improvements not loading points from DB when not necessary
+* WrapperContext includes timestamp in scripts
+* Analog change event detector added for numeric points
+
 *Version 3.2.0*
 * Fix incorrect kWh unit
 * Importing script permissions bugfix
