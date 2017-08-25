@@ -55,8 +55,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
      */
     private boolean eventActive;
     
-    private double max = -Double.MAX_VALUE;
-    private double min = Double.MAX_VALUE;
+    private double max = Double.NEGATIVE_INFINITY;
+    private double min = Double.POSITIVE_INFINITY;
     private final long durationMillis;
     private final int valueEventType;
     
@@ -128,8 +128,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         recomputeMinimum |= periodValues.size() <= 1;
         
         if(recomputeMaximum || recomputeMinimum) {
-            double newMax = -Double.MAX_VALUE;
-            double newMin = Double.MAX_VALUE;
+            double newMax = Double.NEGATIVE_INFINITY;
+            double newMin = Double.POSITIVE_INFINITY;
             Iterator<PointValueTime> iter = periodValues.iterator();
             while(iter.hasNext()) {
                 PointValueTime pvt = iter.next();
@@ -210,8 +210,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 		        periodValues.add(lastValue);
 		        min = max = lastValue.getDoubleValue();
 		    } else {
-    		    max = -Double.MAX_VALUE;
-    		    min = Double.MAX_VALUE;
+    		    max = Double.NEGATIVE_INFINITY;
+    		    min = Double.POSITIVE_INFINITY;
 		    }
 		    returnToNormal(fireTime);
 		    eventActive = false;
