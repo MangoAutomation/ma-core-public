@@ -57,6 +57,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
     
     private double max = Double.NEGATIVE_INFINITY;
     private double min = Double.POSITIVE_INFINITY;
+    private long latestTime;
+    private boolean dirty = false;
     private final long durationMillis;
     private final int valueEventType;
     
@@ -73,6 +75,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             periodValues.add(periodStartValue);
         periodValues.addAll(pvd.getPointValues(vo.getSourceId(), now - durationMillis + 1));
         
+        latestTime = periodStartValue.getTime();
+        
         Iterator<PointValueTime> iter = periodValues.iterator();
         while(iter.hasNext()) {
             PointValueTime pvt = iter.next();
@@ -80,6 +84,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 max = pvt.getDoubleValue();
             if(pvt.getDoubleValue() < min)
                 min = pvt.getDoubleValue();
+            if(pvt.getTime() > latestTime)
+                latestTime = pvt.getTime();
         }
         valueEventType = vo.getUpdateEvent();
     }
@@ -109,7 +115,12 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         long cutoff = time - durationMillis;
         boolean recomputeMinimum = false, recomputeMaximum = false;
         
-        Collections.sort(periodValues);
+        if(dirty) {
+            Collections.sort(periodValues);
+            latestTime = periodValues.get(periodValues.size()-1).getTime();
+            dirty = false;
+        }
+        
         while(periodValues.size() > 1) {
             PointValueTime pvt1 = periodValues.get(0);
             PointValueTime pvt2 = periodValues.get(1);
@@ -157,6 +168,10 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         }
         
         periodValues.add(newValue);
+        if(newValue.getTime() > latestTime)
+            latestTime = newValue.getTime();
+        else
+            dirty = true;
         if(newValue.getDoubleValue() > max)
             max = newValue.getDoubleValue();
         if(newValue.getDoubleValue() < min)
