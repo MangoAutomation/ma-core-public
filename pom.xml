@@ -298,17 +298,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-          <allowSnapshots>true</allowSnapshots>
-          <includes>
-            <include>com.infiniteautomation.mango:*</include>
-          </includes>
-          <excludes>
-          	<!-- On its own release schedule and deprecated anyway -->
-          	<exclude>com.infiniteautomation.mango:dashboards</exclude>
-          </excludes>
-        </configuration>
+        <version>2.4</version>
       </plugin>
     </plugins>
   </build>
