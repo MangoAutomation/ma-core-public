@@ -83,7 +83,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ma-priv</artifactId>
-			<version>3.2.1-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<!-- ma-modules-public -->
 		<dependency>
