@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.serotonin.m2m2.db.dao.DaoRegistry;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
 /**
@@ -23,8 +23,12 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 public class PointValueCache {
     private final int dataPointId;
     private final int defaultSize;
-    private final PointValueDao dao;
     private int maxSize = 0;
+    
+    //This would not be the advised thing to do if we were to be deleting any data through here
+    // as some properties of the delete are system settings that can be changed
+    // However, since we're only querying, it should be more efficient to have only one static final reference
+    protected static final PointValueDao dao = Common.databaseProxy.newPointValueDao();
 
     /**
      * IMPORTANT: The list object should never be written to! The implementation here is for performance. Never call
@@ -36,8 +40,6 @@ public class PointValueCache {
     public PointValueCache(int dataPointId, int defaultSize, List<PointValueTime> cache) {
         this.dataPointId = dataPointId;
         this.defaultSize = defaultSize;
-        
-        dao = DaoRegistry.pointValueDao;
         
         if (cache == null) {
             this.cache = new ArrayList<>();
