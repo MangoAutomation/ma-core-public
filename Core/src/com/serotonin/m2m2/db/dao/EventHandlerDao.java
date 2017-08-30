@@ -7,6 +7,8 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.db.query.JoinClause;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -38,7 +41,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	private static final boolean H2_SYNTAX = Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.H2;
 	
 	protected EventHandlerDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
+		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER, "eh", new String[0], false, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
 	}
 
 	/* (non-Javadoc)
@@ -97,8 +100,20 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	 */
 	@Override
 	protected Map<String, IntStringPair> getPropertiesMap() {
-		return null;
+	    HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
+        map.put("eventTypeName", new IntStringPair(Types.VARCHAR, "ehm.eventTypeName"));
+        map.put("eventSubtypeName", new IntStringPair(Types.VARCHAR, "ehm.eventSubtypeName"));
+        map.put("eventTypeRef1", new IntStringPair(Types.INTEGER, "ehm.eventTypeRef1"));
+        map.put("eventTypeRef2", new IntStringPair(Types.INTEGER, "ehm.eventTypeRef2"));
+        return map;
 	}
+	
+	@Override
+    protected List<JoinClause> getJoins() {
+        List<JoinClause> joins = new ArrayList<JoinClause>();
+        joins.add(new JoinClause(JOIN, SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE, "ehm", "ehm.eventHandlerId=eh.id"));
+        return joins;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
@@ -177,6 +192,24 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
             ejt.update("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values ((SELECT id FROM eventHandlers WHERE xid=?), ?, ?, ?, ?) ON DUPLICATE KEY UPDATE", 
                     new Object[] {handlerXid, type.getType(), type.getSubtype(), type.getTypeRef1(), type.getTypeRef2()}, 
                     new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+        
+    }
+    
+    public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
+        if(H2_SYNTAX) {
+            if(type.getEventSubtype() == null)
+                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?)", 
+                        new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()}, 
+                        new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+            else
+                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?, ?)", 
+                    new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
+                    new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+        }
+        else
+            ejt.update("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE", 
+                    new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
+                    new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         
     }
 
@@ -298,4 +331,13 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	    ejt.update("DELETE FROM eventHandlersMapping WHERE eventHandlerId=?", new Object[] {eventHandlerId},
                 new int[] {Types.INTEGER});
 	}
+	
+	public List<EventType> getEventTypesForHandler(int handlerId) {
+        return ejt.query("SELECT eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2 FROM eventHandlersMapping WHERE eventHandlerid="+handlerId, new RowMapper<EventType>() {
+            @Override
+            public EventType mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return EventDao.createEventType(rs, 1);
+            }
+        });
+    }
 }

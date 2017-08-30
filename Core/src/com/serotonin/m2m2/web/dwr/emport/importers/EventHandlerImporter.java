@@ -1,9 +1,15 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.JsonException;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -42,12 +48,20 @@ public class EventHandlerImporter extends Importer {
         }
 
         JsonObject et = json.getJsonObject("eventType");
+        JsonArray ets = json.getJsonArray("eventTypes");
         EventType eventType = null;
+        List<EventType> eventTypes = null;
         
         try {
             // Find the event type.
             if(et != null)
                 eventType = ctx.getReader().read(EventType.class, et);
+            else if(ets != null) {
+                eventTypes = new ArrayList<EventType>(ets.size());
+                Iterator<JsonValue> iter = ets.iterator();
+                while(iter.hasNext())
+                    eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
+            }
 
             ctx.getReader().readInto(handler, json);
 
@@ -80,6 +94,11 @@ public class EventHandlerImporter extends Importer {
                     ctx.getEventHandlerDao().saveEventHandler(eventType, handler);
                 else
                     ctx.getEventHandlerDao().saveEventHandler(handler);
+                
+                if(eventTypes != null)
+                    for(EventType type : eventTypes)
+                        ctx.getEventHandlerDao().addEventHandlerMappingIfMissing(handler.getId(), type);
+                
                 addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
             }
         }

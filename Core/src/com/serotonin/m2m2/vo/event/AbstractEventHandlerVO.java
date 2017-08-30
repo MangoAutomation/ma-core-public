@@ -7,6 +7,7 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,7 +22,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.validation.StringValidation;
@@ -37,6 +37,8 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     private boolean disabled;
     
     private EventHandlerDefinition<T> definition;
+    
+    List<EventTypeVO> addedEventTypes = null;
 
     /**
      * Create the runtime handler
@@ -134,6 +136,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
+        writer.writeEntry("eventTypes", EventHandlerDao.instance.getEventTypesForHandler(id));
     }
 
     @Override
