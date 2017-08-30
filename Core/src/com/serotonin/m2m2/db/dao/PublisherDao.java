@@ -155,7 +155,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                ejt2.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=?", new Object[] {
+                ejt2.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", new Object[] {
                         EventType.EventTypeNames.PUBLISHER, publisherId });
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
                 AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);

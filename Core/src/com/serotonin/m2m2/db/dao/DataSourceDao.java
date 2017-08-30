@@ -169,7 +169,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    ejt2.update("DELETE FROM eventHandlers WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
+                    ejt2.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
                             EventType.EventTypeNames.DATA_SOURCE, dataSourceId });
                     ejt2.update("DELETE FROM dataSources WHERE id=?", new Object[] { dataSourceId });
                 }

@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,6 +41,8 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	
 	/* Source of the detector */
 	protected int sourceId;
+	
+	private List<String> addedEventHandlerXids = null;
 	
 	/**
 	 * Our defintion
@@ -119,6 +122,14 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	public void setSourceId(int id){
 		sourceId = id;
 	}
+	public void addEventHandlers(List<String> eventHandlerXids) {
+	    if(addedEventHandlerXids == null)
+	        addedEventHandlerXids = new ArrayList<String>(eventHandlerXids.size());
+	    addedEventHandlerXids.addAll(eventHandlerXids);
+	}
+	public List<String> getAddedEventHandlers() {
+	    return addedEventHandlerXids;
+	}
 	
 	public EventDetectorDefinition<T> getDefinition() {
 		return definition;
@@ -183,17 +194,13 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         //In keeping with data points, the import can only add mappings
         JsonArray handlers = jsonObject.getJsonArray("handlers");
         if(handlers != null) {
+            addedEventHandlerXids = new ArrayList<String>(handlers.size());
             Iterator<JsonValue> iter = handlers.iterator();
             EventTypeVO etvo = getEventType();
             while(iter.hasNext())
-                EventHandlerDao.instance.addEventHandlerMappingIfMissing(iter.next().toString(), etvo);
+                addedEventHandlerXids.add(iter.next().toString());
         }
+        
+        
     }
-    
-    public void addEventHandlersIfMissing(List<String> handlerXids) {
-        EventTypeVO etvo = getEventType();
-        for(String s : handlerXids)
-            EventHandlerDao.instance.addEventHandlerMappingIfMissing(s, etvo);
-    }
-
 }

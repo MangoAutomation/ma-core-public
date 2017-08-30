@@ -25,6 +25,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 
 /**
@@ -155,7 +156,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
         if (vo != null) {
             super.delete(vo, initiatorId);
             //Also update the Event Handlers
-            ejt.update("delete from eventHandlers where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
+            ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
                     new Object[] { vo.getEventType().getType(), vo.getSourceId(), vo.getId() });
 
             AuditEventType.raiseDeletedEvent(this.typeName, vo);
@@ -169,6 +170,12 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
         }
         else {
             update(vo, initiatorId);
+        }
+        
+        if(vo.getAddedEventHandlers() != null) {
+            EventTypeVO et = vo.getEventType();
+            for(String xid : vo.getAddedEventHandlers())
+                EventHandlerDao.instance.addEventHandlerMappingIfMissing(xid, et);
         }
     }
 	/**

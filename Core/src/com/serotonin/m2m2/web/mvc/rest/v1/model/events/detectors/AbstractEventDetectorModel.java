@@ -69,7 +69,7 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	}
 	
 	public void setHandlers(List<String> handlerXids) {
-	    this.data.addEventHandlersIfMissing(handlerXids);
+	    this.data.addEventHandlers(handlerXids);;
 	}
 
 	/**

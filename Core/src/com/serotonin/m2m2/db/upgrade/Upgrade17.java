@@ -40,7 +40,8 @@ public class Upgrade17 extends DBUpgrade {
 	
 	private static final String[] H2_MYSQL_CREATE_TABLE = { 
 	        "CREATE TABLE eventHandlersMapping (eventHandlerId int not null, eventTypeName varchar(32) NOT NULL, eventSubtypeName varchar(32), eventTypeRef1 int NOT NULL, eventTypeRef2 int NOT NULL);",
-	        "ALTER TABLE eventHandlersMapping ADD CONSTRAINT eventHandlersFk1 FOREIGN KEY (eventHandlerId) REFERENCES eventHandlers(id) ON DELETE CASCADE;"
+	        "ALTER TABLE eventHandlersMapping ADD CONSTRAINT eventHandlersFk1 FOREIGN KEY (eventHandlerId) REFERENCES eventHandlers(id) ON DELETE CASCADE;",
+	        "ALTER TABLE eventHandlersMapping ADD CONSTRAINT handlerMappingUniqueness UNIQUE(eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2);"
 	};
 	
 	private static final String[] H2_MYSQL_DROP_COLUMNS = {

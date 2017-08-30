@@ -60,18 +60,20 @@ public class EventHandlerImporter extends Importer {
                 // Sweet.
                 boolean isnew = handler.getId() == Common.NEW_ID;
 
-                if (!isnew && et != null) {
-                    // Check if the event type has changed.
-                    EventType oldEventType = ctx.getEventHandlerDao().getEventType(handler.getId());
-                    if (!oldEventType.equals(eventType)) {
-                        // Event type has changed. Delete the old one.
-                        ctx.getEventHandlerDao().deleteEventHandler(handler.getId());
-
-                        // Call it new
-                        handler.setId(Common.NEW_ID);
-                        isnew = true;
-                    }
-                }
+                //Commented out at decoupling handlers and detectors because in theory it could be a different eventType
+                // and both should remain.
+//                if (!isnew && et != null) {
+//                    // Check if the event type has changed.
+//                    EventType oldEventType = ctx.getEventHandlerDao().getEventType(handler.getId());
+//                    if (!oldEventType.equals(eventType)) {
+//                        // Event type has changed. Delete the old one.
+//                        ctx.getEventHandlerDao().deleteEventHandler(handler.getId());
+//
+//                        // Call it new
+//                        handler.setId(Common.NEW_ID);
+//                        isnew = true;
+//                    }
+//                }
 
                 // Save it.
                 if(et != null)
