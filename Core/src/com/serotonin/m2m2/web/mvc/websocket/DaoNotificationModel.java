@@ -30,13 +30,24 @@ public class DaoNotificationModel {
     @JsonProperty
     String initiatorId;
     
+    /**
+     * Contains the xid of the object prior to an update (XIDs can be changed)
+     */
+    @JsonProperty
+    String originalXid;
+    
     public DaoNotificationModel() {
     }
     
     public DaoNotificationModel(String action, Object object, String initiatorId) {
+        this(action, object, initiatorId, null);
+    }
+    
+    public DaoNotificationModel(String action, Object object, String initiatorId, String originalXid) {
         this.action = action;
         this.object = object;
         this.initiatorId = initiatorId;
+        this.originalXid = originalXid;
     }
 
     public String getAction() {
@@ -61,5 +72,13 @@ public class DaoNotificationModel {
 
     public void setInitiatorId(String initiatorId) {
         this.initiatorId = initiatorId;
+    }
+
+    public String getOriginalXid() {
+        return originalXid;
+    }
+
+    public void setOriginalXid(String originalXid) {
+        this.originalXid = originalXid;
     }
 }
