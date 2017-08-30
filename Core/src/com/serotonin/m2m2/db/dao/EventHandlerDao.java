@@ -117,7 +117,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     // Event handlers
     //
 
-    public EventType getEventHandlerType(int handlerId) {
+    public EventType getEventType(int handlerId) {
         return queryForObject(
                 "select eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2 from eventHandlers where id=?",
                 new Object[] { handlerId }, new RowMapper<EventType>() {
@@ -233,14 +233,31 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
         });
         return getEventHandler(handler.getId());
     }
+    
+    public AbstractEventHandlerVO<?> saveEventHandler(final AbstractEventHandlerVO<?> handler) {
+        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                if (handler.getId() == Common.NEW_ID)
+                    insertEventHandler(handler);
+                else
+                    updateEventHandler(handler);
+            }
+        });
+        return getEventHandler(handler.getId());
+    }
 
     void insertEventHandler(String typeName, String subtypeName, int typeRef1, int typeRef2, AbstractEventHandlerVO<?> handler) {
-        handler.setId(doInsert("insert into eventHandlers (xid, alias, eventHandlerType, data) values (?,?,?,?)", 
-                new Object[] { handler.getXid(), handler.getAlias(), handler.getDefinition().getEventHandlerTypeName(), 
-                SerializationHelper.writeObject(handler) }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY }));
+        insertEventHandler(handler);
         addEventHandlerMapping(handler.getId(), typeName, subtypeName, typeRef1, typeRef2);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_EVENT_HANDLER, handler);
         this.countMonitor.increment();
+    }
+    
+    void insertEventHandler(AbstractEventHandlerVO<?> handler) {
+        handler.setId(doInsert("insert into eventHandlers (xid, alias, eventHandlerType, data) values (?,?,?,?)", 
+                new Object[] { handler.getXid(), handler.getAlias(), handler.getDefinition().getEventHandlerTypeName(), 
+                SerializationHelper.writeObject(handler) }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY }));
     }
 
     void updateEventHandler(AbstractEventHandlerVO<?> handler) {

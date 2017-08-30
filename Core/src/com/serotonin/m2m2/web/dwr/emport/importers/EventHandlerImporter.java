@@ -30,7 +30,7 @@ public class EventHandlerImporter extends Importer {
         	if (StringUtils.isBlank(typeStr))
                 addFailureMessage("emport.eventHandler.missingType", xid, ModuleRegistry.getEventHandlerDefinitionTypes());
             else {
-                EventHandlerDefinition def = ModuleRegistry.getEventHandlerDefinition(typeStr);
+                EventHandlerDefinition<?> def = ModuleRegistry.getEventHandlerDefinition(typeStr);
                 if (def == null)
                     addFailureMessage("emport.eventHandler.invalidType", xid, typeStr,
                             ModuleRegistry.getEventHandlerDefinitionTypes());
@@ -41,9 +41,13 @@ public class EventHandlerImporter extends Importer {
             }
         }
 
+        JsonObject et = json.getJsonObject("eventType");
+        EventType eventType = null;
+        
         try {
             // Find the event type.
-            EventType eventType = ctx.getReader().read(EventType.class, json.getJsonObject("eventType"));
+            if(et != null)
+                eventType = ctx.getReader().read(EventType.class, et);
 
             ctx.getReader().readInto(handler, json);
 
@@ -56,9 +60,9 @@ public class EventHandlerImporter extends Importer {
                 // Sweet.
                 boolean isnew = handler.getId() == Common.NEW_ID;
 
-                if (!isnew) {
+                if (!isnew && et != null) {
                     // Check if the event type has changed.
-                    EventType oldEventType = ctx.getEventHandlerDao().getEventHandlerType(handler.getId());
+                    EventType oldEventType = ctx.getEventHandlerDao().getEventType(handler.getId());
                     if (!oldEventType.equals(eventType)) {
                         // Event type has changed. Delete the old one.
                         ctx.getEventHandlerDao().deleteEventHandler(handler.getId());
@@ -70,7 +74,10 @@ public class EventHandlerImporter extends Importer {
                 }
 
                 // Save it.
-                ctx.getEventHandlerDao().saveEventHandler(eventType, handler);
+                if(et != null)
+                    ctx.getEventHandlerDao().saveEventHandler(eventType, handler);
+                else
+                    ctx.getEventHandlerDao().saveEventHandler(handler);
                 addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
             }
         }
