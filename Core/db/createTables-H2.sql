@@ -231,17 +231,22 @@ CREATE TABLE eventHandlers (
   xid varchar(50) NOT NULL,
   alias varchar(255),
   eventHandlerType varchar(40) NOT NULL,
+  data longblob NOT NULL,
+  PRIMARY KEY (id)
+);
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersUn1 UNIQUE (xid);
+
+CREATE TABLE eventHandlersMapping (
+  eventHandlerId int not null,
   
   -- Event type, see events
   eventTypeName varchar(32) NOT NULL,
   eventSubtypeName varchar(32),
   eventTypeRef1 int NOT NULL,
-  eventTypeRef2 int NOT NULL,
-  
-  data longblob NOT NULL,
-  PRIMARY KEY (id)
+  eventTypeRef2 int NOT NULL
 );
-ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersUn1 UNIQUE (xid);
+ALTER TABLE eventHandlersMapping ADD CONSTRAINT eventHandlersFk1 FOREIGN KEY (eventHandlerId) REFERENCES eventHandlers(id) ON DELETE CASCADE;
+ALTER TABLE eventHandlersMapping ADD CONSTRAINT handlerMappingUniqueness UNIQUE(eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2);
 
 --
 --

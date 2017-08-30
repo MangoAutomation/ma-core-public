@@ -36,9 +36,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     @JsonProperty
     private boolean disabled;
     
-    //
-    private EventType eventType; 
-    
     private EventHandlerDefinition<T> definition;
 
     /**
@@ -78,14 +75,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
-    
-	public EventType getEventType() {
-		return eventType;
-	}
-
-	public void setEventType(EventType eventType) {
-		this.eventType = eventType;
-	}
 
 	public EventHandlerDefinition<T> getDefinition() {
 		return definition;
@@ -143,7 +132,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	writer.writeEntry("eventType", eventType);
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
     }

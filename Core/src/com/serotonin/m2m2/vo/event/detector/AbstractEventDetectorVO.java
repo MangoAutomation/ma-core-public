@@ -5,15 +5,20 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -165,11 +170,30 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         writer.writeEntry("sourceType", this.definition.getSourceTypeName());
         writer.writeEntry("xid", xid);
         writer.writeEntry("alias", name);
+        
+        // The event handler references will now be exported here, 
+        // rather than in the handler referencing the detector
+        writer.writeEntry("handlers", EventHandlerDao.instance.getEventHandlerXids(getEventType()));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         name = jsonObject.getString("alias");
+        
+        //In keeping with data points, the import can only add mappings
+        JsonArray handlers = jsonObject.getJsonArray("handlers");
+        if(handlers != null) {
+            Iterator<JsonValue> iter = handlers.iterator();
+            EventTypeVO etvo = getEventType();
+            while(iter.hasNext())
+                EventHandlerDao.instance.addEventHandlerMappingIfMissing(iter.next().toString(), etvo);
+        }
+    }
+    
+    public void addEventHandlersIfMissing(List<String> handlerXids) {
+        EventTypeVO etvo = getEventType();
+        for(String s : handlerXids)
+            EventHandlerDao.instance.addEventHandlerMappingIfMissing(s, etvo);
     }
 
 }

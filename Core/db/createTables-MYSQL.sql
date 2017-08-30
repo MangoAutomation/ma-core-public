@@ -240,17 +240,22 @@ create table eventHandlers (
   xid varchar(50) not null,
   alias varchar(255),
   eventHandlerType varchar(40) NOT NULL,
-  
-  -- Event type, see events
-  eventTypeName varchar(32) not null,
-  eventSubtypeName varchar(32),
-  eventTypeRef1 int not null,
-  eventTypeRef2 int not null,
-  
   data longblob not null,
   primary key (id)
 ) engine=InnoDB;
 alter table eventHandlers add constraint eventHandlersUn1 unique (xid);
+
+CREATE TABLE eventHandlersMapping (
+  eventHandlerId int not null,
+  
+  -- Event type, see events
+  eventTypeName varchar(32) NOT NULL,
+  eventSubtypeName varchar(32),
+  eventTypeRef1 int NOT NULL,
+  eventTypeRef2 int NOT NULL
+);
+ALTER TABLE eventHandlersMapping ADD CONSTRAINT eventHandlersFk1 FOREIGN KEY (eventHandlerId) REFERENCES eventHandlers(id) ON DELETE CASCADE;
+ALTER TABLE eventHandlersMapping ADD CONSTRAINT handlerMappingUniqueness UNIQUE(eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2);
 
 --
 --

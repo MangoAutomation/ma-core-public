@@ -45,14 +45,6 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
     public void setDisabled(boolean disabled) {
         this.data.setDisabled(disabled);
     }
-    
-	public EventTypeModel getEventType(){
-		return this.data.getEventType().asModel();
-	}
-
-	public void setEventType(EventTypeModel eventType) {
-		this.data.setEventType(eventType.getEventTypeInstance());
-	}
 
 	@JsonIgnore
 	public void setDefinition(EventHandlerDefinition<?> def) {
