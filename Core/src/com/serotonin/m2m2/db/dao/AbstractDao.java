@@ -277,42 +277,25 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         sql = applyRange(sql, args, offset, limit);
         return query(sql, args.toArray(), getRowMapper());
     }
-
-    /**
-     * Persist the vo or if it already exists update it
-     * 
-     * @param vo
-     *            to save
-     */
+    
+    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
     @Override
     public void save(T vo) {
-    	save(vo, null);
-    }
-
-	/**
-	 * 
-	 * @param vo
-	 * @param initiatorId
-	 */
-    public void save(T vo, String initiatorId) {
-        if (vo.getId() == Common.NEW_ID) {
-            insert(vo, initiatorId);
-        }
-        else {
-            update(vo, initiatorId);
-        }
+        save(vo, null);
     }
     
-    /**
-     * Insert a new vo and assign the ID
-     * 
-     * @param vo
-     *            to insert
-     */
+    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
+    @Override
+    public void save(T vo, String initiatorId) {
+        super.save(vo, initiatorId);
+    }
+    
+    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
     @Override
     protected void insert(T vo) {
-    	insert(vo, null);
+        insert(vo, null);
     }
+
     @Override
     protected void insert(T vo, String initiatorId) {
         if (vo.getXid() == null) {
@@ -320,22 +303,27 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         }
         super.insert(vo, initiatorId);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
-    }    
-
-    /**
-     * Update a vo
-     * 
-     * @param vo
-     *            to update
-     */
+    }
+    
+    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
     @Override
     protected void update(T vo) {
-    	update(vo, null);
+        update(vo, null, null);
     }
+
+    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
     @Override
-    protected void update(T vo, String initiatorId){
+    protected void update(T vo, String initiatorId) {
+        update(vo, initiatorId, null);
+    }
+
+    @Override
+    protected void update(T vo, String initiatorId, String originalXid) {
         T old = get(vo.getId());
-        super.update(vo);
+        if (originalXid == null) {
+            originalXid = old.getXid();
+        }
+        super.update(vo, initiatorId, originalXid);
         AuditEventType.raiseChangedEvent(this.typeName, old, vo);
     }
 

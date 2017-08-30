@@ -52,7 +52,7 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketH
      * @param vo
      */
     public void notify(String action, T vo) {
-        notify(action, vo, null);
+        notify(action, vo, null, null);
     }
     
     /**
@@ -61,24 +61,33 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketH
      * @param initiatorId random string to identify who initiated the event
      */
     public void notify(String action, T vo, String initiatorId) {
-    	lock.readLock().lock();
-    	try{
-	        for (WebSocketSession session : sessions) {
-	            if (hasPermission(getUser(session), vo)) {
-	                notify(session, action, vo, initiatorId);
-	            }
-	        }
-    	}finally{
-    		lock.readLock().unlock();
-    	}
+    	notify(action, vo, initiatorId, null);
+    }
+    
+    /**
+     * @param action add, update or delete
+     * @param vo
+     * @param initiatorId random string to identify who initiated the event
+     */
+    public void notify(String action, T vo, String initiatorId, String originalXid) {
+        lock.readLock().lock();
+        try{
+            for (WebSocketSession session : sessions) {
+                if (hasPermission(getUser(session), vo)) {
+                    notify(session, action, vo, initiatorId, originalXid);
+                }
+            }
+        }finally{
+            lock.readLock().unlock();
+        }
     }
     
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
     
-    protected void notify(WebSocketSession session, String action, T vo, String initiatorId) {
+    protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         try {
-            DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId);
+            DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
             sendMessage(session, notification);
         } catch (Exception e) {
             try {
