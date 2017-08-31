@@ -435,35 +435,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	}
 
 	public void delete(int id) {
-		T vo = get(id);
-		if (vo != null) {
-			ejt.update(DELETE, vo.getId());
-			if(this.countMonitor != null)
-				this.countMonitor.decrement();
-		}
-		if(handler != null)
-			handler.notify("delete", vo, null);
+		delete(id, null);
 	}
 
 	public void delete(int id, String initiatorId) {
 		T vo = get(id);
-		if (vo != null) {
-			ejt.update(DELETE, vo.getId());
-			if(this.countMonitor != null)
-				this.countMonitor.decrement();
-		}
-		if(handler != null)
-			handler.notify("delete", vo, initiatorId);
+		delete(vo, initiatorId);
 	}
 
 	public void delete(T vo) {
-		if (vo != null) {
-			ejt.update(DELETE, vo.getId());
-			if(this.countMonitor != null)
-				this.countMonitor.decrement();
-		}
-		if(handler != null)
-			handler.notify("delete", vo, null);
+		delete(vo, null);
 	}
 
 	public void delete(T vo, String initiatorId) {
@@ -483,11 +464,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 *            to save
 	 */
 	public void save(T vo) {
-		if (vo.getId() == Common.NEW_ID) {
-			insert(vo);
-		} else {
-			update(vo);
-		}
+	    save(vo, null);
 	}
 
 	/**
@@ -496,11 +473,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 * @param initiatorId
 	 */
 	public void save(T vo, String initiatorId) {
-		if (vo.getId() == Common.NEW_ID) {
-			insert(vo, initiatorId);
-		} else {
-			update(vo, initiatorId);
-		}
+	    if (vo.getId() == Common.NEW_ID) {
+            insert(vo, initiatorId);
+        } else {
+            update(vo, initiatorId);
+        }
 	}
 
 	/**
@@ -510,16 +487,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 *            to insert
 	 */
 	protected void insert(T vo) {
-		int id = -1;
-		if (insertStatementPropertyTypes == null)
-			id = ejt.doInsert(INSERT, voToObjectArray(vo));
-		else
-			id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
-		vo.setId(id);
-		if(handler != null)
-			handler.notify("add", vo, null);
-		if(this.countMonitor != null)
-			this.countMonitor.increment();
+		insert(vo, null);
 	}
 
 	/**
@@ -547,16 +515,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 *            to update
 	 */
 	protected void update(T vo) {
-		List<Object> list = new ArrayList<>();
-		list.addAll(Arrays.asList(voToObjectArray(vo)));
-		list.add(vo.getId());
-
-		if (updateStatementPropertyTypes == null)
-			ejt.update(UPDATE, list.toArray());
-		else
-			ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-		if(handler != null)
-			handler.notify("update", vo, null);
+        update(vo, null, null);
 	}
 
 	/**
@@ -565,17 +524,27 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 * @param initiatorId
 	 */
 	protected void update(T vo, String initiatorId) {
-		List<Object> list = new ArrayList<>();
-		list.addAll(Arrays.asList(voToObjectArray(vo)));
-		list.add(vo.getId());
-
-		if (updateStatementPropertyTypes == null)
-			ejt.update(UPDATE, list.toArray());
-		else
-			ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-		if(handler != null)
-			handler.notify("update", vo, initiatorId);
+		update(vo, initiatorId, null);
 	}
+	
+	/**
+     * 
+     * @param vo
+     * @param initiatorId
+     * @param originalXid XID of object prior to update
+     */
+    protected void update(T vo, String initiatorId, String originalXid) {
+        List<Object> list = new ArrayList<>();
+        list.addAll(Arrays.asList(voToObjectArray(vo)));
+        list.add(vo.getId());
+
+        if (updateStatementPropertyTypes == null)
+            ejt.update(UPDATE, list.toArray());
+        else
+            ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+        if(handler != null)
+            handler.notify("update", vo, initiatorId, originalXid);
+    }
 
 	/**
 	 * Return a VO with FKs populated
