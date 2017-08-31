@@ -265,6 +265,9 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
                     insertEventHandler(typeName, subtypeName, typeRef1, typeRef2, handler);
                 else
                     updateEventHandler(handler);
+                if(handler.getAddedEventTypes() != null)
+                    for(EventType et : handler.getAddedEventTypes())
+                        EventHandlerDao.instance.addEventHandlerMappingIfMissing(handler.getId(), et);
             }
         });
         return getEventHandler(handler.getId());

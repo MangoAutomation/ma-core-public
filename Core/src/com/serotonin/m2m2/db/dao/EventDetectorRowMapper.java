@@ -68,24 +68,27 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 		vo.setId(rs.getInt(this.firstColumn));
 		vo.setXid(rs.getString(this.firstColumn + 1));
 		vo.setDefinition(definition);
+		
+		//Extract the source id
+        int sourceIdColumnIndex;
+        if(this.sourceIdColumnOffset < 0)
+            sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.instance.getSourceIdIndex(definition.getSourceTypeName());
+        else
+            sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
+        vo.setSourceId(rs.getInt(sourceIdColumnIndex));
+		
 		//Read Into Detector
 		JsonTypeReader typeReader = new JsonTypeReader(rs.getString(this.firstColumn + 4));
 		try {
             JsonValue value = typeReader.read();
             JsonObject root = value.toJsonObject();
             JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
+            root.remove("handlers");
             reader.readInto(vo);
         }
         catch (ClassCastException | IOException | JsonException e) {
             LOG.error(e.getMessage(), e);
         }
-		//Extract the source id
-		int sourceIdColumnIndex;
-		if(this.sourceIdColumnOffset < 0)
-			sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.instance.getSourceIdIndex(definition.getSourceTypeName());
-		else
-			sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
-		vo.setSourceId(rs.getInt(sourceIdColumnIndex));
         
 		return vo;
 	}

@@ -192,6 +192,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         name = jsonObject.getString("alias");
         
         //In keeping with data points, the import can only add mappings
+        //  The "handlers" key is removed by the EventDetectorRowMapper
         JsonArray handlers = jsonObject.getJsonArray("handlers");
         if(handlers != null) {
             addedEventHandlerXids = new ArrayList<String>(handlers.size());

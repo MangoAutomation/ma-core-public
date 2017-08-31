@@ -7,6 +7,7 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.validation.StringValidation;
@@ -38,7 +40,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     
     private EventHandlerDefinition<T> definition;
     
-    List<EventTypeVO> addedEventTypes = null;
+    List<EventType> addedEventTypes = null;
 
     /**
      * Create the runtime handler
@@ -94,6 +96,16 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 
 	public String getHandlerType(){
 		return this.definition.getEventHandlerTypeName();
+	}
+	
+	public void addEventType(EventType eventType) {
+	    if(addedEventTypes == null)
+	        addedEventTypes = new ArrayList<EventType>(1);
+	    this.addedEventTypes.add(eventType);
+	}
+	
+	public List<EventType> getAddedEventTypes() {
+	    return addedEventTypes;
 	}
 	
     public void validate(ProcessResult response) {
