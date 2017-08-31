@@ -250,7 +250,7 @@ CREATE TABLE eventHandlersMapping (
   
   -- Event type, see events
   eventTypeName varchar(32) NOT NULL,
-  eventSubtypeName varchar(32),
+  eventSubtypeName varchar(32) NOT NULL DEFAULT '',
   eventTypeRef1 int NOT NULL,
   eventTypeRef2 int NOT NULL
 );
