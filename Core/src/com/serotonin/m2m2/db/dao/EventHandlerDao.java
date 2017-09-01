@@ -190,11 +190,11 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
         }
         else {
             if(type.getSubtype() == null)
-                ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?)", 
+                ejt.update("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?) ON DUPLICATE KEY IGNORE", 
                         new Object[] {handlerXid, type.getType(), type.getTypeRef1(), type.getTypeRef2()}, 
                         new int[] {Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
             else
-                ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)", 
+                ejt.update("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?) ON DUPLICATE KEY IGNORE", 
                     new Object[] {handlerXid, type.getType(), type.getSubtype(), type.getTypeRef1(), type.getTypeRef2()}, 
                     new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         }
@@ -213,11 +213,11 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
         }
         else {
             if(type.getEventSubtype() == null)
-                ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?)", 
+                ejt.update("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?) ON DUPLICATE KEY IGNORE", 
                         new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()}, 
                         new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
             else
-                ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)", 
+                ejt.update("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?) ON DUPLICATE KEY IGNORE", 
                     new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
                     new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         }
