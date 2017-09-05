@@ -190,7 +190,7 @@
     
     function mapDependencies() {
     	for(var key in allModuleMap) {
-    		if("dependencis" in allModuleMap[key]) {
+    		if("dependencies" in allModuleMap[key]) {
 	        	var dependencies = allModuleMap[key].dependencies;
 	        	if(dependencies !== null && dependencies.length > 0) {
 	        		for(var k = 0; k < dependencies.length; k+=1) {
