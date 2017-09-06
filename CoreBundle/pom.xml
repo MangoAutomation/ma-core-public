@@ -463,7 +463,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>dashboard-designer</artifactId>
-			<version>3.2.1-SNAPSHOT</version>
+			<version>3.2.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -482,7 +482,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
-			<version>3.2.2-SNAPSHOT</version>
+			<version>3.2.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
