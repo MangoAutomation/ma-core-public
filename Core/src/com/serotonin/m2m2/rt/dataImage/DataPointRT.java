@@ -413,19 +413,9 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                 intervalStartTime = Common.timer.currentTimeMillis();
                 if(averagingValues.size() > 0) {
-                	//If no one has set a value since the point started, pointValue is our startValue
-                	//If someone set a point value after the point start, intervalValue will be one of the averaging values.
-                	//Populate the averaging values with anything since our perceived interval start time
-                	if((intervalValue != null) && (intervalValue.getTime() > (intervalStartTime-loggingPeriodMillis))){
-                		List<PointValueTime> history = Common.databaseProxy.newPointValueDao().getPointValuesBetween(vo.getId(), 
-                				(intervalStartTime-loggingPeriodMillis), 
-                				averagingValues.get(0).getTime());
-                		for(int i=history.size()-1; i>=0; i--){
-                			averagingValues.add(0, (IValueTime)history.get(i));
-                		}
-                	}
+                	//We will not be checking the history because presumably only interval logged data should be there
                 	AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime,
-                			intervalValue, averagingValues);
+                			(Double)null, averagingValues);
                 	PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
                     valueCache.logPointValueAsync(newValue, null);
                     intervalValue = newValue;
