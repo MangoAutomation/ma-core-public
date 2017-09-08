@@ -5,7 +5,6 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.List;
 
-import com.serotonin.m2m2.db.dao.DaoRegistry;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -13,13 +12,12 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 public class EnhancedPointValueCache extends PointValueCache {
     private final DataPointVO dataPoint;
     private final DataSourceVO<?> dataSource;
-    private final EnhancedPointValueDao enhancedDao;
+    private static final EnhancedPointValueDao enhancedDao = (EnhancedPointValueDao)PointValueCache.dao; //See PointValueCache.dao
 
     public EnhancedPointValueCache(DataPointVO dataPoint, DataSourceVO<?> dataSource, int defaultSize, List<PointValueTime> cache) {
         super(dataPoint.getId(), defaultSize, cache);
         this.dataPoint = dataPoint;
         this.dataSource = dataSource;
-        this.enhancedDao = (EnhancedPointValueDao) DaoRegistry.pointValueDao;
     }
     
     @Override

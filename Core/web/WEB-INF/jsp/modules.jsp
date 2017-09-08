@@ -139,7 +139,7 @@
                 allModuleMap[upgradeList[i].name] = upgradeList[i];
                 var name = upgradeList[i].name;
                 s += "<div>";
-                s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB'>";
+                s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB' onclick='selectDependencies(this.id, this.checked);'>";
                 s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ upgradeList[i].version +"</label></div>";
                 s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
                 s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
@@ -190,7 +190,7 @@
     
     function mapDependencies() {
     	for(var key in allModuleMap) {
-    		if("dependencis" in allModuleMap[key]) {
+    		if("dependencies" in allModuleMap[key]) {
 	        	var dependencies = allModuleMap[key].dependencies;
 	        	if(dependencies !== null && dependencies.length > 0) {
 	        		for(var k = 0; k < dependencies.length; k+=1) {

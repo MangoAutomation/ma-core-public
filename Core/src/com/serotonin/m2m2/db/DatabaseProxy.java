@@ -190,6 +190,10 @@ abstract public class DatabaseProxy {
             log.fatal("Unable to connect to database of type " + getType().name(), e);
             throw e;
         }
+        catch (Exception e) {
+            log.fatal("Exception initializing database proxy: " + e.getMessage(), e);
+            throw e;
+        }
 
         // Allow modules to upgrade themselves
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))

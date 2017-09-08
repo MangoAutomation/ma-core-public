@@ -34,6 +34,15 @@ public abstract class AbstractMangoRestV2Controller extends BaseMangoRestControl
 		return getResourceModified(body, location, HttpStatus.CREATED);
 	}
 
+	/**
+	 * A deleted resource should not return a location header as it no longer exists, the URL would not be valid.
+	 * TODO remove in Mango v3.3.0
+	 * 
+	 * @param body
+	 * @param location
+	 * @return
+	 */
+	@Deprecated
 	public <N> ResponseEntity<N> getResourceDeleted(N body, String location){
 		return getResourceModified(body, location, HttpStatus.OK);
 	}
