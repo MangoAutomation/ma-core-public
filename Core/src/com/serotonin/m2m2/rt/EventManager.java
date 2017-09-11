@@ -385,6 +385,14 @@ public class EventManager implements ILifecycle {
 		evt.setAcknowledgedTimestamp(time);
 		evt.setAlternateAckSource(alternateAckSource);
 		
+		// TODO remove in Mango 3.3.x, use acknowledgeEventById() externally to this class and make this method private
+        EventInstance cachedEvent = getById(evt.getId());
+        if (cachedEvent != null) {
+            cachedEvent.setAcknowledgedByUserId(userId);
+            cachedEvent.setAcknowledgedTimestamp(time);
+            cachedEvent.setAlternateAckSource(alternateAckSource);
+        }
+		
 		for (User user : userDao.getActiveUsers()) {
 			// Do not create an event for this user if the event type says the
 			// user should be skipped.
@@ -403,6 +411,23 @@ public class EventManager implements ILifecycle {
 			}
 		}
 	}
+
+    /**
+     * Acknowledges an event given an event ID 
+     * 
+     * @param eventId
+     * @param time
+     * @param userId
+     * @param alternateAckSource
+     * @return the EventInstance for the ID if found and acknowledged
+     */
+    public EventInstance acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
+        EventInstance event = getById(eventId);
+        if (event != null) {
+            acknowledgeEvent(event, time, userId, alternateAckSource);
+        }
+        return event;
+    }
 
 	public long getLastAlarmTimestamp() {
 		return lastAlarmTimestamp;
@@ -771,6 +796,28 @@ public class EventManager implements ILifecycle {
 	//
 	// Convenience
 	//
+	
+	/**
+     * Gets an event from the activeEvents list/cache by its id
+     */
+    private EventInstance getById(int id) {
+        EventInstance e;
+        
+        activeEventsLock.readLock().lock();
+        try{
+            ListIterator<EventInstance> it = activeEvents.listIterator();
+            while(it.hasNext()){
+                e = it.next();
+                if (e.getId() == id)
+                    return e;
+            }
+        }finally{
+            activeEventsLock.readLock().unlock();
+        }
+        
+        return null;
+    }
+	
 	/**
 	 * Returns the first event instance with the given type, or null is there is
 	 * none.
