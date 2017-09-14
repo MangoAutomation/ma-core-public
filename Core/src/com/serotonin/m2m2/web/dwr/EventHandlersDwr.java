@@ -53,6 +53,7 @@ import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
+import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
@@ -387,6 +388,9 @@ public class EventHandlersDwr extends BaseDwr {
                     message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());
             	//Add the script logging output
                 response.addData("out", scriptOut.toString().replaceAll("\n", "<br/>"));
+            }
+            catch(ScriptPermissionsException e) {
+                message = e.getTranslatableMessage();
             }
             catch (ScriptException e) {
                 message = new TranslatableMessage("eventHandlers.script.failure", e.getMessage());
