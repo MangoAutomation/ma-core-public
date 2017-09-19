@@ -111,6 +111,7 @@ public class HttpBuilderScriptUtility {
     
     @SuppressWarnings({"unchecked"})
     public void request(Map<String, Object> request) {
+        reset();
         try {
             if(request.containsKey("excp"))
                 exceptionCallback = (ScriptExceptionCallback)request.get("excp");
