@@ -14,13 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.JSObject;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
@@ -35,10 +37,10 @@ import com.serotonin.web.http.HttpUtils4;
 //import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 
 
+@SuppressWarnings("restriction")
 public class HttpBuilderScriptUtility {
     public static final String CONTEXT_KEY = "HttpBuilder";
     
-    //private final boolean permitted;
     private int retried = 0;
     private HttpUriRequest request = null;
     private HttpResponse response;
@@ -49,12 +51,19 @@ public class HttpBuilderScriptUtility {
     private List<Integer> okayStatus = new ArrayList<Integer>(1);
     
     public HttpBuilderScriptUtility(ScriptPermissions permissions) {
-        //permitted = permissions.getDataSourcePermissions().contains(SuperadminPermissionDefinition.GROUP_NAME);
         okayStatus.add(HttpStatus.OK.value());
     }
     
     public HttpResponse getResponse() {
         return response;
+    }
+    
+    public HttpUriRequest getStagedRequest() {
+        return request;
+    }
+    
+    public void setStagedRequest(HttpUriRequest request) {
+        this.request = request;
     }
     
     public int getRetried() {
@@ -100,6 +109,7 @@ public class HttpBuilderScriptUtility {
         return this;
     }
     
+    @SuppressWarnings({"unchecked"})
     public void request(Map<String, Object> request) {
         try {
             if(request.containsKey("excp"))
@@ -108,14 +118,14 @@ public class HttpBuilderScriptUtility {
                 exceptionCallback = (ScriptExceptionCallback)request.get("exceptionCallback");
             
             if(request.containsKey("err"))
-                errorCallback = new ScriptObjectMirrorCallbackWrapper((ScriptObjectMirror)request.get("err"));
+                errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("err"));
             else if(request.containsKey("errorCallback"))
-                errorCallback = new ScriptObjectMirrorCallbackWrapper((ScriptObjectMirror)request.get("errorCallback"));
+                errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("errorCallback"));
             
             if(request.containsKey("resp"))
-                responseCallback = new ScriptObjectMirrorCallbackWrapper((ScriptObjectMirror)request.get("resp"));
+                responseCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("resp"));
             else if(request.containsKey("responseCallback"))
-                responseCallback = new ScriptObjectMirrorCallbackWrapper((ScriptObjectMirror)request.get("responseCallback"));
+                responseCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("responseCallback"));
             
             if(!request.containsKey("path")) {
                 thrown = new Exception("Must have 'path' attribute to make request.");
@@ -151,6 +161,10 @@ public class HttpBuilderScriptUtility {
                 post(path, headers, content, false);
             else if(HttpMethod.GET.name().equals(method))
                 get(path, headers, parameters, false);
+            else if(HttpMethod.PUT.name().equals(method))
+                put(path, headers, content, false);
+            else if(HttpMethod.DELETE.name().equals(method))
+                delete(path, headers);
             
             execute();
         } catch(ClassCastException e) {
@@ -169,13 +183,11 @@ public class HttpBuilderScriptUtility {
         }
     }
     
-    public HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, String content) {
+    public HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, Object content) {
         return post(loc, headers, content, true);
     }
     
-    private HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, String content, boolean reset) {
-//        if(!permitted)
-//            throw new ScriptPermissionsException("");
+    private HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, Object content, boolean reset) {
         if(reset)
             reset();
         
@@ -186,11 +198,43 @@ public class HttpBuilderScriptUtility {
         HttpPost post = new HttpPost(uri);
         putHeaders(post, headers);
         try {
-            post.setEntity(new StringEntity(content));
+            if(content instanceof String)
+                post.setEntity(new StringEntity((String)content));
+            else
+                post.setEntity(new StringEntity(MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(content)));
             request = post;
         } catch(UnsupportedEncodingException e) {
             thrown = e;
+        } catch(JsonProcessingException e) {
+            thrown = e;
         }
+        return this;
+    }
+    
+    public HttpBuilderScriptUtility put(String loc, Map<String, Object> headers, Object content) {
+        return put(loc, headers, content, true);
+    }
+    
+    private HttpBuilderScriptUtility put(String loc, Map<String, Object> headers, Object content, boolean reset) {
+        if(reset)
+            reset();
+        
+        URI uri = buildUri(loc);
+        if(uri == null)
+            return this;
+        
+        HttpPut put = new HttpPut(uri);
+        putHeaders(put, headers);
+        try {
+            if(content instanceof String)
+                put.setEntity(new StringEntity((String)content));
+            else
+                put.setEntity(new StringEntity(MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(content)));
+            request = put;
+        } catch(UnsupportedEncodingException|JsonProcessingException e) {
+            thrown = e;
+        }
+        
         return this;
     }
     
@@ -199,8 +243,6 @@ public class HttpBuilderScriptUtility {
     }
     
     private HttpBuilderScriptUtility get(String loc, Map<String, Object> headers, Map<String, Object> parameters, boolean reset) {
-//      if(!permitted)
-//      throw new ScriptPermissionsException("");
         if(reset)
             reset();
         
@@ -211,6 +253,24 @@ public class HttpBuilderScriptUtility {
         HttpGet get = new HttpGet(uri);
         putHeaders(get, headers);
         request = get;
+        return this;
+    }
+    
+    public HttpBuilderScriptUtility delete(String loc, Map<String, Object> headers) {
+        return delete(loc, headers, true);
+    }
+    
+    private HttpBuilderScriptUtility delete(String loc, Map<String, Object> headers, boolean reset) {
+        if(reset)
+            reset();
+        
+        URI uri = buildUri(loc);
+        if(uri == null)
+            return this;
+        
+        HttpDelete delete = new HttpDelete(uri);
+        putHeaders(delete, headers);
+        request = delete;
         return this;
     }
     
@@ -290,18 +350,25 @@ public class HttpBuilderScriptUtility {
     
     private void reset() {
         retried = 0;
+        thrown = null;
         errorCallback = null;
         responseCallback = null;
         exceptionCallback = null;
+        response = null;
+        request = null;
     }
     
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\n");
+        builder.append("getStagedRequest(): HttpUriRequest, get the request staged by the method call or the last request\n");
+        builder.append("setStagedRequest( HttpUriRequest ): void, explicitly stage the next request\n");
         builder.append("request( requestObject ): make a whole request with callbacks as request object attributes\n");
-        builder.append("post( url, headers, content ): set the POST, returns HttpBuilder\n");
         builder.append("get( url, headers, parameters ): set the GET, returns HttpBuilder\n");
+        builder.append("post( url, headers, content ): set the POST, returns HttpBuilder\n");
+        builder.append("put( url, headers, content ): set the PUT, returns HttpBuilder\n");
+        builder.append("delete( url, headers ): set the DELETE, returns HttpBuilder\n");
         builder.append("resp( function( status, headers, content ){} ): set the response callback, returns HttpBuilder\n");
         builder.append("err( function( status, headers, content ){} ): set the error callback, returns HttpBuilder\n");
         builder.append("excp( function( exception ){} ): set the error callback, returns HttpBuilder\n");
@@ -310,18 +377,17 @@ public class HttpBuilderScriptUtility {
         return builder.toString();
     }
     
-    @SuppressWarnings("restriction")
     private class ScriptObjectMirrorCallbackWrapper implements ScriptHttpCallback {
 
-        private final ScriptObjectMirror som; 
+        private final JSObject jso; 
         
-        ScriptObjectMirrorCallbackWrapper(ScriptObjectMirror som) {
-            this.som = som;
+        ScriptObjectMirrorCallbackWrapper(JSObject jso) {
+            this.jso = jso;
         }
         
         @Override
         public void invoke(int status, Map<String, String> headers, String content) {
-            som.call(null, status, headers, content);
+            jso.call(HttpBuilderScriptUtility.this, status, headers, content);
         }
         
     }
