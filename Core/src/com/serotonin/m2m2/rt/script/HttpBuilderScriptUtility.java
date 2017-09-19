@@ -310,18 +310,15 @@ public class HttpBuilderScriptUtility {
         return builder.toString();
     }
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings("restriction")
     private class ScriptObjectMirrorCallbackWrapper implements ScriptHttpCallback {
 
-        @SuppressWarnings("restriction")
         private final ScriptObjectMirror som; 
         
-        @SuppressWarnings("restriction")
         ScriptObjectMirrorCallbackWrapper(ScriptObjectMirror som) {
             this.som = som;
         }
         
-        @SuppressWarnings("restriction")
         @Override
         public void invoke(int status, Map<String, String> headers, String content) {
             som.call(null, status, headers, content);
