@@ -275,6 +275,24 @@ public class HttpBuilderScriptUtility {
     }
     
     public void execute() {
+        execute(false);
+    }
+    
+    public void retry() {
+        execute(true);
+    }
+    
+    private void execute(boolean retry) {
+        if(!retry && retried > 0) {
+            if(exceptionCallback != null)
+                exceptionCallback.exception(new Exception("Request was already executed."));
+            else if(errorCallback != null)
+                errorCallback.invoke(-1, null, "Request was already executed.");
+            return;
+        }
+        
+        retried += 1;
+        
         if(thrown != null) {
             if(exceptionCallback != null) {
                 exceptionCallback.exception(thrown);
@@ -364,6 +382,7 @@ public class HttpBuilderScriptUtility {
         builder.append("{\n");
         builder.append("getStagedRequest(): HttpUriRequest, get the request staged by the method call or the last request\n");
         builder.append("setStagedRequest( HttpUriRequest ): void, explicitly stage the next request\n");
+        builder.append("getResponse(): HttpResponse, get the most recent response, null if a new request is staging\n");
         builder.append("request( requestObject ): make a whole request with callbacks as request object attributes\n");
         builder.append("get( url, headers, parameters ): set the GET, returns HttpBuilder\n");
         builder.append("post( url, headers, content ): set the POST, returns HttpBuilder\n");
@@ -373,6 +392,9 @@ public class HttpBuilderScriptUtility {
         builder.append("err( function( status, headers, content ){} ): set the error callback, returns HttpBuilder\n");
         builder.append("excp( function( exception ){} ): set the error callback, returns HttpBuilder\n");
         builder.append("execute(): execute the staged request and receive callbacks\n");
+        builder.append("retry(): retry the staged request and receive callbacks\n");
+        builder.append("getRetried(): int, the number of times the request was attempted to be sent\n");
+        builder.append("setOkayStatusArray( int[] ): void, set the status codes to call the resp function on, default [200]\n");
         builder.append("}");
         return builder.toString();
     }
