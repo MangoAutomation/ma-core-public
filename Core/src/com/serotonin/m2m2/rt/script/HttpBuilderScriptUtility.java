@@ -110,7 +110,7 @@ public class HttpBuilderScriptUtility {
     }
     
     @SuppressWarnings({"unchecked"})
-    public void request(Map<String, Object> request) {
+    public Object request(Map<String, Object> request) {
         reset();
         try {
             if(request.containsKey("excp"))
@@ -130,7 +130,7 @@ public class HttpBuilderScriptUtility {
             
             if(!request.containsKey("path")) {
                 thrown = new Exception("Must have 'path' attribute to make request.");
-                return;
+                return execute();
             }
             
             String path = (String)request.get("path");
@@ -146,15 +146,15 @@ public class HttpBuilderScriptUtility {
             String content;
             if(request.containsKey("content") && request.get("content") instanceof String)
                 content = (String)request.get("content");
-            else if(request.containsKey("content"))
+            else if(request.containsKey("content")) {
                 content = MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(request.get("content"));
-            else
+            } else
                 content = "";
             
             String method;
             if(!request.containsKey("method")) {
                 thrown = new Exception("Must have 'method' attribute to make request.");
-                return;
+                return execute();
             } else
                 method = (String)request.get("method");
             
@@ -167,7 +167,10 @@ public class HttpBuilderScriptUtility {
             else if(HttpMethod.DELETE.name().equals(method))
                 delete(path, headers);
             
-            execute();
+//            if(checkContentType)
+//                checkJsonContentTypeHeader();
+            
+            return execute();
         } catch(ClassCastException e) {
             thrown = e;
             //throw new ScriptException(e.getMessage());
@@ -182,6 +185,7 @@ public class HttpBuilderScriptUtility {
                 thrown = null;
             }
         }
+        return null;
     }
     
     public HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, Object content) {
@@ -201,8 +205,10 @@ public class HttpBuilderScriptUtility {
         try {
             if(content instanceof String)
                 post.setEntity(new StringEntity((String)content));
-            else
+            else {
                 post.setEntity(new StringEntity(MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(content)));
+//                checkJsonContentTypeHeader(post);
+            }
             request = post;
         } catch(UnsupportedEncodingException e) {
             thrown = e;
@@ -229,8 +235,10 @@ public class HttpBuilderScriptUtility {
         try {
             if(content instanceof String)
                 put.setEntity(new StringEntity((String)content));
-            else
+            else {
                 put.setEntity(new StringEntity(MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(content)));
+//                checkJsonContentTypeHeader(put);
+            }
             request = put;
         } catch(UnsupportedEncodingException|JsonProcessingException e) {
             thrown = e;
@@ -275,63 +283,60 @@ public class HttpBuilderScriptUtility {
         return this;
     }
     
-    public void execute() {
-        execute(false);
+    public Object execute() {
+        return execute(false);
     }
     
-    public void retry() {
-        execute(true);
+    public Object retry() {
+        return execute(true);
     }
     
-    private void execute(boolean retry) {
+    private Object execute(boolean retry) {
         if(!retry && retried > 0) {
             if(exceptionCallback != null)
-                exceptionCallback.exception(new Exception("Request was already executed."));
-            else if(errorCallback != null)
-                errorCallback.invoke(-1, null, "Request was already executed.");
-            return;
+                return exceptionCallback.exception(new Exception("Request was already executed."));
+            if(errorCallback != null)
+                return errorCallback.invoke(-1, null, "Request was already executed.");
         }
         
         retried += 1;
         
         if(thrown != null) {
-            if(exceptionCallback != null) {
-                exceptionCallback.exception(thrown);
-                thrown = null;
-                return;
-            }
-            if(errorCallback != null)
-                errorCallback.invoke(-1, null, thrown.getMessage());
             thrown = null;
-            return;
+            if(exceptionCallback != null)
+                return exceptionCallback.exception(thrown);
+            if(errorCallback != null)
+                return errorCallback.invoke(-1, null, thrown.getMessage());
         }
         
         try {
+            if(request.getHeaders("Content-Type").length == 0)
+                request.setHeader("Content-Type", "application/json");
             response = Common.getHttpClient().execute(request);
         } catch(IOException e) {
             if(exceptionCallback != null)
-                exceptionCallback.exception(e);
+                return exceptionCallback.exception(e);
             else if(errorCallback != null)
-                errorCallback.invoke(-1, null, e.getMessage());
-            return;
+                return errorCallback.invoke(-1, null, e.getMessage());
         }
         
         try {   
             for(Integer status : okayStatus)
                 if(status.intValue() == response.getStatusLine().getStatusCode()) {
                     if(responseCallback != null)
-                        responseCallback.invoke(status.intValue(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
-                    return;
+                        return responseCallback.invoke(status.intValue(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
+                    return null;
                 }
             
             if(errorCallback != null)
-                errorCallback.invoke(response.getStatusLine().getStatusCode(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
+                return errorCallback.invoke(response.getStatusLine().getStatusCode(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
         }  catch(IOException e) {
             if(exceptionCallback != null)
-                exceptionCallback.exception(e);
+                return exceptionCallback.exception(e);
             if(errorCallback != null)
-                errorCallback.invoke(response.getStatusLine().getStatusCode(), extractHeaders(response), "FAILED TO READ BODY: " + e.getMessage());
+                return errorCallback.invoke(response.getStatusLine().getStatusCode(), extractHeaders(response), "FAILED TO READ BODY: " + e.getMessage());
         }
+        return null;
     }
     
     private URI buildUri(String loc) {
@@ -409,8 +414,8 @@ public class HttpBuilderScriptUtility {
         }
         
         @Override
-        public void invoke(int status, Map<String, String> headers, String content) {
-            jso.call(HttpBuilderScriptUtility.this, status, headers, content);
+        public Object invoke(int status, Map<String, String> headers, String content) {
+            return jso.call(HttpBuilderScriptUtility.this, status, headers, content);
         }
         
     }

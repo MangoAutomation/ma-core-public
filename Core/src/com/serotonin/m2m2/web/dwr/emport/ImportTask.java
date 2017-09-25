@@ -49,13 +49,18 @@ public class ImportTask extends ProgressiveTask {
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
 
+    public ImportTask(JsonObject root, Translations translations, User user) {
+        this(root, translations, user, true);
+    }
+    
     /**
      * Create an ordered task that can be queue to run one after another
      * @param root
      * @param translations
      * @param user
+     * @param schedule
      */
-    public ImportTask(JsonObject root, Translations translations, User user) {
+    public ImportTask(JsonObject root, Translations translations, User user, boolean schedule) {
     	super("JSON import task", "JsonImport", Common.defaultTaskQueueSize);
     	
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
@@ -105,7 +110,8 @@ public class ImportTask extends ProgressiveTask {
         for(JsonValue jv : nonNullList(root, EmportDwr.EVENT_DETECTORS)) 
         	addImporter(new EventDetectorImporter(jv.toJsonObject()));
 
-        Common.backgroundProcessing.execute(this);
+        if(schedule)    
+            Common.backgroundProcessing.execute(this);
     }
 
     private List<JsonValue> nonNullList(JsonObject root, String key) {

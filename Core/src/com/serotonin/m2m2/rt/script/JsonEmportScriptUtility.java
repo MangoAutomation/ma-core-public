@@ -157,8 +157,7 @@ public class JsonEmportScriptUtility {
 			if(importExclusions != null)
 				doExclusions(jo);
 			ScriptImportTask sit = new ScriptImportTask(jo, false);
-			while(!sit.isCompleted() && !sit.isCancelled())
-				try { Thread.sleep(1000); } catch(InterruptedException e) {} //Take a break.
+			sit.run(Common.timer.currentTimeMillis());
 		}
 	}
 	
@@ -170,8 +169,7 @@ public class JsonEmportScriptUtility {
 			if(importExclusions != null)
 				doExclusions(jo);
 			ScriptImportTask sit = new ScriptImportTask(jo, true);
-			while(!sit.isCompleted() && !sit.isCancelled())
-				try { Thread.sleep(1000); } catch(InterruptedException e) {} //Take a break.
+			sit.run(Common.timer.currentTimeMillis());
 			return sit.getMessages();
 		}
 		return null;
@@ -199,7 +197,7 @@ public class JsonEmportScriptUtility {
 		private List<String> messages;
 		
 		public ScriptImportTask(JsonObject jo, boolean messages) {
-			super(jo, Common.getTranslations(), null);
+			super(jo, Common.getTranslations(), null, false);
 			if(messages)
 				this.messages = new ArrayList<>();
 			else
