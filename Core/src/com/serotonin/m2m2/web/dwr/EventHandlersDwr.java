@@ -7,7 +7,9 @@ package com.serotonin.m2m2.web.dwr;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,6 +56,7 @@ import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
+import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
@@ -354,50 +357,98 @@ public class EventHandlersDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
         TranslatableMessage message;
 
-        DataPointVO target = DataPointDao.instance.getDataPoint(targetPointId, false);
-        if(target == null || !Common.runtimeManager.isDataPointRunning(targetPointId)){
-        	message = new TranslatableMessage("eventHandlers.noTargetPoint");
-        }else{
-        	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
-            context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, Common.runtimeManager.getDataPoint(targetPointId));
-            
-            for(IntStringPair cxt : additionalContext) {
-    			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
-    			if(dprt != null)
-    				context.put(cxt.getValue(), dprt);
-    		}
-            
-            Map<String, Object> otherContext = new HashMap<String, Object>();
-            otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
-            
-            int targetDataType = target.getPointLocator().getDataTypeId();
-
-            final StringWriter scriptOut = new StringWriter();
-            final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-
-            try {
-            	CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-                PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
-                        targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter, 
-                        new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), null, null, true);
-                if (pvt.getValue() == null)
-                    message = new TranslatableMessage("eventHandlers.script.nullResult");
-                else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue())
-                	message = new TranslatableMessage("eventHandlers.script.successUnchanged");
+        DataPointRT target = Common.runtimeManager.getDataPoint(targetPointId);
+        if(target == null){
+            DataPointVO targetVo = DataPointDao.instance.getDataPoint(targetPointId, false);
+            if(targetVo == null) {
+                if(active)
+                    response.addMessage("activeScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
                 else
-                    message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());
-            	//Add the script logging output
-                response.addData("out", scriptOut.toString().replaceAll("\n", "<br/>"));
+                    response.addMessage("inactiveScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
+                return response;
             }
-            catch(ScriptPermissionsException e) {
-                message = e.getTranslatableMessage();
+            if(targetVo.getDefaultCacheSize() == 0)
+                targetVo.setDefaultCacheSize(1);
+            target = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(targetVo.getDataSourceId()), null);
+            target.resetValues();
+        }
+        
+    	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
+        context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, target);
+        
+        for(IntStringPair cxt : additionalContext) {
+			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
+			if(dprt == null) {
+			    DataPointVO dpvo = DataPointDao.instance.getDataPoint(cxt.getKey(), false);
+			    if(dpvo == null) {
+			        if(active)
+			            response.addMessage("activeScript", new TranslatableMessage("event.script.contextPointMissing", cxt.getValue(), cxt.getKey()));
+			        else
+			            response.addMessage("inactiveScript", new TranslatableMessage("event.script.contextPointMissing", cxt.getValue(), cxt.getKey()));
+			        return response;
+			    }
+			    if(dpvo.getDefaultCacheSize() == 0)
+                    dpvo.setDefaultCacheSize(1);
+                dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(dpvo.getDataSourceId()), null);
+                dprt.resetValues();
+			}
+			context.put(cxt.getValue(), dprt);
+		}
+        
+        Map<String, Object> otherContext = new HashMap<String, Object>();
+        otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
+        
+        int targetDataType = target.getDataTypeId();
+
+        final StringWriter scriptOut = new StringWriter();
+        final PrintWriter scriptWriter = new PrintWriter(scriptOut);
+        
+        final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYY HH:mm:ss");
+        ScriptPointValueSetter loggingSetter = new ScriptPointValueSetter(scriptPermissions) {
+            @Override
+            public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+                DataPointRT dprt = (DataPointRT) point;
+                if(!dprt.getVO().getPointLocator().isSettable()) {
+                    scriptOut.append("Point " + dprt.getVO().getExtendedName() + " not settable.");
+                    return;
+                }
+                
+                if(!Permissions.hasPermission(dprt.getVO().getSetPermission(), permissions.getDataPointSetPermissions())) {
+                    scriptOut.write(new TranslatableMessage("pointLinks.setTest.permissionDenied", dprt.getVO().getXid()).translate(Common.getTranslations()));
+                    return;
+                }
+
+                scriptOut.append("Setting point " + dprt.getVO().getName() + " to " + value + " @" + sdf.format(new Date(timestamp)) + "\r\n");
             }
-            catch (ScriptException e) {
-                message = new TranslatableMessage("eventHandlers.script.failure", e.getMessage());
+
+            @Override
+            protected void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+                // not really setting
             }
-            catch (ResultTypeException e) {
-                message = e.getTranslatableMessage();
-            }
+        };
+
+        try {
+        	CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
+            PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
+                    targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter, 
+                    new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), loggingSetter, null, true);
+            if (pvt.getValue() == null)
+                message = new TranslatableMessage("eventHandlers.script.nullResult");
+            else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue())
+            	message = new TranslatableMessage("eventHandlers.script.successUnchanged");
+            else
+                message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());
+        	//Add the script logging output
+            response.addData("out", scriptOut.toString().replaceAll("\n", "<br/>"));
+        }
+        catch(ScriptPermissionsException e) {
+            message = e.getTranslatableMessage();
+        }
+        catch (ScriptException e) {
+            message = new TranslatableMessage("eventHandlers.script.failure", e.getMessage());
+        }
+        catch (ResultTypeException e) {
+            message = e.getTranslatableMessage();
         }
 
         if(active)
