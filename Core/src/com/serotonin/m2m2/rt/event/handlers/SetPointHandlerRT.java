@@ -231,7 +231,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	context.put("target", targetPoint);
         	try {
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, new HashMap<String, Object>(), evt.getRtnTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), new ScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL),
+	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL),
 	        			setCallback, importExclusions, false);
 	        	value = pvt.getValue();
         	} catch(ScriptPermissionsException e) {
