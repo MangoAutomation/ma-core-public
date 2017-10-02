@@ -161,6 +161,8 @@ public class ScriptUtils {
             return new NumericPointWrapper(point, engine, setter);
         if (dt == DataTypes.ALPHANUMERIC)
             return new AlphanumericPointWrapper(point, engine, setter);
+        if (dt == DataTypes.IMAGE)
+            return new ImagePointWrapper(point, engine, setter);
         throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
     }
 
