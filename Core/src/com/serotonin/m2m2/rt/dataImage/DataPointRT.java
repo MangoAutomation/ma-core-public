@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
@@ -316,8 +317,9 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                     }
                     else
                         logValue = false;
-                }
-                else
+                } else if(newValue.getValue() instanceof ImageValue) {
+                    logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.getValue()).getDigest());
+                } else
                     logValue = !ObjectUtils.equals(newValue.getValue(), pointValue.getValue());
             }
 
