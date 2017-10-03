@@ -30,8 +30,8 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
 
 	private static final long serialVersionUID = 1L;
 	
-	private int duration;
-    private int durationType = Common.TimePeriods.SECONDS;
+	protected int duration;
+    protected int durationType = Common.TimePeriods.SECONDS;
     
     public int getDuration() {
 		return duration;
