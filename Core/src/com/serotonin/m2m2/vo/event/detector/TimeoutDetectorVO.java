@@ -61,8 +61,8 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
 		
         if (!Common.TIME_PERIOD_CODES.isValidId(durationType))
             response.addContextualMessage("durationType", "validate.invalidValue");
-        if (duration <= 0)
-            response.addContextualMessage("duration", "validate.greaterThanZero");
+        if (duration < 0)
+            response.addContextualMessage("duration", "validate.cannotBeNegative");
 	}
 	
     @Override
