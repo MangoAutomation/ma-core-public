@@ -12,6 +12,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -85,31 +86,30 @@ public class AnalogRangeDetectorVO extends TimeoutDetectorVO<AnalogRangeDetector
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-		TranslatableMessage message;
+	    if(dataPoint == null)
+            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
 		TranslatableMessage durationDesc = getDurationDescription();
 		
         //For within range
         if (withinRange) {
             if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
+                return new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
                         low, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(high,
                         TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer()
+            return new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer()
                         .getText(low, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(high,
                         TextRenderer.HINT_SPECIFIC), durationDesc);
         }
         else {
             //Outside of range
             if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer()
+                return new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer()
                         .getText(low, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(high,
                         TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint
+            return new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint
                         .getTextRenderer().getText(low, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer()
                         .getText(high, TextRenderer.HINT_SPECIFIC), durationDesc);
-        }        return message;
+        }
 	}
 	
     @Override

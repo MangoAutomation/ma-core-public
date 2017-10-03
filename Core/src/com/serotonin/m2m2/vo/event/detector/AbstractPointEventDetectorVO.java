@@ -78,6 +78,8 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	
 	@Override
     public EventTypeVO getEventType() {
+	    if(this.dataPoint == null)
+	        this.dataPoint = DataPointDao.instance.get(sourceId);
         return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, sourceId, id, getDescription(),
                 alarmLevel);
     }

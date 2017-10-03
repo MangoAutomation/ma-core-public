@@ -12,6 +12,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -98,28 +99,26 @@ public class AnalogHighLimitDetectorVO extends TimeoutDetectorVO<AnalogHighLimit
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-		TranslatableMessage message;
+	    if(dataPoint == null)
+            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
 		TranslatableMessage durationDesc = getDurationDescription();
 		
         if (notHigher) {
             //Check if Not above
             if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.highLimitNotHigher", dataPoint
+                return new TranslatableMessage("event.detectorVo.highLimitNotHigher", dataPoint
                         .getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.highLimitNotHigherPeriod", dataPoint
+            return new TranslatableMessage("event.detectorVo.highLimitNotHigherPeriod", dataPoint
                         .getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
         else {
             //Must be above
             if (durationDesc == null)
-                message = new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer()
+                return new TranslatableMessage("event.detectorVo.highLimit", dataPoint.getTextRenderer()
                         .getText(limit, TextRenderer.HINT_SPECIFIC));
-            else
-                message = new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
+            return new TranslatableMessage("event.detectorVo.highLimitPeriod", dataPoint.getTextRenderer()
                         .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
-        return message;
 	}
 	
     @Override

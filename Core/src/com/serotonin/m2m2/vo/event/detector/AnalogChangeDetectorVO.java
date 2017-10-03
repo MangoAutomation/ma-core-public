@@ -13,6 +13,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -102,7 +103,9 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-		String prettyLimit = njbGetDataPoint().getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC);
+	    if(dataPoint == null)
+            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
+	    String prettyLimit = dataPoint.getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC);
 		TranslatableMessage durationDescription = getDurationDescription();
 		
 		if(checkIncrease && checkDecrease)
