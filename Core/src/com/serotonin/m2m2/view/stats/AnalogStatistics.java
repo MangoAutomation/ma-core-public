@@ -197,6 +197,10 @@ public class AnalogStatistics implements StatisticsGenerator {
     public double getSum() {
         return sum;
     }
+    
+    public Double getStartValue() {
+        return startValue;
+    }
 
     public Double getFirstValue() {
         return firstValue;
@@ -237,6 +241,7 @@ public class AnalogStatistics implements StatisticsGenerator {
                 + ", count: " + count
                 + ", delta: " + delta
                 + ", integral: " + integral
+                + ", startValue: " + startValue
                 + ", firstValue: " + firstValue
                 + ", firstTime: " + firstTime
                 + ", lastValue: " + lastValue
