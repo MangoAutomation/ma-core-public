@@ -142,11 +142,11 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         	this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName()));
     }
 
-    public void scheduleTimeoutImpl(long fireTime) {
+    public synchronized void scheduleTimeoutImpl(long fireTime) {
         try {
             jobThread = Thread.currentThread();
             
-	    	long startTs = System.currentTimeMillis();
+	    	long startTs = Common.timer.currentTimeMillis();
 	    	
 	    	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
 	    	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
@@ -183,6 +183,11 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         long sum = unsuccessfulPolls.longValue() + successfulPolls.longValue();
         messages.add(new TranslatableMessage("dsEdit.discardedPolls", unsuccessfulPolls, sum, (int) (unsuccessfulPolls
                 .doubleValue() / sum * 100)));
+    }
+    
+    @Override
+    public void forcePoll() {
+        scheduleTimeoutImpl(Common.timer.currentTimeMillis());
     }
 
     /**
