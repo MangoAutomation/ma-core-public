@@ -439,7 +439,7 @@ public class SystemSettingsDao extends BaseDao {
         // Add built-in system event type defaults
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.NONE);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.IGNORE);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, AlarmLevels.URGENT);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, AlarmLevels.INFORMATION);
