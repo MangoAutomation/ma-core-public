@@ -264,6 +264,18 @@ returns:
   <li>1 - Suggestion made to data source</li>
 </ul>
 
+<h3>refreshDataSource(xid)</h3>
+Refreshing a data source suggests to the Data Source that a regular poll should be collected ASAP.  This will only happen if the underlying 
+data source has implemented this functionality.
+
+xid - Xid for data soure
+returns:
+<ul>
+  <li>-1 - Source does not exist</li>
+  <li>0 - Source is not enabled</li>
+  <li>1 - Suggestion made to data source</li>
+</ul>
+
 <h3>isDataSourceEnabled(xid)</h3>
 xid - Xid for a data source
 return true if enabled false if not or DNE
