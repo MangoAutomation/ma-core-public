@@ -211,19 +211,14 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		String sourceIdColumn = getSourceIdColumnName(sourceType);
 		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + "AS " + this.tablePrefix + " WHERE id=?", new Object[]{id}, Integer.class, -1);
 	}
-	
+
+    // TODO remove in Mango 3.3.x
 	@Override
 	public AbstractEventDetectorVO<?> getByXid(String xid){
-		throw new ShouldNeverHappenException("Not possible as XIDs are not unique");
+	    return super.getByXid(xid);
 	}
 
-	/**
-	 * Get an Event Detector based on sourceId and Xid uniqueness
-	 * @param xid
-	 * @param sourceType
-	 * @param sourceId
-	 * @return
-	 */
+    // TODO remove in Mango 3.3.x
 	public AbstractEventDetectorVO<?> getByXid(String xid, String sourceType, int sourceId){
 		String sourceIdColumn = getSourceIdColumnName(sourceType);
 		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + " AS  "  + this.TABLE_PREFIX +  " WHERE xid=? AND " + sourceIdColumn + "=?", new Object[]{xid, sourceId}, getRowMapper(), null);
@@ -258,15 +253,14 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		
 		return index;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#isXidUnique(java.lang.String, int)
-	 */
+
+    // TODO remove in Mango 3.3.x
 	@Override
 	public boolean isXidUnique(String xid, int excludeId) {
-		throw new ShouldNeverHappenException("XIDs are not unique without a source ID to compare.");
+	    return super.isXidUnique(xid, excludeId);
 	}
 
+    // TODO remove in Mango 3.3.x
 	/**
 	 * This method diverges with the normal uniqueness checks 
 	 * because it requires the sourceID 

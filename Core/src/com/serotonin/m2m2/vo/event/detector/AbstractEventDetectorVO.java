@@ -21,7 +21,6 @@ import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
-import com.serotonin.validation.StringValidation;
 
 /**
  * @author Terry Packer
@@ -129,32 +128,14 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	protected AbstractDao<T> getDao(){
 		return (AbstractDao<T>) EventDetectorDao.instance;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
+
+    // TODO remove in Mango 3.3.x
 	@Override
 	public void validate(ProcessResult response) {
-		//Can't validate uniqueness of XID so we don't call super
-        if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(xid, 50))
-            response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
-        else if (!isXidUnique(xid, definition.getSourceTypeName(), sourceId))
-            response.addContextualMessage("xid", "validate.xidUsed");
-
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("name", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(name, 255))
-            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+		super.validate(response);
 	}
-	
-    /**
-	 * @param xid
-	 * @param sourceTypeName
-	 * @param sourceId2
-	 * @return
-	 */
+
+    // TODO remove in Mango 3.3.x
 	protected boolean isXidUnique(String xid, String sourceType, int sourceId) {
 		return EventDetectorDao.instance.isXidUnique(xid, id, sourceType, sourceId);
 	}
