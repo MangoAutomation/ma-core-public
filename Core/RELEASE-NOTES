@@ -1,3 +1,6 @@
+*Version 3.2.2*
+* Make event detector XIDs unique, the id will be appended to existing event detector XIDs
+
 *Version 3.2.1*
 * Fix in Translations to prevent hung boot in some locales
 * Performance improvements not loading points from DB when not necessary
