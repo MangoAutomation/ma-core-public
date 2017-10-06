@@ -526,7 +526,7 @@
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.8.3</version>
+			<version>1.9.3</version>
 		</dependency>
 		<!-- IA Managed Dependencies -->
 		<dependency>
@@ -555,6 +555,10 @@
 					<groupId>xml-apis</groupId>
 					<artifactId>xml-apis</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>commons-beanutils</groupId>
+					<artifactId>commons-beanutils</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<!-- Swagger -->
@@ -579,6 +583,12 @@
 			<groupId>net.jazdw</groupId>
 			<artifactId>rql-parser</artifactId>
 			<version>0.3.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-beanutils</groupId>
+					<artifactId>commons-beanutils</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- For FFT Transforms -->
 		<dependency>
