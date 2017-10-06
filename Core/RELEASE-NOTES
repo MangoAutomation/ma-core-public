@@ -9,6 +9,7 @@
 * Fix validation of event detectors when saving via REST API
 * Add refreshDataSource(xid) method to script runtime manager
 * Change default alarm level for "Max alarm level changed" to IGNORE
+* Update commons-beanutils to 1.9.3 to protect against CVE-2014-0114
 * Catch and log exception from database layer #765
 * Remove remaining references to DaoRegistry #1076
 * Fix some issues with dependencies on legacy modules page #906
