@@ -161,7 +161,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mango-api</artifactId>
-			<version>3.2.2-SNAPSHOT</version>
+			<version>3.2.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -233,7 +233,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>watchlist</artifactId>
-			<version>3.2.2-SNAPSHOT</version>
+			<version>3.2.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<!-- ma-modules-private -->
@@ -463,7 +463,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>dashboard-designer</artifactId>
-			<version>3.2.3-SNAPSHOT</version>
+			<version>3.2.4-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -481,7 +481,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
-			<version>3.2.5-SNAPSHOT</version>
+			<version>3.2.6-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
