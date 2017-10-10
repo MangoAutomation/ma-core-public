@@ -381,6 +381,42 @@ for(var i=0; i&lt;points.size(); i++){
 return average/points.size();
 </pre>
 
+<h2>HttpBuilder</h2>
+<p>HTTP exchanges can be sent and handled from within the script body without using Java directly. The <b>HttpBuilder</b> object provides GET, POST, PUT and DELETE
+with synchronous callbacks. By default, responses with status 200 will be passed to the resp function if defined, other responses to the err function if defined, and
+local exceptions to the excp function if defined, or the err function if that is defined instead with status -1. Two forms of usage are supported:</p>
+<pre>
+//First format, method chaining
+print(HttpBuilder.get("http://localhost:8080/help.htm", {/* user supplied headers */}, {/* user supplied parameters */})
+	.err(function(status, headers, content) { //setErrorCallback for linguistic completion
+		throw "Request got bad response: " + status;
+	}).resp(function(status, headers, content) { //setResponseCallback
+		print(content);
+		return true;
+	}).excp(function(exception) { //setExceptionCallback
+		throw exception.getMessage();
+	}).execute()); //will print the help page then "true" if the resp function is executed. Otherwise will throw the error.
+	
+//Second format, full request
+print(HttpBuilder.request({
+	path: "http://localhost:8080/help.htm",
+	method: "GET",
+	headers: {},
+	parameters: {},
+	//content: "GETs don't have content!",
+	err: function(status, headers, content) { //errorCallback for linguistic completion
+		throw "Request got bad response: " + status;
+	},
+	resp: function(status, headers, content) { //responseCallback
+		print(content);
+		return true; //will print in wrapping print()
+	}
+	excp: function(exception) { //exceptionCallback
+		throw exception.getMessage();
+	}
+}));
+</pre>
+
 <h1>Logging</h1>
 <p>Logging can be achieved during script testing on the edit page by enabling the logging level desired and then using the appropriate log statement.</p>
 <pre>
