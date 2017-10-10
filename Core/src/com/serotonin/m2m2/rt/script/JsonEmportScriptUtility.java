@@ -240,6 +240,7 @@ public class JsonEmportScriptUtility {
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
+                        processDataPointPaths();
                         completed = true;
                         return;
                     }
@@ -278,6 +279,7 @@ public class JsonEmportScriptUtility {
                     }
                 }
 
+                processDataPointPaths();
                 completed = true;
             }
             catch (Exception e) {

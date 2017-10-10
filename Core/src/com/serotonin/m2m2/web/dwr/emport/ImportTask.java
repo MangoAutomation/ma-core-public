@@ -231,7 +231,7 @@ public class ImportTask extends ProgressiveTask {
         }
     }
     
-    private void processDataPointPaths() {
+    protected void processDataPointPaths() {
         PointFolder root;
         if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
             root = hierarchyImporter.getHierarchy().getRoot();
