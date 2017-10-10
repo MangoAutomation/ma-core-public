@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.DataPointSummary;
 
 /**
@@ -106,6 +107,20 @@ public class PointHierarchy {
             Collections.reverse(path);
 
         return path;
+    }
+    
+    public static String getFlatPath(int pointId, PointFolder root) {
+        String pathDelimiter = SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
+        List<String> path = getPath(pointId, root);
+        StringBuilder result = new StringBuilder();
+        if(path.size() == 0)
+            return "";
+        result.append(path.get(0));
+        for(int i = 1; i < path.size(); i++) {
+            result.append(pathDelimiter);
+            result.append(path.get(i));
+        }
+        return result.toString();
     }
 
     public void parseEmptyFolders() {

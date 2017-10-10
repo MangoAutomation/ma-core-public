@@ -31,6 +31,7 @@ import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -51,6 +52,7 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
@@ -1492,6 +1494,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
         writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
+        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH))
+            writer.writeEntry("path", PointHierarchy.getFlatPath(id, DataPointDao.instance.getPointHierarchy(true).getRoot()));
 
         if (useIntegralUnit)
             writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));

@@ -167,6 +167,10 @@ public class SystemSettingsDao extends BaseDao {
     public static final String LAST_UPGRADE = "lastUpgrade";
     public static final String CORE_VERSION_LAST_START = "coreVersionLastStart";
     
+    // The path delimiter for flat paths
+    public static final String EXPORT_HIERARCHY_PATH = "exportHierarchyPath";
+    public static final String HIERARCHY_PATH_SEPARATOR = "hierarchyPathSeparator";
+    
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private SystemSettingsDao(){
@@ -490,6 +494,9 @@ public class SystemSettingsDao extends BaseDao {
         		}
         	DEFAULT_VALUES.put(def.getKey(), defaultValue);
         }
+        
+        DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
+        DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
     }
 
 	/**

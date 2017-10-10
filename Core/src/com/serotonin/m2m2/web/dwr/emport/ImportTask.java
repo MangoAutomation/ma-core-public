@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.dwr.emport;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -15,6 +16,8 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EmportDefinition;
@@ -22,8 +25,10 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointImporter;
+import com.serotonin.m2m2.web.dwr.emport.importers.DataPointSummaryPathPair;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataSourceImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.EventDetectorImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.EventHandlerImporter;
@@ -44,10 +49,12 @@ public class ImportTask extends ProgressiveTask {
 	private static Log LOG = LogFactory.getLog(ImportTask.class);
 	
     protected final ImportContext importContext;
+    private final PointHierarchyImporter hierarchyImporter;
     private final User user;
 
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
+    protected final List<DataPointSummaryPathPair> dpPathPairs = new ArrayList<DataPointSummaryPathPair>();
 
     public ImportTask(JsonObject root, Translations translations, User user) {
         this(root, translations, user, true);
@@ -74,11 +81,14 @@ public class ImportTask extends ProgressiveTask {
             addImporter(new DataSourceImporter(jv.toJsonObject()));
         
         for (JsonValue jv : nonNullList(root, EmportDwr.DATA_POINTS))
-            addImporter(new DataPointImporter(jv.toJsonObject()));
+            addImporter(new DataPointImporter(jv.toJsonObject(), dpPathPairs));
         
         JsonArray phJson = root.getJsonArray(EmportDwr.POINT_HIERARCHY);
-        if(phJson != null)
-        	addImporter(new PointHierarchyImporter(phJson));
+        if(phJson != null) {
+            hierarchyImporter = new PointHierarchyImporter(phJson, true);
+        	addImporter(hierarchyImporter);
+        } else
+            hierarchyImporter = null;
         
         for (JsonValue jv : nonNullList(root, EmportDwr.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject()));
@@ -170,6 +180,7 @@ public class ImportTask extends ProgressiveTask {
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
+                        processDataPointPaths();
                         completed = true;
                         return;
                     }
@@ -208,7 +219,7 @@ public class ImportTask extends ProgressiveTask {
                         return;
                     }
                 }
-
+                processDataPointPaths();
                 completed = true;
             }
             catch (Exception e) {
@@ -218,6 +229,46 @@ public class ImportTask extends ProgressiveTask {
         finally {
             BackgroundContext.remove();
         }
+    }
+    
+    private void processDataPointPaths() {
+        PointFolder root;
+        if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
+            root = hierarchyImporter.getHierarchy().getRoot();
+        else
+            root = DataPointDao.instance.getPointHierarchy(false).getRoot();
+        String pathSeparator = SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
+        for(DataPointSummaryPathPair dpp : dpPathPairs) {
+            root.removePointRecursively(dpp.getDataPointSummary().getId());
+            PointFolder starting = root;
+            PointFolder previous = root;
+            String[] pathParts = dpp.getPath().split(pathSeparator);
+            
+            if(pathParts.length == 1 && StringUtils.isBlank(pathParts[0])) { //Check if it's in the root
+                root.getPoints().add(dpp.getDataPointSummary());
+                continue;
+            }
+            
+            for(String s : pathParts) {
+                if(starting == null) {
+                    PointFolder newFolder = new PointFolder();
+                    newFolder.setName(s);
+                    previous.addSubfolder(newFolder);
+                    starting = newFolder;
+                }
+                previous = starting;
+                starting = starting.getSubfolder(s);
+            }
+            if(starting != null)
+                starting.getPoints().add(dpp.getDataPointSummary());
+            else {
+                PointFolder newFolder = new PointFolder();
+                newFolder.setName(pathParts[pathParts.length-1]);
+                previous.addSubfolder(newFolder);
+                newFolder.addDataPoint(dpp.getDataPointSummary());
+            }
+        }
+        DataPointDao.instance.savePointHierarchy(root);
     }
 
     private void addException(Exception e) {

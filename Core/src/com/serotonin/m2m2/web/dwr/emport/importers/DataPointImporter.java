@@ -1,6 +1,7 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,6 +14,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -20,8 +22,16 @@ import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class DataPointImporter extends Importer {
+    final List<DataPointSummaryPathPair> hierarchyList;
+    
     public DataPointImporter(JsonObject json) {
         super(json);
+        this.hierarchyList = null;
+    }
+    
+    public DataPointImporter(JsonObject json, List<DataPointSummaryPathPair> hierarchyList) {
+        super(json);
+        this.hierarchyList = hierarchyList;
     }
 
     @Override
@@ -106,6 +116,8 @@ public class DataPointImporter extends Importer {
                     try {
                     	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
                     		Common.runtimeManager.saveDataPoint(vo);
+                    		if(hierarchyList != null && json.containsKey("path"))
+                    		    hierarchyList.add(new DataPointSummaryPathPair(new DataPointSummary(vo), json.getString("path")));
                     		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     	}else{
                     		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
