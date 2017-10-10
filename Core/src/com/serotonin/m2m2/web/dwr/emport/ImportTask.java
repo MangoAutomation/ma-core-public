@@ -49,7 +49,7 @@ public class ImportTask extends ProgressiveTask {
 	private static Log LOG = LogFactory.getLog(ImportTask.class);
 	
     protected final ImportContext importContext;
-    private final PointHierarchyImporter hierarchyImporter;
+    protected final PointHierarchyImporter hierarchyImporter;
     private final User user;
 
     protected final List<Importer> importers = new ArrayList<Importer>();
@@ -180,7 +180,7 @@ public class ImportTask extends ProgressiveTask {
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
-                        processDataPointPaths();
+                        processDataPointPaths(hierarchyImporter, dpPathPairs);
                         completed = true;
                         return;
                     }
@@ -219,7 +219,7 @@ public class ImportTask extends ProgressiveTask {
                         return;
                     }
                 }
-                processDataPointPaths();
+                processDataPointPaths(hierarchyImporter, dpPathPairs);
                 completed = true;
             }
             catch (Exception e) {
@@ -231,7 +231,7 @@ public class ImportTask extends ProgressiveTask {
         }
     }
     
-    protected void processDataPointPaths() {
+    public static void processDataPointPaths(PointHierarchyImporter hierarchyImporter, List<DataPointSummaryPathPair> dpPathPairs) {
         PointFolder root;
         if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
             root = hierarchyImporter.getHierarchy().getRoot();
