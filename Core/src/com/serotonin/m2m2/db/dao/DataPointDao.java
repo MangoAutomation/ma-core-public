@@ -315,10 +315,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     insertDataPoint(dp);
                 else
                     updateDataPoint(dp);
-
+                
                 // Reset the point hierarchy so that the new or changed point
                 // gets reflected.
-                clearPointHierarchyCache();
+                //clearPointHierarchyCache();
+                if(cachedPointHierarchy != null) {
+                    PointFolder root = cachedPointHierarchy.getRoot();
+                    root.removePointRecursively(dp.getId());
+                    root.addDataPointRecursively(new DataPointSummary(dp), dp.getPointFolderId());
+                }
+                
+                //If the DP has a path defined, update the hierarchy with greater precedence than the point folder id
+                dp.processHierarchyPath();
             }
         });
     }
@@ -749,6 +757,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     	}
     	return maxId;
     }
+    
+    private int selectMaxFolderId() {
+        return ejt.queryForInt("SELECT MAX(id) FROM dataPointHierarchy;", new Object[0], 0);
+    }
 
     public void savePointHierarchy(final PointFolder root) {
         // Assign ids to the folders.
@@ -786,6 +798,30 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 savePointsInFolder(root);
             }
         });
+    }
+    
+    public void insertNewPointFolder(PointFolder folder, int parentFolderId, boolean useCache) {
+        insertNewPointFolder(folder, parentFolderId, useCache ? getMaxFolderId(getPointHierarchy(true).getRoot()) + 1 : selectMaxFolderId() + 1, true, useCache);
+    }
+    
+    private void insertNewPointFolder(PointFolder folder, int parentFolderId, int newId, boolean root, boolean useCache) {
+        folder.setId(newId);
+        PointHierarchy ph;
+        if(useCache) {
+            ph = getPointHierarchy(true);
+            for(int k = 0; k < folder.getPoints().size(); k++)
+                ph.getRoot().removePointRecursively(folder.getPoints().get(k).getId());
+            if(root)
+                ph.addPointFolder(folder, parentFolderId);
+        }
+        
+        ejt.update("INSERT INTO dataPointHierarchy (id, parentId, name) VALUES (?,?,?)", newId, parentFolderId, folder.getName());
+        savePointsInFolder(folder);
+        for(PointFolder pf : folder.getSubfolders())
+            insertNewPointFolder(pf, folder.getId(), ++newId, false, useCache);
+        
+        if(root && !useCache)
+            clearPointHierarchyCache();
     }
 
     private void assignFolderIds(PointFolder folder, int parentId, AtomicInteger nextId, List<Object> params) {
