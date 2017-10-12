@@ -21,6 +21,7 @@ import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
+import com.serotonin.validation.StringValidation;
 
 /**
  * @author Terry Packer
@@ -129,10 +130,23 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		return (AbstractDao<T>) EventDetectorDao.instance;
 	}
 
-    // TODO remove in Mango 3.3.x
+	/*
+	 * Override so we can allow for blank names
+	 */
 	@Override
 	public void validate(ProcessResult response) {
-		super.validate(response);
+	    if (StringUtils.isBlank(xid))
+            response.addContextualMessage("xid", "validate.required");
+        else if (StringValidation.isLengthGreaterThan(xid, 50))
+            response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+        else if (!isXidUnique(xid, id))
+            response.addContextualMessage("xid", "validate.xidUsed");
+
+	    // allow blank names
+        if (!StringUtils.isBlank(name)) {
+            if (StringValidation.isLengthGreaterThan(name, 255))
+                response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+        }
 	}
 
     // TODO remove in Mango 3.3.x
