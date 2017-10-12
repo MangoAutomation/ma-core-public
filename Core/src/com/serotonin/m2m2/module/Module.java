@@ -11,6 +11,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
+
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
@@ -26,6 +30,8 @@ import com.serotonin.m2m2.util.license.ModuleLicense;
  * @author Matthew Lohbihler
  */
 public class Module {
+    
+    private static final Log LOG = LogFactory.getLog(Module.class);
 	
 	public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
 	static {
@@ -270,6 +276,55 @@ public class Module {
     }
 
     public void setMarkedForDeletion(boolean markedForDeletion) {
+        if(this.markedForDeletion) { //We need to loop over all the dependencies none are marked to delete
+            if (!StringUtils.isBlank(dependencies)) {
+                String[] parts = dependencies.split("\\s*,\\s*");
+
+                for (String dependencyStr : parts) {
+                    if (dependencyStr.isEmpty()) continue;
+                    String depName;
+
+                    int pos = dependencyStr.indexOf(':');
+                    if (pos == -1)
+                        depName = dependencyStr;
+                    else
+                        depName = dependencyStr.substring(0, pos);
+                    
+                    Module dep = ModuleRegistry.getModule(depName);
+                    if(dep == null)
+                        LOG.error("Unable to identify module dependency: " + dep); //don't let this stop us
+                    else if(dep.isMarkedForDeletion()) { //Okay, this will stop us.
+                        LOG.warn("Cannot unmark module " + name + " for deletion while its dependencies are marked for deletion: " + depName);
+                        this.markedForDeletion = true;
+                        return;
+                    }
+                }
+            }
+        } else {
+            //We need to check if any modules depend on this one.
+            for(Module mod : ModuleRegistry.getModules()) {
+                if(mod.getName().equals(name) || StringUtils.isBlank(mod.getDependencies()))
+                    continue;
+                
+                String[] parts = mod.getDependencies().split("\\s*,\\s*");
+                for (String dependencyStr : parts) {
+                    if (dependencyStr.isEmpty()) continue;
+                    String depName;
+
+                    int pos = dependencyStr.indexOf(':');
+                    if (pos == -1)
+                        depName = dependencyStr;
+                    else
+                        depName = dependencyStr.substring(0, pos);
+                    
+                    if(name.equals(depName)) {
+                        LOG.warn("Cannot mark module " + name + " for deletion while something depends on it: " + depName);
+                        this.markedForDeletion = false;
+                        return;
+                    }
+                }
+            }
+        }
         this.markedForDeletion = markedForDeletion;
     }
 
