@@ -317,7 +317,7 @@ public class Module {
                     else
                         depName = dependencyStr.substring(0, pos);
                     
-                    if(name.equals(depName)) {
+                    if(name.equals(depName) && !mod.isMarkedForDeletion()) {
                         LOG.warn("Cannot mark module " + name + " for deletion while something depends on it: " + depName);
                         this.markedForDeletion = false;
                         return;
