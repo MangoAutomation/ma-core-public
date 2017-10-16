@@ -836,6 +836,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             response.addContextualMessage("intervalLoggingPeriod", "validate.greaterThanZero");
         if (!INTERVAL_LOGGING_TYPE_CODES.isValidId(intervalLoggingType))
             response.addContextualMessage("intervalLoggingType", "validate.invalidValue");
+        
+        if(pointLocator.getDataTypeId() == DataTypes.IMAGE || pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC ) {
+            if(loggingType == LoggingTypes.INTERVAL && intervalLoggingType != IntervalLoggingTypes.INSTANT)
+                response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible", 
+                        INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType), DataTypes.CODES.getCode(pointLocator.getDataTypeId()));
+        }
 
         if (!Common.TIME_PERIOD_CODES.isValidId(purgeType, TimePeriods.MILLISECONDS, TimePeriods.SECONDS, TimePeriods.MINUTES, TimePeriods.HOURS))
             response.addContextualMessage("purgeType", "validate.invalidValue");
