@@ -148,6 +148,10 @@ public class Common {
     public static boolean isInvalid() {
     	return invalid;
     }
+    
+    public static boolean isCoreSigned() {
+        return releaseProps != null && Boolean.TRUE.toString().equals(releaseProps.getProperty("signed"));
+    }
 
     /*
      * Updating the MA version: - Create a DBUpdate subclass for the old version number. This may not do anything in
