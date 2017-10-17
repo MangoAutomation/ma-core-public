@@ -22,7 +22,7 @@
   <buildNumber>${maven.build.timestamp}</buildNumber>
  </properties>
  <organization>
-   <name>Infinite Automation</name>
+   <name>Infinite Automation Systems, Inc.</name>
    <url>https://www.infiniteautomation.com/</url>
  </organization>
  <modules>
