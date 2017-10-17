@@ -929,8 +929,6 @@ public class ModuleRegistry {
         preDefaults.add(new SmoothnessEventDetectorDefinition());
         preDefaults.add(new StateChangeCountEventDetectorDefinition());
         preDefaults.add(new NoUpdateEventDetectorDefinition());
-        //TODO uncomment when ready to test and release
-//        preDefaults.add(new AnalogChangeEventDetectorDefinition());
         
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
