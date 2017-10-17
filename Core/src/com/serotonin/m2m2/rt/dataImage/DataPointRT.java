@@ -536,10 +536,14 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                             averagingValues, endValue);
                     if (stats.getAverage() == null)
                         value = null;
+                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
+                        value = new NumericValue(stats.getAverage());
                     else if(vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
                         value = new BinaryValue(stats.getAverage() >= 0.5);
+                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE)
+                        value = new MultistateValue((int)Math.round(stats.getAverage()));
                     else
-                        value = new NumericValue(stats.getAverage());
+                        throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
                 }
                 //Compute the center point of our average data, starting by finding where our period started
                 long sampleWindowStartTime;
