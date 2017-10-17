@@ -5,8 +5,6 @@
 package com.serotonin.m2m2;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -94,6 +92,7 @@ public class Common {
     public static final int NEW_ID = -1;
 
     public static ReloadingProperties envProps;
+    public static Properties releaseProps;
     public static Configuration freemarkerConfiguration;
     public static DatabaseProxy databaseProxy;
     public static BackgroundProcessing backgroundProcessing;
@@ -185,16 +184,9 @@ public class Common {
     }
 
     private static final Version loadCoreVersionFromReleaseProperties(Version version) {
-        Properties props = new Properties();
-        File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
-
-        if (propFile.exists()) {
-            try (InputStream in = new FileInputStream(propFile)) {
-                props.load(in);
-            } catch (Exception e1) { }
-
-            String versionStr = props.getProperty(ModuleUtils.Constants.PROP_VERSION);
-            String buildNumberStr = props.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
+        if (releaseProps != null) {
+            String versionStr = releaseProps.getProperty(ModuleUtils.Constants.PROP_VERSION);
+            String buildNumberStr = releaseProps.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
             
             if (versionStr != null) {
                 try {
