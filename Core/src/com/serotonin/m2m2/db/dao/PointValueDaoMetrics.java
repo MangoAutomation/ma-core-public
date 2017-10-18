@@ -76,10 +76,22 @@ public class PointValueDaoMetrics implements PointValueDao{
 			long to) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getPointValuesBetween(pointId, from,to);
-    	LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + "){" + values.size() +"}");
+    	LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+to + "){" + values.size() +"}");
     	return values;
-
 	}
+	
+	/* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#getPointValuesBetween(int, long, long, limit)
+     */
+    @Override
+    public List<PointValueTime> getPointValuesBetween(int pointId, long from,
+            long to, int limit) {
+        LogStopWatch LogStopWatch = new LogStopWatch();
+        List<PointValueTime> values = dao.getPointValuesBetween(pointId, from, to, limit);
+        LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+to+ ", "+limit + "){" + values.size() +"}");
+        return values;
+
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#getLatestPointValues(int, int)

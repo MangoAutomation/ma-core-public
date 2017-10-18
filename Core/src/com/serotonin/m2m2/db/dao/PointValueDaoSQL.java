@@ -494,6 +494,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
                 new Object[] { dataPointId, from, to }, 0);
     }
+    
+    @Override
+    public List<PointValueTime> getPointValuesBetween(int dataPointId, long from, long to, int limit) {
+        return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
+                new Object[] { dataPointId, from, to }, limit);
+    }
 
     @Override
     public List<PointValueTime> getLatestPointValues(int dataPointId, int limit) {
