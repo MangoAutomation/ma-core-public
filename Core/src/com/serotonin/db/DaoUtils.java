@@ -14,6 +14,11 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -28,16 +33,50 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.db.spring.ArgPreparedStatementSetter;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 
 public class DaoUtils {
-    protected DataSource dataSource;
-    protected ExtendedJdbcTemplate ejt;
+    protected final DataSource dataSource;
+    protected final ExtendedJdbcTemplate ejt;
     protected DataSourceTransactionManager tm;
 
+    protected final DatabaseType databaseType;
+    protected final DSLContext create;
+    protected final SQLDialect sqlDialect;
+    
     public DaoUtils(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.databaseType = Common.databaseProxy.getType();
+        
         ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(dataSource);
+
+        switch(this.databaseType) {
+            case DERBY:
+                sqlDialect = SQLDialect.DERBY;
+                break;
+            case H2:
+                sqlDialect = SQLDialect.H2;
+                break;
+            case MYSQL:
+                sqlDialect = SQLDialect.MYSQL;
+                break;
+            case POSTGRES:
+                sqlDialect = SQLDialect.POSTGRES;
+                break;
+            case MSSQL:
+            default:
+                sqlDialect = SQLDialect.DEFAULT;
+                break;
+        }
+        
+        Configuration configuration = new DefaultConfiguration();
+        configuration.set(new SpringConnectionProvider(dataSource));
+        configuration.set(new SpringTransactionProvider(getTransactionManager()));
+        configuration.set(sqlDialect);
+        
+        this.create = DSL.using(configuration);
     }
 
     protected void setInt(PreparedStatement stmt, int index, int value, int nullValue) throws SQLException {

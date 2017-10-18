@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_ALIAS;
+
 import java.io.ObjectStreamException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,10 +23,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.SelectJoinStep;
+import org.jooq.SortField;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -36,12 +48,15 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -124,7 +139,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public List<DataPointVO> getDataPoints(Comparator<IDataPoint> comparator, boolean includeRelationalData) {
         List<DataPointVO> dps = query(DATA_POINT_SELECT, new DataPointRowMapper());
         if (includeRelationalData)
-            setRelationalData(dps);
+            loadPartialRelationalData(dps);
         if (comparator != null)
             Collections.sort(dps, comparator);
         return dps;
@@ -139,7 +154,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         List<DataPointVO> dps = query(DATA_POINT_SELECT+ " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
         if (includeRelationalData)
-            setRelationalData(dps);
+            loadPartialRelationalData(dps);
         if (comparator != null)
             Collections.sort(dps, comparator);
         return dps;
@@ -160,8 +175,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         try {
             DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.id=?", new Object[] { id },
                     new DataPointRowMapper(), null);
-            if (includeRelationalData)
-                setRelationalData(dp);
+            if (dp != null && includeRelationalData)
+                loadRelationalData(dp);
             return dp;
         }
         catch (ShouldNeverHappenException e) {
@@ -180,7 +195,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public DataPointVO getDataPoint(String xid) {
         DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.xid=?", new Object[] { xid },
                 new DataPointRowMapper(), null);
-        setRelationalData(dp);
+        if (dp != null) {
+            loadRelationalData(dp);
+        }
         return dp;
     }
     
@@ -291,18 +308,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
     }
 
-    private void setRelationalData(List<DataPointVO> dps) {
-        for (DataPointVO dp : dps)
-            setRelationalData(dp);
-    }
-
-    private void setRelationalData(DataPointVO dp) {
-        if (dp == null)
-            return;
-        setEventDetectors(dp);
-        setPointComments(dp);
-    }
-
     public void saveDataPoint(final DataPointVO dp) {
     	if(dp.getId() == Common.NEW_ID) checkAddPoint();
     	
@@ -369,7 +374,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BINARY }));
 
         // Save the relational information.
-        saveEventDetectors(dp);
+        saveRelationalData(dp, true);
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_POINT, dp);
 
@@ -394,7 +399,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_POINT, old, dp);
 
         // Save the relational information.
-        saveEventDetectors(dp);
+        saveRelationalData(dp, false);
 
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterUpdate(dp);
@@ -513,7 +518,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     	}
         dp.setEventDetectors(peds);
     }
-
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
@@ -1147,16 +1151,41 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
     }
 
-    @Override
-    public DataPointVO getFull(int id) {
-        //Get the values from local table
-        DataPointVO vo = this.get(id);
-
-        this.loadDataSource(vo);
+    /**
+     * Loads the event detectors, point comments and tags
+     * @param vo
+     */
+    public void loadPartialRelationalData(DataPointVO vo) {
         this.setEventDetectors(vo);
         this.setPointComments(vo);
+        vo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(vo.getId()));
+    }
+
+    private void loadPartialRelationalData(List<DataPointVO> dps) {
+        for (DataPointVO dp : dps) {
+            loadPartialRelationalData(dp);
+        }
+    }
+
+    /**
+     * Loads the event detectors, point comments, tags data source and template name
+     * Used by getFull()
+     * @param vo
+     */
+    @Override
+    public void loadRelationalData(DataPointVO vo) {
+        this.loadPartialRelationalData(vo);
+        this.loadDataSource(vo);
         this.setTemplateName(vo);
-        return vo;
+    }
+    
+    @Override
+    public void saveRelationalData(DataPointVO vo, boolean insert) {
+        saveEventDetectors(vo);
+        if (!insert) {
+            DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
+        }
+        DataPointTagsDao.instance.addTagsForDataPointId(vo.getId(), vo.getTags());
     }
 
     @Override
@@ -1213,18 +1242,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
         vo.setDataSourceXid(dsVo.getXid());
 
-    }
-
-    @Override
-    public List<DataPointVO> getAllFull() {
-        List<DataPointVO> list = this.getAll();
-        for (DataPointVO vo : list) {
-            this.loadDataSource(vo);
-            this.setEventDetectors(vo);
-            this.setPointComments(vo);
-            this.setTemplateName(vo);
-        }
-        return list;
     }
 
     public void setTemplateName(DataPointVO vo){
@@ -1304,8 +1321,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 	 */
 	public List<DataPointVO> getByTemplate(int id, boolean setRelational) {
 		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
-		if(setRelational)
-			setRelationalData(dps); //We will need this to restart the points after updating them
+		if (dps != null && setRelational)
+			loadPartialRelationalData(dps); //We will need this to restart the points after updating them
 		return dps;
 	}
 	
@@ -1489,6 +1506,120 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             	if(stmt != null) { stmt.close(); }
             }
 		}
-		
 	}
+
+    public List<DataPointVO> getDataPointsForTags(Map<String, String> restrictions) {
+        List<DataPointVO> result = new ArrayList<>();
+        getDataPointsForTags(restrictions, (item, index) -> result.add(item));
+        return result;
+    }
+    
+    public void getDataPointsForTags(Map<String, String> restrictions, MappedRowCallback<DataPointVO> callback) {
+        Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
+
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+
+        Condition condition = DSL.and();
+        if (!restrictions.isEmpty()) {
+            List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
+                return DSL.field(DATA_POINT_TAGS_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
+            }).collect(Collectors.toList());
+            
+            condition = DSL.and(conditions);
+
+            Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
+
+            select = select.leftJoin(pivotTable)
+                .on(DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId")).eq(DSL.field(tableAlias.append("id"))));
+        }
+        
+        this.customizedQuery(select, condition, Collections.emptyList(), null, null, callback);
+    }
+
+    private <R extends Record> SelectJoinStep<R> joinTagsTable(SelectJoinStep<R> select, Map<String, Name> tagKeyToColumn) {
+        if (!tagKeyToColumn.isEmpty()) {
+            Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
+
+            select = select.leftJoin(pivotTable)
+                .on(DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId")).eq(DSL.field(tableAlias.append("id"))));
+        }
+        return select;
+    }
+    
+    @Override
+    protected RQLToCondition createRqlToCondition() {
+        // we create one every time as they are stateful for this DAO
+        return null;
+    }
+    
+    public static class ConditionSortLimitTagKeys extends ConditionSortLimit {
+        private final Map<String, Name> tagKeyToColumn;
+        
+        public ConditionSortLimitTagKeys(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, Map<String, Name> tagKeyToColumn) {
+            super(condition, sort, limit, offset);
+            this.tagKeyToColumn = tagKeyToColumn;
+        }
+
+        public Map<String, Name> getTagKeyToColumn() {
+            return tagKeyToColumn;
+        }
+    }
+    
+    /**
+     * Stores a map of tag keys used in the RQL query and maps them to the aliased column names
+     */
+    private static class RQLToConditionWithTagKeys extends RQLToCondition {
+        int tagIndex = 0;
+        Map<String, Name> tagKeyToColumn = new HashMap<>();
+        
+        public RQLToConditionWithTagKeys(Map<String, Field<Object>> fieldMapping, Name tableName) {
+            super(fieldMapping, tableName);
+        }
+        
+        @Override
+        public ConditionSortLimitTagKeys visit(ASTNode node) {
+            Condition condition = visitNode(node);
+            return new ConditionSortLimitTagKeys(condition, sortFields, limit, offset, tagKeyToColumn);
+        }
+        
+        @Override
+        protected Field<Object> getField(String property) {
+            if (property.startsWith("tags.")) {
+                String tagKey = property.substring("tags.".length());
+                Name columnName = tagKeyToColumn.computeIfAbsent(tagKey, k -> DSL.name("key" + tagIndex++));
+                return DSL.field(DATA_POINT_TAGS_ALIAS.append(columnName));
+            }
+            
+            return super.getField(property);
+        }
+    };
+    
+    @Override
+    public int customizedCount(ConditionSortLimit conditions) {
+        SelectJoinStep<Record1<Integer>> select = this.create.selectCount().from(this.joinedTable);
+
+        if (conditions instanceof ConditionSortLimitTagKeys) {
+            select = joinTagsTable(select, ((ConditionSortLimitTagKeys) conditions).tagKeyToColumn);
+        }
+        
+        return this.customizedCount(select, conditions.getCondition());
+    }
+
+    @Override
+    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<DataPointVO> callback) {
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        
+        if (conditions instanceof ConditionSortLimitTagKeys) {
+            select = joinTagsTable(select, ((ConditionSortLimitTagKeys) conditions).tagKeyToColumn);
+        }
+        
+        this.customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
+    }
+
+    @Override
+    public ConditionSortLimitTagKeys rqlToCondition(ASTNode rql) {
+        // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
+        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField, tableAlias);
+        return rqlToSelect.visit(rql);
+    }
 }

@@ -671,5 +671,10 @@
 		  <artifactId>java-semver</artifactId>
 		  <version>0.9.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jooq</groupId>
+			<artifactId>jooq</artifactId>
+			<version>3.10.1</version>
+		</dependency>
 	</dependencies>
 </project>

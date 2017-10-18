@@ -142,6 +142,16 @@ CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
 
+-- Data point tags
+CREATE TABLE dataPointTags (
+  dataPointId INT NOT NULL,
+  tagKey VARCHAR(255) NOT NULL,
+  tagValue VARCHAR(255) NOT NULL
+);
+ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);
+ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
+CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
+
 -- Data point hierarchy
 CREATE TABLE dataPointHierarchy (
   id int NOT NULL,

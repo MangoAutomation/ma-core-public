@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -231,6 +233,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String dataSourceXid;
     private String hierarchyPath;
 
+    @JsonProperty
+    private Map<String, String> tags = new HashMap<>();
+    
     //
     //
     // Runtime data
@@ -1706,4 +1711,20 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 	protected AbstractDao<DataPointVO> getDao() {
 		return DataPointDao.instance;
 	}
+
+    public Map<String, String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
+    
+    public String getTag(String tagKey) {
+        return this.tags.get(tagKey);
+    }
+    
+    public void setTag(String tagKey, String tagValue) {
+        this.tags.put(tagKey, tagValue);
+    }
 }
