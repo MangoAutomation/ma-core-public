@@ -716,6 +716,13 @@ public class RuntimeManager implements ILifecycle{
             updateDataPointValuesRT(dataPointId);
         return count;
     }
+    
+    public long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime) {
+        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(dataPointId, startTime, endTime);
+        if(count > 0)
+            updateDataPointValuesRT(dataPointId);
+        return count;
+    }
 
     /**
      * Purge values before a given time

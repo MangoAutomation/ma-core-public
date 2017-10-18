@@ -168,6 +168,11 @@ public class DataPointEditDwr extends BaseDwr {
             count = Common.runtimeManager.purgeDataPointValues(point.getId(), purgeType, purgePeriod);
         return count;
     }
+    
+    @DwrPermission(user = true)
+    public long purgeBetween(long startTime, long endTime) {
+        return Common.runtimeManager.purgeDataPointValuesBetween(getDataPoint().getId(), startTime, endTime);
+    }
 
     //
     // Clear point cache
