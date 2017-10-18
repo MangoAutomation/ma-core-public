@@ -7,7 +7,12 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.TimeZone;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.db.query.SQLConstants;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
@@ -15,6 +20,15 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
 public class BaseDao extends DaoUtils implements SQLConstants{
+    
+    //ObjectMapper to Serialize JSON to/from the database
+    private final static ObjectMapper mapper;
+    static {
+        mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
+    }
+    
     /**
      * Public constructor for code that needs to get stuff from the database.
      */
@@ -22,6 +36,22 @@ public class BaseDao extends DaoUtils implements SQLConstants{
         super(Common.databaseProxy.getDataSource());
     }
 
+    /**
+     * Get a writer for serializing JSON
+     * @return
+     */
+    public ObjectWriter getObjectWriter(Class<?> type) {
+        return mapper.writerFor(type);
+    }
+    
+    /**
+     * Get a reader for use de-serializing JSON
+     * @return
+     */
+    public ObjectReader getObjectReader(Class<?> type) {
+        return mapper.readerFor(type);
+    }
+    
     //
     // Convenience methods for storage of booleans.
     //
