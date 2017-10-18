@@ -101,13 +101,24 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		return "event.audit.pointEventDetector";
 	}
 	
+    /**
+     * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
+     * @param alias
+     */
+	@Deprecated
 	public String getAlias() {
 		return name;
 	}
 
+	/**
+	 * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
+	 * @param alias
+	 */
+	@Deprecated
 	public void setAlias(String alias) {
 		this.name = alias;
 	}
+	
 	public int getSourceId(){
 		return this.sourceId;
 	}
@@ -147,11 +158,6 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
             if (StringValidation.isLengthGreaterThan(name, 255))
                 response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         }
-	}
-
-    // TODO remove in Mango 3.3.x
-	protected boolean isXidUnique(String xid, String sourceType, int sourceId) {
-		return EventDetectorDao.instance.isXidUnique(xid, id, sourceType, sourceId);
 	}
 
 	@Override
