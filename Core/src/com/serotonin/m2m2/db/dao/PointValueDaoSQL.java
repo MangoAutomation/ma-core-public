@@ -693,6 +693,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         return deletePointValues("delete from pointValues where dataPointId=? and ts<?", new Object[] { dataPointId,
                 time }, 0, 0);
     }
+    
+    @Override
+    public long deletePointValuesBetween(int dataPointId, long startTime, long endTime) {
+        return deletePointValues("delete from pointValues where dataPointId=? and ts>=? and ts<?", new Object[] { dataPointId,
+                startTime, endTime }, 0, 0);
+    }
 
     /*
      * (non-Javadoc)

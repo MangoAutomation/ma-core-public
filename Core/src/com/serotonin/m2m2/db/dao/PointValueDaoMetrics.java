@@ -211,6 +211,18 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch.stop("deletePointValuesBeforeWithoutCount(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 	}
+	
+	/*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesBetween(int, startTime, endTime)
+     */
+    @Override
+    public long deletePointValuesBetween(int pointId, long startTime, long endTime){
+        LogStopWatch LogStopWatch = new LogStopWatch();
+        long value = dao.deletePointValuesBetween(pointId,startTime,endTime);
+        LogStopWatch.stop("deletePointValuesBetween(pointId,startTime,endTime) (" + pointId + ", " + startTime + ", " + endTime + ")");
+        return value;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValues(int)

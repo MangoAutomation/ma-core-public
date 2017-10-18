@@ -140,6 +140,14 @@ public interface PointValueDao {
     public void wideQuery(int pointId, long from, long to, final WideQueryCallback<PointValueTime> callback);
     
     /**
+     * Delete startTime <= values < endTime
+     * @param pointId
+     * @param time
+     * @return
+     */
+    public long deletePointValuesBetween(int pointId, long startTime, long endTime);
+    
+    /**
      * Delete values < time
      * @param pointId
      * @param time
