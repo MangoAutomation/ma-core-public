@@ -277,24 +277,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         sql = applyRange(sql, args, offset, limit);
         return query(sql, args.toArray(), getRowMapper());
     }
-    
-    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
-    @Override
-    public void save(T vo) {
-        save(vo, null);
-    }
-    
-    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
-    @Override
-    public void save(T vo, String initiatorId) {
-        super.save(vo, initiatorId);
-    }
-    
-    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
-    @Override
-    protected void insert(T vo) {
-        insert(vo, null);
-    }
 
     @Override
     protected void insert(T vo, String initiatorId) {
@@ -303,18 +285,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         }
         super.insert(vo, initiatorId);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
-    }
-    
-    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
-    @Override
-    protected void update(T vo) {
-        update(vo, null, null);
-    }
-
-    // TODO remove these overridden methods in 3.3, needed in 3.2 for API compatibility
-    @Override
-    protected void update(T vo, String initiatorId) {
-        update(vo, initiatorId, null);
     }
 
     @Override
