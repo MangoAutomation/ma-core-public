@@ -63,7 +63,8 @@ public class StatusServlet extends HttpServlet{
 		
 		response.setContentType("application/json;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
-
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        
 		//Get the Info and pack it up
         Map<String,Object> data = new HashMap<String,Object>();
         StringWriter sw = new StringWriter();
@@ -116,6 +117,17 @@ public class StatusServlet extends HttpServlet{
 	public void handleRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		this.doGet(request, response);
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.servlet.http.HttpServlet#doOptions(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doOptions(HttpServletRequest req, HttpServletResponse response)
+	        throws ServletException, IOException {
+	    response.setHeader("Access-Control-Allow-Origin", "*");
+	    response.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Requested-With");
+	    super.doOptions(req, response);
 	}
 	
 	/**
