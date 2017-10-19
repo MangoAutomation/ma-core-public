@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.timer.RejectedTaskReason;
@@ -56,7 +56,7 @@ public class SetPointWorkItem implements WorkItem {
         sourceIds.add(sourceId);
         threadLocal.set(sourceIds);
         try {
-        	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING)
+        	if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING)
         		Common.runtimeManager.setDataPointValue(targetPointId, pvt, source);
         }
         finally {

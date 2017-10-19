@@ -13,7 +13,7 @@ import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -114,7 +114,7 @@ public class DataPointImporter extends Importer {
 
                     boolean isNew = vo.isNew();
                     try {
-                    	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+                    	if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
                     		Common.runtimeManager.saveDataPoint(vo);
                     		if(hierarchyList != null && json.containsKey("path"))
                     		    hierarchyList.add(new DataPointSummaryPathPair(new DataPointSummary(vo), json.getString("path")));

@@ -54,7 +54,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
-import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
@@ -97,7 +97,7 @@ public class Common {
     public static DatabaseProxy databaseProxy;
     public static BackgroundProcessing backgroundProcessing;
     public static EventManager eventManager;
-    public static RuntimeManager runtimeManager;
+    public static RuntimeManagerImpl runtimeManager;
     public static SerialPortManager serialPortManager;
     
     //Used to determine the given size of all Task Queues

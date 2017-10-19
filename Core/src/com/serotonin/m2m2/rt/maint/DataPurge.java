@@ -24,7 +24,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.FiledataDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PurgeDefinition;
-import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -104,7 +104,7 @@ public class DataPurge {
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
         	log.info("Purging all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
-        	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+        	if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
         		if(countPointValues)
         			deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
         		else{
@@ -140,7 +140,7 @@ public class DataPurge {
             DateTime cutoff = new DateTime(runtime);
             cutoff = DateUtils.truncateDateTime(cutoff, Common.TimePeriods.DAYS);
             cutoff = DateUtils.minus(cutoff, purgeType, purgePeriod);
-            if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+            if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
             	if(countPointValues)
             		deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(), cutoff.getMillis());
             	else{
