@@ -40,12 +40,11 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.timer.RejectedTaskReason;
-import com.serotonin.util.ILifecycle;
 
 /**
  * @author Matthew Lohbihler
  */
-public class EventManagerImpl implements ILifecycle, EventManager {
+public class EventManagerImpl implements EventManager {
 	private final Log log = LogFactory.getLog(EventManager.class);
 	private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
 																	// minutes.

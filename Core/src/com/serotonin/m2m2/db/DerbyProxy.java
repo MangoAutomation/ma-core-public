@@ -44,7 +44,7 @@ import com.serotonin.util.StringUtils;
  * @author Terry Packer
  */
 @Deprecated
-public class DerbyProxy extends DatabaseProxy {
+public class DerbyProxy extends AbstractDatabaseProxy {
     private final Log log = LogFactory.getLog(DerbyProxy.class);
 
     private static final double LARGEST_POSITIVE = 1.79769E+308;

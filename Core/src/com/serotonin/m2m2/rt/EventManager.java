@@ -12,13 +12,14 @@ import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.util.ILifecycle;
 
 
 /**
  *
  * @author Terry Packer
  */
-public interface EventManager {
+public interface EventManager extends ILifecycle{
 
     /**
      * Check the state of the EventManager

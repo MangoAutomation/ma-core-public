@@ -16,13 +16,14 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.util.ILifecycle;
 
 
 /**
  *
  * @author Terry Packer
  */
-public interface BackgroundProcessing {
+public interface BackgroundProcessing extends ILifecycle{
 
     //Lower Limits on Pool Sizes for Mango To Run
     int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
@@ -163,12 +164,14 @@ public interface BackgroundProcessing {
 
     List<WorkItemModel> getLowPriorityServiceQueueItems();
 
+    //Lifecycle Interface 
     void initialize(boolean safe);
 
     void terminate();
 
     void joinTermination();
-
+    //
+    
     TaskRejectionHandler getHighPriorityRejectionHandler();
 
     TaskRejectionHandler getMediumPriorityRejectionHandler();

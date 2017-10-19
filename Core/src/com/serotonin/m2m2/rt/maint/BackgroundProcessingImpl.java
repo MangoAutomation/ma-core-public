@@ -39,7 +39,6 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.Task;
 import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
-import com.serotonin.util.ILifecycle;
 
 /**
  * A cheesy name for a class, i know, but it pretty much says it like it is. This class keeps an inbox of items to
@@ -47,7 +46,7 @@ import com.serotonin.util.ILifecycle;
  * 
  * @author Matthew Lohbihler
  */
-public class BackgroundProcessingImpl implements ILifecycle, BackgroundProcessing {
+public class BackgroundProcessingImpl implements BackgroundProcessing {
     final Log log = LogFactory.getLog(BackgroundProcessingImpl.class);
     
     //Private access to our timer
