@@ -161,7 +161,12 @@
            $set("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>", settings.<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_HEAD %>"/>);                
            $set("<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>", settings.<c:out value="<%= SystemSettingsDao.SITE_ANALYTICS_BODY %>"/>);                
            
+           //Upgrade version state
            $set("<c:out value="<%= SystemSettingsDao.UPGRADE_VERSION_STATE %>"/>", settings.<c:out value="<%= SystemSettingsDao.UPGRADE_VERSION_STATE %>"/>);
+           
+           //Point Hierarchy
+           $set("<c:out value="<%= SystemSettingsDao.EXPORT_HIERARCHY_PATH %>"/>", settings.<c:out value="<%= SystemSettingsDao.EXPORT_HIERARCHY_PATH %>"/>);
+           $set("<c:out value="<%= SystemSettingsDao.HIERARCHY_PATH_SEPARATOR %>"/>", settings.<c:out value="<%= SystemSettingsDao.HIERARCHY_PATH_SEPARATOR %>"/>);
            
            displayVirtualSerialPorts(settings.virtualSerialPorts)
             
@@ -284,6 +289,23 @@
                 });
         setUserMessage("systemPermissionsMessage");
         setDisabled("systemPermissionsBtn", true);
+    }
+    
+    function saveHierarchySettings() {
+    	setUserMessage("hierarchyMessage");
+    	setDisabled("saveHierarchySettingsBtn", true);
+    	hideContextualMessages("hierarchySettingsTab");
+    	SystemSettingsDwr.saveHierarchySettings(
+    		$get("<c:out value="<%= SystemSettingsDao.EXPORT_HIERARCHY_PATH %>"/>"),
+    		$get("<c:out value="<%= SystemSettingsDao.HIERARCHY_PATH_SEPARATOR %>"/>"),
+    	function(response) {
+    			setDisabled("saveHierarchySettingsBtn", false);
+            	if(response.hasMessages){
+            		showDwrMessages(response.messages);
+            	}else{
+            		setUserMessage("hierarchyMessage", "<fmt:message key="systemSettings.hierarchySettingsSaved"/>");
+            	}
+    	});
     }
     
     function saveEmailSettings() {
@@ -1142,6 +1164,26 @@
       </table>
     </tag:labelledSection>
   </c:if>
+  
+  <tag:labelledSection labelKey="systemSettings.pointHierarchySettings" closed="true">
+	<table id="hierarchySettingsTab">
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.exportDataPointPath"/></td>
+	    <td class="formField"><input id="<c:out value="<%= SystemSettingsDao.EXPORT_HIERARCHY_PATH %>"/>" type="checkbox"/></td>
+	  </tr>
+	  <tr>
+	    <td class="formLabelRequired"><fmt:message key="systemSettings.exportPathSeparator"/></td>
+	    <td class="formField"><input id="<c:out value="<%= SystemSettingsDao.HIERARCHY_PATH_SEPARATOR %>"/>" type="text"/></td>
+	  </tr>
+	  <tr>
+	    <td colspan="2" align="center">
+          <input id="saveHierarchySettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveHierarchySettings()"/>
+          <tag:help id="hierarchySettings"/>
+        </td>
+	  </tr>
+	  <tr><td colspan="2" id="hierarchyMessage" class="formError"></td></tr>
+	</table>  
+  </tag:labelledSection>
   
   <tag:labelledSection labelKey="systemSettings.emailSettings" closed="true">
     <table id="emailSettingsTab">

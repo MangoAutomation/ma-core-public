@@ -10,6 +10,14 @@
 rm -f "$MA_HOME"/lib/*.jar
 rm -Rf "$MA_HOME"/work
 
+# Delete the release properties files
+if [ ! -z "$MA_HOME"/release.properties ]; then
+	rm -f "$MA_HOME"/release.properties
+fi
+if [ ! -z "$MA_HOME"/release.signed ]; then
+	rm -f "$MA_HOME"/release.signed
+fi
+
 # Unzip core. The exact name is unknown, but there should only be one, so iterate
 for f in "$MA_HOME"/m2m2-core-*.zip
 do

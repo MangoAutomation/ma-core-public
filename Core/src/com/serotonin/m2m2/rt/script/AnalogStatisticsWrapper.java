@@ -75,6 +75,13 @@ public class AnalogStatisticsWrapper {
     public double getSum() {
         return statistics.getSum();
     }
+    
+    public double getStartValue() {
+        if(statistics.getStartValue() == null)
+            return 0;
+        else
+            return (double)statistics.getStartValue();
+    }
 
     public double getFirstValue() {
     	if(statistics.getFirstValue() == null)

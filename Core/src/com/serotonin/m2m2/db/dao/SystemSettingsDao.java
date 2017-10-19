@@ -167,6 +167,10 @@ public class SystemSettingsDao extends BaseDao {
     public static final String LAST_UPGRADE = "lastUpgrade";
     public static final String CORE_VERSION_LAST_START = "coreVersionLastStart";
     
+    // The path delimiter for flat paths
+    public static final String EXPORT_HIERARCHY_PATH = "exportHierarchyPath";
+    public static final String HIERARCHY_PATH_SEPARATOR = "hierarchyPathSeparator";
+    
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private SystemSettingsDao(){
@@ -439,7 +443,7 @@ public class SystemSettingsDao extends BaseDao {
         // Add built-in system event type defaults
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.NONE);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.IGNORE);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, AlarmLevels.URGENT);
         DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, AlarmLevels.INFORMATION);
@@ -490,6 +494,9 @@ public class SystemSettingsDao extends BaseDao {
         		}
         	DEFAULT_VALUES.put(def.getKey(), defaultValue);
         }
+        
+        DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
+        DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
     }
 
 	/**

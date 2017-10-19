@@ -33,6 +33,10 @@ public abstract class StartsAndRuntimeListWrapper {
     public long getPeriodEndTime() {
         return this.statistics.getPeriodEndTime();
     }
+    
+    protected DataValue getStartDataValue() {
+        return this.statistics.getStartValue();
+    }
 
     protected DataValue getFirstDataValue() {
         return this.statistics.getFirstValue();

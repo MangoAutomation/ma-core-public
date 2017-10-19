@@ -46,7 +46,7 @@ import com.serotonin.util.ILifecycle;
  * @author Matthew Lohbihler
  */
 public class EventManagerImpl implements ILifecycle, EventManager {
-	private final Log log = LogFactory.getLog(EventManagerImpl.class);
+	private final Log log = LogFactory.getLog(EventManager.class);
 	private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
 																	// minutes.
 
@@ -72,10 +72,11 @@ public class EventManagerImpl implements ILifecycle, EventManager {
      */
     private int state = PRE_INITIALIZE;
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getState()
+    /**
+     * Check the state of the EventManager
+     *  useful if you are a task that may run before/after the RUNNING state
+     * @return
      */
-    @Override
     public int getState(){
     	return state;
     }
@@ -87,11 +88,16 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 	//
 	// Basic event management.
 	//
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#raiseEvent(com.serotonin.m2m2.rt.event.type.EventType, long, boolean, int, com.serotonin.m2m2.i18n.TranslatableMessage, java.util.Map)
-     */
-	@Override
-    public void raiseEvent(EventType type, long time, boolean rtnApplicable,
+	/**
+	 * Raise Event 
+	 * @param type
+	 * @param time
+	 * @param rtnApplicable - does this event return to normal?
+	 * @param alarmLevel
+	 * @param message
+	 * @param context
+	 */
+	public void raiseEvent(EventType type, long time, boolean rtnApplicable,
 			int alarmLevel, TranslatableMessage message,
 			Map<String, Object> context) {
 		if(state != RUNNING)
@@ -267,27 +273,15 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		return false;
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#returnToNormal(com.serotonin.m2m2.rt.event.type.EventType, long)
-     */
-	@Override
-    public void returnToNormal(EventType type, long time) {
+	public void returnToNormal(EventType type, long time) {
 		returnToNormal(type, time, AlarmLevels.URGENT, EventInstance.RtnCauses.RETURN_TO_NORMAL);
 	}
 	
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#returnToNormal(com.serotonin.m2m2.rt.event.type.EventType, long, int)
-     */
-	@Override
-    public void returnToNormal(EventType type, long time, int alarmLevel) {
+	public void returnToNormal(EventType type, long time, int alarmLevel) {
 		returnToNormal(type, time, alarmLevel, EventInstance.RtnCauses.RETURN_TO_NORMAL);
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#returnToNormal(com.serotonin.m2m2.rt.event.type.EventType, long, int, int)
-     */
-	@Override
-    public void returnToNormal(EventType type, long time, int alarmLevel, int cause) {
+	public void returnToNormal(EventType type, long time, int alarmLevel, int cause) {
 		if(alarmLevel == AlarmLevels.IGNORE)
 			return;
 		EventInstance evt = remove(type);
@@ -376,18 +370,26 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		}
 	}
 	
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#acknowledgeEvent(com.serotonin.m2m2.rt.event.EventInstance, long, int, com.serotonin.m2m2.i18n.TranslatableMessage)
-     */
-	@Override
-    public void acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource){
-
-		eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
+	/**
+	 * Added to allow Acknowledge Events to be fired
+	 * @param evt
+	 * @param time
+	 * @param userId
+	 * @param alternateAckSource
+	 */
+	private boolean acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource) {
+		boolean acked = eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
+		
+		 // event was already acknowledged or doesn't exist
+		if (!acked) {
+		    return false;
+		}
+		
 		//Fill in the info if someone on the other end wants it
 		evt.setAcknowledgedByUserId(userId);
 		evt.setAcknowledgedTimestamp(time);
 		evt.setAlternateAckSource(alternateAckSource);
-		
+
 		for (User user : userDao.getActiveUsers()) {
 			// Do not create an event for this user if the event type says the
 			// user should be skipped.
@@ -405,21 +407,59 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 				this.userEventCache.removeEvent(user.getId(), evt);
 			}
 		}
+		
+		return true;
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getLastAlarmTimestamp()
+    /**
+     * Acknowledges an event given an event ID.
+     * 
+     * The returned EventInstance is a copy from the database, never the cached instance. If the returned instance
+     * has a different time, userId or alternateAckSource to what was provided then the event must have been already acknowledged.
+     * 
+     * @param eventId
+     * @param time
+     * @param userId
+     * @param alternateAckSource
+     * @return the EventInstance for the ID if found, null otherwise
      */
-	@Override
-    public long getLastAlarmTimestamp() {
+    public EventInstance acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
+        EventInstance dbEvent;
+        EventInstance cachedEvent = getById(eventId);
+        
+        if (cachedEvent != null) {
+            acknowledgeEvent(cachedEvent, time, userId, alternateAckSource);
+            
+            // we don't want to return the cached event, user might change it
+            // return a copy from the database
+            dbEvent = eventDao.get(eventId);
+        } else {
+            dbEvent = eventDao.get(eventId);
+            
+            // only ack the event if it exists and is not already acknowledged
+            if (dbEvent != null && !dbEvent.isAcknowledged()) {
+                boolean acked = acknowledgeEvent(dbEvent, time, userId, alternateAckSource);
+                
+                // unlikely case that someone else ackd the event at the same time
+                if (!acked) {
+                    // fetch the updated event from the db again
+                    dbEvent = eventDao.get(eventId);
+                }
+            }
+        }
+        
+        return dbEvent;
+    }
+
+	public long getLastAlarmTimestamp() {
 		return lastAlarmTimestamp;
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeAllEvents()
-     */
-	@Override
-    public int purgeAllEvents(){
+	/**
+	 * Purge All Events We have
+	 * @return
+	 */
+	public int purgeAllEvents(){
 
 		activeEventsLock.writeLock().lock();
 		try{
@@ -440,11 +480,12 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		return eventDao.purgeAllEvents();
 	}
 	
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeEventsBefore(long)
-     */
-	@Override
-    public int purgeEventsBefore(final long time){
+	/**
+	 * Purge events prior to time
+	 * @param time
+	 * @return
+	 */
+	public int purgeEventsBefore(final long time){
 
 		activeEventsLock.writeLock().lock();
 		try{
@@ -475,11 +516,13 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		return eventDao.purgeEventsBefore(time);
 	}
 	
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeEventsBefore(long, java.lang.String)
-     */
-	@Override
-    public int purgeEventsBefore(final long time, final String typeName){
+	/**
+	 * Purge Events before time with a given type
+	 * @param time
+	 * @param typeName
+	 * @return
+	 */
+	public int purgeEventsBefore(final long time, final String typeName){
 
 		activeEventsLock.writeLock().lock();
 		try{
@@ -510,11 +553,13 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		return eventDao.purgeEventsBefore(time, typeName);
 	}
 	
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeEventsBefore(long, int)
-     */
-	@Override
-    public int purgeEventsBefore(final long time, final int alarmLevel){
+	/**
+	 * Purge Events before time with a given type
+	 * @param time
+	 * @param typeName
+	 * @return
+	 */
+	public int purgeEventsBefore(final long time, final int alarmLevel){
 
 		activeEventsLock.writeLock().lock();
 		try{
@@ -549,11 +594,7 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 	//
 	// Canceling events.
 	//
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#cancelEventsForDataPoint(int)
-     */
-	@Override
-    public void cancelEventsForDataPoint(int dataPointId) {
+	public void cancelEventsForDataPoint(int dataPointId) {
 
 		List<EventInstance> dataPointEvents = new ArrayList<EventInstance>();
 		activeEventsLock.writeLock().lock();
@@ -585,11 +626,11 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		}
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#cancelEventsForDataSource(int)
-     */
-	@Override
-    public void cancelEventsForDataSource(int dataSourceId) {
+	/**
+	 * Cancel active events for a Data Source
+	 * @param dataSourceId
+	 */
+	public void cancelEventsForDataSource(int dataSourceId) {
 
 		List<EventInstance> dataSourceEvents = new ArrayList<EventInstance>();
 		activeEventsLock.writeLock().lock();
@@ -621,11 +662,11 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		}
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#cancelEventsForPublisher(int)
-     */
-	@Override
-    public void cancelEventsForPublisher(int publisherId) {
+	/**
+	 * Cancel all events for a publisher
+	 * @param publisherId
+	 */
+	public void cancelEventsForPublisher(int publisherId) {
 
 		List<EventInstance> publisherEvents = new ArrayList<EventInstance>();
 		activeEventsLock.writeLock().lock();
@@ -708,9 +749,6 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 	//
 	// Lifecycle interface
 	//
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#initialize(boolean)
-     */
 	@Override
 	public void initialize(boolean safe) {
 		if((state != PRE_INITIALIZE) || safe)
@@ -733,9 +771,6 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		state = RUNNING;
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#terminate()
-     */
 	@Override
 	public void terminate() {
         if (state != RUNNING)
@@ -745,9 +780,6 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		this.userEventCache.terminate();
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#joinTermination()
-     */
 	@Override
 	public void joinTermination() {
 		if(state != TERMINATE)
@@ -760,44 +792,24 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 	//
 	// Listeners
 	//
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#addListener(com.serotonin.m2m2.module.EventManagerListenerDefinition)
-     */
-	@Override
-    public void addListener(EventManagerListenerDefinition l) {
+	public void addListener(EventManagerListenerDefinition l) {
 		listeners.add(l);
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#removeListener(com.serotonin.m2m2.module.EventManagerListenerDefinition)
-     */
-	@Override
-    public void removeListener(EventManagerListenerDefinition l) {
+	public void removeListener(EventManagerListenerDefinition l) {
 		listeners.remove(l);
 	}
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#addUserEventListener(com.serotonin.m2m2.rt.event.UserEventListener)
-     */
-	@Override
-    public void addUserEventListener(UserEventListener l){
+	public void addUserEventListener(UserEventListener l){
 		userEventListeners.add(l);
 	}
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#removeUserEventListener(com.serotonin.m2m2.rt.event.UserEventListener)
-     */
-	@Override
-    public void removeUserEventListener(UserEventListener l){
+	public void removeUserEventListener(UserEventListener l){
 		userEventListeners.remove(l);
 	}
 
 	//
 	// User Event Cache Access
 	//
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getAllActiveUserEvents(int)
-     */
-	@Override
-    public List<EventInstance> getAllActiveUserEvents(int userId){
+	public List<EventInstance> getAllActiveUserEvents(int userId){
 		return this.userEventCache.getAllEvents(userId);
 	}
 
@@ -806,6 +818,28 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 	//
 	// Convenience
 	//
+	
+	/**
+     * Gets an event from the activeEvents list/cache by its id
+     */
+    private EventInstance getById(int id) {
+        EventInstance e;
+        
+        activeEventsLock.readLock().lock();
+        try{
+            ListIterator<EventInstance> it = activeEvents.listIterator();
+            while(it.hasNext()){
+                e = it.next();
+                if (e.getId() == id)
+                    return e;
+            }
+        }finally{
+            activeEventsLock.readLock().unlock();
+        }
+        
+        return null;
+    }
+	
 	/**
 	 * Returns the first event instance with the given type, or null is there is
 	 * none.
@@ -841,11 +875,12 @@ public class EventManagerImpl implements ILifecycle, EventManager {
 		return result;
 	}
 
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getAllActive()
-     */
-	@Override
-    public List<EventInstance> getAllActive() {
+	/**
+	 * To access all active events quickly
+	 * @param type
+	 * @return
+	 */
+	public List<EventInstance> getAllActive() {
 		List<EventInstance> result = new ArrayList<EventInstance>();
 		activeEventsLock.readLock().lock();
 		try{

@@ -272,6 +272,10 @@ public class SystemSettingsDwr extends BaseDwr {
         //Upgrade states
         settings.put(SystemSettingsDao.UPGRADE_VERSION_STATE, SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
         
+        //Point Hierarchy
+        settings.put(SystemSettingsDao.EXPORT_HIERARCHY_PATH, SystemSettingsDao.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH));
+        settings.put(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR));
+        
         return settings;
     }
 
@@ -316,6 +320,19 @@ public class SystemSettingsDwr extends BaseDwr {
         data.put("eventCount", EventDao.instance.getEventCount());
 
         return data;
+    }
+    
+    @DwrPermission(admin = true)
+    public ProcessResult saveHierarchySettings(boolean exportHierarchyPath, String hierarchyPathSeparator) {
+        ProcessResult response = new ProcessResult();
+        if(StringUtils.isEmpty(hierarchyPathSeparator))
+            response.addContextualMessage(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, "validate.cannotContainEmptyString");
+        else {
+            SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH, exportHierarchyPath);
+            SystemSettingsDao.instance.setValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, hierarchyPathSeparator);
+        }
+        
+        return response;
     }
 
     @DwrPermission(admin = true)

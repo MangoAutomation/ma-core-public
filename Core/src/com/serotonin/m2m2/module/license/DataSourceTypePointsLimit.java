@@ -30,7 +30,7 @@ public class DataSourceTypePointsLimit implements LicenseEnforcement {
                     try {
                         LicenseFeature feature = license.getFeature(limit.getFeatureName());
                         if (feature != null)
-                            pointLimit = Integer.parseInt(feature.getName());
+                            pointLimit = Integer.parseInt(feature.getValue());
                     }
                     catch (NumberFormatException e) {
                         // If the feature is non-numeric, we assume that it is unlimited.

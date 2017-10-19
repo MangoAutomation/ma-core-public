@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.MultistateStateDetectorRT;
@@ -47,16 +48,15 @@ public class MultistateStateDetectorVO extends TimeoutDetectorVO<MultistateState
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-        TranslatableMessage message;
+	    if(dataPoint == null)
+            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
         TranslatableMessage durationDesc = getDurationDescription();
 
         if (durationDesc == null)
-            message = new TranslatableMessage("event.detectorVo.state", dataPoint.getTextRenderer().getText(
+            return new TranslatableMessage("event.detectorVo.state", dataPoint.getTextRenderer().getText(
                     state, TextRenderer.HINT_SPECIFIC));
-        else
-            message = new TranslatableMessage("event.detectorVo.statePeriod", dataPoint.getTextRenderer().getText(
+        return new TranslatableMessage("event.detectorVo.statePeriod", dataPoint.getTextRenderer().getText(
                     state, TextRenderer.HINT_SPECIFIC), durationDesc);
-        return message;
 	}
 
 }

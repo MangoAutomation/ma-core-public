@@ -30,14 +30,7 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	public String getModelType(){
 		return this.data.getDefinition().getEventDetectorTypeName();
 	}
-	
-	public String getAlias() {
-		return this.data.getAlias();
-	}
 
-	public void setAlias(String alias) {
-		this.data.setAlias(alias);
-	}
 	public int getSourceId(){
 		return this.data.getSourceId();
 	}

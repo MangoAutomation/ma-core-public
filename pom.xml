@@ -3,7 +3,7 @@
  <groupId>com.infiniteautomation.mango</groupId>
  <artifactId>mango-parent</artifactId>
  <!-- When changing version ensure you change Common.java as well. -->
- <version>3.2.2-SNAPSHOT</version>
+ <version>3.3.0-SNAPSHOT</version>
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
@@ -22,7 +22,7 @@
   <buildNumber>${maven.build.timestamp}</buildNumber>
  </properties>
  <organization>
-   <name>Infinite Automation</name>
+   <name>Infinite Automation Systems, Inc.</name>
    <url>https://www.infiniteautomation.com/</url>
  </organization>
  <modules>

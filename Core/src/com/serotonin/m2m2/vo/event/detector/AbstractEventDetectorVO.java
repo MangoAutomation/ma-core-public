@@ -101,13 +101,24 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 		return "event.audit.pointEventDetector";
 	}
 	
+    /**
+     * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
+     * @param alias
+     */
+	@Deprecated
 	public String getAlias() {
 		return name;
 	}
 
+	/**
+	 * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
+	 * @param alias
+	 */
+	@Deprecated
 	public void setAlias(String alias) {
 		this.name = alias;
 	}
+	
 	public int getSourceId(){
 		return this.sourceId;
 	}
@@ -129,34 +140,24 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	protected AbstractDao<T> getDao(){
 		return (AbstractDao<T>) EventDetectorDao.instance;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+
+	/*
+	 * Override so we can allow for blank names
 	 */
 	@Override
 	public void validate(ProcessResult response) {
-		//Can't validate uniqueness of XID so we don't call super
-        if (StringUtils.isBlank(xid))
+	    if (StringUtils.isBlank(xid))
             response.addContextualMessage("xid", "validate.required");
         else if (StringValidation.isLengthGreaterThan(xid, 50))
             response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
-        else if (!isXidUnique(xid, definition.getSourceTypeName(), sourceId))
+        else if (!isXidUnique(xid, id))
             response.addContextualMessage("xid", "validate.xidUsed");
 
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("name", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(name, 255))
-            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
-	}
-	
-    /**
-	 * @param xid
-	 * @param sourceTypeName
-	 * @param sourceId2
-	 * @return
-	 */
-	protected boolean isXidUnique(String xid, String sourceType, int sourceId) {
-		return EventDetectorDao.instance.isXidUnique(xid, id, sourceType, sourceId);
+	    // allow blank names
+        if (!StringUtils.isBlank(name)) {
+            if (StringValidation.isLengthGreaterThan(name, 255))
+                response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+        }
 	}
 
 	@Override

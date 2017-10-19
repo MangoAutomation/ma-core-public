@@ -817,6 +817,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     + ")", folder.getId());
         }
     }
+    
+    public void setFolderId(int dataPointId, int folderId) {
+        ejt.update("UPDATE dataPoints SET pointFolderId=" + folderId + " WHERE id=" + dataPointId);
+    }
 
     /**
      * Methods for AbstractDao below here
@@ -1182,21 +1186,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 	    		vo.setTemplateName(template.getName());
     	}
     }
-    /**
-     * Persist the vo or if it already exists update it
-     * 
-     * @param vo
-     *            to save
-     */
+
     @Override
-    public void save(DataPointVO vo) {
-        if (vo.getId() == Common.NEW_ID) {
-            insert(vo);
-            this.countMonitor.increment();
-        }
-        else {
-            update(vo);
-        }
+    protected void insert(DataPointVO vo, String initiatorId) {
+        super.insert(vo, initiatorId);
+        this.countMonitor.increment();
     }
 
     @Override

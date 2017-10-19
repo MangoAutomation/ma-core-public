@@ -135,6 +135,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     public void forcePointRead(DataPointRT dataPoint) {
         // No op by default. Override as required.
     }
+    
+    public void forcePoll() {
+        // No op by default. Override as required.
+    }
 
     /**
      * 

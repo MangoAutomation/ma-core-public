@@ -189,7 +189,7 @@ CREATE TABLE eventDetectors (
   data longtext NOT NULL,
   PRIMARY KEY (id)
 );
-ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid, dataPointId);
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id)
   
 --

@@ -9,9 +9,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.serotonin.InvalidArgumentException;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -25,11 +31,13 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
     private static final String FILENAME_PREFIX = "img";
 
     public static final int TYPE_JPG = 1;
+    private static final Log LOG = LogFactory.getLog(ImageValue.class);
     private static final String[] TYPES = { "", "jpg" };
 
     private long id = Common.NEW_ID;
     private int type;
     private byte[] data;
+    private byte[] digest = null;
 
     public ImageValue(long id, int type) {
         this.id = id;
@@ -141,6 +149,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
 
     public void setData(byte[] data) {
         this.data = data;
+        digest = null;
     }
 
     @Override
@@ -219,5 +228,35 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
     @Override
     public <T extends DataValue> int compareTo(T that) {
         return compareTo((ImageValue) that);
+    }
+    
+    public byte[] getDigest() {
+        if(digest == null) {
+            try {
+                MessageDigest digester = MessageDigest.getInstance("MD5");
+                byte[] data;
+                if(this.data != null)
+                    data = this.data;
+                else
+                    data = getImageData();
+                digester.update(data);
+                digester.update((byte)(data.length>>24));
+                digester.update((byte)(data.length>>16));
+                digester.update((byte)(data.length>>8));
+                digester.update((byte)data.length);
+                digest = digester.digest();
+            } catch (NoSuchAlgorithmException e) {
+                LOG.error(e.getMessage(), e);
+                throw new ShouldNeverHappenException("Digest type MD5 not supported");
+            } catch(IOException e) {
+                LOG.error("Failed to load image data for computing image value digest: " + e.getMessage(), e);
+                return new byte[0];
+            }
+        }
+        return digest;
+    }
+    
+    public boolean equalDigests(byte[] digest) {
+        return MessageDigest.isEqual(this.digest != null ? this.digest : getDigest(), digest);
     }
 }

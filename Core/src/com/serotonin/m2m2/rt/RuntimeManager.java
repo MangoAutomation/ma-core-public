@@ -651,6 +651,14 @@ public class RuntimeManager implements ILifecycle{
             // The data source may have been disabled. Just make sure.
             ds.forcePointRead(dataPoint);
     }
+    
+    public void forceDataSourcePoll(int dataSourceId) {
+        DataSourceRT<? extends DataSourceVO<?>> dataSource = runningDataSources.get(dataSourceId);
+        if(dataSource == null)
+            throw new RTException("Source is not enabled");
+        
+        dataSource.forcePoll();
+    }
 
     public long purgeDataPointValues() {
         long count = Common.databaseProxy.newPointValueDao().deleteAllPointData();
@@ -705,6 +713,13 @@ public class RuntimeManager implements ILifecycle{
     public long purgeDataPointValues(int dataPointId, long before) {
        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
         if (count > 0)
+            updateDataPointValuesRT(dataPointId);
+        return count;
+    }
+    
+    public long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime) {
+        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(dataPointId, startTime, endTime);
+        if(count > 0)
             updateDataPointValuesRT(dataPointId);
         return count;
     }

@@ -44,6 +44,9 @@ public class StateChangeCountDetectorVO extends TimeoutDetectorVO<StateChangeCou
 		
 		if(changeCount <= 1)
 			response.addContextualMessage("changeCount", "pointEdit.detectors.invalidChangeCount");
+
+        if(duration <= 0)
+            response.addContextualMessage("duration", "validate.greaterThanZero");
 	}
 
 	/* (non-Javadoc)

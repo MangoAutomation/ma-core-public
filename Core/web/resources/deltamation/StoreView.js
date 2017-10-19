@@ -145,16 +145,16 @@ return declare("deltamation.StoreView", null, {
             var src = this.imgMap[button];
             if (src.substring(0,1) !== '/')
                 src = '/images/' + src + '.png';
-            
-           
-            var action = "";
-            if(button == 'exportCSV'){
-            	action = this.varName + '.' + this.fnMap[button] + '("' + object.xid + '");';
-            }else{
-            	action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+
+            if (button === 'exportCSV') {
+                var url = '/rest/v1/data-points/data-source/' + encodeURIComponent(object.xid) + '?format=csv';
+                var filename = object.xid + '.csv';
+                var a = put(span, 'a[href=$][download=$]', url, filename);
+                put(a, 'img.ptr#$[src=$][title=$]', elementId, src, title);
+            } else {
+                var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+                put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
             }
-            
-            var img = put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
         }
         return span;
     },

@@ -48,16 +48,20 @@ public interface EventManager {
     void returnToNormal(EventType type, long time, int alarmLevel);
 
     void returnToNormal(EventType type, long time, int alarmLevel, int cause);
-
+    
     /**
-     * Added to allow Acknowledge Events to be fired
-     * @param evt
+     * Acknowledges an event given an event ID.
+     * 
+     * The returned EventInstance is a copy from the database, never the cached instance. If the returned instance
+     * has a different time, userId or alternateAckSource to what was provided then the event must have been already acknowledged.
+     * 
+     * @param eventId
      * @param time
      * @param userId
      * @param alternateAckSource
+     * @return the EventInstance for the ID if found, null otherwise
      */
-    void acknowledgeEvent(EventInstance evt, long time, int userId,
-            TranslatableMessage alternateAckSource);
+    public EventInstance acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource);
 
     long getLastAlarmTimestamp();
 
