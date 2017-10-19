@@ -377,9 +377,14 @@ public class EventManager implements ILifecycle {
 	 * @param userId
 	 * @param alternateAckSource
 	 */
-	private void acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource){
-
-		eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
+	private boolean acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource) {
+		boolean acked = eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
+		
+		 // event was already acknowledged or doesn't exist
+		if (!acked) {
+		    return false;
+		}
+		
 		//Fill in the info if someone on the other end wants it
 		evt.setAcknowledgedByUserId(userId);
 		evt.setAcknowledgedTimestamp(time);
@@ -402,26 +407,48 @@ public class EventManager implements ILifecycle {
 				this.userEventCache.removeEvent(user.getId(), evt);
 			}
 		}
+		
+		return true;
 	}
 
     /**
-     * Acknowledges an event given an event ID 
+     * Acknowledges an event given an event ID.
+     * 
+     * The returned EventInstance is a copy from the database, never the cached instance. If the returned instance
+     * has a different time, userId or alternateAckSource to what was provided then the event must have been already acknowledged.
      * 
      * @param eventId
      * @param time
      * @param userId
      * @param alternateAckSource
-     * @return true if the EventInstance for the ID was found in the cache and acknowledged
+     * @return the EventInstance for the ID if found, null otherwise
      */
-    public boolean acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
-        EventInstance event = getById(eventId);
+    public EventInstance acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
+        EventInstance dbEvent;
+        EventInstance cachedEvent = getById(eventId);
         
-        if (event == null) {
-            return false;
+        if (cachedEvent != null) {
+            acknowledgeEvent(cachedEvent, time, userId, alternateAckSource);
+            
+            // we don't want to return the cached event, user might change it
+            // return a copy from the database
+            dbEvent = eventDao.get(eventId);
+        } else {
+            dbEvent = eventDao.get(eventId);
+            
+            // only ack the event if it exists and is not already acknowledged
+            if (dbEvent != null && !dbEvent.isAcknowledged()) {
+                boolean acked = acknowledgeEvent(dbEvent, time, userId, alternateAckSource);
+                
+                // unlikely case that someone else ackd the event at the same time
+                if (!acked) {
+                    // fetch the updated event from the db again
+                    dbEvent = eventDao.get(eventId);
+                }
+            }
         }
         
-        acknowledgeEvent(event, time, userId, alternateAckSource);
-        return true;
+        return dbEvent;
     }
 
 	public long getLastAlarmTimestamp() {

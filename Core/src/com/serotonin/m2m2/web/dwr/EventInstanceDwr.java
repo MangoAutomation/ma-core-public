@@ -19,6 +19,7 @@ import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -137,7 +138,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         ProcessResult response = new ProcessResult();
         
         final User user = Common.getHttpUser();
-        if (user != null) {        
+        if (user != null) {
         	final long now = Common.timer.currentTimeMillis();
         	final ResultSetCounter counter = new ResultSetCounter();
         	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
@@ -146,8 +147,8 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
             	@Override
                 public void row(EventInstanceVO vo, int rowIndex) {
             		if(!vo.isAcknowledged()){
-            			boolean acked = Common.eventManager.acknowledgeEventById(vo.getId(), now, user.getId(), null);
-            			if (acked) {
+            			EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), now, user.getId(), null);
+            			if (event != null && event.isAcknowledged()) {
             			    counter.increment();
             			}
             		}
