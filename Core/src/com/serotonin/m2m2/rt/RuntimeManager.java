@@ -56,6 +56,19 @@ public interface RuntimeManager extends ILifecycle{
     void deleteDataSource(int dataSourceId);
 
     void saveDataSource(DataSourceVO<?> vo);
+    
+    /**
+     * Initialize a data source (only to be used at system startup)
+     * @param vo
+     * @return
+     */
+    boolean initializeDataSourceStartup(DataSourceVO<?> vo);
+    
+    /**
+     * Stop a data source (only to be used at system shutdown)
+     * @param id
+     */
+    void stopDataSourceShutdown(int id);
 
     //
     //

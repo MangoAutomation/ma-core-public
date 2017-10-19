@@ -344,7 +344,8 @@ public class RuntimeManagerImpl implements RuntimeManager{
      * @param vo
      * @return
      */
-    boolean initializeDataSourceStartup(DataSourceVO<?> vo) {    	
+    @Override
+    public boolean initializeDataSourceStartup(DataSourceVO<?> vo) {    	
     	long startTime = System.nanoTime();
 
         // If the data source is already running, just quit.
@@ -427,7 +428,8 @@ public class RuntimeManagerImpl implements RuntimeManager{
     /**
      * Should only be called at Shutdown as synchronization has been reduced for performance
      */
-    void stopDataSourceShutdown(int id) {
+    @Override 
+    public void stopDataSourceShutdown(int id) {
     	
         DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(id);
         if (dataSource == null)
