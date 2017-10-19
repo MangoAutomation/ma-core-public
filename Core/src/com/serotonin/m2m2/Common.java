@@ -765,4 +765,16 @@ public class Common {
     public static String generateXid(String prefix) {
         return prefix + UUID.randomUUID();
     }
+    
+    /**
+     * Get the HTTP/HTTPS Cookie Name based on scheme and port
+     * @return
+     */
+    public static String getCookieName() {
+        if(Common.envProps.getBoolean("ssl.on", false)) {
+            return "MANGO" + Common.envProps.getInt("ssl.port", 443);
+        }else {
+            return "MANGO" + Common.envProps.getInt("web.port", 8080);
+        }
+    }
 }

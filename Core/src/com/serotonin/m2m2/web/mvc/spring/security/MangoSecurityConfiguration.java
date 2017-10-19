@@ -397,7 +397,7 @@ public class MangoSecurityConfiguration {
                     .invalidateHttpSession(true)
                     // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
                     // but why not for the sake of cleanliness
-                    .deleteCookies("MANGO" + Common.envProps.getInt("web.port", 8080))
+                    .deleteCookies(Common.getCookieName())
                     .logoutSuccessHandler(logoutSuccessHandler)
                     .and()
                 .csrf()
@@ -499,7 +499,7 @@ public class MangoSecurityConfiguration {
                 .invalidateHttpSession(true)
                 // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
                 // but why not for the sake of cleanliness
-                .deleteCookies("MANGO" + Common.envProps.getInt("web.port", 8080))
+                .deleteCookies(Common.getCookieName())
                 .logoutSuccessHandler(logoutSuccessHandler)
                 .and()
             .rememberMe()
