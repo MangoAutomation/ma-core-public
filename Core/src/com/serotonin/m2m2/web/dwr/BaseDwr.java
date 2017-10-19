@@ -27,7 +27,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.IllegalFieldValueException;
 
-import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -821,7 +820,7 @@ abstract public class BaseDwr {
 	}
 
 	@DwrPermission(user = true)
-	public Set<String> refreshCommPorts() throws SerialPortConfigException {
+	public Set<String> refreshCommPorts() throws Exception {
 
 		Set<String> portNames = new HashSet<String>();
 
