@@ -72,7 +72,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
-import com.serotonin.util.properties.ReloadingProperties;
+import com.serotonin.util.properties.MangoProperties;
 
 import freemarker.template.Configuration;
 
@@ -91,7 +91,7 @@ public class Common {
 
     public static final int NEW_ID = -1;
 
-    public static ReloadingProperties envProps;
+    public static MangoProperties envProps;
     public static Properties releaseProps;
     public static Configuration freemarkerConfiguration;
     public static DatabaseProxy databaseProxy;
