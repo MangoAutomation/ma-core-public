@@ -28,7 +28,7 @@ public class AnnotatedPointValueTime extends PointValueTime {
 
     @Override
     public boolean isAnnotated() {
-        return true;
+        return sourceMessage != null;
     }
 
     public TranslatableMessage getSourceMessage() {

@@ -49,16 +49,16 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     private PublisherDao(){
-    	super(ModuleRegistry.getWebSocketHandlerDefinition("PUBLISHER"), AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
+    	super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.PUBLISHER), AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
     }
     
     
     public String generateUniqueXid() {
-        return generateUniqueXid(PublisherVO.XID_PREFIX, "publishers");
+        return generateUniqueXid(PublisherVO.XID_PREFIX, SchemaDefinition.PUBLISHERS_TABLE);
     }
 
     public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, "publishers");
+        return isXidUnique(xid, excludeId, SchemaDefinition.PUBLISHERS_TABLE);
     }
 
     private static final String PUBLISHER_SELECT = "select id, xid, publisherType, data from publishers ";

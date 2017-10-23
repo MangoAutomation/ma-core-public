@@ -50,7 +50,6 @@ import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -92,8 +91,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * Private as we only ever want 1 of these guys
      */
     private DataPointDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_POINT"), 
-        		AuditEventType.TYPE_DATA_POINT, "dp", 
+        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_POINT), 
+                EventType.EventTypeNames.DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
         		false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
@@ -315,10 +314,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     insertDataPoint(dp);
                 else
                     updateDataPoint(dp);
-
+                
                 // Reset the point hierarchy so that the new or changed point
                 // gets reflected.
-                clearPointHierarchyCache();
+                //clearPointHierarchyCache();
+                if(cachedPointHierarchy != null) {
+                    PointFolder root = cachedPointHierarchy.getRoot();
+                    root.removePointRecursively(dp.getId());
+                    root.addDataPointRecursively(new DataPointSummary(dp), dp.getPointFolderId());
+                }
+                
+                //If the DP has a path defined, update the hierarchy with greater precedence than the point folder id
+                dp.processHierarchyPath();
             }
         });
     }
@@ -490,7 +497,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
 
     public void setEventDetectors(DataPointVO dp) {
-    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dp.getId());
+    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(
+    	        EventType.EventTypeNames.DATA_POINT, dp.getId());
     	List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
     	for(AbstractEventDetectorVO<?> ed : detectors){
     		AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
@@ -503,7 +511,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dp.getId());
+        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(
+                EventType.EventTypeNames.DATA_POINT, dp.getId());
 
         // Insert or update each detector in the point.
         for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
@@ -749,6 +758,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     	}
     	return maxId;
     }
+    
+    private int selectMaxFolderId() {
+        return ejt.queryForInt("SELECT MAX(id) FROM dataPointHierarchy;", new Object[0], 0);
+    }
 
     public void savePointHierarchy(final PointFolder root) {
         // Assign ids to the folders.
@@ -787,6 +800,30 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             }
         });
     }
+    
+    public void insertNewPointFolder(PointFolder folder, int parentFolderId, boolean useCache) {
+        insertNewPointFolder(folder, parentFolderId, useCache ? getMaxFolderId(getPointHierarchy(true).getRoot()) + 1 : selectMaxFolderId() + 1, true, useCache);
+    }
+    
+    private void insertNewPointFolder(PointFolder folder, int parentFolderId, int newId, boolean root, boolean useCache) {
+        folder.setId(newId);
+        PointHierarchy ph;
+        if(useCache) {
+            ph = getPointHierarchy(true);
+            for(int k = 0; k < folder.getPoints().size(); k++)
+                ph.getRoot().removePointRecursively(folder.getPoints().get(k).getId());
+            if(root)
+                ph.addPointFolder(folder, parentFolderId);
+        }
+        
+        ejt.update("INSERT INTO dataPointHierarchy (id, parentId, name) VALUES (?,?,?)", newId, parentFolderId, folder.getName());
+        savePointsInFolder(folder);
+        for(PointFolder pf : folder.getSubfolders())
+            insertNewPointFolder(pf, folder.getId(), ++newId, false, useCache);
+        
+        if(root && !useCache)
+            clearPointHierarchyCache();
+    }
 
     private void assignFolderIds(PointFolder folder, int parentId, AtomicInteger nextId, List<Object> params) {
     	if(folder.getId() == Common.NEW_ID) {
@@ -816,6 +853,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             ejt.update("UPDATE dataPoints SET pointFolderId=? WHERE id in (" + createDelimitedList(ids, ",", null)
                     + ")", folder.getId());
         }
+    }
+    
+    public void setFolderId(int dataPointId, int folderId) {
+        ejt.update("UPDATE dataPoints SET pointFolderId=" + folderId + " WHERE id=" + dataPointId);
     }
 
     /**
@@ -1126,7 +1167,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 copy.getComments().clear();
 
                 // Copy the event detectors
-                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dataPoint.getId());
+                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(
+                        EventType.EventTypeNames.DATA_POINT, dataPoint.getId());
                 List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
                 
                 for (AbstractEventDetectorVO<?> ed : existing) {
@@ -1182,21 +1224,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 	    		vo.setTemplateName(template.getName());
     	}
     }
-    /**
-     * Persist the vo or if it already exists update it
-     * 
-     * @param vo
-     *            to save
-     */
+
     @Override
-    public void save(DataPointVO vo) {
-        if (vo.getId() == Common.NEW_ID) {
-            insert(vo);
-            this.countMonitor.increment();
-        }
-        else {
-            update(vo);
-        }
+    protected void insert(DataPointVO vo, String initiatorId) {
+        super.insert(vo, initiatorId);
+        this.countMonitor.increment();
     }
 
     @Override

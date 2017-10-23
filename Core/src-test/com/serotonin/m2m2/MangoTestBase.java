@@ -10,7 +10,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.AbstractDatabaseProxy;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -71,7 +71,7 @@ public class MangoTestBase {
 		Common.envProps.setDefaultValue("db.username", "");
 		Common.envProps.setDefaultValue("db.password", "");
 		
-		Common.databaseProxy = DatabaseProxy.createDatabaseProxy();
+		Common.databaseProxy = AbstractDatabaseProxy.createDatabaseProxy();
 		Common.databaseProxy.initialize(ClassLoader.getSystemClassLoader());
 	}
 	
@@ -81,7 +81,7 @@ public class MangoTestBase {
 		Common.envProps.setDefaultValue("db.username", "mango");
 		Common.envProps.setDefaultValue("db.password", "mango");
 		
-		Common.databaseProxy = DatabaseProxy.createDatabaseProxy();
+		Common.databaseProxy = AbstractDatabaseProxy.createDatabaseProxy();
 		Common.databaseProxy.initialize(ClassLoader.getSystemClassLoader());
 	}
 	

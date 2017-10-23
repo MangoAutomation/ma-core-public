@@ -139,6 +139,7 @@ public class ScriptUtils {
     	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
     	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
     	engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);
+    	engineScope.put(HttpBuilderScriptUtility.CONTEXT_KEY, new HttpBuilderScriptUtility(permissions));
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {
@@ -160,6 +161,8 @@ public class ScriptUtils {
             return new NumericPointWrapper(point, engine, setter);
         if (dt == DataTypes.ALPHANUMERIC)
             return new AlphanumericPointWrapper(point, engine, setter);
+        if (dt == DataTypes.IMAGE)
+            return new ImagePointWrapper(point, engine, setter);
         throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
     }
 

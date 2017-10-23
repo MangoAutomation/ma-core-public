@@ -115,7 +115,7 @@ public class EventsDwr extends BaseDwr {
         else
             model.put("displayPagination", false);
 
-        model.put("events", results);
+        model.put(MODEL_ATTR_EVENTS, results);
         model.put("page", page);
         model.put("pendingEvents", false);
 

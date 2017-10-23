@@ -38,6 +38,7 @@ import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -494,6 +495,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
                 new Object[] { dataPointId, from, to }, 0);
     }
+    
+    @Override
+    public List<PointValueTime> getPointValuesBetween(int dataPointId, long from, long to, int limit) {
+        return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
+                new Object[] { dataPointId, from, to }, limit);
+    }
 
     @Override
     public List<PointValueTime> getLatestPointValues(int dataPointId, int limit) {
@@ -692,6 +699,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public long deletePointValuesBefore(int dataPointId, long time) {
         return deletePointValues("delete from pointValues where dataPointId=? and ts<?", new Object[] { dataPointId,
                 time }, 0, 0);
+    }
+    
+    @Override
+    public long deletePointValuesBetween(int dataPointId, long startTime, long endTime) {
+        return deletePointValues("delete from pointValues where dataPointId=? and ts>=? and ts<?", new Object[] { dataPointId,
+                startTime, endTime }, 0, 0);
     }
 
     /*

@@ -60,6 +60,7 @@ public class ReloadingProperties extends AbstractProperties {
         checkForReload();
     }
 
+    @Override
     public void setDefaultValue(String key, String value) {
         defaultValues.put(key, value);
     }

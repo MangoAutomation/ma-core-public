@@ -5,8 +5,6 @@
 package com.serotonin.m2m2;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -71,10 +69,10 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
-import com.serotonin.timer.RealTimeTimer;
-import com.serotonin.util.properties.ReloadingProperties;
+import com.serotonin.util.properties.MangoProperties;
 
 import freemarker.template.Configuration;
 
@@ -93,7 +91,8 @@ public class Common {
 
     public static final int NEW_ID = -1;
 
-    public static ReloadingProperties envProps;
+    public static MangoProperties envProps;
+    public static Properties releaseProps;
     public static Configuration freemarkerConfiguration;
     public static DatabaseProxy databaseProxy;
     public static BackgroundProcessing backgroundProcessing;
@@ -119,7 +118,7 @@ public class Common {
     public static final List<ImageSet> imageSets = new ArrayList<ImageSet>();
     public static final List<DynamicImage> dynamicImages = new ArrayList<DynamicImage>();
 
-    public static final RealTimeTimer timer = new OrderedRealTimeTimer();
+    public static AbstractTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
 
@@ -148,6 +147,10 @@ public class Common {
     
     public static boolean isInvalid() {
     	return invalid;
+    }
+    
+    public static boolean isCoreSigned() {
+        return releaseProps != null && Boolean.TRUE.toString().equals(releaseProps.getProperty("signed"));
     }
 
     /*
@@ -185,16 +188,9 @@ public class Common {
     }
 
     private static final Version loadCoreVersionFromReleaseProperties(Version version) {
-        Properties props = new Properties();
-        File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
-
-        if (propFile.exists()) {
-            try (InputStream in = new FileInputStream(propFile)) {
-                props.load(in);
-            } catch (Exception e1) { }
-
-            String versionStr = props.getProperty(ModuleUtils.Constants.PROP_VERSION);
-            String buildNumberStr = props.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
+        if (releaseProps != null) {
+            String versionStr = releaseProps.getProperty(ModuleUtils.Constants.PROP_VERSION);
+            String buildNumberStr = releaseProps.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
             
             if (versionStr != null) {
                 try {
@@ -768,5 +764,17 @@ public class Common {
 
     public static String generateXid(String prefix) {
         return prefix + UUID.randomUUID();
+    }
+    
+    /**
+     * Get the HTTP/HTTPS Cookie Name based on scheme and port
+     * @return
+     */
+    public static String getCookieName() {
+        if(Common.envProps.getBoolean("ssl.on", false)) {
+            return "MANGO" + Common.envProps.getInt("ssl.port", 443);
+        }else {
+            return "MANGO" + Common.envProps.getInt("web.port", 8080);
+        }
     }
 }

@@ -22,6 +22,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 
 /**
@@ -38,7 +39,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 	 * @param extraSQL
 	 */
 	private AuditEventDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("AUDIT"), "aud", new String[0]);
+		super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.AUDIT), "aud", new String[0]);
 	}
 	
 	/* (non-Javadoc)

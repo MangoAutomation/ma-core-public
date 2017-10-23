@@ -12,6 +12,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -77,16 +78,15 @@ public class SmoothnessDetectorVO extends TimeoutDetectorVO<SmoothnessDetectorVO
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-		TranslatableMessage message;
+	    if(dataPoint == null)
+            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
 		TranslatableMessage durationDesc = getDurationDescription();
 
         if (durationDesc == null)
-            message = new TranslatableMessage("event.detectorVo.smoothness", dataPoint.getTextRenderer().getText(
+            return new TranslatableMessage("event.detectorVo.smoothness", dataPoint.getTextRenderer().getText(
                     limit, TextRenderer.HINT_SPECIFIC));
-        else
-            message = new TranslatableMessage("event.detectorVo.smoothnessPeriod", dataPoint.getTextRenderer()
+        return new TranslatableMessage("event.detectorVo.smoothnessPeriod", dataPoint.getTextRenderer()
                     .getText(limit, TextRenderer.HINT_SPECIFIC), durationDesc);
-        return message;
 	}
 
     @Override

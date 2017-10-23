@@ -106,6 +106,6 @@ public class M2M2ContextListener implements ServletContextListener {
         
         SessionCookieConfig sessionCookieConfig = ctx.getSessionCookieConfig();
         sessionCookieConfig.setHttpOnly(true);
-        sessionCookieConfig.setName("MANGO" + Common.envProps.getInt("web.port", 8080));
+        sessionCookieConfig.setName(Common.getCookieName());
     }
 }

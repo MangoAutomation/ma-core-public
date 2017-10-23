@@ -35,18 +35,21 @@ public class RealTimeTimer extends AbstractTimer{
         this.timeSource = timeSource;
     }
 
+    @Override
     public void init() {
         ownsExecutor = true;
         init(new ThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>()));
     }
 
+    @Override
     public void init(ExecutorService executorService) {
         thread = new TimerThread(queue, executorService, timeSource);
         thread.setName("Serotonin Timer");
         thread.setDaemon(false);
         thread.start();
     }
-
+    
+    @Override
     public void init(TimerThread timer){
     	this.thread = timer;
     	this.thread.start();

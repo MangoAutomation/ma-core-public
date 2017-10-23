@@ -1,6 +1,7 @@
 package com.serotonin.timer;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 abstract public class AbstractTimer {
     abstract public boolean isInitialized();
@@ -42,4 +43,12 @@ abstract public class AbstractTimer {
     abstract public int size();
 
     abstract public List<TimerTask> getTasks();
+    
+    abstract public void init();
+
+    abstract public void init(ExecutorService executorService);
+
+    abstract public void init(TimerThread timer);
+
+    abstract public ExecutorService getExecutorService();
 }

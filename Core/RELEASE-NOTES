@@ -1,3 +1,27 @@
+*Version 3.2.2*
+* Make event detector XIDs unique, the id will be appended to existing event detector XIDs
+* Notify websockets of original xid when updating xid
+* Increased automatic store check from 4 hours to 24 hours
+* Fix for events in the active events list not being updated when they are acknowledged
+* Better handling for permissions failure in set point handler script
+* Fixed script permissions for set point handler scripts
+* Add HttpBuilder helper for performing HTTP requests from scripting environment
+* Fix validation of event detectors when saving via REST API
+* Add refreshDataSource(xid) method to script runtime manager
+* Change default alarm level for "Max alarm level changed" to IGNORE
+* Update commons-beanutils to 1.9.3 to protect against CVE-2014-0114
+* Catch and log exception from database layer #765
+* Remove remaining references to DaoRegistry #1076
+* Fix some issues with dependencies on legacy modules page #906
+* Fix NPE in AnnotatedPointValueTime #1098
+* Better script validation when points are disabled #1099
+* Get byte array from image point in script #1054
+* Fixes for image value log on change not working #899
+* Fix NPE in point event detectors due to dataPoint being null #1106
+* Make startValue available in AnalogStatistics #1104
+* Add forcePoll() to DataSourceRT and implement in PollingDataSource #397
+* Fix limit lines on JFree charts when using converted unit points #684
+
 *Version 3.2.1*
 * Fix in Translations to prevent hung boot in some locales
 * Performance improvements not loading points from DB when not necessary

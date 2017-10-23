@@ -278,41 +278,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         return query(sql, args.toArray(), getRowMapper());
     }
 
-    /**
-     * Persist the vo or if it already exists update it
-     * 
-     * @param vo
-     *            to save
-     */
-    @Override
-    public void save(T vo) {
-    	save(vo, null);
-    }
-
-	/**
-	 * 
-	 * @param vo
-	 * @param initiatorId
-	 */
-    public void save(T vo, String initiatorId) {
-        if (vo.getId() == Common.NEW_ID) {
-            insert(vo, initiatorId);
-        }
-        else {
-            update(vo, initiatorId);
-        }
-    }
-    
-    /**
-     * Insert a new vo and assign the ID
-     * 
-     * @param vo
-     *            to insert
-     */
-    @Override
-    protected void insert(T vo) {
-    	insert(vo, null);
-    }
     @Override
     protected void insert(T vo, String initiatorId) {
         if (vo.getXid() == null) {
@@ -320,22 +285,15 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         }
         super.insert(vo, initiatorId);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
-    }    
-
-    /**
-     * Update a vo
-     * 
-     * @param vo
-     *            to update
-     */
-    @Override
-    protected void update(T vo) {
-    	update(vo, null);
     }
+
     @Override
-    protected void update(T vo, String initiatorId){
+    protected void update(T vo, String initiatorId, String originalXid) {
         T old = get(vo.getId());
-        super.update(vo);
+        if (originalXid == null) {
+            originalXid = old.getXid();
+        }
+        super.update(vo, initiatorId, originalXid);
         AuditEventType.raiseChangedEvent(this.typeName, old, vo);
     }
 

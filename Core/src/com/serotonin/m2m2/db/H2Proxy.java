@@ -31,7 +31,7 @@ import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
 
-public class H2Proxy extends DatabaseProxy {
+public class H2Proxy extends AbstractDatabaseProxy {
     private static final Log LOG = LogFactory.getLog(H2Proxy.class);
 
     private JdbcConnectionPool dataSource;

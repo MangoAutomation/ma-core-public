@@ -264,6 +264,18 @@ returns:
   <li>1 - Suggestion made to data source</li>
 </ul>
 
+<h3>refreshDataSource(xid)</h3>
+Refreshing a data source suggests to the Data Source that a regular poll should be collected ASAP.  This will only happen if the underlying 
+data source has implemented this functionality.
+
+xid - Xid for data soure
+returns:
+<ul>
+  <li>-1 - Source does not exist</li>
+  <li>0 - Source is not enabled</li>
+  <li>1 - Suggestion made to data source</li>
+</ul>
+
 <h3>isDataSourceEnabled(xid)</h3>
 xid - Xid for a data source
 return true if enabled false if not or DNE
@@ -367,6 +379,42 @@ for(var i=0; i&lt;points.size(); i++){
 }
 
 return average/points.size();
+</pre>
+
+<h2>HttpBuilder</h2>
+<p>HTTP exchanges can be sent and handled from within the script body without using Java directly. The <b>HttpBuilder</b> object provides GET, POST, PUT and DELETE
+with synchronous callbacks. By default, responses with status 200 will be passed to the resp function if defined, other responses to the err function if defined, and
+local exceptions to the excp function if defined, or the err function if that is defined instead with status -1. Two forms of usage are supported:</p>
+<pre>
+//First format, method chaining
+print(HttpBuilder.get("http://localhost:8080/help.htm", {/* user supplied headers */}, {/* user supplied parameters */})
+	.err(function(status, headers, content) { //setErrorCallback for linguistic completion
+		throw "Request got bad response: " + status;
+	}).resp(function(status, headers, content) { //setResponseCallback
+		print(content);
+		return true;
+	}).excp(function(exception) { //setExceptionCallback
+		throw exception.getMessage();
+	}).execute()); //will print the help page then "true" if the resp function is executed. Otherwise will throw the error.
+	
+//Second format, full request
+print(HttpBuilder.request({
+	path: "http://localhost:8080/help.htm",
+	method: "GET",
+	headers: {},
+	parameters: {},
+	//content: "GETs don't have content!",
+	err: function(status, headers, content) { //errorCallback for linguistic completion
+		throw "Request got bad response: " + status;
+	},
+	resp: function(status, headers, content) { //responseCallback
+		print(content);
+		return true; //will print in wrapping print()
+	}
+	excp: function(exception) { //exceptionCallback
+		throw exception.getMessage();
+	}
+}));
 </pre>
 
 <h1>Logging</h1>

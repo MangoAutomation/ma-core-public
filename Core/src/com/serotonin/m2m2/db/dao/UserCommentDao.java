@@ -167,7 +167,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	@Override
 	protected List<JoinClause> getJoins() {
     	List<JoinClause> joins = new ArrayList<JoinClause>();
-    	joins.add(new JoinClause(LEFT_JOIN, "users", "u", "uc.userId = u.id"));
+    	joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USERS_TABLE, "u", "uc.userId = u.id"));
     	return joins;
 	}
 	

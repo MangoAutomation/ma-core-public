@@ -26,7 +26,7 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
 	
     private static final Log LOG = LogFactory.getLog(UpgradeCheck.class);
     private static final long DELAY_TIMEOUT = 1000 * 10; // Run initially after 10 seconds
-    private static final long PERIOD_TIMEOUT = 1000 * 60 * 60 * 4; // Run every 4 hours.
+    private static final long PERIOD_TIMEOUT = 1000 * 60 * 60 * 24; // Run every 24 hours.
 
     public static final String UPGRADES_AVAILABLE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.UpgradeCheck.COUNT";
     private final IntegerMonitor availableUpgrades;

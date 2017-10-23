@@ -7,7 +7,6 @@ package com.infiniteautomation.mango.io.serial.virtual;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
@@ -109,7 +108,7 @@ public class VirtualSerialPortConfigDao {
     	//Reload the serial ports
     	try {
 			Common.serialPortManager.refreshFreeCommPorts();
-		} catch (SerialPortConfigException e) {
+		} catch (Exception e) {
 			//Don't really care?
 		}
     }

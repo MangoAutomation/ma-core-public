@@ -34,15 +34,10 @@ public abstract class AbstractMangoRestV2Controller extends BaseMangoRestControl
 		return getResourceModified(body, location, HttpStatus.CREATED);
 	}
 
-	public <N> ResponseEntity<N> getResourceDeleted(N body, String location){
-		return getResourceModified(body, location, HttpStatus.OK);
-	}
-
 	public <N> ResponseEntity<N> getResourceUpdated(N body, String location){
 		return getResourceModified(body, location, HttpStatus.OK);
 	}
 
-	
 	/**
 	 * To modify a resource with a Location header
 	 * @param body
