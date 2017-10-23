@@ -33,6 +33,7 @@ import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
@@ -175,7 +176,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 	private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
         boolean coreIsNew = false;
 
-        if (!tableExists(ejt, "users")) {
+        if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
             try {
