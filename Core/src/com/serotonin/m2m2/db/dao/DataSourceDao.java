@@ -50,7 +50,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public static final DataSourceDao<DataSourceVO<?>> instance = new DataSourceDao<>();
 
     private DataSourceDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_SOURCE"), AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
+        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_SOURCE),
+                AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
 
     public List<T> getDataSources() {
