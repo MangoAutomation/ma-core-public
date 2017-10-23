@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -32,15 +31,12 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 
 	public static final JsonDataDao instance = new JsonDataDao();
 	
-	private ObjectMapper mapper;
-	
 	/**
 	 * @param handler
 	 * @param typeName
 	 */
 	private JsonDataDao() {
 		super(ModuleRegistry.getWebSocketHandlerDefinition("JSON_DATA"), AuditEventType.TYPE_JSON_DATA);
-		mapper = new ObjectMapper();
 	}
 
 	/* (non-Javadoc)
@@ -140,7 +136,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 			
 			//Read the data
 			try{
-				vo.setJsonData(mapper.readTree(rs.getClob(++i).getCharacterStream()));
+				vo.setJsonData(getObjectReader(Object.class).readTree(rs.getClob(++i).getCharacterStream()));
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 			}
@@ -158,10 +154,10 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	 * @throws IOException
 	 */
 	public JsonNode readValueFromString(String json) throws JsonParseException, JsonMappingException, IOException{
-		return mapper.readTree(json);
+		return getObjectReader(JsonNode.class).readTree(json);
 	}
 	
 	public String writeValueAsString(Object value) throws JsonProcessingException{
-		return mapper.writeValueAsString(value);
+		return getObjectWriter(Object.class).writeValueAsString(value);
 	}
 }

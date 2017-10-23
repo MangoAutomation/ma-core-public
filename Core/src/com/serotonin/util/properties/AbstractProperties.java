@@ -13,7 +13,7 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Matthew Lohbihler
  */
-abstract public class AbstractProperties {
+abstract public class AbstractProperties implements MangoProperties {
     private static final Pattern PATTERN_ENV = Pattern.compile("(\\$\\{env:(.+?)\\})");
     private static final Pattern PATTERN_PROP = Pattern.compile("(\\$\\{prop:(.+?)\\})");
     private static final Pattern PATTERN_BS = Pattern.compile("\\\\");
@@ -31,10 +31,18 @@ abstract public class AbstractProperties {
         this.description = description;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getDescription()
+     */
+    @Override
     public String getDescription() {
         return description;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getString(java.lang.String)
+     */
+    @Override
     public String getString(String key) {
         String s = getStringImpl(key);
         if (s == null)
@@ -81,6 +89,10 @@ abstract public class AbstractProperties {
     //        return result;
     //    }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getString(java.lang.String, java.lang.String)
+     */
+    @Override
     public String getString(String key, String defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value))
@@ -88,6 +100,10 @@ abstract public class AbstractProperties {
         return value;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getStringArray(java.lang.String, java.lang.String, java.lang.String[])
+     */
+    @Override
     public String[] getStringArray(String key, String delimiter, String[] defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value))
@@ -95,10 +111,18 @@ abstract public class AbstractProperties {
         return value.split(delimiter);
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getInt(java.lang.String)
+     */
+    @Override
     public int getInt(String key) {
         return Integer.parseInt(getString(key));
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getInt(java.lang.String, int)
+     */
+    @Override
     public int getInt(String key, int defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value))
@@ -113,10 +137,18 @@ abstract public class AbstractProperties {
         return defaultValue;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getLong(java.lang.String)
+     */
+    @Override
     public long getLong(String key) {
         return Long.parseLong(getString(key));
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getLong(java.lang.String, long)
+     */
+    @Override
     public long getLong(String key, long defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value))
@@ -131,10 +163,18 @@ abstract public class AbstractProperties {
         return defaultValue;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getBoolean(java.lang.String)
+     */
+    @Override
     public boolean getBoolean(String key) {
         return "true".equalsIgnoreCase(getString(key));
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getBoolean(java.lang.String, boolean)
+     */
+    @Override
     public boolean getBoolean(String key, boolean defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value))
@@ -147,10 +187,18 @@ abstract public class AbstractProperties {
         return defaultValue;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getDouble(java.lang.String)
+     */
+    @Override
     public double getDouble(String key) {
         return Double.parseDouble(getString(key));
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.IProperties#getDouble(java.lang.String, double)
+     */
+    @Override
     public double getDouble(String key, double defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value))

@@ -50,7 +50,6 @@ import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -92,8 +91,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * Private as we only ever want 1 of these guys
      */
     private DataPointDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_POINT"), 
-        		AuditEventType.TYPE_DATA_POINT, "dp", 
+        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_POINT), 
+                EventType.EventTypeNames.DATA_POINT, "dp", 
         		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
         		false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
@@ -498,7 +497,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
 
     public void setEventDetectors(DataPointVO dp) {
-    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dp.getId());
+    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(
+    	        EventType.EventTypeNames.DATA_POINT, dp.getId());
     	List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
     	for(AbstractEventDetectorVO<?> ed : detectors){
     		AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
@@ -511,7 +511,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dp.getId());
+        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(
+                EventType.EventTypeNames.DATA_POINT, dp.getId());
 
         // Insert or update each detector in the point.
         for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
@@ -1166,7 +1167,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 copy.getComments().clear();
 
                 // Copy the event detectors
-                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(PointEventDetectorDefinition.SOURCE_TYPE_NAME, dataPoint.getId());
+                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(
+                        EventType.EventTypeNames.DATA_POINT, dataPoint.getId());
                 List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
                 
                 for (AbstractEventDetectorVO<?> ed : existing) {
@@ -1222,21 +1224,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 	    		vo.setTemplateName(template.getName());
     	}
     }
-    /**
-     * Persist the vo or if it already exists update it
-     * 
-     * @param vo
-     *            to save
-     */
+
     @Override
-    public void save(DataPointVO vo) {
-        if (vo.getId() == Common.NEW_ID) {
-            insert(vo);
-            this.countMonitor.increment();
-        }
-        else {
-            update(vo);
-        }
+    protected void insert(DataPointVO vo, String initiatorId) {
+        super.insert(vo, initiatorId);
+        this.countMonitor.increment();
     }
 
     @Override

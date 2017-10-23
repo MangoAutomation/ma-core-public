@@ -5,12 +5,17 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.publisher;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.PublisherDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
@@ -51,6 +56,42 @@ public class AbstractPublisherModel<T extends PublisherVO<P>, P extends Publishe
 			publishedPoints.add((AbstractPublishedPointModel<P>) point.asModel());
 		return publishedPoints;
 	}
+	
+    public Map<String,String> getAlarmLevels(){
+        ExportCodes eventCodes = this.data.getEventCodes();
+        Map<String, String> alarmCodeLevels = new HashMap<>();
+
+        if (eventCodes != null && eventCodes.size() > 0) {
+
+            for (int i = 0; i < eventCodes.size(); i++) {
+                int eventId = eventCodes.getId(i);
+                int level = this.data.getAlarmLevel(eventId, AlarmLevels.URGENT);
+                alarmCodeLevels.put(eventCodes.getCode(eventId), AlarmLevels.CODES.getCode(level));
+            }
+        }
+        return alarmCodeLevels;
+    }
+    
+    public void setAlarmLevels(Map<String,String> alarmCodeLevels) throws TranslatableJsonException{
+        if (alarmCodeLevels != null) {
+            ExportCodes eventCodes = this.data.getEventCodes();
+            if (eventCodes != null && eventCodes.size() > 0) {
+                for (String code : alarmCodeLevels.keySet()) {
+                    int eventId = eventCodes.getId(code);
+                    if (!eventCodes.isValidId(eventId))
+                        throw new TranslatableJsonException("emport.error.eventCode", code, eventCodes.getCodeList());
+
+                    String text = alarmCodeLevels.get(code);
+                    int level = AlarmLevels.CODES.getId(text);
+                    if (!AlarmLevels.CODES.isValidId(level))
+                        throw new TranslatableJsonException("emport.error.alarmLevel", text, code,
+                                AlarmLevels.CODES.getCodeList());
+
+                    this.data.setAlarmLevel(eventId, level);
+                }
+            }
+        }
+    }
 	
 	public void setPoints(List<? extends AbstractPublishedPointModel<P>> points){
 		List<P> publishedPoints = new ArrayList<>();

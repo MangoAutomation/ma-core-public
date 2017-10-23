@@ -18,4 +18,12 @@ public class BasicProperties extends AbstractProperties {
     protected String getStringImpl(String key) {
         return properties.get(key);
     }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.util.properties.MangoProperties#setDefaultValue(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void setDefaultValue(String key, String value) {
+        this.properties.put(key,  value);
+    }
 }

@@ -117,9 +117,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 	public RowMapper<AbstractEventDetectorVO<?>> getRowMapper() {
 		return new EventDetectorRowMapper();
 	}
-	
-	
-	
+
 	public JsonObject readValueFromString(String json) throws JsonException, IOException {
 		JsonTypeReader reader = new JsonTypeReader(json);
 		
@@ -162,15 +160,6 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
         }
     }
     
-    @Override
-    public void save(AbstractEventDetectorVO<?> vo, String initiatorId) {
-        if (vo.getId() <= Common.NEW_ID) {
-            insert(vo, initiatorId);
-        }
-        else {
-            update(vo, initiatorId);
-        }
-    }
 	/**
 	 * Get all with given source id.
 	 * Ordered by detector id.
@@ -212,18 +201,6 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + "AS " + this.tablePrefix + " WHERE id=?", new Object[]{id}, Integer.class, -1);
 	}
 
-    // TODO remove in Mango 3.3.x
-	@Override
-	public AbstractEventDetectorVO<?> getByXid(String xid){
-	    return super.getByXid(xid);
-	}
-
-    // TODO remove in Mango 3.3.x
-	public AbstractEventDetectorVO<?> getByXid(String xid, String sourceType, int sourceId){
-		String sourceIdColumn = getSourceIdColumnName(sourceType);
-		return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + " AS  "  + this.TABLE_PREFIX +  " WHERE xid=? AND " + sourceIdColumn + "=?", new Object[]{xid, sourceId}, getRowMapper(), null);
-	}
-	
 	/**
 	 * Get the column name for the source id using the source type
 	 * @param sourceType
@@ -252,23 +229,5 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
 		}
 		
 		return index;
-	}
-
-    // TODO remove in Mango 3.3.x
-	@Override
-	public boolean isXidUnique(String xid, int excludeId) {
-	    return super.isXidUnique(xid, excludeId);
-	}
-
-    // TODO remove in Mango 3.3.x
-	/**
-	 * This method diverges with the normal uniqueness checks 
-	 * because it requires the sourceID 
-	 */
-	public boolean isXidUnique(String xid, int id, String sourceType, int sourceId) {
-		String sourceIdColumn = getSourceIdColumnName(sourceType);
-
-		 return ejt.queryForInt("select count(*) from " + tableName + " AS " + this.TABLE_PREFIX + " where xid=? AND id<>? AND " + sourceIdColumn + "=?" , new Object[] { xid, id,
-	                sourceId }, 0) == 0;
 	}
 }

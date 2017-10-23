@@ -17,5 +17,5 @@ public class StartupController extends ParameterizableViewController{
 	public StartupController(){
 		super();
 		setViewName("/WEB-INF/jsp/starting.jsp");
-	}
+	}     
 }

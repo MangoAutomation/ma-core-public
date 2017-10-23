@@ -59,12 +59,12 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
                
                //Do redirect?
                if(data.startupProgress >= 100){
-                   setTimeout(function(){
+                   setTimeout((function(dataAtStartup){
                 	   if(typeof data.startupUri != 'undefined')
                 		   window.location.href = data.startupUri;
                 	   else
                 		   window.location.href = '';
-                   }, 500);
+                   })(data), 500);
                   
                }else{
                    schedulePoll(lastPollTime);

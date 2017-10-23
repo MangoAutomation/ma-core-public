@@ -21,7 +21,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
 import com.serotonin.m2m2.view.chart.ImageFlipbookRenderer;
 import com.serotonin.m2m2.view.chart.TableChartRenderer;
@@ -65,7 +65,7 @@ public class DataPointDetailsController implements UrlHandler {
             }
             else {
                 int pedid = Integer.parseInt(pedStr);
-                id = EventDetectorDao.instance.getSourceId(pedid, PointEventDetectorDefinition.SOURCE_TYPE_NAME);
+                id = EventDetectorDao.instance.getSourceId(pedid, EventType.EventTypeNames.DATA_POINT);
             }
         }
         else

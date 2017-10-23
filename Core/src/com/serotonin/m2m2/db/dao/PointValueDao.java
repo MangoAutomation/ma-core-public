@@ -55,6 +55,15 @@ public interface PointValueDao {
      * @return
      */
     public List<PointValueTime> getPointValuesBetween(int pointId, long from, long to);
+    
+    /**
+     * Get point values >= from and < to
+     * @param pointId
+     * @param from
+     * @param to
+     * @return
+     */
+    public List<PointValueTime> getPointValuesBetween(int pointId, long from, long to, int limit);
 
     /**
      * Get point values in reverse time order
@@ -138,6 +147,14 @@ public interface PointValueDao {
      *            the query callback
      */
     public void wideQuery(int pointId, long from, long to, final WideQueryCallback<PointValueTime> callback);
+    
+    /**
+     * Delete startTime <= values < endTime
+     * @param pointId
+     * @param time
+     * @return
+     */
+    public long deletePointValuesBetween(int pointId, long startTime, long endTime);
     
     /**
      * Delete values < time

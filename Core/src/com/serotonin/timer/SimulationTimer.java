@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The simulation timer is a single threaded timer under the temporal control of the next and fastForward methods. Tasks
@@ -191,4 +192,40 @@ public class SimulationTimer extends AbstractTimer {
 	public void execute(Task command) {
 		command.runTask(this.currentTime);
 	}
+
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.AbstractTimer#init()
+     */
+    @Override
+    public void init() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.AbstractTimer#init(java.util.concurrent.ExecutorService)
+     */
+    @Override
+    public void init(ExecutorService executorService) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.AbstractTimer#init(com.serotonin.timer.TimerThread)
+     */
+    @Override
+    public void init(TimerThread timer) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.AbstractTimer#getExecutorService()
+     */
+    @Override
+    public ExecutorService getExecutorService() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

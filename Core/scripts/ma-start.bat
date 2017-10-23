@@ -76,6 +76,9 @@ echo Cleaning lib folder...
 del /q "%MA_HOME%"\lib\*.jar
 echo Cleaning work folder...
 del /s /q  "%MA_HOME%"\work
+echo Removing release properties
+del /q "%MA_HOME%"\release.properties
+del /q "%MA_HOME%"\release.signed
 pushd ..
 echo Extracting Core Upgrade...
 "%EXECJAR%" xf "%MA_HOME%"\m2m2-core-*.zip

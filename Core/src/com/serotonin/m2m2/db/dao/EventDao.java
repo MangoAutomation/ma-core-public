@@ -143,14 +143,15 @@ public class EventDao extends BaseDao {
     private static final String EVENT_ACK = "update events set ackTs=?, ackUserId=?, alternateAckSource=? where id=? and ackTs is null";
     private static final String USER_EVENT_ACK = "update userEvents set silenced=? where eventId=?";
 
-    public void ackEvent(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
+    public boolean ackEvent(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
         // Ack the event
-        ejt.update(EVENT_ACK, new Object[] { time, userId == 0 ? null : userId,
-                writeTranslatableMessage(alternateAckSource), eventId }, new int[] { Types.BIGINT, Types.INTEGER,
-                Types.CLOB, Types.INTEGER });
+        int count = ejt.update(EVENT_ACK,
+                new Object[] { time, userId == 0 ? null : userId, writeTranslatableMessage(alternateAckSource), eventId },
+                new int[] { Types.BIGINT, Types.INTEGER, Types.CLOB, Types.INTEGER });
         // Silence the user events
         ejt.update(USER_EVENT_ACK, new Object[] { boolToChar(true), eventId });
-
+        
+        return count > 0;
     }
 
     private static final String USER_EVENTS_INSERT = "insert into userEvents (eventId, userId, silenced) values (?,?,?)";

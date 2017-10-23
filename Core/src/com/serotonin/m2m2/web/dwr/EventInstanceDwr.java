@@ -51,7 +51,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         this.setExportQuery(query, sort, or);
         
         //TODO Use the Event Manager to access Current Events since the DO NOT LOG events are only in memory
-        query.put("userId", Common.getUser().getId()+"");
+        query.put("userId", Common.getHttpUser().getId()+"");
         
         ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
         response.addData("list", results.getResults());
@@ -69,7 +69,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
 		//Put the export query info into the user attributes and then
 		// on return make a call to the export servlet
 		QueryDefinition reportQuery = new QueryDefinition(query,sort,or);
-		Common.getUser().setAttribute("eventInstanceExportDefinition",reportQuery);
+		Common.getHttpUser().setAttribute("eventInstanceExportDefinition",reportQuery);
 	}
 	
 
@@ -137,8 +137,8 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
     public ProcessResult acknowledgeEvents() {
         ProcessResult response = new ProcessResult();
         
-        final User user = Common.getUser();
-        if (user != null) {        
+        final User user = Common.getHttpUser();
+        if (user != null) {
         	final long now = Common.timer.currentTimeMillis();
         	final ResultSetCounter counter = new ResultSetCounter();
         	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
@@ -147,17 +147,10 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
             	@Override
                 public void row(EventInstanceVO vo, int rowIndex) {
             		if(!vo.isAcknowledged()){
-            			//TODO This is a hack until we redo the Events Page to better work 
-            			// with the Events Manager
-            			EventInstance evt = new EventInstance(vo.getEventType(), 
-            					vo.getActiveTimestamp(),
-            					vo.isRtnApplicable(),
-            					vo.getAlarmLevel(),
-            					vo.getMessage(),
-            					vo.getContext());
-            			evt.setId(vo.getId());
-            			Common.eventManager.acknowledgeEvent(evt, now, user.getId(), null);
-	            		counter.increment();
+            			EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), now, user.getId(), null);
+            			if (event != null && event.isAcknowledged()) {
+            			    counter.increment();
+            			}
             		}
             		
                 }
@@ -183,7 +176,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
     public ProcessResult silenceEvents() {
         ProcessResult response = new ProcessResult();
         
-        final User user = Common.getUser();
+        final User user = Common.getHttpUser();
         if (user != null) {        
         	final EventDao eventDao = EventDao.instance;
         	final ResultSetCounter counter = new ResultSetCounter();

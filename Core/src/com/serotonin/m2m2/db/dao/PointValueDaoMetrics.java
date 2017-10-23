@@ -76,10 +76,22 @@ public class PointValueDaoMetrics implements PointValueDao{
 			long to) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getPointValuesBetween(pointId, from,to);
-    	LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+ to + "){" + values.size() +"}");
+    	LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+to + "){" + values.size() +"}");
     	return values;
-
 	}
+	
+	/* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#getPointValuesBetween(int, long, long, limit)
+     */
+    @Override
+    public List<PointValueTime> getPointValuesBetween(int pointId, long from,
+            long to, int limit) {
+        LogStopWatch LogStopWatch = new LogStopWatch();
+        List<PointValueTime> values = dao.getPointValuesBetween(pointId, from, to, limit);
+        LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+to+ ", "+limit + "){" + values.size() +"}");
+        return values;
+
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#getLatestPointValues(int, int)
@@ -211,6 +223,18 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch.stop("deletePointValuesBeforeWithoutCount(pointId,time) (" + pointId + ", " + time + ")");
     	return value;
 	}
+	
+	/*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesBetween(int, startTime, endTime)
+     */
+    @Override
+    public long deletePointValuesBetween(int pointId, long startTime, long endTime){
+        LogStopWatch LogStopWatch = new LogStopWatch();
+        long value = dao.deletePointValuesBetween(pointId,startTime,endTime);
+        LogStopWatch.stop("deletePointValuesBetween(pointId,startTime,endTime) (" + pointId + ", " + startTime + ", " + endTime + ")");
+        return value;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValues(int)

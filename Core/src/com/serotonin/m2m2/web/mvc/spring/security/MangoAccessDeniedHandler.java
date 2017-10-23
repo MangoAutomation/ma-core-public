@@ -51,7 +51,7 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
 	public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
 	        throws IOException, ServletException {
 
-       LOG.warn("Denying access to Mango resource", accessDeniedException);
+       LOG.warn("Denying access to Mango resource " + request.getRequestURI() + " to IP " + request.getRemoteAddr(), accessDeniedException);
 		if (!response.isCommitted()) {
 		    if (browserHtmlRequestMatcher.matches(request)) {
 		        // browser HTML request
@@ -59,6 +59,7 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
     		    
     		    User user = Common.getHttpUser();
     		    if (user != null) {
+    		        LOG.warn("Denied user is " + user.getUsername());
                     accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, user);
                 }
     	        
