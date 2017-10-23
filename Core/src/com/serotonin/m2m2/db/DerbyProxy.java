@@ -34,6 +34,7 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
@@ -213,7 +214,7 @@ public class DerbyProxy extends AbstractDatabaseProxy {
     public void executeCompress(ExtendedJdbcTemplate ejt) {
         compressTable(ejt, "pointValues");
         compressTable(ejt, "pointValueAnnotations");
-        compressTable(ejt, "events");
+        compressTable(ejt, SchemaDefinition.EVENTS_TABLE);
     }
 
     private void compressTable(ExtendedJdbcTemplate ejt, final String tableName) {

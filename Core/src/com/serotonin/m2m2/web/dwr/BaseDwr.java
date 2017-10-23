@@ -606,7 +606,7 @@ abstract public class BaseDwr {
 			if (pollRequest.isPendingAlarms() && user != null) {
 				// Create the list of most current pending alarm content.
 				Map<String, Object> model = new HashMap<>();
-				model.put("events", eventDao.getPendingEvents(user.getId()));
+				model.put(MODEL_ATTR_EVENTS, eventDao.getPendingEvents(user.getId()));
 				model.put("pendingEvents", true);
 				model.put("noContentWhenEmpty", true);
 				String currentContent = generateContent(httpRequest,
