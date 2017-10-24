@@ -23,7 +23,7 @@ public class PVTCollator implements MappedRowCallback<IdPointValueTime> {
             done();
             mvt = new MultiValueTime(new Object[pointIds.size()], pvt.getTime());
         }
-        mvt.getValues()[pointIds.indexOf(pvt.getDataPointId())] = pvt.getValue();
+        mvt.getValues()[pointIds.indexOf(pvt.getId())] = pvt.getValue();
     }
 
     public void done() {

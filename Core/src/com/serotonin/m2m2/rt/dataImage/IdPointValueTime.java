@@ -30,13 +30,7 @@ public class IdPointValueTime extends PointValueTime implements IdTime{
         this.dataPointId = dataPointId;
     }
 
-    //TODO Remove me
-    @Deprecated
-    public int getDataPointId() {
+    public int getId() {
         return dataPointId;
-    }
-    
-    public int getId(){
-    	return dataPointId;
     }
 }
