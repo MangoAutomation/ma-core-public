@@ -7,6 +7,8 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,10 +38,9 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     @JsonProperty
     private boolean disabled;
     
-    //
-    private EventType eventType; 
-    
     private EventHandlerDefinition<T> definition;
+    
+    List<EventType> addedEventTypes = null;
 
     /**
      * Create the runtime handler
@@ -78,14 +79,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
-    
-	public EventType getEventType() {
-		return eventType;
-	}
-
-	public void setEventType(EventType eventType) {
-		this.eventType = eventType;
-	}
 
 	public EventHandlerDefinition<T> getDefinition() {
 		return definition;
@@ -103,6 +96,16 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 
 	public String getHandlerType(){
 		return this.definition.getEventHandlerTypeName();
+	}
+	
+	public void addEventType(EventType eventType) {
+	    if(addedEventTypes == null)
+	        addedEventTypes = new ArrayList<EventType>(1);
+	    this.addedEventTypes.add(eventType);
+	}
+	
+	public List<EventType> getAddedEventTypes() {
+	    return addedEventTypes;
 	}
 	
     public void validate(ProcessResult response) {
@@ -143,9 +146,9 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	writer.writeEntry("eventType", eventType);
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
+        writer.writeEntry("eventTypes", EventHandlerDao.instance.getEventTypesForHandler(id));
     }
 
     @Override

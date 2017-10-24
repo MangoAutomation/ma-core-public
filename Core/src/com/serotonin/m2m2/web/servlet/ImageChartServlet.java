@@ -16,6 +16,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.measure.converter.UnitConverter;
+import javax.measure.unit.Unit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -225,11 +226,16 @@ public class ImageChartServlet extends BaseInfoServlet {
 
             if (pointCount == 1) {
                 // Only one point. Check for limits to draw as markers.
+                UnitConverter uc;
+                if(markerPoint.getUnit() != null && markerPoint.getRenderedUnit() != null)
+                    uc = markerPoint.getUnit().getConverterTo(markerPoint.getRenderedUnit());
+                else
+                    uc = Unit.ONE.getConverterTo(Unit.ONE);
                 for (AbstractPointEventDetectorVO<?> ped : markerPoint.getEventDetectors()) {
                     if (ped.getDefinition().getEventDetectorTypeName().equals(AnalogLowLimitEventDetectorDefinition.TYPE_NAME))
-                        ptsc.addRangeMarker(new ValueMarker(((AnalogLowLimitDetectorVO)ped).getLimit(), lowLimitPaint, limitStroke));
+                        ptsc.addRangeMarker(new ValueMarker(uc.convert(((AnalogLowLimitDetectorVO)ped).getLimit()), lowLimitPaint, limitStroke));
                     else if (ped.getDefinition().getEventDetectorTypeName().equals(AnalogHighLimitEventDetectorDefinition.TYPE_NAME))
-                        ptsc.addRangeMarker(new ValueMarker(((AnalogHighLimitDetectorVO)ped).getLimit(), highLimitPaint, limitStroke));
+                        ptsc.addRangeMarker(new ValueMarker(uc.convert(((AnalogHighLimitDetectorVO)ped).getLimit()), highLimitPaint, limitStroke));
                 }
             }
 

@@ -673,7 +673,6 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         DataPointDao dataPointDao = DataPointDao.instance;
-        writer.writeEntry("eventType", EventHandlerDao.instance.getEventHandlerType(id));
 
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", TYPE_CODES.getCode(handlerType));

@@ -152,7 +152,7 @@ public class ModuleRegistry {
      */
     public static Module getCoreModule(){
         Module core = new Module("core", Common.getVersion(), new TranslatableMessage("modules.core.description"),
-                "Infinite Automation Systems.", "http://infiniteautomation.com", null, -1, false);
+                "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
 
         if(Common.isInvalid())
         	core.setLicenseType("Invalid");
@@ -916,7 +916,7 @@ public class ModuleRegistry {
         //Add in Core Event Detectors
         preDefaults.add(new AlphanumericRegexStateEventDetectorDefinition());
         preDefaults.add(new AlphanumericStateEventDetectorDefinition());
-//        preDefaults.add(new AnalogChangeEventDetectorDefinition());
+        preDefaults.add(new AnalogChangeEventDetectorDefinition());
         preDefaults.add(new AnalogHighLimitEventDetectorDefinition());
         preDefaults.add(new AnalogLowLimitEventDetectorDefinition());
         preDefaults.add(new AnalogRangeEventDetectorDefinition());

@@ -10,7 +10,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -57,7 +57,7 @@ public class DataSourceImporter extends Importer {
                 else {
                     // Sweet. Save it.
                     boolean isnew = vo.isNew();
-                    if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+                    if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
                     	Common.runtimeManager.saveDataSource(vo);
                     	addSuccessMessage(isnew, "emport.dataSource.prefix", xid);
                     }else{

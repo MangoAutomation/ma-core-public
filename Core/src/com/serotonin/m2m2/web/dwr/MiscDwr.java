@@ -53,7 +53,7 @@ public class MiscDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
         response.addData("eventId", eventId);
 
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if (user != null) {
             boolean result = EventDao.instance.toggleSilence(eventId, user.getId());
             resetLastAlarmLevelChange();
@@ -68,7 +68,7 @@ public class MiscDwr extends BaseDwr {
     @DwrPermission(anonymous = true)
     public ProcessResult silenceAll() {
         List<Integer> silenced = new ArrayList<Integer>();
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if (user != null) {
             EventDao eventDao = EventDao.instance;
             for (EventInstance evt : eventDao.getPendingEvents(user.getId())) {
@@ -88,11 +88,9 @@ public class MiscDwr extends BaseDwr {
 
     @DwrPermission(anonymous = true)
     public int acknowledgeEvent(int eventId) {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if (user != null) {
-        	EventDao dao = EventDao.instance;
-        	EventInstance evt = dao.get(eventId);
-            Common.eventManager.acknowledgeEvent(evt, Common.timer.currentTimeMillis(), user.getId(), null);
+            Common.eventManager.acknowledgeEventById(eventId, Common.timer.currentTimeMillis(), user.getId(), null);
             resetLastAlarmLevelChange();
         }
         return eventId;
@@ -100,19 +98,19 @@ public class MiscDwr extends BaseDwr {
 
     @DwrPermission(anonymous = true)
     public void acknowledgeAllPendingEvents() {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if (user != null) {
             EventDao eventDao = EventDao.instance;
             long now = Common.timer.currentTimeMillis();
             for (EventInstance evt : eventDao.getPendingEvents(user.getId()))
-                Common.eventManager.acknowledgeEvent(evt, now, user.getId(), null);
+                Common.eventManager.acknowledgeEventById(evt.getId(), now, user.getId(), null);
             resetLastAlarmLevelChange();
         }
     }
 
     @DwrPermission(anonymous = true)
     public boolean toggleUserMuted() {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if (user != null) {
             user.setMuted(!user.isMuted());
             UserDao.instance.saveMuted(user.getId(), user.isMuted());
@@ -191,7 +189,7 @@ public class MiscDwr extends BaseDwr {
             try {
                 Translations translations = Common.getTranslations();
                 Map<String, Object> model = new HashMap<String, Object>();
-                model.put("user", Common.getUser());
+                model.put("user", Common.getHttpUser());
                 model.put("message", new TranslatableMessage("common.default", message));
                 MangoEmailContent cnt = new MangoEmailContent("testEmail", model, translations,
                         translations.translate("ftl.testEmail"), Common.UTF8);
@@ -243,21 +241,21 @@ public class MiscDwr extends BaseDwr {
         //            url = url.substring(1);
 
         // Save the result
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         UserDao.instance.saveHomeUrl(user.getId(), url);
         user.setHomeUrl(url);
     }
 
     @DwrPermission(user = true)
     public void deleteHomeUrl() {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         UserDao.instance.saveHomeUrl(user.getId(), null);
         user.setHomeUrl(null);
     }
 
     @DwrPermission(user = true)
     public String getHomeUrl() {
-        String url = Common.getUser().getHomeUrl();
+        String url = Common.getHttpUser().getHomeUrl();
         if (StringUtils.isBlank(url))
             url = "help.shtm";
         return url;

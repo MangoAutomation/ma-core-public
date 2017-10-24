@@ -34,6 +34,7 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 import com.serotonin.util.StringUtils;
@@ -44,7 +45,7 @@ import com.serotonin.util.StringUtils;
  * @author Terry Packer
  */
 @Deprecated
-public class DerbyProxy extends DatabaseProxy {
+public class DerbyProxy extends AbstractDatabaseProxy {
     private final Log log = LogFactory.getLog(DerbyProxy.class);
 
     private static final double LARGEST_POSITIVE = 1.79769E+308;
@@ -213,7 +214,7 @@ public class DerbyProxy extends DatabaseProxy {
     public void executeCompress(ExtendedJdbcTemplate ejt) {
         compressTable(ejt, "pointValues");
         compressTable(ejt, "pointValueAnnotations");
-        compressTable(ejt, "events");
+        compressTable(ejt, SchemaDefinition.EVENTS_TABLE);
     }
 
     private void compressTable(ExtendedJdbcTemplate ejt, final String tableName) {

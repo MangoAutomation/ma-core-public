@@ -4,8 +4,11 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
@@ -30,14 +33,7 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	public String getModelType(){
 		return this.data.getDefinition().getEventDetectorTypeName();
 	}
-	
-	public String getAlias() {
-		return this.data.getAlias();
-	}
 
-	public void setAlias(String alias) {
-		this.data.setAlias(alias);
-	}
 	public int getSourceId(){
 		return this.data.getSourceId();
 	}
@@ -59,6 +55,14 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	
 	public String getDetectorSourceType(){
 		return this.data.getDetectorSourceType();
+	}
+	
+	public List<String> getHandlers() {
+	    return EventHandlerDao.instance.getEventHandlerXids(this.data.getEventType());
+	}
+	
+	public void setHandlers(List<String> handlerXids) {
+	    this.data.addEventHandlers(handlerXids);;
 	}
 
 	/**

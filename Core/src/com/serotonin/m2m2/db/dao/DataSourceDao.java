@@ -50,7 +50,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public static final DataSourceDao<DataSourceVO<?>> instance = new DataSourceDao<>();
 
     private DataSourceDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("DATA_SOURCE"), AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
+        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_SOURCE),
+                AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
 
     public List<T> getDataSources() {
@@ -169,7 +170,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    ejt2.update("DELETE FROM eventHandlers WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
+                    ejt2.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
                             EventType.EventTypeNames.DATA_SOURCE, dataSourceId });
                     ejt2.update("DELETE FROM dataSources WHERE id=?", new Object[] { dataSourceId });
                 }

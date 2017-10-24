@@ -51,6 +51,19 @@ public class PointFolder implements JsonSerializable {
     public void addDataPoint(DataPointSummary point) {
         points.add(point);
     }
+    
+    public boolean addDataPointRecursively(DataPointSummary point, int folderId) {
+        if(id == folderId) {
+            addDataPoint(point);
+            return true;
+        }
+        
+        for(PointFolder pf : subfolders)
+            if(pf.addDataPointRecursively(point, folderId))
+                return true;
+        
+        return false;
+    }
 
     /**
      * Remove a Data Point from this Folder

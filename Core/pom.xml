@@ -3,7 +3,7 @@
 	<parent>
 		<artifactId>mango-parent</artifactId>
 		<groupId>com.infiniteautomation.mango</groupId>
-		<version>3.2.2-SNAPSHOT</version>
+		<version>3.3.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.infiniteautomation</groupId>
@@ -386,6 +386,11 @@
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jacksonVersion}</version>
 		</dependency>
+		<dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.9.0</version>
+        </dependency>
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
 			<artifactId>opencsv</artifactId>

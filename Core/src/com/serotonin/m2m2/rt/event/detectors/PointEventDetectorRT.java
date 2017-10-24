@@ -36,8 +36,8 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
 
     protected void raiseEvent(long time, Map<String, Object> context) {
         TranslatableMessage msg;
-        if (!StringUtils.isBlank(vo.getAlias()))
-            msg = new TranslatableMessage("common.default", vo.getAlias());
+        if (!StringUtils.isBlank(vo.getName()))
+            msg = new TranslatableMessage("common.default", vo.getName());
         else
             msg = getMessage();
 

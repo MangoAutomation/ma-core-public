@@ -20,7 +20,10 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
+import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
@@ -31,6 +34,8 @@ import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.AnalogStatistics;
 import com.serotonin.m2m2.view.stats.IValueTime;
+import com.serotonin.m2m2.view.stats.StartsAndRuntime;
+import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -316,8 +321,9 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                     }
                     else
                         logValue = false;
-                }
-                else
+                } else if(newValue.getValue() instanceof ImageValue) {
+                    logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.getValue()).getDigest());
+                } else
                     logValue = !ObjectUtils.equals(newValue.getValue(), pointValue.getValue());
             }
 
@@ -409,19 +415,17 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             else
 	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
             	
-
+            intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                 intervalStartTime = Common.timer.currentTimeMillis();
                 if(averagingValues.size() > 0) {
-                    //We will not be checking the history because presumably only interval logged data should be there
-                    AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime,
-                            (Double)null, averagingValues);
-                    PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
+                    Double nullValue = null;
+                	    AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
+                	    PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
                     valueCache.logPointValueAsync(newValue, null);
-                    intervalValue = newValue;
                     //Fire logged Events
                     fireEvents(null, newValue, false, false, true, false);
-                	averagingValues.clear();
+                	    averagingValues.clear();
                 }
             }
         }
@@ -507,12 +511,34 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             	//If we don't have enough averaging values then we will bail and wait for more
             	if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
             		return;
-            	
-                AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
-                if (stats.getAverage() == null)
-                    value = null;
-                else
-                    value = new NumericValue(stats.getAverage());
+                
+                if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE) {
+                    StartsAndRuntimeList stats = new StartsAndRuntimeList(intervalStartTime, fireTime, intervalValue, averagingValues);
+                    double maxProportion = -1;
+                    Object valueAtMax = null;
+                    for(StartsAndRuntime sar : stats.getData()) {
+                        if(sar.getProportion() > maxProportion) {
+                            maxProportion = sar.getProportion();
+                            valueAtMax = sar.getValue();
+                        }
+                    }
+                    if(valueAtMax != null)
+                        value = new MultistateValue(DataValue.objectToValue(valueAtMax).getIntegerValue());
+                    else
+                        value = null;
+                } else {
+                    AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
+                    if (stats.getAverage() == null)
+                        value = null;
+                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
+                        value = new NumericValue(stats.getAverage());
+                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
+                        value = new BinaryValue(stats.getAverage() >= 0.5);
+                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE)
+                        value = new MultistateValue((int)Math.round(stats.getAverage()));
+                    else
+                        throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
+                }
                 //Compute the center point of our average data, starting by finding where our period started
                 long sampleWindowStartTime;
                 if(vo.isOverrideIntervalLoggingSamples())
@@ -741,11 +767,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     public void initialize() {
         // Get the latest value for the point from the database.
         pointValue = valueCache.getLatestPointValue();
-        
-        //Initialize the intervalValue to use 
-        if (vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL)
-        	intervalValue = pointValue;
-        
+
         // Set the tolerance origin if this is a numeric
         if (pointValue != null && pointValue.getValue() instanceof NumericValue)
             toleranceOrigin = pointValue.getDoubleValue();

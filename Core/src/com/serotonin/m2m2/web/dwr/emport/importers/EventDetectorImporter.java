@@ -11,7 +11,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -67,7 +67,7 @@ public class EventDetectorImporter extends Importer {
 			ctx.getReader().readInto(importing, json);
 			
 			try {
-				if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+				if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
             		Common.runtimeManager.saveDataPoint(dpvo);
             		addSuccessMessage(isNew, "emport.eventDetector.prefix", xid);
             	}else{

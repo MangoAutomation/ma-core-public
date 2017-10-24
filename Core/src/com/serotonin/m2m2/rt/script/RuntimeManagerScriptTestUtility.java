@@ -45,6 +45,36 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 		
 	}
 	
+	   /**
+     * Mock refresh a data source with the given XID.
+     * 
+     * @param xid
+     * @return status of operation
+     * 0 - Source not enabled
+     * -1 - Source does not exist
+     * 1 - Refresh performed 
+     */
+    public int refreshDataSource(String xid){
+        
+        DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+        
+        if(vo != null){
+            
+            if(!vo.isEnabled())
+                return OPERATION_NO_CHANGE;
+            
+            DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
+            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
+                return OPERATION_NO_CHANGE;
+            
+            //Common.runtimeManager.forceDataSourcePoll(vo.getId());
+            return OPERATION_SUCCESSFUL;
+            
+        }else
+            return DOES_NOT_EXIST;
+        
+    }
+	
 	/**
 	 * Would start a Data Source via its XID
 	 * @param xid
@@ -124,6 +154,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 		StringBuilder builder = new StringBuilder();
 		builder.append("{ ");
 		builder.append("refreshDataPoint(xid): -1 0 1, \n");
+		builder.append("refreshDataSource(xid): -1 0 1, \n");
 		builder.append("isDataSourceEnabled(xid): boolean, \n");
 		builder.append("enableDataSource(xid): -1 0 1, \n");
 		builder.append("disableDataSource(xid): -1 0 1, \n");

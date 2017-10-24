@@ -15,6 +15,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -41,7 +42,7 @@ public class Permissions {
     	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.NONE, "NONE");
     	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.READ, "READ");
     	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.SET, "SET");
-    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.DATA_SOURCE, "DATA_SOURCE");
+    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.DATA_SOURCE, AuditEventType.TYPE_DATA_SOURCE);
     	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.ADMIN, "ADMIN");
     }
     

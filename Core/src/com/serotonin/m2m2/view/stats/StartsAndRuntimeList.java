@@ -25,6 +25,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private final long periodEnd;
 
     // Calculated values.
+    private DataValue startValue;
     private DataValue firstValue;
     private Long firstTime;
     private DataValue lastValue;
@@ -55,7 +56,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         this.periodEnd = periodEnd;
 
         if (startValue != null) {
-            latestValue = startValue;
+            this.startValue = latestValue = startValue;
             latestTime = periodStart;
             sar = get(startValue);
         }
@@ -127,6 +128,10 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     public long getPeriodEndTime() {
         return periodEnd;
     }
+    
+    public DataValue getStartValue() {
+        return startValue;
+    }
 
     public DataValue getFirstValue() {
         return firstValue;
@@ -186,6 +191,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         		", periodStartTime: " + periodStart + 
         		", periodEndTime: " + periodEnd + 
         		", count: " + count +
+        		", startValue: " + startValue +
         		", firstValue: " + firstValue +
         		", firstTime: " + firstTime + 
         		", lastValue: " + lastValue +

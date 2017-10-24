@@ -140,13 +140,15 @@ public class DataPurge {
             DateTime cutoff = new DateTime(runtime);
             cutoff = DateUtils.truncateDateTime(cutoff, Common.TimePeriods.DAYS);
             cutoff = DateUtils.minus(cutoff, purgeType, purgePeriod);
-            if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-            	if(countPointValues)
-            		deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(), cutoff.getMillis());
-            	else{
-            		if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId(), cutoff.getMillis()))
-            			anyDeletedSamples = true;
-            	}
+            if (Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                if (countPointValues)
+                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(),
+                            cutoff.getMillis());
+                else {
+                    if (Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId(),
+                            cutoff.getMillis()))
+                        anyDeletedSamples = true;
+                }
             }
 
             // If this is an image data type, get the point value ids.

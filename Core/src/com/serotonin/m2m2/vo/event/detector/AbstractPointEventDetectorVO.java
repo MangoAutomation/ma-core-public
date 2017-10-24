@@ -78,6 +78,8 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	
 	@Override
     public EventTypeVO getEventType() {
+	    if(this.dataPoint == null)
+	        this.dataPoint = DataPointDao.instance.get(sourceId);
         return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, sourceId, id, getDescription(),
                 alarmLevel);
     }
@@ -122,6 +124,9 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+        //TODO Some configuration descriptions will throw NPE if dataPoint isn't set
+        //this.dataPoint = DataPointDao.instance.get(sourceId);
+        
     	super.jsonRead(reader, jsonObject);
     	
     	String text = jsonObject.getString("alarmLevel");

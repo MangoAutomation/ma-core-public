@@ -52,7 +52,7 @@ public class AnalogStatistics implements StatisticsGenerator {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
         if (startValue != null) {
-            minimumValue = maximumValue = latestValue = this.startValue = startValue;
+            delta = minimumValue = maximumValue = latestValue = this.startValue = startValue;
             minimumTime = maximumTime = latestTime = periodStart;
         }
     }
@@ -75,7 +75,7 @@ public class AnalogStatistics implements StatisticsGenerator {
             firstValue = doubleValue;
             firstTime = time;
             if(startValue == null)
-            	startValue = firstValue;
+            	delta = firstValue;
         }
 
         if (minimumValue == null || minimumValue > doubleValue) {
@@ -114,7 +114,7 @@ public class AnalogStatistics implements StatisticsGenerator {
         }
         
         if(firstValue != null)
-        	delta = lastValue - startValue;
+        	delta = lastValue - delta;
         else
         	delta = 0;
     }
@@ -176,6 +176,10 @@ public class AnalogStatistics implements StatisticsGenerator {
     public double getSum() {
         return sum;
     }
+    
+    public Double getStartValue() {
+        return startValue;
+    }
 
     public Double getFirstValue() {
         return firstValue;
@@ -216,6 +220,7 @@ public class AnalogStatistics implements StatisticsGenerator {
                 + ", count: " + count
                 + ", delta: " + delta
                 + ", integral: " + integral
+                + ", startValue: " + startValue
                 + ", firstValue: " + firstValue
                 + ", firstTime: " + firstTime
                 + ", lastValue: " + lastValue

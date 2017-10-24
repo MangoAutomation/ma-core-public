@@ -30,8 +30,8 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
 
 	private static final long serialVersionUID = 1L;
 	
-	private int duration;
-    private int durationType = Common.TimePeriods.SECONDS;
+	protected int duration;
+    protected int durationType = Common.TimePeriods.SECONDS;
     
     public int getDuration() {
 		return duration;
@@ -61,8 +61,8 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
 		
         if (!Common.TIME_PERIOD_CODES.isValidId(durationType))
             response.addContextualMessage("durationType", "validate.invalidValue");
-        if (duration <= 0)
-            response.addContextualMessage("duration", "validate.greaterThanZero");
+        if (duration < 0)
+            response.addContextualMessage("duration", "validate.cannotBeNegative");
 	}
 	
     @Override

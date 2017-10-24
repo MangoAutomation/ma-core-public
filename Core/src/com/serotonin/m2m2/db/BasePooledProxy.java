@@ -27,7 +27,7 @@ import com.serotonin.m2m2.Common;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class BasePooledProxy extends DatabaseProxy {
+abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     private final Log log = LogFactory.getLog(BasePooledProxy.class);
     private BasicDataSource dataSource;
 
