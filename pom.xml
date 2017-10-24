@@ -145,6 +145,26 @@
  </pluginRepositories>
  <build>
     <directory>maven-target</directory>
+    <sourceDirectory>src</sourceDirectory>
+    <outputDirectory>maven-target/classes</outputDirectory>
+    <resources>
+      <resource>
+        <directory>resources</directory>
+      </resource>
+    </resources>
+    <testSourceDirectory>src-test</testSourceDirectory>
+    <testOutputDirectory>maven-target/test-classes</testOutputDirectory>
+    <testResources>
+       <testResource>
+           <directory>src-test</directory>
+           <excludes>
+           <exclude>**/*.java</exclude>
+           </excludes>
+        </testResource>
+        <testResource>
+           <directory>src-test/resources</directory>
+        </testResource>
+    </testResources>
     <pluginManagement>
         <plugins>
           <plugin>
