@@ -46,7 +46,7 @@ protected void upgrade() throws Exception {
 
 @Override
 protected String getNewSchemaVersion() {
-    return "18";
+    return "20";
 }
 
 private static final String[] addColumn = {
