@@ -21,7 +21,7 @@ import com.serotonin.util.SerializationHelper;
 
 public class Upgrade19 extends DBUpgrade {
 
-private static final Log LOG = LogFactory.getLog(Upgrade17.class);
+private static final Log LOG = LogFactory.getLog(Upgrade19.class);
 
 @Override
 protected void upgrade() throws Exception {
@@ -34,7 +34,7 @@ protected void upgrade() throws Exception {
     runScript(scripts);
     
     //not using data type id to deserialize, so we don't need a legacy row mapper here
-    this.ejt.query(UPGRADE_17_DATA_POINT_SELECT, new Upgrade17ResultSetExtractor());
+    this.ejt.query(UPGRADE_19_DATA_POINT_SELECT, new Upgrade19ResultSetExtractor());
     
     scripts.clear();
     scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), alterColumn);
@@ -59,7 +59,7 @@ private static final String[] modifyColumn = {
         "ALTER TABLE dataPoints MODIFY COLUMN dataTypeId INT NOT NULL;"
 };
 
-private static final String UPGRADE_17_DATA_POINT_SELECT = //
+private static final String UPGRADE_19_DATA_POINT_SELECT = //
 "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
         + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
         + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
@@ -67,7 +67,7 @@ private static final String UPGRADE_17_DATA_POINT_SELECT = //
         + "  ds.name,  ds.xid, ds.dataSourceType " //
         + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
 
-class Upgrade17DataPointRowMapper implements RowMapper<DataPointVO> {
+class Upgrade19DataPointRowMapper implements RowMapper<DataPointVO> {
     @Override
     public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
         int i = 0;
@@ -110,11 +110,11 @@ class Upgrade17DataPointRowMapper implements RowMapper<DataPointVO> {
     }
 }
 
-    class Upgrade17ResultSetExtractor implements ResultSetExtractor<Void> {
+    class Upgrade19ResultSetExtractor implements ResultSetExtractor<Void> {
     
         @Override
         public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
-            Upgrade17DataPointRowMapper dprw = new Upgrade17DataPointRowMapper();
+            Upgrade19DataPointRowMapper dprw = new Upgrade19DataPointRowMapper();
             while(rs.next()) {
                 DataPointVO dpvo = dprw.mapRow(rs, rs.getRow());
                 if(LOG.isDebugEnabled())
