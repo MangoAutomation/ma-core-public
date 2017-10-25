@@ -276,6 +276,13 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
       <scope>provided</scope>
     </dependency>
     <dependency>
+         <artifactId>mango</artifactId>
+         <groupId>com.infiniteautomation</groupId>
+         <version>${project.parent.version}</version>
+         <type>test-jar</type>
+         <scope>test</scope>
+    </dependency>    
+    <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.11</version>
