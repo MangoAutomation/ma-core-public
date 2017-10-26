@@ -82,16 +82,18 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         jds.setUrl(url);
         dataSource = JdbcConnectionPool.create(jds);
         
-        String webArgs[] = new String[4];
-        webArgs[0] = "-webPort";
-        webArgs[1] = webPort.toString();
-        webArgs[2] = "-ifExists";
-        webArgs[3] = "-webAllowOthers";
-        try {
-            this.web = Server.createWebServer(webArgs);
-            this.web.start();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if(initWebConsole) {
+            String webArgs[] = new String[4];
+            webArgs[0] = "-webPort";
+            webArgs[1] = webPort.toString();
+            webArgs[2] = "-ifExists";
+            webArgs[3] = "-webAllowOthers";
+            try {
+                this.web = Server.createWebServer(webArgs);
+                this.web.start();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
         
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
