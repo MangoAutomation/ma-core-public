@@ -69,8 +69,15 @@ public class RQLToCondition {
         case "match":
         case "like":
             return getField(node).like((String) node.getArgument(1));
-        case "in":
-            return getField(node).in(node.getArguments().subList(1, node.getArgumentsSize()));
+        case "in": {
+            List<?> inArray;
+            if (node.getArgument(1) instanceof List ) {
+                inArray = (List<?>) node.getArgument(1);
+            } else {
+                inArray = node.getArguments().subList(1, node.getArgumentsSize());
+            }
+            return getField(node).in(inArray);
+        }
         case "sort":
             sortFields = getSortFields(node);
             return DSL.and();
