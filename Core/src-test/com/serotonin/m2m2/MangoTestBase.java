@@ -29,6 +29,13 @@ import com.serotonin.timer.SimulationTimer;
 /**
  * 
  * Base Class for all JUnit Tests
+ * 
+ * To enable the in-memory H2 database's web console 
+ *   use the correct constructor OR supply the system propertites:
+ *   
+ *   mango.test.enableH2Web=true
+ *   mango.test.h2WebPort=<port>
+ * 
  * @author Terry Packer
  *
  */
@@ -38,9 +45,23 @@ public class MangoTestBase {
     protected static List<ModuleElementDefinition> definitions = new ArrayList<>();
     protected SimulationTimer timer;
 
+    protected boolean enableH2Web;
+    protected int h2WebPort;
 	
 	public MangoTestBase() {
-
+        enableH2Web = false;
+        h2WebPort = 9001;
+        String prop = System.getProperty("mango.test.enableH2Web");
+        if(prop != null)
+            enableH2Web = Boolean.parseBoolean(prop);
+        prop = System.getProperty("mango.test.h2WebPort");
+        if(prop != null)
+            h2WebPort = Integer.parseInt(prop);
+	}
+	
+	public MangoTestBase(boolean enableH2Web, int h2WebPort) {
+	    this.enableH2Web = enableH2Web;
+	    this.h2WebPort = h2WebPort;
 	}
 	
 	@BeforeClass
@@ -54,7 +75,7 @@ public class MangoTestBase {
 	@Before
 	public void before() {
 	    if(lifecycle == null) {
-    	        lifecycle = new MockMangoLifecycle(definitions);
+    	        lifecycle = new MockMangoLifecycle(definitions, enableH2Web, h2WebPort);
             lifecycle.initialize();
 	    }
 	    
