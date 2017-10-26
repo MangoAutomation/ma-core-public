@@ -326,7 +326,11 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     }
     
     public void addEventHandlerMapping(int eventHandlerId, String typeName, String subtypeName, int typeRef1, int typeRef2) {
-        ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?,?,?,?,?)", new Object[] {eventHandlerId, typeName, subtypeName, typeRef1, typeRef2},
+        if(subtypeName == null)
+            ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?,?,?,?)", new Object[] {eventHandlerId, typeName, typeRef1, typeRef2},
+                    new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+        else
+            ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?,?,?,?,?)", new Object[] {eventHandlerId, typeName, subtypeName, typeRef1, typeRef2},
                 new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
     }
     

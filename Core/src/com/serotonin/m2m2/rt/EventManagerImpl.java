@@ -750,7 +750,7 @@ public class EventManagerImpl implements EventManager {
 	//
 	@Override
 	public void initialize(boolean safe) {
-		if((state != PRE_INITIALIZE) || safe)
+		if((state != PRE_INITIALIZE))
 			return;
 		state = INITIALIZE;
 		
