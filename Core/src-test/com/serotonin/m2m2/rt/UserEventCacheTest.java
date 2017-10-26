@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.rt;
 
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -31,8 +33,6 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 /**
  * A benchmarking test to validate changes to the UserEventCache
  * 
- * TODO this will fail since the UserEventCache now uses EventDao.instance
- * so we need to fix up the Mocks to be able to swap that with the mocked dao
  * 
  * @author Terry Packer
  *
@@ -40,7 +40,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 public class UserEventCacheTest extends MangoTestBase{
 	
 	//Settings
-	static final int EVENT_COUNT = 400000;
+	static final int EVENT_COUNT = 10000;
 	static final int USER_COUNT = 10;
 	
 	
@@ -55,11 +55,9 @@ public class UserEventCacheTest extends MangoTestBase{
 	protected EventDao eventDao;
 	
     @Before
-    public void setup() {
-    	this.initMaHome();
-    	this.initEnvProperties("test-env");
-    	this.initTimer();
-    			
+    @Override
+    public void before() {
+        super.before();
         MockitoAnnotations.initMocks(this);
     }
 
@@ -67,8 +65,7 @@ public class UserEventCacheTest extends MangoTestBase{
 	 * To simulate Mango we will have 1 thread generating events 
 	 * and occasionally purging them while several other threads read their user's events out.
 	 */
-	//Commented out so this doesn't run during the nightly builds
-    //@Test
+    @Test(timeout = 30000)
 	public void benchmark(){
 		
 		this.cache = new UserEventCache(15 * 60000,  60000);
@@ -93,12 +90,18 @@ public class UserEventCacheTest extends MangoTestBase{
 		//Start Event Thread
 		egt.start();
 		
+		try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            fail(e.getMessage());
+        }
+		
 		while(runningThreads.intValue() > 0){
 			synchronized(monitor){
 				try {
 					monitor.wait();
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					fail(e.getMessage());
 				}
 			}
 		}

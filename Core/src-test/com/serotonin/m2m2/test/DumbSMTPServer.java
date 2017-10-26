@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.test;
 
-import org.junit.Test;
-
 import com.dumbster.smtp.SimpleSmtpServer;
 
 /**
@@ -15,7 +13,6 @@ import com.dumbster.smtp.SimpleSmtpServer;
  */
 public class DumbSMTPServer {
 	
-	@Test
 	public void runServer(){
 
 		SimpleSmtpServer server = SimpleSmtpServer.start(20000);

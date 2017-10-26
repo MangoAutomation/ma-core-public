@@ -12,13 +12,13 @@ import com.serotonin.timer.CronExpression;
 
 public class CronPatternTest {
 
-//	@Test
+	@Test
 	public void testCronPattern() {
 //		Date timeStart = new Date(2016, 3, 3);
 		DateTime baseTime = DateTime.parse("2017-03-02T00:00:00.000");
 		Date timeStart = new Date(baseTime.getMillis());
 		long timeEnd = timeStart.getTime() + 86400000;
-		long timeStep = 1;
+		long timeStep = 1000;
 		boolean fail = false;
 		try {
 			CronExpression ce = new CronExpression("0/5 * * * * ?");

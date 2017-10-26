@@ -234,11 +234,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
     public void terminateImpl() {
         if (dataSource != null)
             dataSource.dispose();
-        if(web != null){
-        	if(web.isRunning(true)){
-        		web.stop();
-        		web.shutdown();
-        	}
+        if (web != null) {
+            if (web.isRunning(true)) {
+                web.stop();
+                web.shutdown();
+            }
         }
     }
 

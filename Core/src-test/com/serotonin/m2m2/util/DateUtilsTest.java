@@ -6,11 +6,16 @@ package com.serotonin.m2m2.util;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Date;
 
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.joda.time.DateTime;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.Common.TimePeriods;
 
 /**
@@ -19,6 +24,14 @@ import com.serotonin.m2m2.Common.TimePeriods;
  */
 public class DateUtilsTest {
 
+    @BeforeClass
+    public static void staticSetup() throws IOException{
+        
+        //Configure Log4j2
+        ConfigurationSource source = new ConfigurationSource(MangoTestBase.class.getClass().getResource("/test-log4j2.xml").openStream());
+        Configurator.initialize(null, source);
+    }
+    
 	@Test
 	public void quickTest(){
 		DateTime baseTime = DateTime.parse("2013-02-10T10:34:23.230");

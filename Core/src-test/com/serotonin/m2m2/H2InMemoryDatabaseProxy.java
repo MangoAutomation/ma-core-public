@@ -21,6 +21,7 @@ import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
+import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
@@ -31,30 +32,44 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.NoSQLProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 
 /**
- * Using an H2 in memory database we can easily mock the database proxy
+ * Using an H2 in memory database we can easily mock the database proxy.
+ * 
+ * If you do not call initialize, none of the tables are created.  However 
+ *   it is possible to use the PointValueDao via the mock in memory list implementation.
  *  
  * @author Terry Packer
  */
-public class MockDatabaseProxy implements DatabaseProxy{
+public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     
+    protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSqlProxy;
-    protected PointValueDao pointValueDao;
-
-    public MockDatabaseProxy() {
-        this.pointValueDao = new MockPointValueDao();
+    protected MockPointValueDao mockPointValueDao;
+    protected boolean initialized = false;
+    protected boolean initWebConsole = false;
+    protected Integer webPort;
+    private Server web; //web UI
+    
+    public H2InMemoryDatabaseProxy() {
+        mockPointValueDao = new MockPointValueDao();
+    }
+    
+    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort) {
+        this.mockPointValueDao = new MockPointValueDao();
+        this.initWebConsole = initWebConsole;
+        this.webPort = webPort;
     }
     
     /* (non-Javadoc)
@@ -63,8 +78,21 @@ public class MockDatabaseProxy implements DatabaseProxy{
     @Override
     public void initialize(ClassLoader classLoader) {
         JdbcDataSource jds = new JdbcDataSource();
-        jds.setUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
+        String url = "jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1";
+        jds.setUrl(url);
         dataSource = JdbcConnectionPool.create(jds);
+        
+        String webArgs[] = new String[4];
+        webArgs[0] = "-webPort";
+        webArgs[1] = webPort.toString();
+        webArgs[2] = "-ifExists";
+        webArgs[3] = "-webAllowOthers";
+        try {
+            this.web = Server.createWebServer(webArgs);
+            this.web.start();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
@@ -102,11 +130,9 @@ public class MockDatabaseProxy implements DatabaseProxy{
             DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
             factory.saveDefaultTemplates();
             
-            //Add the Default Permissions for the UI
-            List<PermissionDefinition> defs = ModuleRegistry.getDefinitions(PermissionDefinition.class);
-            for(PermissionDefinition def : defs)
-                def.install();
-        }        
+        } 
+        
+        initialized = true;
     }
 
     /* (non-Javadoc)
@@ -122,8 +148,14 @@ public class MockDatabaseProxy implements DatabaseProxy{
      */
     @Override
     public void terminate(boolean terminateNoSql) {
-
-        
+        if (dataSource != null)
+            dataSource.dispose();
+        if(web != null){
+            if(web.isRunning(true)){
+                web.stop();
+                web.shutdown();
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -334,8 +366,9 @@ public class MockDatabaseProxy implements DatabaseProxy{
     @Override
     public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper,
             int limit) {
-
-        return null;
+        if (limit > 0)
+            sql += " LIMIT " + limit;
+        return dao.query(sql, args, rowMapper);
     }
 
     /* (non-Javadoc)
@@ -390,7 +423,6 @@ public class MockDatabaseProxy implements DatabaseProxy{
     @Override
     public void setNoSQLProxy(NoSQLProxy proxy) {
 
-        
     }
 
     /* (non-Javadoc)
@@ -398,7 +430,10 @@ public class MockDatabaseProxy implements DatabaseProxy{
      */
     @Override
     public PointValueDao newPointValueDao() {
-        return pointValueDao;
+        if(initialized)
+            return new PointValueDaoSQL();
+        else
+            return mockPointValueDao;
     }
 
     /* (non-Javadoc)
@@ -408,6 +443,40 @@ public class MockDatabaseProxy implements DatabaseProxy{
     public NoSQLProxy getNoSQLProxy() {
 
         return null;
+    }
+
+    /**
+     * @throws Exception 
+     * 
+     */
+    public void clean() throws Exception {
+        
+        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(getDataSource());
+        
+        runScript(new String[] {"DROP ALL OBJECTS;"}, null);
+        runScript(this.getClass().getResourceAsStream("/createTables-" + getType().name() + ".sql"), null);
+
+        for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
+            def.newInstallationCheck(ejt);
+
+        SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                Integer.toString(Common.getDatabaseSchemaVersion()));
+
+        // Add the settings flag that this is a new instance. This flag is removed when an administrator
+        // logs in.
+        SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+        
+        User user = new User();
+        user.setId(Common.NEW_ID);
+        user.setName("Administrator");
+        user.setUsername("admin");
+        user.setPassword(Common.encrypt("admin"));
+        user.setEmail("admin@yourMangoDomain.com");
+        user.setPhone("");
+        user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
+        user.setDisabled(false);
+        UserDao.instance.saveUser(user);
     }
     
 }

@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.Before;
+import org.junit.Test;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.query.Index;
@@ -29,19 +29,8 @@ import com.serotonin.m2m2.vo.AbstractVO;
 
 public class TestStreamableSqlQuery extends MangoTestBase {
 
-	@Before
-    public void setup() {
-    	this.initMaHome();
-    	this.initEnvProperties("test-env");
-    	this.initTimer();
-//    	File db = new File(new File("junit"), "databases");
-//    	this.configureH2Proxy(db);
-    	this.configureMySqlProxy("10.55.55.8", 3306, "mango");
-    			
-//        MockitoAnnotations.initMocks(this);
-    }
 	
-//	@Test
+	@Test
 	public void testStreamableSqlQuery() {
 		OutputStream deadEnd = new OutputStream(){
 			@Override
@@ -133,10 +122,11 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 	
 	class StreamTestDao extends AbstractDao<StreamTestData> {
 
-		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData ", "select count(id) ",null, "streamTest", null, false, false, new ArrayList<Index>(), DatabaseType.MYSQL);
+		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData from ", "select count(id) from ",null, "streamTest", null, false, false, new ArrayList<Index>(), DatabaseType.H2);
 		
 		protected StreamTestDao(WebSocketDefinition def, String typeName) {
 			super(def, typeName);
+			TEST_SELECT_ALL.build();
 		}
 
 		@Override

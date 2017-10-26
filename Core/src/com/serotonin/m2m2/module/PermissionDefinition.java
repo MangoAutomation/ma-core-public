@@ -41,6 +41,6 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return - List of groups to assign to permission
      */
     public List<String> getDefaultGroups(){
-    	return null;
+    	    return null;
     }
 }

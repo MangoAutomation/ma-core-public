@@ -18,7 +18,7 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     private static final long serialVersionUID = 1L;
     
     public MockDataSourceVO(){
-    	this.setDefinition(new MockDataSourceDefinition());
+    	    this.setDefinition(new MockDataSourceDefinition());
     }
     
 

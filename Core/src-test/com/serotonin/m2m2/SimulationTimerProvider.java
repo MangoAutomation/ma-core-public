@@ -22,14 +22,31 @@ public class SimulationTimerProvider  implements TimerProvider<AbstractTimer> {
 
     private SimulationTimer timer;
     
+    /**
+     * Create a new timer provider with a timer and set 
+     *   Common.timer and Providers(TimerProvider) to use it.
+     */
     public SimulationTimerProvider() {
-        this.timer = new SimulationTimer();
+        this(new SimulationTimer());
     }
     
-    public void reset() {
+    /**
+     * Create a timer provider using the given timer and set 
+     *   Common.timer and Providers(TimerProvider) to use it.
+     * @param timer
+     */
+    public SimulationTimerProvider(SimulationTimer timer) {
+        this.timer = timer;
+        this.timer.init();
+        Common.timer = timer;
+    }
+    
+    public SimulationTimer reset() {
         this.timer.cancel();
         this.timer = new SimulationTimer();
+        this.timer.init();
         Common.timer = this.timer;
+        return this.timer;
     }
     /* (non-Javadoc)
      * @see com.serotonin.provider.TimerProvider#getTimer()

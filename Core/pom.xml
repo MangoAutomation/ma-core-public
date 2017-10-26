@@ -24,18 +24,25 @@
 	    </profile>
 	</profiles>
 	<build>
-		<directory>maven-target</directory>
-		<sourceDirectory>src</sourceDirectory>
-		<testSourceDirectory>src-test</testSourceDirectory>
 		<testResources>
 			<testResource>
 				<directory>src-test</directory>
 				<excludes>
 					<exclude>**/*.java</exclude>
+					<exclude>resources/</exclude>
 				</excludes>
 			</testResource>
 			<testResource>
+				<directory>src-test/resources</directory>
+			</testResource>
+			<testResource>
 				<directory>db</directory>
+			</testResource>
+			<testResource>
+				<directory>classes</directory>
+				<includes>
+					<include>i18n.properties</include>
+				</includes>
 			</testResource>
 		</testResources>
 		<plugins>
@@ -617,7 +624,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>4.12</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>

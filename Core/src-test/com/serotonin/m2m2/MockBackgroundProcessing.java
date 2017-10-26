@@ -4,18 +4,24 @@
  */
 package com.serotonin.m2m2;
 
+import static org.junit.Assert.fail;
+
 import java.lang.management.ThreadInfo;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionException;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.timer.Task;
 import com.serotonin.timer.TimerTask;
 
 /**
@@ -26,12 +32,24 @@ import com.serotonin.timer.TimerTask;
  */
 public class MockBackgroundProcessing implements BackgroundProcessing{
     
+    protected AbstractTimer timer;
+    
+    public MockBackgroundProcessing() {
+        this(null);
+    }
+    public MockBackgroundProcessing(AbstractTimer timer) {
+        this.timer = timer;
+    }
+    
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#execute(com.serotonin.m2m2.util.timeout.HighPriorityTask)
      */
     @Override
     public void execute(HighPriorityTask task) {
-         
+        if(this.timer == null)
+            Common.timer.execute(task);
+        else
+            this.timer.execute(task);
     }
 
     /* (non-Javadoc)
@@ -39,7 +57,10 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void schedule(TimeoutTask task) {
-        
+        if(this.timer == null)
+            Common.timer.schedule(task);
+        else
+            this.timer.schedule(task);
     }
 
     /* (non-Javadoc)
@@ -47,7 +68,10 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void schedule(TimerTask task) {
-           
+        if(this.timer == null)
+            Common.timer.schedule(task);
+        else
+            this.timer.schedule(task);
     }
 
     /* (non-Javadoc)
@@ -55,7 +79,7 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void executeMediumPriorityTask(TimerTask task) {
-        
+        throw new ShouldNeverHappenException("unimplemented yet.");
     }
 
     /* (non-Javadoc)
@@ -63,7 +87,60 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void addWorkItem(WorkItem item) {
+        AbstractTimer timer = null;
+        if(this.timer == null)
+            timer = Common.timer;
+        else
+            timer = this.timer;
         
+        try {
+            if (item.getPriority() == WorkItem.PRIORITY_HIGH){
+                
+                timer.execute(new Task(item.getTaskId()) {
+
+                    @Override
+                    public void run(long runtime) {
+                        item.execute();
+                    }
+
+                    @Override
+                    public void rejected(RejectedTaskReason reason) {
+                        fail(reason.toString());
+                    }
+                    
+                });
+            }
+            else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM){
+                timer.execute(new Task(item.getTaskId()) {
+
+                    @Override
+                    public void run(long runtime) {
+                        item.execute();
+                    }
+
+                    @Override
+                    public void rejected(RejectedTaskReason reason) {
+                        fail(reason.toString());
+                    }
+                    
+                });            }
+            else{
+                timer.execute(new Task(item.getTaskId()) {
+
+                    @Override
+                    public void run(long runtime) {
+                        item.execute();
+                    }
+
+                    @Override
+                    public void rejected(RejectedTaskReason reason) {
+                        fail(reason.toString());
+                    }
+                    
+                });            }
+        }catch(RejectedExecutionException e){
+            throw new ShouldNeverHappenException(e);
+        }
     }
 
     /* (non-Javadoc)
@@ -71,7 +148,7 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void rejectedHighPriorityTask(RejectedTaskReason reason) {
-        
+        throw new ShouldNeverHappenException("unimplemented yet.");
     }
 
     /* (non-Javadoc)
@@ -319,7 +396,7 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void initialize(boolean safe) {
-        
+
     }
 
     /* (non-Javadoc)
@@ -327,7 +404,7 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void terminate() {
-
+        this.timer.cancel();
     }
 
     /* (non-Javadoc)
@@ -343,7 +420,7 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public TaskRejectionHandler getHighPriorityRejectionHandler() {
-        return null;
+        throw new ShouldNeverHappenException("unimplemented yet.");
     }
 
     /* (non-Javadoc)
@@ -351,7 +428,7 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public TaskRejectionHandler getMediumPriorityRejectionHandler() {
-        return null;
+        throw new ShouldNeverHappenException("unimplemented yet.");
     }
 
     /* (non-Javadoc)
@@ -359,6 +436,6 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public List<ThreadInfo> getThreadsList(int stackDepth) {
-        return null;
+        throw new ShouldNeverHappenException("unimplemented yet.");
     }
 }

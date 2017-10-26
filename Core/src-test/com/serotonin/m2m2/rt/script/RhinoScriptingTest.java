@@ -4,7 +4,8 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -20,6 +21,7 @@ import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 
@@ -27,7 +29,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
  * @author Terry Packer
  * 
  */
-public class RhinoScriptingTests {
+public class RhinoScriptingTest extends MangoTestBase{
 
 	@Test
 	public void testAnalogStatistics() {

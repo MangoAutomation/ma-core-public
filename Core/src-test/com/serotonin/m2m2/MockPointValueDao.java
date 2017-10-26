@@ -5,11 +5,15 @@
 package com.serotonin.m2m2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -21,9 +25,9 @@ import com.serotonin.m2m2.vo.pair.LongPair;
  */
 public class MockPointValueDao implements PointValueDao{
 
-    protected List<PointValueTime> data = new ArrayList<PointValueTime>();
+    protected Map<Integer, List<PointValueTime>> data = new ConcurrentHashMap<Integer, List<PointValueTime>>();
     
-    public List<PointValueTime> getData() {
+    public Map<Integer, List<PointValueTime>> getData() {
         return this.data;
     }
     
@@ -33,8 +37,23 @@ public class MockPointValueDao implements PointValueDao{
     @Override
     public PointValueTime savePointValueSync(int pointId, PointValueTime pointValue,
             SetPointSource source) {
-        // TODO Auto-generated method stub
-        return null;
+        List<PointValueTime> pvts = data.get(pointId);
+        if(pvts == null) {
+            pvts = new ArrayList<>();
+            data.put(pointId, pvts);
+        }
+        
+        PointValueTime newPvt = null;
+        if(source != null)
+            newPvt = new AnnotatedPointValueTime(pointValue.getValue(), pointValue.getTime(), source.getSetPointSourceMessage());
+        else
+            newPvt = new PointValueTime(pointValue.getValue(), pointValue.getTime());
+        pvts.add(newPvt);
+        
+        //Keep in time order?
+        Collections.sort(pvts);
+        
+        return newPvt;
     }
 
     /* (non-Javadoc)
@@ -42,8 +61,7 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public void savePointValueAsync(int pointId, PointValueTime pointValue, SetPointSource source) {
-        // TODO Auto-generated method stub
-        
+        savePointValueSync(pointId, pointValue, source);
     }
 
     /* (non-Javadoc)
@@ -51,8 +69,15 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public List<PointValueTime> getPointValues(int pointId, long since) {
-        // TODO Auto-generated method stub
-        return null;
+        List<PointValueTime> pvts = new ArrayList<>();
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(PointValueTime pvt : existing) {
+                if(pvt.getTime() >= since)
+                    pvts.add(pvt);
+            }
+        }
+        return pvts;
     }
 
     /* (non-Javadoc)
@@ -60,8 +85,15 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public List<PointValueTime> getPointValuesBetween(int pointId, long from, long to) {
-        // TODO Auto-generated method stub
-        return null;
+        List<PointValueTime> pvts = new ArrayList<>();
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(PointValueTime pvt : existing) {
+                if(pvt.getTime() >= from && pvt.getTime() < to)
+                    pvts.add(pvt);
+            }
+        }
+        return pvts;
     }
 
     /* (non-Javadoc)
@@ -69,8 +101,18 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public List<PointValueTime> getPointValuesBetween(int pointId, long from, long to, int limit) {
-        // TODO Auto-generated method stub
-        return null;
+        
+        List<PointValueTime> pvts = new ArrayList<>();
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(PointValueTime pvt : existing) {
+                if(pvt.getTime() >= from && pvt.getTime() < to)
+                    pvts.add(pvt);
+                if(pvts.size() >= limit)
+                    break;
+            }
+        }
+        return pvts;
     }
 
     /* (non-Javadoc)
@@ -78,8 +120,16 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public List<PointValueTime> getLatestPointValues(int pointId, int limit) {
-        // TODO Auto-generated method stub
-        return null;
+        List<PointValueTime> pvts = new ArrayList<>();
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(PointValueTime pvt : existing) {
+                pvts.add(pvt);
+                if(pvts.size() >= limit)
+                    break;
+            }
+        }
+        return pvts;
     }
 
     /* (non-Javadoc)
@@ -87,8 +137,18 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public List<PointValueTime> getLatestPointValues(int pointId, int limit, long before) {
-        // TODO Auto-generated method stub
-        return null;
+        List<PointValueTime> pvts = new ArrayList<>();
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(int i=existing.size() -1; i>=0; i--) {
+                PointValueTime pvt = existing.get(i);
+                if(pvt.getTime() < before)
+                    pvts.add(pvt);
+                if(pvts.size() >= limit)
+                    break;
+            }
+        }
+        return pvts;
     }
 
     /* (non-Javadoc)
@@ -96,7 +156,10 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public PointValueTime getLatestPointValue(int pointId) {
-        // TODO Auto-generated method stub
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            return existing.get(existing.size() -1);
+        }
         return null;
     }
 
@@ -105,7 +168,14 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public PointValueTime getPointValueBefore(int pointId, long time) {
-        // TODO Auto-generated method stub
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(int i=existing.size() -1; i>=0; i--) {
+                PointValueTime pvt = existing.get(i);
+                if(pvt.getTime() < time)
+                    return pvt;
+            }
+        }
         return null;
     }
 
@@ -114,7 +184,13 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public PointValueTime getPointValueAfter(int pointId, long time) {
-        // TODO Auto-generated method stub
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(PointValueTime pvt : existing) {
+                if(pvt.getTime() > time)
+                    return pvt;
+            }
+        }
         return null;
     }
 
@@ -123,7 +199,13 @@ public class MockPointValueDao implements PointValueDao{
      */
     @Override
     public PointValueTime getPointValueAt(int pointId, long time) {
-        // TODO Auto-generated method stub
+        List<PointValueTime> existing = data.get(pointId);
+        if(existing != null) {
+            for(PointValueTime pvt : existing) {
+                if(pvt.getTime() == time)
+                    return pvt;
+            }
+        }
         return null;
     }
 

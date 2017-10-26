@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The simulation timer is a single threaded timer under the temporal control of the next and fastForward methods. Tasks
@@ -17,7 +19,8 @@ public class SimulationTimer extends AbstractTimer {
     private final List<TimerTask> queue = new ArrayList<TimerTask>();
     private boolean cancelled;
     private long currentTime;
-
+    private ExecutorService executorService;
+    
     @Override
     public boolean isInitialized() {
         return true;
@@ -107,7 +110,7 @@ public class SimulationTimer extends AbstractTimer {
     public int purge() {
         int result = 0;
 
-        for (int i = queue.size(); i > 0; i--) {
+        for (int i = queue.size()-1; i >= 0; i--) {
             if (queue.get(i).state == TimerTask.CANCELLED) {
                 queue.remove(i);
                 result++;
@@ -198,8 +201,7 @@ public class SimulationTimer extends AbstractTimer {
      */
     @Override
     public void init() {
-        // TODO Auto-generated method stub
-        
+        this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false);
     }
 
     /* (non-Javadoc)
@@ -207,8 +209,7 @@ public class SimulationTimer extends AbstractTimer {
      */
     @Override
     public void init(ExecutorService executorService) {
-        // TODO Auto-generated method stub
-        
+        this.executorService = executorService;
     }
 
     /* (non-Javadoc)
@@ -216,7 +217,6 @@ public class SimulationTimer extends AbstractTimer {
      */
     @Override
     public void init(TimerThread timer) {
-        // TODO Auto-generated method stub
         
     }
 
@@ -225,7 +225,6 @@ public class SimulationTimer extends AbstractTimer {
      */
     @Override
     public ExecutorService getExecutorService() {
-        // TODO Auto-generated method stub
-        return null;
+        return executorService;
     }
 }
