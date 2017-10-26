@@ -27,7 +27,6 @@ import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
-import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSeekStepN;
 import org.jooq.SortField;
@@ -932,7 +931,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	}
 
     protected int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition) {
-        SelectConditionStep<Record1<Integer>> select = input.where(condition);
+        Select<Record1<Integer>> select = input;
+        if (condition != null) {
+            select = input.where(condition);
+        }
         
         String sql = select.getSQL();
         List<Object> arguments = select.getBindValues();
@@ -947,7 +949,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     protected void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
-        SelectSeekStepN<Record> sortStep = select.where(condition).orderBy(sort);
+        SelectSeekStepN<Record> sortStep;
+        if (condition != null) {
+            sortStep = select.where(condition).orderBy(sort);
+        } else {
+            sortStep = select.orderBy(sort);
+        }
+        
         Select<Record> offsetStep = sortStep;
         if (limit != null) {
             if (offset != null) {
@@ -957,6 +965,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             }
         }
         
+        System.out.println(offsetStep.toString());
         String sql = offsetStep.getSQL();
         List<Object> arguments = offsetStep.getBindValues();
 

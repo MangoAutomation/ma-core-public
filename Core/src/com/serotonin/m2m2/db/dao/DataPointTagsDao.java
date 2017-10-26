@@ -119,6 +119,21 @@ public class DataPointTagsDao extends BaseDao {
         
         return DSL.select(fields).from(DATA_POINT_TAGS).groupBy(DATA_POINT_ID);
     }
+    
+    Select<Record> createTagPivotSql(Map<String, Name> tagKeyToColumn, Condition condition) {
+        List<Field<?>> fields = new ArrayList<>(tagKeyToColumn.size() + 1);
+        fields.add(DATA_POINT_ID);
+        
+        for (Entry<String, Name> entry : tagKeyToColumn.entrySet()) {
+            fields.add(DSL.max(DSL.when(TAG_KEY.eq(entry.getKey()), TAG_VALUE)).as(entry.getValue()));
+        }
+        
+        SelectJoinStep<Record> result = DSL.select(fields).from(DATA_POINT_TAGS);
+        if (condition == null) {
+            return result.groupBy(DATA_POINT_ID);
+        }
+        return result.where(condition).groupBy(DATA_POINT_ID);
+    }
 
     /**
      * Maps tag keys to generic keyX to prevent SQL injection

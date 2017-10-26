@@ -44,10 +44,30 @@ public class RQLToCondition {
     protected Condition visitNode(ASTNode node) {
         switch (node.getName()) {
         case "":
-        case "and":
-            return DSL.and(visitAndOr(node));
-        case "or":
-            return DSL.or(visitAndOr(node));
+        case "and": {
+            List<Condition> conditions = visitAndOr(node);
+            return conditions.isEmpty() ? null : DSL.and(conditions);
+        }
+        case "or": {
+            List<Condition> conditions = visitAndOr(node);
+            return conditions.isEmpty() ? null : DSL.or(conditions);
+        }
+        case "sort":
+            sortFields = getSortFields(node);
+            return null;
+        case "limit":
+            limit = (Integer) node.getArgument(0);
+            if (node.getArgumentsSize() > 1) {
+                offset = (Integer) node.getArgument(1);
+            }
+            return null;
+        default:
+            return visitConditionNode(node);
+        }
+    }
+    
+    protected Condition visitConditionNode(ASTNode node) {
+        switch (node.getName()) {
         case "eq":
             if (node.getArgument(1) == null) {
                 return getField(node).isNull();
@@ -69,7 +89,7 @@ public class RQLToCondition {
         case "match":
         case "like":
             return getField(node).like((String) node.getArgument(1));
-        case "in": {
+        case "in":
             List<?> inArray;
             if (node.getArgument(1) instanceof List ) {
                 inArray = (List<?>) node.getArgument(1);
@@ -77,16 +97,6 @@ public class RQLToCondition {
                 inArray = node.getArguments().subList(1, node.getArgumentsSize());
             }
             return getField(node).in(inArray);
-        }
-        case "sort":
-            sortFields = getSortFields(node);
-            return DSL.and();
-        case "limit":
-            limit = (Integer) node.getArgument(0);
-            if (node.getArgumentsSize() > 1) {
-                offset = (Integer) node.getArgument(1);
-            }
-            return DSL.and();
         default:
             throw new RuntimeException("Unknown node type " + node.getName());
         }
@@ -96,7 +106,10 @@ public class RQLToCondition {
         List<Condition> conditions = new ArrayList<>();
         for (Object obj : node) {
             ASTNode arg = (ASTNode) obj;
-            conditions.add(visitNode(arg));
+            Condition result = visitNode(arg);
+            if (result != null) {
+                conditions.add(result);
+            }
         }
         return conditions;
     }
