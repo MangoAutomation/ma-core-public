@@ -137,6 +137,7 @@ create table dataPoints (
   setPermission varchar(255),
   templateId int,
   rollup int,
+  dataTypeId int not null,
   primary key (id)
 ) engine=InnoDB;
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
