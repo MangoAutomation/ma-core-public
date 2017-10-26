@@ -1136,7 +1136,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             if(rs.wasNull())
             	dp.setTemplateId(null);
             dp.setRollup(rs.getInt(++i));
-            
+
             // read and discard dataTypeId
             rs.getInt(++i);
 
@@ -1572,8 +1572,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         int tagIndex = 0;
         Map<String, Name> tagKeyToColumn = new HashMap<>();
         
-        public RQLToConditionWithTagKeys(Map<String, Field<Object>> fieldMapping, Name tableName) {
-            super(fieldMapping, tableName);
+        public RQLToConditionWithTagKeys(Map<String, Field<Object>> fieldMapping) {
+            super(fieldMapping);
         }
         
         @Override
@@ -1619,7 +1619,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     @Override
     public ConditionSortLimitTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
-        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField, tableAlias);
+        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField);
         return rqlToSelect.visit(rql);
     }
 }

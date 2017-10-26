@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.SortField;
 import org.jooq.SortOrder;
 import org.jooq.impl.DSL;
@@ -25,15 +24,13 @@ import net.jazdw.rql.parser.ASTNode;
 public class RQLToCondition {
 
     protected final Map<String, Field<Object>> fieldMapping;
-    protected final Name tableName;
     
     protected List<SortField<Object>> sortFields = null;
     protected Integer limit = null;
     protected Integer offset = null;
 
-    public RQLToCondition(Map<String, Field<Object>> fieldMapping, Name tableName) {
+    public RQLToCondition(Map<String, Field<Object>> fieldMapping) {
         this.fieldMapping = fieldMapping;
-        this.tableName = tableName;
     }
 
     public ConditionSortLimit visit(ASTNode node) {
@@ -98,7 +95,7 @@ public class RQLToCondition {
             }
             return getField(node).in(inArray);
         default:
-            throw new RuntimeException("Unknown node type " + node.getName());
+            throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
         }
     }
 
@@ -123,7 +120,7 @@ public class RQLToCondition {
         if (this.fieldMapping.containsKey(property)) {
             return this.fieldMapping.get(property);
         }
-        return DSL.field(tableName.append(property));
+        throw new RQLVisitException(String.format("Unknown property '%s', valid properties are %s", property, fieldMapping.keySet().toString()));
     }
 
     protected List<SortField<Object>> getSortFields(ASTNode node) {
@@ -144,5 +141,17 @@ public class RQLToCondition {
         }
         
         return fields;
+    }
+    
+    static class RQLVisitException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public RQLVisitException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public RQLVisitException(String message) {
+            super(message);
+        }
     }
 }

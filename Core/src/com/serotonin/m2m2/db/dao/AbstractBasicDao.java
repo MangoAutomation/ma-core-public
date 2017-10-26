@@ -188,9 +188,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		else
 			this.propertiesMap = propMap;
 		
-		this.propertyToField = this.createPropertyToField();
-        this.rqlToCondition = this.createRqlToCondition();
-
 		LinkedHashMap<String, Integer> propTypeMap = getPropertyTypeMap();
 		if (propTypeMap == null)
 			throw new ShouldNeverHappenException("Property Type Map is required!");
@@ -240,6 +237,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 fields.add(DSL.field(DSL.name(split)));
 			}
 		}
+
+        this.propertyToField = this.createPropertyToField();
+        this.rqlToCondition = this.createRqlToCondition();
 
 		// Setup the Joins
 		this.joins = getJoins();
@@ -964,8 +964,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 offsetStep = sortStep.limit(limit);
             }
         }
-        
-        System.out.println(offsetStep.toString());
+
         String sql = offsetStep.getSQL();
         List<Object> arguments = offsetStep.getBindValues();
 
@@ -974,15 +973,23 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     protected Map<String, Field<Object>> createPropertyToField() {
-        Map<String, Field<Object>> propertyToField = new HashMap<>(propertiesMap.size());
-        for (Entry<String, IntStringPair> e : propertiesMap.entrySet()) {
-            propertyToField.put(e.getKey(), DSL.field(tableAlias.append(e.getValue().getValue())));
+        Map<String, Field<Object>> propertyToField = new HashMap<>(propertyTypeMap.size() + propertiesMap.size());
+        
+        for (Entry<String, Integer> e : propertyTypeMap.entrySet()) {
+            String property = e.getKey();
+            propertyToField.put(property, DSL.field(this.tableAlias.append(property)));
         }
+        
+        for (Entry<String, IntStringPair> e : propertiesMap.entrySet()) {
+            String name = e.getValue().getValue();
+            propertyToField.put(e.getKey(), DSL.field(DSL.name(name.split("\\."))));
+        }
+        
         return propertyToField;
     }
     
     protected RQLToCondition createRqlToCondition() {
-        return new RQLToCondition(propertyToField, tableAlias);
+        return new RQLToCondition(propertyToField);
     }
 
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
