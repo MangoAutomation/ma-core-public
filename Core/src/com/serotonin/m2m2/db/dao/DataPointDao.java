@@ -1080,7 +1080,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
         map.put("dataSourceEditPermission", new IntStringPair(Types.VARCHAR, "ds.editPermission"));
         map.put("templateName", new IntStringPair(Types.VARCHAR, "template.name"));
-        map.put("dataTypeId", new IntStringPair(Types.VARCHAR, "dp.dataTypeId"));
         return map;
     }
 
@@ -1128,6 +1127,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             if(rs.wasNull())
             	dp.setTemplateId(null);
             dp.setRollup(rs.getInt(++i));
+            
+            // read and discard dataTypeId
+            rs.getInt(++i);
 
             // Data source information from Extra Joins set in Constructor
             dp.setDataSourceName(rs.getString(++i));
