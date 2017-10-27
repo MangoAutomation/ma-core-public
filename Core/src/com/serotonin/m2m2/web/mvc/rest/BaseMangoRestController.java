@@ -20,25 +20,37 @@ import net.jazdw.rql.parser.RQLParserException;
  */
 public abstract class BaseMangoRestController {
 
+    private static final ASTNode DEFAULT_NODE = new ASTNode("limit", 100);
+
 	/**
 	 * Create an AST Node from the RQL query in the request
 	 * @param request
-	 * @return ASTNode or null if no query
+	 * @return ASTNode
 	 * @throws InvalidRQLRestException
 	 */
-	protected ASTNode parseRQLtoAST(HttpServletRequest request) throws InvalidRQLRestException{
-		RQLParser parser = new RQLParser();
+    @Deprecated
+	protected ASTNode parseRQLtoAST(HttpServletRequest request) throws InvalidRQLRestException {
 		String query = request.getQueryString();
-		if(query == null)
-			return null;
-		else{
-			try{
-				return parser.parse(query);
-			}catch(RQLParserException | IllegalArgumentException e){
-				throw new InvalidRQLRestException(query, e.getMessage());
-			}
-		} 
+		return parseRQLtoAST(query);
 	}
+    
+    /**
+     * Create an AST Node from the RQL query in the request
+     * @param queryString
+     * @return ASTNode
+     * @throws InvalidRQLRestException
+     */
+    protected ASTNode parseRQLtoAST(String queryString) throws InvalidRQLRestException {
+        if (queryString == null || queryString.isEmpty()) return DEFAULT_NODE;
+        
+        RQLParser parser = new RQLParser();
+        
+        try {
+            return parser.parse(queryString);
+        } catch (RQLParserException | IllegalArgumentException e) {
+            throw new InvalidRQLRestException(queryString, e.getMessage());
+        }
+    }
 	
 	/**
 	 * Append an AND Restriction to a query
