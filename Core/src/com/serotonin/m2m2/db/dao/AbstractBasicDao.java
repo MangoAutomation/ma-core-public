@@ -74,6 +74,8 @@ import net.jazdw.rql.parser.ASTNode;
 public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements ValueMonitorOwner{
 	protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
+    public static final int DEFAULT_LIMIT = 100;
+    
 	protected DaoNotificationWebSocketHandler<T> handler;
 
 	public static final String WHERE = " WHERE ";

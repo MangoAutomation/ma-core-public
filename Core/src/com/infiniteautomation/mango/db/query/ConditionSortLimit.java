@@ -11,6 +11,8 @@ import org.jooq.Condition;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+
 /**
  * @author Jared Wiltshire
  */
@@ -23,7 +25,7 @@ public class ConditionSortLimit {
     public ConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
         this.condition = condition;
         this.sort = sort == null ? Collections.emptyList() : sort;
-        this.limit = limit;
+        this.limit = limit == null ? AbstractBasicDao.DEFAULT_LIMIT : limit;
         this.offset = offset;
     }
 

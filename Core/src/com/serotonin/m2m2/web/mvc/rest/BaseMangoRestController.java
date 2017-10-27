@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.rest;
 import javax.servlet.http.HttpServletRequest;
 
 import com.infiniteautomation.mango.rest.v2.exception.InvalidRQLRestException;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -20,7 +21,7 @@ import net.jazdw.rql.parser.RQLParserException;
  */
 public abstract class BaseMangoRestController {
 
-    private static final ASTNode DEFAULT_NODE = new ASTNode("limit", 100);
+    private static final ASTNode DEFAULT_NODE = new ASTNode("limit", AbstractBasicDao.DEFAULT_LIMIT);
 
 	/**
 	 * Create an AST Node from the RQL query in the request
@@ -29,7 +30,7 @@ public abstract class BaseMangoRestController {
 	 * @throws InvalidRQLRestException
 	 */
     @Deprecated
-	protected ASTNode parseRQLtoAST(HttpServletRequest request) throws InvalidRQLRestException {
+	public static ASTNode parseRQLtoAST(HttpServletRequest request) throws InvalidRQLRestException {
 		String query = request.getQueryString();
 		return parseRQLtoAST(query);
 	}
@@ -40,7 +41,7 @@ public abstract class BaseMangoRestController {
      * @return ASTNode
      * @throws InvalidRQLRestException
      */
-    protected ASTNode parseRQLtoAST(String queryString) throws InvalidRQLRestException {
+    public static ASTNode parseRQLtoAST(String queryString) throws InvalidRQLRestException {
         if (queryString == null || queryString.isEmpty()) return DEFAULT_NODE;
         
         RQLParser parser = new RQLParser();
