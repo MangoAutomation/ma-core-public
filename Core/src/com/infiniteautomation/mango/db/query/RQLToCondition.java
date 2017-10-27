@@ -84,8 +84,10 @@ public class RQLToCondition {
             }
             return getField(node).ne(node.getArgument(1));
         case "match":
-        case "like":
-            return getField(node).like((String) node.getArgument(1));
+        case "like": {
+            String like = (String) node.getArgument(1);
+            return getField(node).like(like.replace('*', '%'));
+        }
         case "in":
             List<?> inArray;
             if (node.getArgument(1) instanceof List ) {
