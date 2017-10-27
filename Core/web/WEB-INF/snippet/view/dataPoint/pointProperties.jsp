@@ -182,6 +182,7 @@
 			rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = false;
 			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = true;
 			rollupNode[<%=Common.Rollups.SUM%>].hidden = false;
+			rollupNode[<%=Common.Rollups.START%>].hidden = false;
 			rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
 			rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
 			rollupNode[<%=Common.Rollups.COUNT%>].hidden = false;
@@ -200,6 +201,7 @@
 			rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = true;
 			rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = true;
 			rollupNode[<%=Common.Rollups.SUM%>].hidden = true;
+			rollupNode[<%=Common.Rollups.START%>].hidden = false;
 			rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
 			rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
 			rollupNode[<%=Common.Rollups.COUNT%>].hidden = false;
