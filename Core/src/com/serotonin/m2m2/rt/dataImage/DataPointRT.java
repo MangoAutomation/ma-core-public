@@ -534,8 +534,6 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                         value = new NumericValue(stats.getAverage());
                     else if(vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
                         value = new BinaryValue(stats.getAverage() >= 0.5);
-                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE)
-                        value = new MultistateValue((int)Math.round(stats.getAverage()));
                     else
                         throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
                 }
