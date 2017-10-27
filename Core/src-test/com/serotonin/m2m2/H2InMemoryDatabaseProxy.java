@@ -113,7 +113,9 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
             
             SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                     Integer.toString(Common.getDatabaseSchemaVersion()));
-
+            SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_ENABLED, "false");
+            SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
+            
             // Add the settings flag that this is a new instance. This flag is removed when an administrator
             // logs in.
             SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);

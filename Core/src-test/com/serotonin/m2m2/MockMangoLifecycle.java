@@ -6,10 +6,22 @@ package com.serotonin.m2m2;
 
 import java.util.List;
 
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
+import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.module.ModuleElementDefinition;
+import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventTypeResolver;
+import com.serotonin.m2m2.util.MapWrap;
+import com.serotonin.m2m2.util.MapWrapConverter;
+import com.serotonin.m2m2.view.chart.BaseChartRenderer;
+import com.serotonin.m2m2.view.chart.ChartRenderer;
+import com.serotonin.m2m2.view.text.BaseTextRenderer;
+import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
+import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -24,20 +36,19 @@ public class MockMangoLifecycle implements IMangoLifecycle{
 
     protected boolean enableWebConsole;
     protected int webPort;
-    protected List<ModuleElementDefinition> definitions;
-    
+    protected List<Module> modules;
     /**
      * Create a default lifecycle with an H2 web console on port 9001 
      *   to view the in-memory database.
      */
-    public MockMangoLifecycle(List<ModuleElementDefinition> defs) {
-        this(defs, true, 9001);
+    public MockMangoLifecycle(List<Module> modules) {
+        this(modules, true, 9001);
     }
     
-    public MockMangoLifecycle(List<ModuleElementDefinition> defs, boolean enableWebConsole, int webPort) {
-        this.definitions = defs;
+    public MockMangoLifecycle(List<Module> modules, boolean enableWebConsole, int webPort) {
         this.enableWebConsole = enableWebConsole;
         this.webPort = webPort;
+        this.modules = modules;
     }
     /**
      * Startup a dummy Mango with a basic infrastructure
@@ -48,8 +59,11 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         if(Common.MA_HOME == null)
             Common.MA_HOME = ".";
         
-        //Add in some dummy definitions
-        ModuleRegistry.addModule(new MangoTestModule(definitions));
+        //Add in modules
+        for(Module module : modules)
+            ModuleRegistry.addModule(module);
+        
+        Providers.add(IMangoLifecycle.class, this);
         
         //TODO Licensing Providers.add(ICoreLicense.class, new CoreLicenseDefinition());
         //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
@@ -63,9 +77,14 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         
         MangoRestSpringConfiguration.initializeObjectMapper();
         
-        Common.runtimeManager = new MockRuntimeManager();
+        Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
+        Common.JSON_CONTEXT.addResolver(new BaseChartRenderer.Resolver(), ChartRenderer.class);
+        Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
+        Common.JSON_CONTEXT.addResolver(new EmailRecipientResolver(), EmailRecipient.class);
+        Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
+        Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
+        
         Common.eventManager = new MockEventManager();
-        Common.serialPortManager = new MockSerialPortManager();
         
         //TODO This must be done only once because we have a static
         // final referece to the PointValueDao in the PointValueCache class
@@ -77,7 +96,8 @@ public class MockMangoLifecycle implements IMangoLifecycle{
             Common.databaseProxy.initialize(null);
         }
         
-
+        Common.runtimeManager = new MockRuntimeManager();
+        Common.serialPortManager = new MockSerialPortManager();
         //Ensure we start with the proper timer
         Common.backgroundProcessing = new MockBackgroundProcessing(); 
         Common.backgroundProcessing.initialize(false);
@@ -164,8 +184,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
      */
     @Override
     public Integer dataPointLimit() {
-        // TODO Auto-generated method stub
-        return null;
+        return Integer.MAX_VALUE;
     }
 
     /* (non-Javadoc)

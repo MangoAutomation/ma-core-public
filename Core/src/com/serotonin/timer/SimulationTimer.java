@@ -40,18 +40,24 @@ public class SimulationTimer extends AbstractTimer {
 
             currentTime = task.trigger.nextExecutionTime;
 
-            if (task.state == TimerTask.CANCELLED)
-                queue.remove(0);
-            else {
+            if (task.state == TimerTask.CANCELLED) {
+                synchronized(this) {
+                    queue.remove(0);
+                }
+            }else {
                 long next = task.trigger.calculateNextExecutionTime();
                 if (next <= 0) { // Non-repeating, remove
-                    queue.remove(0);
+                    synchronized(this) {
+                        queue.remove(0);
+                    }
                     task.state = TimerTask.EXECUTED;
                 }
                 else {
                     // Repeating task, reschedule
                     task.trigger.nextExecutionTime = next;
-                    updateQueue();
+                    synchronized(this) {
+                        updateQueue();
+                    }
                 }
 
                 task.runTask(task.trigger.mostRecentExecutionTime());
@@ -79,9 +85,10 @@ public class SimulationTimer extends AbstractTimer {
             task.trigger.nextExecutionTime = time;
             task.state = TimerTask.SCHEDULED;
         }
-
-        queue.add(task);
-        updateQueue();
+        synchronized(this) {
+            queue.add(task);
+            updateQueue();
+        }
     }
 
     private void updateQueue() {
@@ -193,7 +200,15 @@ public class SimulationTimer extends AbstractTimer {
 	 */
 	@Override
 	public void execute(Task command) {
-		command.runTask(this.currentTime);
+	    new Thread() {
+	        /* (non-Javadoc)
+	         * @see java.lang.Thread#run()
+	         */
+	        @Override
+	        public void run() {
+	            command.runTask(currentTime);
+	        }
+	    }.start();
 	}
 
     /* (non-Javadoc)
