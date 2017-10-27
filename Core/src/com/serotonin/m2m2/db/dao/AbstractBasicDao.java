@@ -29,6 +29,7 @@ import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSeekStepN;
+import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -125,6 +126,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	protected final boolean useSubQuery;
 	// Print out times and SQL for RQL Queries
 	protected final boolean useMetrics;
+	
+	protected final String pkColumn;
 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
@@ -260,7 +263,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		
 		// Add the table prefix to the queries if necessary
 		SELECT_ALL_BASE = selectAll + " FROM ";
-		String pkColumn = getPkColumnName();
+		this.pkColumn = getPkColumnName();
 
 		if (this.tablePrefix.equals("")) {
 			if (StringUtils.isEmpty(pkColumn))
@@ -924,10 +927,28 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public String getCountSql(){
 		return COUNT;
 	}
+	
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        return select;
+    }
 
 	public int customizedCount(ConditionSortLimit conditions) {
-        SelectJoinStep<Record1<Integer>> select = this.create.selectCount().from(this.joinedTable);
-        return customizedCount(select, conditions.getCondition());
+	    Condition condition = conditions.getCondition();
+        SelectSelectStep<Record1<Integer>> count;
+        if (this.pkColumn != null && !this.pkColumn.isEmpty()) {
+            count = this.create.select(DSL.countDistinct(DSL.field(tableAlias.append(this.pkColumn))));
+        } else {
+            count = this.create.selectCount();
+        }
+        
+        SelectJoinStep<Record1<Integer>> select;
+        if (condition == null) {
+            select = count.from(this.table.as(tableAlias));
+        } else {
+            select = count.from(this.joinedTable);
+            select = joinTables(select, conditions);
+        }
+        return customizedCount(select, condition);
 	}
 
     protected int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition) {
@@ -945,6 +966,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        select = joinTables(select, conditions);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 

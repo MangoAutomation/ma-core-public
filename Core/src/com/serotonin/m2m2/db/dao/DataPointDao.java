@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,6 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
 import org.jooq.Table;
@@ -72,6 +72,7 @@ import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -1536,16 +1537,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         this.customizedQuery(select, condition, Collections.emptyList(), null, null, callback);
     }
 
-    private <R extends Record> SelectJoinStep<R> joinTagsTable(SelectJoinStep<R> select, Map<String, Name> tagKeyToColumn) {
-        if (!tagKeyToColumn.isEmpty()) {
-            Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
-
-            select = select.leftJoin(pivotTable)
-                .on(DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId")).eq(DSL.field(tableAlias.append("id"))));
-        }
-        return select;
-    }
-    
     @Override
     protected RQLToCondition createRqlToCondition() {
         // we create one every time as they are stateful for this DAO
@@ -1595,25 +1586,17 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     };
     
     @Override
-    public int customizedCount(ConditionSortLimit conditions) {
-        SelectJoinStep<Record1<Integer>> select = this.create.selectCount().from(this.joinedTable);
-
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
         if (conditions instanceof ConditionSortLimitTagKeys) {
-            select = joinTagsTable(select, ((ConditionSortLimitTagKeys) conditions).tagKeyToColumn);
-        }
-        
-        return this.customizedCount(select, conditions.getCondition());
-    }
+            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitTagKeys) conditions).tagKeyToColumn;
+            if (!tagKeyToColumn.isEmpty()) {
+                Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
 
-    @Override
-    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<DataPointVO> callback) {
-        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
-        
-        if (conditions instanceof ConditionSortLimitTagKeys) {
-            select = joinTagsTable(select, ((ConditionSortLimitTagKeys) conditions).tagKeyToColumn);
+                return select.leftJoin(pivotTable)
+                    .on(DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId")).eq(DSL.field(tableAlias.append("id"))));
+            }
         }
-        
-        this.customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
+        return select;
     }
 
     @Override
@@ -1621,5 +1604,21 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
         RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField);
         return rqlToSelect.visit(rql);
+    }
+
+    public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
+    public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
+    
+    public Condition userHasPermission(User user) {
+        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
+        
+        for (String userPermission : userPermissions) {
+            conditions.add(DSL.field(tableAlias.append("readPermission")).likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+            conditions.add(DSL.field(tableAlias.append("setPermission")).likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+            conditions.add(DSL.field(DSL.name("ds").append("editPermission")).likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+        }
+        
+        return DSL.or(conditions);
     }
 }

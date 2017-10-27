@@ -9,12 +9,13 @@ import java.util.List;
 
 import org.jooq.Condition;
 import org.jooq.SortField;
+import org.jooq.impl.DSL;
 
 /**
  * @author Jared Wiltshire
  */
 public class ConditionSortLimit {
-    private final Condition condition;
+    private Condition condition;
     private final List<SortField<Object>> sort;
     private final Integer limit;
     private final Integer offset;
@@ -28,6 +29,14 @@ public class ConditionSortLimit {
 
     public Condition getCondition() {
         return condition;
+    }
+    
+    public void addCondition(Condition c) {
+        if (condition == null) {
+            condition = c;
+        } else {
+            condition = DSL.and(condition, c);
+        }
     }
 
     public List<SortField<Object>> getSort() {
