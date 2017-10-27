@@ -328,7 +328,10 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void deleteEventHandler(int handlerId) {
-        Permissions.ensureAdmin(Common.getHttpUser());
+        User user = Common.getHttpUser();
+        List<EventType> eventTypes = EventHandlerDao.instance.getEventTypesForHandler(handlerId);
+        for(EventType et : eventTypes)
+            Permissions.ensureEventTypePermission(user, et);
         EventHandlerDao.instance.deleteEventHandler(handlerId);
     }
 
