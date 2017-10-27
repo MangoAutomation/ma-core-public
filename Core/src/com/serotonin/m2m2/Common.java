@@ -270,6 +270,7 @@ public class Common {
     	int COUNT = 9;
     	int INTEGRAL = 10;
     	int ALL = 11;
+    	int START = 12;
     }
     public static ExportCodes ROLLUP_CODES = new ExportCodes();
     static{
@@ -285,6 +286,7 @@ public class Common {
     	ROLLUP_CODES.addElement(Rollups.COUNT, "COUNT", "common.rollup.count");
     	ROLLUP_CODES.addElement(Rollups.INTEGRAL, "INTEGRAL", "common.rollup.integral");
     	ROLLUP_CODES.addElement(Rollups.ALL, "ALL", "common.rollup.all");
+    	ROLLUP_CODES.addElement(Rollups.START, "START", "common.rollup.start");
     }
     
 	public static ExportCodes WORK_ITEM_CODES = new ExportCodes();

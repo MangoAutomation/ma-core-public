@@ -23,6 +23,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     private DataValue firstValue;
     private Long firstTime;
     private DataValue lastValue;
+    private DataValue startValue;
     private Long lastTime;
     private int count;
     private int changes;
@@ -45,7 +46,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     public ValueChangeCounter(long periodStart, long periodEnd, DataValue startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-        latestValue = startValue;
+        latestValue = this.startValue = startValue;
     }
 
     @Override
@@ -86,6 +87,10 @@ public class ValueChangeCounter implements StatisticsGenerator {
     @Override
     public long getPeriodEndTime() {
         return periodEnd;
+    }
+    
+    public DataValue getStartValue() {
+        return startValue;
     }
 
     public DataValue getFirstValue() {

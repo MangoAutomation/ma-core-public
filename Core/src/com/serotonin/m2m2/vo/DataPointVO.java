@@ -1040,6 +1040,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     	switch(rollup) {
     	case Rollups.FIRST :
     	case Rollups.LAST :
+    	case Rollups.START :
     	case Rollups.COUNT :
     	case Rollups.NONE :
     		return true;
