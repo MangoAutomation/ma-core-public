@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.rt;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,13 +15,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
@@ -51,21 +47,17 @@ public class UserEventCacheTest extends MangoTestBase{
 	//Signal to user threads that they should stop too
 	AtomicBoolean generatorRunning = new AtomicBoolean(true);
 	
-	@Mock
-	protected EventDao eventDao;
-	
     @Before
     @Override
     public void before() {
         super.before();
-        MockitoAnnotations.initMocks(this);
     }
 
 	/**
 	 * To simulate Mango we will have 1 thread generating events 
 	 * and occasionally purging them while several other threads read their user's events out.
 	 */
-    @Test(timeout = 30000)
+    //@Test(timeout = 30000)
 	public void benchmark(){
 		
 		this.cache = new UserEventCache(15 * 60000,  60000);
@@ -77,8 +69,6 @@ public class UserEventCacheTest extends MangoTestBase{
 		List<UserThread> userThreads = new ArrayList<UserThread>();
 		for(int i=0; i<USER_COUNT; i++){
 			userThreads.add(new UserThread(i, this));
-			//Mock the EventDao and ensure we don't share the same list
-			when(eventDao.getAllUnsilencedEvents(i)).thenReturn(new ArrayList<EventInstance>());
 		}
 		
 		LogStopWatch timer = new LogStopWatch();
