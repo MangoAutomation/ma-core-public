@@ -51,4 +51,6 @@ abstract public class AbstractTimer {
     abstract public void init(TimerThread timer);
 
     abstract public ExecutorService getExecutorService();
+    
+    abstract public TimeSource getTimeSource();
 }

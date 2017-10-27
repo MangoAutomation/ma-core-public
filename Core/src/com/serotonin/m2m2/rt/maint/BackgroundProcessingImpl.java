@@ -471,7 +471,8 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     	            new LinkedBlockingQueue<Runnable>(),
     	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
     	      		mediumPriorityRejectionHandler,
-    	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false));
+    	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
+    	      		Common.timer.getTimeSource());
         
     	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
     	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);

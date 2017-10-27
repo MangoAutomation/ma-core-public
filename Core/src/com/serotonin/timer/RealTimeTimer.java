@@ -221,6 +221,13 @@ public class RealTimeTimer extends AbstractTimer{
         return timeSource.currentTimeMillis();
     }
    
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.AbstractTimer#getTimeSource()
+     */
+    @Override
+    public TimeSource getTimeSource() {
+        return timeSource;
+    }
     
     //
     // @SuppressWarnings("unchecked")

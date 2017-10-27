@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class SimulationTimer extends AbstractTimer {
     private final List<TimerTask> queue = new ArrayList<TimerTask>();
     private boolean cancelled;
-    private long currentTime;
     private ExecutorService executorService;
+    private SimulationTimeSource timeSource = new SimulationTimeSource();
     
     @Override
     public boolean isInitialized() {
@@ -27,18 +27,18 @@ public class SimulationTimer extends AbstractTimer {
     }
 
     public void setStartTime(long startTime) {
-        currentTime = startTime;
+        timeSource.setTime(startTime);
     }
 
     public void next() {
-        fastForwardTo(currentTime + 1);
+        fastForwardTo(timeSource.currentTimeMillis() + 1);
     }
 
     public void fastForwardTo(long time) {
         while (!queue.isEmpty() && queue.get(0).trigger.nextExecutionTime <= time) {
             TimerTask task = queue.get(0);
 
-            currentTime = task.trigger.nextExecutionTime;
+            timeSource.setTime(task.trigger.nextExecutionTime);
 
             if (task.state == TimerTask.CANCELLED) {
                 synchronized(this) {
@@ -65,7 +65,7 @@ public class SimulationTimer extends AbstractTimer {
             }
         }
 
-        currentTime = time;
+        timeSource.setTime(time);
     }
 
 
@@ -139,61 +139,8 @@ public class SimulationTimer extends AbstractTimer {
 
     @Override
     public long currentTimeMillis() {
-        return currentTime;
+        return timeSource.currentTimeMillis();
     }
-    //
-    // public static void main(String[] args) throws Exception {
-    // long startTime = System.currentTimeMillis() - 32000;
-    // SimulationTimer simTimer = new SimulationTimer();
-    // simTimer.setStartTime(startTime);
-    //
-    // simTimer.schedule(new NamedTask("task 7", new OneTimeTrigger(25000)));
-    // simTimer.schedule(new NamedTask("task 1", new OneTimeTrigger(1000)));
-    // simTimer.schedule(new NamedTask("task 2", new OneTimeTrigger(2000)));
-    // simTimer.schedule(new NamedTask("task 4", new OneTimeTrigger(20000)));
-    // simTimer.schedule(new NamedTask("task 5", new OneTimeTrigger(21000)));
-    // simTimer.schedule(new NamedTask("task 3", new OneTimeTrigger(10000)));
-    // simTimer.schedule(new NamedTask("task 6", new OneTimeTrigger(22000)));
-    // simTimer.schedule(new NamedTask("rate", new FixedRateTrigger(5000,
-    // 1800)));
-    // simTimer.schedule(new NamedTask("delay", new FixedDelayTrigger(6000,
-    // 2100)));
-    // simTimer.schedule(new NamedTask("cron", new
-    // CronTimerTrigger("0/6 * * * * ?")));
-    //
-    // simTimer.fastForwardTo(System.currentTimeMillis());
-    //
-    // System.out.println("Rescheduling");
-    //
-    // RealTimeTimer rtTimer = new RealTimeTimer();
-    // ExecutorService executorService = Executors.newCachedThreadPool();
-    // rtTimer.init(executorService);
-    // rtTimer.scheduleAll(simTimer);
-    //
-    // Thread.sleep(20000);
-    //
-    // rtTimer.cancel();
-    // executorService.shutdown();
-    // }
-    //
-    // static class NamedTask extends TimerTask {
-    // String name;
-    //
-    // NamedTask(String name, TimerTrigger trigger) {
-    // super(trigger);
-    // this.name = name;
-    // }
-    //
-    // @Override
-    // public String toString() {
-    // return "NamedTask(" + name + ")";
-    // }
-    //
-    // @Override
-    // protected void run(long runtime) {
-    // System.out.println(name + " ran at " + runtime);
-    // }
-    // }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.timer.AbstractTimer#execute(com.serotonin.timer.OrderedRunnable, long)
@@ -206,7 +153,7 @@ public class SimulationTimer extends AbstractTimer {
 	         */
 	        @Override
 	        public void run() {
-	            command.runTask(currentTime);
+	            command.runTask(timeSource.currentTimeMillis());
 	        }
 	    }.start();
 	}
@@ -216,7 +163,7 @@ public class SimulationTimer extends AbstractTimer {
      */
     @Override
     public void init() {
-        this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false);
+        this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false, timeSource);
     }
 
     /* (non-Javadoc)
@@ -241,5 +188,13 @@ public class SimulationTimer extends AbstractTimer {
     @Override
     public ExecutorService getExecutorService() {
         return executorService;
+    }
+    
+    /* (non-Javadoc)
+     * @see com.serotonin.timer.AbstractTimer#getTimeSource()
+     */
+    @Override
+    public TimeSource getTimeSource() {
+        return timeSource;
     }
 }

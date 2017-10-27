@@ -101,6 +101,8 @@ public class MangoTestBase {
 	
 	@After
 	public void after() {
+        Common.runtimeManager.terminate();
+        Common.runtimeManager.joinTermination();
 	    H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
         try {
             proxy.clean();
@@ -108,7 +110,7 @@ public class MangoTestBase {
             throw new ShouldNeverHappenException(e);
         }
 	}
-	
+
 	@AfterClass
 	public static void staticTearDown() {
 	    if(lifecycle != null) {

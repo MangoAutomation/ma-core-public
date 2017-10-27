@@ -44,6 +44,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
 	private boolean flushFullQueue;
 	private RejectedExecutionHandler handler;
+	private TimeSource timer;
 	
     /**
 	 * @param corePoolSize
@@ -55,11 +56,12 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 */
 	public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
 			long keepAliveTime, TimeUnit unit,
-			BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler) {
+			BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler, TimeSource timer) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
 		this.flushFullQueue = false;
 		super.setRejectedExecutionHandler(this);
 		this.handler = handler;
+		this.timer = timer;
 	}
 
 	/**
@@ -74,12 +76,13 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
 			long keepAliveTime, TimeUnit unit,
 			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory,
-			RejectedExecutionHandler handler) {
+			RejectedExecutionHandler handler, TimeSource timer) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
 				threadFactory);
 		super.setRejectedExecutionHandler(this);
 		this.handler = handler;
 		this.flushFullQueue = false;
+		this.timer = timer;
 	}
 
 	/**
@@ -92,10 +95,11 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 */
 	public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
 			long keepAliveTime, TimeUnit unit,
-			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
+			BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory, TimeSource timer) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
 				threadFactory);
 		this.flushFullQueue = false;
+		this.timer = timer;
 	}
 
 	/**
@@ -115,12 +119,12 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 			BlockingQueue<Runnable> workQueue, 
 			ThreadFactory threadFactory, 
 			RejectedExecutionHandler handler,
-			boolean flushFullQueue) {
-		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
-				threadFactory);
+			boolean flushFullQueue, TimeSource timer) {
+		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
 		this.flushFullQueue = flushFullQueue;
 		super.setRejectedExecutionHandler(this);
 		this.handler = handler;
+		this.timer = timer;
 	}
 	
 	/**
@@ -139,10 +143,11 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 			long keepAliveTime, TimeUnit unit,
 			BlockingQueue<Runnable> workQueue, 
 			ThreadFactory threadFactory, 
-			boolean flushFullQueue) {
+			boolean flushFullQueue, TimeSource timer) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
 				threadFactory);
 		this.flushFullQueue = flushFullQueue;
+		this.timer = timer;
 	}
 	
 	/**
@@ -153,9 +158,11 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @param workQueue
 	 */
 	public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
-			long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, boolean flushFullQueue) {
+			long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, 
+			boolean flushFullQueue, TimeSource timer) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
 		this.flushFullQueue = false;
+		this.timer = timer;
 	}
 
 	/* (non-Javadoc)
@@ -302,7 +309,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
         @Override
         public void run() {
-        	long start = System.currentTimeMillis();
+        	long start = timer.currentTimeMillis();
             try{
             	this.wrapper.run();
             } finally {
@@ -317,7 +324,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                     nextTask = this.dependencyQueue.poll();
                 }
                 // Update our task info
-                this.dependencyQueue.info.addExecutionTime(System.currentTimeMillis() - start);
+                this.dependencyQueue.info.addExecutionTime(timer.currentTimeMillis() - start);
                 this.dependencyQueue.info.updateCurrentQueueSize(this.dependencyQueue.size());
                 if (nextTask!=null){
                     execute(nextTask);

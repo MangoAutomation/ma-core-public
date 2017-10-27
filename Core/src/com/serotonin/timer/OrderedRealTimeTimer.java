@@ -35,12 +35,12 @@ public class OrderedRealTimeTimer extends RealTimeTimer{
 	
 	@Override
     public void init() {
-        this.init(new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false));
+        this.init(new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false, timeSource));
     }
 	
 	@Override
     public void init(TimerThread timer){
 		//Check on cast
-    	super.init((OrderedTimerThread)timer);
+	    super.init((OrderedTimerThread)timer);
     }
 }

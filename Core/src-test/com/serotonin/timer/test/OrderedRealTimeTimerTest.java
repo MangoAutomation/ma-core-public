@@ -29,7 +29,8 @@ public class OrderedRealTimeTimerTest {
         		30L, 
         		TimeUnit.SECONDS, 
         		new SynchronousQueue<Runnable>(), 
-        		false);
+        		false,
+        		timer.getTimeSource());
 		
 		timer.init(executor);
 		

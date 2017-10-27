@@ -51,7 +51,8 @@ public class MonitoredValuesTest {
 						System.out.println("Rejected: " + r.toString());
 					}
         		},
-        		false);
+        		false,
+        		timer.getTimeSource());
         timer.init(executor);
 		
 		//Create a monitor
