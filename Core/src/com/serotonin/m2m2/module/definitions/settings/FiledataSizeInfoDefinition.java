@@ -18,9 +18,9 @@ import com.serotonin.util.DirectoryUtils;
  * 
  * @author Terry Packer
  */
-public class FiledataSizeInfoDefinition extends SystemInfoDefinition<Integer>{
+public class FiledataSizeInfoDefinition extends SystemInfoDefinition<Long>{
 
-	public final String KEY = "filedataCount";
+	public final String KEY = "filedataSize";
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
 	 */
@@ -33,9 +33,9 @@ public class FiledataSizeInfoDefinition extends SystemInfoDefinition<Integer>{
 	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
 	 */
 	@Override
-	public Integer getValue() {
+	public Long getValue() {
         DirectoryInfo fileDatainfo = DirectoryUtils.getSize(new File(Common.getFiledataPath()));
-        return fileDatainfo.getCount();
+        return fileDatainfo.getSize();
 	}
 
 	/* (non-Javadoc)
@@ -45,5 +45,10 @@ public class FiledataSizeInfoDefinition extends SystemInfoDefinition<Integer>{
 	public Module getModule() {
 		return ModuleRegistry.getCoreModule();
 	}
+
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.filedataSizeDesc";
+    }
 
 }

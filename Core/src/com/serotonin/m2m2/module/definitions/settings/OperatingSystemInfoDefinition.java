@@ -76,4 +76,9 @@ public class OperatingSystemInfoDefinition extends SystemInfoDefinition<OsInfo>{
 		}
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.osInfoDesc";
+    }
+
 }

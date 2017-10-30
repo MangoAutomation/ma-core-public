@@ -42,4 +42,9 @@ public class TimezoneInfoDefinition extends SystemInfoDefinition<String>{
 		return ModuleRegistry.getCoreModule();
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.timezoneDesc";
+    }
+
 }

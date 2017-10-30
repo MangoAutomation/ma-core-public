@@ -42,4 +42,9 @@ public class SqlDatabaseSizeInfoDefinition extends SystemInfoDefinition<Long>{
 		return ModuleRegistry.getCoreModule();
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.databaseSizeDesc";
+    }
+
 }

@@ -41,4 +41,9 @@ public class EventsCountInfoDefinition extends SystemInfoDefinition<Integer>{
 		return ModuleRegistry.getCoreModule();
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.eventCountsDesc";
+    }
+
 }

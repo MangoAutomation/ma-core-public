@@ -46,4 +46,9 @@ public class NoSqlPointValueDatabaseSizeInfoDefinition extends SystemInfoDefinit
 		return ModuleRegistry.getCoreModule();
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.noSqlDatabaseSizeDesc";
+    }
+
 }

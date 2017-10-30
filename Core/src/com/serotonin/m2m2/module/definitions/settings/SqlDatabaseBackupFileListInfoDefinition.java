@@ -50,4 +50,9 @@ public class SqlDatabaseBackupFileListInfoDefinition extends SystemInfoDefinitio
         return filenames;
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.sqlDatabaseBackupListDesc";
+    }
+
 }

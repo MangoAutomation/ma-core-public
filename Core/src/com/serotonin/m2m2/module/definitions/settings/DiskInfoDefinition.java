@@ -75,5 +75,10 @@ public class DiskInfoDefinition extends SystemInfoDefinition<List<DiskInfo>>{
 			this.usableSpace = useableSpace;
 		}
 	}
+
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.diskInfoListDesc";
+    }
 	
 }

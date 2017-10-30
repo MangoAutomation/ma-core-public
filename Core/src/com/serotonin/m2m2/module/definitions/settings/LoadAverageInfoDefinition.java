@@ -47,4 +47,9 @@ public class LoadAverageInfoDefinition extends SystemInfoDefinition<Double>{
 		return ModuleRegistry.getCoreModule();
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.loadAverageDesc";
+    }
+
 }

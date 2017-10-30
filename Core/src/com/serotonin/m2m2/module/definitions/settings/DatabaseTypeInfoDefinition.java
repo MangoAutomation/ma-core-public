@@ -41,4 +41,9 @@ public class DatabaseTypeInfoDefinition extends SystemInfoDefinition<String>{
 		return ModuleRegistry.getCoreModule();
 	}
 
+    @Override
+    public String getDescriptionKey() {
+        return "systemInfo.databaseTypeDesc";
+    }
+
 }
