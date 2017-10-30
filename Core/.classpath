@@ -2,7 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="overrides/classes"/>
 	<classpathentry kind="src" path="overrides/properties"/>
-	<classpathentry kind="src" path="classes"/>
+	<classpathentry excluding="**" kind="src" output="maven-target/test-classes" path="classes">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" output="maven-target/classes" path="src">
 		<attributes>
 			<attribute name="optional" value="true"/>
@@ -31,6 +35,11 @@
 	<classpathentry kind="src" output="maven-target/classes" path="maven-target/generated-sources/java-templates">
 		<attributes>
 			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="maven-target/test-classes" path="db">
+		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
