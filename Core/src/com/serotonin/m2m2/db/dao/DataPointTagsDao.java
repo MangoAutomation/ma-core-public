@@ -29,6 +29,11 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+
+import net.jazdw.rql.parser.ASTNode;
+
 /**
  * @author Jared Wiltshire
  */
@@ -102,6 +107,28 @@ public class DataPointTagsDao extends BaseDao {
             }).collect(Collectors.toList());
             
             result = query.where(conditions);
+        }
+        
+        try (Stream<Record1<String>> stream = result.stream()) {
+            return stream.map(r -> r.value1()).collect(Collectors.toSet());
+        }
+    }
+
+    public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions) {
+        RQLToConditionWithTagKeys visitor = new RQLToConditionWithTagKeys();
+        Name tagKeyColumn = visitor.columnNameForTagKey(tagKey);
+        
+        ConditionSortLimitWithTagKeys conditions = visitor.visit(restrictions);
+        Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
+
+        SelectJoinStep<Record1<String>> query = this.create
+            .selectDistinct(DSL.field(DATA_POINT_TAGS_ALIAS.append(tagKeyColumn), String.class))
+            .from(createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS));
+
+        Select<Record1<String>> result = query;
+        
+        if (conditions.getCondition() != null) {
+            result = query.where(conditions.getCondition());
         }
         
         try (Stream<Record1<String>> stream = result.stream()) {

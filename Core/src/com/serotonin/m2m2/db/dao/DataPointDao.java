@@ -30,11 +30,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
-import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
-import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DataAccessException;
@@ -49,10 +47,12 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.serotonin.ShouldNeverHappenException;
@@ -1542,53 +1542,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         // we create one every time as they are stateful for this DAO
         return null;
     }
-    
-    public static class ConditionSortLimitTagKeys extends ConditionSortLimit {
-        private final Map<String, Name> tagKeyToColumn;
-        
-        public ConditionSortLimitTagKeys(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, Map<String, Name> tagKeyToColumn) {
-            super(condition, sort, limit, offset);
-            this.tagKeyToColumn = tagKeyToColumn;
-        }
 
-        public Map<String, Name> getTagKeyToColumn() {
-            return tagKeyToColumn;
-        }
-    }
-    
-    /**
-     * Stores a map of tag keys used in the RQL query and maps them to the aliased column names
-     */
-    private static class RQLToConditionWithTagKeys extends RQLToCondition {
-        int tagIndex = 0;
-        Map<String, Name> tagKeyToColumn = new HashMap<>();
-        
-        public RQLToConditionWithTagKeys(Map<String, Field<Object>> fieldMapping) {
-            super(fieldMapping);
-        }
-        
-        @Override
-        public ConditionSortLimitTagKeys visit(ASTNode node) {
-            Condition condition = visitNode(node);
-            return new ConditionSortLimitTagKeys(condition, sortFields, limit, offset, tagKeyToColumn);
-        }
-        
-        @Override
-        protected Field<Object> getField(String property) {
-            if (property.startsWith("tags.")) {
-                String tagKey = property.substring("tags.".length());
-                Name columnName = tagKeyToColumn.computeIfAbsent(tagKey, k -> DSL.name("key" + tagIndex++));
-                return DSL.field(DATA_POINT_TAGS_ALIAS.append(columnName));
-            }
-            
-            return super.getField(property);
-        }
-    };
-    
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        if (conditions instanceof ConditionSortLimitTagKeys) {
-            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitTagKeys) conditions).tagKeyToColumn;
+        if (conditions instanceof ConditionSortLimitWithTagKeys) {
+            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
 
@@ -1600,7 +1558,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     @Override
-    public ConditionSortLimitTagKeys rqlToCondition(ASTNode rql) {
+    public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
         RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField);
         return rqlToSelect.visit(rql);
