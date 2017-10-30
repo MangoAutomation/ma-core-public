@@ -64,7 +64,7 @@ public class RQLToCondition {
     }
     
     protected Condition visitConditionNode(ASTNode node) {
-        switch (node.getName()) {
+        switch (node.getName().toLowerCase()) {
         case "eq":
             if (node.getArgument(1) == null) {
                 return getField(node).isNull();
@@ -85,8 +85,13 @@ public class RQLToCondition {
             return getField(node).ne(node.getArgument(1));
         case "match":
         case "like": {
-            String like = (String) node.getArgument(1);
-            return getField(node).like(like.replace('*', '%'));
+            String like = ((String) node.getArgument(1)).replace('*', '%');
+            return getField(node).likeIgnoreCase(like);
+        }
+        case "nmatch":
+        case "nlike": {
+            String nlike = ((String) node.getArgument(1)).replace('*', '%');
+            return getField(node).notLikeIgnoreCase(nlike);
         }
         case "in":
             List<?> inArray;
