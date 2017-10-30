@@ -24,13 +24,15 @@ public abstract class BaseMangoRestController {
     private static final ASTNode DEFAULT_NODE = new ASTNode("limit", AbstractBasicDao.DEFAULT_LIMIT);
 
 	/**
+	 * Use static method BaseMangoRestController.parseRQLtoAST(String queryString) instead.
+	 * 
 	 * Create an AST Node from the RQL query in the request
 	 * @param request
 	 * @return ASTNode
 	 * @throws InvalidRQLRestException
 	 */
     @Deprecated
-	public static ASTNode parseRQLtoAST(HttpServletRequest request) throws InvalidRQLRestException {
+	public ASTNode parseRQLtoAST(HttpServletRequest request) throws InvalidRQLRestException {
 		String query = request.getQueryString();
 		return parseRQLtoAST(query);
 	}
