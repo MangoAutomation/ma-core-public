@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_ALIAS;
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 import java.io.ObjectStreamException;
 import java.sql.Connection;
@@ -30,11 +30,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -101,7 +103,13 @@ import net.jazdw.rql.parser.ASTNode;
 public class DataPointDao extends AbstractDao<DataPointVO>{
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
     public static final DataPointDao instance = new DataPointDao();
-    
+
+    public static final Name DATA_POINTS_ALIAS = DSL.name("dp");
+    public static final Table<Record> DATA_POINTS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTS_TABLE)).as(DATA_POINTS_ALIAS);
+    public static final Field<Integer> ID = DSL.field(DATA_POINTS_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> DATA_SOURCE_ID = DSL.field(DATA_POINTS_ALIAS.append("dataSourceId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
+    public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
 
     /**
      * Private as we only ever want 1 of these guys
@@ -1509,13 +1517,13 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 		}
 	}
 
-    public List<DataPointVO> getDataPointsForTags(Map<String, String> restrictions) {
+    public List<DataPointVO> getDataPointsForTags(Map<String, String> restrictions, User user) {
         List<DataPointVO> result = new ArrayList<>();
-        getDataPointsForTags(restrictions, (item, index) -> result.add(item));
+        getDataPointsForTags(restrictions, (item, index) -> result.add(item), user);
         return result;
     }
     
-    public void getDataPointsForTags(Map<String, String> restrictions, MappedRowCallback<DataPointVO> callback) {
+    public void getDataPointsForTags(Map<String, String> restrictions, MappedRowCallback<DataPointVO> callback, User user) {
         Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
 
         SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
@@ -1523,15 +1531,15 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         Condition condition = DSL.and();
         if (!restrictions.isEmpty()) {
             List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
-                return DSL.field(DATA_POINT_TAGS_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
+                return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
             }).collect(Collectors.toList());
             
             condition = DSL.and(conditions);
 
-            Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
+            Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn, user).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
             select = select.leftJoin(pivotTable)
-                .on(DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId")).eq(DSL.field(tableAlias.append("id"))));
+                .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
         }
         
         this.customizedQuery(select, condition, Collections.emptyList(), null, null, callback);
@@ -1548,10 +1556,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_ALIAS);
+                Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
                 return select.leftJoin(pivotTable)
-                    .on(DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId")).eq(DSL.field(tableAlias.append("id"))));
+                    .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
             }
         }
         return select;
@@ -1572,9 +1580,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
         
         for (String userPermission : userPermissions) {
-            conditions.add(DSL.field(tableAlias.append("readPermission")).likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
-            conditions.add(DSL.field(tableAlias.append("setPermission")).likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
-            conditions.add(DSL.field(DSL.name("ds").append("editPermission")).likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+            conditions.add(READ_PERMISSION.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+            conditions.add(SET_PERMISSION.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+            conditions.add(DataSourceDao.EDIT_PERMISSION.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
         }
         
         return DSL.or(conditions);
