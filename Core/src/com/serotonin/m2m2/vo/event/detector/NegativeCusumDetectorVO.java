@@ -53,9 +53,9 @@ public class NegativeCusumDetectorVO extends TimeoutDetectorVO<NegativeCusumDete
 	public void validate(ProcessResult response) {
 		super.validate(response);
 		
-		if(limit == Double.POSITIVE_INFINITY || limit == Double.NEGATIVE_INFINITY || limit == Double.NaN)
+		if(Double.isInfinite(limit) || Double.isNaN(limit))
 			response.addContextualMessage("limit", "validate.invalidValue");
-		if(weight == Double.POSITIVE_INFINITY || weight == Double.NEGATIVE_INFINITY || weight == Double.NaN)
+		if(Double.isInfinite(weight) || Double.isNaN(weight))
 			response.addContextualMessage("weight", "validate.invalidValue");
 	}
 

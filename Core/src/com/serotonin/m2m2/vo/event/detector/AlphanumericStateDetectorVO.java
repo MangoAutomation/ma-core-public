@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -69,7 +67,7 @@ public class AlphanumericStateDetectorVO extends TimeoutDetectorVO<AlphanumericS
 	public void validate(ProcessResult response) {
 		super.validate(response);
 		
-		if(StringUtils.isEmpty(state))
+		if(state == null)
 			response.addContextualMessage("state", "validate.cannotContainEmptyString");
 	}
 

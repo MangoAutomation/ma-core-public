@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.spi.JsonProperty;
@@ -71,5 +74,10 @@ public class AlphanumericRegexStateDetectorVO extends TimeoutDetectorVO<Alphanum
 		
 		if(StringUtils.isEmpty(state))
 			response.addContextualMessage("state", "validate.cannotContainEmptyString");
+		try {
+		    Pattern.compile(state);
+		} catch(PatternSyntaxException e) {
+		    response.addContextualMessage("state", "validate.invalidRegex", e.getMessage());
+		}
 	}
 }

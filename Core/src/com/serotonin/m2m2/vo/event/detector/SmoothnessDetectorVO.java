@@ -59,7 +59,7 @@ public class SmoothnessDetectorVO extends TimeoutDetectorVO<SmoothnessDetectorVO
 	public void validate(ProcessResult response) {
 		super.validate(response);
 		
-		if(limit == Double.POSITIVE_INFINITY || limit == Double.NEGATIVE_INFINITY || limit == Double.NaN)
+		if(Double.isInfinite(limit) || Double.isNaN(limit))
 			response.addContextualMessage("limit", "validate.invalidValue");
 		if(boxcar <= 2)
 			response.addContextualMessage("boxcar", "validate.greaterThan", 2);

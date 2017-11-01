@@ -14,6 +14,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -98,6 +99,18 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	public AbstractEventDetectorRT<AnalogChangeDetectorVO> createRuntime() {
 		return new AnalogChangeDetectorRT(this);
 	}
+	
+	/* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
+     */
+    @Override
+    public void validate(ProcessResult response) {
+        super.validate(response);
+        if(!checkIncrease && !checkDecrease) {
+            response.addContextualMessage("checkIncrease", "validate.atLeast1");
+            response.addContextualMessage("checkDecrease", "validate.atLeast1");
+        }
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#getConfigurationDescription()
