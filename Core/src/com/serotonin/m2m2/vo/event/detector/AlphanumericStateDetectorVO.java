@@ -68,7 +68,7 @@ public class AlphanumericStateDetectorVO extends TimeoutDetectorVO<AlphanumericS
 		super.validate(response);
 		
 		if(state == null)
-			response.addContextualMessage("state", "validate.cannotContainEmptyString");
+			response.addContextualMessage("state", "emport.error.missingValue", "state");
 	}
 
 }
