@@ -28,9 +28,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
-import com.serotonin.m2m2.web.dwr.emport.ImportItem;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
-import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -207,96 +205,6 @@ public class JsonEmportScriptUtility {
 		public List<String> getMessages() {
 			return messages;
 		}
-		
-		@Override
-		protected void runImpl() {
-            if (!importers.isEmpty()) {
-                if (importerIndex >= importers.size()) {
-                    // A run through the importers has been completed.
-                    if (importerSuccess) {
-                        // If there were successes with the importers and there are still more to do, run through 
-                        // them again.
-                        importerIndex = 0;
-                        importerSuccess = false;
-                    } else if(!importedItems) {
-        	            try {
-                            for (ImportItem importItem : importItems) {
-                                if (!importItem.isComplete()) {
-                                    importItem.importNext(importContext);
-                                    return;
-                                }
-                            }
-                            importedItems = true;   // We may have imported a dependency in a module
-                            importerIndex = 0;
-                        }
-                        catch (Exception e) {
-                            addException(e);
-                        }
-                    } else {
-                        // There are importers left in the list, but there were no successful imports in the last run
-                        // of the set. So, all that is left is stuff that will always fail. Copy the validation 
-                        // messages to the context for each.
-                    	// Run the import items.
-                        for (Importer importer : importers)
-                            importer.copyMessages();
-                        importers.clear();
-                        processDataPointPaths(hierarchyImporter, dpPathPairs);
-                        completed = true;
-                        return;
-                    }
-                }
-
-                // Run the next importer
-                Importer importer = importers.get(importerIndex);
-                try {
-                    importer.doImport();
-                    if (importer.success()) {
-                        // The import was successful. Note the success and remove the importer from the list.
-                        importerSuccess = true;
-                        importers.remove(importerIndex);
-                    }
-                    else{
-                        // The import failed. Leave it in the list since the run of another importer
-                        // may resolved the problem.
-                        importerIndex++;
-                    }
-                }
-                catch (Exception e) {
-                    // Uh oh...
-                    addException(e);
-                    importers.remove(importerIndex);
-                }
-
-                return;
-            }
-
-            // Run the import items.
-            try {
-                for (ImportItem importItem : importItems) {
-                    if (!importItem.isComplete()) {
-                        importItem.importNext(importContext);
-                        return;
-                    }
-                }
-
-                processDataPointPaths(hierarchyImporter, dpPathPairs);
-                completed = true;
-            }
-            catch (Exception e) {
-                addException(e);
-            }
-		}
-		
-		private void addException(Exception e) {
-	        String msg = e.getMessage();
-	        Throwable t = e;
-	        while ((t = t.getCause()) != null)
-	            msg += ", " + importContext.getTranslations().translate("emport.causedBy") + " '" + t.getMessage() + "'";
-	        //We were missing NPE and others without a msg
-	        if(msg == null)
-	        	msg = e.getClass().getCanonicalName();
-	        messages.add(msg);
-	    }
 	}
 	
 	@Override
