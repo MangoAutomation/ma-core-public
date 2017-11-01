@@ -26,6 +26,7 @@ import org.jooq.Record2;
 import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.Table;
+import org.jooq.TableOnConditionStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
@@ -48,12 +49,6 @@ public class DataPointTagsDao extends BaseDao {
     public static final Field<Integer> DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> TAG_KEY = DSL.field(DATA_POINT_TAGS_ALIAS.append("tagKey"), SQLDataType.VARCHAR(255).nullable(false));
     public static final Field<String> TAG_VALUE = DSL.field(DATA_POINT_TAGS_ALIAS.append("tagValue"), SQLDataType.VARCHAR(255).nullable(false));
-    
-    public static final Table<Record> DATA_POINT_TAGS_WITH_PERMISSIONS = DATA_POINT_TAGS
-        .leftJoin(DataPointDao.DATA_POINTS)
-            .on(DATA_POINT_ID.eq(DataPointDao.ID))
-        .leftJoin(DataSourceDao.DATA_SOURCES)
-            .on(DataPointDao.DATA_SOURCE_ID.eq(DataSourceDao.ID));
 
     public static final Name DATA_POINT_TAGS_PIVOT_ALIAS = DSL.name("tagsPivot");
     public static final Field<Integer> PIVOT_ALIAS_DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(DATA_POINT_ID.getUnqualifiedName()), DATA_POINT_ID.getDataType());
@@ -79,36 +74,38 @@ public class DataPointTagsDao extends BaseDao {
         tags.entrySet().forEach(e -> b.bind(dataPointId, e.getKey(), e.getValue()));
         b.execute();
     }
+
+    TableOnConditionStep<Record> joinPointPermissions(Table<Record> table, Field<Integer> dataPointIdField, User user) {
+        Condition userHasPermission = DataPointDao.instance.userHasPermission(user);
+        
+        return table
+                .join(DataPointDao.DATA_POINTS).on(dataPointIdField.eq(DataPointDao.ID))
+                .join(DataSourceDao.DATA_SOURCES).on(DSL.and(DataPointDao.DATA_SOURCE_ID.eq(DataSourceDao.ID), userHasPermission));
+    }
     
     public Set<String> getTagKeys(User user) {
-        Select<Record1<String>> query;
-        
-        if (user.isAdmin()) {
-            query = this.create.selectDistinct(TAG_KEY)
-                    .from(DATA_POINT_TAGS);
-        } else {
-            query = this.create.selectDistinct(TAG_KEY)
-                    .from(DATA_POINT_TAGS_WITH_PERMISSIONS)
-                    .where(DataPointDao.instance.userHasPermission(user));
+        Table<Record> fromTable = DATA_POINT_TAGS;
+        if (!user.isAdmin()) {
+            fromTable = joinPointPermissions(fromTable, DATA_POINT_ID, user);
         }
-
+        
+        Select<Record1<String>> query = this.create.selectDistinct(TAG_KEY)
+                .from(fromTable);
+        
         try (Stream<Record1<String>> stream = query.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
         }
     }
     
     public Set<String> getTagValuesForKey(String tagKey, User user) {
-        Select<Record1<String>> query;
-        
-        if (user.isAdmin()) {
-            query = this.create.selectDistinct(TAG_VALUE)
-                    .from(DATA_POINT_TAGS)
-                    .where(TAG_KEY.eq(tagKey));
-        } else {
-            query = this.create.selectDistinct(TAG_VALUE)
-                    .from(DATA_POINT_TAGS_WITH_PERMISSIONS)
-                    .where(DSL.and(TAG_KEY.eq(tagKey), DataPointDao.instance.userHasPermission(user)));
+        Table<Record> fromTable = DATA_POINT_TAGS;
+        if (!user.isAdmin()) {
+            fromTable = joinPointPermissions(fromTable, DATA_POINT_ID, user);
         }
+        
+        Select<Record1<String>> query = this.create.selectDistinct(TAG_VALUE)
+                .from(fromTable)
+                .where(TAG_KEY.eq(tagKey));
 
         try (Stream<Record1<String>> stream = query.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
@@ -116,24 +113,30 @@ public class DataPointTagsDao extends BaseDao {
     }
 
     public Set<String> getTagValuesForKey(String tagKey, Map<String, String> restrictions, User user) {
+        if (restrictions.isEmpty()) {
+            return getTagValuesForKey(tagKey, user);
+        }
+        
         Set<String> keys = new HashSet<>();
         keys.addAll(restrictions.keySet());
         keys.add(tagKey);
         Map<String, Name> tagKeyToColumn = tagKeyToColumn(keys);
-
-        SelectJoinStep<Record1<String>> query = this.create
-            .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(tagKey)), String.class))
-            .from(createTagPivotSql(tagKeyToColumn, user).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS));
-
-        Select<Record1<String>> result = query;
         
-        if (!restrictions.isEmpty()) {
-            List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
-                return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
-            }).collect(Collectors.toList());
-            
-            result = query.where(conditions);
+        Name tagKeyColumn = tagKeyToColumn.get(tagKey);
+
+        List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
+            return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
+        }).collect(Collectors.toCollection(ArrayList::new));
+
+        Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+        if (!user.isAdmin()) {
+            from = joinPointPermissions(from, PIVOT_ALIAS_DATA_POINT_ID, user);
         }
+
+        Select<Record1<String>> result = this.create
+                .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyColumn), String.class))
+                .from(from)
+                .where(DSL.and(conditions));
 
         try (Stream<Record1<String>> stream = result.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
@@ -143,18 +146,28 @@ public class DataPointTagsDao extends BaseDao {
     public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions, User user) {
         RQLToConditionWithTagKeys visitor = new RQLToConditionWithTagKeys();
         Name tagKeyColumn = visitor.columnNameForTagKey(tagKey);
-        
+
+        List<Condition> conditionList = new ArrayList<>();
         ConditionSortLimitWithTagKeys conditions = visitor.visit(restrictions);
+        if (conditions.getCondition() != null) {
+            conditionList.add(conditions.getCondition());
+        }
+        
         Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
+        
+        Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+        if (!user.isAdmin()) {
+            from = joinPointPermissions(from, PIVOT_ALIAS_DATA_POINT_ID, user);
+        }
 
         SelectJoinStep<Record1<String>> query = this.create
             .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyColumn), String.class))
-            .from(createTagPivotSql(tagKeyToColumn, user).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS));
+            .from(from);
 
         Select<Record1<String>> result = query;
-        
-        if (conditions.getCondition() != null) {
-            result = query.where(conditions.getCondition());
+
+        if (!conditionList.isEmpty()) {
+            result = query.where(DSL.and(conditionList));
         }
 
         try (Stream<Record1<String>> stream = result.stream()) {
@@ -178,28 +191,6 @@ public class DataPointTagsDao extends BaseDao {
         }
         
         return DSL.select(fields).from(DATA_POINT_TAGS).groupBy(DATA_POINT_ID);
-    }
-    
-    Select<Record> createTagPivotSql(Map<String, Name> tagKeyToColumn, User user) {
-        if (user.isAdmin()) {
-            return createTagPivotSql(tagKeyToColumn);
-        }
-        
-        List<Field<?>> fields = new ArrayList<>(tagKeyToColumn.size() + 1);
-        fields.add(DATA_POINT_ID);
-        
-        fields.add(DataPointDao.READ_PERMISSION);
-        fields.add(DataPointDao.SET_PERMISSION);
-        fields.add(DataSourceDao.EDIT_PERMISSION);
-        
-        for (Entry<String, Name> entry : tagKeyToColumn.entrySet()) {
-            fields.add(DSL.max(DSL.when(TAG_KEY.eq(entry.getKey()), TAG_VALUE)).as(entry.getValue()));
-        }
-        
-        return DSL.select(fields)
-                .from(DATA_POINT_TAGS_WITH_PERMISSIONS)
-                .where(DataPointDao.instance.userHasPermission(user))
-                .groupBy(DATA_POINT_ID);
     }
 
     /**

@@ -27,8 +27,9 @@ import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
 import org.jooq.SelectJoinStep;
-import org.jooq.SelectSeekStepN;
+import org.jooq.SelectLimitStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
@@ -973,19 +974,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     protected void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
-        SelectSeekStepN<Record> sortStep;
-        if (condition != null) {
-            sortStep = select.where(condition).orderBy(sort);
-        } else {
-            sortStep = select.orderBy(sort);
-        }
-        
-        Select<Record> offsetStep = sortStep;
+        SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
+        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
+
+        Select<Record> offsetStep = afterSort;
         if (limit != null) {
             if (offset != null) {
-                offsetStep = sortStep.limit(offset, limit);
+                offsetStep = afterSort.limit(offset, limit);
             } else {
-                offsetStep = sortStep.limit(limit);
+                offsetStep = afterSort.limit(limit);
             }
         }
 

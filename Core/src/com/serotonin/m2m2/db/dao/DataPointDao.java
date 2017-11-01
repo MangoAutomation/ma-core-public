@@ -34,6 +34,8 @@ import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
+import org.jooq.SelectOnConditionStep;
+import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -1516,33 +1518,105 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             }
 		}
 	}
-
-    public List<DataPointVO> getDataPointsForTags(Map<String, String> restrictions, User user) {
+	
+	/**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     * 
+	 * @param user
+	 * @return
+	 */
+	public List<DataPointVO> dataPointsForUser(User user) {
         List<DataPointVO> result = new ArrayList<>();
-        getDataPointsForTags(restrictions, (item, index) -> result.add(item), user);
+        dataPointsForUser(user, (item, index) -> result.add(item));
+        return result;
+	}
+
+    /**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     * 
+     * @param user
+     * @param callback
+     */
+    public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback) {
+        dataPointsForUser(user, callback, null, null, null);
+    }
+
+    /**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     * 
+     * @param user
+     * @param callback
+     * @param sort (may be null)
+     * @param limit (may be null)
+     * @param offset (may be null)
+     */
+    public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
+        Condition condition = null;
+        if (!user.isAdmin()) {
+            condition = DataPointDao.instance.userHasPermission(user);
+        }
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        this.customizedQuery(select, condition, sort, limit, offset, callback);
+    }
+
+    /**
+     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * 
+     * @param restrictions
+     * @param user
+     * @return
+     */
+    public List<DataPointVO> dataPointsForTags(Map<String, String> restrictions, User user) {
+        List<DataPointVO> result = new ArrayList<>();
+        dataPointsForTags(restrictions, user, (item, index) -> result.add(item));
         return result;
     }
-    
-    public void getDataPointsForTags(Map<String, String> restrictions, MappedRowCallback<DataPointVO> callback, User user) {
-        Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
 
-        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+    /**
+     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * 
+     * @param restrictions
+     * @param user
+     * @param callback
+     */
+    public void dataPointsForTags(Map<String, String> restrictions, User user, MappedRowCallback<DataPointVO> callback) {
+        dataPointsForTags(restrictions, user, callback, null, null, null);
+    }
 
-        Condition condition = DSL.and();
-        if (!restrictions.isEmpty()) {
-            List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
-                return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
-            }).collect(Collectors.toList());
-            
-            condition = DSL.and(conditions);
-
-            Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn, user).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-
-            select = select.leftJoin(pivotTable)
-                .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+    /**
+     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * 
+     * @param restrictions
+     * @param user
+     * @param callback
+     * @param sort (may be null)
+     * @param limit (may be null)
+     * @param offset (may be null)
+     */
+    public void dataPointsForTags(Map<String, String> restrictions, User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
+        if (restrictions.isEmpty()) {
+            throw new IllegalArgumentException("restrictions should not be empty");
         }
         
-        this.customizedQuery(select, condition, Collections.emptyList(), null, null, callback);
+        Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
+
+        List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
+            return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
+        }).collect(Collectors.toCollection(ArrayList::new));
+        
+        if (!user.isAdmin()) {
+            conditions.add(DataPointDao.instance.userHasPermission(user));
+        }
+
+        Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+
+        SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.joinedTable).leftJoin(pivotTable)
+            .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+        
+        this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
     }
 
     @Override
@@ -1580,11 +1654,22 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
         
         for (String userPermission : userPermissions) {
-            conditions.add(READ_PERMISSION.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
-            conditions.add(SET_PERMISSION.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
-            conditions.add(DataSourceDao.EDIT_PERMISSION.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX));
+            conditions.add(fieldMatchesUserPermission(READ_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
         }
         
         return DSL.or(conditions);
+    }
+    
+    Condition fieldMatchesUserPermission(Field<String> field, String userPermission) {
+        return DSL.or(
+                field.eq(userPermission),
+                DSL.and(
+                        field.isNotNull(),
+                        field.notEqual(""),
+                        field.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX)
+                )
+        );
     }
 }

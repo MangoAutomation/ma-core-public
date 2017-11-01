@@ -4,7 +4,6 @@
 
 package com.infiniteautomation.mango.db.query;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.jooq.Condition;
@@ -24,7 +23,7 @@ public class ConditionSortLimit {
     
     public ConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
         this.condition = condition;
-        this.sort = sort == null ? Collections.emptyList() : sort;
+        this.sort = sort;
         this.limit = limit == null ? AbstractBasicDao.DEFAULT_LIMIT : limit;
         this.offset = offset;
     }
