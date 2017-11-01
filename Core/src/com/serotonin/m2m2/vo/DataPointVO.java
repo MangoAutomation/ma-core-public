@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -28,8 +29,8 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.Common.Rollups;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -42,6 +43,7 @@ import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
@@ -57,7 +59,6 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
-import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
 
@@ -65,6 +66,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private static final long serialVersionUID = -1;
     public static final String XID_PREFIX = "DP_";
 
+    public static final String DEVICE_TAG = "device";
+    public static final String NAME_TAG = "name";
+    
     public interface LoggingTypes {
         int ON_CHANGE = 1;
         int ALL = 2;
@@ -234,7 +238,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String hierarchyPath;
 
     @JsonProperty
-    private Map<String, String> tags = new HashMap<>();
+    private Map<String, String> tags;
     
     //
     //
@@ -859,6 +863,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);
             copy.setSetExtremeLowLimit(setExtremeLowLimit);
+            copy.setTags(new HashMap<>(this.tags));
 
             return copy;
         }
@@ -1001,7 +1006,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         	}else if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
         		response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
         	}
-        	
+        }
+        
+        for (Entry<String, String> entry : getTags().entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                response.addContextualMessage("tags", "validate.tagCantBeNull");
+                break;
+            }
         }
     }
 
@@ -1713,18 +1724,46 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 	}
 
     public Map<String, String> getTags() {
+        if (this.tags == null) {
+            tags = new HashMap<>();
+        }
+        syncTags();
         return tags;
     }
 
     public void setTags(Map<String, String> tags) {
-        this.tags = tags;
+        if (this.tags == null) {
+            this.tags = new HashMap<>();
+        }
+        if (tags != null) {
+            this.tags.putAll(tags);
+        }
+        syncTags();
     }
     
     public String getTag(String tagKey) {
-        return this.tags.get(tagKey);
+        return getTags().get(tagKey);
+    }
+
+    public String removeTag(String tagKey) {
+        return getTags().remove(tagKey);
     }
     
     public void setTag(String tagKey, String tagValue) {
-        this.tags.put(tagKey, tagValue);
+        getTags().put(tagKey, tagValue);
+    }
+
+    private void syncTags() {
+        if (deviceName != null && !deviceName.isEmpty()) {
+            tags.put(DEVICE_TAG, deviceName);
+        } else {
+            tags.remove(DEVICE_TAG);
+        }
+        
+        if (name != null && !name.isEmpty()) {
+            tags.put(NAME_TAG, name);
+        } else {
+            tags.remove(NAME_TAG);
+        }
     }
 }

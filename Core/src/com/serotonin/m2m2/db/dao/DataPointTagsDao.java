@@ -44,7 +44,8 @@ public class DataPointTagsDao extends BaseDao {
     public static final DataPointTagsDao instance = new DataPointTagsDao();
 
     public static final Name DATA_POINT_TAGS_ALIAS = DSL.name("tags");
-    public static final Table<Record> DATA_POINT_TAGS = DSL.table(DSL.name("dataPointTags")).as(DATA_POINT_TAGS_ALIAS);
+    public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name("dataPointTags"));
+    public static final Table<Record> DATA_POINT_TAGS = DATA_POINT_TAGS_NO_ALIAS.as(DATA_POINT_TAGS_ALIAS);
     
     public static final Field<Integer> DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> TAG_KEY = DSL.field(DATA_POINT_TAGS_ALIAS.append("tagKey"), SQLDataType.VARCHAR(255).nullable(false));
@@ -70,7 +71,7 @@ public class DataPointTagsDao extends BaseDao {
     }
     
     public void addTagsForDataPointId(int dataPointId, Map<String, String> tags) {
-        BatchBindStep b = this.create.batch(this.create.insertInto(DATA_POINT_TAGS).columns(DATA_POINT_ID, TAG_KEY, TAG_VALUE).values((Integer) null, null, null));
+        BatchBindStep b = this.create.batch(this.create.insertInto(DATA_POINT_TAGS_NO_ALIAS).columns(DATA_POINT_ID, TAG_KEY, TAG_VALUE).values((Integer) null, null, null));
         tags.entrySet().forEach(e -> b.bind(dataPointId, e.getKey(), e.getValue()));
         b.execute();
     }
