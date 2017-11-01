@@ -10,7 +10,7 @@ import com.serotonin.m2m2.vo.event.detector.NoChangeDetectorVO;
  * 
  * @author Terry Packer
  */
-public class NoChangeEventDetectorModel extends AbstractPointEventDetectorModel<NoChangeDetectorVO>{
+public class NoChangeEventDetectorModel extends TimeoutDetectorModel<NoChangeDetectorVO>{
 
 	public NoChangeEventDetectorModel(NoChangeDetectorVO data) {
 		super(data);
