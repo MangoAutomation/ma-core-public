@@ -40,6 +40,7 @@ import com.serotonin.m2m2.web.dwr.emport.importers.SystemSettingsImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.TemplateImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.UserImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.VirtualSerialPortImporter;
+import com.serotonin.util.ProgressiveTaskListener;
 
 /**
  * @author Matthew Lohbihler
@@ -50,25 +51,61 @@ public class ImportTask extends ProgressiveTask {
 	
     protected final ImportContext importContext;
     protected final PointHierarchyImporter hierarchyImporter;
-    private final User user;
-
+    protected final User user;
+    protected float progress = 0f;
+    protected float progressChunk;
+    
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
     protected final List<DataPointSummaryPathPair> dpPathPairs = new ArrayList<DataPointSummaryPathPair>();
 
-    public ImportTask(JsonObject root, Translations translations, User user) {
-        this(root, translations, user, true);
-    }
-    
     /**
-     * Create an ordered task that can be queue to run one after another
+     * Create an Import task with a listener to be scheduled now
      * @param root
      * @param translations
      * @param user
-     * @param schedule
+     * @param listener
+     */
+    public ImportTask(JsonObject root, Translations translations, User user, ProgressiveTaskListener listener) {
+        this(root, translations, user, listener, true);
+    }
+    
+    /**
+     * Create an Import task to run now without a listener
+     * @param root
+     * @param translations
+     * @param user
      */
     public ImportTask(JsonObject root, Translations translations, User user, boolean schedule) {
-    	super("JSON import task", "JsonImport", Common.defaultTaskQueueSize);
+        this(root, translations, user, null, schedule);
+    }
+
+    /**
+     * Create an ordered task that can be queue to run one after another
+     * 
+     * @param root
+     * @param translations
+     * @param user
+     * @param listener
+     * @param schedule
+     */
+    public ImportTask(JsonObject root, Translations translations, User user, ProgressiveTaskListener listener, boolean schedule) {
+        this("JSON import task", "JsonImport", 10, root, translations, user, listener, schedule);
+    }
+
+    /**
+     * 
+     * @param name
+     * @param taskId
+     * @param queueSize
+     * @param root
+     * @param translations
+     * @param user
+     * @param listener
+     * @param schedule
+     */
+    public ImportTask(String name, String taskId, int queueSize, JsonObject root, Translations translations, User user, ProgressiveTaskListener listener, boolean schedule) {
+    	    super(name, taskId, queueSize, listener);
     	
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
@@ -119,6 +156,8 @@ public class ImportTask extends ProgressiveTask {
         
         for(JsonValue jv : nonNullList(root, EmportDwr.EVENT_DETECTORS)) 
         	addImporter(new EventDetectorImporter(jv.toJsonObject()));
+
+        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size());
 
         if(schedule)    
             Common.backgroundProcessing.execute(this);
@@ -228,6 +267,15 @@ public class ImportTask extends ProgressiveTask {
         }
         finally {
             BackgroundContext.remove();
+            //Compute progress, but only declare if we are < 100 since we will declare 100 when done
+            //Our progress is 100 - chunk*importersLeft
+            int importItemsLeft = 0;
+            for(ImportItem item : importItems)
+                if(!item.isComplete())
+                        importItemsLeft++;
+            this.progress = 100f - progressChunk*((float)importers.size() + (float)importItemsLeft);
+            if(progress < 100f)
+                    declareProgress(this.progress);
         }
     }
     

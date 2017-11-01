@@ -120,14 +120,14 @@ public class EmportDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
         Translations translations = getTranslations();
 
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
 
         JsonTypeReader reader = new JsonTypeReader(data);
         try {
             JsonValue value = reader.read();
             if (value instanceof JsonObject) {
                 JsonObject root = value.toJsonObject();
-                ImportTask importTask = new ImportTask(root, translations, user);
+                ImportTask importTask = new ImportTask(root, translations, user, true);
                 user.setImportTask(importTask);
                 response.addData("importStarted", true);
             }

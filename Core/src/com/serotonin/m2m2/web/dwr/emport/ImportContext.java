@@ -23,7 +23,7 @@ import com.serotonin.m2m2.i18n.Translations;
 
 public class ImportContext {
     private final UserDao userDao = UserDao.instance;
-    private final DataSourceDao dataSourceDao = DataSourceDao.instance;
+    private final DataSourceDao<?> dataSourceDao = DataSourceDao.instance;
     private final DataPointDao dataPointDao = DataPointDao.instance;
     private final EventDao eventDao = EventDao.instance;
     private final MailingListDao mailingListDao = MailingListDao.instance;
@@ -58,7 +58,7 @@ public class ImportContext {
         return userDao;
     }
 
-    public DataSourceDao getDataSourceDao() {
+    public DataSourceDao<?> getDataSourceDao() {
         return dataSourceDao;
     }
 
