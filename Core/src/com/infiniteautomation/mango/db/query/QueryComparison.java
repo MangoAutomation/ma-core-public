@@ -69,7 +69,16 @@ public class QueryComparison {
 	public boolean apply(Object instance){
 		
 		try {
-			Object value = PropertyUtils.getProperty(instance, attribute);
+		    Object value = null;
+		    //Check to see if we are nested
+		    if(attribute.contains(".")) {
+		        String[] attributes = attribute.split("\\.");
+		        for(String attr : attributes) {
+		            value = PropertyUtils.getProperty(instance, attr);
+		        }
+		    }else {
+		        value = PropertyUtils.getProperty(instance, attribute);
+		    }
 			return this.compare(value);
 		} catch (IllegalAccessException | InvocationTargetException
 				| NoSuchMethodException e) {
@@ -104,19 +113,19 @@ public class QueryComparison {
 		try{
 			Integer value = castToInteger(this.arguments.get(0));
 			switch(comparisonType){
-				case GREATER_THAN:
-					return thisValue > value;
-				case GREATER_THAN_EQUAL_TO:
-					return thisValue >= value;
-				case LESS_THAN:
-					return thisValue < value;
-				case LESS_THAN_EQUAL_TO:
-					return thisValue <= value;
-				case LIKE:
-		    	case EQUAL_TO:
-					return thisValue == value;
-		    	case NOT_EQUAL_TO:
-					return thisValue != value;
+			    case GREATER_THAN:
+                    return thisValue.compareTo(value) > 0;
+                case GREATER_THAN_EQUAL_TO:
+                    return thisValue.compareTo(value) >= 0;
+                case LESS_THAN:
+                    return thisValue.compareTo(value) < 0;
+                case LESS_THAN_EQUAL_TO:
+                    return thisValue.compareTo(value) <= 0;
+                case LIKE:
+                case EQUAL_TO:
+                    return thisValue.equals(value);
+                case NOT_EQUAL_TO:
+                    return !thisValue.equals(value);
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
@@ -130,19 +139,19 @@ public class QueryComparison {
 		try{
 			Double value = castToDouble(this.arguments.get(0));
 			switch(comparisonType){
-				case GREATER_THAN:
-					return thisValue > value;
-				case GREATER_THAN_EQUAL_TO:
-					return thisValue >= value;
-				case LESS_THAN:
-					return thisValue < value;
-				case LESS_THAN_EQUAL_TO:
-					return thisValue <= value;
-				case LIKE:
-		    	case EQUAL_TO:
-					return thisValue == value;
-		    	case NOT_EQUAL_TO:
-					return thisValue != value;
+			    case GREATER_THAN:
+                    return thisValue.compareTo(value) > 0;
+                case GREATER_THAN_EQUAL_TO:
+                    return thisValue.compareTo(value) >= 0;
+                case LESS_THAN:
+                    return thisValue.compareTo(value) < 0;
+                case LESS_THAN_EQUAL_TO:
+                    return thisValue.compareTo(value) <= 0;
+                case LIKE:
+                case EQUAL_TO:
+                    return thisValue.equals(value);
+                case NOT_EQUAL_TO:
+                    return !thisValue.equals(value);
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
@@ -156,19 +165,19 @@ public class QueryComparison {
 		try{
 			Long value = castToLong(this.arguments.get(0));
 			switch(comparisonType){
-				case GREATER_THAN:
-					return thisValue > value;
-				case GREATER_THAN_EQUAL_TO:
-					return thisValue >= value;
-				case LESS_THAN:
-					return thisValue < value;
-				case LESS_THAN_EQUAL_TO:
-					return thisValue <= value;
-				case LIKE:
-		    	case EQUAL_TO:
-					return thisValue == value;
-		    	case NOT_EQUAL_TO:
-					return thisValue != value;
+			    case GREATER_THAN:
+                    return thisValue.compareTo(value) > 0;
+                case GREATER_THAN_EQUAL_TO:
+                    return thisValue.compareTo(value) >= 0;
+                case LESS_THAN:
+                    return thisValue.compareTo(value) < 0;
+                case LESS_THAN_EQUAL_TO:
+                    return thisValue.compareTo(value) <= 0;
+                case LIKE:
+                case EQUAL_TO:
+                    return thisValue.equals(value);
+                case NOT_EQUAL_TO:
+                    return !thisValue.equals(value);
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
@@ -195,10 +204,10 @@ public class QueryComparison {
 				//Create regex by simply replacing * by .*
 				String regex = value.replace("*", ".*");
 				return thisValue.matches(regex);
-	    	case EQUAL_TO:
-	    		return thisValue.equals(value);
-	    	case NOT_EQUAL_TO:
-	    		return !thisValue.equals(value);
+            case EQUAL_TO:
+                return thisValue.equals(value);
+            case NOT_EQUAL_TO:
+                return !thisValue.equals(value);
 			default:
 				throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 		}
@@ -217,10 +226,10 @@ public class QueryComparison {
 				case LESS_THAN_EQUAL_TO:
 					return thisValue.compareTo(value) <= 0;
 				case LIKE:
-		    	case EQUAL_TO:
-					return thisValue == value;
-		    	case NOT_EQUAL_TO:
-					return thisValue != value;
+                case EQUAL_TO:
+                    return thisValue.equals(value);
+                case NOT_EQUAL_TO:
+                    return !thisValue.equals(value);
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
