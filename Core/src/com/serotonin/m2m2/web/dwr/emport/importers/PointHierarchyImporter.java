@@ -37,7 +37,6 @@ public class PointHierarchyImporter extends Importer {
             //Merge the new subfolders into the existing point heirarchy.
             hierarchy.mergeFolders(subfolders);
             ph = hierarchy;
-            addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
         }
         catch (TranslatableJsonException e) {
             addFailureMessage("emport.pointHierarchy.prefix", e.getMsg());
