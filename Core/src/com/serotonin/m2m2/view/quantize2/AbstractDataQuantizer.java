@@ -60,7 +60,7 @@ abstract public class AbstractDataQuantizer {
      */
     public void done() {
         while (periodTo.isBefore(bucketCalculator.getEndTime()))
-            nextPeriod(null, periodTo.getMillis());
+            nextPeriod(lastValue, periodTo.getMillis());
         closePeriod();
     }
 

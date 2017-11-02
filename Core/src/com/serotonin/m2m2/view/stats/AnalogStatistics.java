@@ -98,7 +98,7 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     @Override
     public void done() {
-        
+        updateAverage(Double.NaN, periodEnd);
         //Average will not be null when we have at least one value in period AND an end value
         // OR more than 1 value in the period
         if (average != null) {
