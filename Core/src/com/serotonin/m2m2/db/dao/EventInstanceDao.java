@@ -29,6 +29,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
@@ -418,11 +419,16 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
            throw new ShouldNeverHappenException("AUDIT events should not exist here. Consider running the SQL: DELETE FROM events WHERE typeName='AUDIT';");
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
-            if (def == null)
-                throw new ShouldNeverHappenException("Unknown event type: " + typeName);
-            type = def.createEventType(subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
-            if (type == null)
-                throw new ShouldNeverHappenException("Unknown event type: " + typeName);
+            if (def == null) {
+                //Create Missing Event Type
+                type = new MissingEventType(typeName, null, rs.getInt(offset + 2), rs.getInt(offset + 3));
+            }else {
+                type = def.createEventType(subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
+                if (type == null) {
+                    //Create Missing Event type
+                    type = new MissingEventType(typeName, subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
+                }
+            }
         }
         return type;
     }

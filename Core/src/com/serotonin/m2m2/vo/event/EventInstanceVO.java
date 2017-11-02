@@ -18,6 +18,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance.RtnCauses;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 
@@ -173,18 +174,27 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
 	}
 
 
-	public TranslatableMessage getMessage() {
-		return message;
-	}
-
+    public TranslatableMessage getMessage() {
+        if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
+            MissingEventType type = (MissingEventType)eventType;
+            return new TranslatableMessage("event.missing", type.getMissingTypeName());
+        }else
+            return message;
+    }
 
 	public void setMessage(TranslatableMessage message) {
 		this.message = message;
 	}
 	
-	public String getMessageString(){
-		return this.message.translate(Common.getTranslations());
-	}
+    
+    public String getMessageString(){
+        if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
+            MissingEventType type = (MissingEventType)eventType;
+            return new TranslatableMessage("event.missing", type.getMissingTypeName()).translate(Common.getTranslations());
+        }else
+            return message.translate(Common.getTranslations());
+    }
+
 	public void setMessageString(String msg){
 		//NoOp
 	}

@@ -163,6 +163,7 @@
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.DataSourceEventType"/>
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.DataPointEventType"/>
     <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.PublisherEventType"/>
+    <convert converter="bean" match="com.serotonin.m2m2.rt.event.type.MissingEventType"/>
     <!--  -->
     
     <convert converter="bean" match="javax.measure.converter.UnitConverter"/>

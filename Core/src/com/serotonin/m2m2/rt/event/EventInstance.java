@@ -13,6 +13,7 @@ import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.web.taglib.Functions;
 
@@ -217,11 +218,19 @@ public class EventInstance{
     }
 
     public TranslatableMessage getMessage() {
-        return message;
+        if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
+            MissingEventType type = (MissingEventType)eventType;
+            return new TranslatableMessage("event.missing", type.getMissingTypeName());
+        }else
+            return message;
     }
     
     public String getMessageString(){
-    	return message.translate(Common.getTranslations());
+        if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
+            MissingEventType type = (MissingEventType)eventType;
+            return new TranslatableMessage("event.missing", type.getMissingTypeName()).translate(Common.getTranslations());
+        }else
+            return message.translate(Common.getTranslations());
     }
 
     public boolean isRtnApplicable() {
