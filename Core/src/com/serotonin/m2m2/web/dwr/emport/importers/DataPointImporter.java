@@ -23,6 +23,7 @@ import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class DataPointImporter extends Importer {
     final List<DataPointSummaryPathPair> hierarchyList;
+    final String PATH = "path";
     
     public DataPointImporter(JsonObject json) {
         super(json);
@@ -116,8 +117,11 @@ public class DataPointImporter extends Importer {
                     try {
                     	if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
                     		Common.runtimeManager.saveDataPoint(vo);
-                    		if(hierarchyList != null && json.containsKey("path"))
-                    		    hierarchyList.add(new DataPointSummaryPathPair(new DataPointSummary(vo), json.getString("path")));
+                    		if(hierarchyList != null && json.containsKey(PATH)) {
+                    		    String path = json.getString(PATH);
+                    		    if(StringUtils.isNotEmpty(path))
+                    		        hierarchyList.add(new DataPointSummaryPathPair(new DataPointSummary(vo), path));
+                    		}
                     		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     	}else{
                     		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));

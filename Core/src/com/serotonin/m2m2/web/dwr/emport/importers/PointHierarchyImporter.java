@@ -10,19 +10,18 @@ import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
+/**
+ * Note this class does not explicitly save the PointHierarchy
+ *
+ * @author Terry Packer
+ */
 public class PointHierarchyImporter extends Importer {
     private final JsonArray json;
-    private final boolean softSave;
     private PointHierarchy ph = null;
-
+  
     public PointHierarchyImporter(JsonArray json) {
-        this(json, false);
-    }
-    
-    public PointHierarchyImporter(JsonArray json, boolean softSave) {
         super(null);
         this.json = json;
-        this.softSave = softSave;
     }
 
     @Override
@@ -37,12 +36,7 @@ public class PointHierarchyImporter extends Importer {
             
             //Merge the new subfolders into the existing point heirarchy.
             hierarchy.mergeFolders(subfolders);
-
-            if(!softSave)// Save the new values.
-                ctx.getDataPointDao().savePointHierarchy(hierarchy.getRoot());
-            else
-                ph = hierarchy;
-            //ctx.getDataPointDao().savePointHierarchy(root);
+            ph = hierarchy;
             addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
         }
         catch (TranslatableJsonException e) {

@@ -122,8 +122,8 @@ public class ImportTask extends ProgressiveTask {
         
         JsonArray phJson = root.getJsonArray(EmportDwr.POINT_HIERARCHY);
         if(phJson != null) {
-            hierarchyImporter = new PointHierarchyImporter(phJson, true);
-        	addImporter(hierarchyImporter);
+            hierarchyImporter = new PointHierarchyImporter(phJson);
+        	    addImporter(hierarchyImporter);
         } else
             hierarchyImporter = null;
         
@@ -157,7 +157,7 @@ public class ImportTask extends ProgressiveTask {
         for(JsonValue jv : nonNullList(root, EmportDwr.EVENT_DETECTORS)) 
         	addImporter(new EventDetectorImporter(jv.toJsonObject()));
 
-        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size());
+        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths 
 
         if(schedule)    
             Common.backgroundProcessing.execute(this);
@@ -215,7 +215,7 @@ public class ImportTask extends ProgressiveTask {
                         // There are importers left in the list, but there were no successful imports in the last run
                         // of the set. So, all that is left is stuff that will always fail. Copy the validation 
                         // messages to the context for each.
-                    	// Run the import items.
+                    	    // Run the import items.
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
@@ -269,22 +269,28 @@ public class ImportTask extends ProgressiveTask {
             BackgroundContext.remove();
             //Compute progress, but only declare if we are < 100 since we will declare 100 when done
             //Our progress is 100 - chunk*importersLeft
-            int importItemsLeft = 0;
+            int importItemsLeft = 1;
+            if(completed)
+                importItemsLeft = 0; //Since we know we ran the processDataPointPaths method
             for(ImportItem item : importItems)
                 if(!item.isComplete())
-                        importItemsLeft++;
+                    importItemsLeft++;
             this.progress = 100f - progressChunk*((float)importers.size() + (float)importItemsLeft);
             if(progress < 100f)
-                    declareProgress(this.progress);
+                declareProgress(this.progress);
         }
     }
     
-    public static void processDataPointPaths(PointHierarchyImporter hierarchyImporter, List<DataPointSummaryPathPair> dpPathPairs) {
+    public void processDataPointPaths(PointHierarchyImporter hierarchyImporter, List<DataPointSummaryPathPair> dpPathPairs) {
+
         PointFolder root;
         if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
             root = hierarchyImporter.getHierarchy().getRoot();
-        else
+        else if(dpPathPairs.size() > 0)
             root = DataPointDao.instance.getPointHierarchy(false).getRoot();
+        else
+            return;
+        
         String pathSeparator = SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
         for(DataPointSummaryPathPair dpp : dpPathPairs) {
             root.removePointRecursively(dpp.getDataPointSummary().getId());
@@ -317,6 +323,7 @@ public class ImportTask extends ProgressiveTask {
             }
         }
         DataPointDao.instance.savePointHierarchy(root);
+        importContext.addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
     }
 
     private void addException(Exception e) {
