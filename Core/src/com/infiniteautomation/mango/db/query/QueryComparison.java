@@ -73,8 +73,9 @@ public class QueryComparison {
 		    //Check to see if we are nested
 		    if(attribute.contains(".")) {
 		        String[] attributes = attribute.split("\\.");
+		        value = instance;
 		        for(String attr : attributes) {
-		            value = PropertyUtils.getProperty(instance, attr);
+		            value = PropertyUtils.getProperty(value, attr);
 		        }
 		    }else {
 		        value = PropertyUtils.getProperty(instance, attribute);
@@ -126,6 +127,13 @@ public class QueryComparison {
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
                     return !thisValue.equals(value);
+                case IN:
+                    for(Object o : this.arguments) {
+                        value = castToInteger(o);
+                        if(thisValue.equals(value))
+                            return true;
+                    }
+                    return false;
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
@@ -152,6 +160,13 @@ public class QueryComparison {
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
                     return !thisValue.equals(value);
+                case IN:
+                    for(Object o : this.arguments) {
+                        value = castToDouble(o);
+                        if(thisValue.equals(value))
+                            return true;
+                    }
+                    return false;
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
@@ -178,6 +193,13 @@ public class QueryComparison {
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
                     return !thisValue.equals(value);
+                case IN:
+                    for(Object o : this.arguments) {
+                        value = castToLong(o);
+                        if(thisValue.equals(value))
+                            return true;
+                    }
+                    return false;
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
@@ -208,6 +230,13 @@ public class QueryComparison {
                 return thisValue.equals(value);
             case NOT_EQUAL_TO:
                 return !thisValue.equals(value);
+            case IN:
+                for(Object o : this.arguments) {
+                    value = castToString(o);
+                    if(thisValue.equals(value))
+                        return true;
+                }
+                return false;
 			default:
 				throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 		}
@@ -230,6 +259,13 @@ public class QueryComparison {
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
                     return !thisValue.equals(value);
+                case IN:
+                    for(Object o : this.arguments) {
+                        value = castToBoolean(o);
+                        if(thisValue.equals(value))
+                            return true;
+                    }
+                    return false;
 				default:
 					throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 			}
