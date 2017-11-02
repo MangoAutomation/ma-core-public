@@ -1,3 +1,7 @@
+*Version 3.3.0*
+* Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
+* Improved accuracy of Rollups See this document for more information (???)
+
 *Version 3.2.2*
 * Make event detector XIDs unique, the id will be appended to existing event detector XIDs
 * Notify websockets of original xid when updating xid
