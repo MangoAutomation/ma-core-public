@@ -1,6 +1,16 @@
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
 * Improved accuracy of Rollups See this document for more information (???)
+* Permissions performance enhancement for admin users
+* Added ID to DataPointWrapper for script environments
+* Added ability to purge between times
+* Fix NoUpdateEventDetectorModel and NoChangeEventDetectorModel to save duration
+* Added validation to alphanumeric regex state detector's regex
+* Fixed validation in many event detectors to avoid NaN being validated.
+* Added descriptions to system info endpoints
+* Added startValue as a rollup type
+* Event handler permission is determined by all the event types it serves
+* Added dataTypeId column to dataPoints table
 
 *Version 3.2.2*
 * Make event detector XIDs unique, the id will be appended to existing event detector XIDs
