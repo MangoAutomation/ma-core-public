@@ -100,9 +100,10 @@ public class EventHandlersDwr extends BaseDwr {
         List<DataPointBean> allPoints = new ArrayList<>();
         List<EventSourceBean> dataPoints = new ArrayList<>();
         List<DataPointVO> dps = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, true);
-
+        final boolean admin = Permissions.hasAdmin(user);
+        
         for (DataPointVO dp : dps) {
-            if (!Permissions.hasDataSourcePermission(user, dslu.get(dp.getDataSourceId())))
+            if (!admin && !Permissions.hasDataSourcePermission(user, dslu.get(dp.getDataSourceId())))
                 continue;
 
             allPoints.add(new DataPointBean(dp));
@@ -125,7 +126,7 @@ public class EventHandlersDwr extends BaseDwr {
         // Get the data sources
         List<EventSourceBean> dataSources = new ArrayList<>();
         for (DataSourceVO<?> ds : dss) {
-            if (!Permissions.hasDataSourcePermission(user, ds))
+            if (!admin && !Permissions.hasDataSourcePermission(user, ds))
                 continue;
 
             if (ds.getEventTypes().size() > 0) {
@@ -160,7 +161,7 @@ public class EventHandlersDwr extends BaseDwr {
             }
         }
 
-        if (Permissions.hasAdmin(user)) {
+        if (admin) {
             // Get the publishers
             List<EventSourceBean> publishers = new ArrayList<>();
             for (PublisherVO<? extends PublishedPointVO> p : PublisherDao.instance

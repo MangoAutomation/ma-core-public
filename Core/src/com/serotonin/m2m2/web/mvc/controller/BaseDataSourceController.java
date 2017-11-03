@@ -53,6 +53,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             throws Exception {
         DataSourceVO<?> dataSourceVO = null;
         User user = Common.getUser(request);
+        final boolean admin = Permissions.hasAdmin(user);
         // Create the model.
         Map<String, Object> model = new HashMap<>();
 
@@ -80,8 +81,9 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                 return new ModelAndView(new RedirectView(errorViewName), model);
             }
 
-            //Prepare the DS        
-            Permissions.ensureDataSourcePermission(user);
+            //Prepare the DS      
+            if(!admin)
+                Permissions.ensureDataSourcePermission(user);
 
             // A new data source
             DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(type);
@@ -163,7 +165,8 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                 return new ModelAndView(new RedirectView(errorViewName), model);
 
             }
-            Permissions.ensureDataSourcePermission(user, dataSourceVO);
+            if(!admin)
+                Permissions.ensureDataSourcePermission(user, dataSourceVO);
         }
 
         // Set the id of the data source in the user object for the DWR.
@@ -188,7 +191,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
         List<DataPointVO> userPoints = new LinkedList<>();
         List<DataPointVO> analogPoints = new LinkedList<>();
         for (DataPointVO dp : allPoints) {
-            if (Permissions.hasDataPointReadPermission(user, dp)) {
+            if (admin || Permissions.hasDataPointReadPermission(user, dp)) {
                 userPoints.add(dp);
                 if (dp.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
                     analogPoints.add(dp);

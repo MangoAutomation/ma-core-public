@@ -86,7 +86,9 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
     public static void validate(String condition, DwrResponseI18n response) {
         try {
             User user = Common.getUser();
-            Permissions.ensureDataSourcePermission(user);
+            final boolean admin = Permissions.hasAdmin(user);
+            if(!admin)
+                Permissions.ensureDataSourcePermission(user);
 
             LogicalOperator l = CompoundEventDetectorRT.parseConditionStatement(condition);
             List<String> keys = l.getDetectorKeys();
@@ -105,7 +107,7 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
 
                 boolean found = false;
                 for (DataPointVO dp : dataPoints) {
-                    if (!Permissions.hasDataSourcePermission(user, dss.get(dp.getDataSourceId())))
+                    if (!admin && !Permissions.hasDataSourcePermission(user, dss.get(dp.getDataSourceId())))
                         continue;
 
 //                    for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
