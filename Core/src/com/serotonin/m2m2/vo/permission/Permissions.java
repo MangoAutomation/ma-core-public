@@ -75,7 +75,7 @@ public class Permissions {
     //
     public static boolean hasAdmin(User user) throws PermissionException {
         ensureValidUser(user);
-        return permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions());
+        return user.isAdmin();
     }
 
     public static void ensureAdmin(User user) throws PermissionException {
@@ -101,8 +101,7 @@ public class Permissions {
     }
 
     public static boolean hasDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
-        ensureValidUser(user);
-        if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
+        if (hasAdmin(user))
             return true;
         return permissionContains(ds.getEditPermission(), user.getPermissions());
     }
@@ -138,7 +137,7 @@ public class Permissions {
     }
 
     public static boolean hasDataPointReadPermission(User user, IDataPoint point) throws PermissionException {
-    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
+    	if (hasAdmin(user))
             return true;
         if (hasPermission(user, point.getReadPermission()))
             return true;
@@ -163,7 +162,7 @@ public class Permissions {
     }
 
     public static boolean hasDataPointSetPermission(User user, IDataPoint point) throws PermissionException {
-    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
+    	if (hasAdmin(user))
             return true;
         if (hasPermission(user, point.getSetPermission()))
             return true;
@@ -190,7 +189,7 @@ public class Permissions {
     public static int getDataPointAccessType(User user, IDataPoint point) {
         if (user == null || user.isDisabled())
             return DataPointAccessTypes.NONE;
-        if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()))
+        if (user.isAdmin())
             return DataPointAccessTypes.ADMIN;
 
         String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
@@ -293,7 +292,7 @@ public class Permissions {
     public static PermissionDetails getPermissionDetails(String query, User user) {
         PermissionDetails d = new PermissionDetails(user.getUsername());
 
-        d.setAdmin(permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()));
+        d.setAdmin(user.isAdmin());
 
         if (!StringUtils.isEmpty(user.getPermissions())) {
             for (String s : user.getPermissions().split(",")) {
@@ -333,7 +332,7 @@ public class Permissions {
     public static PermissionDetails getPermissionDetails(User currentUser, String query, User user) {
         PermissionDetails d = new PermissionDetails(user.getUsername());
 
-        d.setAdmin(permissionContains(SuperadminPermissionDefinition.GROUP_NAME, user.getPermissions()));
+        d.setAdmin(user.isAdmin());
 
         //Add any matching groups
         if (!StringUtils.isEmpty(user.getPermissions())) {
