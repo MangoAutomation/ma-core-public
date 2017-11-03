@@ -90,7 +90,7 @@ public class MiscDwr extends BaseDwr {
     public int acknowledgeEvent(int eventId) {
         User user = Common.getHttpUser();
         if (user != null) {
-            Common.eventManager.acknowledgeEventById(eventId, Common.timer.currentTimeMillis(), user.getId(), null);
+            Common.eventManager.acknowledgeEventById(eventId, Common.timer.currentTimeMillis(), user, null);
             resetLastAlarmLevelChange();
         }
         return eventId;
@@ -103,7 +103,7 @@ public class MiscDwr extends BaseDwr {
             EventDao eventDao = EventDao.instance;
             long now = Common.timer.currentTimeMillis();
             for (EventInstance evt : eventDao.getPendingEvents(user.getId()))
-                Common.eventManager.acknowledgeEventById(evt.getId(), now, user.getId(), null);
+                Common.eventManager.acknowledgeEventById(evt.getId(), now, user, null);
             resetLastAlarmLevelChange();
         }
     }

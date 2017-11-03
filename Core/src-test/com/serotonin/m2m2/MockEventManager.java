@@ -13,6 +13,7 @@ import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.User;
 
 /**
  *
@@ -70,7 +71,7 @@ public class MockEventManager implements EventManager{
      * @see com.serotonin.m2m2.rt.EventManager#acknowledgeEventById(int, long, int, com.serotonin.m2m2.i18n.TranslatableMessage)
      */
     @Override
-    public EventInstance acknowledgeEventById(int eventId, long time, int userId,
+    public EventInstance acknowledgeEventById(int eventId, long time, User user,
             TranslatableMessage alternateAckSource) {
 
         return null;

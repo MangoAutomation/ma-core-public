@@ -12,6 +12,7 @@ import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.util.ILifecycle;
 
 
@@ -58,11 +59,11 @@ public interface EventManager extends ILifecycle{
      * 
      * @param eventId
      * @param time
-     * @param userId
+     * @param user
      * @param alternateAckSource
      * @return the EventInstance for the ID if found, null otherwise
      */
-    public EventInstance acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource);
+    public EventInstance acknowledgeEventById(int eventId, long time, User user, TranslatableMessage alternateAckSource);
 
     long getLastAlarmTimestamp();
 

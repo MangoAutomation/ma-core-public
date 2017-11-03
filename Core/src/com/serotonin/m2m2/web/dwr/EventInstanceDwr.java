@@ -147,7 +147,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
             	@Override
                 public void row(EventInstanceVO vo, int rowIndex) {
             		if(!vo.isAcknowledged()){
-            			EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), now, user.getId(), null);
+            			EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), now, user, null);
             			if (event != null && event.isAcknowledged()) {
             			    counter.increment();
             			}

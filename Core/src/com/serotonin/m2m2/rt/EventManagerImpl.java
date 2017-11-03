@@ -199,7 +199,7 @@ public class EventManagerImpl implements EventManager {
 		}
 
 		if ((autoAckMessage != null)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)))
-			this.acknowledgeEvent(evt, time, 0, autoAckMessage);
+			this.acknowledgeEvent(evt, time, null, autoAckMessage);
 		else {
 			if (evt.isRtnApplicable()) {
 				if (alarmLevel > highestActiveAlarmLevel) {
@@ -376,16 +376,23 @@ public class EventManagerImpl implements EventManager {
 	 * @param userId
 	 * @param alternateAckSource
 	 */
-	private boolean acknowledgeEvent(EventInstance evt, long time, int userId, TranslatableMessage alternateAckSource) {
-		boolean acked = eventDao.ackEvent(evt.getId(), time, userId, alternateAckSource);
-		
+	private boolean acknowledgeEvent(EventInstance evt, long time, User ackUser, TranslatableMessage alternateAckSource) {
+	    boolean acked;
+	    if(ackUser != null)
+		    acked = eventDao.ackEvent(evt.getId(), time, ackUser.getId(), alternateAckSource);
+	    else
+            acked = eventDao.ackEvent(evt.getId(), time, 0, alternateAckSource);
+	        
 		 // event was already acknowledged or doesn't exist
 		if (!acked) {
 		    return false;
 		}
 		
 		//Fill in the info if someone on the other end wants it
-		evt.setAcknowledgedByUserId(userId);
+		if(ackUser != null) {
+        		evt.setAcknowledgedByUserId(ackUser.getId());
+        		evt.setAcknowledgedByUsername(ackUser.getUsername());
+		}
 		evt.setAcknowledgedTimestamp(time);
 		evt.setAlternateAckSource(alternateAckSource);
 
@@ -422,12 +429,12 @@ public class EventManagerImpl implements EventManager {
      * @param alternateAckSource
      * @return the EventInstance for the ID if found, null otherwise
      */
-    public EventInstance acknowledgeEventById(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
+    public EventInstance acknowledgeEventById(int eventId, long time, User user, TranslatableMessage alternateAckSource) {
         EventInstance dbEvent;
         EventInstance cachedEvent = getById(eventId);
         
         if (cachedEvent != null) {
-            acknowledgeEvent(cachedEvent, time, userId, alternateAckSource);
+            acknowledgeEvent(cachedEvent, time, user, alternateAckSource);
             
             // we don't want to return the cached event, user might change it
             // return a copy from the database
@@ -437,7 +444,7 @@ public class EventManagerImpl implements EventManager {
             
             // only ack the event if it exists and is not already acknowledged
             if (dbEvent != null && !dbEvent.isAcknowledged()) {
-                boolean acked = acknowledgeEvent(dbEvent, time, userId, alternateAckSource);
+                boolean acked = acknowledgeEvent(dbEvent, time, user, alternateAckSource);
                 
                 // unlikely case that someone else ackd the event at the same time
                 if (!acked) {
