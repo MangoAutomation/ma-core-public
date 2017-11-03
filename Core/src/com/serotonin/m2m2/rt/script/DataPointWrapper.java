@@ -40,6 +40,10 @@ public class DataPointWrapper {
         return vo.isEnabled();
     }
     
+    public int getId() {
+        return vo.getId();
+    }
+    
     public String getXid() {
         return vo.getXid();
     }
@@ -85,6 +89,7 @@ public class DataPointWrapper {
 		builder.append("settable: ").append(isSettable()).append(",\n");
 		builder.append("deviceName: ").append(getDeviceName()).append(",\n");
 		builder.append("enabled: ").append(isEnabled()).append(",\n");
+		builder.append("id: ").append(getId()).append(",\n");
 		builder.append("xid: ").append(getXid()).append(",\n");
 		builder.append("name: ").append(getName()).append(",\n");
 		builder.append("path: ").append(getName()).append(",\n");
