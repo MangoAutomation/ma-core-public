@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.RenderNameStyle;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -43,7 +44,6 @@ public class DaoUtils {
 
     protected final DatabaseType databaseType;
     protected final DSLContext create;
-    protected final SQLDialect sqlDialect;
     
     public DaoUtils(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -52,29 +52,29 @@ public class DaoUtils {
         ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(dataSource);
 
-        switch(this.databaseType) {
-            case DERBY:
-                sqlDialect = SQLDialect.DERBY;
-                break;
-            case H2:
-                sqlDialect = SQLDialect.H2;
-                break;
-            case MYSQL:
-                sqlDialect = SQLDialect.MYSQL;
-                break;
-            case POSTGRES:
-                sqlDialect = SQLDialect.POSTGRES;
-                break;
-            case MSSQL:
-            default:
-                sqlDialect = SQLDialect.DEFAULT;
-                break;
-        }
-        
         Configuration configuration = new DefaultConfiguration();
         configuration.set(new SpringConnectionProvider(dataSource));
         configuration.set(new SpringTransactionProvider(getTransactionManager()));
-        configuration.set(sqlDialect);
+        
+        switch(this.databaseType) {
+            case DERBY:
+                configuration.set(SQLDialect.DERBY);
+                break;
+            case H2:
+                configuration.set(SQLDialect.H2);
+                configuration.settings().setRenderNameStyle(RenderNameStyle.UPPER);
+                break;
+            case MYSQL:
+                configuration.set(SQLDialect.MYSQL);
+                break;
+            case POSTGRES:
+                configuration.set(SQLDialect.POSTGRES);
+                break;
+            case MSSQL:
+            default:
+                configuration.set(SQLDialect.DEFAULT);
+                break;
+        }
         
         this.create = DSL.using(configuration);
     }
