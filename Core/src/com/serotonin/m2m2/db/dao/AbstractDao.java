@@ -296,6 +296,12 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         super.update(vo, initiatorId, originalXid);
         AuditEventType.raiseChangedEvent(this.typeName, old, vo);
     }
+    
+    @Override
+    public void delete(T vo, String initiatorId) {
+        super.delete(vo, initiatorId);
+        AuditEventType.raiseDeletedEvent(this.typeName, vo);
+    }
 
     /**
      * Creates a new vo by copying an existing one
