@@ -504,6 +504,8 @@ public class RuntimeManagerImpl implements RuntimeManager{
             stopDataPoint(dp.getId());
         else if(!running && enabled)
             startDataPoint(dp, null);
+        //to restart, else if(running && enabled) { stopDataPoint(dp.getId()); startDataPoint(dp, null); }
+        // or pass a restart flag?
         DataPointDao.instance.setEnabled(dp);
     }
 
