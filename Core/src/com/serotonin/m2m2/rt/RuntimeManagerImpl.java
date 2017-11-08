@@ -492,6 +492,23 @@ public class RuntimeManagerImpl implements RuntimeManager{
         if (point.isEnabled())
             startDataPoint(point, null);
     }
+    
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.RuntimeManager#toggleDataPoint(com.serotonin.m2m2.vo.DataPointVO)
+     */
+    @Override
+    public void toggleDataPoint(DataPointVO dp, boolean enabled) {
+        boolean running = isDataPointRunning(dp.getId());
+        if(running && !enabled) {
+            stopDataPoint(dp.getId());
+            dp.setEnabled(false);
+            DataPointDao.instance.setEnabled(dp);
+        } else if(!running && enabled) {
+            dp.setEnabled(true);
+            DataPointDao.instance.setEnabled(dp);
+            startDataPoint(dp, null);
+        }
+    }
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.RuntimeManager#deleteDataPoint(com.serotonin.m2m2.vo.DataPointVO)

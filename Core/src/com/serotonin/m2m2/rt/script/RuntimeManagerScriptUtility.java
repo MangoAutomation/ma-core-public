@@ -192,10 +192,9 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null || !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
-			DataPointDao.instance.setEventDetectors(vo);
-			vo.setEnabled(true);
 			try{
-				Common.runtimeManager.saveDataPoint(vo);
+			    DataPointDao.instance.setEventDetectors(vo);
+				Common.runtimeManager.toggleDataPoint(vo, true);
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 				throw e;
@@ -215,10 +214,8 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null || !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
-			DataPointDao.instance.setEventDetectors(vo);
-			vo.setEnabled(false);
 			try{
-				Common.runtimeManager.saveDataPoint(vo);
+				Common.runtimeManager.toggleDataPoint(vo, false);
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 				throw e;

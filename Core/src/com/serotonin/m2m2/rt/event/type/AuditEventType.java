@@ -29,6 +29,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.util.JsonSerializableUtility;
+import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
@@ -125,6 +126,12 @@ public class AuditEventType extends EventType{
 		}
         
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.changed", context);
+    }
+    
+    public static void raiseToggleEvent(String auditEventType, AbstractActionVO<?> toggled) {
+        Map<String, Object> context = new HashMap<String, Object>();
+        context.put(AbstractActionVO.ENABLED_KEY, toggled.isEnabled());
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, toggled, "event.audit.toggled", context);
     }
 
     public static void raiseDeletedEvent(String auditEventType, AbstractVO<?> o) {

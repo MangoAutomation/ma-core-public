@@ -75,6 +75,8 @@ public interface RuntimeManager extends ILifecycle{
     // Data points
     //
     void saveDataPoint(DataPointVO point);
+    
+    void toggleDataPoint(DataPointVO point, boolean enabled);
 
     void deleteDataPoint(DataPointVO point);
 

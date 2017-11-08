@@ -426,7 +426,7 @@ allDataPoints = new StoreView({
             if (src.substring(0,1) !== '/')
                 src = '/images/' + src + '.png';
             
-            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ', this.src.indexOf("_go") == -1);';
             if(button === 'pointDetails'){
             	var over = this.varName + ".showPointValue(event," + id + ")";
             	var out = this.varName + ".hidePointValue(" + id + ")";
@@ -494,7 +494,7 @@ allDataPoints = new StoreView({
     /**
      * Override Toggle Method
      */
-    toggle: function(id) {
+    toggle: function(id, enabled) {
     	var _this = this;
         
     	//Are we also editing this point?
@@ -509,7 +509,7 @@ allDataPoints = new StoreView({
         
     	startImageFader("toggleAllDataPoints" + id, true);
     	
-    	DataPointDwr.toggle(id, function(result) {
+    	DataPointDwr.toggle(id, enabled, function(result) {
     		_this.updateStatus(result.data.id,result.data.enabled);
     		stopImageFader("toggleAllDataPoints" + id);
     		

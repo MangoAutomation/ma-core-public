@@ -377,4 +377,10 @@ public class MockRuntimeManager implements RuntimeManager{
         
     }
 
+    @Override
+    public void toggleDataPoint(DataPointVO point, boolean enabled) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

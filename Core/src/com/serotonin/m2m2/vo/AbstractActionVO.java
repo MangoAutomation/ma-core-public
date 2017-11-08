@@ -23,6 +23,7 @@ import com.serotonin.json.type.JsonObject;
  */
 public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends AbstractVO<VO> implements JsonSerializable {
     private static final long serialVersionUID = -1;
+    public static final String ENABLED_KEY = "enabled";
     
     protected boolean enabled = false;
 
@@ -37,14 +38,14 @@ public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
     	super.jsonRead(reader, jsonObject);
-    	enabled = jsonObject.getBoolean("enabled");
+    	enabled = jsonObject.getBoolean(ENABLED_KEY);
     }
     
     @Override
 	public void jsonWrite(ObjectWriter writer) throws IOException,
 			JsonException {
 		super.jsonWrite(writer);
-		writer.writeEntry("enabled", enabled);
+		writer.writeEntry(ENABLED_KEY, enabled);
     }
     
     /**

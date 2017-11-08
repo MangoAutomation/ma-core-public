@@ -99,6 +99,22 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         return response;
 
     }
+    
+    @DwrPermission(user = true)
+    public ProcessResult toggle(int dataPointId, boolean enabled) {
+        DataPointVO dataPoint = DataPointDao.instance.getDataPoint(dataPointId, false);
+        Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
+ 
+        if(enabled)
+            DataPointDao.instance.setEventDetectors(dataPoint);
+        
+        Common.runtimeManager.toggleDataPoint(dataPoint, enabled);
+        
+        ProcessResult response = new ProcessResult();
+        response.addData("id", dataPointId);
+        response.addData("enabled", dataPoint.isEnabled());
+        return response;
+    }
 
     /*
      * (non-Javadoc)

@@ -419,6 +419,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.BINARY, Types.INTEGER });
     }
+    
+    public void setEnabled(DataPointVO dp) {
+        ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
+        AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
+    }
 
     public void deleteDataPoints(final int dataSourceId) {
         List<DataPointVO> old = getDataPoints(dataSourceId, null, true);
