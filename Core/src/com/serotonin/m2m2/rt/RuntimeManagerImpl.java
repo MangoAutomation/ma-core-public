@@ -499,15 +499,12 @@ public class RuntimeManagerImpl implements RuntimeManager{
     @Override
     public void toggleDataPoint(DataPointVO dp, boolean enabled) {
         boolean running = isDataPointRunning(dp.getId());
-        if(running && !enabled) {
+        dp.setEnabled(enabled);
+        if(running && !enabled)
             stopDataPoint(dp.getId());
-            dp.setEnabled(false);
-            DataPointDao.instance.setEnabled(dp);
-        } else if(!running && enabled) {
-            dp.setEnabled(true);
-            DataPointDao.instance.setEnabled(dp);
+        else if(!running && enabled)
             startDataPoint(dp, null);
-        }
+        DataPointDao.instance.setEnabled(dp);
     }
 
     /* (non-Javadoc)
