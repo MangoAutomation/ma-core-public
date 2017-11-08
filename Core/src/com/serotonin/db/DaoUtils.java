@@ -20,6 +20,7 @@ import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
+import org.jooq.tools.StopWatchListener;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -41,6 +42,9 @@ public class DaoUtils {
     protected final DataSource dataSource;
     protected final ExtendedJdbcTemplate ejt;
     protected DataSourceTransactionManager tm;
+    
+    // Print out times and SQL for RQL Queries
+    protected final boolean useMetrics;
 
     protected final DatabaseType databaseType;
     protected final DSLContext create;
@@ -48,6 +52,7 @@ public class DaoUtils {
     public DaoUtils(DataSource dataSource) {
         this.dataSource = dataSource;
         this.databaseType = Common.databaseProxy.getType();
+        this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
         
         ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(dataSource);
@@ -55,6 +60,11 @@ public class DaoUtils {
         Configuration configuration = new DefaultConfiguration();
         configuration.set(new SpringConnectionProvider(dataSource));
         configuration.set(new SpringTransactionProvider(getTransactionManager()));
+
+        configuration.settings().setExecuteLogging(this.useMetrics);
+        if (this.useMetrics) {
+            configuration.set(() -> new StopWatchListener());
+        }
         
         switch(this.databaseType) {
             case DERBY:
@@ -77,6 +87,10 @@ public class DaoUtils {
         }
         
         this.create = DSL.using(configuration);
+    }
+
+    public boolean isUseMetrics() {
+        return this.useMetrics;
     }
 
     protected void setInt(PreparedStatement stmt, int index, int value, int nullValue) throws SQLException {

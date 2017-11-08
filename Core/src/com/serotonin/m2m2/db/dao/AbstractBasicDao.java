@@ -127,8 +127,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	// Use SubQuery for restrictions not in Joined Tables
 	protected final boolean useSubQuery;
-	// Print out times and SQL for RQL Queries
-	protected final boolean useMetrics;
 	
 	protected final String pkColumn;
 
@@ -175,7 +173,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties,
 			boolean useSubQuery, TranslatableMessage countMonitorName) {
 		this.handler = handler;
-		this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
 		TABLE_PREFIX = tablePrefix;
 		if (tablePrefix != null)
 			this.tablePrefix = tablePrefix + ".";
@@ -866,10 +863,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		return stmt;
 	}
 
-	public boolean isUseMetrics() {
-		return this.useMetrics;
-	}
-	
 	public AtomicIntegerMonitor getCountMonitor(){
 		return this.countMonitor;
 	}
