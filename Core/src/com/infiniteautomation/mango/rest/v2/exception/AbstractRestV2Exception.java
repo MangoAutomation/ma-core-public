@@ -17,7 +17,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * 
  * @author Terry Packer
  */
-@JsonIgnoreProperties({"cause", "stackTrace", "message", "suppressed"})
+@JsonIgnoreProperties({"stackTrace", "message", "suppressed"})
 public abstract class AbstractRestV2Exception extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
@@ -73,6 +73,15 @@ public abstract class AbstractRestV2Exception extends RuntimeException {
 		else
 			return null;
 	}
+
+    @JsonProperty("cause")
+    public String getCauseMessage() {
+        Throwable cause = this.getCause();
+        if (cause != null) {
+            return cause.getClass().getSimpleName() + ": " + cause.getMessage();
+        }
+        return null;
+    }
     
 	@JsonProperty("localizedMessage")
     public TranslatableMessage getTranslatableMessage() {
