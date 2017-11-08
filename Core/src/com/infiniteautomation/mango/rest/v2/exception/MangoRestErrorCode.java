@@ -23,9 +23,20 @@ public enum MangoRestErrorCode implements IMangoRestErrorCode {
 	//***** 4000 Series *****
 	
 	RQL_PARSE_FAILURE(4001),
+
+	/**
+	 * this is specifically caused by a VO validation method failing, as opposed to BAD_REQUEST which is more generic
+	 */
 	VALIDATION_FAILED(4002),
     ALREADY_EXISTS(4003),
     ACCESS_DENIED(4004),
+
+    /**
+     * HTTP 400 bad request technically means "invalid syntax",
+     * if we send MangoRestErrorCode.BAD_REQUEST too it indicates its more of a problem inside the JSON structure rather than a
+     * syntactic error
+     */
+    BAD_REQUEST(4005),
 	
 	//***** 5000 Series *****
 	GENERIC_500(5000);

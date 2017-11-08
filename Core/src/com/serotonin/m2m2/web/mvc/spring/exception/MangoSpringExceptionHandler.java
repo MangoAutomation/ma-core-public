@@ -31,6 +31,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
 import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
+import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
@@ -73,7 +74,7 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     	AccessDeniedException.class
     	})
     public ResponseEntity<Object> handleAccessDenied(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
-    	return handleExceptionInternal(ex, null, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
+    	return handleExceptionInternal(ex, new com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException(ex), new HttpHeaders(), HttpStatus.FORBIDDEN, req);
     }
 
     @ExceptionHandler({
@@ -89,7 +90,7 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     	Exception.class
     })
     public ResponseEntity<Object> handleAllOtherErrors(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
-    	return handleExceptionInternal(ex, null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
+    	return handleExceptionInternal(ex, new ServerErrorException(ex), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
     }
     
     /* (non-Javadoc)

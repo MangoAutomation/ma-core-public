@@ -27,4 +27,8 @@ public class GenericRestException extends AbstractRestV2Exception{
 	public GenericRestException(HttpStatus status, TranslatableMessage message) {
 		super(status, null, message);
 	}
+	
+    public GenericRestException(HttpStatus status, TranslatableMessage message, Exception e) {
+        super(status, null, message, e);
+    }
 }
