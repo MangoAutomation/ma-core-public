@@ -100,6 +100,7 @@ create table dataSources (
 );
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
 CREATE INDEX nameIndex on dataSources (name ASC);
+CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 
 --
 --
@@ -141,6 +142,7 @@ CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
+CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);
 
 -- Data point tags
 CREATE TABLE dataPointTags (

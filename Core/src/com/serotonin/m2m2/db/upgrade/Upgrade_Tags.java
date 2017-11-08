@@ -38,7 +38,11 @@ public class Upgrade_Tags extends DBUpgrade {
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);",
         "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;"
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        
+        // create some new indexes on other dataPoints and dataSources
+        "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
+        "CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);"
     };
     
     private final String[] h2 = new String[] {
@@ -51,7 +55,11 @@ public class Upgrade_Tags extends DBUpgrade {
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);",
         "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;"
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        
+        // create some new indexes on other dataPoints and dataSources
+        "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
+        "CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);"
     };
     
     private final String[] mssql = new String[] {
@@ -64,7 +72,11 @@ public class Upgrade_Tags extends DBUpgrade {
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "ALTER TABLE dataPointTags ADD INDEX dataPointTagsIndex1 (tagKey ASC, tagValue ASC);",
         "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;"
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        
+        // create some new indexes on other dataPoints and dataSources
+        "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
+        "CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);"
     };
     
     private final String[] postgres = new String[] {
@@ -77,6 +89,10 @@ public class Upgrade_Tags extends DBUpgrade {
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "ALTER TABLE dataPointTags ADD INDEX dataPointTagsIndex1 (tagKey ASC, tagValue ASC);",
         "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;"
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        
+        // create some new indexes on other dataPoints and dataSources
+        "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
+        "CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);"
     };
 }
