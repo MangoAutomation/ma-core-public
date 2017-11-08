@@ -66,6 +66,7 @@
 		<Logger name="com.infiniteautomation.brewersdashboard.rt" level="debug"/>
 		<Logger name="com.serotonin.bacnet4j" level="debug"/>
 		<Logger name="org.apache.logging" level="debug"/>
+		<Logger name="org.jooq.tools" level="debug"/>
 		<Root level="error">
 			<AppenderRef ref="async"/>
 		</Root>

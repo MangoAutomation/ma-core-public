@@ -113,7 +113,7 @@ ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
 --
 -- Data Points
 --
-create table dataPoints (
+CREATE TABLE dataPoints (
   id int not null auto_increment,
   xid varchar(50) not null,
   dataSourceId int not null,
@@ -140,8 +140,8 @@ create table dataPoints (
   dataTypeId int not null,
   primary key (id)
 ) engine=InnoDB;
-alter table dataPoints add constraint dataPointsUn1 unique (xid);
-alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
@@ -149,7 +149,17 @@ CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
-    	
+
+-- Data point tags
+CREATE TABLE dataPointTags (
+  dataPointId INT NOT NULL,
+  tagKey VARCHAR(255) NOT NULL,
+  tagValue VARCHAR(255) NOT NULL
+) engine=InnoDB;
+ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);
+ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
+CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
+
 -- Data point hierarchy
 CREATE TABLE dataPointHierarchy (
   id int NOT NULL auto_increment,

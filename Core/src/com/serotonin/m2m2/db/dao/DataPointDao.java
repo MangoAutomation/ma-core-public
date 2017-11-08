@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+
 import java.io.ObjectStreamException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,11 +22,23 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
+import org.jooq.SelectOnConditionStep;
+import org.jooq.SortField;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -36,12 +50,17 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -57,6 +76,7 @@ import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -85,7 +105,13 @@ import net.jazdw.rql.parser.ASTNode;
 public class DataPointDao extends AbstractDao<DataPointVO>{
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
     public static final DataPointDao instance = new DataPointDao();
-    
+
+    public static final Name DATA_POINTS_ALIAS = DSL.name("dp");
+    public static final Table<Record> DATA_POINTS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTS_TABLE)).as(DATA_POINTS_ALIAS);
+    public static final Field<Integer> ID = DSL.field(DATA_POINTS_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> DATA_SOURCE_ID = DSL.field(DATA_POINTS_ALIAS.append("dataSourceId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
+    public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
 
     /**
      * Private as we only ever want 1 of these guys
@@ -124,7 +150,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public List<DataPointVO> getDataPoints(Comparator<IDataPoint> comparator, boolean includeRelationalData) {
         List<DataPointVO> dps = query(DATA_POINT_SELECT, new DataPointRowMapper());
         if (includeRelationalData)
-            setRelationalData(dps);
+            loadPartialRelationalData(dps);
         if (comparator != null)
             Collections.sort(dps, comparator);
         return dps;
@@ -139,7 +165,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         List<DataPointVO> dps = query(DATA_POINT_SELECT+ " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
         if (includeRelationalData)
-            setRelationalData(dps);
+            loadPartialRelationalData(dps);
         if (comparator != null)
             Collections.sort(dps, comparator);
         return dps;
@@ -160,8 +186,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         try {
             DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.id=?", new Object[] { id },
                     new DataPointRowMapper(), null);
-            if (includeRelationalData)
-                setRelationalData(dp);
+            if (dp != null && includeRelationalData)
+                loadRelationalData(dp);
             return dp;
         }
         catch (ShouldNeverHappenException e) {
@@ -180,7 +206,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public DataPointVO getDataPoint(String xid) {
         DataPointVO dp = queryForObject(DATA_POINT_SELECT + " where dp.xid=?", new Object[] { xid },
                 new DataPointRowMapper(), null);
-        setRelationalData(dp);
+        if (dp != null) {
+            loadRelationalData(dp);
+        }
         return dp;
     }
     
@@ -291,18 +319,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
     }
 
-    private void setRelationalData(List<DataPointVO> dps) {
-        for (DataPointVO dp : dps)
-            setRelationalData(dp);
-    }
-
-    private void setRelationalData(DataPointVO dp) {
-        if (dp == null)
-            return;
-        setEventDetectors(dp);
-        setPointComments(dp);
-    }
-
     public void saveDataPoint(final DataPointVO dp) {
     	if(dp.getId() == Common.NEW_ID) checkAddPoint();
     	
@@ -369,7 +385,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BINARY }));
 
         // Save the relational information.
-        saveEventDetectors(dp);
+        saveRelationalData(dp, true);
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_POINT, dp);
 
@@ -394,7 +410,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_POINT, old, dp);
 
         // Save the relational information.
-        saveEventDetectors(dp);
+        saveRelationalData(dp, false);
 
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterUpdate(dp);
@@ -513,7 +529,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     	}
         dp.setEventDetectors(peds);
     }
-
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
@@ -1132,7 +1147,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             if(rs.wasNull())
             	dp.setTemplateId(null);
             dp.setRollup(rs.getInt(++i));
-            
+
             // read and discard dataTypeId
             rs.getInt(++i);
 
@@ -1147,16 +1162,41 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
     }
 
-    @Override
-    public DataPointVO getFull(int id) {
-        //Get the values from local table
-        DataPointVO vo = this.get(id);
-
-        this.loadDataSource(vo);
+    /**
+     * Loads the event detectors, point comments and tags
+     * @param vo
+     */
+    public void loadPartialRelationalData(DataPointVO vo) {
         this.setEventDetectors(vo);
         this.setPointComments(vo);
+        vo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(vo.getId()));
+    }
+
+    private void loadPartialRelationalData(List<DataPointVO> dps) {
+        for (DataPointVO dp : dps) {
+            loadPartialRelationalData(dp);
+        }
+    }
+
+    /**
+     * Loads the event detectors, point comments, tags data source and template name
+     * Used by getFull()
+     * @param vo
+     */
+    @Override
+    public void loadRelationalData(DataPointVO vo) {
+        this.loadPartialRelationalData(vo);
+        this.loadDataSource(vo);
         this.setTemplateName(vo);
-        return vo;
+    }
+    
+    @Override
+    public void saveRelationalData(DataPointVO vo, boolean insert) {
+        saveEventDetectors(vo);
+        if (!insert) {
+            DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
+        }
+        DataPointTagsDao.instance.addTagsForDataPointId(vo.getId(), vo.getTags());
     }
 
     @Override
@@ -1213,18 +1253,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
         vo.setDataSourceXid(dsVo.getXid());
 
-    }
-
-    @Override
-    public List<DataPointVO> getAllFull() {
-        List<DataPointVO> list = this.getAll();
-        for (DataPointVO vo : list) {
-            this.loadDataSource(vo);
-            this.setEventDetectors(vo);
-            this.setPointComments(vo);
-            this.setTemplateName(vo);
-        }
-        return list;
     }
 
     public void setTemplateName(DataPointVO vo){
@@ -1304,8 +1332,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 	 */
 	public List<DataPointVO> getByTemplate(int id, boolean setRelational) {
 		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
-		if(setRelational)
-			setRelationalData(dps); //We will need this to restart the points after updating them
+		if (dps != null && setRelational)
+			loadPartialRelationalData(dps); //We will need this to restart the points after updating them
 		return dps;
 	}
 	
@@ -1489,6 +1517,159 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             	if(stmt != null) { stmt.close(); }
             }
 		}
-		
 	}
+	
+	/**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     * 
+	 * @param user
+	 * @return
+	 */
+	public List<DataPointVO> dataPointsForUser(User user) {
+        List<DataPointVO> result = new ArrayList<>();
+        dataPointsForUser(user, (item, index) -> result.add(item));
+        return result;
+	}
+
+    /**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     * 
+     * @param user
+     * @param callback
+     */
+    public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback) {
+        dataPointsForUser(user, callback, null, null, null);
+    }
+
+    /**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     * 
+     * @param user
+     * @param callback
+     * @param sort (may be null)
+     * @param limit (may be null)
+     * @param offset (may be null)
+     */
+    public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
+        Condition condition = null;
+        if (!user.isAdmin()) {
+            condition = DataPointDao.instance.userHasPermission(user);
+        }
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        this.customizedQuery(select, condition, sort, limit, offset, callback);
+    }
+
+    /**
+     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * 
+     * @param restrictions
+     * @param user
+     * @return
+     */
+    public List<DataPointVO> dataPointsForTags(Map<String, String> restrictions, User user) {
+        List<DataPointVO> result = new ArrayList<>();
+        dataPointsForTags(restrictions, user, (item, index) -> result.add(item));
+        return result;
+    }
+
+    /**
+     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * 
+     * @param restrictions
+     * @param user
+     * @param callback
+     */
+    public void dataPointsForTags(Map<String, String> restrictions, User user, MappedRowCallback<DataPointVO> callback) {
+        dataPointsForTags(restrictions, user, callback, null, null, null);
+    }
+
+    /**
+     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * 
+     * @param restrictions
+     * @param user
+     * @param callback
+     * @param sort (may be null)
+     * @param limit (may be null)
+     * @param offset (may be null)
+     */
+    public void dataPointsForTags(Map<String, String> restrictions, User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
+        if (restrictions.isEmpty()) {
+            throw new IllegalArgumentException("restrictions should not be empty");
+        }
+        
+        Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
+
+        List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
+            return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
+        }).collect(Collectors.toCollection(ArrayList::new));
+        
+        if (!user.isAdmin()) {
+            conditions.add(DataPointDao.instance.userHasPermission(user));
+        }
+
+        Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+
+        SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.joinedTable).leftJoin(pivotTable)
+            .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+        
+        this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
+    }
+
+    @Override
+    protected RQLToCondition createRqlToCondition() {
+        // we create one every time as they are stateful for this DAO
+        return null;
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        if (conditions instanceof ConditionSortLimitWithTagKeys) {
+            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
+            if (!tagKeyToColumn.isEmpty()) {
+                Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+
+                return select.leftJoin(pivotTable)
+                    .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+            }
+        }
+        return select;
+    }
+
+    @Override
+    public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
+        // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
+        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField);
+        return rqlToSelect.visit(rql);
+    }
+
+    public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
+    public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
+    
+    public Condition userHasPermission(User user) {
+        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
+        
+        for (String userPermission : userPermissions) {
+            conditions.add(fieldMatchesUserPermission(READ_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
+        }
+        
+        return DSL.or(conditions);
+    }
+    
+    Condition fieldMatchesUserPermission(Field<String> field, String userPermission) {
+        return DSL.or(
+                field.eq(userPermission),
+                DSL.and(
+                        field.isNotNull(),
+                        field.notEqual(""),
+                        field.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX)
+                )
+        );
+    }
 }

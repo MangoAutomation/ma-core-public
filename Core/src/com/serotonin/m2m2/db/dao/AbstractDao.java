@@ -344,15 +344,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     public abstract T getNewVo();
 
     /**
-     * Save a VO AND its FKs
-     * 
-     * @param vo
-     */
-    public void saveFull(T vo) {
-        save(vo);
-    }
-
-    /**
      * Method callback for when a row is returned from the DB
      * but will not make it to the VIEW due to filtering of the result set
      * 

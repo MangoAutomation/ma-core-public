@@ -15,17 +15,33 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.SelectSelectStep;
+import org.jooq.SortField;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.SQLStatement;
@@ -37,6 +53,7 @@ import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
@@ -58,6 +75,8 @@ import net.jazdw.rql.parser.ASTNode;
 public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements ValueMonitorOwner{
 	protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
+    public static final int DEFAULT_LIMIT = 100;
+    
 	protected DaoNotificationWebSocketHandler<T> handler;
 
 	public static final String WHERE = " WHERE ";
@@ -108,13 +127,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 	// Use SubQuery for restrictions not in Joined Tables
 	protected final boolean useSubQuery;
-	// Print out times and SQL for RQL Queries
-	protected final boolean useMetrics;
-	// The type of database we are using
-	protected final DatabaseType databaseType;
+	
+	protected final String pkColumn;
 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
+
+    protected final Table<? extends Record> table;
+    protected final Name tableAlias;
+    protected final Table<? extends Record> joinedTable;
+    protected final List<Field<?>> fields;
+    protected final Map<String, Field<Object>> propertyToField;
+    protected final RQLToCondition rqlToCondition;
 
     /**
      * 
@@ -149,8 +173,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties,
 			boolean useSubQuery, TranslatableMessage countMonitorName) {
 		this.handler = handler;
-		this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
-		this.databaseType = Common.databaseProxy.getType();
 		TABLE_PREFIX = tablePrefix;
 		if (tablePrefix != null)
 			this.tablePrefix = tablePrefix + ".";
@@ -160,12 +182,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		this.tableName = getTableName();
 		this.useSubQuery = useSubQuery;
 
+		this.table = DSL.table(DSL.name(this.tableName));
+        this.tableAlias = DSL.name(TABLE_PREFIX);
+
 		Map<String, IntStringPair> propMap = getPropertiesMap();
 		if (propMap == null)
 			this.propertiesMap = new HashMap<String, IntStringPair>();
 		else
 			this.propertiesMap = propMap;
-
+		
 		LinkedHashMap<String, Integer> propTypeMap = getPropertyTypeMap();
 		if (propTypeMap == null)
 			throw new ShouldNeverHappenException("Property Type Map is required!");
@@ -180,12 +205,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
 		// Map of properties to their QueryAttribute
 		Map<String, QueryAttribute> attributeMap = new HashMap<String, QueryAttribute>();
+		
+		fields = new ArrayList<>();
 
 		Set<String> properties = this.propertyTypeMap.keySet();
 		// don't the first property - "id", in the insert statements
 		int i = 0;
 		for (String prop : properties) {
-
 			// Add this attribute
 			QueryAttribute attribute = new QueryAttribute();
 			attribute.setColumnName(this.tablePrefix + prop);
@@ -203,27 +229,41 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 				update += insertPrefix + prop + "=?";
 			}
 			i++;
+
+			fields.add(DSL.field(DSL.name(TABLE_PREFIX, prop)));
 		}
 
-		if (extraProperties != null)
+		if (extraProperties != null) {
 			for (String prop : extraProperties) {
 				selectAll += "," + prop;
+                String[] split = prop.split("\\.");
+                fields.add(DSL.field(DSL.name(split)));
 			}
+		}
+
+        this.propertyToField = this.createPropertyToField();
+        this.rqlToCondition = this.createRqlToCondition();
 
 		// Setup the Joins
 		this.joins = getJoins();
+
+        String joinedTableSql = this.tableName + " AS " + TABLE_PREFIX;
 		String joinSql = null;
+		
 		if (!this.joins.isEmpty()) {
 			StringBuilder joinSqlBuilder = new StringBuilder();
 			for (JoinClause join : this.joins) {
 				joinSqlBuilder.append(join.toString());
 			}
 			joinSql = joinSqlBuilder.toString();
+			joinedTableSql += joinSql;
 		}
 
+		this.joinedTable = DSL.table(joinedTableSql);
+		
 		// Add the table prefix to the queries if necessary
 		SELECT_ALL_BASE = selectAll + " FROM ";
-		String pkColumn = getPkColumnName();
+		this.pkColumn = getPkColumnName();
 
 		if (this.tablePrefix.equals("")) {
 			if (StringUtils.isEmpty(pkColumn))
@@ -479,6 +519,38 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             update(vo, initiatorId);
         }
 	}
+	
+    /**
+     * Save a VO AND its FKs
+     * 
+     * @param vo
+     */
+    public void saveFull(T vo) {
+        saveFull(vo, null);
+    }
+    
+    /**
+     * Save a VO AND its FKs inside a transaction
+     * 
+     * @param vo
+     */
+    public void saveFull(T vo, String initiatorId) {
+        getTransactionTemplate().execute(status -> {
+            boolean insert = vo.getId() == Common.NEW_ID;
+            
+            save(vo, initiatorId);
+            saveRelationalData(vo, insert);
+            
+            return null;
+        });
+    }
+
+    /**
+     * Save relational data for a vo to a different table
+     * @param vo
+     */
+    public void saveRelationalData(T vo, boolean insert) {
+    }
 
 	/**
 	 * Insert a new vo and assign the ID
@@ -547,13 +619,22 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
 	/**
-	 * Return a VO with FKs populated
+	 * Return a VO and load its relational data
 	 * 
 	 * @param id
 	 * @return
 	 */
 	public T getFull(int id) {
-		return get(id);
+	    T item = get(id);
+        loadRelationalData(item);
+        return item;
+	}
+	
+	/**
+	 * Load relational data from another table
+	 * @param vo
+	 */
+	public void loadRelationalData(T vo) {
 	}
 
 	/**
@@ -574,6 +655,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	public List<T> getAll() {
 		return query(SELECT_ALL_FIXED_SORT, getRowMapper());
 	}
+	
+	/**
+     * Get All from table
+     * 
+     * @return
+     */
+    public void getAll(MappedRowCallback<T> callback) {
+        query(SELECT_ALL_FIXED_SORT, new Object[] {}, getRowMapper(), callback);
+    }
 
 	/**
 	 * Count all from table
@@ -590,8 +680,25 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 * @return
 	 */
 	public List<T> getAllFull() {
-		return getAll();
+	    List<T> items = new ArrayList<>();
+		getAll((item, index) -> {
+		    loadRelationalData(item);
+		    items.add(item);
+		});
+		return items;
 	}
+	
+	/**
+     * Return all VOs with FKs Populated
+     * 
+     * @return
+     */
+    public void getAllFull(MappedRowCallback<T> callback) {
+        getAll((item, index) -> {
+            loadRelationalData(item);
+            callback.row(item, index);
+        });
+    }
 
 	protected String applyRange(String sql, List<Object> args, Integer offset, Integer limit) {
 		if (offset == null || limit == null) {
@@ -756,10 +863,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		return stmt;
 	}
 
-	public boolean isUseMetrics() {
-		return this.useMetrics;
-	}
-	
 	public AtomicIntegerMonitor getCountMonitor(){
 		return this.countMonitor;
 	}
@@ -821,4 +924,99 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		return COUNT;
 	}
 	
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        return select;
+    }
+
+	public int customizedCount(ConditionSortLimit conditions) {
+	    Condition condition = conditions.getCondition();
+        SelectSelectStep<Record1<Integer>> count;
+        if (this.pkColumn != null && !this.pkColumn.isEmpty()) {
+            count = this.create.select(DSL.countDistinct(DSL.field(tableAlias.append(this.pkColumn))));
+        } else {
+            count = this.create.selectCount();
+        }
+        
+        SelectJoinStep<Record1<Integer>> select;
+        if (condition == null) {
+            select = count.from(this.table.as(tableAlias));
+        } else {
+            select = count.from(this.joinedTable);
+            select = joinTables(select, conditions);
+        }
+        return customizedCount(select, condition);
+	}
+
+    protected int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition) {
+        Select<Record1<Integer>> select = input;
+        if (condition != null) {
+            select = input.where(condition);
+        }
+        
+        String sql = select.getSQL();
+        List<Object> arguments = select.getBindValues();
+        
+        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+        return this.ejt.queryForInt(sql, argumentsArray, 0);
+    }
+    
+    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        select = joinTables(select, conditions);
+        customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
+    }
+
+    protected void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+        SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
+        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
+
+        Select<Record> offsetStep = afterSort;
+        if (limit != null) {
+            if (offset != null) {
+                offsetStep = afterSort.limit(offset, limit);
+            } else {
+                offsetStep = afterSort.limit(limit);
+            }
+        }
+
+        String sql = offsetStep.getSQL();
+        List<Object> arguments = offsetStep.getBindValues();
+
+        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+        this.query(sql, argumentsArray, this.getRowMapper(), callback);
+    }
+
+    protected Map<String, Field<Object>> createPropertyToField() {
+        Map<String, Field<Object>> propertyToField = new HashMap<>(propertyTypeMap.size() + propertiesMap.size());
+        
+        for (Entry<String, Integer> e : propertyTypeMap.entrySet()) {
+            String property = e.getKey();
+            propertyToField.put(property, DSL.field(this.tableAlias.append(property)));
+        }
+        
+        for (Entry<String, IntStringPair> e : propertiesMap.entrySet()) {
+            String name = e.getValue().getValue();
+            propertyToField.put(e.getKey(), DSL.field(DSL.name(name.split("\\."))));
+        }
+        
+        return propertyToField;
+    }
+    
+    protected RQLToCondition createRqlToCondition() {
+        return new RQLToCondition(propertyToField);
+    }
+
+    public ConditionSortLimit rqlToCondition(ASTNode rql) {
+        return this.rqlToCondition.visit(rql);
+    }
+
+    public void rqlQuery(ASTNode rql, MappedRowCallback<T> callback) {
+        ConditionSortLimit result = this.rqlToCondition(rql);
+        this.customizedQuery(result, callback);
+    }
+
+    public int rqlCount(ASTNode rql) {
+        ConditionSortLimit result = this.rqlToCondition(rql);
+        return this.customizedCount(result);
+    }
 }

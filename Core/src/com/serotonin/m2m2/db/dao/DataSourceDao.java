@@ -21,6 +21,12 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -43,6 +49,11 @@ import com.serotonin.util.SerializationHelper;
 
 public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
+    public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
+    public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(SchemaDefinition.DATASOURCES_TABLE)).as(DATA_SOURCES_ALIAS);
+    public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<String> EDIT_PERMISSION = DSL.field(DATA_SOURCES_ALIAS.append("editPermission"), SQLDataType.VARCHAR(255).nullable(true));
+    
     static final Log LOG = LogFactory.getLog(DataSourceDao.class);
     private static final String DATA_SOURCE_SELECT = //
     "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";

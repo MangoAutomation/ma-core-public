@@ -14,6 +14,13 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.conf.RenderNameStyle;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.tools.StopWatchListener;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -28,16 +35,62 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.db.spring.ArgPreparedStatementSetter;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 
 public class DaoUtils {
-    protected DataSource dataSource;
-    protected ExtendedJdbcTemplate ejt;
+    protected final DataSource dataSource;
+    protected final ExtendedJdbcTemplate ejt;
     protected DataSourceTransactionManager tm;
+    
+    // Print out times and SQL for RQL Queries
+    protected final boolean useMetrics;
 
+    protected final DatabaseType databaseType;
+    protected final DSLContext create;
+    
     public DaoUtils(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.databaseType = Common.databaseProxy.getType();
+        this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
+        
         ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(dataSource);
+
+        Configuration configuration = new DefaultConfiguration();
+        configuration.set(new SpringConnectionProvider(dataSource));
+        configuration.set(new SpringTransactionProvider(getTransactionManager()));
+
+        configuration.settings().setExecuteLogging(this.useMetrics);
+        if (this.useMetrics) {
+            configuration.set(() -> new StopWatchListener());
+        }
+        
+        switch(this.databaseType) {
+            case DERBY:
+                configuration.set(SQLDialect.DERBY);
+                break;
+            case H2:
+                configuration.set(SQLDialect.H2);
+                configuration.settings().setRenderNameStyle(RenderNameStyle.UPPER);
+                break;
+            case MYSQL:
+                configuration.set(SQLDialect.MYSQL);
+                break;
+            case POSTGRES:
+                configuration.set(SQLDialect.POSTGRES);
+                break;
+            case MSSQL:
+            default:
+                configuration.set(SQLDialect.DEFAULT);
+                break;
+        }
+        
+        this.create = DSL.using(configuration);
+    }
+
+    public boolean isUseMetrics() {
+        return this.useMetrics;
     }
 
     protected void setInt(PreparedStatement stmt, int index, int value, int nullValue) throws SQLException {

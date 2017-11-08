@@ -28,6 +28,7 @@ public class BaseDao extends DaoUtils implements SQLConstants{
         mapper.registerModule(new JavaTimeModule());
         mapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
     }
+
     
     /**
      * Public constructor for code that needs to get stuff from the database.
