@@ -24,6 +24,8 @@ public enum MangoRestErrorCode implements IMangoRestErrorCode {
 	
 	RQL_PARSE_FAILURE(4001),
 	VALIDATION_FAILED(4002),
+    ALREADY_EXISTS(4003),
+    ACCESS_DENIED(4004),
 	
 	//***** 5000 Series *****
 	GENERIC_500(5000);

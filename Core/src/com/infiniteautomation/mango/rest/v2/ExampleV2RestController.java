@@ -93,7 +93,7 @@ public class ExampleV2RestController extends AbstractMangoRestV2Controller{
 	})
 	@RequestMapping( method = {RequestMethod.GET}, value = {"/generic-exception"}, produces = {"application/json"} )
 	public ResponseEntity<Object> genericFailure(@AuthenticationPrincipal User user) {
-		throw new GenericRestException(HttpStatus.INTERNAL_SERVER_ERROR, "I am an error.");
+		throw new GenericRestException(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	@PreAuthorize("hasAllPermissions('user')")

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
@@ -16,8 +17,8 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * 
  * @author Terry Packer
  */
-@JsonIgnoreProperties("suppressed")
-public abstract class AbstractRestV2Exception extends RuntimeException{
+@JsonIgnoreProperties({"cause", "stackTrace", "message", "suppressed"})
+public abstract class AbstractRestV2Exception extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 	//Code for Error (may be HTTP code or Custom Mango Error Code?)
@@ -25,83 +26,61 @@ public abstract class AbstractRestV2Exception extends RuntimeException{
 	protected final IMangoRestErrorCode mangoCode;
 	protected final TranslatableMessage translatableMessage;
 	
-	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message) {    
-		this.httpCode = httpCode;
-		this.mangoCode = mangoCode;
-		this.translatableMessage = message;
+	public AbstractRestV2Exception(HttpStatus httpCode) {
+        this(httpCode, null, new TranslatableMessage("httpStatus." + httpCode.value()));
 	}
 	
-	public AbstractRestV2Exception(HttpStatus httpCode, TranslatableMessage message) {
+    public AbstractRestV2Exception(HttpStatus httpCode, Exception e) {
+        this(httpCode, null, new TranslatableMessage("httpStatus." + httpCode.value()), e);
+    }
+
+	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode) {
+	    this(httpCode, mangoCode, new TranslatableMessage("httpStatus." + httpCode.value()));
+	}
+
+    public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Exception e) {
+        this(httpCode, mangoCode, new TranslatableMessage("httpStatus." + httpCode.value()), e);
+    }
+
+    public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message) {
+        this.httpCode = httpCode;
+        this.mangoCode = mangoCode;
+        this.translatableMessage = message;
+    }
+    
+	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message, Exception e) {
+		super(e);
 		this.httpCode = httpCode;
-		this.mangoCode = null;
+		this.mangoCode = mangoCode;
 		this.translatableMessage = message;
 	}
 
-	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Exception e){
-		super(e);
-		this.httpCode = httpCode;
-		this.mangoCode = mangoCode;
-		this.translatableMessage = null;
-	}
-	
-	public AbstractRestV2Exception(HttpStatus httpCode, Exception e){
-		super(e);
-		this.httpCode = httpCode;
-		this.mangoCode = null;
-		this.translatableMessage = null;
-	}
-	
-	
 	@JsonIgnore
 	public HttpStatus getStatus(){
 		return this.httpCode;
 	}
-	
-	public int getHttpStatusCode(){
-		return httpCode.value();
-	}
-	
-	public int getMangoStatusCode(){
+
+    public int getMangoStatusCode(){
 		if(mangoCode != null)
 			return mangoCode.getCode();
 		else
 			return -1;
 	}
 	
-	public String getMangoStatusName(){
+    public String getMangoStatusName(){
 		if(mangoCode != null)
 			return mangoCode.name();
 		else
 			return null;
 	}
+    
+	@JsonProperty("localizedMessage")
+    public TranslatableMessage getTranslatableMessage() {
+        return this.translatableMessage;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Throwable#getMessage()
-	 */
-	@JsonIgnore
 	@Override
 	public String getMessage() {
-		if(this.translatableMessage != null)
-			return this.translatableMessage.translate(Common.getTranslations());
-		else
-			return super.getMessage();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Throwable#getCause()
-	 */
-	@JsonIgnore
-	@Override
-	public synchronized Throwable getCause() {
-		return super.getCause();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Throwable#getStackTrace()
-	 */
-	@JsonIgnore
-	@Override
-	public StackTraceElement[] getStackTrace() {
-		return super.getStackTrace();
+	    return this.translatableMessage.translate(Common.getTranslations());
 	}
 }

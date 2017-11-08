@@ -15,16 +15,16 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 public class GenericRestException extends AbstractRestV2Exception{
 
 	private static final long serialVersionUID = 1L;
+	
+	public GenericRestException(HttpStatus httpStatus) {
+        super(httpStatus);
+	}
 
-	public GenericRestException(HttpStatus httpStatus, Exception e){
+	public GenericRestException(HttpStatus httpStatus, Exception e) {
 		super(httpStatus, null, e);
 	}
 	
-	public GenericRestException(HttpStatus status, TranslatableMessage message){
-		super(status, message);
-	}
-	
-	public GenericRestException(HttpStatus status, String message){
-		super(status, new TranslatableMessage("common.default", message));
+	public GenericRestException(HttpStatus status, TranslatableMessage message) {
+		super(status, null, message);
 	}
 }

@@ -34,6 +34,6 @@ public class ModuleRestV2Exception extends AbstractRestV2Exception{
     }
 
     public ModuleRestV2Exception(HttpStatus httpCode, TranslatableMessage message) {
-        super(httpCode, message);
+        super(httpCode, null, message);
     }
 }

@@ -17,7 +17,7 @@ public class AlreadyExistsRestException extends AbstractRestV2Exception{
 
 		private static final long serialVersionUID = 1L;
 		
-		public AlreadyExistsRestException(String xid){
-			super(HttpStatus.CONFLICT, new TranslatableMessage("rest.exception.alreadyExists", xid));
+		public AlreadyExistsRestException(String xid) {
+			super(HttpStatus.CONFLICT, MangoRestErrorCode.ALREADY_EXISTS, new TranslatableMessage("rest.exception.alreadyExists", xid));
 		}
 }
