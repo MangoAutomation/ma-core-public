@@ -397,9 +397,9 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void toggleDataPoint(DataPointVO point, boolean enabled) {
+    public void enableDataPoint(DataPointVO point, boolean enabled) {
+        point.setEnabled(enabled);
         if(useDatabase)
-            DataPointDao.instance.setEnabled(point);
+            DataPointDao.instance.saveEnabledColumn(point);
     }
-
 }

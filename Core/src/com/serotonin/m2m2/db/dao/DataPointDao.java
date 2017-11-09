@@ -428,7 +428,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         Types.INTEGER, Types.INTEGER, Types.BINARY, Types.INTEGER });
     }
     
-    public void setEnabled(DataPointVO dp) {
+    public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
