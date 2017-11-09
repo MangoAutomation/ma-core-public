@@ -500,10 +500,16 @@ public class RuntimeManagerImpl implements RuntimeManager{
     public void enableDataPoint(DataPointVO dp, boolean enabled) {
         boolean running = isDataPointRunning(dp.getId());
         dp.setEnabled(enabled);
-        if(running && !enabled)
+        
+        if (running && !enabled) {
             stopDataPoint(dp.getId());
-        else if(!running && enabled)
+        } else if (!running && enabled) {
+            // Ensure the event detectors are loaded
+            if (dp.getEventDetectors() == null)
+                DataPointDao.instance.setEventDetectors(dp);
             startDataPoint(dp, null);
+        }
+        
         //to restart, else if(running && enabled) { stopDataPoint(dp.getId()); startDataPoint(dp, null); }
         // or pass a restart flag?
         DataPointDao.instance.saveEnabledColumn(dp);
