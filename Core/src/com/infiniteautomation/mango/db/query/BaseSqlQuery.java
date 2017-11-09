@@ -26,6 +26,7 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 	protected List<Object> limitOffsetArgs;
 	
 	protected boolean useMetrics;
+    protected long metricsThreshold;
 
 	public BaseSqlQuery(AbstractBasicDao<T> dao, 
 			String selectSql, List<Object> selectArgs,
@@ -39,6 +40,7 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 		this.countArgs = countArgs;
 		
 		this.useMetrics = this.dao.isUseMetrics();
+        this.metricsThreshold = this.dao.getMetricsThreshold();
 	}
 	
 	/**
@@ -73,7 +75,7 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 		
 		List<T> list = this.dao.query(selectSql, selectArgs.toArray(), this.dao.getRowMapper());
 		if(this.useMetrics)
-			stopWatch.stop("Query: " + selectSql + " \nArgs: " + selectArgs.toString());
+			stopWatch.stop("Query: " + selectSql + " \nArgs: " + selectArgs.toString(), this.metricsThreshold);
 		return list;
 	}
 	
@@ -90,7 +92,7 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 
         long count = this.dao.queryForObject(countSql, countArgs.toArray(), Long.class , new Long(0));
         if(this.useMetrics)
-        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString());
+        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString(), this.metricsThreshold);
         return count;
 	}
 	

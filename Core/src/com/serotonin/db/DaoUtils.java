@@ -45,6 +45,7 @@ public class DaoUtils {
     
     // Print out times and SQL for RQL Queries
     protected final boolean useMetrics;
+    protected final long metricsThreshold;
 
     protected final DatabaseType databaseType;
     protected final DSLContext create;
@@ -53,6 +54,7 @@ public class DaoUtils {
         this.dataSource = dataSource;
         this.databaseType = Common.databaseProxy.getType();
         this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
+        this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
         
         ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(dataSource);
@@ -91,6 +93,10 @@ public class DaoUtils {
 
     public boolean isUseMetrics() {
         return this.useMetrics;
+    }
+    
+    public long getMetricsThreshold() {
+        return this.metricsThreshold;
     }
 
     protected void setInt(PreparedStatement stmt, int index, int value, int nullValue) throws SQLException {

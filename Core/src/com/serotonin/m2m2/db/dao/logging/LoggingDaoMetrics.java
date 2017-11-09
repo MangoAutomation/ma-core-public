@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao.logging;
 import java.util.List;
 
 import com.serotonin.log.LogStopWatch;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.console.LogEvent;
 
 /**
@@ -16,12 +17,14 @@ import com.serotonin.m2m2.rt.console.LogEvent;
 public class LoggingDaoMetrics implements LoggingDao{
 
 	private final LoggingDao dao;
+    private final long metricsThreshold;
 	
 	/**
 	 * @param loggingDaoSQL
 	 */
 	public LoggingDaoMetrics(LoggingDao loggingDao) {
 		this.dao = loggingDao;
+        this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
 	}
 
 	/* (non-Javadoc)
@@ -31,7 +34,7 @@ public class LoggingDaoMetrics implements LoggingDao{
 	public void log(LogEvent event) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.log(event);
-    	LogStopWatch.stop("log(event)");		
+    	LogStopWatch.stop("log(event)", this.metricsThreshold);		
 	}
 
 	/* (non-Javadoc)
@@ -41,7 +44,7 @@ public class LoggingDaoMetrics implements LoggingDao{
 	public List<LogEvent> getLogs(long from, long to, int limit) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<LogEvent> values = dao.getLogs(from, to, limit);
-    	LogStopWatch.stop("getLogs(from, to) (" + from + ", " +to + "){" + values.size() +"}");
+    	LogStopWatch.stop("getLogs(from, to) (" + from + ", " +to + "){" + values.size() +"}", this.metricsThreshold);
     	return values;
 	}
 
@@ -52,7 +55,7 @@ public class LoggingDaoMetrics implements LoggingDao{
 	public List<LogEvent> getLogs(long from, long to, int level, int limit) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<LogEvent> values = dao.getLogs(from, to, level, limit);
-    	LogStopWatch.stop("getLogs(from, to, level) (" + from + ", " +to + ", " + level + "){" + values.size() +"}");
+    	LogStopWatch.stop("getLogs(from, to, level) (" + from + ", " +to + ", " + level + "){" + values.size() +"}", this.metricsThreshold);
     	return values;
 	}
 
@@ -72,7 +75,7 @@ public class LoggingDaoMetrics implements LoggingDao{
 		sqlIn += "]";
 		
 		List<LogEvent> values = dao.getLogs(from, to, levels, limit);
-    	LogStopWatch.stop("getLogs(from, to, levels) (" + from + ", " +to + ", " + sqlIn + "){" + values.size() +"}");
+    	LogStopWatch.stop("getLogs(from, to, levels) (" + from + ", " +to + ", " + sqlIn + "){" + values.size() +"}", this.metricsThreshold);
     	return values;
 	}
 
@@ -83,7 +86,7 @@ public class LoggingDaoMetrics implements LoggingDao{
 	public long dateRangeCount(long from, long to, int level) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		long count = dao.dateRangeCount(from, to, level);
-    	LogStopWatch.stop("dateRangeCount(from, to, level) (" + from + ", " +to + ", " + level + "){" + count +"}");
+    	LogStopWatch.stop("dateRangeCount(from, to, level) (" + from + ", " +to + ", " + level + "){" + count +"}", this.metricsThreshold);
     	return count;
 
 	}

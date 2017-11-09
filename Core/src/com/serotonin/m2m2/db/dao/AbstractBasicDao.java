@@ -55,6 +55,7 @@ import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -957,9 +958,20 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         
         String sql = select.getSQL();
         List<Object> arguments = select.getBindValues();
-        
         Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
-        return this.ejt.queryForInt(sql, argumentsArray, 0);
+        
+        LogStopWatch stopWatch = null;
+        if (useMetrics) {
+            stopWatch = new LogStopWatch();
+        }
+        
+        int count = this.ejt.queryForInt(sql, argumentsArray, 0);
+
+        if (stopWatch != null) {
+            stopWatch.stop("customizedCount(): " + this.create.renderInlined(select), metricsThreshold);
+        }
+        
+        return count;
     }
     
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
@@ -983,9 +995,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
         String sql = offsetStep.getSQL();
         List<Object> arguments = offsetStep.getBindValues();
-
         Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+
+        LogStopWatch stopWatch = null;
+        if (useMetrics) {
+            stopWatch = new LogStopWatch();
+        }
+        
         this.query(sql, argumentsArray, this.getRowMapper(), callback);
+
+        if (stopWatch != null) {
+            stopWatch.stop("customizedQuery(): " + this.create.renderInlined(offsetStep), metricsThreshold);
+        }
     }
 
     protected Map<String, Field<Object>> createPropertyToField() {

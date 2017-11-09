@@ -102,7 +102,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
         	throw new IOException(e);
         }
         if(this.useMetrics)
-        	stopWatch.stop("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString());
+        	stopWatch.stop("Streamable Query: " + selectSql + " \nArgs: " + selectArgs.toString(), this.metricsThreshold);
 	}
 	
 	/**
@@ -137,6 +137,6 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
         	throw new IOException(e);
         }
         if(this.useMetrics)
-        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString());
+        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString(), this.metricsThreshold);
 	}	
 }
