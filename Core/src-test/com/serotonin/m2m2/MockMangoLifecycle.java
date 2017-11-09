@@ -96,10 +96,16 @@ public class MockMangoLifecycle implements IMangoLifecycle{
             Common.databaseProxy.initialize(null);
         }
         
-        Common.runtimeManager = new MockRuntimeManager();
-        Common.serialPortManager = new MockSerialPortManager();
+        //Only configure if not already configured
+        if(Common.runtimeManager == null)
+            Common.runtimeManager = new MockRuntimeManager();
+        
+        if(Common.serialPortManager == null)
+            Common.serialPortManager = new MockSerialPortManager();
+        
         //Ensure we start with the proper timer
-        Common.backgroundProcessing = new MockBackgroundProcessing(); 
+        if(Common.backgroundProcessing == null)
+            Common.backgroundProcessing = new MockBackgroundProcessing(); 
         Common.backgroundProcessing.initialize(false);
         
     }

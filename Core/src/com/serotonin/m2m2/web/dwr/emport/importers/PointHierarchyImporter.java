@@ -28,7 +28,7 @@ public class PointHierarchyImporter extends Importer {
     protected void importImpl() {
         try {
         	
-        	PointHierarchy hierarchy = ctx.getDataPointDao().getPointHierarchy(false);
+        	    PointHierarchy hierarchy = ctx.getDataPointDao().getPointHierarchy(false);
         	
             @SuppressWarnings("unchecked")
             List<PointFolder> subfolders = (List<PointFolder>) ctx.getReader().read(

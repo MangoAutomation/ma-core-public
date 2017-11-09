@@ -107,8 +107,8 @@ public class JsonEmportScriptUtility {
 			} else
 				for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class))
 	                if(def.getElementId().equals(type)) {
-	                	data.put(def.getElementId(), def.getExportData());
-	                	break;
+	                    data.put(def.getElementId(), def.getExportData());
+	                    break;
 	                }
 		}
 		

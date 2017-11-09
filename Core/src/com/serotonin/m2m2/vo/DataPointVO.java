@@ -235,7 +235,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     @JsonProperty
     private String dataSourceXid;
-    private String hierarchyPath;
 
     @JsonProperty
     private Map<String, String> tags;
@@ -372,11 +371,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends PointLocatorVO> T getPointLocator() {
+    public <T extends PointLocatorVO<?>> T getPointLocator() {
         return (T) pointLocator;
     }
 
-    public void setPointLocator(PointLocatorVO pointLocator) {
+    public void setPointLocator(PointLocatorVO<?> pointLocator) {
         // if data type changed from non numeric to numeric then use unit as suffix
         if (pointLocator.getDataTypeId() == DataTypes.NUMERIC
                 && (this.pointLocator == null || this.pointLocator.getDataTypeId() != DataTypes.NUMERIC)
@@ -404,55 +403,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     public void setDataSourceXid(String dataSourceXid) {
         this.dataSourceXid = dataSourceXid;
-    }
-    
-    public void setHierarchyPath(String hierarchyPath) { //For using "path" JSON property in API
-        this.hierarchyPath = hierarchyPath;
-    }
-    
-    public void processHierarchyPath() {
-        if(hierarchyPath != null) {
-            String pathSeparator = SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
-            String[] path = hierarchyPath.split(pathSeparator);
-            if(path.length == 1 && StringUtils.isBlank(path[0])) {
-                pointFolderId = 0;
-                DataPointDao.instance.getPointHierarchy(true).getRoot().removePointRecursively(id);
-                DataPointDao.instance.getPointHierarchy(true).getRoot().addDataPoint(new DataPointSummary(this));
-                DataPointDao.instance.setFolderId(id, 0);
-                hierarchyPath = null;
-                return;
-            }
-            PointFolder root = DataPointDao.instance.getPointHierarchy(true).getRoot();
-            PointFolder previous;
-            int k;
-            for(k = 0; k < path.length; k++) {
-                previous = root;
-                root = root.getSubfolder(path[k]);
-                if(root == null) { //Okay we need to create the folder
-                    int parentId = previous.getId();
-                    root = new PointFolder();
-                    PointFolder insert = root;
-                    root.setName(path[k]);
-                    for(int j = k+1; j < path.length; j++) {
-                        previous = root;
-                        root = new PointFolder();
-                        root.setName(path[j]);
-                        previous.getSubfolders().add(root);
-                    }
-                    root.getPoints().add(new DataPointSummary(this));
-                    DataPointDao.instance.insertNewPointFolder(insert, parentId, true);
-                    break;
-                }
-            }
-            if(k == path.length) { //All folders already existed
-                DataPointDao.instance.setFolderId(id, root.getId());
-                PointFolder trueRoot = DataPointDao.instance.getPointHierarchy(true).getRoot();
-                trueRoot.removePointRecursively(id);
-                trueRoot.addDataPointRecursively(new DataPointSummary(this), root.getId());
-            }
-            
-            hierarchyPath = null;
-        }
     }
 
     public String getDataSourceTypeName() {

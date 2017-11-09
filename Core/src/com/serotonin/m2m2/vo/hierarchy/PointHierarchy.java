@@ -146,4 +146,10 @@ public class PointHierarchy {
 		this.root.mergeSubfolders(root,subfolders);
 		
 	}
+	
+	@Override
+	public PointHierarchy clone() {
+        PointHierarchy copy = new PointHierarchy(root.clone());
+        return copy;
+	}
 }

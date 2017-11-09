@@ -360,8 +360,20 @@ public class PointFolder implements JsonSerializable {
     }
     
     public String toString(){
-    	return this.name + "{" + this.points.size() + "}";
-    	
+        return this.name + "{" + this.points.size() + "}";
     }
     
+    @Override
+    public PointFolder clone() {
+        PointFolder folder = new PointFolder(id, name);
+        folder.setPoints(new ArrayList<>(points));
+        
+        //Clone recursively
+        List<PointFolder> sfds = new ArrayList<>();
+        for(PointFolder sf : subfolders)
+            sfds.add(sf.clone());
+
+        folder.setSubfolders(sfds);
+        return folder;
+    }
 }

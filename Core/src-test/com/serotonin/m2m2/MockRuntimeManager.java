@@ -6,7 +6,11 @@ package com.serotonin.m2m2;
 
 import java.util.List;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -20,18 +24,30 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
+ * A mock of the runtime manager that can optionally save data to the database.
+ *   This implementation does not actually start any threads/tasks.
  *
  * @author Terry Packer
  */
-public class MockRuntimeManager implements RuntimeManager{
+public class MockRuntimeManager implements RuntimeManager {
+    
+    //Use the database to save data sources/points/publishers
+    protected boolean useDatabase;
+    
+    public MockRuntimeManager() {
+        
+    }
+    
+    public MockRuntimeManager(boolean useDatabase) {
+        this.useDatabase = useDatabase;
+    }
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.RuntimeManager#getState()
      */
     @Override
     public int getState() {
-
-        return 0;
+        return RuntimeManagerImpl.RUNNING;
     }
 
     /* (non-Javadoc)
@@ -39,7 +55,6 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void initialize(boolean safe) {
-
         
     }
 
@@ -48,7 +63,6 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void terminate() {
-
         
     }
 
@@ -84,8 +98,10 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public List<DataSourceVO<?>> getDataSources() {
-
-        return null;
+        if(useDatabase)
+            return DataSourceDao.instance.getAll();
+        else 
+            return null;
     }
 
     /* (non-Javadoc)
@@ -93,8 +109,10 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
-
-        return null;
+        if(useDatabase)
+            return DataSourceDao.instance.get(dataSourceId);
+        else 
+            return null;
     }
 
     /* (non-Javadoc)
@@ -102,8 +120,8 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void deleteDataSource(int dataSourceId) {
-
-        
+        if(useDatabase)
+            DataSourceDao.instance.delete(dataSourceId);
     }
 
     /* (non-Javadoc)
@@ -111,8 +129,8 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void saveDataSource(DataSourceVO<?> vo) {
-
-        
+        if(useDatabase)
+            DataSourceDao.instance.save(vo);
     }
 
     /* (non-Javadoc)
@@ -138,8 +156,8 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void saveDataPoint(DataPointVO point) {
-
-        
+        if(useDatabase)
+            DataPointDao.instance.save(point);
     }
 
     /* (non-Javadoc)
@@ -147,8 +165,8 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void deleteDataPoint(DataPointVO point) {
-
-        
+        if(useDatabase)
+            DataPointDao.instance.delete(point.getId());
     }
 
     /* (non-Javadoc)
@@ -156,7 +174,6 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void restartDataPoint(DataPointVO vo) {
-
         
     }
 
@@ -174,8 +191,7 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public DataPointRT getDataPoint(int dataPointId) {
-
-        return null;
+            return null;
     }
 
     /* (non-Javadoc)
@@ -355,8 +371,10 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-
-        return null;
+        if(useDatabase)
+            return PublisherDao.instance.get(publisherId);
+        else
+            return null;
     }
 
     /* (non-Javadoc)
@@ -364,7 +382,8 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void deletePublisher(int publisherId) {
-
+        if(useDatabase)
+            PublisherDao.instance.delete(publisherId);
         
     }
 
@@ -373,14 +392,14 @@ public class MockRuntimeManager implements RuntimeManager{
      */
     @Override
     public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
-
-        
+        if(useDatabase)
+            PublisherDao.instance.save(vo);
     }
 
     @Override
     public void toggleDataPoint(DataPointVO point, boolean enabled) {
-        // TODO Auto-generated method stub
-        
+        if(useDatabase)
+            DataPointDao.instance.setEnabled(point);
     }
 
 }

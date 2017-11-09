@@ -6,12 +6,18 @@ package com.serotonin.m2m2;
 
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.After;
@@ -20,12 +26,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonReader;
+import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
+import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
@@ -47,6 +57,8 @@ import com.serotonin.timer.SimulationTimer;
  */
 public class MangoTestBase {
 
+    protected final Log LOG = LogFactory.getLog(MangoTestBase.class);
+    
     protected static MockMangoLifecycle lifecycle;
     protected static List<Module> modules = new ArrayList<>();
     
@@ -162,5 +174,36 @@ public class MangoTestBase {
             module.addDefinition(definition);
         
         modules.add(module);
+    }
+    
+    /**
+     * Load a default test JSON Configuration into Mango
+     * @throws JsonException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    protected void loadDefaultConfiguration() throws JsonException, IOException, URISyntaxException {
+        File cfg = new File(MangoTestBase.class.getResource("/testMangoConfig.json").toURI());
+        loadConfiguration(cfg);
+    }
+    
+    protected void loadConfiguration(File jsonFile) throws JsonException, IOException, URISyntaxException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsonFile)));
+        JsonReader jr = new JsonReader(reader);
+        JsonObject jo = jr.read(JsonObject.class);
+        
+        ImportTask task = new ImportTask(jo, Common.getTranslations(), null, false);
+        task.run(Common.timer.currentTimeMillis());
+        if(task.getResponse().getHasMessages()){
+            for(ProcessMessage message : task.getResponse().getMessages()){
+               switch(message.getLevel()) {
+                   case error:
+                   case warning:
+                       fail(message.toString(Common.getTranslations()));
+                   case info:
+                       LOG.info(message.toString(Common.getTranslations()));
+               }
+            }
+        }
     }
 }

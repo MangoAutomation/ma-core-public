@@ -8,8 +8,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 public class PointHierarchyDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public PointFolder getPointHierarchy() {
-        DataPointDao dataPointDao = DataPointDao.instance;
-        PointHierarchy ph = dataPointDao.getPointHierarchy(false);
+        PointHierarchy ph = DataPointDao.instance.getPointHierarchy(true);
         return ph.getRoot();
     }
 

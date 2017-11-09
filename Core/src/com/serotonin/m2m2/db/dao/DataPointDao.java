@@ -333,30 +333,22 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 
                 // Reset the point hierarchy so that the new or changed point
                 // gets reflected.
-                //clearPointHierarchyCache();
-                if(cachedPointHierarchy != null) {
-                    PointFolder root = cachedPointHierarchy.getRoot();
-                    root.removePointRecursively(dp.getId());
-                    root.addDataPointRecursively(new DataPointSummary(dp), dp.getPointFolderId());
-                }
-                
-                //If the DP has a path defined, update the hierarchy with greater precedence than the point folder id
-                dp.processHierarchyPath();
+                clearPointHierarchyCache();
             }
         });
     }
     
     public void checkAddPoint() {
-    	IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-    	Integer limit = lifecycle.dataPointLimit();
-    	if(limit != null && this.countMonitor.getValue() >= limit) {
-    		String licenseType;
-    		if(Common.license() != null)
-    			licenseType = Common.license().getLicenseType();
-    		else
-    			licenseType = "Free";
-    		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", licenseType, limit));
-    	}
+        	IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
+        	Integer limit = lifecycle.dataPointLimit();
+        	if(limit != null && this.countMonitor.getValue() >= limit) {
+        		String licenseType;
+        		if(Common.license() != null)
+        			licenseType = Common.license().getLicenseType();
+        		else
+        			licenseType = "Free";
+        		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", licenseType, limit));
+        	}
     }
 
     void insertDataPoint(final DataPointVO dp) {
@@ -715,9 +707,17 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     // Point hierarchy
     //
     static PointHierarchy cachedPointHierarchy;
-
-    public PointHierarchy getPointHierarchy(boolean useCache) {
-        if (cachedPointHierarchy == null || !useCache) {
+    
+    /**
+     * Get the point hierarchy from its cached copy.  The read only cached copy should 
+     * never be modified, if you intend to modify it ensure you pass readOnly=false
+     * 
+     * @param readOnly - do not modify a read only point hierarchy
+     * @return
+     */
+    public PointHierarchy getPointHierarchy(boolean readOnly) {
+        
+        if(cachedPointHierarchy == null) {
             final Map<Integer, List<PointFolder>> folders = new HashMap<>();
 
             // Get the folder list.
@@ -746,8 +746,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
             cachedPointHierarchy = ph;
         }
-
-        return cachedPointHierarchy;
+        
+        if(readOnly)
+            return cachedPointHierarchy;
+        else
+            return cachedPointHierarchy.clone();
     }
 
     public static void clearPointHierarchyCache() {
@@ -767,24 +770,21 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
     
     private int getMaxFolderId(final PointFolder root) {
-    	int maxId = 0;
-    	if(root == null)
-    		return maxId;
-    	if(root.getId() > maxId)
-    		maxId = root.getId();
-    	for(PointFolder subfolder : root.getSubfolders()) {
-    		int candidate = getMaxFolderId(subfolder);
-    		if(candidate > maxId)
-    			maxId = candidate;
-    	}
-    	return maxId;
-    }
-    
-    private int selectMaxFolderId() {
-        return ejt.queryForInt("SELECT MAX(id) FROM dataPointHierarchy;", new Object[0], 0);
+        	int maxId = 0;
+        	if(root == null)
+        		return maxId;
+        	if(root.getId() > maxId)
+        		maxId = root.getId();
+        	for(PointFolder subfolder : root.getSubfolders()) {
+        		int candidate = getMaxFolderId(subfolder);
+        		if(candidate > maxId)
+        			maxId = candidate;
+        	}
+        	return maxId;
     }
 
-    public void savePointHierarchy(final PointFolder root) {
+
+    public synchronized void savePointHierarchy(final PointFolder root) {
         // Assign ids to the folders.
         final List<Object> params = new ArrayList<>();
         final AtomicInteger folderId = new AtomicInteger(getMaxFolderId(root));
@@ -792,8 +792,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             assignFolderIds(sf, 0, folderId, params);
 
         cachedPointHierarchy = new PointHierarchy(root);
-        PointHierarchyEventDispatcher.firePointHierarchySaved(root);
-
         final ExtendedJdbcTemplate ejt2 = ejt;
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
@@ -818,39 +816,16 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
                 // Save the folder ids for the points.
                 savePointsInFolder(root);
+                PointHierarchyEventDispatcher.firePointHierarchySaved(root);
             }
         });
     }
-    
-    public void insertNewPointFolder(PointFolder folder, int parentFolderId, boolean useCache) {
-        insertNewPointFolder(folder, parentFolderId, useCache ? getMaxFolderId(getPointHierarchy(true).getRoot()) + 1 : selectMaxFolderId() + 1, true, useCache);
-    }
-    
-    private void insertNewPointFolder(PointFolder folder, int parentFolderId, int newId, boolean root, boolean useCache) {
-        folder.setId(newId);
-        PointHierarchy ph;
-        if(useCache) {
-            ph = getPointHierarchy(true);
-            for(int k = 0; k < folder.getPoints().size(); k++)
-                ph.getRoot().removePointRecursively(folder.getPoints().get(k).getId());
-            if(root)
-                ph.addPointFolder(folder, parentFolderId);
-        }
-        
-        ejt.update("INSERT INTO dataPointHierarchy (id, parentId, name) VALUES (?,?,?)", newId, parentFolderId, folder.getName());
-        savePointsInFolder(folder);
-        for(PointFolder pf : folder.getSubfolders())
-            insertNewPointFolder(pf, folder.getId(), ++newId, false, useCache);
-        
-        if(root && !useCache)
-            clearPointHierarchyCache();
-    }
 
     private void assignFolderIds(PointFolder folder, int parentId, AtomicInteger nextId, List<Object> params) {
-    	if(folder.getId() == Common.NEW_ID) {
-	        int id = nextId.incrementAndGet();
-	        folder.setId(id);
-    	}
+        	if(folder.getId() == Common.NEW_ID) {
+    	        int id = nextId.incrementAndGet();
+    	        folder.setId(id);
+        	}
     	
         params.add(folder.getId());
         params.add(parentId);

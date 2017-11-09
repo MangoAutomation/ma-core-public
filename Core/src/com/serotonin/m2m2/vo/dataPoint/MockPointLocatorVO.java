@@ -88,8 +88,10 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
 	 */
 	@Override
-	public void jsonRead(JsonReader arg0, JsonObject arg1) throws JsonException {
-		// TODO Implement when needed for testing
+	public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+	    Integer value = readDataType(jsonObject, DataTypes.IMAGE);
+        if (value != null)
+            dataTypeId = value;
 		
 	}
 
@@ -97,9 +99,8 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 	 * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
 	 */
 	@Override
-	public void jsonWrite(ObjectWriter arg0) throws IOException, JsonException {
-		//TODO Implement when needed for testing
-		
+	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
+	    writeDataType(writer);
 	}
 
 
