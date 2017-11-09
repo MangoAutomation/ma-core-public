@@ -4,7 +4,6 @@
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/classes"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/overrides/properties"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src-test"/>
-        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src-unit"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/overrides/classes"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src-patch"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/maven-target/generated-sources/java-templates"/>
