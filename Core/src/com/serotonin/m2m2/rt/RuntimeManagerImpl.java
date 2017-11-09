@@ -497,7 +497,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
      * @see com.serotonin.m2m2.rt.RuntimeManager#toggleDataPoint(com.serotonin.m2m2.vo.DataPointVO)
      */
     @Override
-    public void toggleDataPoint(DataPointVO dp, boolean enabled) {
+    public void enableDataPoint(DataPointVO dp, boolean enabled) {
         boolean running = isDataPointRunning(dp.getId());
         dp.setEnabled(enabled);
         if(running && !enabled)
@@ -630,8 +630,34 @@ public class RuntimeManagerImpl implements RuntimeManager{
      */
     @Override
     public void restartDataPoint(DataPointVO vo){
-    	this.stopDataPoint(vo.getId());
-    	this.startDataPoint(vo, null);
+        synchronized (dataPoints) {
+            // Remove this point from the data image if it is there. If not, just quit.
+            DataPointRT p = dataPoints.remove(vo.getId());
+
+            // Remove it from the data source, and terminate it.
+            if (p != null) {
+                try{
+                    getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+                }catch(Exception e){
+                    LOG.error("Failed to stop point RT with ID: " + vo.getId()
+                            + " stopping point."
+                            , e);
+                }
+                DataPointListener l = getDataPointListeners(vo.getId());
+                if (l != null)
+                    l.pointTerminated();
+                p.terminate();
+                
+                this.startDataPoint(p.getVO(), null);
+            } else {
+                //The data poit wasn't really running. Ensure the event detectors and enable
+                if(vo.getEventDetectors() == null)
+                    DataPointDao.instance.setEventDetectors(vo);
+                vo.setEnabled(true);
+                startDataPoint(vo, null);
+                DataPointDao.instance.setEnabled(vo);
+            }
+        }
     }
     
     /* (non-Javadoc)

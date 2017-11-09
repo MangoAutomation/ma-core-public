@@ -194,7 +194,7 @@ public class RuntimeManagerScriptUtility{
 		else if(!vo.isEnabled()){
 			try{
 			    DataPointDao.instance.setEventDetectors(vo);
-				Common.runtimeManager.toggleDataPoint(vo, true);
+				Common.runtimeManager.enableDataPoint(vo, true);
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 				throw e;
@@ -215,7 +215,7 @@ public class RuntimeManagerScriptUtility{
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
 			try{
-				Common.runtimeManager.toggleDataPoint(vo, false);
+				Common.runtimeManager.enableDataPoint(vo, false);
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
 				throw e;

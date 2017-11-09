@@ -108,7 +108,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         if(enabled)
             DataPointDao.instance.setEventDetectors(dataPoint);
         
-        Common.runtimeManager.toggleDataPoint(dataPoint, enabled);
+        Common.runtimeManager.enableDataPoint(dataPoint, enabled);
         
         ProcessResult response = new ProcessResult();
         response.addData("id", dataPointId);
