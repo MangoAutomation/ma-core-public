@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -102,7 +101,7 @@ public abstract class AbstractVoModel<T extends AbstractVO<?>> extends AbstractB
 					this.messages.add(new RestValidationMessage(message.getGenericMessage(), RestMessageLevel.ERROR, ""));
 				}else{
 					this.messages.add(new RestValidationMessage(
-							message.getContextualMessage().translate(Common.getTranslations()),
+							message.getContextualMessage(),
 							RestMessageLevel.ERROR,
 							message.getContextKey()
 							));
@@ -121,7 +120,16 @@ public abstract class AbstractVoModel<T extends AbstractVO<?>> extends AbstractB
 	 * @param property
 	 */
 	public void addValidationMessage(String messageKey, RestMessageLevel level, String property){
-		this.messages.add(new RestValidationMessage(new TranslatableMessage(messageKey).translate(Common.getTranslations()), level, property));
+		this.addValidationMessage(new TranslatableMessage(messageKey), level, property);
 	}
-
+	
+    /**
+     * Helper to add Validation Message
+     * @param messageKey
+     * @param level
+     * @param property
+     */
+    public void addValidationMessage(TranslatableMessage message, RestMessageLevel level, String property){
+        this.messages.add(new RestValidationMessage(message, level, property));
+    }
 }

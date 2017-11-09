@@ -4,31 +4,29 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.message;
 
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
  * @author Terry Packer
  *
  */
-public class RestValidationMessage extends BaseRestMessage{
+public class RestValidationMessage {
 
-	private String property;
+	private RestMessageLevel level;
+	private TranslatableMessage message;
+    private String property;
 	
 	public RestValidationMessage(){
 		super();
 	}
-	
-	public RestValidationMessage(String message, RestMessageLevel level, String propertyName){
-		super(message, level);
-		this.property = propertyName;
-	}
+
 	/**
 	 * @param status
 	 * @param message
 	 */
 	public RestValidationMessage(TranslatableMessage message, RestMessageLevel level, String propertyName) {
-		super(message.translate(Common.getTranslations()), level);
+	    this.message = message;
+	    this.level = level;
 		this.property = propertyName;
 	}
 
@@ -39,5 +37,21 @@ public class RestValidationMessage extends BaseRestMessage{
 	public void setProperty(String property) {
 		this.property = property;
 	}
+
+    public RestMessageLevel getLevel() {
+        return level;
+    }
+
+    public void setLevel(RestMessageLevel level) {
+        this.level = level;
+    }
+
+    public TranslatableMessage getMessage() {
+        return message;
+    }
+
+    public void setMessage(TranslatableMessage message) {
+        this.message = message;
+    }
 	
 }
