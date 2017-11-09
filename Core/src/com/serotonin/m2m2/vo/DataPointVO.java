@@ -56,7 +56,6 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
@@ -207,7 +206,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     private int plotType = PlotTypes.STEP;
 
-    private PointLocatorVO pointLocator;
+    private PointLocatorVO<?> pointLocator;
 
     @JsonProperty
     private boolean overrideIntervalLoggingSamples = false;
@@ -1107,7 +1106,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             defaultCacheSize = in.readInt();
             discardExtremeValues = in.readBoolean();
             discardLowLimit = in.readDouble();
@@ -1150,7 +1149,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             defaultCacheSize = in.readInt();
             discardExtremeValues = in.readBoolean();
             discardLowLimit = in.readDouble();
@@ -1192,7 +1191,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             defaultCacheSize = in.readInt();
             discardExtremeValues = in.readBoolean();
             discardLowLimit = in.readDouble();
@@ -1233,7 +1232,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             defaultCacheSize = in.readInt();
             discardExtremeValues = in.readBoolean();
             discardLowLimit = in.readDouble();
@@ -1254,7 +1253,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 5) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
@@ -1282,7 +1281,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 6) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
@@ -1310,7 +1309,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 7) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
@@ -1327,7 +1326,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 8) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             rollup = Common.Rollups.NONE;
@@ -1347,7 +1346,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
@@ -1389,7 +1388,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 10) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
@@ -1430,7 +1429,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if (ver == 11) {
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            pointLocator = (PointLocatorVO) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
             discardLowLimit = in.readDouble();
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
@@ -1597,7 +1596,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 	String typeStr = pedObject.getString("type");
                 	if(typeStr == null)
                 		throw new TranslatableJsonException("emport.error.ped.missingAttr", "type");
-                    EventDetectorDefinition def = ModuleRegistry.getEventDetectorDefinition(typeStr);
+                    EventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
                     if (def == null)
                         throw new TranslatableJsonException("emport.error.ped.invalid", "type", typeStr,
                                 ModuleRegistry.getEventDetectorDefinitionTypes());
