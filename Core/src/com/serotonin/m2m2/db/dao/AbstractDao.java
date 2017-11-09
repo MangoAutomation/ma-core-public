@@ -214,18 +214,32 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
 
     /**
-     * Find a vo by its XID
+     * Find a VO by its XID
      * 
      * @param xid
      *            XID to search for
      * @return vo if found, otherwise null
      */
     public T getByXid(String xid) {
-        if (!this.propertyTypeMap.keySet().contains("xid") || xid == null) {
+        if (xid == null || !this.propertyTypeMap.keySet().contains("xid")) {
             return null;
         }
 
         return queryForObject(SELECT_BY_XID, new Object[] { xid }, getRowMapper(), null);
+    }
+    
+    /**
+     * Find a VO by its XID and load its relational data
+     * 
+     * @param xid
+     * @return
+     */
+    public T getFullByXid(String xid) {
+        T item = getByXid(xid);
+        if (item != null) {
+            loadRelationalData(item);
+        }
+        return item;
     }
 
     /**

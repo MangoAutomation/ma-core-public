@@ -626,7 +626,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	 */
 	public T getFull(int id) {
 	    T item = get(id);
-        loadRelationalData(item);
+	    if (item != null) {
+	        loadRelationalData(item);
+	    }
         return item;
 	}
 	
