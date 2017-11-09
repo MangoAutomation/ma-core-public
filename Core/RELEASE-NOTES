@@ -11,6 +11,7 @@
 * Added startValue as a rollup type
 * Event handler permission is determined by all the event types it serves
 * Added dataTypeId column to dataPoints table
+* Upgraded H2 to 1.4.196 to finally fix the LOB not found exceptions
 
 *Version 3.2.2*
 * Make event detector XIDs unique, the id will be appended to existing event detector XIDs
