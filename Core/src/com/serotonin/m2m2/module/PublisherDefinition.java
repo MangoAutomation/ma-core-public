@@ -93,7 +93,7 @@ abstract public class PublisherDefinition extends ModuleElementDefinition {
      */
     @Override
     public void uninstall() {
-    	PublisherDao.instance.deletePublisherType(getPublisherTypeName());
+    	    PublisherDao.instance.deletePublisherType(getPublisherTypeName());
     }
     
 	/**

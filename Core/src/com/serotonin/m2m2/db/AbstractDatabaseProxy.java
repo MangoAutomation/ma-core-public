@@ -39,7 +39,6 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
@@ -110,12 +109,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 else {
 
                     // Record the current version.
-                	SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                	    SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                             Integer.toString(Common.getDatabaseSchemaVersion()));
 
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
-                	SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+                	    SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
                     
                     /**
                      * Add a startup task to run after the Audit system is ready 
@@ -123,7 +122,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
                         @Override
                         public void run() {
-                        	// New database. Create a default user.
+                        	    // New database. Create a default user.
                             User user = new User();
                             user.setId(Common.NEW_ID);
                             user.setName("Administrator");
@@ -137,11 +136,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                         	
                             DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
                             factory.saveDefaultTemplates();
-                            
-                            //Add the Default Permissions for the UI
-                            List<PermissionDefinition> defs = ModuleRegistry.getDefinitions(PermissionDefinition.class);
-                            for(PermissionDefinition def : defs)
-                            	def.install();
                        }
                     });
                 }

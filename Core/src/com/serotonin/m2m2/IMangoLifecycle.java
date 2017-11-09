@@ -89,7 +89,6 @@ public interface IMangoLifecycle extends Provider {
     public static final int SHUTDOWN_TASKS_RUNNING = 220;
     public static final int WEB_SERVER_TERMINATE = 230;
     public static final int RUNTIME_MANAGER_TERMINATE = 240;
-    public static final int UNINSTALLL_MODULES = 250;
     public static final int EPOLL_TERMINATE = 255;
     public static final int UTILITIES_TERMINATE = 260;
     public static final int TIMER_TERMINATE = 265;

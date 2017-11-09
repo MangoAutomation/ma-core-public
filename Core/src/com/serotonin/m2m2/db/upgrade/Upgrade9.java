@@ -67,12 +67,6 @@ public class Upgrade9 extends DBUpgrade {
         for (Map.Entry<Integer, String> e : dpSetPermission.entrySet())
             ejt.update("UPDATE dataPoints SET setPermission=? WHERE id=?", e.getValue(), e.getKey());
 
-        //One Time Install of permissions for PermissionsDefinitions to ensure default permissions are in
-        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-        	def.install();
-        }
-        
-        
         // Goodbye permission tables.
         scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), dropScript);
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropScript);

@@ -47,9 +47,9 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * @throws AccessDeniedException
      */
     protected void hasTaskPermission(User user) throws AccessDeniedException{
-    	PermissionDefinition def = getPermissionDefinition();
-    	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(def.getPermissionTypeName())))
-    		throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
+        	PermissionDefinition def = getPermissionDefinition();
+        	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(def.getPermissionTypeName())))
+        		throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
     }
     
     /**
@@ -57,13 +57,13 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * @return
      */
     protected PermissionDefinition getPermissionDefinition(){
-    	return ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
+        return ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
     }
 
     protected void validate(JsonNode input) throws ValidationFailedRestException {
-    	RestValidationResult result = validateImpl(input);
-    	if(result != null)
-    		result.ensureValid();
+        	RestValidationResult result = validateImpl(input);
+        	if(result != null)
+        		result.ensureValid();
     }
     
     /**

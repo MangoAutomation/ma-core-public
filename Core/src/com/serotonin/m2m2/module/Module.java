@@ -141,24 +141,6 @@ public class Module {
         for (ModuleElementDefinition df : definitions)
             df.postEventManager(install, upgrade);
     }
-
-    /**
-     * Called after post database state but only on the first time a module is run.
-     */
-    @SuppressWarnings("deprecation")
-    public void install(){
-        for (ModuleElementDefinition df : definitions)
-            df.install();
-    }
-    
-    /**
-     * Called after post database state but only when a module is being upgraded.
-     */
-    @SuppressWarnings("deprecation")
-    public void upgrade(){
-        for (ModuleElementDefinition df : definitions)
-            df.upgrade();
-    }
     
     /**
      * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
@@ -184,16 +166,6 @@ public class Module {
     public void postRuntimeManagerTerminate(boolean uninstall) {
         for (ModuleElementDefinition df : definitions)
             df.postRuntimeManagerTerminate(uninstall);
-    }
-    
-    /**
-     * Called upon shutdown after the runtime, but before the event manager, has been terminated. Only called on modules
-     * that have been marked for deletion. Should not be used by client code.
-     */
-    @SuppressWarnings("deprecation")
-    public void uninstall() {
-        for (ModuleElementDefinition df : definitions)
-            df.uninstall();
     }
 
     /**

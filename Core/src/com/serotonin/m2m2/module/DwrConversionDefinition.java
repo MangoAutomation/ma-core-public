@@ -27,8 +27,7 @@ abstract public class DwrConversionDefinition extends ModuleElementDefinition {
     private final List<DwrClassConversion> conversions = new ArrayList<DwrClassConversion>();
 
     @Override
-    public void preInitialize() {
-        super.preInitialize();
+    public void preInitialize(boolean install, boolean upgrade) {
         addConversions();
     }
 

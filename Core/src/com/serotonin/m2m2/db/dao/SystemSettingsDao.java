@@ -477,22 +477,22 @@ public class SystemSettingsDao extends BaseDao {
         //Module Defaults
         Map<String,Object> modDefaults = null;
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
-        	modDefaults = def.getDefaultValues();
-        	if(modDefaults != null)
-        		DEFAULT_VALUES.putAll(modDefaults);
-        	modDefaults = null;
+            	modDefaults = def.getDefaultValues();
+            	if(modDefaults != null)
+            		DEFAULT_VALUES.putAll(modDefaults);
+            	modDefaults = null;
         }
         
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-        	String defaultValue = "";
-        	if(def.getValue().getDefaultGroups() != null)
-        		for(String s : def.getValue().getDefaultGroups()) {
-        			if(defaultValue.isEmpty())
-        				defaultValue += s;
-        			else
-        				defaultValue += ","+s;
-        		}
-        	DEFAULT_VALUES.put(def.getKey(), defaultValue);
+            	String defaultValue = "";
+            	if(def.getValue().getDefaultGroups() != null)
+            		for(String s : def.getValue().getDefaultGroups()) {
+            			if(defaultValue.isEmpty())
+            				defaultValue += s;
+            			else
+            				defaultValue += ","+s;
+            		}
+            	DEFAULT_VALUES.put(def.getKey(), defaultValue);
         }
         
         DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
@@ -941,7 +941,7 @@ public class SystemSettingsDao extends BaseDao {
 		
 		//Add The Permissions with empty values since they don't necessarily have defaults
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-        	settings.put(def.getPermissionTypeName(), "");
+            settings.put(def.getPermissionTypeName(), "");
         }
 		
 		//Start with all the defaults

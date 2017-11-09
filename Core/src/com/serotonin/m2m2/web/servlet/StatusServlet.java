@@ -182,7 +182,6 @@ public class StatusServlet extends HttpServlet{
 		case IMangoLifecycle.WEB_SERVER_TERMINATE:
 			return this.translations.translate("shutdown.state.webServerTerminate");
 		case IMangoLifecycle.RUNTIME_MANAGER_TERMINATE:
-		case IMangoLifecycle.UNINSTALLL_MODULES:
 		case IMangoLifecycle.EPOLL_TERMINATE:
 		case IMangoLifecycle.TIMER_TERMINATE:
 		case IMangoLifecycle.EVENT_MANAGER_TERMINATE:
