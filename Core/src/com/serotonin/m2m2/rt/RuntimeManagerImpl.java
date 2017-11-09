@@ -656,6 +656,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 p.terminate();
                 
                 this.startDataPoint(p.getVO(), null);
+                restarted = true;
             }
         }
         if(!restarted) {
