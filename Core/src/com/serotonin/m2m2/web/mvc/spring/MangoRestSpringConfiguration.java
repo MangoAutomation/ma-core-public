@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -30,10 +31,11 @@ import org.springframework.web.util.UrlPathHelper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.JsonRestJacksonModuleDefinition;
+import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvDataPageQueryStreamMessageConverter;
@@ -210,19 +212,24 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		objectMapper.registerModule(mangoCoreV2);
 		
 		//Setup Module Defined JSON Modules
-		List<JsonRestJacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JsonRestJacksonModuleDefinition.class);
-		for(JsonRestJacksonModuleDefinition def : defs)
-			objectMapper.registerModule(def.getJacksonModule());
+		List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
+		for(JacksonModuleDefinition def : defs) {
+		    if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.REST)
+		        objectMapper.registerModule(def.getJacksonModule());
+		}
 
 		// Custom Date Output Format
-		String customDateFormat = Common.envProps
-				.getString("rest.customDateOutputFormat");
+		String customDateFormat = Common.envProps.getString("rest.customDateOutputFormat");
 		if (customDateFormat != null) {
 			objectMapper.configure(
 					SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 			DateFormat dateFormat = new SimpleDateFormat(customDateFormat);
 			objectMapper.setDateFormat(dateFormat);
 		}
+		
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
+		
 		//This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		return objectMapper;

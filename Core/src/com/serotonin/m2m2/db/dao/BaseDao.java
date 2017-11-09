@@ -18,6 +18,8 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
+import com.serotonin.m2m2.module.JacksonModuleDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 
 public class BaseDao extends DaoUtils implements SQLConstants{
     
@@ -26,7 +28,14 @@ public class BaseDao extends DaoUtils implements SQLConstants{
     static {
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        mapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
+        mapper.setTimeZone(TimeZone.getTimeZone("UTC")); //Set to UTC in case timezone change while data is in database
+        
+        //Setup Module Defined JSON Modules
+        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
+        for(JacksonModuleDefinition def : defs) {
+            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.DATABASE)
+                mapper.registerModule(def.getJacksonModule());
+        }
     }
 
     
