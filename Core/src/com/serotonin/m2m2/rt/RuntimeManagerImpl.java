@@ -636,6 +636,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
      */
     @Override
     public void restartDataPoint(DataPointVO vo){
+        boolean restarted = false;
         synchronized (dataPoints) {
             // Remove this point from the data image if it is there. If not, just quit.
             DataPointRT p = dataPoints.remove(vo.getId());
@@ -655,14 +656,15 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 p.terminate();
                 
                 this.startDataPoint(p.getVO(), null);
-            } else {
-                //The data poit wasn't really running. Ensure the event detectors and enable
-                if(vo.getEventDetectors() == null)
-                    DataPointDao.instance.setEventDetectors(vo);
-                vo.setEnabled(true);
-                startDataPoint(vo, null);
-                DataPointDao.instance.saveEnabledColumn(vo);
             }
+        }
+        if(!restarted) {
+            //The data poit wasn't really running. Ensure the event detectors and enable
+            if(vo.getEventDetectors() == null)
+                DataPointDao.instance.setEventDetectors(vo);
+            vo.setEnabled(true);
+            startDataPoint(vo, null);
+            DataPointDao.instance.saveEnabledColumn(vo);
         }
     }
     
