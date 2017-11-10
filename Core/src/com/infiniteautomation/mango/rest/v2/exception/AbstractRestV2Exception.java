@@ -27,19 +27,19 @@ public abstract class AbstractRestV2Exception extends RuntimeException {
 	protected final TranslatableMessage translatableMessage;
 	
 	public AbstractRestV2Exception(HttpStatus httpCode) {
-        this(httpCode, null, new TranslatableMessage("httpStatus." + httpCode.value()));
+        this(httpCode, null, new TranslatableMessage("rest.httpStatus." + httpCode.value()));
 	}
 	
     public AbstractRestV2Exception(HttpStatus httpCode, Exception e) {
-        this(httpCode, null, new TranslatableMessage("httpStatus." + httpCode.value()), e);
+        this(httpCode, null, new TranslatableMessage("rest.httpStatus." + httpCode.value()), e);
     }
 
 	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode) {
-	    this(httpCode, mangoCode, new TranslatableMessage("httpStatus." + httpCode.value()));
+	    this(httpCode, mangoCode, new TranslatableMessage("rest.httpStatus." + httpCode.value()));
 	}
 
     public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Exception e) {
-        this(httpCode, mangoCode, new TranslatableMessage("httpStatus." + httpCode.value()), e);
+        this(httpCode, mangoCode, new TranslatableMessage("rest.httpStatus." + httpCode.value()), e);
     }
 
     public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message) {

@@ -7,11 +7,7 @@ package com.serotonin.m2m2.web.mvc.rest;
 import javax.servlet.http.HttpServletRequest;
 
 import com.infiniteautomation.mango.rest.v2.exception.InvalidRQLRestException;
-import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.vo.Validatable;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -97,13 +93,5 @@ public abstract class BaseMangoRestController {
 			root = new ASTNode("or", restriction, query);
 		}
 		return root;
-	}
-	
-	public static void ensureValid(Validatable object) {
-        ProcessResult response = new ProcessResult();
-        object.validate(response);
-        if (response.getHasMessages()) {
-            throw new ValidationFailedRestException(new RestValidationResult(response));
-        }
 	}
 }
