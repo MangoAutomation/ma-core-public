@@ -21,12 +21,13 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.vo.Validatable;
 
 /**
  * @author Terry Packer
  *
  */
-public abstract class VirtualSerialPortConfig implements JsonSerializable{
+public abstract class VirtualSerialPortConfig implements JsonSerializable, Validatable {
 
 	public interface SerialPortTypes {
 		int JSSC = 1;
@@ -59,6 +60,7 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable{
 	@JsonIgnore
 	private int type;
 	
+	@Override
 	public void validate(ProcessResult response){
 		if (StringUtils.isBlank(xid))
             response.addContextualMessage("virtualSerialPortXid", "validate.required");

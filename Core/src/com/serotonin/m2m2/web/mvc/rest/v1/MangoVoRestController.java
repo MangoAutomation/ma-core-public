@@ -140,47 +140,6 @@ public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, D
 		}
 		return model;
 	}
-	
-	/**
-	 * Append an AND Restriction to a query
-	 * @param query - can be null
-	 * @param restriction
-	 * @return
-	 */
-	protected ASTNode addAndRestriction(ASTNode query, ASTNode restriction){
-		//Root query node
-		ASTNode root = null;
-		
-		if(query == null){
-			root = restriction;
-		}else if(query.getName().equalsIgnoreCase("and")){
-			root = query.addArgument(restriction);
-		}else{
-			root = new ASTNode("and", restriction, query);
-		}
-		return root;
-	}
-	
-	/**
-	 * Append an OR restriction to the query
-	 * @param query - can be null
-	 * @param restriction
-	 * @return
-	 */
-	protected ASTNode addOrRestriction(ASTNode query, ASTNode restriction){
-		//Root query node
-		ASTNode root = null;
-		
-		if(query == null){
-			root = restriction;
-		}else if(query.getName().equalsIgnoreCase("or")){
-			root = query.addArgument(restriction);
-		}else{
-			root = new ASTNode("or", restriction, query);
-		}
-		return root;
-	}
-	
 
 	@Override
 	public Map<String,String> getModelMap(){

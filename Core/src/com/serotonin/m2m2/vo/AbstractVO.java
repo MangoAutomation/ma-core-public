@@ -34,7 +34,7 @@ import com.serotonin.validation.StringValidation;
  * @author Jared Wiltshire
  */
 public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicVO implements Serializable,
-        JsonSerializable, Cloneable {
+        JsonSerializable, Cloneable, Validatable {
 	
 	private static final Log LOG = LogFactory.getLog(AbstractVO.class);
 	
@@ -152,6 +152,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
      * 
      * @param response
      */
+    @Override
     public void validate(ProcessResult response) {
         if (StringUtils.isBlank(xid))
             response.addContextualMessage("xid", "validate.required");
