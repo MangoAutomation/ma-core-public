@@ -11,6 +11,7 @@ import org.directwebremoting.AjaxFilterChain;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -24,22 +25,22 @@ public class DwrPermissionFilter implements AjaxFilter {
 
         if (permission == null)
             // No access if not annotated.
-            throw new PermissionException("Method " + method.getName() + " not annotated with permissions", null);
+            throw new PermissionException(new TranslatableMessage("common.default", "Method " + method.getName() + " not annotated with permissions"), null);
 
         if (!permission.anonymous()) {
             User user = Common.getUser();
 
             if (user == null)
                 // Not logged in.
-                throw new PermissionException("Method " + method.getName() + " does not allow anonymous access", null);
+                throw new PermissionException(new TranslatableMessage("common.default", "Method " + method.getName() + " does not allow anonymous access"), null);
 
             if(!permission.custom().isEmpty()){
             	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(permission.custom())))
-            		throw new PermissionException("Method " + method.getName() + " requires " + permission.custom() + " access", user);
+            		throw new PermissionException(new TranslatableMessage("common.default", "Method " + method.getName() + " requires " + permission.custom() + " access"), user);
             }
             
             if (!Permissions.hasAdmin(user) && permission.admin())
-                throw new PermissionException("Method " + method.getName() + " requires admin access", user);
+                throw new PermissionException(new TranslatableMessage("common.default", "Method " + method.getName() + " requires admin access"), user);
         }
 
         return chain.doFilter(obj, method, params);

@@ -14,6 +14,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -56,9 +57,9 @@ public class Permissions {
     //
     public static void ensureValidUser(User user) throws PermissionException {
         if (user == null)
-            throw new PermissionException("Not logged in", null);
+            throw new PermissionException(new TranslatableMessage("permission.exception.notAuthenticated"), null);
         if (user.isDisabled())
-            throw new PermissionException("User is disabled", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.userIsDisabled"), user);
     }
 
 	public static boolean isValidUser(User user){
@@ -80,7 +81,7 @@ public class Permissions {
 
     public static void ensureAdmin(User user) throws PermissionException {
         if (!hasAdmin(user))
-            throw new PermissionException("User is not an administrator", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.mustBeAdmin"), user);
     }
 
     //
@@ -93,7 +94,7 @@ public class Permissions {
 
     public static void ensureDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
         if (!hasDataSourcePermission(user, ds))
-            throw new PermissionException("User does not have permission to data source", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getUsername()), user);
     }
 
     public static boolean hasDataSourcePermission(User user, int dsId) throws PermissionException {
@@ -108,7 +109,7 @@ public class Permissions {
 
     public static void ensureDataSourcePermission(User user) throws PermissionException {
         if (!hasDataSourcePermission(user))
-            throw new PermissionException("User does not have permission to any data sources", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.editAnyDataSource", user.getUsername()), user);
     }
 
     public static boolean hasDataSourcePermission(User user) throws PermissionException {
@@ -133,7 +134,7 @@ public class Permissions {
     //
     public static void ensureDataPointReadPermission(User user, IDataPoint point) throws PermissionException {
         if (!hasDataPointReadPermission(user, point))
-            throw new PermissionException("User does not have read permission to point", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getUsername()), user);
     }
 
     public static boolean hasDataPointReadPermission(User user, IDataPoint point) throws PermissionException {
@@ -158,7 +159,7 @@ public class Permissions {
         if (!point.getPointLocator().isSettable())
             throw new ShouldNeverHappenException("Point is not settable");
         if (!hasDataPointSetPermission(user, point))
-            throw new PermissionException("User does not have set permission to point", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getUsername()), user);
     }
 
     public static boolean hasDataPointSetPermission(User user, IDataPoint point) throws PermissionException {
@@ -228,7 +229,7 @@ public class Permissions {
 
     public static void ensureEventTypePermission(User user, EventType eventType) throws PermissionException {
         if (!hasEventTypePermission(user, eventType))
-            throw new PermissionException("User does not have permission to the event", user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getUsername()), user);
     }
 
     public static void ensureEventTypePermission(User user, EventTypeVO eventType) throws PermissionException {

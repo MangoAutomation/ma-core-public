@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
 import com.serotonin.m2m2.view.chart.ImageFlipbookRenderer;
@@ -49,7 +50,7 @@ public class DataPointDetailsController implements UrlHandler {
         if(StringUtils.equals(idStr,"exception"))
         	throw new IOException("testing");
         else if(StringUtils.equals(idStr,"permission-exception"))
-        	throw new PermissionException("Testing", user);
+        	throw new PermissionException(new TranslatableMessage("common.default", "Testing"), user);
         
         if (StringUtils.isBlank(idStr)) {
             // Check for pedid (point event detector id)

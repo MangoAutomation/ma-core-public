@@ -18,7 +18,6 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -28,6 +27,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
+import com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
 import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
 import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
@@ -36,6 +36,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.ValidationException;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 
 /**
  * 
@@ -71,11 +72,20 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     private final String INVALID_SESSION = "/exception/invalidSession.jsp";
 	
     @ExceptionHandler({
-    	//Anything that extends our Base Exception
-    	AccessDeniedException.class
+        org.springframework.security.access.AccessDeniedException.class,
+    	PermissionException.class
     	})
     public ResponseEntity<Object> handleAccessDenied(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
-    	return handleExceptionInternal(ex, new com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException(ex), new HttpHeaders(), HttpStatus.FORBIDDEN, req);
+        Object model;
+        
+        if (ex instanceof PermissionException) {
+            PermissionException permissionException = (PermissionException) ex;
+            model = new AccessDeniedException(permissionException.getTranslatableMessage(), ex);
+        } else {
+            model = new AccessDeniedException(ex);
+        }
+        
+    	return handleExceptionInternal(ex, model, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
     }
     
     @ExceptionHandler({

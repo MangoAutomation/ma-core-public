@@ -317,7 +317,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (dp == null)
             return null;
         if (dp.getDataSourceId() != ds.getId())
-            throw new PermissionException("Wrong data source", Common.getUser());
+            throw new PermissionException(new TranslatableMessage("common.default", "Wrong data source"), Common.getUser());
 
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataPointVO> dss = new ArrayList<>();

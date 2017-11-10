@@ -73,7 +73,7 @@ public class ExampleV2RestController extends AbstractMangoRestV2Controller{
 	})
 	@RequestMapping( method = {RequestMethod.GET}, value = {"/permissions-exception"}, produces = {"application/json"} )
 	public ResponseEntity<Object> alwaysFails(@AuthenticationPrincipal User user) {
-		throw new PermissionException("I always fail.", user);
+		throw new PermissionException(new TranslatableMessage("common.default", "I always fail."), user);
 	}
 	
 	@PreAuthorize("hasAllPermissions('user')")
