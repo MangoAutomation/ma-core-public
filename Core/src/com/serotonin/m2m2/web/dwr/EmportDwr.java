@@ -6,12 +6,9 @@ package com.serotonin.m2m2.web.dwr;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.ArrayUtils;
-
-import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
@@ -19,21 +16,9 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.JsonDataDao;
-import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.TemplateDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.module.EmportDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
@@ -42,54 +27,10 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * @author Matthew Lohbihler
  */
 public class EmportDwr extends BaseDwr {
-    public static final String EVENT_HANDLERS = SchemaDefinition.EVENT_HANDLER_TABLE;
-    public static final String DATA_SOURCES = SchemaDefinition.DATASOURCES_TABLE;
-    public static final String DATA_POINTS = SchemaDefinition.DATAPOINTS_TABLE;
-    public static final String USERS = SchemaDefinition.USERS_TABLE;
-    public static final String POINT_HIERARCHY = "pointHierarchy";
-    public static final String MAILING_LISTS = SchemaDefinition.MAILING_LISTS_TABLE;
-    public static final String PUBLISHERS = SchemaDefinition.PUBLISHERS_TABLE;
-    public static final String SYSTEM_SETTINGS = SchemaDefinition.SYSTEM_SETTINGS_TABLE;
-    public static final String TEMPLATES = SchemaDefinition.TEMPLATES_TABLE;
-    public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
-    public static final String JSON_DATA = SchemaDefinition.JSON_DATA_TABLE;
-    public static final String EVENT_DETECTORS = SchemaDefinition.EVENT_DETECTOR_TABLE;
-    
 
     @DwrPermission(admin = true)
     public String createExportData(int prettyIndent, String[] exportElements) {
-        Map<String, Object> data = new LinkedHashMap<>();
-
-        if (ArrayUtils.contains(exportElements, DATA_SOURCES))
-            data.put(DATA_SOURCES, DataSourceDao.instance.getDataSources());
-        if (ArrayUtils.contains(exportElements, DATA_POINTS))
-            data.put(DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
-        if (ArrayUtils.contains(exportElements, USERS))
-            data.put(USERS, UserDao.instance.getUsers());
-        if (ArrayUtils.contains(exportElements, MAILING_LISTS))
-            data.put(MAILING_LISTS, MailingListDao.instance.getMailingLists());
-        if (ArrayUtils.contains(exportElements, PUBLISHERS))
-            data.put(PUBLISHERS, PublisherDao.instance.getPublishers());
-        if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
-            data.put(EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
-        if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
-            data.put(POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
-        if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
-            data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
-        if (ArrayUtils.contains(exportElements, TEMPLATES))
-            data.put(TEMPLATES, TemplateDao.instance.getAll());
-        if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
-            data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
-        if (ArrayUtils.contains(exportElements, JSON_DATA))
-            data.put(JSON_DATA, JsonDataDao.instance.getAll());
-        //No entry for event detectors. They're affixed to data points in the export.
-        
-        
-        for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
-            if (ArrayUtils.contains(exportElements, def.getElementId()))
-                data.put(def.getElementId(), def.getExportData());
-        }
-
+        Map<String, Object> data = ConfigurationExportData.createExportDataMap(exportElements);
         return export(data, prettyIndent);
     }
 

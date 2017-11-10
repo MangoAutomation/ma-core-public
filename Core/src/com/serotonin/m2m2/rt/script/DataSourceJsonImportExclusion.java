@@ -1,6 +1,6 @@
 package com.serotonin.m2m2.rt.script;
 
-import com.serotonin.m2m2.web.dwr.EmportDwr;
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 
 public class DataSourceJsonImportExclusion extends JsonImportExclusion {
 
@@ -10,7 +10,7 @@ public class DataSourceJsonImportExclusion extends JsonImportExclusion {
 
 	@Override
 	public String getImporterType() {
-		return EmportDwr.DATA_SOURCES;
+		return ConfigurationExportData.DATA_SOURCES;
 	}
 
 }

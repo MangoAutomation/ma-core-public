@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -26,7 +27,6 @@ import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
-import com.serotonin.m2m2.web.dwr.EmportDwr;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointSummaryPathPair;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataSourceImporter;
@@ -111,42 +111,42 @@ public class ImportTask extends ProgressiveTask {
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
         this.user = user;
 
-        for (JsonValue jv : nonNullList(root, EmportDwr.USERS))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(this.user, jv.toJsonObject()));
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.DATA_SOURCES))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
             addImporter(new DataSourceImporter(jv.toJsonObject()));
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.DATA_POINTS))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
             addImporter(new DataPointImporter(jv.toJsonObject(), dpPathPairs));
         
-        JsonArray phJson = root.getJsonArray(EmportDwr.POINT_HIERARCHY);
+        JsonArray phJson = root.getJsonArray(ConfigurationExportData.POINT_HIERARCHY);
         if(phJson != null) {
             hierarchyImporter = new PointHierarchyImporter(phJson);
         	    addImporter(hierarchyImporter);
         } else
             hierarchyImporter = null;
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.MAILING_LISTS))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject()));
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.PUBLISHERS))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
             addImporter(new PublisherImporter(jv.toJsonObject()));
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.EVENT_HANDLERS))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
             addImporter(new EventHandlerImporter(jv.toJsonObject()));
         
-        JsonObject obj = root.getJsonObject(EmportDwr.SYSTEM_SETTINGS);
+        JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj));
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.TEMPLATES))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.TEMPLATES))
             addImporter(new TemplateImporter(jv.toJsonObject()));
         
-        for (JsonValue jv : nonNullList(root, EmportDwr.VIRTUAL_SERIAL_PORTS))
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));
         
-        for(JsonValue jv : nonNullList(root, EmportDwr.JSON_DATA))
+        for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
         	addImporter(new JsonDataImporter(jv.toJsonObject()));
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
@@ -154,7 +154,7 @@ public class ImportTask extends ProgressiveTask {
             importItems.add(importItem);
         }
         
-        for(JsonValue jv : nonNullList(root, EmportDwr.EVENT_DETECTORS)) 
+        for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
         	addImporter(new EventDetectorImporter(jv.toJsonObject()));
 
         this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths 

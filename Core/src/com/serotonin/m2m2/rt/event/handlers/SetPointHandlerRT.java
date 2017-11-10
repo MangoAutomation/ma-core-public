@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.NullWriter;
@@ -39,14 +40,13 @@ import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
+import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.rt.script.ScriptUtils;
-import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
-import com.serotonin.m2m2.web.dwr.EmportDwr;
 
 public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
     private static final Log LOG = LogFactory.getLog(SetPointHandlerRT.class);
@@ -83,7 +83,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	importExclusions.add(new JsonImportExclusion("xid", vo.getXid()) {
 				@Override
 				public String getImporterType() {
-					return EmportDwr.EVENT_HANDLERS;
+					return ConfigurationExportData.EVENT_HANDLERS;
 				}
         	});
         } else

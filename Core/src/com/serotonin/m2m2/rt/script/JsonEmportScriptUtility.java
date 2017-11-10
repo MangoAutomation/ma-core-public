@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
-import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
@@ -14,15 +14,6 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.JsonDataDao;
-import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.TemplateDao;
-import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.module.EmportDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -53,24 +44,7 @@ public class JsonEmportScriptUtility {
 	
 	public String getFullConfiguration(int prettyIndent) {
 		if(admin) {
-			Map<String, Object> data = new LinkedHashMap<>();
-
-            data.put(EmportDwr.DATA_SOURCES, DataSourceDao.instance.getDataSources());
-            data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
-            data.put(EmportDwr.USERS, UserDao.instance.getUsers());
-            data.put(EmportDwr.MAILING_LISTS, MailingListDao.instance.getMailingLists());
-            data.put(EmportDwr.PUBLISHERS, PublisherDao.instance.getPublishers());
-            data.put(EmportDwr.EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
-            data.put(EmportDwr.POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
-            data.put(EmportDwr.SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
-            data.put(EmportDwr.TEMPLATES, TemplateDao.instance.getAll());
-            data.put(EmportDwr.VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
-            data.put(EmportDwr.JSON_DATA, JsonDataDao.instance.getAll());
-	        
-	        for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class))
-                data.put(def.getElementId(), def.getExportData());
-
-	        return EmportDwr.export(data, prettyIndent);
+	        return EmportDwr.export(ConfigurationExportData.createExportDataMap(null), prettyIndent);
 		}
 		return "{}";
 	}
@@ -80,36 +54,11 @@ public class JsonEmportScriptUtility {
 	}
 	
 	public String getConfiguration(String type, int prettyIndent) {
-		Map<String, Object> data = new LinkedHashMap<>();
+		Map<String, Object> data;
 		if(admin) {
-			if(EmportDwr.DATA_SOURCES.equals(type)) {
-				data.put(EmportDwr.DATA_SOURCES, DataSourceDao.instance.getDataSources());
-			} else if(EmportDwr.DATA_POINTS.equals(type)) {
-				data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
-			} else if(EmportDwr.USERS.equals(type)) {
-				data.put(EmportDwr.USERS, UserDao.instance.getUsers());
-			} else if(EmportDwr.MAILING_LISTS.equals(type)) {
-				data.put(EmportDwr.MAILING_LISTS, MailingListDao.instance.getMailingLists());
-			} else if(EmportDwr.PUBLISHERS.equals(type)) {
-				data.put(EmportDwr.PUBLISHERS, PublisherDao.instance.getPublishers());
-			} else if(EmportDwr.EVENT_HANDLERS.equals(type)) {
-				data.put(EmportDwr.EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
-			} else if(EmportDwr.POINT_HIERARCHY.equals(type)) {
-				data.put(EmportDwr.POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
-			} else if(EmportDwr.SYSTEM_SETTINGS.equals(type)) {
-				data.put(EmportDwr.SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
-			} else if(EmportDwr.TEMPLATES.equals(type)) {
-				data.put(EmportDwr.TEMPLATES, TemplateDao.instance.getAll());
-			} else if(EmportDwr.VIRTUAL_SERIAL_PORTS.equals(type)) {
-				data.put(EmportDwr.VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
-			} else if(EmportDwr.JSON_DATA.equals(type)) {
-				data.put(EmportDwr.JSON_DATA, JsonDataDao.instance.getAll());
-			} else
-				for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class))
-	                if(def.getElementId().equals(type)) {
-	                    data.put(def.getElementId(), def.getExportData());
-	                    break;
-	                }
+		    data = ConfigurationExportData.createExportDataMap(new String[] {type});
+		}else {
+		    data = new LinkedHashMap<>();
 		}
 		
 		return EmportDwr.export(data, prettyIndent);
@@ -126,7 +75,7 @@ public class JsonEmportScriptUtility {
 			BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(root, true);
 			
 			List<DataPointVO> dataPoints = sqlQuery.immediateQuery();
-			data.put(EmportDwr.DATA_POINTS, dataPoints);
+			data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
 		}
 		return EmportDwr.export(data, prettyIndent);
 	}
@@ -142,7 +91,7 @@ public class JsonEmportScriptUtility {
 			BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.instance.createQuery(root, true);
 			
 			List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
-			data.put(EmportDwr.DATA_SOURCES, dataSources);
+			data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
 		}
 		return EmportDwr.export(data, prettyIndent);
 	}

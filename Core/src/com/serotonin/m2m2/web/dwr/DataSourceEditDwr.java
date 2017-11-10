@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
 
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
@@ -306,7 +307,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
         dss.add(Common.getUser().getEditDataSource());
-        data.put(EmportDwr.DATA_SOURCES, dss);
+        data.put(ConfigurationExportData.DATA_SOURCES, dss);
         return EmportDwr.export(data);
     }
 
@@ -322,7 +323,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataPointVO> dss = new ArrayList<>();
         dss.add(dp);
-        data.put(EmportDwr.DATA_POINTS, dss);
+        data.put(ConfigurationExportData.DATA_POINTS, dss);
         return EmportDwr.export(data);
     }
 

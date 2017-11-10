@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -143,8 +144,8 @@ public class DataSourceListDwr extends BaseDwr {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
         dss.add(DataSourceDao.instance.getDataSource(dataSourceId));
-        data.put(EmportDwr.DATA_SOURCES, dss);
-        data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(dataSourceId, null));
+        data.put(ConfigurationExportData.DATA_SOURCES, dss);
+        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.instance.getDataPoints(dataSourceId, null));
         return EmportDwr.export(data, 3);
     }
 }

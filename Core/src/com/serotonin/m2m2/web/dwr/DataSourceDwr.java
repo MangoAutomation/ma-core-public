@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.Period;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.db.pair.StringStringPair;
@@ -178,8 +179,8 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
         dss.add(DataSourceDao.instance.getDataSource(id));
-        data.put(EmportDwr.DATA_SOURCES, dss);
-        data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(id, null));
+        data.put(ConfigurationExportData.DATA_SOURCES, dss);
+        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.instance.getDataPoints(id, null));
         return EmportDwr.export(data, 3);
     }
 
