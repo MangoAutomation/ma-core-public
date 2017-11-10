@@ -188,7 +188,7 @@ public class MangoTestBase {
     }
     
     protected void loadConfiguration(File jsonFile) throws JsonException, IOException, URISyntaxException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsonFile)));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsonFile), Common.UTF8_CS));
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
         
