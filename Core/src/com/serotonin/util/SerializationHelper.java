@@ -86,10 +86,9 @@ public class SerializationHelper {
         if (is == null)
             return null;
 
-        try {
-            return new ClassLoaderObjectInputStream(is, Thread.currentThread().getContextClassLoader()).readObject();
-        }
-        catch (Exception e) {
+        try (ClassLoaderObjectInputStream stream = new ClassLoaderObjectInputStream(is, Thread.currentThread().getContextClassLoader())) {
+            return stream.readObject();
+        } catch (Exception e) {
             throw new ShouldNeverHappenException(e);
         }
     }
@@ -98,10 +97,9 @@ public class SerializationHelper {
         if (is == null)
             return null;
 
-        try {
-            return new ClassLoaderObjectInputStream(is, classLoader).readObject();
-        }
-        catch (Exception e) {
+        try (ClassLoaderObjectInputStream stream = new ClassLoaderObjectInputStream(is, classLoader)) {
+            return stream.readObject();
+        } catch (Exception e) {
             throw new ShouldNeverHappenException(e);
         }
     }
