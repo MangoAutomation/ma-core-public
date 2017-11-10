@@ -416,7 +416,7 @@
 		<dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.9.0</version>
+            <version>${jacksonVersion}</version>
         </dependency>
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>

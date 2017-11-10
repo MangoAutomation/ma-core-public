@@ -11,7 +11,7 @@
   <springVersion>4.3.7.RELEASE</springVersion>
   <springSecurityVersion>4.1.1.RELEASE</springSecurityVersion>
   <log4jVersion>2.8.1</log4jVersion>
-  <jacksonVersion>2.8.6</jacksonVersion>
+  <jacksonVersion>2.9.2</jacksonVersion>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
   <compilerSourceVersion>1.8</compilerSourceVersion>
