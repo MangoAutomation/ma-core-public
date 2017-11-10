@@ -31,6 +31,7 @@ import org.springframework.web.util.UrlPathHelper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.serotonin.ShouldNeverHappenException;
@@ -226,6 +227,9 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 			DateFormat dateFormat = new SimpleDateFormat(customDateFormat);
 			objectMapper.setDateFormat(dateFormat);
 		}
+		
+		//For now also use Joda
+		objectMapper.registerModule(new JodaModule());
 		
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
