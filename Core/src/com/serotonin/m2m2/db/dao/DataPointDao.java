@@ -510,6 +510,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     // Event detectors
     //
 
+    /**
+     * This method would be more accurately named loadEventDetectors().
+     * Loads the event detectors from the database and sets them on the data point.
+     * 
+     * @param dp
+     */
     public void setEventDetectors(DataPointVO dp) {
     	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(
     	        EventType.EventTypeNames.DATA_POINT, dp.getId());
@@ -563,7 +569,13 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
     private static final String POINT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT
             + "where uc.commentType= " + UserCommentVO.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
-
+    
+    /**
+     * This method would be more accurately named loadPointComments().
+     * Loads the comments from the database and them on the data point.
+     * 
+     * @param dp
+     */
     private void setPointComments(DataPointVO dp) {
         dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, UserCommentDao.instance.getRowMapper()));
     }
@@ -1230,6 +1242,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     }
 
+    /**
+     * This method would be more accurately named loadTemplateName().
+     * Loads the template from the database and sets templateName on the data point.
+     * 
+     * @param vo
+     */
     public void setTemplateName(DataPointVO vo){
     	if(vo.getTemplateId() != null){
 	    	BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
