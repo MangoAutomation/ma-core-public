@@ -60,7 +60,9 @@ public class BaseSqlQuery<T  extends AbstractBasicVO> {
 		this.countArgs = statement.getCountArgs();
 		
 		this.limitOffsetArgs = statement.getLimitOffsetArgs();
+		
 		this.useMetrics = this.dao.isUseMetrics();
+        this.metricsThreshold = this.dao.getMetricsThreshold();
 	}
 	
 
