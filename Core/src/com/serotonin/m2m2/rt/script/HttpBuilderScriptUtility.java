@@ -302,7 +302,6 @@ public class HttpBuilderScriptUtility {
         retried += 1;
         
         if(thrown != null) {
-            thrown = null;
             if(exceptionCallback != null)
                 return exceptionCallback.exception(thrown);
             if(errorCallback != null)
