@@ -22,7 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
@@ -59,6 +61,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     private final Log log = LogFactory.getLog(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
     private Boolean useMetrics;
+    private PlatformTransactionManager transactionManager;
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.db.DatabaseProxy#initialize(java.lang.ClassLoader)
@@ -71,6 +74,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
+        
+        transactionManager = new DataSourceTransactionManager(getDataSource());
 
         try {
             if (newDatabaseCheck(ejt)) {
@@ -411,6 +416,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public NoSQLProxy getNoSQLProxy() {
         return noSQLProxy;
+    }
+
+    @Override
+    public PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
     }
 
     //  TODO: could potentially expose Logging DAO for use in application	

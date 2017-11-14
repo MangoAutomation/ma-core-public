@@ -23,7 +23,9 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
@@ -61,6 +63,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     protected boolean initWebConsole = false;
     protected Integer webPort;
     private Server web; //web UI
+    protected DataSourceTransactionManager transactionManager;
     
     public H2InMemoryDatabaseProxy() {
         mockPointValueDao = new MockPointValueDao();
@@ -81,6 +84,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         String url = "jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1";
         jds.setUrl(url);
         dataSource = JdbcConnectionPool.create(jds);
+        transactionManager = new DataSourceTransactionManager(dataSource);
         
         if(initWebConsole) {
             String webArgs[] = new String[4];
@@ -481,6 +485,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
         user.setDisabled(false);
         UserDao.instance.saveUser(user);
+    }
+
+    @Override
+    public PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
     }
     
 }

@@ -29,6 +29,9 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.serotonin.db.pair.IntStringPair;
@@ -40,6 +43,7 @@ import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 
 public class DaoUtils {
     protected final DataSource dataSource;
+    protected final PlatformTransactionManager transactionManager;
     protected final ExtendedJdbcTemplate ejt;
     protected DataSourceTransactionManager tm;
     
@@ -50,8 +54,9 @@ public class DaoUtils {
     protected final DatabaseType databaseType;
     protected final DSLContext create;
     
-    public DaoUtils(DataSource dataSource) {
+    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager) {
         this.dataSource = dataSource;
+        this.transactionManager = transactionManager;
         this.databaseType = Common.databaseProxy.getType();
         this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
         this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
@@ -443,14 +448,28 @@ public class DaoUtils {
     //
     // Transaction management
     //
-    protected DataSourceTransactionManager getTransactionManager() {
-        // Lazy instantiation
-        if (tm == null)
-            tm = new DataSourceTransactionManager(dataSource);
-        return tm;
+    protected PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
     }
 
     protected TransactionTemplate getTransactionTemplate() {
         return new TransactionTemplate(getTransactionManager());
+    }
+    
+    public <T> T doInTransaction(TransactionCallback<T> callback) {
+        return this.getTransactionTemplate().execute(callback);
+    }
+    
+    public void doInTransaction(TransactionCallbackNoResult callback) {
+        this.getTransactionTemplate().execute(callback);
+    }
+    
+    public interface TransactionCallbackNoResult extends TransactionCallback<Object> {
+        default Object doInTransaction(TransactionStatus status) {
+            doInTransactionNoResult(status);
+            return null;
+        }
+        
+        void doInTransactionNoResult(TransactionStatus status);
     }
 }

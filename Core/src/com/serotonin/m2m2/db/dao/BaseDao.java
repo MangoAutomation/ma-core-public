@@ -43,7 +43,7 @@ public class BaseDao extends DaoUtils implements SQLConstants{
      * Public constructor for code that needs to get stuff from the database.
      */
     public BaseDao() {
-        super(Common.databaseProxy.getDataSource());
+        super(Common.databaseProxy.getDataSource(), Common.databaseProxy.getTransactionManager());
     }
 
     /**

@@ -27,7 +27,7 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import org.jooq.Transaction;
 import org.jooq.TransactionContext;
 import org.jooq.TransactionProvider;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
@@ -38,9 +38,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 public class SpringTransactionProvider implements TransactionProvider {
 
-    private final DataSourceTransactionManager txMgr;
+    private final PlatformTransactionManager txMgr;
     
-    public SpringTransactionProvider(DataSourceTransactionManager txMgr) {
+    public SpringTransactionProvider(PlatformTransactionManager txMgr) {
         this.txMgr = txMgr;
     }
 

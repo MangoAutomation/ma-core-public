@@ -12,6 +12,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
@@ -70,6 +71,8 @@ public interface DatabaseProxy {
     void terminateImpl();
 
     DataSource getDataSource();
+    
+    PlatformTransactionManager getTransactionManager();
 
     double applyBounds(double value);
 
