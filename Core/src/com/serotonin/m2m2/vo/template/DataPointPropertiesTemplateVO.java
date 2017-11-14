@@ -646,6 +646,9 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
      * @param vo
      */
 	public void updateDataPointVO(DataPointVO vo){
+        vo.setTemplateId(this.id);
+        vo.setTemplateName(this.name);
+        vo.setTemplateXid(this.xid);
 
 		/* Point Properties */
 		vo.setChartColour(getChartColour());
@@ -675,7 +678,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		/* Chart Renderer */
 		vo.setChartRenderer(getChartRenderer());
 		
-		vo.setTemplateId(getId());
 		vo.setPreventSetExtremeValues(isPreventSetExtremeValues());
 		vo.setSetExtremeLowLimit(getSetExtremeLowLimit());
 		vo.setSetExtremeHighLimit(getSetExtremeHighLimit());

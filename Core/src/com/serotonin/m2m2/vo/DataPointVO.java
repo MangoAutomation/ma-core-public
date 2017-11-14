@@ -53,6 +53,7 @@ import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -201,7 +202,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     boolean useRenderedUnit = false;
 
     @JsonProperty
-    private String chartColour;
+    private String chartColour = "";
     private int rollup = Common.Rollups.NONE;
 
     private int plotType = PlotTypes.STEP;
@@ -227,6 +228,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String dataSourceTypeName;
     private String dataSourceName;
     private String templateName;
+    private String templateXid;
 
     //
     //
@@ -249,6 +251,38 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
      * values in this case do in fact equal each other).
      */
     private PointValueTime lastValue = new PointValueTime((DataValue) null, -1);
+    
+    public DataPointVO() {
+    }
+    
+    public DataPointVO(DataSourceVO<?> dataSource) {
+        this(dataSource, null);
+    }
+    
+    public DataPointVO(DataSourceVO<?> dataSource, DataPointPropertiesTemplateVO template) {
+        this.withDataSource(dataSource);
+        this.withTemplate(template);
+    }
+    
+    public void withDataSource(DataSourceVO<?> dataSource) {
+        this.dataSourceId = dataSource.getId();
+        this.dataSourceName = dataSource.getName();
+        this.dataSourceTypeName = dataSource.getDefinition().getDataSourceTypeName();
+        
+        if (this.xid == null || this.xid.isEmpty()) {
+            this.xid = Common.generateXid(XID_PREFIX);
+        }
+
+        if (this.deviceName == null) {
+            this.deviceName = dataSource.getName();
+        }
+    }
+    
+    public void withTemplate(DataPointPropertiesTemplateVO template) {
+        if (template != null) {
+            template.updateDataPointVO(this);
+        }
+    }
 
     public void resetLastValue() {
         lastValue = new PointValueTime((DataValue) null, -1);
@@ -275,6 +309,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         //No-Op
     }
 
+    /**
+     * Sets the text renderer to the default text renderer for the point locator data type
+     */
     public void defaultTextRenderer() {
         if (pointLocator == null)
             setTextRenderer(new PlainRenderer("", false));
@@ -383,7 +420,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             cr.setUseUnitAsSuffix(true);
         }
         this.pointLocator = pointLocator;
-
+        
+        if (this.textRenderer == null) {
+            this.defaultTextRenderer();
+        }
     }
 
     public String getDataSourceName() {
@@ -762,6 +802,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setTemplateName(String name){
     	this.templateName = name;
     }
+    public String getTemplateXid(){
+        return this.templateXid;
+    }
+    public void setTemplateXid(String templateXid){
+        this.templateXid = templateXid;
+    }
     /* ############################## */
 
     @Override
@@ -792,13 +838,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setName(name);
             copy.setPlotType(plotType);
             copy.setPointFolderId(pointFolderId);
+            copy.setTextRenderer(textRenderer);
             copy.setPointLocator(pointLocator);
             copy.setPurgeOverride(purgeOverride);
             copy.setPurgePeriod(purgePeriod);
             copy.setPurgeType(purgeType);
             copy.setRenderedUnit(renderedUnit);
             copy.setSettable(settable);
-            copy.setTextRenderer(textRenderer);
             copy.setTolerance(tolerance);
             copy.setUnit(unit);
             copy.setUseIntegralUnit(useIntegralUnit);

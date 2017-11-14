@@ -119,7 +119,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     private DataPointDao() {
         super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_POINT), 
                 EventType.EventTypeNames.DATA_POINT, "dp", 
-        		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name" }, //Extra Properties not in table
+        		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
         		false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
     
@@ -1087,6 +1087,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
         map.put("dataSourceEditPermission", new IntStringPair(Types.VARCHAR, "ds.editPermission"));
         map.put("templateName", new IntStringPair(Types.VARCHAR, "template.name"));
+        map.put("templateXid", new IntStringPair(Types.VARCHAR, "template.xid"));
         return map;
     }
 
@@ -1143,6 +1144,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
             dp.setTemplateName(rs.getString(++i));
+            dp.setTemplateXid(rs.getString(++i));
 
             dp.ensureUnitsCorrect();
             return dp;
@@ -1251,8 +1253,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void setTemplateName(DataPointVO vo){
     	if(vo.getTemplateId() != null){
 	    	BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
-	    	if(template != null)
+	    	if(template != null) {
 	    		vo.setTemplateName(template.getName());
+	    		vo.setTemplateXid(template.getXid());
+	    	}
     	}
     }
 
