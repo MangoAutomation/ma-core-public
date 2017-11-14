@@ -37,8 +37,8 @@ public class Upgrade_Tags extends DBUpgrade {
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);",
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL AND name <> '';",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL AND deviceName <> '';",
         
         // create some new indexes on other dataPoints and dataSources
         "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
@@ -54,8 +54,8 @@ public class Upgrade_Tags extends DBUpgrade {
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);",
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL AND name <> '';",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL AND deviceName <> '';",
         
         // create some new indexes on other dataPoints and dataSources
         "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
@@ -71,8 +71,8 @@ public class Upgrade_Tags extends DBUpgrade {
         ");",
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "ALTER TABLE dataPointTags ADD INDEX dataPointTagsIndex1 (tagKey ASC, tagValue ASC);",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL AND name <> '';",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL AND deviceName <> '';",
         
         // create some new indexes on other dataPoints and dataSources
         "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
@@ -88,8 +88,8 @@ public class Upgrade_Tags extends DBUpgrade {
         ");",
         "ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
         "ALTER TABLE dataPointTags ADD INDEX dataPointTagsIndex1 (tagKey ASC, tagValue ASC);",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL;",
-        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL;",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'name', name FROM dataPoints WHERE name IS NOT NULL AND name <> '';",
+        "INSERT INTO dataPointTags (dataPointId, tagKey, tagValue) SELECT id, 'device', deviceName FROM dataPoints WHERE deviceName IS NOT NULL AND deviceName <> '';",
         
         // create some new indexes on other dataPoints and dataSources
         "CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);",
