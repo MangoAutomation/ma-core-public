@@ -319,7 +319,7 @@ dataPoints = new StoreView({
     },
     
     imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', pointDetails: 'icon_comp'},
-    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run', pointDetails: 'view'},
+    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggleOff', toggleOff: 'toggleOn', run: 'run', pointDetails: 'view'},
 
     buttons: ['toggle','edit','delete','copy','export','pointDetails'],
     /**
@@ -472,7 +472,7 @@ dataPoints = new StoreView({
     /**
      * Override Toggle Method
      */
-    toggle: function(id) {
+    toggle: function(id, enabled) {
     	//Don't allow toggle of new ids
     	if(id<0)
     		return;
@@ -492,7 +492,7 @@ dataPoints = new StoreView({
         	startImageFader("toggleAllDataPoints" + id, true);
     	
     	var _this = this;
-    	DataPointDwr.toggle(id, function(result) {
+    	DataPointDwr.toggle(id, enabled, function(result) {
     		//TODO there is a known bug here that will change the color of the editing points light even 
     		// if the data point that was toggled is no longer in the edit view.  
     		_this.updateStatus(result.data.id,result.data.enabled);
@@ -515,6 +515,8 @@ dataPoints = new StoreView({
 
         });
     },    
+    toggleOn: function(id) { this.toggle(id, true); },
+    toggleOff: function(id) { this.toggle(id, false); },
     
     /**
      * Used to update the image

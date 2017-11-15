@@ -128,10 +128,11 @@ dataPoints = new StoreView({
      * Override Toggle Method
      */
     toggle: function(id) {
-    	DataPointDwr.toggle(id, function(result) {
+    	var imageNode = $("toggleDataPoint"+ result.data.id);
+    	DataPointDwr.toggle(id, imageNode.src.indexOf("_go") == -1, function(result) {
             if(result.data.enabled){
                 updateImg(
-                        $("toggleDataPoint"+ result.data.id),
+                		$("toggleDataPoint"+ result.data.id),
                         mangoImg("database_go.png"),
                         mango.i18n["common.enabledToggle"],
                         true
