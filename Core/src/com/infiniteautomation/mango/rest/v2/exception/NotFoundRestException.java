@@ -18,4 +18,8 @@ public class NotFoundRestException extends AbstractRestV2Exception {
 	public NotFoundRestException() {
 		super(HttpStatus.NOT_FOUND);
 	}
+	
+	public NotFoundRestException(Throwable cause) {
+        super(HttpStatus.NOT_FOUND, cause);
+    }
 }

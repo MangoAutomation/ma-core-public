@@ -29,12 +29,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
+import com.infiniteautomation.mango.rest.v2.exception.NotFoundRestException;
 import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
 import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.exception.NotFoundException;
 import com.serotonin.m2m2.vo.exception.ValidationException;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
@@ -94,6 +96,13 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     public ResponseEntity<Object> handleValidationException(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
         ValidationException validationException = (ValidationException) ex;
         return handleExceptionInternal(ex, new ValidationFailedRestException(validationException.getValidationResult()), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, req);
+    }
+    
+    @ExceptionHandler({
+        NotFoundException.class
+    })
+    public ResponseEntity<Object> handleNotFoundException(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
+        return handleExceptionInternal(ex, new NotFoundRestException(ex), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
     }
 
     @ExceptionHandler({

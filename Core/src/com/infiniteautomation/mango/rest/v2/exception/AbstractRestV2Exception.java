@@ -30,16 +30,16 @@ public abstract class AbstractRestV2Exception extends RuntimeException {
         this(httpCode, null, new TranslatableMessage("rest.httpStatus." + httpCode.value()));
 	}
 	
-    public AbstractRestV2Exception(HttpStatus httpCode, Exception e) {
-        this(httpCode, null, new TranslatableMessage("rest.httpStatus." + httpCode.value()), e);
+    public AbstractRestV2Exception(HttpStatus httpCode, Throwable cause) {
+        this(httpCode, null, new TranslatableMessage("rest.httpStatus." + httpCode.value()), cause);
     }
 
 	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode) {
 	    this(httpCode, mangoCode, new TranslatableMessage("rest.httpStatus." + httpCode.value()));
 	}
 
-    public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Exception e) {
-        this(httpCode, mangoCode, new TranslatableMessage("rest.httpStatus." + httpCode.value()), e);
+    public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Throwable cause) {
+        this(httpCode, mangoCode, new TranslatableMessage("rest.httpStatus." + httpCode.value()), cause);
     }
 
     public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message) {
@@ -48,8 +48,8 @@ public abstract class AbstractRestV2Exception extends RuntimeException {
         this.translatableMessage = message;
     }
     
-	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message, Exception e) {
-		super(e);
+	public AbstractRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, TranslatableMessage message, Throwable cause) {
+		super(cause);
 		this.httpCode = httpCode;
 		this.mangoCode = mangoCode;
 		this.translatableMessage = message;
