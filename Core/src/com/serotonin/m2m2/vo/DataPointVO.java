@@ -1007,10 +1007,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         	}
         }
         
-        for (Entry<String, String> entry : getTags().entrySet()) {
-            if (entry.getKey() == null || entry.getValue() == null) {
-                response.addContextualMessage("tags", "validate.tagCantBeNull");
-                break;
+        ConcurrentMap<String, String> tags = this.tags;
+        if (tags != null) {
+            for (Entry<String, String> entry : tags.entrySet()) {
+                if (entry.getKey() == null || entry.getValue() == null) {
+                    response.addContextualMessage("tags", "validate.tagCantBeNull");
+                    break;
+                }
             }
         }
     }
