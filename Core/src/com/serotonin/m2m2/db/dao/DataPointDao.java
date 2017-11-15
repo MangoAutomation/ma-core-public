@@ -1673,4 +1673,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 )
         );
     }
+    
+    public static final String TAGS_UPDATED = "tagsUpdated";
+    
+    protected void notifyTagsUpdated(DataPointVO dataPoint) {
+        this.handler.notify(TAGS_UPDATED, dataPoint);
+    }
 }

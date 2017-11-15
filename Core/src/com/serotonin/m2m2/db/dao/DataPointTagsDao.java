@@ -32,6 +32,9 @@ import org.jooq.impl.SQLDataType;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -76,10 +79,19 @@ public class DataPointTagsDao extends BaseDao {
         b.execute();
     }
 
-    public void setTagsForDataPointId(int dataPointId, Map<String, String> tags) {
+    public void saveDataPointTags(DataPointVO dataPoint) {
         this.doInTransaction(txStatus -> {
-            this.deleteTagsForDataPointId(dataPointId);
-            this.addTagsForDataPointId(dataPointId, tags);
+            Map<String, String> updatedTags = dataPoint.getTags();
+            this.deleteTagsForDataPointId(dataPoint.getId());
+            this.addTagsForDataPointId(dataPoint.getId(), updatedTags);
+            
+            DataPointRT rt = Common.runtimeManager.getDataPoint(dataPoint.getId());
+            if (rt != null) {
+                DataPointVO rtVo = rt.getVO();
+                rtVo.setTags(updatedTags);
+            }
+
+            DataPointDao.instance.notifyTagsUpdated(dataPoint);
         });
     }
 
