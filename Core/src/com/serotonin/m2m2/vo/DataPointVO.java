@@ -8,10 +8,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -238,7 +240,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String dataSourceXid;
 
     @JsonProperty
-    private Map<String, String> tags;
+    volatile private ConcurrentMap<String, String> tags;
     
     //
     //
@@ -365,6 +367,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
+        syncDeviceNameTag();
     }
 
     @Override
@@ -404,6 +407,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @Override
     public void setName(String name) {
         this.name = name;
+        syncNameTag();
     }
 
     @SuppressWarnings("unchecked")
@@ -858,7 +862,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);
             copy.setSetExtremeLowLimit(setExtremeLowLimit);
-            copy.setTags(new HashMap<>(this.tags));
+            copy.setTags(this.tags);
 
             return copy;
         }
@@ -1719,46 +1723,51 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 	}
 
     public Map<String, String> getTags() {
-        if (this.tags == null) {
-            tags = new HashMap<>();
+        ConcurrentMap<String, String> tags = this.tags;
+        if (tags == null) {
+            return null;
         }
-        syncTags();
-        return tags;
+        return Collections.unmodifiableMap(tags);
     }
 
     public void setTags(Map<String, String> tags) {
-        if (this.tags == null) {
-            this.tags = new HashMap<>();
-        }
-        if (tags != null) {
-            this.tags.putAll(tags);
-        }
-        syncTags();
-    }
-    
-    public String getTag(String tagKey) {
-        return getTags().get(tagKey);
-    }
-
-    public String removeTag(String tagKey) {
-        return getTags().remove(tagKey);
-    }
-    
-    public void setTag(String tagKey, String tagValue) {
-        getTags().put(tagKey, tagValue);
-    }
-
-    private void syncTags() {
-        if (deviceName != null && !deviceName.isEmpty()) {
-            tags.put(DEVICE_TAG, deviceName);
-        } else {
-            tags.remove(DEVICE_TAG);
+        if (tags == null) {
+            this.tags = null;
+            return;
         }
         
+        ConcurrentMap<String, String> newTags = new ConcurrentHashMap<>();
+        newTags.putAll(tags);
         if (name != null && !name.isEmpty()) {
-            tags.put(NAME_TAG, name);
-        } else {
-            tags.remove(NAME_TAG);
+            newTags.put(NAME_TAG, name);
+        }
+        if (deviceName != null && !deviceName.isEmpty()) {
+            newTags.put(DEVICE_TAG, deviceName);
+        }
+        this.tags = newTags;
+    }
+
+    private void syncNameTag() {
+        ConcurrentMap<String, String> tags = this.tags;
+        if (tags != null) {
+            tags.compute(NAME_TAG, (k,v) -> {
+                if (name != null && !name.isEmpty()) {
+                    return name;
+                }
+                return null;
+            });
+        }
+    }
+    
+    private void syncDeviceNameTag() {
+        ConcurrentMap<String, String> tags = this.tags;
+        if (tags != null) {
+            tags.compute(DEVICE_TAG, (k,v) -> {
+                if (deviceName != null && !deviceName.isEmpty()) {
+                    return deviceName;
+                }
+                return null;
+            });
         }
     }
 }
