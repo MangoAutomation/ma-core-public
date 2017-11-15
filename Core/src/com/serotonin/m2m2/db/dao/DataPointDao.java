@@ -1182,10 +1182,14 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     @Override
     public void saveRelationalData(DataPointVO vo, boolean insert) {
         saveEventDetectors(vo);
-        if (!insert) {
-            DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
+        
+        Map<String, String> tags = vo.getTags();
+        if (tags != null) {
+            if (!insert) {
+                DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
+            }
+            DataPointTagsDao.instance.addTagsForDataPointId(vo.getId(), tags);
         }
-        DataPointTagsDao.instance.addTagsForDataPointId(vo.getId(), vo.getTags());
     }
 
     @Override
