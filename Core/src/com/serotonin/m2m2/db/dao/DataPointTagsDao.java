@@ -76,6 +76,13 @@ public class DataPointTagsDao extends BaseDao {
         b.execute();
     }
 
+    public void setTagsForDataPointId(int dataPointId, Map<String, String> tags) {
+        this.doInTransaction(txStatus -> {
+            this.deleteTagsForDataPointId(dataPointId);
+            this.addTagsForDataPointId(dataPointId, tags);
+        });
+    }
+
     TableOnConditionStep<Record> joinPointPermissions(Table<Record> table, Field<Integer> dataPointIdField, User user) {
         Condition userHasPermission = DataPointDao.instance.userHasPermission(user);
         
