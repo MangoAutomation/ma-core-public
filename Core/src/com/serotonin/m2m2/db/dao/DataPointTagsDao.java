@@ -57,6 +57,16 @@ public class DataPointTagsDao extends BaseDao {
     public static final Name DATA_POINT_TAGS_PIVOT_ALIAS = DSL.name("tagsPivot");
     public static final Field<Integer> PIVOT_ALIAS_DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(DATA_POINT_ID.getUnqualifiedName()), DATA_POINT_ID.getDataType());
 
+    public static final String DEVICE_TAG_KEY = "device";
+    public static final String NAME_TAG_KEY = "name";
+    
+    /**
+     * Retrieves all tag keys and values from the database for a datapoint.
+     * Contains a "name" and "device" key as opposed to the tags retrieved via DataPointVO.getTags().
+     * 
+     * @param dataPointId
+     * @return
+     */
     public Map<String, String> getTagsForDataPointId(int dataPointId) {
         Select<Record2<String, String>> query = this.create.select(TAG_KEY, TAG_VALUE)
             .from(DATA_POINT_TAGS)
@@ -73,22 +83,59 @@ public class DataPointTagsDao extends BaseDao {
                 .execute();
     }
     
-    public void addTagsForDataPointId(int dataPointId, Map<String, String> tags) {
-        BatchBindStep b = this.create.batch(this.create.insertInto(DATA_POINT_TAGS_NO_ALIAS).columns(DATA_POINT_ID, TAG_KEY, TAG_VALUE).values((Integer) null, null, null));
+    public int deleteNameAndDeviceTagsForDataPointId(int dataPointId) {
+        return this.create.deleteFrom(DATA_POINT_TAGS)
+                .where(DATA_POINT_ID.eq(dataPointId))
+                .and(DSL.or(TAG_KEY.eq(NAME_TAG_KEY), TAG_KEY.eq(DEVICE_TAG_KEY)))
+                .execute();
+    }
+
+    /**
+     * Inserts tags into the database for a DataPointVO. Also inserts the "name" and "device" tags from the data point properties.
+     * 
+     * @param dataPoint
+     * @param tags Should not contain tag keys "name" or "device"
+     */
+    public void insertTagsForDataPoint(DataPointVO dataPoint, Map<String, String> tags) {
+        int dataPointId = dataPoint.getId();
+        String name = dataPoint.getName();
+        String deviceName = dataPoint.getDeviceName();
+
+        BatchBindStep b = this.create.batch(
+            this.create.insertInto(DATA_POINT_TAGS_NO_ALIAS)
+                .columns(DATA_POINT_ID, TAG_KEY, TAG_VALUE)
+                .values((Integer) null, null, null)
+        );
         tags.entrySet().forEach(e -> b.bind(dataPointId, e.getKey(), e.getValue()));
+        
+        if (name != null && !name.isEmpty()) {
+            b.bind(dataPointId, NAME_TAG_KEY, name);
+        }
+        if (deviceName != null && !deviceName.isEmpty()) {
+            b.bind(dataPointId, DEVICE_TAG_KEY, deviceName);
+        }
+
         b.execute();
     }
 
+    /**
+     * Only to be used when saving data point tags independently from the DataPointVO itself.
+     * The DataPointVO tags must not be null.
+     * 
+     * @param dataPoint
+     */
     public void saveDataPointTags(DataPointVO dataPoint) {
+        Map<String, String> tags = dataPoint.getTags();
+        if (tags == null) throw new IllegalArgumentException("Data point tags cannot be null");
+        
         this.doInTransaction(txStatus -> {
-            Map<String, String> updatedTags = dataPoint.getTags();
             this.deleteTagsForDataPointId(dataPoint.getId());
-            this.addTagsForDataPointId(dataPoint.getId(), updatedTags);
-            
+            this.insertTagsForDataPoint(dataPoint, tags);
+
             DataPointRT rt = Common.runtimeManager.getDataPoint(dataPoint.getId());
             if (rt != null) {
                 DataPointVO rtVo = rt.getVO();
-                rtVo.setTags(updatedTags);
+                rtVo.setTags(tags);
             }
 
             DataPointDao.instance.notifyTagsUpdated(dataPoint);

@@ -1184,12 +1184,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         saveEventDetectors(vo);
         
         Map<String, String> tags = vo.getTags();
-        if (tags != null) {
+        if (tags == null) {
             if (!insert) {
-                DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
+                // only delete the name and device tags, leave existing tags intact
+                DataPointTagsDao.instance.deleteNameAndDeviceTagsForDataPointId(vo.getId());
             }
-            DataPointTagsDao.instance.addTagsForDataPointId(vo.getId(), tags);
+            tags = Collections.emptyMap();
+        } else if (!insert) {
+            // we only need to delete tags when doing an update
+            DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
         }
+        
+        DataPointTagsDao.instance.insertTagsForDataPoint(vo, tags);
     }
 
     @Override

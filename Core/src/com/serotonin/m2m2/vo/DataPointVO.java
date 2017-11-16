@@ -9,11 +9,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -36,6 +35,7 @@ import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -68,9 +68,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private static final long serialVersionUID = -1;
     public static final String XID_PREFIX = "DP_";
 
-    public static final String DEVICE_TAG = "device";
-    public static final String NAME_TAG = "name";
-    
     public interface LoggingTypes {
         int ON_CHANGE = 1;
         int ALL = 2;
@@ -239,8 +236,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @JsonProperty
     private String dataSourceXid;
 
+    /**
+     * Defaults to null to indicate that the relational data has not been loaded
+     */
     @JsonProperty
-    volatile private ConcurrentMap<String, String> tags;
+    volatile private Map<String, String> tags;
     
     //
     //
@@ -264,6 +264,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public DataPointVO(DataSourceVO<?> dataSource, DataPointPropertiesTemplateVO template) {
         this.withDataSource(dataSource);
         this.withTemplate(template);
+        
+        // new data point will have empty relational data
+        // eventDetectors is already initialized
+        this.setComments(new ArrayList<>());
+        this.setTags(Collections.emptyMap());
     }
     
     public void withDataSource(DataSourceVO<?> dataSource) {
@@ -367,7 +372,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
-        syncDeviceNameTag();
     }
 
     @Override
@@ -407,7 +411,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @Override
     public void setName(String name) {
         this.name = name;
-        syncNameTag();
     }
 
     @SuppressWarnings("unchecked")
@@ -1007,11 +1010,16 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         	}
         }
         
-        ConcurrentMap<String, String> tags = this.tags;
+        Map<String, String> tags = this.tags;
         if (tags != null) {
             for (Entry<String, String> entry : tags.entrySet()) {
-                if (entry.getKey() == null || entry.getValue() == null) {
+                String tagKey = entry.getKey();
+                if (tagKey == null || entry.getValue() == null) {
                     response.addContextualMessage("tags", "validate.tagCantBeNull");
+                    break;
+                }
+                if (DataPointTagsDao.NAME_TAG_KEY.equals(tagKey) || DataPointTagsDao.DEVICE_TAG_KEY.equals(tagKey)) {
+                    response.addContextualMessage("tags", "validate.invalidTagKey");
                     break;
                 }
             }
@@ -1725,52 +1733,33 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 		return DataPointDao.instance;
 	}
 
+    /**
+     * Returns a map of the tag keys and values. Will not contain "name" or "device" keys.
+     * @return unmodifiable map of tags
+     */
     public Map<String, String> getTags() {
-        ConcurrentMap<String, String> tags = this.tags;
+        Map<String, String> tags = this.tags;
         if (tags == null) {
             return null;
         }
         return Collections.unmodifiableMap(tags);
     }
 
+    /**
+     * Note "name" and "device" keys are removed when setting the tags.
+     * 
+     * @param tags
+     */
     public void setTags(Map<String, String> tags) {
         if (tags == null) {
             this.tags = null;
             return;
         }
         
-        ConcurrentMap<String, String> newTags = new ConcurrentHashMap<>();
+        Map<String, String> newTags = new HashMap<>();
         newTags.putAll(tags);
-        if (name != null && !name.isEmpty()) {
-            newTags.put(NAME_TAG, name);
-        }
-        if (deviceName != null && !deviceName.isEmpty()) {
-            newTags.put(DEVICE_TAG, deviceName);
-        }
+        newTags.remove(DataPointTagsDao.NAME_TAG_KEY);
+        newTags.remove(DataPointTagsDao.DEVICE_TAG_KEY);
         this.tags = newTags;
-    }
-
-    private void syncNameTag() {
-        ConcurrentMap<String, String> tags = this.tags;
-        if (tags != null) {
-            tags.compute(NAME_TAG, (k,v) -> {
-                if (name != null && !name.isEmpty()) {
-                    return name;
-                }
-                return null;
-            });
-        }
-    }
-    
-    private void syncDeviceNameTag() {
-        ConcurrentMap<String, String> tags = this.tags;
-        if (tags != null) {
-            tags.compute(DEVICE_TAG, (k,v) -> {
-                if (deviceName != null && !deviceName.isEmpty()) {
-                    return deviceName;
-                }
-                return null;
-            });
-        }
     }
 }
