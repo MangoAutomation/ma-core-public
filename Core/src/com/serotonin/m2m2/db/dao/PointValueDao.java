@@ -137,8 +137,8 @@ public interface PointValueDao {
      * timestamp. This query facilitates charting of values, where for continuity in the chart the values immediately
      * before and after the time range are required.
      * 
-     * @param seriesId
-     *            the target time series
+     * @param pointId
+     *            the target data point
      * @param from
      *            the timestamp from which to query (inclusive)
      * @param to
@@ -147,6 +147,52 @@ public interface PointValueDao {
      *            the query callback
      */
     public void wideQuery(int pointId, long from, long to, final WideQueryCallback<PointValueTime> callback);
+    
+    /**
+     * Get point values >= from and < to,  bookend the query by calling:
+     *   
+     *   callback.preQuery with either the value exactly at from or the value
+     *    before from with from as the timestamp (can be null if nothing at or before from)
+     *   
+     *   callback.postQuery with either the value exactly at to or the value
+     *    before to with to as the timestamp (can be null if nothing at or before to) 
+     * 
+     * @param pointId
+     *            the target data point
+     * @param from
+     *            the timestamp from which to query (inclusive)
+     * @param to
+     *            the timestamp to which to query (exclusive)
+     * @param limit
+     *            the limit of results, null for no limit
+     * @param callback
+     *            the query callback
+     */
+    public void wideBookendQuery(int pointId, long from, long to, Integer limit, final WideQueryCallback<PointValueTime> callback);
+    
+    /**
+     * Get point values >= from and < to,  bookend the query by calling:
+     *   
+     *   callback.preQuery with either the value exactly at from or the value
+     *    before from with from as the timestamp (can be null if nothing at or before from)
+     *   
+     *   callback.postQuery with either the value exactly at to or the value
+     *    before to with to as the timestamp (can be null if nothing at or before to) 
+     * 
+     * NOTE: The beforeQuery and afterQuery methods are called once for every data point ID 
+     *      
+     * @param pointIds
+     *            the target data points
+     * @param from
+     *            the timestamp from which to query (inclusive)
+     * @param to
+     *            the timestamp to which to query (exclusive)
+     * @param limit
+     *            the limit of results, null for no limit
+     * @param callback
+     *            the query callback
+     */
+    public void wideBookendQuery(List<Integer> pointIds, long from, long to, Integer limit, final WideQueryCallback<IdPointValueTime> callback);
     
     /**
      * Delete startTime <= values < endTime

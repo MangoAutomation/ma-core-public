@@ -4,30 +4,46 @@
  */
 package com.serotonin.db;
 
+import java.io.IOException;
+
 /**
  * 
- * Wide Queries are used in Time Series Queries to return the value prior to and after the desired query period.
+ * Wide Queries are used in Time Series Queries to modify the results of the pre and post query values.
  * 
  * @author Terry Packer
  */
 public interface WideQueryCallback<T> {
-	
-	/**
-	 * Called once with the value before the query period (can be null)
-	 * @param value
-	 */
-    void preQuery(T value);
 
+    /**
+     * Called with the value before the query period (can be null)
+     * 
+     * If an exception is thrown the query should be aborted
+     * 
+     * @param value
+     * @param bookend - true if the value is virtual i.e. added as a point to match the exact query start time for charting
+     * @throws IOException to abort query
+     */
+    void preQuery(T value, boolean bookend) throws IOException;
+    
     /**
      * Values within the query
+     * 
+     * If an exception is thrown the query should be aborted
+     * 
      * @param value
      * @param index
+     * @throws IOException to abort query
      */
-    void sample(T value, int index);
-
+    void row(T value, int index) throws IOException;
+    
     /**
-     * Called once with the value after the query period (can be null
+     * Called with the value before the query period (can be null)
+     * 
+     * If an exception is thrown the query should be aborted
+     * 
      * @param value
+     * @param bookend - true if the value is virtual i.e. added as a point to match the exact query end time for charting
+     * @throws IOException to abort query
      */
-    void postQuery(T value);
+    void postQuery(T value, boolean bookend) throws IOException;
 }

@@ -4,8 +4,11 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
@@ -128,36 +131,33 @@ public class PointValueFacade {
      * @return
      */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
-        List<PointValueTime> list = getPointValuesBetween(from, to);
-        
-        if (insertInitial) {
-            PointValueTime prevValue = getPointValueBefore(from);
-            
-            if (prevValue != null) {
-                // don't insert the initial value if it already exists
-                if (list.isEmpty() || list.get(0).getTime() != from) {
-                    list.add(0, new PointValueTime(prevValue.getValue(), from));
-                }
+        List<PointValueTime> values = new ArrayList<>();
+        pointValueDao.wideBookendQuery(dataPointId, from, to, null, new WideQueryCallback<PointValueTime>() {
+
+            @Override
+            public void preQuery(PointValueTime value, boolean bookend) throws IOException {
+                if(insertInitial)
+                    values.add(value);
             }
-        }
-        
-        if (insertFinal && !list.isEmpty()) {
-        	PointValueTime finalValue = list.get(list.size()-1);
-        	// don't insert final value in the future
-        	long endTime = to <= Common.timer.currentTimeMillis() ? to : Common.timer.currentTimeMillis();
-        	
-        	// don't insert the final value if it already exists
-        	if (finalValue != null && finalValue.getTime() != endTime) {
-                list.add(new PointValueTime(finalValue.getValue(), endTime));
-        	}
-        }
-        
-        return list;
+
+            @Override
+            public void row(PointValueTime value, int index) throws IOException {
+                values.add(value);
+            }
+
+            @Override
+            public void postQuery(PointValueTime value, boolean bookend) throws IOException {
+                if(insertFinal)
+                    values.add(value);
+            }
+            
+        });
+        return values;
     }
 
     public List<PointValueTime> getLatestPointValues(int limit) {
-    	if ((point != null)&&(useCache))
-            return point.getLatestPointValues(limit);
+        	if ((point != null)&&(useCache))
+        	    return point.getLatestPointValues(limit);
         return pointValueDao.getLatestPointValues(dataPointId, limit);
     }
 }

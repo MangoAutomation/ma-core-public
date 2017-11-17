@@ -411,4 +411,24 @@ public class MockPointValueDao implements PointValueDao{
         return 0;
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(int, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
+     */
+    @Override
+    public void wideBookendQuery(int pointId, long from, long to, Integer limit,
+            WideQueryCallback<PointValueTime> callback) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(java.util.List, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
+     */
+    @Override
+    public void wideBookendQuery(List<Integer> pointIds, long from, long to, Integer limit,
+            WideQueryCallback<IdPointValueTime> callback) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,11 +22,15 @@ import java.util.concurrent.RejectedExecutionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
@@ -38,7 +43,6 @@ import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -537,17 +541,155 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 	 */
 	@Override
 	public void wideQuery(int pointId, long from, long to, WideQueryCallback<PointValueTime> callback) {
-		//TODO Improve performance by using one statement
-		callback.preQuery(this.getPointValueBefore(pointId, from));
-		this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>(){
-			@Override
-			public void row(PointValueTime value, int index) {
-				callback.sample(value, index);
-			}
-		});
-		callback.postQuery(this.getPointValueAfter(pointId, to));
+		//TODO Improve performance by using one statement and using the exceptions to cancel the results
+	    try {
+        		callback.preQuery(this.getPointValueBefore(pointId, from), false);
+        		this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>(){
+        			@Override
+        			public void row(PointValueTime value, int index) {
+        				try {
+                            callback.row(value, index);
+                        } catch (IOException e) {
+                            throw new ShouldNeverHappenException(e.getMessage());
+                        }
+        			}
+        		});
+        		callback.postQuery(this.getPointValueAfter(pointId, to), false);
+	    }catch(IOException e) {
+	        throw new ShouldNeverHappenException(e.getMessage());
+	    }
 	}
     
+
+    @Override
+    public void wideBookendQuery(int pointId, long from, long to, Integer limit, WideQueryCallback<PointValueTime> callback) {
+        //TODO Improve performance by using one statement
+        //TODO Use a statement and catch exception to cancel it
+        //TODO Use a result set to call postQuery so you can know it is the last result
+
+        
+        final PointValueRowMapper mapper = new PointValueRowMapper();
+        ejt.execute(new PreparedStatementCreator() {
+
+            @Override
+            public PreparedStatement createPreparedStatement(Connection con)
+                    throws SQLException {
+                Object[] args;
+                String sql = POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts";
+                if(limit != null) {
+                    sql += " limit ?";
+                    args = new Object[] { pointId, from, to, limit};
+                }else {
+                    args = new Object[] { pointId, from, to };
+                }
+                PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args);
+                setter.setValues(stmt);
+                return stmt;
+            }}, new PreparedStatementCallback<Integer>() {
+
+            @Override
+            public Integer doInPreparedStatement(PreparedStatement ps)
+                    throws SQLException, DataAccessException {
+                int count = 1;
+                try {
+
+                    ps.execute();
+                    ResultSet rs = ps.getResultSet();
+                    if(rs.next()) { 
+                        //Move to first in list, test for pre query
+                        PointValueTime current = mapper.mapRow(rs, count);
+                        PointValueTime prevValue;
+                        if(current.getTime() != from) {
+                            prevValue = getPointValueBefore(pointId, from);
+                            if(prevValue != null)
+                                callback.preQuery(new PointValueTime(prevValue.getValue(), from), true);
+                            else {
+                                prevValue = current;
+                                callback.preQuery(new PointValueTime(current.getValue(), from), true);
+                            }
+                            callback.row(current, count);
+                        }else {
+                            prevValue = current;
+                            callback.preQuery(current, false);
+                        }
+                        
+                        //We want to keep current and send previous out
+                        //  so we know when we are at the end to call postQuery
+                        PointValueTime last = null;
+                        if(rs.next()) {
+                            count++;
+                            last = mapper.mapRow(rs, count);
+                        }
+                        while(rs.next()) {
+                            count++;
+                            current = mapper.mapRow(rs, count);
+                            callback.row(last, count);
+                            last = current;
+                        }
+                        
+                        if(last != null) {
+                            if(last.getTime() == to)
+                                callback.postQuery(last, false);
+                            else {
+                                callback.row(last, count);
+                                callback.postQuery(new PointValueTime(last.getValue(), to), true);
+                            }
+                        }else {
+                            //No further data besides preValue
+                            callback.postQuery(prevValue, true);
+                        }
+                        
+                        //Don't forget Post Query stuff
+                    }else {
+                        //No data
+                        final PointValueTime prevValue = getPointValueBefore(pointId, from);
+                        if(prevValue != null) {
+                            PointValueTime pre = new PointValueTime(prevValue.getValue(), from);
+                            callback.preQuery(pre, true);
+                            PointValueTime post = new PointValueTime(prevValue.getValue(), to);
+                            callback.postQuery(post, true);
+                        }
+                    }
+                
+                }catch(IOException e) {
+                    //Cancel if we have a problem
+                    ps.cancel();
+                }
+                
+                return count;
+            }});
+    }
+    
+    @Override
+    public void wideBookendQuery(List<Integer> ids, long from, long to, Integer limit, WideQueryCallback<IdPointValueTime> callback) {
+        //TODO Improve performance by using one statement
+        //TODO Use a statement and catch exception to cancel it
+        //TODO Use a result set to call postQuery so you can know it is the last result
+        //Use a performance enhancement if ids.size() == 1 don't use in
+        if(ids.size() == 1) {
+            int id = ids.get(0);
+            wideBookendQuery(id, from, to, limit, new WideQueryCallback<PointValueTime>() {
+
+                @Override
+                public void preQuery(PointValueTime value, boolean bookend) throws IOException {
+                    callback.preQuery(new IdPointValueTime(id, value.getValue(), value.getTime()), bookend);
+                }
+
+                @Override
+                public void row(PointValueTime value, int index) throws IOException {
+                    callback.row(new IdPointValueTime(id, value.getValue(), value.getTime()), index);
+                }
+
+                @Override
+                public void postQuery(PointValueTime value, boolean bookend) throws IOException {
+                    callback.postQuery(new IdPointValueTime(id, value.getValue(), value.getTime()), bookend);
+               }
+
+            });  
+        }
+    }
+	
     class PointValueRowMapper implements RowMapper<PointValueTime> {
         @Override
         public PointValueTime mapRow(ResultSet rs, int rowNum) throws SQLException {

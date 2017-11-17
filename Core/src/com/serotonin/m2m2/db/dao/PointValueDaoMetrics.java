@@ -67,8 +67,8 @@ public class PointValueDaoMetrics implements PointValueDao{
 	public List<PointValueTime> getPointValues(int pointId, long since) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getPointValues(pointId, since);
-    	LogStopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + "){" + values.size() +"}", this.metricsThreshold);
-    	return values;
+    	    LogStopWatch.stop("getPointValues(pointId,since) (" + pointId + ", " +since + "){" + values.size() +"}", this.metricsThreshold);
+    	    return values;
 	}
 
 	/* (non-Javadoc)
@@ -79,8 +79,8 @@ public class PointValueDaoMetrics implements PointValueDao{
 			long to) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getPointValuesBetween(pointId, from,to);
-    	LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+to + "){" + values.size() +"}", this.metricsThreshold);
-    	return values;
+		LogStopWatch.stop("getPointValuesBetween(pointId, from, to)  ("+pointId+", "+from+", "+to + "){" + values.size() +"}", this.metricsThreshold);
+    	    return values;
 	}
 	
 	/* (non-Javadoc)
@@ -415,7 +415,6 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		dao.updatePointValueAsync(id, pvt, source);
 		LogStopWatch.stop("updatePointValueAsync(id, ts, source) (" + id + ", pvt)", this.metricsThreshold);
-		
 	}
 
 	/* (non-Javadoc)
@@ -426,7 +425,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.updatePointValueSync(dataPointId, pvt, source);
 		LogStopWatch.stop("updatePointValuesSync(dataPointId, ts, source) (" + dataPointId + ", pvt, source)" , this.metricsThreshold);
-    	return value;
+    	    return value;
 	}
 
 
@@ -438,7 +437,30 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		long value = dao.deletePointValue(dataPointId, ts);
 		LogStopWatch.stop("deletePointValue(dataPointId, ts) + (" + dataPointId + ", " + ts + ")", this.metricsThreshold);
-    	return value;
+    	    return value;
 	}
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(int, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
+     */
+    @Override
+    public void wideBookendQuery(int pointId, long from, long to, Integer limit,
+            WideQueryCallback<PointValueTime> callback) {
+        LogStopWatch logStopWatch = new LogStopWatch();
+        dao.wideBookendQuery(pointId, from, to, limit, callback);
+        logStopWatch.stop("wideBookendQuery(dataPointId, from, to, limit, callback) + (" + pointId + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(java.util.List, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
+     */
+    @Override
+    public void wideBookendQuery(List<Integer> pointIds, long from, long to, Integer limit,
+            WideQueryCallback<IdPointValueTime> callback) {
+        LogStopWatch logStopWatch = new LogStopWatch();
+        dao.wideBookendQuery(pointIds, from, to, limit, callback);
+        logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, limit, callback) + (" + pointIds + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+
+    }
 	
 }
