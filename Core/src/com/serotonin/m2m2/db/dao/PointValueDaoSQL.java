@@ -15,7 +15,10 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -662,7 +665,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
     
     @Override
-    public void wideBookendQuery(List<Integer> ids, long from, long to, Integer limit, WideQueryCallback<IdPointValueTime> callback) {
+    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, WideQueryCallback<IdPointValueTime> callback) {
         //TODO Improve performance by using one statement
         //TODO Use a statement and catch exception to cancel it
         //TODO Use a result set to call postQuery so you can know it is the last result
@@ -687,9 +690,134 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                }
 
             });  
+        }else {
+            final IdPointValueRowMapper mapper = new IdPointValueRowMapper();
+            ejt.execute(new PreparedStatementCreator() {
+
+                @Override
+                public PreparedStatement createPreparedStatement(Connection con)
+                        throws SQLException {
+                    Object[] args;
+                    String dataPointIds = createDelimitedList(ids, ",", null);
+                    String sql = POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") and pv.ts >= ? and pv.ts<? ";
+                    if(orderById) {
+                        sql += " order by dataPointId, ts";
+                    }else {
+                        sql += " order by ts";
+                    }
+                    if(limit != null) {
+                        sql += " limit ?";
+                        args = new Object[] { from, to, limit};
+                    }else {
+                        args = new Object[] { from, to };
+                    }
+                    PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                    ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args);
+                    setter.setValues(stmt);
+                    return stmt;
+                }}, new PreparedStatementCallback<Integer>() {
+
+                @Override
+                public Integer doInPreparedStatement(PreparedStatement ps)
+                        throws SQLException, DataAccessException {
+                    int count = 1;
+                    Map<Integer, IdPointValueTime> valueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
+                    Map<Integer, IdPointValueTime> prevValueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
+                    try {
+                        int currentId = -1; //To Track Id sorted queries
+                        boolean skipLast = false;
+                        ps.execute();
+                        ResultSet rs = ps.getResultSet();
+                        if(rs.next()) {
+                            do {
+                                IdPointValueTime current = mapper.mapRow(rs, count);
+                                IdPointValueTime last = valueMap.get(current.getId());
+                                
+                                //So we can post query before we start the next point if we are ordering by ID
+                                if(orderById && currentId != -1 && currentId != current.getId()) {
+                                    IdPointValueTime pvt = valueMap.remove(currentId);
+                                    if(pvt != null) {
+                                        if(pvt.getTime() == to)
+                                            callback.postQuery(pvt, false);
+                                        else {
+                                            callback.row(pvt, count);
+                                            callback.postQuery(new IdPointValueTime(pvt.getId(), pvt.getValue(), to), true);
+                                        }
+                                    }else {
+                                        //No further data besides preValue
+                                        IdPointValueTime prev = prevValueMap.get(currentId);
+                                        if(prev != null)
+                                            callback.postQuery(prev, true);
+                                    }
+                                }
+                                currentId = current.getId();                                
+                                valueMap.put(current.getId(), current);
+                                if(last == null) {
+                                    //Perform pre query logic
+                                    PointValueTime prevValue;
+                                    if(current.getTime() != from) {
+                                        prevValue = getPointValueBefore(current.getId(), from);
+                                        if(prevValue != null)
+                                            callback.preQuery(new IdPointValueTime(current.getId(), prevValue.getValue(), from), true);
+                                        else {
+                                            prevValue = current;
+                                            callback.preQuery(new IdPointValueTime(current.getId(), current.getValue(), from), true);
+                                        }
+                                    }else {
+                                        callback.preQuery(current, false);
+                                        skipLast = true;
+                                    }
+                                }else if(!skipLast){
+                                    //In the query
+                                    callback.row(last, count);
+                                    prevValueMap.put(last.getId(), last);
+                                }else {
+                                    skipLast = false;
+                                }
+                                count++;
+                            }while(rs.next());
+                            
+                            //Flush the values in the map for the post
+                            for(Entry<Integer, IdPointValueTime> entry : valueMap.entrySet()) {
+                                IdPointValueTime last = entry.getValue();
+                                if(last != null) {
+                                    if(last.getTime() == to)
+                                        callback.postQuery(last, false);
+                                    else {
+                                        callback.row(last, count);
+                                        callback.postQuery(new IdPointValueTime(last.getId(), last.getValue(), to), true);
+                                    }
+                                }else {
+                                    //No further data besides preValue
+                                    IdPointValueTime prev = prevValueMap.get(entry.getKey());
+                                    if(prev != null)
+                                        callback.postQuery(prev, true);
+                                }
+                                count++;
+                            }
+                        }else {
+                            //No data
+                            for(Integer id : ids) {
+                                final PointValueTime prevValue = getPointValueBefore(id, from);
+                                if(prevValue != null) {
+                                    IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
+                                    callback.preQuery(pre, true);
+                                    IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
+                                    callback.postQuery(post, true);
+                                }
+                            }
+                        }
+                    
+                    }catch(IOException e) {
+                        //Cancel if we have a problem
+                        ps.cancel();
+                    }
+                    
+                    return count;
+                }});
         }
     }
-	
+
     class PointValueRowMapper implements RowMapper<PointValueTime> {
         @Override
         public PointValueTime mapRow(ResultSet rs, int rowNum) throws SQLException {

@@ -455,10 +455,10 @@ public class PointValueDaoMetrics implements PointValueDao{
      * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(java.util.List, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
      */
     @Override
-    public void wideBookendQuery(List<Integer> pointIds, long from, long to, Integer limit,
+    public void wideBookendQuery(List<Integer> pointIds, long from, long to, boolean orderById, Integer limit,
             WideQueryCallback<IdPointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
-        dao.wideBookendQuery(pointIds, from, to, limit, callback);
+        dao.wideBookendQuery(pointIds, from, to, orderById, limit, callback);
         logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, limit, callback) + (" + pointIds + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
 
     }
