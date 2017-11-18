@@ -163,12 +163,14 @@ public interface PointValueDao {
      *            the timestamp from which to query (inclusive)
      * @param to
      *            the timestamp to which to query (exclusive)
+     * @param ascending
+     *            provide the results in time ascending or descending order
      * @param limit
      *            the limit of results, null for no limit
      * @param callback
      *            the query callback
      */
-    public void wideBookendQuery(int pointId, long from, long to, Integer limit, final WideQueryCallback<PointValueTime> callback);
+    public void wideBookendQuery(int pointId, long from, long to, boolean ascending, Integer limit, final WideQueryCallback<PointValueTime> callback);
     
     /**
      * Get point values >= from and < to, bookend the query by calling:
@@ -187,6 +189,8 @@ public interface PointValueDao {
      *            the timestamp from which to query (inclusive)
      * @param to
      *            the timestamp to which to query (exclusive)
+     * @param ascending
+     *            provide the results in time ascending or descending order           
      * @param orderById
      *            should the results also be ordered by data point id
      * @param limit
@@ -194,7 +198,7 @@ public interface PointValueDao {
      * @param callback
      *            the query callback
      */
-    public void wideBookendQuery(List<Integer> pointIds, long from, long to, boolean orderById, Integer limit, final WideQueryCallback<IdPointValueTime> callback);
+    public void wideBookendQuery(List<Integer> pointIds, long from, long to, boolean ascending, boolean orderById, Integer limit, final WideQueryCallback<IdPointValueTime> callback);
     
     /**
      * Delete startTime <= values < endTime

@@ -565,7 +565,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     
 
     @Override
-    public void wideBookendQuery(int pointId, long from, long to, Integer limit, WideQueryCallback<PointValueTime> callback) {
+    public void wideBookendQuery(int pointId, long from, long to, boolean ascending, Integer limit, WideQueryCallback<PointValueTime> callback) {
         //TODO Improve performance by using one statement
         //TODO Use a statement and catch exception to cancel it
         //TODO Use a result set to call postQuery so you can know it is the last result
@@ -579,6 +579,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     throws SQLException {
                 Object[] args;
                 String sql = POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts";
+                if(ascending) {
+                    sql += " asc";
+                }else {
+                    sql += " desc";
+                }
                 if(limit != null) {
                     sql += " limit ?";
                     args = new Object[] { pointId, from, to, limit};
@@ -665,14 +670,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
     
     @Override
-    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, WideQueryCallback<IdPointValueTime> callback) {
+    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean ascending, boolean orderById, Integer limit, WideQueryCallback<IdPointValueTime> callback) {
         //TODO Improve performance by using one statement
         //TODO Use a statement and catch exception to cancel it
         //TODO Use a result set to call postQuery so you can know it is the last result
         //Use a performance enhancement if ids.size() == 1 don't use in
         if(ids.size() == 1) {
             int id = ids.get(0);
-            wideBookendQuery(id, from, to, limit, new WideQueryCallback<PointValueTime>() {
+            wideBookendQuery(id, from, to, ascending, limit, new WideQueryCallback<PointValueTime>() {
 
                 @Override
                 public void preQuery(PointValueTime value, boolean bookend) throws IOException {
@@ -705,6 +710,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }else {
                         sql += " order by ts";
                     }
+                    if(ascending) 
+                        sql += " asc";
+                    else
+                        sql += " desc";
+                    
                     if(limit != null) {
                         sql += " limit ?";
                         args = new Object[] { from, to, limit};

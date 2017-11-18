@@ -132,7 +132,7 @@ public class PointValueFacade {
      */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> values = new ArrayList<>();
-        pointValueDao.wideBookendQuery(dataPointId, from, to, null, new WideQueryCallback<PointValueTime>() {
+        pointValueDao.wideBookendQuery(dataPointId, from, to, true, null, new WideQueryCallback<PointValueTime>() {
 
             @Override
             public void preQuery(PointValueTime value, boolean bookend) throws IOException {

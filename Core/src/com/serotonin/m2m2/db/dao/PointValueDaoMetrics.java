@@ -444,22 +444,22 @@ public class PointValueDaoMetrics implements PointValueDao{
      * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(int, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
      */
     @Override
-    public void wideBookendQuery(int pointId, long from, long to, Integer limit,
+    public void wideBookendQuery(int pointId, long from, long to, boolean ascending, Integer limit,
             WideQueryCallback<PointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
-        dao.wideBookendQuery(pointId, from, to, limit, callback);
-        logStopWatch.stop("wideBookendQuery(dataPointId, from, to, limit, callback) + (" + pointId + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+        dao.wideBookendQuery(pointId, from, to, ascending, limit, callback);
+        logStopWatch.stop("wideBookendQuery(dataPointId, from, to, ascending, limit, callback) + (" + pointId + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
     }
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.db.dao.PointValueDao#wideBookendQuery(java.util.List, long, long, java.lang.Integer, com.serotonin.db.WideQueryCallback)
      */
     @Override
-    public void wideBookendQuery(List<Integer> pointIds, long from, long to, boolean orderById, Integer limit,
+    public void wideBookendQuery(List<Integer> pointIds, long from, long to, boolean ascending, boolean orderById, Integer limit,
             WideQueryCallback<IdPointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
-        dao.wideBookendQuery(pointIds, from, to, orderById, limit, callback);
-        logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, limit, callback) + (" + pointIds + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+        dao.wideBookendQuery(pointIds, from, to, ascending, orderById, limit, callback);
+        logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, ascending, orderById, limit, callback) + (" + pointIds + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
 
     }
 	
