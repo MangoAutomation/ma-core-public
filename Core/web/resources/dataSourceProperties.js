@@ -73,8 +73,9 @@
      
      pointListColumnHeaders.push("<fmt:message key='dsEdit.status'/>");
      pointListColumnFunctions.push(function(p) {
+    	 //TODO is this dead code in this function?
              var id = "toggleImg"+ p.id;
-             var onclick = "togglePoint("+ p.id +")";
+             var onclick = "dataPoints.togglePoint("+ p.id +", this.src.indexOf('_go') == -1);";
              if (p.enabled)
                  return writeImage(id, null, "brick_go", "<fmt:message key='common.enabledToggle'/>", onclick);
              return writeImage(id, null, "brick_stop", "<fmt:message key='common.disabledToggle'/>", onclick);
@@ -329,7 +330,7 @@ function deletePoint() {
      //Call back to collect all inputs
      currentPoint = dataPoints.getInputs();
      if(currentPoint.id != -1){
-    	 dataPoints.toggle(currentPoint.id);
+    	 dataPoints.toggle(currentPoint.id, !currentPoint.enabled);
      }
 
  }
