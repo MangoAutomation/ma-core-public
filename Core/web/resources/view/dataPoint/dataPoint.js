@@ -319,7 +319,7 @@ dataPoints = new StoreView({
     },
     
     imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', pointDetails: 'icon_comp'},
-    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggleOff', toggleOff: 'toggleOn', run: 'run', pointDetails: 'view'},
+    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run', pointDetails: 'view'},
 
     buttons: ['toggle','edit','delete','copy','export','pointDetails'],
     /**
@@ -350,7 +350,10 @@ dataPoints = new StoreView({
             if (src.substring(0,1) !== '/')
                 src = '/images/' + src + '.png';
             
-            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+            if(this.fnMap[button] !== 'toggle')
+            	var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+            else
+            	var action = this.varName + '.toggle(' + id + ', this.src.indexOf("_go") == -1);';
             if(button === 'pointDetails'){
             	var over = this.varName + ".showPointValue(" + id + ")";
             	var out = this.varName + ".hidePointValue(" + id + ")";
@@ -514,9 +517,7 @@ dataPoints = new StoreView({
 
 
         });
-    },    
-    toggleOn: function(id) { this.toggle(id, true); },
-    toggleOff: function(id) { this.toggle(id, false); },
+    },
     
     /**
      * Used to update the image
