@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.serotonin.db.WideQueryCallback;
+import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
@@ -132,10 +132,10 @@ public class PointValueFacade {
      */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> values = new ArrayList<>();
-        pointValueDao.wideBookendQuery(dataPointId, from, to, true, null, new WideQueryCallback<PointValueTime>() {
+        pointValueDao.wideBookendQuery(dataPointId, from, to, null, new BookendQueryCallback<PointValueTime>() {
 
             @Override
-            public void preQuery(PointValueTime value, boolean bookend) throws IOException {
+            public void firstValue(PointValueTime value, int index, boolean bookend) throws IOException {
                 if(insertInitial)
                     values.add(value);
             }
@@ -146,7 +146,7 @@ public class PointValueFacade {
             }
 
             @Override
-            public void postQuery(PointValueTime value, boolean bookend) throws IOException {
+            public void lastValue(PointValueTime value, int index) throws IOException {
                 if(insertFinal)
                     values.add(value);
             }

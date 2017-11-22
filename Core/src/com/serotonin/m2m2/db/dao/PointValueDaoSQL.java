@@ -36,6 +36,7 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
@@ -565,7 +566,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     
 
     @Override
-    public void wideBookendQuery(int pointId, long from, long to, boolean ascending, Integer limit, WideQueryCallback<PointValueTime> callback) {
+    public void wideBookendQuery(int pointId, long from, long to, Integer limit, BookendQueryCallback<PointValueTime> callback) {
         //TODO Improve performance by using one statement
         //TODO Use a statement and catch exception to cancel it
         //TODO Use a result set to call postQuery so you can know it is the last result
@@ -579,11 +580,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     throws SQLException {
                 Object[] args;
                 String sql = POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts";
-                if(ascending) {
-                    sql += " asc";
-                }else {
-                    sql += " desc";
-                }
+
                 if(limit != null) {
                     sql += " limit ?";
                     args = new Object[] { pointId, from, to, limit};
@@ -599,7 +596,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             @Override
             public Integer doInPreparedStatement(PreparedStatement ps)
                     throws SQLException, DataAccessException {
-                int count = 1;
+                int count = 0;
                 try {
 
                     ps.execute();
@@ -611,15 +608,15 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         if(current.getTime() != from) {
                             prevValue = getPointValueBefore(pointId, from);
                             if(prevValue != null)
-                                callback.preQuery(new PointValueTime(prevValue.getValue(), from), true);
+                                callback.firstValue(new PointValueTime(prevValue.getValue(), from), count, true);
                             else {
                                 prevValue = current;
-                                callback.preQuery(new PointValueTime(current.getValue(), from), true);
+                                callback.firstValue(new PointValueTime(current.getValue(), from), count, true);
                             }
                             callback.row(current, count);
                         }else {
                             prevValue = current;
-                            callback.preQuery(current, false);
+                            callback.firstValue(current, count, false);
                         }
                         
                         //We want to keep current and send previous out
@@ -637,15 +634,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         }
                         
                         if(last != null) {
-                            if(last.getTime() == to)
-                                callback.postQuery(last, false);
-                            else {
-                                callback.row(last, count);
-                                callback.postQuery(new PointValueTime(last.getValue(), to), true);
-                            }
+                            callback.row(last, count);
+                            callback.lastValue(new PointValueTime(last.getValue(), to), count);
                         }else {
                             //No further data besides preValue
-                            callback.postQuery(prevValue, true);
+                            callback.lastValue(prevValue, count);
                         }
                         
                         //Don't forget Post Query stuff
@@ -654,9 +647,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         final PointValueTime prevValue = getPointValueBefore(pointId, from);
                         if(prevValue != null) {
                             PointValueTime pre = new PointValueTime(prevValue.getValue(), from);
-                            callback.preQuery(pre, true);
+                            callback.firstValue(pre, count, true);
                             PointValueTime post = new PointValueTime(prevValue.getValue(), to);
-                            callback.postQuery(post, true);
+                            callback.lastValue(post, count);
                         }
                     }
                 
@@ -670,18 +663,18 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
     
     @Override
-    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean ascending, boolean orderById, Integer limit, WideQueryCallback<IdPointValueTime> callback) {
+    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback) {
         //TODO Improve performance by using one statement
         //TODO Use a statement and catch exception to cancel it
         //TODO Use a result set to call postQuery so you can know it is the last result
         //Use a performance enhancement if ids.size() == 1 don't use in
         if(ids.size() == 1) {
             int id = ids.get(0);
-            wideBookendQuery(id, from, to, ascending, limit, new WideQueryCallback<PointValueTime>() {
+            wideBookendQuery(id, from, to, limit, new BookendQueryCallback<PointValueTime>() {
 
                 @Override
-                public void preQuery(PointValueTime value, boolean bookend) throws IOException {
-                    callback.preQuery(new IdPointValueTime(id, value.getValue(), value.getTime()), bookend);
+                public void firstValue(PointValueTime value, int index, boolean bookend) throws IOException {
+                    callback.firstValue(new IdPointValueTime(id, value.getValue(), value.getTime()), index, bookend);
                 }
 
                 @Override
@@ -690,8 +683,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }
 
                 @Override
-                public void postQuery(PointValueTime value, boolean bookend) throws IOException {
-                    callback.postQuery(new IdPointValueTime(id, value.getValue(), value.getTime()), bookend);
+                public void lastValue(PointValueTime value, int index) throws IOException {
+                    callback.lastValue(new IdPointValueTime(id, value.getValue(), value.getTime()), index);
                }
 
             });  
@@ -710,10 +703,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }else {
                         sql += " order by ts";
                     }
-                    if(ascending) 
-                        sql += " asc";
-                    else
-                        sql += " desc";
                     
                     if(limit != null) {
                         sql += " limit ?";
@@ -730,7 +719,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 @Override
                 public Integer doInPreparedStatement(PreparedStatement ps)
                         throws SQLException, DataAccessException {
-                    int count = 1;
+                    int count = 0;
                     Map<Integer, IdPointValueTime> valueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
                     Map<Integer, IdPointValueTime> prevValueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
                     try {
@@ -747,17 +736,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                                 if(orderById && currentId != -1 && currentId != current.getId()) {
                                     IdPointValueTime pvt = valueMap.remove(currentId);
                                     if(pvt != null) {
-                                        if(pvt.getTime() == to)
-                                            callback.postQuery(pvt, false);
-                                        else {
-                                            callback.row(pvt, count);
-                                            callback.postQuery(new IdPointValueTime(pvt.getId(), pvt.getValue(), to), true);
-                                        }
+                                        callback.row(pvt, count);
+                                        callback.lastValue(new IdPointValueTime(pvt.getId(), pvt.getValue(), to), count);
                                     }else {
                                         //No further data besides preValue
                                         IdPointValueTime prev = prevValueMap.get(currentId);
                                         if(prev != null)
-                                            callback.postQuery(prev, true);
+                                            callback.lastValue(prev, count);
                                     }
                                 }
                                 currentId = current.getId();                                
@@ -768,13 +753,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                                     if(current.getTime() != from) {
                                         prevValue = getPointValueBefore(current.getId(), from);
                                         if(prevValue != null)
-                                            callback.preQuery(new IdPointValueTime(current.getId(), prevValue.getValue(), from), true);
+                                            callback.firstValue(new IdPointValueTime(current.getId(), prevValue.getValue(), from), count, true);
                                         else {
                                             prevValue = current;
-                                            callback.preQuery(new IdPointValueTime(current.getId(), current.getValue(), from), true);
+                                            callback.firstValue(new IdPointValueTime(current.getId(), current.getValue(), from), count, true);
                                         }
                                     }else {
-                                        callback.preQuery(current, false);
+                                        callback.firstValue(current, count, false);
                                         skipLast = true;
                                     }
                                 }else if(!skipLast){
@@ -791,17 +776,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                             for(Entry<Integer, IdPointValueTime> entry : valueMap.entrySet()) {
                                 IdPointValueTime last = entry.getValue();
                                 if(last != null) {
-                                    if(last.getTime() == to)
-                                        callback.postQuery(last, false);
-                                    else {
-                                        callback.row(last, count);
-                                        callback.postQuery(new IdPointValueTime(last.getId(), last.getValue(), to), true);
-                                    }
+                                    callback.row(last, count);
+                                    callback.lastValue(new IdPointValueTime(last.getId(), last.getValue(), to), count);
                                 }else {
                                     //No further data besides preValue
                                     IdPointValueTime prev = prevValueMap.get(entry.getKey());
                                     if(prev != null)
-                                        callback.postQuery(prev, true);
+                                        callback.lastValue(prev, count);
                                 }
                                 count++;
                             }
@@ -811,9 +792,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                                 final PointValueTime prevValue = getPointValueBefore(id, from);
                                 if(prevValue != null) {
                                     IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
-                                    callback.preQuery(pre, true);
+                                    callback.firstValue(pre, count, true);
                                     IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
-                                    callback.postQuery(post, true);
+                                    callback.lastValue(post, count);
                                 }
                             }
                         }

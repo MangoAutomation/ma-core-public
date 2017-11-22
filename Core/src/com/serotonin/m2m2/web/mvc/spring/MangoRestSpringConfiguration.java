@@ -31,7 +31,6 @@ import org.springframework.web.util.UrlPathHelper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.serotonin.ShouldNeverHappenException;
@@ -169,10 +168,8 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 	public void configureMessageConverters(
 			List<HttpMessageConverter<?>> converters) {
 		
-		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setObjectMapper(getObjectMapper());
         converters.add(new ResourceHttpMessageConverter());
-		converters.add(converter);
+		converters.add(new MappingJackson2HttpMessageConverter(getObjectMapper()));
 		converters.add(new CsvMessageConverter());
 		converters.add(new CsvRowMessageConverter());
 		converters.add(new CsvQueryArrayStreamMessageConverter());
@@ -227,10 +224,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 			DateFormat dateFormat = new SimpleDateFormat(customDateFormat);
 			objectMapper.setDateFormat(dateFormat);
 		}
-		
-		//For now also use Joda
-		objectMapper.registerModule(new JodaModule());
-		
+
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
 		

@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.view.quantize3;
 
+import java.io.IOException;
+
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 public interface StatisticsGeneratorQuantizerCallback<T extends StatisticsGenerator> {
@@ -11,5 +13,5 @@ public interface StatisticsGeneratorQuantizerCallback<T extends StatisticsGenera
      * @param statisticsGenerator
      *            the statistics generated for the time period.
      */
-    void quantizedStatistics(T statisticsGenerator);
+    void quantizedStatistics(T statisticsGenerator) throws IOException;
 }
