@@ -21,6 +21,7 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -83,6 +84,17 @@ public interface PointValueDao {
      */
     public List<PointValueTime> getLatestPointValues(int pointId, int limit, long before);
 
+    /**
+     * Get point values < before in reverse time order
+     * @param ids - one or many data point ids
+     * @param limit - null for no limit entire series in reverse order
+     * @param before
+     * @param orderById
+     * @param callback
+     * @return
+     */
+    public void getLatestPointValues(List<Integer> ids, long before, boolean orderById, Integer limit, final PVTQueryCallback<IdPointValueTime> callback);
+    
     /**
      * Get the latest point value for this point
      * @param pointId
@@ -169,6 +181,7 @@ public interface PointValueDao {
      * @param callback
      *            the query callback
      */
+    //TODO THIS METHOD MAY NOT BE NECESSARY depending on performance differences of calling wide bookend with List.size(1)
     public void wideBookendQuery(int pointId, long from, long to, Integer limit, final BookendQueryCallback<PointValueTime> callback);
     
     /**

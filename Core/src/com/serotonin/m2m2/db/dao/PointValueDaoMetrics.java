@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.log.LogStopWatch;
@@ -117,7 +118,17 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		List<PointValueTime> values = dao.getLatestPointValues(pointId, limit,before);
 		LogStopWatch.stop("getLatestPointValues(pointId,limit,before) (" + pointId +", " + limit + ", " + before + "){" + values.size() +"}", this.metricsThreshold);
-    	return values;
+		return values;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.serotonin.m2m2.db.dao.PointValueDao#getLatestPointValues(java.util.List, java.lang.Integer, long, boolean, com.infiniteautomation.mango.db.query.PVTQueryCallback)
+	 */
+	public void getLatestPointValues(List<Integer> ids, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback){
+	    LogStopWatch LogStopWatch = new LogStopWatch();
+        dao.getLatestPointValues(ids, before, orderById, limit, callback);
+        LogStopWatch.stop("getLatestPointValues(pointId,limit,before, orderById, callback) (" + ids +", " + limit + ", " + before + "," + orderById + ", callback)", this.metricsThreshold);
 	}
 
 	/* (non-Javadoc)
@@ -128,7 +139,7 @@ public class PointValueDaoMetrics implements PointValueDao{
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.getLatestPointValue(pointId);
 		LogStopWatch.stop("getLatestPointValue(pointId) (" + pointId + "){" + (value != null ? 1 : 0) + "}", this.metricsThreshold);
-    	return value;
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -138,8 +149,8 @@ public class PointValueDaoMetrics implements PointValueDao{
 	public PointValueTime getPointValueBefore(int pointId, long time) {
 		LogStopWatch LogStopWatch = new LogStopWatch();
 		PointValueTime value = dao.getPointValueBefore(pointId,time);
-    	LogStopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}", this.metricsThreshold);
-    	return value;
+    	    LogStopWatch.stop("getPointValuesBefore(pointId,time) (" + pointId + ", " + time + "){" + (value != null ? 1 : 0) + "}", this.metricsThreshold);
+    	    return value;
 	}
 
 	/* (non-Javadoc)

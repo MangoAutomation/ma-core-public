@@ -69,7 +69,8 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      */
     @Override
     public void firstValue(IdPointValueTime value, int index, boolean bookend) {
-        lastValue = value.getValue();
+        if(!bookend)
+            lastValue = value.getValue();
         openPeriod(periodFrom, periodTo, lastValue);
     }
 

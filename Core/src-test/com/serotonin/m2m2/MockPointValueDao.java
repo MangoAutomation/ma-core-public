@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -429,6 +430,15 @@ public class MockPointValueDao implements PointValueDao{
     public void wideBookendQuery(List<Integer> pointIds, long from, long to, boolean orderById, Integer limit,
             BookendQueryCallback<IdPointValueTime> callback) {
         // TODO Auto-generated method stub
+        
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#getLatestPointValues(java.util.List, long, boolean, java.lang.Integer, com.infiniteautomation.mango.db.query.PVTQueryCallback)
+     */
+    @Override
+    public void getLatestPointValues(List<Integer> ids, long before, boolean orderById, Integer limit, final PVTQueryCallback<IdPointValueTime> callback) {
         
     }
 

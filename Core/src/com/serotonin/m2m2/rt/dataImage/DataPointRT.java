@@ -837,6 +837,22 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 			copy.add(pvt);
 		return copy;
 	}
+	
+	/**
+     * Get a copy of the current cache, size limited
+     * @return
+     */
+    public List<PointValueTime> getCacheCopy(int limit){
+        List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
+        int size = 0;
+        for(PointValueTime pvt : this.valueCache.getCacheContents()) {
+            copy.add(pvt);
+            size++;
+            if(size == limit)
+                break;
+        }
+        return copy;
+    }
 
 	@Override
 	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
