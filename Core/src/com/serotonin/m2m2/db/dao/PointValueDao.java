@@ -137,7 +137,7 @@ public interface PointValueDao {
 
     /**
      * Get point values >= from and < to
-     * @param pointId
+     * @param ids
      * @param from
      * @param to
      * @return ordered list for all values by time
@@ -145,6 +145,18 @@ public interface PointValueDao {
     public void getPointValuesBetween(List<Integer> pointIds, long from, long to,
             MappedRowCallback<IdPointValueTime> callback);
 
+    /**
+     * Get point values >= from and < to
+     * @param ids
+     * @param from
+     * @param to
+     * @param orderById - return the list in time order per data point
+     * @param limit - optional limit
+     * @param callback
+     * @return ordered list for all values by time
+     */
+    public void getPointValuesBetween(List<Integer> ids, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback);
+    
     /**
      * Query the given time series, including the nearest sample both before the 'from' timestamp and after the 'to'
      * timestamp. This query facilitates charting of values, where for continuity in the chart the values immediately

@@ -35,6 +35,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.JdbcUtils;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
@@ -574,10 +575,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             @Override
             public Integer doInPreparedStatement(PreparedStatement ps)
                     throws SQLException, DataAccessException {
-                ps.execute();
-                ResultSet rs = ps.getResultSet();
+                
                 int count = 0;
+                ResultSet rs = null;
                 try {
+                    ps.execute();
+                    rs = ps.getResultSet();
                     while(rs.next()) {
                         IdPointValueTime value = mapper.mapRow(rs, count);
                         callback.row(value, count);
@@ -585,6 +588,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }
                 }catch(IOException e) {
                     ps.cancel();
+                }finally {
+                    JdbcUtils.closeResultSet(rs);
                 }
                 return count;
             }
@@ -603,6 +608,66 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public void getPointValuesBetween(int dataPointId, long from, long to, MappedRowCallback<PointValueTime> callback) {
         query(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts", new Object[] {
                 dataPointId, from, to }, new PointValueRowMapper(), callback);
+    }
+    
+    @Override
+    public void getPointValuesBetween(List<Integer> ids, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
+        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
+        ejt.execute(new PreparedStatementCreator() {
+
+            @Override
+            public PreparedStatement createPreparedStatement(Connection con)
+                    throws SQLException {
+                List<Object> args = new ArrayList<>();
+                String sql;
+                
+                if(ids.size() > 1) {
+                    String dataPointIds = createDelimitedList(ids, ",", null);
+                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") pv.ts >= ? and pv.ts<? ";
+                }else {
+                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts >= ? and pv.ts<? ";
+                    args.add(ids.get(0));
+                }
+                args.add(from);
+                args.add(to);
+                if(orderById) {
+                    sql += " order by pv.dataPointId asc , pv.ts desc";
+                }else {
+                    sql += " order by pv.ts desc";
+                }
+                if(limit != null) {
+                    sql += " limit ?";
+                    args.add(limit);
+                }
+                
+                PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+                setter.setValues(stmt);
+                return stmt;
+            }}, new PreparedStatementCallback<Integer>() {
+
+            @Override
+            public Integer doInPreparedStatement(PreparedStatement ps)
+                    throws SQLException, DataAccessException {
+                
+                int count = 0;
+                ResultSet rs = null;
+                try {
+                    ps.execute();
+                    rs = ps.getResultSet();
+                    while(rs.next()) {
+                        IdPointValueTime value = mapper.mapRow(rs, count);
+                        callback.row(value, count);
+                        count++;
+                    }
+                }catch(IOException e) {
+                    ps.cancel();
+                }finally {
+                    JdbcUtils.closeResultSet(rs);
+                }
+                return count;
+            }
+        });
     }
 
 	/* (non-Javadoc)
@@ -667,10 +732,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             public Integer doInPreparedStatement(PreparedStatement ps)
                     throws SQLException, DataAccessException {
                 int count = 0;
+                ResultSet rs = null;
                 try {
 
                     ps.execute();
-                    ResultSet rs = ps.getResultSet();
+                    rs = ps.getResultSet();
                     if(rs.next()) { 
                         //Move to first in list, test for pre query
                         PointValueTime current = mapper.mapRow(rs, count);
@@ -726,6 +792,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }catch(IOException e) {
                     //Cancel if we have a problem
                     ps.cancel();
+                }finally {
+                    JdbcUtils.closeResultSet(rs);
                 }
                 
                 return count;
@@ -774,11 +842,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 int count = 0;
                 Map<Integer, IdPointValueTime> valueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
                 Map<Integer, IdPointValueTime> prevValueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
+                ResultSet rs = null;
                 try {
                     int currentId = -1; //To Track Id sorted queries
                     boolean skipLast = false;
                     ps.execute();
-                    ResultSet rs = ps.getResultSet();
+                    rs = ps.getResultSet();
                     if(rs.next()) {
                         do {
                             IdPointValueTime current = mapper.mapRow(rs, count);
@@ -873,6 +942,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }catch(IOException e) {
                     //Cancel if we have a problem
                     ps.cancel();
+                }finally {
+                    JdbcUtils.closeResultSet(rs);
                 }
                 
                 return count;

@@ -472,7 +472,17 @@ public class PointValueDaoMetrics implements PointValueDao{
         LogStopWatch logStopWatch = new LogStopWatch();
         dao.wideBookendQuery(pointIds, from, to, orderById, limit, callback);
         logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, orderById, limit, callback) + (" + pointIds + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+    }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#getPointValuesBetween(java.util.List, long, long, boolean, java.lang.Integer, com.infiniteautomation.mango.db.query.PVTQueryCallback)
+     */
+    @Override
+    public void getPointValuesBetween(List<Integer> ids, long from, long to, boolean orderById,
+            Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
+        LogStopWatch logStopWatch = new LogStopWatch();
+        dao.getPointValuesBetween(ids, from, to, orderById, limit, callback);
+        logStopWatch.stop("getPointValuesBetween(dataPointIds, from, to, orderById, limit, callback) + (" + ids + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
     }
 	
 }

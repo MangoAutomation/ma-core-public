@@ -442,4 +442,14 @@ public class MockPointValueDao implements PointValueDao{
         
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.PointValueDao#getPointValuesBetween(java.util.List, long, long, boolean, java.lang.Integer, com.infiniteautomation.mango.db.query.PVTQueryCallback)
+     */
+    @Override
+    public void getPointValuesBetween(List<Integer> ids, long from, long to, boolean orderById,
+            Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }
