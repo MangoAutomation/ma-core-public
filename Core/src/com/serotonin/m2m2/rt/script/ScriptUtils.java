@@ -108,7 +108,6 @@ public class ScriptUtils {
         globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
         globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
         globalBindings.put("YEAR", Common.TimePeriods.YEARS);
-        globalBindings.put(POINTS_CONTEXT_KEY, new ArrayList<String>());
         
         //Add in Additional Utilities with Global Scope
         globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
