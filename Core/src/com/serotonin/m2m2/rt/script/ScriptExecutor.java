@@ -150,7 +150,7 @@ public class ScriptExecutor {
             engineScope.put(varName, ScriptUtils.wrapPoint(engine, point, setter));
          }
         
-        engineScope.put(ScriptUtils.POINTS_CONTEXT_KEY, context);
+        engineScope.put(ScriptUtils.POINTS_MAP_KEY, context);
         
         //Set the print writer if necessary
         if(scriptWriter != null){

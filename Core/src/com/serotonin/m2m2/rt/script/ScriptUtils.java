@@ -30,6 +30,7 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 public class ScriptUtils {
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
+    public static final String POINTS_MAP_KEY = "VARIABLES";
     public static final String TIMESTAMP_CONTEXT_KEY = "TIMESTAMP";
     
     public static ScriptEngine newEngine() {
@@ -108,6 +109,7 @@ public class ScriptUtils {
         globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
         globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
         globalBindings.put("YEAR", Common.TimePeriods.YEARS);
+        globalBindings.put(POINTS_CONTEXT_KEY, new ArrayList<String>());
         
         //Add in Additional Utilities with Global Scope
         globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
