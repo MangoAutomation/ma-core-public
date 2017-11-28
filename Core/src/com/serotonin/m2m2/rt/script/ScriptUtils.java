@@ -30,7 +30,7 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 public class ScriptUtils {
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
-    public static final String POINTS_MAP_KEY = "VARIABLES";
+    public static final String POINTS_MAP_KEY = "CONTEXT_POINTS";
     public static final String TIMESTAMP_CONTEXT_KEY = "TIMESTAMP";
     
     public static ScriptEngine newEngine() {
