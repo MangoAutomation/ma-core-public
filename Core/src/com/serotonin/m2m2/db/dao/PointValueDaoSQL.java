@@ -631,9 +631,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 args.add(from);
                 args.add(to);
                 if(orderById) {
-                    sql += " order by pv.dataPointId asc , pv.ts desc";
+                    sql += " order by pv.dataPointId asc , pv.ts asc";
                 }else {
-                    sql += " order by pv.ts desc";
+                    sql += " order by pv.ts asc";
                 }
                 if(limit != null) {
                     sql += " limit ?";
