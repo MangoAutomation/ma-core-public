@@ -39,16 +39,16 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     protected boolean pointListChanged = false;
 
     // If polling is done with millis
-    private long pollingPeriodMillis = 300000; // Default to 5 minutes just to
+    protected long pollingPeriodMillis = 300000; // Default to 5 minutes just to
                                                // have something here
-    private boolean quantize;
+    protected boolean quantize;
 
     // If polling is done with cron
-    private String cronPattern;
+    protected String cronPattern;
 
     private final TimeoutClient timeoutClient;
     private TimerTask timerTask;
-    private volatile Thread jobThread;
+    protected volatile Thread jobThread;
 
     private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
@@ -128,18 +128,18 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         latestAbortedPollTimes.add(time);
         //Trim the Queue
         while(latestAbortedPollTimes.size() > 10)
-        	latestAbortedPollTimes.poll();
+            latestAbortedPollTimes.poll();
         
         //Log A Message Every 5 Minutes
         if(LOG.isWarnEnabled() && (nextAbortedPollMessageTime <= time)){
-        	nextAbortedPollMessageTime = time + abortedPollLogDelay;
-        	LOG.warn("Data Source " + vo.getName() + " aborted " + unsuccessful + " polls since it started.");
+            nextAbortedPollMessageTime = time + abortedPollLogDelay;
+            LOG.warn("Data Source " + vo.getName() + " aborted " + unsuccessful + " polls since it started.");
         }
         
         //Raise No RTN Event On First aborted poll
         int eventId = vo.getPollAbortedExceptionEventId();
         if((eventId >= 0) && (unsuccessful == 1))
-        	this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName()));
+            this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName()));
     }
 
     public synchronized void scheduleTimeoutImpl(long fireTime) {
@@ -165,7 +165,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             this.latestPollTimes.add(new LongLongPair(fireTime, Common.timer.currentTimeMillis() - startTs));
             //Trim the Queue
             while(this.latestPollTimes.size() > 10)
-            	this.latestPollTimes.poll();
+                this.latestPollTimes.poll();
         }
         finally {
             if (terminationLock != null) {
@@ -208,13 +208,13 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         synchronized (pointListChangeLock) {
             if (addedChangedPoints.size() > 0) {
 
-            	// Remove any existing instances of the points.
+            	    // Remove any existing instances of the points.
                 dataPoints.removeAll(addedChangedPoints);
                 
                 // Add the changed points and start the interval logging
                 for(DataPointRT rt : addedChangedPoints){
-                	rt.initializeIntervalLogging(fireTime, quantize);
-                	dataPoints.add(rt);
+                    rt.initializeIntervalLogging(fireTime, quantize);
+                    dataPoints.add(rt);
                 }
                 addedChangedPoints.clear();
                 pointListChanged = true;
@@ -304,12 +304,12 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
      * @return
      */
     public List<LongLongPair> getLatestPollTimes(){
-    	List<LongLongPair> latestTimes = new ArrayList<LongLongPair>();
+        List<LongLongPair> latestTimes = new ArrayList<LongLongPair>();
 		Iterator<LongLongPair> it = this.latestPollTimes.iterator();
 		while(it.hasNext()){
 			latestTimes.add(it.next());
 		}
-    	return latestTimes;
+		return latestTimes;
     }
     
     /**
@@ -317,11 +317,11 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
      * @return
      */
     public List<Long> getLatestAbortedPollTimes(){
-    	List<Long> latestTimes = new ArrayList<Long>();
+        List<Long> latestTimes = new ArrayList<Long>();
 		Iterator<Long> it = this.latestAbortedPollTimes.iterator();
 		while(it.hasNext()){
 			latestTimes.add(it.next());
 		}
-    	return latestTimes;
+		return latestTimes;
     }
 }

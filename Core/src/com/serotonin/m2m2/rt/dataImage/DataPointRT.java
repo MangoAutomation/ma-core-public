@@ -402,12 +402,12 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             long delay = 0l;
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
             if(quantize){
-            	// Quantize the start.
-            	//Compute delay only if we are offset from the next poll time
-            	long nextPollOffset = (nextPollTime % loggingPeriodMillis);
-            	if(nextPollOffset != 0)
-            		delay = loggingPeriodMillis - nextPollOffset;
-                LOG.debug("First interval log should be at: " + (nextPollTime + delay));
+                	// Quantize the start.
+                	//Compute delay only if we are offset from the next poll time
+                	long nextPollOffset = (nextPollTime % loggingPeriodMillis);
+                	if(nextPollOffset != 0)
+                		delay = loggingPeriodMillis - nextPollOffset;
+                    LOG.debug("First interval log should be at: " + (nextPollTime + delay));
             }
             //Are we using a custom timer?
             if(this.timer == null)
