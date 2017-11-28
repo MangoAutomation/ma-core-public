@@ -102,8 +102,9 @@ public class MangoTestBase {
 	
 	@Before
 	public void before() {
+	    //So it only happens once per class
 	    if(lifecycle == null) {
-    	        lifecycle = new MockMangoLifecycle(modules, enableH2Web, h2WebPort);
+    	        lifecycle = getLifecycle();
             lifecycle.initialize();
 	    }
 	    
@@ -205,5 +206,13 @@ public class MangoTestBase {
                }
             }
         }
+    }
+    
+    /**
+     * Override as necessary
+     * @return
+     */
+    protected MockMangoLifecycle getLifecycle() {
+        return new MockMangoLifecycle(modules, enableH2Web, h2WebPort);
     }
 }

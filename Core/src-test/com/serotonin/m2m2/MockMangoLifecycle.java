@@ -4,15 +4,27 @@
  */
 package com.serotonin.m2m2;
 
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
+import com.infiniteautomation.mango.util.CommonObjectMapper;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
+import com.serotonin.m2m2.rt.EventManager;
+import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventTypeResolver;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.m2m2.util.MapWrapConverter;
 import com.serotonin.m2m2.view.chart.BaseChartRenderer;
@@ -25,6 +37,7 @@ import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  * Dummy implementation for Mango Lifecycle for use in testing, 
@@ -37,6 +50,9 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     protected boolean enableWebConsole;
     protected int webPort;
     protected List<Module> modules;
+    private final List<Runnable> STARTUP_TASKS = new ArrayList<>();
+    private final List<Runnable> SHUTDOWN_TASKS = new ArrayList<>();
+
     /**
      * Create a default lifecycle with an H2 web console on port 9001 
      *   to view the in-memory database.
@@ -73,7 +89,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         Providers.add(TimerProvider.class, new SimulationTimerProvider());
         
         //Make sure that Common and other classes are properly loaded
-        Common.envProps = new MockMangoProperties();
+        Common.envProps = getEnvProps();
         
         MangoRestSpringConfiguration.initializeObjectMapper();
         
@@ -84,7 +100,9 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
         Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
         
-        Common.eventManager = new MockEventManager();
+        for (Module module : ModuleRegistry.getModules()) {
+            module.preInitialize(true, false);
+        }
         
         //TODO This must be done only once because we have a static
         // final referece to the PointValueDao in the PointValueCache class
@@ -92,21 +110,55 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         // for each new test.
         //Start the Database so we can use Daos (Base Dao requires this)
         if(Common.databaseProxy == null) {
-            Common.databaseProxy = new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
+            Common.databaseProxy = getDatabaseProxy();
             Common.databaseProxy.initialize(null);
         }
+
+        //Ensure we start with the proper timer
+        Common.backgroundProcessing = getBackgroundProcessing();
+        Common.backgroundProcessing.initialize(false);
         
-        //Only configure if not already configured
-        if(Common.runtimeManager == null)
-            Common.runtimeManager = new MockRuntimeManager();
+        for (Module module : ModuleRegistry.getModules()) {
+            module.postDatabase(true, false);
+        }
+        
+        //Utilities
+        //So we can add users etc.
+        EventType.initialize();
+        SystemEventType.initialize();
+        AuditEventType.initialize();
+        
+        //Setup Common Object Mapper
+        Common.objectMapper = new CommonObjectMapper();
+        
+        //Do this last as Event Types have listeners
+        for (SystemSettingsListenerDefinition def : ModuleRegistry.getSystemSettingListenerDefinitions())
+                def.registerListener();
+        
+        //Event Manager
+        Common.eventManager = getEventManager();
+        Common.eventManager.initialize(false);
+        for (EventManagerListenerDefinition def : ModuleRegistry.getDefinitions(EventManagerListenerDefinition.class))
+            Common.eventManager.addListener(def);
+        
+        Common.runtimeManager = getRuntimeManager();
+        Common.runtimeManager.initialize(false);
         
         if(Common.serialPortManager == null)
-            Common.serialPortManager = new MockSerialPortManager();
+            Common.serialPortManager = getSerialPortManager();
+
         
-        //Ensure we start with the proper timer
-        if(Common.backgroundProcessing == null)
-            Common.backgroundProcessing = new MockBackgroundProcessing(); 
-        Common.backgroundProcessing.initialize(false);
+        for (Module module : ModuleRegistry.getModules()) {
+            module.postInitialize(true, false);
+        }
+        
+        for (Runnable task : STARTUP_TASKS){
+            try{
+                task.run();
+            }catch(Exception e){
+                fail(e.getMessage());
+            }
+        }
         
     }
     
@@ -136,8 +188,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
      */
     @Override
     public void addStartupTask(Runnable task) {
-        // TODO Auto-generated method stub
-        
+        STARTUP_TASKS.add(task);
     }
 
     /* (non-Javadoc)
@@ -145,8 +196,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
      */
     @Override
     public void addShutdownTask(Runnable task) {
-        // TODO Auto-generated method stub
-        
+        SHUTDOWN_TASKS.add(task);
     }
 
     /* (non-Javadoc)
@@ -210,5 +260,28 @@ public class MockMangoLifecycle implements IMangoLifecycle{
 
         return false;
     }
+    
+    protected MangoProperties getEnvProps() {
+        return new MockMangoProperties();
+    }
+    
+    protected EventManager getEventManager() {
+        return new MockEventManager();
+    }
 
+    protected H2InMemoryDatabaseProxy getDatabaseProxy() {
+        return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
+    }
+    
+    protected RuntimeManager getRuntimeManager() {
+        return new MockRuntimeManager();
+    }
+    
+    protected SerialPortManager getSerialPortManager() {
+        return new MockSerialPortManager();
+    }
+    
+    protected BackgroundProcessing getBackgroundProcessing() {
+        return new MockBackgroundProcessing(Providers.get(TimerProvider.class).getTimer()); 
+    }
 }

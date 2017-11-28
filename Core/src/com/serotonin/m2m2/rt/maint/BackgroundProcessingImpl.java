@@ -32,7 +32,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
-import com.serotonin.timer.OrderedRealTimeTimer;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.RejectedTaskReason;
@@ -50,7 +50,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     final Log log = LogFactory.getLog(BackgroundProcessingImpl.class);
     
     //Private access to our timer
-    private OrderedRealTimeTimer timer;
+    private AbstractTimer timer;
     private OrderedThreadPoolExecutor highPriorityService;
     private TaskRejectionHandler highPriorityRejectionHandler;
     private TaskRejectionHandler mediumPriorityRejectionHandler;
@@ -63,7 +63,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     
     public BackgroundProcessingImpl(){
     	try {
-        	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
+        	this.timer = Providers.get(TimerProvider.class).getTimer();
         	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
         }
         catch (ProviderNotFoundException e) {
@@ -77,7 +77,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public void execute(HighPriorityTask task){
-    	this.timer.execute(task);
+        this.timer.execute(task);
     }
     
 	/* (non-Javadoc)
@@ -436,15 +436,16 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         state = INITIALIZE;
         
     	try {
-        	this.timer = (OrderedRealTimeTimer)Providers.get(TimerProvider.class).getTimer();
-        	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-        	this.highPriorityRejectionHandler = new TaskRejectionHandler();
-        	this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
+    	        this.timer = Providers.get(TimerProvider.class).getTimer();
+    	        this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
+    	        this.highPriorityRejectionHandler = new TaskRejectionHandler();
+    	        this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
         }
-     	
+    this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
+    
     	//Adjust the high priority pool sizes now
     	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
     	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);

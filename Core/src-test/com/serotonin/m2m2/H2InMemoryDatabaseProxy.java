@@ -33,7 +33,9 @@ import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.NoSQLProxy;
+import com.serotonin.m2m2.db.NoSQLProxyFactory;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -41,9 +43,9 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
+import com.serotonin.provider.Providers;
 
 /**
  * Using an H2 in memory database we can easily mock the database proxy.
@@ -57,22 +59,29 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
-    protected NoSQLProxy noSqlProxy;
+    protected NoSQLProxy noSQLProxy;
     protected MockPointValueDao mockPointValueDao;
     protected boolean initialized = false;
     protected boolean initWebConsole = false;
     protected Integer webPort;
     private Server web; //web UI
     protected DataSourceTransactionManager transactionManager;
+    protected boolean useMetrics = false;
     
     public H2InMemoryDatabaseProxy() {
         mockPointValueDao = new MockPointValueDao();
     }
     
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort) {
+        this(initWebConsole, webPort, false);
+        this.mockPointValueDao = new MockPointValueDao();
+    }
+    
+    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics) {
         this.mockPointValueDao = new MockPointValueDao();
         this.initWebConsole = initWebConsole;
         this.webPort = webPort;
+        this.useMetrics = useMetrics;
     }
     
     /* (non-Javadoc)
@@ -112,9 +121,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
                 def.newInstallationCheck(ejt);
             
-            //So we can add users etc.
-            AuditEventType.initialize();
-            
             SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                     Integer.toString(Common.getDatabaseSchemaVersion()));
             SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_ENABLED, "false");
@@ -124,21 +130,32 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
             // logs in.
             SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
             
-            User user = new User();
-            user.setId(Common.NEW_ID);
-            user.setName("Administrator");
-            user.setUsername("admin");
-            user.setPassword(Common.encrypt("admin"));
-            user.setEmail("admin@yourMangoDomain.com");
-            user.setPhone("");
-            user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
-            user.setDisabled(false);
-            UserDao.instance.saveUser(user);
-            
-            DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
-            factory.saveDefaultTemplates();
-            
+            Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
+                @Override
+                public void run() {
+                        // New database. Create a default user.
+                    User user = new User();
+                    user.setId(Common.NEW_ID);
+                    user.setName("Administrator");
+                    user.setUsername("admin");
+                    user.setPassword(Common.encrypt("admin"));
+                    user.setEmail("admin@yourMangoDomain.com");
+                    user.setPhone("");
+                    user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
+                    user.setDisabled(false);
+                    UserDao.instance.saveUser(user);
+                    
+                    DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
+                    factory.saveDefaultTemplates();
+               }
+            });
         } 
+        
+        // Check if we are using NoSQL
+        if (NoSQLProxyFactory.instance.getProxy() != null) {
+            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+            noSQLProxy.initialize();
+        }
         
         initialized = true;
     }
@@ -163,6 +180,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
                 web.stop();
                 web.shutdown();
             }
+        }
+        // Check if we are using NoSQL
+        if ((terminateNoSql)&&(NoSQLProxyFactory.instance.getProxy() != null)) {
+            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+            noSQLProxy.shutdown();
         }
     }
 
@@ -430,7 +452,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
      */
     @Override
     public void setNoSQLProxy(NoSQLProxy proxy) {
-
+        this.noSQLProxy = proxy;
     }
 
     /* (non-Javadoc)
@@ -438,9 +460,17 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
      */
     @Override
     public PointValueDao newPointValueDao() {
-        if(initialized)
-            return new PointValueDaoSQL();
-        else
+        if(initialized) {
+            if (noSQLProxy == null) {
+                if (useMetrics)
+                    return new PointValueDaoMetrics(new PointValueDaoSQL());
+                return new PointValueDaoSQL();
+            }
+
+            if (useMetrics)
+                return noSQLProxy.createPointValueDaoMetrics();
+            return noSQLProxy.createPointValueDao();
+        }else
             return mockPointValueDao;
     }
 
@@ -449,8 +479,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
      */
     @Override
     public NoSQLProxy getNoSQLProxy() {
-
-        return null;
+        return noSQLProxy;
     }
 
     /**
