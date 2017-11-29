@@ -184,15 +184,20 @@ public class SimulationTimer extends AbstractTimer {
 	 */
 	@Override
 	public void execute(Task command) {
-	    new Thread() {
-	        /* (non-Javadoc)
-	         * @see java.lang.Thread#run()
-	         */
-	        @Override
-	        public void run() {
-	            command.runTask(timeSource.currentTimeMillis());
-	        }
-	    }.start();
+	    if(async) {
+	        this.executorService.execute(new TaskWrapper(command, this.timeSource.currentTimeMillis()));
+	    }else {
+	        //TODO should we run this here or a new thread?
+        	    new Thread() {
+        	        /* (non-Javadoc)
+        	         * @see java.lang.Thread#run()
+        	         */
+        	        @Override
+        	        public void run() {
+        	            command.runTask(timeSource.currentTimeMillis());
+        	        }
+        	    }.start();
+	    }
 	}
 
     /* (non-Javadoc)
