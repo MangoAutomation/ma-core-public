@@ -60,17 +60,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     private ThreadPoolExecutor lowPriorityService;
     
     private int state = PRE_INITIALIZE;
-    
-    public BackgroundProcessingImpl(){
-    	try {
-        	this.timer = Providers.get(TimerProvider.class).getTimer();
-        	this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-        }
-        catch (ProviderNotFoundException e) {
-            throw new ShouldNeverHappenException(e);
-        }
-    }
-
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#execute(com.serotonin.m2m2.util.timeout.HighPriorityTask)
@@ -435,7 +424,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         // Set the started indicator to true.
         state = INITIALIZE;
         
-    	try {
+    	    try {
     	        this.timer = Providers.get(TimerProvider.class).getTimer();
     	        this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
     	        this.highPriorityRejectionHandler = new TaskRejectionHandler();
@@ -444,46 +433,46 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
         }
-    this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
-    
-    	//Adjust the high priority pool sizes now
-    	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-    	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-    	this.highPriorityService.setCorePoolSize(corePoolSize);
-    	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
-    	
-    	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
-    	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
-    	
-    	//Pull our settings from the System Settings
-    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
-    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
-    	
-    	//Sanity check to ensure the pool sizes are appropriate
-    	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
-    		maxPoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
-    	if(maxPoolSize < corePoolSize)
-    		maxPoolSize = corePoolSize;
-    	mediumPriorityService = new OrderedThreadPoolExecutor(
-    	       		corePoolSize,
-    	       		maxPoolSize,
-    	      		60L,
-    	      		TimeUnit.SECONDS,
-    	            new LinkedBlockingQueue<Runnable>(),
-    	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
-    	      		mediumPriorityRejectionHandler,
-    	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
-    	      		Common.timer.getTimeSource());
+        this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
         
-    	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
-    	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
-    	//Sanity check to ensure the pool sizes are appropriate
-    	if(maxPoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
-    		maxPoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
-    	if(maxPoolSize < corePoolSize)
-    		maxPoolSize = corePoolSize;
-        lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
+        	//Adjust the high priority pool sizes now
+        	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+        	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+        	this.highPriorityService.setCorePoolSize(corePoolSize);
+        	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
+        	
+        	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
+        	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
+        	
+        	//Pull our settings from the System Settings
+        	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+        	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
+        	
+        	//Sanity check to ensure the pool sizes are appropriate
+        	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
+        		maxPoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
+        	if(maxPoolSize < corePoolSize)
+        		maxPoolSize = corePoolSize;
+        	mediumPriorityService = new OrderedThreadPoolExecutor(
+        	       		corePoolSize,
+        	       		maxPoolSize,
+        	      		60L,
+        	      		TimeUnit.SECONDS,
+        	            new LinkedBlockingQueue<Runnable>(),
+        	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+        	      		mediumPriorityRejectionHandler,
+        	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
+        	      		Common.timer.getTimeSource());
+            
+        	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
+        	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
+        	//Sanity check to ensure the pool sizes are appropriate
+        	if(maxPoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
+        		maxPoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
+        	if(maxPoolSize < corePoolSize)
+        		maxPoolSize = corePoolSize;
+            lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
         this.state = RUNNING;
     }
 
