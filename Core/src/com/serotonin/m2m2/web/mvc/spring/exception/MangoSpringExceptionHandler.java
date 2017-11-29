@@ -55,15 +55,13 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 	public MangoSpringExceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
 		this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
 	}
-
-    @ExceptionHandler({ 
-    	//Anything that extends our Base Exception
-    	AbstractRestV2Exception.class
-    	})
+	
+	//Anything that extends our Base Exception
+    @ExceptionHandler({AbstractRestV2Exception.class})
     protected ResponseEntity<Object> handleMangoError(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
-    	//Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
-    	AbstractRestV2Exception e = (AbstractRestV2Exception)ex;
-    	return handleExceptionInternal(ex, e, new HttpHeaders(), e.getStatus(), req);
+    	    //Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
+    	    AbstractRestV2Exception e = (AbstractRestV2Exception)ex;
+    	    return handleExceptionInternal(ex, ex, new HttpHeaders(), e.getStatus(), req);
     }
     
     //TODO Handle Permission Exception Here
@@ -75,7 +73,7 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 	
     @ExceptionHandler({
         org.springframework.security.access.AccessDeniedException.class,
-    	PermissionException.class
+    	    PermissionException.class
     	})
     public ResponseEntity<Object> handleAccessDenied(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
         Object model;
@@ -87,7 +85,7 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
             model = new AccessDeniedException(ex);
         }
         
-    	return handleExceptionInternal(ex, model, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
+        return handleExceptionInternal(ex, model, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
     }
     
     @ExceptionHandler({
@@ -99,26 +97,18 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     }
     
     @ExceptionHandler({
-        NotFoundException.class
+        NotFoundException.class,
+        ResourceNotFoundException.class
     })
     public ResponseEntity<Object> handleNotFoundException(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
         return handleExceptionInternal(ex, new NotFoundRestException(ex), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
     }
-
-    @ExceptionHandler({
-    	ResourceNotFoundException.class
-    })
-    public ResponseEntity<Object> handleResourceNotFound(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
-    	this.storeException(request, ex);
-    	response.setStatus(HttpStatus.NOT_FOUND.value());
-    	return null;
-    }
-    
+        
     @ExceptionHandler({
     	Exception.class
     })
     public ResponseEntity<Object> handleAllOtherErrors(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
-    	return handleExceptionInternal(ex, new ServerErrorException(ex), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
+        return handleExceptionInternal(ex, new ServerErrorException(ex), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
     }
     
     /* (non-Javadoc)
@@ -129,49 +119,48 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     		Object body, HttpHeaders headers, HttpStatus status,
     		WebRequest request) {
     	
-    	HttpServletRequest servletRequest = ((ServletWebRequest)request).getRequest();
-    	HttpServletResponse servletResponse = ((ServletWebRequest)request).getResponse();
-    	
-    	this.storeException(servletRequest, ex);
-    	
-    	if(this.browserHtmlRequestMatcher.matches(servletRequest)){
-    		String uri;
-    		if(status == HttpStatus.FORBIDDEN){
-		        // browser HTML request
-    		    uri = ACCESS_DENIED;
-    		    
-    		    User user = Common.getHttpUser();
-    		    if (user != null) {
-                    uri = DefaultPagesDefinition.getUnauthorizedUri(servletRequest, servletResponse, user);
+        	HttpServletRequest servletRequest = ((ServletWebRequest)request).getRequest();
+        	HttpServletResponse servletResponse = ((ServletWebRequest)request).getResponse();
+        	
+        	this.storeException(servletRequest, ex, status);
+        	
+        	if(this.browserHtmlRequestMatcher.matches(servletRequest)){
+            String uri;
+            if (status == HttpStatus.FORBIDDEN) {
+                // browser HTML request
+                uri = ACCESS_DENIED;
+
+                User user = Common.getHttpUser();
+                if (user != null) {
+                    uri = DefaultPagesDefinition.getUnauthorizedUri(servletRequest, servletResponse,
+                            user);
                 }
-    	        
-    	        // Put exception into request scope (perhaps of use to a view)
-    		    servletRequest.setAttribute(WebAttributes.ACCESS_DENIED_403, ex);
-    
+
+                // Put exception into request scope (perhaps of use to a view)
+                servletRequest.setAttribute(WebAttributes.ACCESS_DENIED_403, ex);
+
                 // Set the 403 status code.
                 servletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
-
-    		}else{
-	    		uri = DefaultPagesDefinition.getErrorUri(servletRequest, servletResponse);
-	            
-    		}
-    		try {
-                servletResponse.sendRedirect(uri);
-			} catch (IOException e) {
-				LOG.error(e.getMessage(), e);
-			}
-    		return null;
-    	}else{
-        	//To strip off the double messages generated by this...
+        		}else{
+    	    		    uri = DefaultPagesDefinition.getErrorUri(servletRequest, servletResponse);
+        		}
+        		try {
+        		    servletResponse.sendRedirect(uri);
+    			} catch (IOException e) {
+    				LOG.error(e.getMessage(), e);
+    			}
+        		return null;
+        	}else{
+        	    //To strip off the double messages generated by this...
             if(ex instanceof NestedRuntimeException)
             	ex = (Exception) ((NestedRuntimeException) ex).getMostSpecificCause();
-
-        	//If no body provided we will create one 
+    
+        	    //If no body provided we will create one 
             if(body == null)
-            	body = new GenericRestException(status, ex);
+                body = new GenericRestException(status, ex);
             
             return new ResponseEntity<Object>(body, headers, status);    		
-    	}
+        	}
     }
     
     /**
@@ -180,13 +169,14 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
      * @param request
      * @param ex
      */
-    protected void storeException(HttpServletRequest request, Exception ex){
-    	// Set Exception into Context
+    protected void storeException(HttpServletRequest request, Exception ex, HttpStatus status){
+    	    // Set Exception into Context
 		HttpSession sesh = request.getSession(false);
 		if (sesh != null)
 			sesh.setAttribute(Common.SESSION_USER_EXCEPTION, ex);
-		//Log It
-		ExceptionUtils.logWebException(ex, request, LOG);
+        //Log all but not found exceptions
+        if(!status.equals(HttpStatus.NOT_FOUND))
+            ExceptionUtils.logWebException(ex, request, LOG);
     }
     
 }

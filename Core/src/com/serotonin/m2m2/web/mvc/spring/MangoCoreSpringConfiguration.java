@@ -74,7 +74,6 @@ public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfigurat
 		return new MangoSpringExceptionHandler(browserHtmlRequestMatcher);
 	}
 	
-	
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -177,6 +178,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		converters.add(new ByteArrayHttpMessageConverter());
 		converters.add(new HtmlHttpMessageConverter());
 		converters.add(new SerotoninJsonMessageConverter());
+		converters.add(new ExceptionCsvMessageConverter());
 		
 		//Now is a good time to register our Sero Json Converter
 		Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
