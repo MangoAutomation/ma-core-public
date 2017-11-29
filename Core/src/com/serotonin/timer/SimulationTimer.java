@@ -10,17 +10,35 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The simulation timer is a single threaded timer under the temporal control of the next and fastForward methods. Tasks
- * are run in the same thread as the timer, so they will seem to complete instantly. Running them in an executor has the
- * opposite effect of making them appear to take an awful long time to complete.
+ * The simulation timer is optionally a single threaded timer under the temporal control of the next and fastForward methods. 
+ * 
+ * In single thread mode tasks are run in the same thread as the timer, so they will seem to complete instantly. 
+ * 
+ * In async mode running the tasks in an executor has the opposite effect of making them appear to take an awful long time to complete.
  * 
  * @author Matthew Lohbihler
  */
 public class SimulationTimer extends AbstractTimer {
     private final List<TimerTask> queue = new ArrayList<TimerTask>();
     private boolean cancelled;
-    private ExecutorService executorService;
+    private OrderedThreadPoolExecutor executorService;
     private SimulationTimeSource timeSource = new SimulationTimeSource();
+    private boolean async;
+    
+    /**
+     * Create 
+     */
+    public SimulationTimer() {
+        this.async = false;
+    }
+    
+    /**
+     * Optionally submit tasks to the ordered thread pool executor
+     * @param async
+     */
+    public SimulationTimer(boolean async) {
+        this.async = async;
+    }
     
     @Override
     public boolean isInitialized() {
@@ -60,13 +78,15 @@ public class SimulationTimer extends AbstractTimer {
                         updateQueue();
                     }
                 }
-                TaskWrapper wrapper = new TaskWrapper(task, task.trigger.mostRecentExecutionTime());
-                try{
-                    this.executorService.execute(wrapper);
-                }catch (RejectedExecutionException e) {
-                    this.taskRejected(timeSource.currentTimeMillis(), task, e);
-                }
-                //task.runTask(task.trigger.mostRecentExecutionTime());
+                if(async) {
+                    TaskWrapper wrapper = new TaskWrapper(task, task.trigger.mostRecentExecutionTime());
+                    try{
+                        this.executorService.execute(wrapper);
+                    }catch (RejectedExecutionException e) {
+                        this.taskRejected(timeSource.currentTimeMillis(), task, e);
+                    }
+                }else
+                    task.runTask(task.trigger.mostRecentExecutionTime());
                 
             }
         }
@@ -188,7 +208,7 @@ public class SimulationTimer extends AbstractTimer {
      */
     @Override
     public void init(ExecutorService executorService) {
-        this.executorService = executorService;
+        this.executorService = (OrderedThreadPoolExecutor)executorService;
     }
 
     /* (non-Javadoc)

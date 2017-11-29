@@ -86,7 +86,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         Common.free = false;
         
         //Startup a simulation timer provider
-        Providers.add(TimerProvider.class, new SimulationTimerProvider());
+        Providers.add(TimerProvider.class, getSimulationTimerProvider());
         
         //Make sure that Common and other classes are properly loaded
         Common.envProps = getEnvProps();
@@ -259,6 +259,10 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     public boolean isRestarting() {
 
         return false;
+    }
+    
+    protected SimulationTimerProvider getSimulationTimerProvider() {
+        return new SimulationTimerProvider();
     }
     
     protected MangoProperties getEnvProps() {
