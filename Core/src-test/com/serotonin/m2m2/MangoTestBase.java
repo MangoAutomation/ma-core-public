@@ -63,6 +63,7 @@ public class MangoTestBase {
     protected static List<Module> modules = new ArrayList<>();
     
     protected SimulationTimer timer;
+    protected long testTime = 0l; //time during test
 
     protected boolean enableH2Web;
     protected int h2WebPort;
@@ -102,18 +103,20 @@ public class MangoTestBase {
 	
 	@Before
 	public void before() {
-	    //So it only happens once per class
+	    //So it only happens once per class for now (problems with restarting lifecycle during a running JVM)
 	    if(lifecycle == null) {
     	        lifecycle = getLifecycle();
             lifecycle.initialize();
 	    }
 	    
 	    SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
-	    this.timer = provider.reset();
+	    this.timer = provider.getSimulationTimer();
 	}
 	
 	@After
 	public void after() {
+        SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
+        provider.reset();
         Common.runtimeManager.terminate();
         Common.runtimeManager.joinTermination();
 	    H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
@@ -206,6 +209,43 @@ public class MangoTestBase {
                }
             }
         }
+    }
+    
+    /**
+     * Fast Forward the Simulation Timer in a separate thread and wait
+     * for some time.
+     * 
+     * Useful when you have scheduled tasks that do not end, the sim timer
+     * won't stop fast forwarding.
+     * 
+     * @param until
+     * @param step
+     */
+    protected void waitAndExecute(final long until, final long step) {
+        //TODO Could wait until sync completed event is fired here by creating a mock event handler
+        //TODO Could add fastForwardToInOtherThread method to timer...
+        new Thread() {
+            /* (non-Javadoc)
+             * @see java.lang.Thread#run()
+             */
+            @Override
+            public void run() {
+                long time = timer.currentTimeMillis();
+                while(timer.currentTimeMillis() < until) {
+                    time = time + step;
+                    timer.fastForwardTo(time);
+                }
+            }
+        }.start();
+
+        
+        while(timer.currentTimeMillis() < until) {
+             try {
+                 Thread.sleep(100);
+             } catch (InterruptedException e) {
+                 fail(e.getMessage());
+             }
+         }
     }
     
     /**

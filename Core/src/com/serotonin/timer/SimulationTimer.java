@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -59,8 +60,13 @@ public class SimulationTimer extends AbstractTimer {
                         updateQueue();
                     }
                 }
-
-                task.runTask(task.trigger.mostRecentExecutionTime());
+                TaskWrapper wrapper = new TaskWrapper(task, task.trigger.mostRecentExecutionTime());
+                try{
+                    this.executorService.execute(wrapper);
+                }catch (RejectedExecutionException e) {
+                    this.taskRejected(timeSource.currentTimeMillis(), task, e);
+                }
+                //task.runTask(task.trigger.mostRecentExecutionTime());
                 
             }
         }
@@ -105,6 +111,17 @@ public class SimulationTimer extends AbstractTimer {
         });
     }
 
+    /**
+     * Clear tasks, set time to 0l
+     * @return
+     */
+    public List<TimerTask> reset() {
+        List<TimerTask> tasks = getTasks();
+        queue.clear();
+        timeSource.setTime(0l);
+        return tasks;
+    }    
+    
     @Override
     public List<TimerTask> cancel() {
         cancelled = true;
@@ -196,5 +213,14 @@ public class SimulationTimer extends AbstractTimer {
     @Override
     public TimeSource getTimeSource() {
         return timeSource;
+    }
+    
+    /**
+     * Override as necessary
+     * @param task
+     * @param e
+     */
+    void taskRejected(long executionTime, TimerTask task, RejectedExecutionException e) {
+        task.rejected(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, executionTime, task, this.executorService));
     }
 }

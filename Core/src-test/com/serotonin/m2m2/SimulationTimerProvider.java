@@ -4,9 +4,12 @@
  */
 package com.serotonin.m2m2;
 
+import java.util.List;
+
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.SimulationTimer;
+import com.serotonin.timer.TimerTask;
 
 /**
  * Timer Provider to use in testing.  Just create timer and fast forward though
@@ -41,12 +44,8 @@ public class SimulationTimerProvider  implements TimerProvider<AbstractTimer> {
         Common.timer = timer;
     }
     
-    public SimulationTimer reset() {
-        this.timer.cancel();
-        this.timer = new SimulationTimer();
-        this.timer.init();
-        Common.timer = this.timer;
-        return this.timer;
+    public List<TimerTask> reset() {
+        return this.timer.reset();
     }
     /* (non-Javadoc)
      * @see com.serotonin.provider.TimerProvider#getTimer()
