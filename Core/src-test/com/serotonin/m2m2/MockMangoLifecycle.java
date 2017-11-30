@@ -37,6 +37,7 @@ import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoProperties;
 
 /**
@@ -257,11 +258,10 @@ public class MockMangoLifecycle implements IMangoLifecycle{
      */
     @Override
     public boolean isRestarting() {
-
         return false;
     }
     
-    protected SimulationTimerProvider getSimulationTimerProvider() {
+    protected TimerProvider<AbstractTimer>  getSimulationTimerProvider() {
         return new SimulationTimerProvider();
     }
     
