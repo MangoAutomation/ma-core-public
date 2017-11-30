@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
@@ -149,6 +150,13 @@ public class PointValueFacade {
             public void lastValue(PointValueTime value, int index) throws IOException {
                 if(insertFinal)
                     values.add(value);
+            }
+            /* (non-Javadoc)
+             * @see com.infiniteautomation.mango.db.query.PVTQueryCallback#cancelled(java.io.IOException)
+             */
+            @Override
+            public void cancelled(IOException e) {
+                throw new ShouldNeverHappenException(e);
             }
             
         });

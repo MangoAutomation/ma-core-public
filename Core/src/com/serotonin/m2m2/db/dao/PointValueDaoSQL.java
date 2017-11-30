@@ -588,6 +588,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }
                 }catch(IOException e) {
                     ps.cancel();
+                    callback.cancelled(e);
                 }finally {
                     JdbcUtils.closeResultSet(rs);
                 }
@@ -662,6 +663,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }
                 }catch(IOException e) {
                     ps.cancel();
+                    callback.cancelled(e);
                 }finally {
                     JdbcUtils.closeResultSet(rs);
                 }
@@ -701,7 +703,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             + "  left join pointValueAnnotations pva on pv.id = pva.pointValueId";
 
     @Override
-    public void wideBookendQuery(int pointId, long from, long to, Integer limit, BookendQueryCallback<PointValueTime> callback) {
+    public void wideBookendQuery(int pointId, long from, long to, Integer limit, BookendQueryCallback<PointValueTime> callback){
         //TODO Improve performance by using one statement
         //TODO Use a statement and catch exception to cancel it
         //TODO Use a result set to call postQuery so you can know it is the last result
@@ -792,6 +794,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }catch(IOException e) {
                     //Cancel if we have a problem
                     ps.cancel();
+                    callback.cancelled(e);
                 }finally {
                     JdbcUtils.closeResultSet(rs);
                 }
@@ -801,7 +804,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
     
     @Override
-    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback) {
+    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback){
         //TODO Improve performance by using one statement
         final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
         ejt.execute(new PreparedStatementCreator() {
@@ -942,6 +945,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }catch(IOException e) {
                     //Cancel if we have a problem
                     ps.cancel();
+                    callback.cancelled(e);
                 }finally {
                     JdbcUtils.closeResultSet(rs);
                 }
