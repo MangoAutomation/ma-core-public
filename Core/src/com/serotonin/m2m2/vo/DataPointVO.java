@@ -274,6 +274,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void withDataSource(DataSourceVO<?> dataSource) {
         this.dataSourceId = dataSource.getId();
         this.dataSourceName = dataSource.getName();
+        this.dataSourceXid = dataSource.getXid();
         this.dataSourceTypeName = dataSource.getDefinition().getDataSourceTypeName();
         
         if (this.xid == null || this.xid.isEmpty()) {
