@@ -183,45 +183,45 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 */
 	public void execute(TaskWrapper worker) {
 
-		//No ordering ie, the ID is null
-		if(worker.task.id == null){
-			execute((Runnable)worker);
-			return;
-		}
-		
+        // No ordering ie, the ID is null
+        if (worker.task.id == null) {
+            execute((Runnable) worker);
+            return;
+        }
+
         boolean first;
         OrderedTaskCollection wrappedTask;
         LimitedTaskQueue dependencyQueue = null;
-        
-        synchronized (keyedTasks){
-        	dependencyQueue = keyedTasks.get(worker.task.id);
+
+        synchronized (keyedTasks) {
+            dependencyQueue = keyedTasks.get(worker.task.id);
             first = (dependencyQueue == null);
-            if (dependencyQueue == null){
-            	OrderedTaskInfo info = new OrderedTaskInfo(worker.task);
-            	if(flushFullQueue)
-            		dependencyQueue = new TimePriorityLimitedTaskQueue(info);
-            	else
-            		dependencyQueue = new LimitedTaskQueue(info);
+            if (dependencyQueue == null) {
+                OrderedTaskInfo info = new OrderedTaskInfo(worker.task);
+                if (flushFullQueue)
+                    dependencyQueue = new TimePriorityLimitedTaskQueue(info);
+                else
+                    dependencyQueue = new LimitedTaskQueue(info);
                 keyedTasks.put(worker.task.id, dependencyQueue);
             }
 
             wrappedTask = wrap(worker, dependencyQueue);
-            //Either add or reject 
-            if(!first)
-            	if(!dependencyQueue.add(wrappedTask, this))
-            		return; //Was rejected so nothing to do
+            // Either add or reject
+            if (!first)
+                if (!dependencyQueue.add(wrappedTask, this))
+                    return; // Was rejected so nothing to do
         }
 
         // execute and reject methods can block, call them outside synchronize block
-        if (first){
+        if (first) {
             execute(wrappedTask);
-	        // process rejected tasks if we are the first task as 
-        	// we have processed/rejected all dependent tasks 
+            // process rejected tasks if we are the first task as
+            // we have processed/rejected all dependent tasks
             OrderedTaskCollection t = dependencyQueue.getRejectedTasks().poll();
-	    	while(t != null){
-	    		t.rejected(this);
-	    		t = dependencyQueue.getRejectedTasks().poll();
-	    	}
+            while (t != null) {
+                t.rejected(this);
+                t = dependencyQueue.getRejectedTasks().poll();
+            }
         }
     }
 
@@ -240,7 +240,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 				if (t.dependencyQueue.isEmpty()){
                     keyedTasks.remove(t.wrapper.task.id);
                 }else{
-                	//Could be trouble, but let it fail if it must
+                    //Could be trouble, but let it fail if it must
                     execute(t.dependencyQueue.poll());
                 }
 			}
@@ -268,9 +268,9 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @param taskId
 	 */
 	public void updateDefaultQueueSize(int newSize, String taskId){
-		LimitedTaskQueue dependencyQueue = keyedTasks.get(taskId);
-        if (dependencyQueue != null){
-        	dependencyQueue.setLimit(newSize);
+        LimitedTaskQueue dependencyQueue = keyedTasks.get(taskId);
+        if (dependencyQueue != null) {
+            dependencyQueue.setLimit(newSize);
         }
 	}
 	
@@ -309,45 +309,47 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
         @Override
         public void run() {
-        	long start = timer.currentTimeMillis();
-            try{
-            	this.wrapper.run();
+            long start = timer.currentTimeMillis();
+            try {
+                this.wrapper.run();
             } finally {
+                // TODO Review this as it may be possible to remove a non-empty queue, need to
+                // synchronize on keyedTasks...
                 Runnable nextTask = null;
-                if (this.dependencyQueue.isEmpty()){
-                	//Remove the Collection
-                	synchronized (keyedTasks){
-                    	keyedTasks.remove(wrapper.task.id);
+                if (this.dependencyQueue.isEmpty()) {
+                    // Remove the Collection
+                    synchronized (keyedTasks) {
+                        keyedTasks.remove(wrapper.task.id);
                     }
-            	}else{
-            		//Have something in our queue, process it now
+                } else {
+                    // Have something in our queue, process it now
                     nextTask = this.dependencyQueue.poll();
                 }
                 // Update our task info
                 this.dependencyQueue.info.addExecutionTime(timer.currentTimeMillis() - start);
                 this.dependencyQueue.info.updateCurrentQueueSize(this.dependencyQueue.size());
-                if (nextTask!=null){
+                if (nextTask != null) {
                     execute(nextTask);
                 }
             }
         }
         
         public void setRejectedReason(int reason){
-        	this.rejectedReason = reason;
+            this.rejectedReason = reason;
         }
         
         public void rejected(Executor e){
-        	this.dependencyQueue.info.rejections++;
-        	this.wrapper.task.rejected(new RejectedTaskReason(this.rejectedReason, wrapper.executionTime, wrapper.task, e));
+            this.dependencyQueue.info.rejections++;
+            this.wrapper.task.rejected(new RejectedTaskReason(this.rejectedReason, wrapper.executionTime, wrapper.task, e));
         }
         
         @Override
         public String toString(){
-        	return this.wrapper.task.toString();
+            return this.wrapper.task.toString();
         }
         
         public TaskWrapper getWrapper(){
-        	return this.wrapper;
+            return this.wrapper;
         }
     }
     
