@@ -111,7 +111,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	@Override
     protected List<JoinClause> getJoins() {
         List<JoinClause> joins = new ArrayList<JoinClause>();
-        joins.add(new JoinClause(JOIN, SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE, "ehm", "ehm.eventHandlerId=eh.id"));
+        joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE, "ehm", "ehm.eventHandlerId=eh.id"));
         return joins;
     }
 

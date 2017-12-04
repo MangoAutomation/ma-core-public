@@ -377,11 +377,15 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         }
         writer.writeEntry("additionalContext", context);
         
-        JsonObject permissions = new JsonObject();
-        permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
-        permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
-        permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
-        writer.writeEntry("scriptPermissions", permissions);
+        if(scriptPermissions != null) {
+            JsonObject permissions = new JsonObject();
+            permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
+            permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
+            permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
+            writer.writeEntry("scriptPermissions", permissions);
+        } else {
+            writer.writeEntry("scriptPermissions", null);
+        }
     }
     
     @Override
