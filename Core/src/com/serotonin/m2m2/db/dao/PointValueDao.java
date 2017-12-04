@@ -182,29 +182,6 @@ public interface PointValueDao {
      *   callback.postQuery with either the value exactly at to or the value
      *    before to with to as the timestamp (can be null if nothing at or before to) 
      * 
-     * @param pointId
-     *            the target data point
-     * @param from
-     *            the timestamp from which to query (inclusive)
-     * @param to
-     *            the timestamp to which to query (exclusive)
-     * @param limit
-     *            the limit of results, null for no limit
-     * @param callback
-     *            the query callback
-     */
-    //TODO THIS METHOD MAY NOT BE NECESSARY depending on performance differences of calling wide bookend with List.size(1)
-    public void wideBookendQuery(int pointId, long from, long to, Integer limit, final BookendQueryCallback<PointValueTime> callback);
-    
-    /**
-     * Get point values >= from and < to, bookend the query by calling:
-     *   
-     *   callback.preQuery with either the value exactly at from or the value
-     *    before from with from as the timestamp (can be null if nothing at or before from)
-     *   
-     *   callback.postQuery with either the value exactly at to or the value
-     *    before to with to as the timestamp (can be null if nothing at or before to) 
-     * 
      * NOTE: The beforeQuery and afterQuery methods are called once for every data point ID 
      *      
      * @param pointIds

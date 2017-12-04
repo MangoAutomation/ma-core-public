@@ -133,21 +133,23 @@ public class PointValueFacade {
      */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> values = new ArrayList<>();
-        pointValueDao.wideBookendQuery(dataPointId, from, to, null, new BookendQueryCallback<PointValueTime>() {
+        List<Integer> ids = new ArrayList<>();
+        ids.add(dataPointId);
+        pointValueDao.wideBookendQuery(ids, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             @Override
-            public void firstValue(PointValueTime value, int index, boolean bookend) throws IOException {
+            public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
                 if(insertInitial)
                     values.add(value);
             }
 
             @Override
-            public void row(PointValueTime value, int index) throws IOException {
+            public void row(IdPointValueTime value, int index) throws IOException {
                 values.add(value);
             }
 
             @Override
-            public void lastValue(PointValueTime value, int index) throws IOException {
+            public void lastValue(IdPointValueTime value, int index) throws IOException {
                 if(insertFinal)
                     values.add(value);
             }
