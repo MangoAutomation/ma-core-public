@@ -25,10 +25,4 @@ public interface PVTQueryCallback<T extends PointValueTime> {
      * @throws IOException to abort query
      */
     void row(T value, int index) throws IOException;
-    
-    /**
-     * Called if something went wrong in a callback and the query was cancelled
-     * @param e
-     */
-    void cancelled(IOException e);
 }

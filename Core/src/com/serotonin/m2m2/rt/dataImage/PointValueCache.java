@@ -4,12 +4,10 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
@@ -201,32 +199,21 @@ public class PointValueCache {
                 List<PointValueTime> cc = new ArrayList<>();
                 cc.addAll(cache);
                 List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-                dao.getLatestPointValues(ids, Common.timer.currentTimeMillis() + 1, false, size,  new PVTQueryCallback<IdPointValueTime>() {
-
-                    @Override
-                    public void row(IdPointValueTime value, int index) throws IOException {
-                        
-                        //Cache is in same order as rows
-                        if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
-                            //The cached value is newer so add it
-                            while(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() > value.getTime())
-                                nc.add(cc.remove(0));
-                            if(cc.size() > 0 && cc.get(0).getTime() == value.getTime())
-                                cc.remove(0);
-                            if(nc.size() < size)
-                                nc.add(value);
-                        }else {
-                            //Past cached value times
-                            if(nc.size() < size)
-                                nc.add(value);
-                        }
+                dao.getLatestPointValues(ids, Common.timer.currentTimeMillis() + 1, false, size, (value, index) -> {
+                    //Cache is in same order as rows
+                    if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
+                        //The cached value is newer so add it
+                        while(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() > value.getTime())
+                            nc.add(cc.remove(0));
+                        if(cc.size() > 0 && cc.get(0).getTime() == value.getTime())
+                            cc.remove(0);
+                        if(nc.size() < size)
+                            nc.add(value);
+                    }else {
+                        //Past cached value times
+                        if(nc.size() < size)
+                            nc.add(value);
                     }
-
-                    @Override
-                    public void cancelled(IOException e) {
-                        //No-op, won't happen
-                    }
-                    
                 });
                 cache = nc;
             }

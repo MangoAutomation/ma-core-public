@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.time.Instant;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
@@ -80,16 +79,10 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      * @see com.infiniteautomation.mango.db.query.BookendQueryCallback#lastValue(com.serotonin.m2m2.rt.dataImage.PointValueTime, int)
      */
     @Override
-    public void lastValue(IdPointValueTime value, int index) throws IOException {
+    public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+        if(!bookend)
+            row(value, index);
         done();
-    }
-
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.db.query.PVTQueryCallback#cancelled(java.io.IOException)
-     */
-    @Override
-    public void cancelled(IOException e) {
-        throw new ShouldNeverHappenException(e);
     }
     
     /**

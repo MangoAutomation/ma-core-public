@@ -35,9 +35,10 @@ public interface BookendQueryCallback<T extends PointValueTime> extends PVTQuery
      * 
      * @param value
      * @param index of current row
+     * @param bookend - true if the value is virtual i.e. added as a point to match the exact query end time
      * @throws IOException to abort query
      */
-    default void lastValue(T value, int index) throws IOException {
+    default void lastValue(T value, int index, boolean bookend) throws IOException {
         row(value, index);
     }
     

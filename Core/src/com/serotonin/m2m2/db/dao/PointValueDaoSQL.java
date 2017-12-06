@@ -16,6 +16,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,6 +70,9 @@ import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
 public class PointValueDaoSQL extends BaseDao implements PointValueDao {
+    
+    private static final Log LOG = LogFactory.getLog(PointValueDao.class);
+    
     private static List<UnsavedPointValue> UNSAVED_POINT_VALUES = new ArrayList<UnsavedPointValue>();
 
     private static final String POINT_VALUE_INSERT_START = "insert into pointValues (dataPointId, dataType, pointValue, ts) values ";
@@ -529,6 +533,129 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 new Object[] { dataPointId, before }, limit);
     }
     
+    private List<PointValueTime> pointValuesQuery(String sql, Object[] params, int limit) {
+        return Common.databaseProxy.doLimitQuery(this, sql, params, new PointValueRowMapper(), limit);
+    }
+    
+    /**
+     * Container for Latest Single Data Point Query with/without limits
+     * 
+     * @author Terry Packer
+     */
+    class LatestSinglePointValuesPreparedStatementCreator implements PreparedStatementCreator, PreparedStatementCallback<Integer>{
+        
+        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
+
+        final List<Integer> ids;
+        final long before;
+        final Integer limit;
+        final PVTQueryCallback<IdPointValueTime> callback;
+        Integer counter;
+        
+        public LatestSinglePointValuesPreparedStatementCreator(Integer id, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, Integer counter) {
+            this.ids = new ArrayList<Integer>();
+            this.ids.add(id);
+            this.before = before;
+            this.limit = limit;
+            this.callback = callback;
+            this.counter = counter;
+        }
+        
+        public LatestSinglePointValuesPreparedStatementCreator(List<Integer> ids, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, Integer counter) {
+            this.ids = ids;
+            this.before = before;
+            this.limit = limit;
+            this.callback = callback;
+            this.counter = counter;
+        }
+        
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con)
+                throws SQLException {
+            if(ids.size() != 1)
+                throw new RuntimeException("Wrong base query.");
+            
+            List<Object> args = new ArrayList<>();
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts < ? order by pv.ts desc";
+            args.add(ids.get(0));
+            args.add(before);
+           
+            if(limit != null) {
+                sql += " limit ?";
+                args.add(limit);
+            }
+            
+            PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+            setter.setValues(stmt);
+            return stmt;
+        }
+        
+        @Override
+        public Integer doInPreparedStatement(PreparedStatement ps)
+                throws SQLException, DataAccessException {
+            ResultSet rs = null;
+            try {
+                ps.execute();
+                rs = ps.getResultSet();
+                while(rs.next()) {
+                    IdPointValueTime value = mapper.mapRow(rs, counter);
+                    callback.row(value, counter);
+                    counter++;
+                }
+            }catch(IOException e) {
+                LOG.warn("Cancelling Latest Point Value Query.", e);
+                ps.cancel();
+            }finally {
+                JdbcUtils.closeResultSet(rs);
+            }
+            return counter;
+        }
+        
+        public Integer getCounter() {
+            return counter;
+        }
+    }
+    
+    /**
+     * Query for the latest values for many data points in time descending order with an optional limit, 
+     * the limit is applied to the query such that you may not get data for all points
+     *
+     * @author Terry Packer
+     */
+    class LatestMultiplePointsValuesPreparedStatementCreator extends LatestSinglePointValuesPreparedStatementCreator{
+        
+        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
+        
+        public LatestMultiplePointsValuesPreparedStatementCreator(List<Integer> ids, long before,
+                Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
+            super(ids, before, limit, callback, new Integer(0));
+        }
+        
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con)
+                throws SQLException {
+            
+            if(ids.size() == 1)
+                return super.createPreparedStatement(con);
+            
+            List<Object> args = new ArrayList<>();
+            String dataPointIds = createDelimitedList(ids, ",", null);
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") and pv.ts < ? order by pv.ts desc";
+            args.add(before);
+            
+            if(limit != null) {
+                sql += " limit ?";
+                args.add(limit);
+            }
+            
+            PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+            setter.setValues(stmt);
+            return stmt;
+        }
+    }
+    
     /*
      * (non-Javadoc)
      * @see com.serotonin.m2m2.db.dao.PointValueDao#getLatestPointValues(java.util.List, long, boolean, java.lang.Integer, com.infiniteautomation.mango.db.query.PVTQueryCallback)
@@ -537,68 +664,19 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public void getLatestPointValues(List<Integer> ids, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback){
         if(ids.size() == 0)
             return;
-        
-        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
-        ejt.execute(new PreparedStatementCreator() {
-
-            @Override
-            public PreparedStatement createPreparedStatement(Connection con)
-                    throws SQLException {
-                List<Object> args = new ArrayList<>();
-                String sql;
-                
-                if(ids.size() > 1) {
-                    String dataPointIds = createDelimitedList(ids, ",", null);
-                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") and pv.ts < ? ";
-                }else {
-                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts < ? ";
-                    args.add(ids.get(0));
-                }
-                args.add(before);
-                if(orderById) {
-                    sql += " order by pv.dataPointId asc , pv.ts desc";
-                }else {
-                    sql += " order by pv.ts desc";
-                }
-                
-                if(limit != null) {
-                    sql += " limit ?";
-                    args.add(limit);
-                }
-                
-                PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
-                setter.setValues(stmt);
-                return stmt;
-            }}, new PreparedStatementCallback<Integer>() {
-
-            @Override
-            public Integer doInPreparedStatement(PreparedStatement ps)
-                    throws SQLException, DataAccessException {
-                
-                int count = 0;
-                ResultSet rs = null;
-                try {
-                    ps.execute();
-                    rs = ps.getResultSet();
-                    while(rs.next()) {
-                        IdPointValueTime value = mapper.mapRow(rs, count);
-                        callback.row(value, count);
-                        count++;
-                    }
-                }catch(IOException e) {
-                    ps.cancel();
-                    callback.cancelled(e);
-                }finally {
-                    JdbcUtils.closeResultSet(rs);
-                }
-                return count;
+        if(orderById) {
+            //Limit results of each data point to size limit, i.e. loop over all points and query with limit
+            Integer counter = new Integer(0);
+            for(Integer id: ids) {
+                LatestSinglePointValuesPreparedStatementCreator c = new LatestSinglePointValuesPreparedStatementCreator(
+                        id, before, limit, callback, counter);
+                ejt.execute(c,c);
             }
-        });
-    }
-
-    private List<PointValueTime> pointValuesQuery(String sql, Object[] params, int limit) {
-        return Common.databaseProxy.doLimitQuery(this, sql, params, new PointValueRowMapper(), limit);
+        }else {
+            //Limit total results to limit
+            LatestMultiplePointsValuesPreparedStatementCreator lmpvpsc = new LatestMultiplePointsValuesPreparedStatementCreator(ids, before, limit, callback);
+            ejt.execute(lmpvpsc, lmpvpsc);
+        }        
     }
 
     //
@@ -611,65 +689,140 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 dataPointId, from, to }, new PointValueRowMapper(), callback);
     }
     
+    /**
+     * Single point value time range logic
+     *
+     * @author Terry Packer
+     */
+    class TimeRangeSinglePointValuesPreparedStatementCreator<T extends PVTQueryCallback<IdPointValueTime>> implements PreparedStatementCreator, PreparedStatementCallback<Integer>{
+        
+        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
+        
+        final List<Integer> ids;
+        final long from;
+        final long to;
+        final Integer limit;
+        final T callback;
+        Integer counter;
+        
+        public TimeRangeSinglePointValuesPreparedStatementCreator(Integer id, long from, long to, Integer limit, T callback, Integer counter) {
+            this.ids = new ArrayList<>();
+            this.ids.add(id);
+            this.from = from;
+            this.to = to;
+            this.limit = limit;
+            this.callback = callback;
+            this.counter = counter;
+        }
+        
+        public TimeRangeSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to, Integer limit, T callback, Integer counter) {
+            this.ids = ids;
+            this.from = from;
+            this.to = to;
+            this.limit = limit;
+            this.callback = callback;
+            this.counter = counter;
+        }
+        
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con)
+                throws SQLException {
+            if(ids.size() != 1)
+                throw new RuntimeException("Wrong base query.");
+            
+            List<Object> args = new ArrayList<>();
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts >= ? and pv.ts<? order by pv.ts asc";
+            args.add(ids.get(0));
+            args.add(from);
+            args.add(to);
+            if(limit != null) {
+                sql += " limit ?";
+                args.add(limit);
+            }
+            
+            PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+            setter.setValues(stmt);
+            return stmt;
+        }
+        
+        @Override
+        public Integer doInPreparedStatement(PreparedStatement ps)
+                throws SQLException, DataAccessException {
+            ResultSet rs = null;
+            try {
+                ps.execute();
+                rs = ps.getResultSet();
+                while(rs.next()) {
+                    IdPointValueTime value = mapper.mapRow(rs, counter);
+                    callback.row(value, counter);
+                    counter++;
+                }
+            }catch(IOException e) {
+                LOG.warn("Cancelling Time Range Point Value Query.", e);
+                ps.cancel();
+            }finally {
+                JdbcUtils.closeResultSet(rs);
+            }
+            return counter;
+        }
+    }
+    
+    /**
+     * Query multiple points over a range
+     *
+     * @author Terry Packer
+     */
+    class TimeRangeMultiplePointsValuesPreparedStatementCreator<T extends PVTQueryCallback<IdPointValueTime>> extends TimeRangeSinglePointValuesPreparedStatementCreator<T> {
+
+        public TimeRangeMultiplePointsValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
+                Integer limit, T callback) {
+            super(ids, from, to, limit, callback, new Integer(0));
+        }
+        
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con)
+                throws SQLException {
+            
+            if(ids.size() == 1)
+                return super.createPreparedStatement(con);
+            
+            List<Object> args = new ArrayList<>();
+            String dataPointIds = createDelimitedList(ids, ",", null);
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " WHERE pv.dataPointId in (" + dataPointIds + ") AND pv.ts >= ? AND pv.ts<? ORDER BY pv.ts ASC";
+            args.add(from);
+            args.add(to);
+            
+            if(limit != null) {
+                sql += " limit ?";
+                args.add(limit);
+            }
+            
+            PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+            setter.setValues(stmt);
+            return stmt;
+        }
+    }
+    
     @Override
     public void getPointValuesBetween(List<Integer> ids, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
-        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
-        ejt.execute(new PreparedStatementCreator() {
-
-            @Override
-            public PreparedStatement createPreparedStatement(Connection con)
-                    throws SQLException {
-                List<Object> args = new ArrayList<>();
-                String sql;
-                
-                if(ids.size() > 1) {
-                    String dataPointIds = createDelimitedList(ids, ",", null);
-                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") pv.ts >= ? and pv.ts<? ";
-                }else {
-                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts >= ? and pv.ts<? ";
-                    args.add(ids.get(0));
-                }
-                args.add(from);
-                args.add(to);
-                if(orderById) {
-                    sql += " order by pv.dataPointId asc , pv.ts asc";
-                }else {
-                    sql += " order by pv.ts asc";
-                }
-                if(limit != null) {
-                    sql += " limit ?";
-                    args.add(limit);
-                }
-                
-                PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
-                setter.setValues(stmt);
-                return stmt;
-            }}, new PreparedStatementCallback<Integer>() {
-
-            @Override
-            public Integer doInPreparedStatement(PreparedStatement ps)
-                    throws SQLException, DataAccessException {
-                
-                int count = 0;
-                ResultSet rs = null;
-                try {
-                    ps.execute();
-                    rs = ps.getResultSet();
-                    while(rs.next()) {
-                        IdPointValueTime value = mapper.mapRow(rs, count);
-                        callback.row(value, count);
-                        count++;
-                    }
-                }catch(IOException e) {
-                    ps.cancel();
-                    callback.cancelled(e);
-                }finally {
-                    JdbcUtils.closeResultSet(rs);
-                }
-                return count;
+        if(ids.size() == 0)
+            return;
+        if(orderById) {
+            //Limit results of each data point to size limit, i.e. loop over all points and query with limit
+            Integer counter = new Integer(0);
+            for(Integer id: ids) {
+                TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>> c = 
+                        new TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(id, from, to, limit, callback, counter);
+                ejt.execute(c,c);
             }
-        });
+        }else {
+            //Limit total results to limit
+            TimeRangeMultiplePointsValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>> c = 
+                    new TimeRangeMultiplePointsValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(ids, from, to, limit, callback);
+            ejt.execute(c, c);
+        }  
     }
 
 	/* (non-Javadoc)
@@ -702,155 +855,192 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             + "from pointValues pv "
             + "  left join pointValueAnnotations pva on pv.id = pva.pointValueId";
 
-    @Override
-    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback){
-        //TODO Improve performance by using one statement
-        final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
-        ejt.execute(new PreparedStatementCreator() {
 
-            @Override
-            public PreparedStatement createPreparedStatement(Connection con)
-                    throws SQLException {
-                List<Object> args = new ArrayList<>();
-                String sql;
-                if(ids.size() > 1) {
-                    String dataPointIds = createDelimitedList(ids, ",", null);
-                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") and pv.ts >= ? and pv.ts<? ";
-                }else {
-                    sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts >= ? and pv.ts<? ";
-                    args.add(ids.get(0));
-                }
-                args.add(from);
-                args.add(to);
-                if(orderById) {
-                    sql += " order by dataPointId, ts";
-                }else {
-                    sql += " order by ts";
-                }
+    /**
+     * Process a cancellable bookend time range query
+     *
+     * @author Terry Packer
+     */
+    class BookendSinglePointValuesPreparedStatementCreator extends TimeRangeSinglePointValuesPreparedStatementCreator<BookendQueryCallback<IdPointValueTime>> {
+        
+        //Single Value Queue for writing values in order
+        protected final Map<Integer, IdPointValueTime> values;
+        //Track what points have have the firstValue logic processed
+        protected final Map<Integer, Boolean> processedFirstMap;
+        
+        public BookendSinglePointValuesPreparedStatementCreator(Integer id, long from, long to,
+                Integer limit, BookendQueryCallback<IdPointValueTime> callback, Integer counter) {
+            super(id, from, to, limit, callback, counter);
+            this.values = new HashMap<>(1);
+            this.processedFirstMap = new HashMap<>(1);
+        }
+        
+        public BookendSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
+                Integer limit, BookendQueryCallback<IdPointValueTime> callback, Integer counter) {
+            super(ids, from, to, limit, callback, counter);
+            this.values = new HashMap<>(ids.size());
+            this.processedFirstMap = new HashMap<>(ids.size());
+        }
+        
+        @Override
+        public Integer doInPreparedStatement(PreparedStatement ps)
+                throws SQLException, DataAccessException {
+            ResultSet rs = null;
+            try {
+                ps.execute();
+                rs = ps.getResultSet();
                 
-                if(limit != null) {
-                    sql += " limit ?";
-                    args.add(limit);
-                }
-                PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
-                setter.setValues(stmt);
-                return stmt;
-            }}, new PreparedStatementCallback<Integer>() {
-
-            @Override
-            public Integer doInPreparedStatement(PreparedStatement ps)
-                    throws SQLException, DataAccessException {
-                int count = 0;
-                Map<Integer, IdPointValueTime> valueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
-                Map<Integer, IdPointValueTime> prevValueMap = new HashMap<Integer, IdPointValueTime>(ids.size());
-                ResultSet rs = null;
-                try {
-                    int currentId = -1; //To Track Id sorted queries
-                    boolean skipLast = false;
-                    ps.execute();
-                    rs = ps.getResultSet();
-                    if(rs.next()) {
-                        do {
-                            IdPointValueTime current = mapper.mapRow(rs, count);
-                            IdPointValueTime last = valueMap.get(current.getId());
-                            
-                            //So we can post query before we start the next point if we are ordering by ID
-                            if(orderById && currentId != -1 && currentId != current.getId()) {
-                                IdPointValueTime pvt = valueMap.remove(currentId);
-                                if(pvt != null) {
-                                    callback.row(pvt, count);
-                                    if(pvt.isAnnotated())
-                                        callback.lastValue(new AnnotatedIdPointValueTime(pvt.getId(), pvt.getValue(), to, ((AnnotatedIdPointValueTime)pvt).getSourceMessage()), count);
-                                    else
-                                        callback.lastValue(new IdPointValueTime(pvt.getId(), pvt.getValue(), to), count);
+                //Process the data in time order, saving the current value for use in the lastValue callback at the end.
+                while(rs.next()) {
+                    IdPointValueTime current = mapper.mapRow(rs, counter);
+                    IdPointValueTime last = values.put(current.getId(), current);
+                    if(null == processedFirstMap.put(current.getId(), Boolean.TRUE)) {
+                        //Do first value logic
+                        if(current.getTime() != from) {
+                            PointValueTime before = getPointValueBefore(current.getId(), from);
+                            if(before != null) {
+                                if(before.isAnnotated()) {
+                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), before.getValue(), from, ((AnnotatedPointValueTime)before).getSourceMessage()), counter, true);
                                 }else {
-                                    //No further data besides preValue
-                                    IdPointValueTime prev = prevValueMap.get(currentId);
-                                    if(prev != null)
-                                        callback.lastValue(prev, count);
+                                    callback.firstValue(new IdPointValueTime(current.getId(), before.getValue(), from), counter, true);
                                 }
-                            }
-                            currentId = current.getId();                                
-                            valueMap.put(current.getId(), current);
-                            if(last == null) {
-                                //Perform pre query logic
-                                if(current.getTime() != from) {
-                                    PointValueTime before = getPointValueBefore(current.getId(), from);
-                                    if(before != null) {
-                                        if(before.isAnnotated()) {
-                                            callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), before.getValue(), from, ((AnnotatedPointValueTime)before).getSourceMessage()), count, true);
-                                        }else {
-                                            callback.firstValue(new IdPointValueTime(current.getId(), before.getValue(), from), count, true);
-                                        }
-                                    }else {
-                                        if(current.isAnnotated())
-                                            callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, ((AnnotatedIdPointValueTime)current).getSourceMessage()), count, true);
-                                        else
-                                            callback.firstValue(new IdPointValueTime(current.getId(), current.getValue(), from), count, true);
-                                    }
-                                }else {
-                                    callback.firstValue(current, count, false);
-                                    skipLast = true;
-                                }
-                            }else if(!skipLast){
-                                //In the query
-                                callback.row(last, count);
-                                prevValueMap.put(last.getId(), last);
                             }else {
-                                skipLast = false;
-                            }
-                            count++;
-                        }while(rs.next());
-                        
-                        //Flush the values in the map for the past
-                        for(Entry<Integer, IdPointValueTime> entry : valueMap.entrySet()) {
-                            IdPointValueTime last = entry.getValue();
-                            if(last != null) {
-                                callback.row(last, count);
-                                if(last.isAnnotated())
-                                    callback.lastValue(new AnnotatedIdPointValueTime(last.getId(), last.getValue(), to, ((AnnotatedIdPointValueTime)last).getSourceMessage()), count);
+                                if(current.isAnnotated())
+                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, ((AnnotatedIdPointValueTime)current).getSourceMessage()), counter, true);
                                 else
-                                    callback.lastValue(new IdPointValueTime(last.getId(), last.getValue(), to), count);
-                            }else {
-                                //No further data besides preValue
-                                IdPointValueTime prev = prevValueMap.get(entry.getKey());
-                                if(prev != null)
-                                    callback.lastValue(prev, count);
+                                    callback.firstValue(new IdPointValueTime(current.getId(), current.getValue(), from), counter, true);
                             }
-                            count++;
-                        }
-                    }else {
-                        //No data
-                        for(Integer id : ids) {
-                            //TODO performance improvement to query with our row mapper here
-                            final PointValueTime prevValue = getPointValueBefore(id, from);
-                            if(prevValue != null) {
-                                if(prevValue.isAnnotated()) {
-                                    AnnotatedIdPointValueTime pre = new AnnotatedIdPointValueTime(id, prevValue.getValue(), from, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
-                                    callback.firstValue(pre, count, true);
-                                    AnnotatedIdPointValueTime post = new AnnotatedIdPointValueTime(id, prevValue.getValue(), to, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
-                                    callback.lastValue(post, count);
-                                }else {
-                                    IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
-                                    callback.firstValue(pre, count, true);
-                                    IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
-                                    callback.lastValue(post, count);
-                                }
-                            }
+                        }else {
+                            //Send the start value since it's time == from
+                            callback.firstValue(current, counter++, false);
                         }
                     }
-                
-                }catch(IOException e) {
-                    //Cancel if we have a problem
-                    ps.cancel();
-                    callback.cancelled(e);
-                }finally {
-                    JdbcUtils.closeResultSet(rs);
+                    //Send out as normal row and potentially flush anything before my time of now
+                    if(last != null) {
+                        List<IdPointValueTime> valuesToSend = new ArrayList<>();
+                        Iterator<Integer> it = values.keySet().iterator();
+                        while(it.hasNext()){
+                            IdPointValueTime pvt = values.get(it.next());
+                            if(pvt.getTime() <= last.getTime()) {
+                                valuesToSend.add(pvt);
+                                it.remove();
+                            }
+                        }
+                        if(valuesToSend.size() > 0) {
+                            Collections.sort(valuesToSend);
+                            for(IdPointValueTime pvt : valuesToSend)
+                                callback.row(pvt, counter++);
+                        }
+                        callback.row(last, counter++);
+                    }
                 }
                 
-                return count;
-            }});
+                //Do final value logic
+                for(Integer id: ids) {
+                    IdPointValueTime current = values.get(id);
+                    if(current == null) {
+                        //No data in range, generate both bookends if there is a value before
+                        final PointValueTime prevValue = getPointValueBefore(id, from);
+                        if(prevValue != null) {
+                            if(prevValue.isAnnotated()) {
+                                AnnotatedIdPointValueTime pre = new AnnotatedIdPointValueTime(id, prevValue.getValue(), from, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
+                                callback.firstValue(pre, counter, true);
+                                AnnotatedIdPointValueTime post = new AnnotatedIdPointValueTime(id, prevValue.getValue(), to, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
+                                callback.lastValue(post, counter, true);
+                            }else {
+                                IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
+                                callback.firstValue(pre, counter, true);
+                                IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
+                                callback.lastValue(post, counter, true);
+                            }
+                        }
+                    }else {
+                        //Had data, write out as last value, possibly as a bookend
+                        if(limit == null || counter < limit - values.size()) {
+                            if(current.getTime() != to) {
+                                //Send out this value as a row, then bookend it
+                                callback.row(current, counter++);
+                                IdPointValueTime post;
+                                if(current.isAnnotated()) {
+                                    post = new AnnotatedIdPointValueTime(id, current.getValue(), to, ((AnnotatedIdPointValueTime) current).getSourceMessage());
+                                }else {
+                                    post = new IdPointValueTime(id, current.getValue(), to);
+                                }
+                                callback.lastValue(post, counter, true);
+                            }else {
+                                callback.lastValue(current, counter++, false);
+                            }
+                        }else {
+                            callback.lastValue(current, counter++, false);
+                        }
+                        values.remove(id);
+                    }
+                }
+            }catch(IOException e) {
+                LOG.warn("Cancelling Time Range Point Value Query.", e);
+                ps.cancel();
+            }finally {
+                JdbcUtils.closeResultSet(rs);
+            }
+            return counter;
+        }
+    }
+
+    /**
+     * Bookend for mulitple points
+     *
+     * @author Terry Packer
+     */
+    class BookendMultiplePointValuesPreparedStatementCreator extends BookendSinglePointValuesPreparedStatementCreator {
+
+        public BookendMultiplePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
+                Integer limit, BookendQueryCallback<IdPointValueTime> callback) {
+            super(ids, from, to, limit, callback, new Integer(0));
+        }
+        
+        public PreparedStatement createPreparedStatement(Connection con)
+                throws SQLException {
+            
+            if(ids.size() == 1)
+                return super.createPreparedStatement(con);
+            
+            List<Object> args = new ArrayList<>();
+            String dataPointIds = createDelimitedList(ids, ",", null);
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") AND pv.ts >= ? AND pv.ts<? ORDER BY pv.ts ASC";
+            args.add(from);
+            args.add(to);
+            
+            if(limit != null) {
+                sql += " limit ?";
+                args.add(limit);
+            }
+            
+            PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+            setter.setValues(stmt);
+            return stmt;
+        }
+    }
+    
+    
+    @Override
+    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback){
+        if(ids.size() == 0)
+            return;
+        if(orderById) {
+            //Limit results of each data point to size limit, i.e. loop over all points and query with limit
+            Integer counter = new Integer(0);
+            for(Integer id: ids) {
+                BookendSinglePointValuesPreparedStatementCreator c = 
+                        new BookendSinglePointValuesPreparedStatementCreator(id, from, to, limit, callback, counter);
+                ejt.execute(c,c);
+            }
+        }else {
+            //Limit total results to limit
+            BookendMultiplePointValuesPreparedStatementCreator c = 
+                    new BookendMultiplePointValuesPreparedStatementCreator(ids, from, to, limit, callback);
+            ejt.execute(c, c);
+        }     
     }
     
     class PointValueRowMapper implements RowMapper<PointValueTime> {
@@ -868,64 +1058,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             return new AnnotatedPointValueTime(value, time, sourceMessage);
         }
     }
-
-    /*
-     * Queries for Point Values with Ids
-     */
-    //    private static final String POINT_VALUE_ID_SELECT = //
-    //    "select pv.id, pv.dataType, pv.pointValue, pva.textPointValueShort, pva.textPointValueLong, pv.ts, pva.sourceMessage " //
-    //            + "from pointValues pv " //
-    //            + "  left join pointValueAnnotations pva on pv.id = pva.pointValueId";
-    //    
-    //    public PointValueIdTime getPointValueIdAt(int dataPointId, long time) {
-    //        return pointValueIdQuery(POINT_VALUE_ID_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { dataPointId,
-    //                time });
-    //    }
-    //    private PointValueIdTime getPointValueId(long id) {
-    //        return pointValueIdQuery(POINT_VALUE_ID_SELECT + " where pv.id=?", new Object[] { id });
-    //    }
-    //    
-    //    public List<PointValueIdTime> getPointValuesWithIdsBetween(int dataPointId, long from, long to) {
-    //        return pointValuesIdsQuery(POINT_VALUE_ID_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
-    //                new Object[] { dataPointId, from, to }, 0);
-    //    }
-    //    public void getPointValuesWithIdsBetween(int dataPointId, long from, long to, MappedRowCallback<PointValueIdTime> callback) {
-    //        query(POINT_VALUE_ID_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts", new Object[] {
-    //                dataPointId, from, to }, new PointValueIdRowMapper(), callback);
-    //    }
-    //
-    //    private List<PointValueIdTime> pointValuesIdsQuery(String sql, Object[] params, int limit) {
-    //        return Common.databaseProxy.doLimitQuery(this, sql, params, new PointValueIdRowMapper(), limit);
-    //    }
-    //    
-    //    private List<PointValueIdTime> pointValueIdsQuery(String sql, Object[] params, int limit) {
-    //        return Common.databaseProxy.doLimitQuery(this, sql, params, new PointValueIdRowMapper(), limit);
-    //    }
-    //
-    //    private PointValueIdTime pointValueIdQuery(String sql, Object[] params) {
-    //        List<PointValueIdTime> result = pointValueIdsQuery(sql, params, 1);
-    //        if (result.size() == 0)
-    //            return null;
-    //        return result.get(0);
-    //    }
-    //    
-    //    class PointValueIdRowMapper implements RowMapper<PointValueIdTime> {
-    //        @Override
-    //        public PointValueIdTime mapRow(ResultSet rs, int rowNum) throws SQLException {
-    //            int id = rs.getInt(1);
-    //        	DataValue value = createDataValue(rs, 2);
-    //        	
-    //            long time = rs.getLong(6);
-    //
-    //            TranslatableMessage sourceMessage = BaseDao.readTranslatableMessage(rs, 7);
-    //            if (sourceMessage == null)
-    //                // No annotations, just return a point value.
-    //                return new PointValueIdTime(id,value, time);
-    //
-    //            // There was a source for the point value, so return an annotated version.
-    //            return new AnnotatedPointValueIdTime(id,value, time, sourceMessage);
-    //        }
-    //    }
 
     DataValue createDataValue(ResultSet rs, int firstParameter) throws SQLException {
         int dataType = rs.getInt(firstParameter);
