@@ -87,9 +87,10 @@ public interface PointValueDao {
     /**
      * Get point values < before in reverse time order
      * @param ids - one or many data point ids
-     * @param limit - null for no limit entire series in reverse order
+     * @param limit - null for no limit entire series in reverse order.  If orderById = true, limit is 
+     *     on a per point basis else limit is for entire results
      * @param before
-     * @param orderById
+     * @param orderById - return results in groups per id.  
      * @param callback
      * @return
      */
@@ -151,7 +152,7 @@ public interface PointValueDao {
      * @param from
      * @param to
      * @param orderById - return the list in time order per data point
-     * @param limit - optional limit
+     * @param limit - optional limit.  If orderById = true then limit is per id, else limit is on total results
      * @param callback
      * @return ordered list for all values by time
      */

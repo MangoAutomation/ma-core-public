@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -831,22 +830,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 	@Override
 	public void wideQuery(int pointId, long from, long to, WideQueryCallback<PointValueTime> callback) {
 		//TODO Improve performance by using one statement and using the exceptions to cancel the results
-	    try {
-        		callback.preQuery(this.getPointValueBefore(pointId, from), false);
-        		this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>(){
-        			@Override
-        			public void row(PointValueTime value, int index) {
-        				try {
-                            callback.row(value, index);
-                        } catch (IOException e) {
-                            throw new ShouldNeverHappenException(e.getMessage());
-                        }
-        			}
-        		});
-        		callback.postQuery(this.getPointValueAfter(pointId, to), false);
-	    }catch(IOException e) {
-	        throw new ShouldNeverHappenException(e.getMessage());
-	    }
+    		callback.preQuery(this.getPointValueBefore(pointId, from));
+    		this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>(){
+    			@Override
+    			public void row(PointValueTime value, int index) {
+    			    callback.row(value, index);
+    			}
+    		});
+    		callback.postQuery(this.getPointValueAfter(pointId, to));
 	}
     
 	

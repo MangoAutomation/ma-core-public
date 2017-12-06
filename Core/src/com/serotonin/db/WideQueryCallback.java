@@ -20,10 +20,9 @@ public interface WideQueryCallback<T> {
      * If an exception is thrown the query should be aborted
      * 
      * @param value
-     * @param bookend - true if the value is virtual i.e. added as a point to match the exact query start time for charting
      * @throws IOException to abort query
      */
-    void preQuery(T value, boolean bookend) throws IOException;
+    void preQuery(T value);
     
     /**
      * Values within the query
@@ -34,7 +33,7 @@ public interface WideQueryCallback<T> {
      * @param index
      * @throws IOException to abort query
      */
-    void row(T value, int index) throws IOException;
+    void row(T value, int index);
     
     /**
      * Called with the value before the query period (can be null)
@@ -42,8 +41,7 @@ public interface WideQueryCallback<T> {
      * If an exception is thrown the query should be aborted
      * 
      * @param value
-     * @param bookend - true if the value is virtual i.e. added as a point to match the exact query end time for charting
      * @throws IOException to abort query
      */
-    void postQuery(T value, boolean bookend) throws IOException;
+    void postQuery(T value);
 }
