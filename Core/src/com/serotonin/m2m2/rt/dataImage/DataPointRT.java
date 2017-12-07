@@ -168,7 +168,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     		//Check to see if we have a value closer in cache
 	        for (int i = pvts.size() - 1; i >= 0; i--) {
 	            PointValueTime pvt = pvts.get(i);
-	            if (pvt.getTime() < after.getTime())
+	            //Must be after 'time' and before 'after'
+	            if ((pvt.getTime() > time) && (pvt.getTime() < after.getTime()))
 	                return pvt;
 	        }
     	}else{
