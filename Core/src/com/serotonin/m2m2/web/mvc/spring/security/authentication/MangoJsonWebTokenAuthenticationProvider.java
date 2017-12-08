@@ -7,16 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsChecker;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.components.UserAuthJwtService;
 
@@ -33,10 +32,14 @@ import io.jsonwebtoken.UnsupportedJwtException;
 @Component
 public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationProvider {
     private final UserAuthJwtService jwtService;
+    private final UserDetailsService userDetailsService;
+    private final UserDetailsChecker userDetailsChecker;
 
     @Autowired
-    public MangoJsonWebTokenAuthenticationProvider(UserAuthJwtService jwtService) {
+    public MangoJsonWebTokenAuthenticationProvider(UserAuthJwtService jwtService, UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker) {
         this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+        this.userDetailsChecker = userDetailsChecker;
     }
 
     @Override
@@ -48,14 +51,9 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         String bearerToken = (String) authentication.getCredentials();
 
         Jws<Claims> claims;
-        String username;
-        Number userId;
-        
         // decode
         try {
             claims = jwtService.parse(bearerToken);
-            username = claims.getBody().getSubject();
-            userId = (Number) claims.getBody().get("id");
         } catch (ExpiredJwtException e) {
             throw new CredentialsExpiredException(e.getMessage(), e);
         } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
@@ -67,16 +65,20 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
             throw new InternalAuthenticationServiceException(e.getMessage(), e);
         }
 
-        User user = UserDao.instance.getUser(username);
-        if (user == null)
-            throw new UsernameNotFoundException(Common.translate("login.validation.invalidLogin"));
+        String username = claims.getBody().getSubject();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        userDetailsChecker.check(userDetails);
         
-        if (userId == null || !userId.equals(user.getId())) {
+        if (!(userDetails instanceof User)) {
+            throw new InternalAuthenticationServiceException("Expected user details to be instance of User");
+        }
+        
+        User user = (User) userDetails;
+
+        Integer userId = user.getId();
+        if (!userId.equals(claims.getBody().get(UserAuthJwtService.USER_ID_CLAIM))) {
             throw new BadCredentialsException("Invalid user id for username");
         }
-
-        if (user.isDisabled())
-            throw new DisabledException(Common.translate("login.validation.accountDisabled"));
 
         return new PreAuthenticatedAuthenticationToken(user, claims, user.getAuthorities());
     }

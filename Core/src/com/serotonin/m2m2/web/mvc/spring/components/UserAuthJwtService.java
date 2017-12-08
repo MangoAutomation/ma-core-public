@@ -22,6 +22,8 @@ import io.jsonwebtoken.Jwts;
 public final class UserAuthJwtService extends JwtSignerVerifier {
     public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.userAuth.publicKey";
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.userAuth.privateKey";
+    
+    public static final String USER_ID_CLAIM = "userId";
 
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
@@ -48,7 +50,7 @@ public final class UserAuthJwtService extends JwtSignerVerifier {
         JwtBuilder builder = Jwts.builder()
                 .setSubject(user.getUsername())
                 .setExpiration(expiry)
-                .claim("id", user.getId());
+                .claim(USER_ID_CLAIM, user.getId());
         return this.sign(builder);
     }
 }

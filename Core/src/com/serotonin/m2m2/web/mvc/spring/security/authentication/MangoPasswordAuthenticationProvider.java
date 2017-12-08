@@ -7,9 +7,9 @@ package com.serotonin.m2m2.web.mvc.spring.security.authentication;
 import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -33,9 +33,9 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
     private final UserDetailsChecker userDetailsChecker;
 
     @Autowired
-    public MangoPasswordAuthenticationProvider(MangoUserDetailsService userDetailsService) {
+    public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker) {
         this.userDetailsService = userDetailsService;
-        this.userDetailsChecker = new AccountStatusUserDetailsChecker();
+        this.userDetailsChecker = userDetailsChecker;
     }
     
 	/* (non-Javadoc)
@@ -55,14 +55,11 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
             throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
         }
 
-        Object principal;
-        if (userDetails instanceof User) {
-            principal = userDetails;
-        } else {
-            principal = userDetails.getUsername();
+        if (!(userDetails instanceof User)) {
+            throw new InternalAuthenticationServiceException("Expected user details to be instance of User");
         }
 
-        return new UsernamePasswordAuthenticationToken(principal, userDetails.getPassword(), Collections.unmodifiableCollection(userDetails.getAuthorities()));
+        return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), Collections.unmodifiableCollection(userDetails.getAuthorities()));
 	}
 
 	/* (non-Javadoc)

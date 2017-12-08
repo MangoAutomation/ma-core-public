@@ -24,6 +24,7 @@ import com.serotonin.ShouldNeverHappenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.EllipticCurveProvider;
@@ -33,20 +34,26 @@ import io.jsonwebtoken.impl.crypto.EllipticCurveProvider;
  */
 public abstract class JwtSignerVerifier {
     private KeyPair keyPair;
+    private JwtParser parser;
     
     protected JwtSignerVerifier() {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
         
+        this.parser = Jwts.parser();
+        
         this.keyPair = this.loadKeyPair();
         if (this.keyPair == null) {
             this.generateNewKeyPair();
+        } else {
+            this.parser.setSigningKey(this.keyPair.getPublic());
         }
     }
     
     protected final void generateNewKeyPair() {
         this.keyPair = EllipticCurveProvider.generateKeyPair(SignatureAlgorithm.ES512);
+        this.parser.setSigningKey(this.keyPair.getPublic());
         this.saveKeyPair(this.keyPair);
     }
 
@@ -60,15 +67,15 @@ public abstract class JwtSignerVerifier {
     }
     
     public final Jws<Claims> parse(String token) {
-        return Jwts.parser().setSigningKey(keyPair.getPublic()).parseClaimsJws(token);
+        return parser.parseClaimsJws(token);
     }
 
     public String getPublicKey() {
         return keyToString(keyPair.getPublic());
     }
     
-    public static boolean isSignedJwt(String token) {
-        return Jwts.parser().isSigned(token);
+    public boolean isSignedJwt(String token) {
+        return parser.isSigned(token);
     }
 
     public static KeyPair keysToKeyPair(String publicKeyStr, String privateKeyStr) {
