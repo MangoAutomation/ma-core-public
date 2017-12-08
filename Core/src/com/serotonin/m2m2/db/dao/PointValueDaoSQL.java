@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.ConcurrencyFailureException;
@@ -549,9 +550,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         final long before;
         final Integer limit;
         final PVTQueryCallback<IdPointValueTime> callback;
-        Integer counter;
+        final MutableInt counter;
         
-        public LatestSinglePointValuesPreparedStatementCreator(Integer id, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, Integer counter) {
+        public LatestSinglePointValuesPreparedStatementCreator(Integer id, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, MutableInt counter) {
             this.ids = new ArrayList<Integer>();
             this.ids.add(id);
             this.before = before;
@@ -560,7 +561,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             this.counter = counter;
         }
         
-        public LatestSinglePointValuesPreparedStatementCreator(List<Integer> ids, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, Integer counter) {
+        public LatestSinglePointValuesPreparedStatementCreator(List<Integer> ids, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, MutableInt counter) {
             this.ids = ids;
             this.before = before;
             this.limit = limit;
@@ -598,9 +599,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 ps.execute();
                 rs = ps.getResultSet();
                 while(rs.next()) {
-                    IdPointValueTime value = mapper.mapRow(rs, counter);
-                    callback.row(value, counter);
-                    counter++;
+                    IdPointValueTime value = mapper.mapRow(rs, counter.getValue());
+                    callback.row(value, counter.getValue());
+                    counter.increment();
                 }
             }catch(IOException e) {
                 LOG.warn("Cancelling Latest Point Value Query.", e);
@@ -608,11 +609,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             }finally {
                 JdbcUtils.closeResultSet(rs);
             }
-            return counter;
-        }
-        
-        public Integer getCounter() {
-            return counter;
+            return counter.getValue();
         }
     }
     
@@ -628,7 +625,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         
         public LatestMultiplePointsValuesPreparedStatementCreator(List<Integer> ids, long before,
                 Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
-            super(ids, before, limit, callback, new Integer(0));
+            super(ids, before, limit, callback, new MutableInt(0));
         }
         
         @Override
@@ -665,7 +662,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             return;
         if(orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
-            Integer counter = new Integer(0);
+            MutableInt counter = new MutableInt(0);
             for(Integer id: ids) {
                 LatestSinglePointValuesPreparedStatementCreator c = new LatestSinglePointValuesPreparedStatementCreator(
                         id, before, limit, callback, counter);
@@ -702,9 +699,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         final long to;
         final Integer limit;
         final T callback;
-        Integer counter;
+        MutableInt counter;
         
-        public TimeRangeSinglePointValuesPreparedStatementCreator(Integer id, long from, long to, Integer limit, T callback, Integer counter) {
+        public TimeRangeSinglePointValuesPreparedStatementCreator(Integer id, long from, long to, Integer limit, T callback, MutableInt counter) {
             this.ids = new ArrayList<>();
             this.ids.add(id);
             this.from = from;
@@ -714,7 +711,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             this.counter = counter;
         }
         
-        public TimeRangeSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to, Integer limit, T callback, Integer counter) {
+        public TimeRangeSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to, Integer limit, T callback, MutableInt counter) {
             this.ids = ids;
             this.from = from;
             this.to = to;
@@ -753,9 +750,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 ps.execute();
                 rs = ps.getResultSet();
                 while(rs.next()) {
-                    IdPointValueTime value = mapper.mapRow(rs, counter);
-                    callback.row(value, counter);
-                    counter++;
+                    IdPointValueTime value = mapper.mapRow(rs, counter.getValue());
+                    callback.row(value, counter.getValue());
+                    counter.increment();
                 }
             }catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
@@ -763,7 +760,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             }finally {
                 JdbcUtils.closeResultSet(rs);
             }
-            return counter;
+            return counter.getValue();
         }
     }
     
@@ -776,7 +773,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         public TimeRangeMultiplePointsValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
                 Integer limit, T callback) {
-            super(ids, from, to, limit, callback, new Integer(0));
+            super(ids, from, to, limit, callback, new MutableInt(0));
         }
         
         @Override
@@ -810,7 +807,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             return;
         if(orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
-            Integer counter = new Integer(0);
+            MutableInt counter = new MutableInt(0);
             for(Integer id: ids) {
                 TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>> c = 
                         new TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(id, from, to, limit, callback, counter);
@@ -860,14 +857,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         protected final Map<Integer, Boolean> processedFirstMap;
         
         public BookendSinglePointValuesPreparedStatementCreator(Integer id, long from, long to,
-                Integer limit, BookendQueryCallback<IdPointValueTime> callback, Integer counter) {
+                Integer limit, BookendQueryCallback<IdPointValueTime> callback, MutableInt counter) {
             super(id, from, to, limit, callback, counter);
             this.values = new HashMap<>(1);
             this.processedFirstMap = new HashMap<>(1);
         }
         
         public BookendSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
-                Integer limit, BookendQueryCallback<IdPointValueTime> callback, Integer counter) {
+                Integer limit, BookendQueryCallback<IdPointValueTime> callback, MutableInt counter) {
             super(ids, from, to, limit, callback, counter);
             this.values = new HashMap<>(ids.size());
             this.processedFirstMap = new HashMap<>(ids.size());
@@ -883,7 +880,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 
                 //Process the data in time order, saving the current value for use in the lastValue callback at the end.
                 while(rs.next()) {
-                    IdPointValueTime current = mapper.mapRow(rs, counter);
+                    IdPointValueTime current = mapper.mapRow(rs, counter.getValue());
                     IdPointValueTime last = values.put(current.getId(), current);
                     if(null == processedFirstMap.put(current.getId(), Boolean.TRUE)) {
                         //Do first value logic
@@ -891,19 +888,20 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                             PointValueTime before = getPointValueBefore(current.getId(), from);
                             if(before != null) {
                                 if(before.isAnnotated()) {
-                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), before.getValue(), from, ((AnnotatedPointValueTime)before).getSourceMessage()), counter, true);
+                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), before.getValue(), from, ((AnnotatedPointValueTime)before).getSourceMessage()), counter.getValue(), true);
                                 }else {
-                                    callback.firstValue(new IdPointValueTime(current.getId(), before.getValue(), from), counter, true);
+                                    callback.firstValue(new IdPointValueTime(current.getId(), before.getValue(), from), counter.getValue(), true);
                                 }
                             }else {
                                 if(current.isAnnotated())
-                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, ((AnnotatedIdPointValueTime)current).getSourceMessage()), counter, true);
+                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, ((AnnotatedIdPointValueTime)current).getSourceMessage()), counter.getValue(), true);
                                 else
-                                    callback.firstValue(new IdPointValueTime(current.getId(), current.getValue(), from), counter, true);
+                                    callback.firstValue(new IdPointValueTime(current.getId(), current.getValue(), from), counter.getValue(), true);
                             }
                         }else {
                             //Send the start value since it's time == from
-                            callback.firstValue(current, counter++, false);
+                            callback.firstValue(current, counter.getValue(), false);
+                            counter.increment();
                         }
                     }
                     //Send out as normal row and potentially flush anything before my time of now
@@ -919,10 +917,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         }
                         if(valuesToSend.size() > 0) {
                             Collections.sort(valuesToSend);
-                            for(IdPointValueTime pvt : valuesToSend)
-                                callback.row(pvt, counter++);
+                            for(IdPointValueTime pvt : valuesToSend) {
+                                callback.row(pvt, counter.getValue());
+                                counter.increment();
+                            }
+                            
                         }
-                        callback.row(last, counter++);
+                        callback.row(last, counter.getValue());
+                        counter.increment();
                     }
                 }
                 
@@ -935,34 +937,37 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         if(prevValue != null) {
                             if(prevValue.isAnnotated()) {
                                 AnnotatedIdPointValueTime pre = new AnnotatedIdPointValueTime(id, prevValue.getValue(), from, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
-                                callback.firstValue(pre, counter, true);
+                                callback.firstValue(pre, counter.getValue(), true);
                                 AnnotatedIdPointValueTime post = new AnnotatedIdPointValueTime(id, prevValue.getValue(), to, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
-                                callback.lastValue(post, counter, true);
+                                callback.lastValue(post, counter.getValue(), true);
                             }else {
                                 IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
-                                callback.firstValue(pre, counter, true);
+                                callback.firstValue(pre, counter.getValue(), true);
                                 IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
-                                callback.lastValue(post, counter, true);
+                                callback.lastValue(post, counter.getValue(), true);
                             }
                         }
                     }else {
                         //Had data, write out as last value, possibly as a bookend
-                        if(limit == null || counter < limit - values.size()) {
+                        if(limit == null || counter.getValue() < limit - values.size()) {
                             if(current.getTime() != to) {
                                 //Send out this value as a row, then bookend it
-                                callback.row(current, counter++);
+                                callback.row(current, counter.getValue());
+                                counter.increment();
                                 IdPointValueTime post;
                                 if(current.isAnnotated()) {
                                     post = new AnnotatedIdPointValueTime(id, current.getValue(), to, ((AnnotatedIdPointValueTime) current).getSourceMessage());
                                 }else {
                                     post = new IdPointValueTime(id, current.getValue(), to);
                                 }
-                                callback.lastValue(post, counter, true);
+                                callback.lastValue(post, counter.getValue(), true);
                             }else {
-                                callback.lastValue(current, counter++, false);
+                                callback.lastValue(current, counter.getValue(), false);
+                                counter.increment();
                             }
                         }else {
-                            callback.lastValue(current, counter++, false);
+                            callback.lastValue(current, counter.getValue(), false);
+                            counter.increment();
                         }
                         values.remove(id);
                     }
@@ -973,7 +978,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             }finally {
                 JdbcUtils.closeResultSet(rs);
             }
-            return counter;
+            return counter.getValue();
         }
     }
 
@@ -986,7 +991,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         public BookendMultiplePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
                 Integer limit, BookendQueryCallback<IdPointValueTime> callback) {
-            super(ids, from, to, limit, callback, new Integer(0));
+            super(ids, from, to, limit, callback, new MutableInt(0));
         }
         
         public PreparedStatement createPreparedStatement(Connection con)
@@ -1020,7 +1025,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             return;
         if(orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
-            Integer counter = new Integer(0);
+            MutableInt counter = new MutableInt(0);
             for(Integer id: ids) {
                 BookendSinglePointValuesPreparedStatementCreator c = 
                         new BookendSinglePointValuesPreparedStatementCreator(id, from, to, limit, callback, counter);
