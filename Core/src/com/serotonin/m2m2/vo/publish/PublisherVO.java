@@ -56,13 +56,15 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     	int ALL = 1;
     	int CHANGES_ONLY = 2;
     	int LOGGED_ONLY = 3;
+    	int NONE = 4;
     }
     
     public static final ExportCodes PUBLISH_TYPE_CODES = new ExportCodes();
     static{
     	PUBLISH_TYPE_CODES.addElement(PublishType.ALL, "ALL", "publisherEdit.publishType.all");	
     	PUBLISH_TYPE_CODES.addElement(PublishType.CHANGES_ONLY, "CHANGES_ONLY", "publisherEdit.publishType.changesOnly");	
-    	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");	
+    	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");
+    	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "NONE", "publisherEdit.publishType.none");
     }
     
     /**
