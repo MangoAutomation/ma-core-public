@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,11 +28,11 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
 public class UserDao extends AbstractDao<User> {
 	
 	public static final UserDao instance = new UserDao();
+	private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 	
     /**
 	 * @param typeName
@@ -44,29 +46,17 @@ public class UserDao extends AbstractDao<User> {
 
 	private static final Log LOG = LogFactory.getLog(UserDao.class);
 
-    private static final String USER_SELECT = //
-    "SELECT id, username, password, email, phone, disabled, homeUrl, " //
-            + "lastLogin, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale FROM users ";
-
     public User getUser(int id) {
-        return queryForObject(USER_SELECT + "WHERE id=?", new Object[] { id }, new UserRowMapper(), null);
+        return this.get(id);
     }
 
     public User getUser(String username) {
-        return queryForObject(USER_SELECT + "WHERE LOWER(username)=LOWER(?)", new Object[] { username },
-                new UserRowMapper(), null);
+        return userCache.computeIfAbsent(username, u -> {
+            return queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
+                    new UserRowMapper(), null);
+        });
     }
-    
-    /**
-     * For use in Spring Security Layer to Get a User with its authorities pre-set
-     * @param username
-     * @return
-     */
-    public User getUserWithAuthorities(String username){
-    	return queryForObject(USER_SELECT + "WHERE LOWER(username)=LOWER(?)", new Object[] { username },
-                new UserAuthoritiesRowMapper(), null);
-    }
-    
+
     public boolean userExists(int id) {
     	return ejt.queryForInt("SELECT count(id) FROM users WHERE id="+id, new Object[0], 0) == 1;
     }
@@ -95,43 +85,13 @@ public class UserDao extends AbstractDao<User> {
             return user;
         }
     }
-    
-    /**
-     * Map a User with its Authorities pre-built for Spring Security
-     * 
-     * @author Terry Packer
-     */
-    class UserAuthoritiesRowMapper implements RowMapper<User> {
-        @Override
-        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-            String permissions = rs.getString(13);
-            User user = new User(MangoUserDetailsService.getGrantedAuthorities(permissions));
-            
-            user.setId(rs.getInt(1));
-            user.setUsername(rs.getString(2));
-            user.setPassword(rs.getString(3));
-            user.setEmail(rs.getString(4));
-            user.setPhone(rs.getString(5));
-            user.setDisabled(charToBool(rs.getString(6)));
-            user.setHomeUrl(rs.getString(7));
-            user.setLastLogin(rs.getLong(8));
-            user.setReceiveAlarmEmails(rs.getInt(9));
-            user.setReceiveOwnAuditEvents(charToBool(rs.getString(10)));
-            user.setTimezone(rs.getString(11));
-            user.setMuted(charToBool(rs.getString(12)));
-            user.setPermissions(permissions);
-            user.setName(rs.getString(14));
-            user.setLocale(rs.getString(15));
-            return user;
-        }
-    }
-    
+
     public List<User> getUsers() {
-        return query(USER_SELECT + "ORDER BY username", new Object[0], new UserRowMapper());
+        return query(SELECT_ALL + " ORDER BY username", new Object[0], new UserRowMapper());
     }
 
     public List<User> getActiveUsers() {
-        return query(USER_SELECT + "WHERE disabled=? ORDER BY username", new Object[] { boolToChar(false) },
+        return query(SELECT_ALL + " WHERE disabled=? ORDER BY username", new Object[] { boolToChar(false) },
                 new UserRowMapper());
     }
 
@@ -202,6 +162,7 @@ public class UserDao extends AbstractDao<User> {
                 handler.notify("update", user);
             //Update User In Session
             MangoSecurityConfiguration.replaceUserInSessions(old, user);
+            userCache.remove(old.getUsername());
         }
         catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -211,7 +172,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void deleteUser(final int userId) {
-    	User user = getUser(userId);
+    	User user = get(userId);
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @SuppressWarnings("synthetic-access")
             @Override
@@ -229,6 +190,7 @@ public class UserDao extends AbstractDao<User> {
                     handler.notify("delete", user);
                 //Update User In Session
                 MangoSecurityConfiguration.replaceUserInSessions(user, null);
+                userCache.remove(user.getUsername());
             }
         });
         
@@ -245,6 +207,7 @@ public class UserDao extends AbstractDao<User> {
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         //Update User In Session
         MangoSecurityConfiguration.replaceUserInSessions(old, user);
+        userCache.remove(old.getUsername());
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -254,6 +217,7 @@ public class UserDao extends AbstractDao<User> {
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         //Update User In Session
         MangoSecurityConfiguration.replaceUserInSessions(old, user);
+        userCache.remove(user.getUsername());
     }
     
     //Overrides for use in AbstractBasicDao

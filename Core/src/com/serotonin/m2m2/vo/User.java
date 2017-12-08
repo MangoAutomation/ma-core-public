@@ -48,6 +48,7 @@ import com.serotonin.m2m2.web.dwr.beans.DataExportDefinition;
 import com.serotonin.m2m2.web.dwr.beans.EventExportDefinition;
 import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 import com.serotonin.validation.StringValidation;
 
 public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable, UserDetails {
@@ -96,19 +97,13 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     //
     //Spring Security
     //
-    private final Set<GrantedAuthority> authorities;
+    private Set<GrantedAuthority> authorities;
     
     public User() {
         this.name = "";
         this.timezone = "";
         this.locale = "";
-        this.authorities = null;
     }
-    
-    public User(Set<GrantedAuthority> authorities){
-        this.authorities = Collections.unmodifiableSet(authorities);
-    }
-    
 
     /**
      * Used for various display purposes.
@@ -282,6 +277,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this.permissions = permissions;
         //Set the admin flag if necessary
         this.admin = Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
+        this.authorities = null;
     }
 
     public DataSourceVO<?> getEditDataSource() {
@@ -423,7 +419,10 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
      */
     @Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-    	return this.authorities;
+        if (authorities == null) {
+            authorities = Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(permissions));
+        }
+        return authorities;
     }
     
 	/* (non-Javadoc)

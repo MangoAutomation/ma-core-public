@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security.authentication;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class MangoUserDetailsService implements UserDetailsService {
 	 */
 	@Override
 	public User loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = UserDao.instance.getUserWithAuthorities(username);
+		User user = UserDao.instance.getUser(username);
 		if (user == null)
 		    throw new UsernameNotFoundException(username);
 		else
@@ -46,6 +47,10 @@ public class MangoUserDetailsService implements UserDetailsService {
 	 * @return
 	 */
 	public static Set<GrantedAuthority> getGrantedAuthorities(String permissionsString) {
+	    if (permissionsString == null) {
+	        return Collections.emptySet();
+	    }
+	    
 	    Set<String> permissions = Permissions.explodePermissionGroups(permissionsString);
         Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(permissions.size());
         

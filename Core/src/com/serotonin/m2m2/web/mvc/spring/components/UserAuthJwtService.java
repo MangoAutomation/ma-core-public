@@ -23,7 +23,7 @@ public final class UserAuthJwtService extends JwtSignerVerifier {
     public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.userAuth.publicKey";
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.userAuth.privateKey";
     
-    public static final String USER_ID_CLAIM = "userId";
+    public static final String USER_ID_CLAIM = "uId";
 
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
