@@ -74,6 +74,8 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetail
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.security"})
 public class MangoSecurityConfiguration {
 
+    public static final String BASIC_AUTHENTICATION_REALM = "Mango";
+    
 	//Share between all Configurations
 	final static SessionRegistry sessionRegistry = new MangoSessionRegistry();
 	final static RequestMatcher browserHtmlRequestMatcher = createBrowserHtmlRequestMatcher();
@@ -262,9 +264,10 @@ public class MangoSecurityConfiguration {
 		
 	}
     
-    // Configure a separate WebSecurityConfigurerAdapter for REST requests which have a Authorization header with Bearer token
-    // We use a stateless session creation policy and disable CSRF for these requests so that the Token Authorization is not
-    // persisted in the session inside the SecurityContext
+    // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
+    // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
+    // persisted in the session inside the SecurityContext. This security configuration allows the JWT token authentication
+	// and also basic authentication.
     @Configuration
     @Order(1)
     public static class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -319,6 +322,10 @@ public class MangoSecurityConfiguration {
                 .logout().disable()
                 .formLogin().disable()
                 .requestCache().disable()
+                .httpBasic()
+                    .realmName(BASIC_AUTHENTICATION_REALM)
+                    .authenticationEntryPoint(authenticationEntryPoint)
+                    .and()
                 .exceptionHandling()
                     .authenticationEntryPoint(authenticationEntryPoint)
                     .accessDeniedHandler(accessDeniedHandler)
