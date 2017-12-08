@@ -76,12 +76,12 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     public void testBookendMultiplePointValuesOrderByIdNoLimit() {
         this.helper.testBookendMultiplePointValuesOrderByIdNoLimit();
     }
-    //TODO This test is broken @Test
+    @Test
     public void testBookendMultiplePointValuesLimit() {
         this.helper.testBookendMultiplePointValuesLimit();
     }
     
-    //TODO This test is broken @Test
+    @Test
     public void testBookendMultiplePointValuesOrderByIdLimit() {
         this.helper.testBookendMultiplePointValuesOrderByIdLimit();
     }

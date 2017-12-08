@@ -910,7 +910,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         Iterator<Integer> it = values.keySet().iterator();
                         while(it.hasNext()){
                             IdPointValueTime pvt = values.get(it.next());
-                            if(pvt.getTime() <= last.getTime()) {
+                            if(pvt.getTime() < last.getTime()) {
                                 valuesToSend.add(pvt);
                                 it.remove();
                             }

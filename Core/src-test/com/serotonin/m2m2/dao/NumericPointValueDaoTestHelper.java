@@ -559,16 +559,22 @@ public class NumericPointValueDaoTestHelper {
                 if(value.getId() == seriesId2) {
                     //This has a value before the startTs
                     //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
-                    Assert.assertEquals(endTs, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
+                    //Limited queries do not have bookends
+                    Assert.assertEquals(false, bookend);
+                    //Increment count since this is not a true bookend
+                    count.increment();
                 }else {
                     //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
-                    Assert.assertEquals(endTs, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getTime(), value.getTime());
+                    //Limited queries do not have bookends
+                    Assert.assertEquals(false, bookend);
+                    //Increment count since this is not a true bookend
+                    count.increment();
                 }
             }
             
@@ -634,16 +640,22 @@ public class NumericPointValueDaoTestHelper {
                 if(value.getId() == seriesId2) {
                     //This has a value before the startTs
                     //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
-                    Assert.assertEquals(endTs, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
+                    //Limited queries do not have bookends
+                    Assert.assertEquals(false, bookend);
+                    //Increment count since this is not a true bookend
+                    count2.increment();
                 }else {
                     //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
-                    Assert.assertEquals(endTs, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getTime(), value.getTime());
+                    //Limited queries do not have bookends
+                    Assert.assertEquals(false, bookend);
+                    //Increment count since this is not a true bookend
+                    count1.increment();
                 }
             }
             
