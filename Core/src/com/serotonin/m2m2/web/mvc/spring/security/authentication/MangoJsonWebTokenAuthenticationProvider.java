@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -27,12 +28,9 @@ import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 
 /**
- * TODO This is Currently Disabled
- *  
  * @author Jared Wiltshire
- *
  */
-//@Component
+@Component
 public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationProvider {
     private final JwtService jwtService;
 
