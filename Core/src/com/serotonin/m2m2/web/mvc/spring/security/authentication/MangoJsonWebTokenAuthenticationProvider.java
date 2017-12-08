@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.components.JwtService;
+import com.serotonin.m2m2.web.mvc.spring.components.UserAuthJwtService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -32,10 +32,10 @@ import io.jsonwebtoken.UnsupportedJwtException;
  */
 @Component
 public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationProvider {
-    private final JwtService jwtService;
+    private final UserAuthJwtService jwtService;
 
     @Autowired
-    public MangoJsonWebTokenAuthenticationProvider(JwtService jwtService) {
+    public MangoJsonWebTokenAuthenticationProvider(UserAuthJwtService jwtService) {
         this.jwtService = jwtService;
     }
 
@@ -46,15 +46,16 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         }
         
         String bearerToken = (String) authentication.getCredentials();
-        if (!jwtService.isSignedJwt(bearerToken)) {
-            // assume that this is not a JWT, allow the next AuthenticationProvider to process it
-            return null;
-        }
 
         Jws<Claims> claims;
+        String username;
+        Number userId;
+        
         // decode
         try {
-            claims = jwtService.parseToken(bearerToken);
+            claims = jwtService.parse(bearerToken);
+            username = claims.getBody().getSubject();
+            userId = (Number) claims.getBody().get("id");
         } catch (ExpiredJwtException e) {
             throw new CredentialsExpiredException(e.getMessage(), e);
         } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
@@ -65,11 +66,14 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         } catch (Exception e) {
             throw new InternalAuthenticationServiceException(e.getMessage(), e);
         }
-        
-        String username = claims.getBody().getSubject();
+
         User user = UserDao.instance.getUser(username);
         if (user == null)
             throw new UsernameNotFoundException(Common.translate("login.validation.invalidLogin"));
+        
+        if (userId == null || !userId.equals(user.getId())) {
+            throw new BadCredentialsException("Invalid user id for username");
+        }
 
         if (user.isDisabled())
             throw new DisabledException(Common.translate("login.validation.accountDisabled"));
