@@ -236,6 +236,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                     for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
                         ped.setId(Common.NEW_ID);
                         ped.njbSetDataPoint(dataPointCopy);
+                        ped.setXid(EventDetectorDao.instance.generateUniqueXid());
                     }
 
                     //dataPointDao.saveDataPoint(dataPointCopy);
