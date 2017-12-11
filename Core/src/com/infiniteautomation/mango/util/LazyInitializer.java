@@ -11,29 +11,32 @@ import java.util.function.Supplier;
  * 
  * @author Jared Wiltshire
  */
-public class LazyInitializer<T> implements Supplier<T> {
-    
-    final Supplier<T> delegate;
-    volatile T value;
-    
-    public LazyInitializer(Supplier<T> delegate) {
-        this.delegate = delegate;
-    }
+public class LazyInitializer<T> {
 
-    @Override
-    public T get() {
+    volatile T value;
+
+    /**
+     * Get the already initialized value or use the provided supplier to initialize it.
+     * 
+     * @param supplier
+     * @return
+     */
+    public T get(final Supplier<T> supplier) {
         T result = value;
         if (result == null) {
             synchronized(this) {
                 result = value;
                 if (result == null) {
-                    value = result = this.delegate.get();
+                    value = result = supplier.get();
                 }
             }
         }
         return result;
     }
     
+    /**
+     * Reset the value so that next time get() is called it re-initializes the value.
+     */
     public void reset() {
         value = null;
     }

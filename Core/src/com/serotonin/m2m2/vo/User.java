@@ -7,12 +7,12 @@ package com.serotonin.m2m2.vo;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
@@ -83,7 +83,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
     //
-    private transient Map<String, Object> attributes = new HashMap<>();
+    private final transient ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<>();
     private transient DataPointVO editPoint;
     private transient DataSourceVO<?> editDataSource;
     private transient TestingUtility testingUtility;
@@ -91,22 +91,22 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient ImportTask importTask;
     private transient DataExportDefinition dataExportDefinition;
     private transient EventExportDefinition eventExportDefinition;
-    private transient TimeZone _tz;
-    private transient DateTimeZone _dtz;
+    private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
+    private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
+    private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
     private transient String remoteAddr; //remote address we are logged in from
-    private boolean admin;
+    
+    private transient boolean admin;
     
     //
     //Spring Security
     //
-    private final LazyInitializer<Set<GrantedAuthority>> authorities;
+    private transient final LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
     
     public User() {
         this.name = "";
         this.timezone = "";
         this.locale = "";
-        
-        this.authorities = new LazyInitializer<>(this::createGrantedAuthorities);
     }
 
     /**
@@ -152,7 +152,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         attributes.put(key, value);
     }
 
-    public void remoteAttribute(String key) {
+    public void removeAttribute(String key) {
         attributes.remove(key);
     }
 
@@ -370,36 +370,39 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     public void setTimezone(String timezone) {
         this.timezone = timezone;
-        _tz = null;
-        _dtz = null;
+        this._tz.reset();
+        this._dtz.reset();
     }
-
+    
     public TimeZone getTimeZoneInstance() {
-        if (_tz == null) {
+        return this._tz.get(() -> {
+            TimeZone tz = null;
             if (!StringUtils.isEmpty(timezone))
-                _tz = TimeZone.getTimeZone(timezone);
-            if (_tz == null)
-                _tz = TimeZone.getDefault();
-        }
-        return _tz;
+                tz = TimeZone.getTimeZone(timezone);
+            if (tz == null)
+                tz = TimeZone.getDefault();
+            return tz;
+        });
     }
 
     public DateTimeZone getDateTimeZoneInstance() {
-        if (_dtz == null) {
+        return this._dtz.get(() -> {
+            DateTimeZone dtz = null;
             if (!StringUtils.isEmpty(timezone))
-                _dtz = DateTimeZone.forID(timezone);
-            if (_dtz == null)
-                _dtz = DateTimeZone.forID(TimeZone.getDefault().getID());
-        }
-        return _dtz;
+                dtz = DateTimeZone.forID(timezone);
+            if (dtz == null)
+                dtz = DateTimeZone.forID(TimeZone.getDefault().getID());
+            return dtz;
+        });
     }
-    
+
     public String getLocale() {
         return locale;
     }
 
     public void setLocale(String locale) {
         this.locale = locale;
+        this.localeObject.reset();
     }
 
     /**
@@ -423,13 +426,11 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
      */
     @Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.authorities.get();
+        return this.authorities.get(() -> {
+            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(permissions));
+        });
     }
-    
-    private Set<GrantedAuthority> createGrantedAuthorities() {
-        return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(permissions));
-    }
-    
+
 	/* (non-Javadoc)
 	 * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonExpired()
 	 */
@@ -574,17 +575,19 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	}
 	
 	public Locale getLocaleObject() {
-	    if (locale == null || locale.isEmpty()) {
-	        return Common.getLocale();
-	    }
-	    
-	    try {
-	        return new Locale.Builder().setLanguageTag(locale).build();
-	    } catch (IllformedLocaleException e) {
-	        return Common.getLocale();
-	    }
+	    return this.localeObject.get(() -> {
+	        if (locale == null || locale.isEmpty()) {
+	            return Common.getLocale();
+	        }
+	        
+	        try {
+	            return new Locale.Builder().setLanguageTag(locale).build();
+	        } catch (IllformedLocaleException e) {
+	            return Common.getLocale();
+	        }
+	    });
 	}
-	
+
 	/**
 	 * Get the translations for a User's locale
 	 * @return
