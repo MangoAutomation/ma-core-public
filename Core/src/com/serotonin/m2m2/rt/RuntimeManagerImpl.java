@@ -548,7 +548,22 @@ public class RuntimeManagerImpl implements RuntimeManager{
 
             // Add/update it in the data image.
             synchronized (dataPoints) {
-            	dataPoints.put(dataPoint.getId(), dataPoint);
+                dataPoints.compute(dataPoint.getId(), (k, rt) -> {
+                    if(rt != null) {
+                        try{
+                            getRunningDataSource(rt.getDataSourceId()).removeDataPoint(rt);
+                        }catch(Exception e){
+                            LOG.error("Failed to stop point RT with ID: " + vo.getId()
+                                    + " stopping point."
+                                    , e);
+                        }
+                        DataPointListener l = getDataPointListeners(vo.getId());
+                        if (l != null)
+                            l.pointTerminated();
+                        rt.terminate();
+                    }
+                    return dataPoint;
+                });
             }
 
             // Initialize it.
