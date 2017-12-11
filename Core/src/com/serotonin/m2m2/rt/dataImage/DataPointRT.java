@@ -169,7 +169,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 	        for (int i = pvts.size() - 1; i >= 0; i--) {
 	            PointValueTime pvt = pvts.get(i);
 	            //Must be after 'time' and before 'after'
-	            if ((pvt.getTime() > time) && (pvt.getTime() < after.getTime()))
+	            if (pvt.getTime() < after.getTime() && pvt.getTime() > time)
 	                return pvt;
 	        }
     	}else{
