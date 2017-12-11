@@ -64,7 +64,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     	PUBLISH_TYPE_CODES.addElement(PublishType.ALL, "ALL", "publisherEdit.publishType.all");	
     	PUBLISH_TYPE_CODES.addElement(PublishType.CHANGES_ONLY, "CHANGES_ONLY", "publisherEdit.publishType.changesOnly");	
     	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");
-    	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "NONE", "publisherEdit.publishType.none");
+    	PUBLISH_TYPE_CODES.addElement(PublishType.NONE, "NONE", "publisherEdit.publishType.none");
     }
     
     /**
