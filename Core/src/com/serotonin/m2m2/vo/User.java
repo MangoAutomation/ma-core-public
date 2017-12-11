@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -94,15 +95,18 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient DateTimeZone _dtz;
     private transient String remoteAddr; //remote address we are logged in from
     private boolean admin;
+    
     //
     //Spring Security
     //
-    private Set<GrantedAuthority> authorities;
+    private final LazyInitializer<Set<GrantedAuthority>> authorities;
     
     public User() {
         this.name = "";
         this.timezone = "";
         this.locale = "";
+        
+        this.authorities = new LazyInitializer<>(this::createGrantedAuthorities);
     }
 
     /**
@@ -277,7 +281,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this.permissions = permissions;
         //Set the admin flag if necessary
         this.admin = Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
-        this.authorities = null;
+        this.authorities.reset();
     }
 
     public DataSourceVO<?> getEditDataSource() {
@@ -419,10 +423,11 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
      */
     @Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (authorities == null) {
-            authorities = Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(permissions));
-        }
-        return authorities;
+        return this.authorities.get();
+    }
+    
+    private Set<GrantedAuthority> createGrantedAuthorities() {
+        return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(permissions));
     }
     
 	/* (non-Javadoc)
