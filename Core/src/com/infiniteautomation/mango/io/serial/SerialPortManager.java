@@ -6,7 +6,6 @@ package com.infiniteautomation.mango.io.serial;
 
 import java.util.List;
 
-import com.serotonin.io.serial.CommPortConfigException;
 import com.serotonin.util.ILifecycle;
 import com.serotonin.util.LifecycleException;
 
