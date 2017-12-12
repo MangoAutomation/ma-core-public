@@ -24,6 +24,7 @@ public final class UserAuthJwtService extends JwtSignerVerifier {
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.userAuth.privateKey";
     
     public static final String USER_ID_CLAIM = "uId";
+    public static final String USER_VERSION_CLAIM = "v";
 
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
@@ -50,7 +51,8 @@ public final class UserAuthJwtService extends JwtSignerVerifier {
         JwtBuilder builder = Jwts.builder()
                 .setSubject(user.getUsername())
                 .setExpiration(expiry)
-                .claim(USER_ID_CLAIM, user.getId());
+                .claim(USER_ID_CLAIM, user.getId())
+                .claim(USER_VERSION_CLAIM, 1); // this will be set to a real user version number in the future so we can blacklist old tokens
         return this.sign(builder);
     }
 }

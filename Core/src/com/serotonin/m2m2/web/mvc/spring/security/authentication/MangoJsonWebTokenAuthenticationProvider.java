@@ -50,10 +50,10 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         
         String bearerToken = (String) authentication.getCredentials();
 
-        Jws<Claims> claims;
+        Jws<Claims> parsedToken;
         // decode
         try {
-            claims = jwtService.parse(bearerToken);
+            parsedToken = jwtService.parse(bearerToken);
         } catch (ExpiredJwtException e) {
             throw new CredentialsExpiredException(e.getMessage(), e);
         } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
@@ -65,9 +65,13 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
             throw new InternalAuthenticationServiceException(e.getMessage(), e);
         }
 
-        String username = claims.getBody().getSubject();
+        Claims claims = parsedToken.getBody();
+        
+        String username = claims.getSubject();
+        if (username == null) {
+            throw new BadCredentialsException("Invalid username");
+        }
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        userDetailsChecker.check(userDetails);
         
         if (!(userDetails instanceof User)) {
             throw new InternalAuthenticationServiceException("Expected user details to be instance of User");
@@ -76,11 +80,19 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         User user = (User) userDetails;
 
         Integer userId = user.getId();
-        if (!userId.equals(claims.getBody().get(UserAuthJwtService.USER_ID_CLAIM))) {
-            throw new BadCredentialsException("Invalid user id for username");
+        if (!userId.equals(claims.get(UserAuthJwtService.USER_ID_CLAIM))) {
+            throw new BadCredentialsException("Invalid user id");
         }
+        
+        // this will be set to a real user version number in the future so we can blacklist old tokens
+        Integer userVersion = 1;
+        if (!userVersion.equals(claims.get(UserAuthJwtService.USER_VERSION_CLAIM))) {
+            throw new BadCredentialsException("Invalid user version");
+        }
+        
+        userDetailsChecker.check(userDetails);
 
-        return new PreAuthenticatedAuthenticationToken(user, claims, user.getAuthorities());
+        return new PreAuthenticatedAuthenticationToken(user, parsedToken, user.getAuthorities());
     }
 
     @Override
