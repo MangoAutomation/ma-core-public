@@ -65,7 +65,7 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
         if (session != null && user != null) {
             
             // Update the last login time.
-            UserDao.instance.recordLogin(user.getId());
+            UserDao.instance.recordLogin(user);
             
             // Set the IP Address for the session
             user.setRemoteAddr(request.getRemoteAddr());

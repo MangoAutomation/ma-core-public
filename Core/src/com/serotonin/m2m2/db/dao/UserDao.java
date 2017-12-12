@@ -161,7 +161,7 @@ public class UserDao extends AbstractDao<User> {
             if (handler != null)
                 handler.notify("update", user);
             //Update User In Session
-            MangoSecurityConfiguration.replaceUserInSessions(old, user);
+            MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
             userCache.remove(old.getUsername());
         }
         catch (DataIntegrityViolationException e) {
@@ -189,15 +189,17 @@ public class UserDao extends AbstractDao<User> {
                 if (handler != null)
                     handler.notify("delete", user);
                 //Update User In Session
-                MangoSecurityConfiguration.replaceUserInSessions(user, null);
+                MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(user);
                 userCache.remove(user.getUsername());
             }
         });
         
     }
 
-    public void recordLogin(int userId) {
-        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { Common.timer.currentTimeMillis(), userId });
+    public void recordLogin(User user) {
+        long loginTime = Common.timer.currentTimeMillis();
+        user.setLastLogin(loginTime);
+        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
@@ -206,7 +208,7 @@ public class UserDao extends AbstractDao<User> {
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         //Update User In Session
-        MangoSecurityConfiguration.replaceUserInSessions(old, user);
+        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
         userCache.remove(old.getUsername());
     }
 
@@ -216,8 +218,8 @@ public class UserDao extends AbstractDao<User> {
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         //Update User In Session
-        MangoSecurityConfiguration.replaceUserInSessions(old, user);
-        userCache.remove(user.getUsername());
+        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
+        userCache.remove(old.getUsername());
     }
     
     //Overrides for use in AbstractBasicDao

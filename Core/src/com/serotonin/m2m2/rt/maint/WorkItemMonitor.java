@@ -190,7 +190,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         
         //Collect Active User Sessions
         
-        userSessions.setValue(MangoSecurityConfiguration.getActiveSessionCount());
+        userSessions.setValue(MangoSecurityConfiguration.sessionRegistry.getActiveSessionCount());
 
     }
     

@@ -21,7 +21,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
@@ -69,7 +68,6 @@ import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
@@ -401,33 +399,6 @@ public class Common {
             }
         }
         return null;
-    }
-    
-    public static void setHttpUser(HttpServletRequest request, User user) {
-        User existingUser = getHttpUser();
-        if (existingUser == null || existingUser.getId() != user.getId()) {
-            throw new IllegalArgumentException("Can only update the current HTTP user");
-        }
-        
-        setHttpAuthentication(request, MangoPasswordAuthenticationProvider.createAuthenticatedToken(user));
-    }
-    
-    public static void setHttpAuthentication(HttpServletRequest request, Authentication authentication) {
-        // Update the Spring Security context
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            if (authentication == null) {
-                session.removeAttribute(SESSION_USER);
-            } else {
-                Object principal = authentication.getPrincipal();
-                if (principal instanceof User) {
-                    // For legacy pages also update the session
-                    session.setAttribute(SESSION_USER, (User) principal);
-                }
-            }
-        }
     }
 
     public static User getBackgroundContextUser() {

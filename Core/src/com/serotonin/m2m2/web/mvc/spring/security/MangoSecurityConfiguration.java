@@ -5,7 +5,6 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,7 +25,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -62,7 +60,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoJsonWebTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
@@ -79,7 +76,7 @@ public class MangoSecurityConfiguration {
     public static final String BASIC_AUTHENTICATION_REALM = "Mango";
     
 	//Share between all Configurations
-	final static SessionRegistry sessionRegistry = new MangoSessionRegistry();
+	public final static MangoSessionRegistry sessionRegistry = new MangoSessionRegistry();
 	final static RequestMatcher browserHtmlRequestMatcher = createBrowserHtmlRequestMatcher();
 	
     @Autowired
@@ -207,70 +204,10 @@ public class MangoSecurityConfiguration {
     }
     
     @Bean
-    public static SessionRegistry sessionRegistry(){
+    public static SessionRegistry sessionRegistry() {
     	return sessionRegistry;
     }
-    
-    /**
-     * Return a count of all active sessions.
-     * 
-     * @return
-     */
-    public static int getActiveSessionCount(){
-    	int activeCount = 0;
-    	final List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
 
-        for (final Object principal : allPrincipals) {
-            if (principal instanceof User) {
-                activeCount += sessionRegistry.getAllSessions(principal, false).size();
-            }
-        }
-        
-        return activeCount;
-    }
-    
-	/**
-	 * Temporary Solution to Caching User in Session, called by User Dao when a User is saved or updated.
-	 * 
-	 * Note that the HttpSession info is updated in the Users REST Controller 
-	 * 
-	 * @param old - Cannot be null
-	 * @param new - can be null if user was deleted
-	 */
-	public static void replaceUserInSessions(User old, User user) {
-
-		boolean isEditingCurrentUser = false;
-		
-		User currentUser = Common.getHttpUser();
-		if(currentUser != null)
-			isEditingCurrentUser = currentUser.getUsername().equals(old.getUsername());
-		
-		
-    	final List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
-    	
-        for (final Object principal : allPrincipals) {
-        	//Confirm we are only editing the user that was modified
-            if ((principal instanceof User)&&(StringUtils.equals(((User)principal).getUsername(), old.getUsername()))){
-            	List<SessionInformation> sessionInfo = sessionRegistry.getAllSessions(principal, false);
-            	if(user == null){
-            		//Expire sessions, the user was deleted
-            		for(SessionInformation info : sessionInfo){
-            			info.expireNow();
-            		}
-            	}else{
-            		//Replace the user's sessions or expire them if they are not I
-            		for(SessionInformation info : sessionInfo){
-            			if(isEditingCurrentUser)
-            				sessionRegistry.registerNewSession(info.getSessionId(), user);
-            			else
-            				info.expireNow();
-            		}
-            	}
-            }
-        }
-		
-	}
-    
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
     // persisted in the session inside the SecurityContext. This security configuration allows the JWT token authentication
@@ -360,6 +297,7 @@ public class MangoSecurityConfiguration {
         LogoutHandler logoutHandler;
         LogoutSuccessHandler logoutSuccessHandler;
         PermissionExceptionFilter permissionExceptionFilter;
+        SessionRegistry sessionRegistry;
         
         @Autowired
         public void init(
@@ -370,7 +308,8 @@ public class MangoSecurityConfiguration {
                 JsonLoginConfigurer jsonLoginConfigurer,
                 LogoutHandler logoutHandler,
                 LogoutSuccessHandler logoutSuccessHandler,
-                PermissionExceptionFilter permissionExceptionFilter) {
+                PermissionExceptionFilter permissionExceptionFilter,
+                SessionRegistry sessionRegistry) {
             this.authenticationSuccessHandler = authenticationSuccessHandler;
             this.authenticationFailureHandler = authenticationFailureHandler;
             this.accessDeniedHandler = accessDeniedHandler;
@@ -379,6 +318,7 @@ public class MangoSecurityConfiguration {
             this.logoutHandler = logoutHandler;
             this.logoutSuccessHandler = logoutSuccessHandler;
             this.permissionExceptionFilter = permissionExceptionFilter;
+            this.sessionRegistry = sessionRegistry;
         }
         
         @Override
@@ -469,6 +409,7 @@ public class MangoSecurityConfiguration {
         LogoutSuccessHandler logoutSuccessHandler;
         RequestCache requestCache;
         PermissionExceptionFilter permissionExceptionFilter;
+        SessionRegistry sessionRegistry;
         
         @Autowired
         public void init(AccessDeniedHandler accessDeniedHandler,
@@ -478,7 +419,8 @@ public class MangoSecurityConfiguration {
                 LogoutHandler logoutHandler,
                 LogoutSuccessHandler logoutSuccessHandler,
                 RequestCache requestCache, 
-                PermissionExceptionFilter permissionExceptionFilter) {
+                PermissionExceptionFilter permissionExceptionFilter,
+                SessionRegistry sessionRegistry) {
             this.accessDeniedHandler = accessDeniedHandler;
             this.authenticationEntryPoint = authenticationEntryPoint;
             this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -487,6 +429,7 @@ public class MangoSecurityConfiguration {
             this.logoutSuccessHandler = logoutSuccessHandler;
             this.requestCache = requestCache;
             this.permissionExceptionFilter = permissionExceptionFilter;
+            this.sessionRegistry = sessionRegistry;
         }
 
         @Override
