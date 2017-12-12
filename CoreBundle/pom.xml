@@ -240,7 +240,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>bacnet-ds</artifactId>
-			<version>3.2.1-SNAPSHOT</version>
+			<version>3.2.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -252,7 +252,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>datafile-ds</artifactId>
-			<version>3.2.1-SNAPSHOT</version>
+			<version>3.2.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
