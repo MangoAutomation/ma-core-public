@@ -43,7 +43,7 @@ public final class UserAuthJwtService extends JwtSignerVerifier {
         return null;
     }
     
-    public void invalidateTokens() {
+    public void resetKeys() {
         this.generateNewKeyPair();
     }
     
