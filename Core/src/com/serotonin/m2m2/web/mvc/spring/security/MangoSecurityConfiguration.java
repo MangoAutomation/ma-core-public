@@ -252,7 +252,6 @@ public class MangoSecurityConfiguration {
                     .antMatchers("/rest/*/logout/**").denyAll()
                     .antMatchers(HttpMethod.POST, "/rest/*/login/su").denyAll()
                     .antMatchers(HttpMethod.POST, "/rest/*/login/exit-su").denyAll()
-                    .antMatchers("/rest/*/jwt/**").denyAll()
                     .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
                     .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
