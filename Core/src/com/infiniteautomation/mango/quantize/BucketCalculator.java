@@ -2,12 +2,14 @@
  * @copyright 2017 {@link http://infiniteautomation.com|Infinite Automation Systems, Inc.} All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.view.quantize3;
+package com.infiniteautomation.mango.quantize;
 
 import java.time.ZonedDateTime;
 
 /**
  * A bucket calculator divides a time period into buckets according to the needs of the subclass.
+ * 
+ * startTime <= time < endTime
  * 
  * @author Terry Packer
  */

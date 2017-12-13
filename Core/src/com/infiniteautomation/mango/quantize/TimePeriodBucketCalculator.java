@@ -2,7 +2,7 @@
  * @copyright 2017 {@link http://infiniteautomation.com|Infinite Automation Systems, Inc.} All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.view.quantize3;
+package com.infiniteautomation.mango.quantize;
 
 import java.time.ZonedDateTime;
 
@@ -10,7 +10,7 @@ import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 
 /**
  * Time period bucket calculator divides the given time range into the given periods. The intervals that are produces
- * may not be equal in duration. For example, if the time period is one day, the duration may be 23, 24, or 25 days
+ * may not be equal in duration. For example, if the time period is one day, the duration may be 23, 24, or 25 hours
  * depending on whether the day is a daylight savings change day or not.
  * 
  * @author Terry Packer

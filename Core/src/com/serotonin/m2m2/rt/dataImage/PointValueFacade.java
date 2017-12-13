@@ -86,10 +86,10 @@ public class PointValueFacade {
      */
     public List<PointValueTime> getPointValues(long since, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> list = getPointValues(since);
-        
+
         if (insertInitial) {
             PointValueTime prevValue = getPointValueBefore(since);
-            
+
             if (prevValue != null) {
                 // don't insert the initial value if it already exists
                 if (list.isEmpty() || list.get(0).getTime() != since) {
@@ -97,22 +97,22 @@ public class PointValueFacade {
                 }
             }
         }
-        
+
         if (insertFinal && !list.isEmpty()) {
-        	PointValueTime finalValue = list.get(list.size()-1);
-        	long endTime = Common.timer.currentTimeMillis();
-        	
-        	// don't insert the final value if it already exists
-        	if (finalValue != null && finalValue.getTime() != endTime) {
+            PointValueTime finalValue = list.get(list.size() - 1);
+            long endTime = Common.timer.currentTimeMillis();
+
+            // don't insert the final value if it already exists
+            if (finalValue != null && finalValue.getTime() != endTime) {
                 list.add(new PointValueTime(finalValue.getValue(), endTime));
-        	}
+            }
         }
         
         return list;
     }
     
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
-    	if ((point != null)&&(useCache))
+        if ((point != null) && (useCache))
             return point.getPointValuesBetween(from, to);
         return pointValueDao.getPointValuesBetween(dataPointId, from, to);
     }

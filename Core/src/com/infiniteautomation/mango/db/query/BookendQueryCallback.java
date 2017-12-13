@@ -15,7 +15,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 public interface BookendQueryCallback<T extends PointValueTime> extends PVTQueryCallback<T> {
 
     /**
-     * Called with the value before the query period (can be null)
+     * Called with the value at or before the query period start (can be null)
      * 
      * If an exception is thrown the query should be aborted
      * 
@@ -29,7 +29,7 @@ public interface BookendQueryCallback<T extends PointValueTime> extends PVTQuery
     }
     
     /**
-     * Called with the value before the query period (can be null)
+     * Called with the last value before the query period end (can be null)
      * 
      * If an exception is thrown the query should be aborted
      * 

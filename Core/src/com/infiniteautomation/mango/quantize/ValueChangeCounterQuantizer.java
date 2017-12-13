@@ -1,10 +1,10 @@
-package com.serotonin.m2m2.view.quantize3;
+package com.infiniteautomation.mango.quantize;
 
 import java.time.Instant;
 
+import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
-import com.serotonin.m2m2.view.stats.ValueChangeCounter;
 
 public class ValueChangeCounterQuantizer extends AbstractPointValueTimeQuantizer<ValueChangeCounter> {
 

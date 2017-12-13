@@ -2,12 +2,12 @@
  * @copyright 2017 {@link http://infiniteautomation.com|Infinite Automation Systems, Inc.} All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.view.quantize3;
+package com.infiniteautomation.mango.quantize;
 
 import java.time.Instant;
 
+import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.view.stats.AnalogStatistics;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 public class AnalogStatisticsQuantizer extends AbstractPointValueTimeQuantizer<AnalogStatistics> {
