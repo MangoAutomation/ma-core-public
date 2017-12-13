@@ -11,7 +11,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 /**
  * @author Jared Wiltshire
  */
-public class Upgrade_Tags extends DBUpgrade {
+public class Upgrade20 extends DBUpgrade {
 
     @Override
     protected void upgrade() throws Exception {
@@ -25,7 +25,7 @@ public class Upgrade_Tags extends DBUpgrade {
 
     @Override
     protected String getNewSchemaVersion() {
-        return "xx";
+        return "21";
     }
     
     private final String[] mysql = new String[] {
