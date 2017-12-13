@@ -28,6 +28,7 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 public interface DatabaseProxy {
 
     public enum DatabaseType {
+        @Deprecated
         DERBY {
             @Override
             AbstractDatabaseProxy getImpl() {

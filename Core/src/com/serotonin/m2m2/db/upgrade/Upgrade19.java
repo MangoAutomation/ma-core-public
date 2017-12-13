@@ -27,7 +27,7 @@ private static final Log LOG = LogFactory.getLog(Upgrade19.class);
 protected void upgrade() throws Exception {
     //Add the data type column into the database.
     Map<String, String[]> scripts = new HashMap<>();
-    scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), addColumn);
+    scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), addColumn);
     scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), addColumn);
     scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addColumn);
     scripts.put(DatabaseProxy.DatabaseType.H2.name(), addColumn);
@@ -37,17 +37,33 @@ protected void upgrade() throws Exception {
     this.ejt.query(UPGRADE_19_DATA_POINT_SELECT, new Upgrade19ResultSetExtractor());
     
     scripts.clear();
-    scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), alterColumn);
+    scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), alterColumn);
     scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), modifyColumn);
     scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterColumn);
     scripts.put(DatabaseProxy.DatabaseType.H2.name(), alterColumn);
     runScript(scripts);
+    
+    if(0 == this.ejt.queryForInt("SELECT id FROM INFORMATION_SCHEMA.CONSTRAINTS WHERE TABLE_NAME = 'USERCOMMENTS' AND CONSTRAINT_TYPE='PRIMARY KEY'", null, 0)){
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), addUserCommentIndexMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), addUserCommentIndexMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addUserCommentIndexMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), addUserCommentIndexMySQL);
+    }
+    
 }
 
 @Override
 protected String getNewSchemaVersion() {
     return "20";
 }
+
+private static final String[] addUserCommentIndexMySQL = {
+        "ALTER TABLE userComments ADD PRIMARY KEY (id)"
+};
+
+private static final String[] addUserCommentIndexMSSQL = {
+        "ALTER TABLE userComments ADD CONSTRAINT pk PRIMARY KEY CLUSTERED (id)"
+};
 
 private static final String[] addColumn = {
         "ALTER TABLE dataPoints ADD COLUMN dataTypeId INT;",
