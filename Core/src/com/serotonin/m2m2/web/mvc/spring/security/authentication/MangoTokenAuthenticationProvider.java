@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.components.UserAuthJwtService;
+import com.serotonin.m2m2.web.mvc.spring.components.TokenAuthenticationService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -30,13 +30,13 @@ import io.jsonwebtoken.UnsupportedJwtException;
  * @author Jared Wiltshire
  */
 @Component
-public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationProvider {
-    private final UserAuthJwtService jwtService;
+public class MangoTokenAuthenticationProvider implements AuthenticationProvider {
+    private final TokenAuthenticationService jwtService;
     private final UserDetailsService userDetailsService;
     private final UserDetailsChecker userDetailsChecker;
 
     @Autowired
-    public MangoJsonWebTokenAuthenticationProvider(UserAuthJwtService jwtService, UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker) {
+    public MangoTokenAuthenticationProvider(TokenAuthenticationService jwtService, UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.userDetailsChecker = userDetailsChecker;
@@ -80,13 +80,13 @@ public class MangoJsonWebTokenAuthenticationProvider implements AuthenticationPr
         User user = (User) userDetails;
 
         Integer userId = user.getId();
-        if (!userId.equals(claims.get(UserAuthJwtService.USER_ID_CLAIM))) {
+        if (!userId.equals(claims.get(TokenAuthenticationService.USER_ID_CLAIM))) {
             throw new BadCredentialsException("Invalid user id");
         }
         
         // this will be set to a real user version number in the future so we can blacklist old tokens
         Integer userVersion = 1;
-        if (!userVersion.equals(claims.get(UserAuthJwtService.USER_VERSION_CLAIM))) {
+        if (!userVersion.equals(claims.get(TokenAuthenticationService.USER_VERSION_CLAIM))) {
             throw new BadCredentialsException("Invalid user version");
         }
         

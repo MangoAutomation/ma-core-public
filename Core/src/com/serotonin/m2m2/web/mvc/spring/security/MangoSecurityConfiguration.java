@@ -61,7 +61,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoJsonWebTokenAuthenticationProvider;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
@@ -83,7 +83,7 @@ public class MangoSecurityConfiguration {
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
             MangoUserDetailsService userDetails,
             MangoPasswordAuthenticationProvider passwordAuthenticationProvider,
-            MangoJsonWebTokenAuthenticationProvider tokenAuthProvider
+            MangoTokenAuthenticationProvider tokenAuthProvider
             ) throws Exception {
         
         auth.userDetailsService(userDetails);

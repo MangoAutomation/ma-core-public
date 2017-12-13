@@ -19,7 +19,7 @@ import io.jsonwebtoken.Jwts;
  * @author Jared Wiltshire
  */
 @Service
-public final class UserAuthJwtService extends JwtSignerVerifier {
+public final class TokenAuthenticationService extends JwtSignerVerifier {
     public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.userAuth.publicKey";
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.userAuth.privateKey";
     
