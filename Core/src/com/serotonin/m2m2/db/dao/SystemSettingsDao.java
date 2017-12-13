@@ -59,6 +59,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String EMAIL_SMTP_PASSWORD = "emailSmtpPassword";
     public static final String EMAIL_TLS = "emailTls";
     public static final String EMAIL_CONTENT_TYPE = "emailContentType";
+    
+    // Base URL to use when inserting links in emails etc
+    public static final String PUBLICLY_RESOLVABLE_BASE_URL = "publiclyResolvableBaseUrl";
 
     // Point data purging
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";

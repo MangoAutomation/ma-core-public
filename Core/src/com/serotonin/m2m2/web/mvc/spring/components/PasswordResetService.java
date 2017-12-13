@@ -3,11 +3,16 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.components;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.mail.internet.AddressException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -15,10 +20,15 @@ import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.email.MangoEmailContent;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
 
+import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
@@ -39,13 +49,6 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public static final String TOKEN_TYPE_VALUE = "pwreset";
     public static final String USER_ID_CLAIM = "id";
     public static final String USER_PASSWORD_VERSION_CLAIM = "v";
-    
-    UriComponentsBuilder builder;
-    
-    @Autowired
-    public PasswordResetService(UriComponentsBuilder builder) {
-        this.builder = builder;
-    }
 
     @Override
     protected String tokenType() {
@@ -94,7 +97,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     }
     
     public String generateToken(User user) {
-        long expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
+        int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
         Date expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000);
         
         JwtBuilder builder = this.newToken(user.getUsername(), expirationDate)
@@ -111,10 +114,39 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         return user;
     }
     
-    public void sendEmail(User user) {
+    public void sendEmail(User user) throws TemplateException, IOException, AddressException {
         String token = this.generateToken(user);
-        
+        int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
+
+        UriComponentsBuilder builder;
+        String baseUrl = SystemSettingsDao.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL);
+        if (baseUrl != null) {
+            builder = UriComponentsBuilder.fromPath(baseUrl);
+        } else {
+            boolean sslOn = Common.envProps.getBoolean("ssl.on", false);
+            int port = sslOn ? Common.envProps.getInt("ssl.port", 443) : Common.envProps.getInt("web.port", 8080);
+            
+            builder = UriComponentsBuilder.newInstance()
+                    .scheme(sslOn ? "https" : "http")
+                    .host(InetAddress.getLocalHost().getHostName())
+                    .port(port);
+        }
+
         String resetPage = DefaultPagesDefinition.getPasswordResetUri();
+        
         URI uri = builder.path(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
+        
+        Translations translations = Translations.getTranslations(user.getLocaleObject());
+        
+        Map<String, Object> model = new HashMap<>();
+        model.put("username", user.getUsername());
+        model.put("resetUri", uri);
+        model.put("token", token);
+        model.put("validFor", expiryDuration / 60); // in minutes
+        
+        TranslatableMessage subject = new TranslatableMessage("ftl.passwordReset.subject", user.getUsername());
+        MangoEmailContent content = new MangoEmailContent("passwordReset", model, translations, subject.translate(translations), Common.UTF8);
+        
+        EmailWorkItem.queueEmail(user.getEmail(), content);
     }
 }
