@@ -368,10 +368,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
             pointValue = newValue;
-            fireEvents(oldValue, newValue, source != null, false, logValue, true);
+            fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
         }
         else
-            fireEvents(null, newValue, false, true, logValue, false);
+            fireEvents(null, newValue, null, false, true, logValue, false, false);
     }
 
     /**
@@ -425,7 +425,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 	    PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
                     valueCache.logPointValueAsync(newValue, null);
                     //Fire logged Events
-                    fireEvents(null, newValue, false, false, true, false);
+                    fireEvents(null, newValue, null, false, false, true, false, false);
                 	    averagingValues.clear();
                 }
             }
@@ -559,7 +559,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             	PointValueTime newValue = new PointValueTime(value, fireTime);
                 valueCache.logPointValueAsync(newValue, null);
                 //Fire logged Events
-                fireEvents(null, newValue, false, false, true, false);
+                fireEvents(null, newValue, null, false, false, true, false, false);
             }
         }
     }
@@ -618,6 +618,14 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     public void setAttribute(String key, Object value) {
+        attributes.compute(key, (k, v) -> {
+            if(v != null && !value.equals(v)) {
+                Map<String, Object> attributesCopy = new HashMap<>(attributes);
+                fireEvents(null, null, attributesCopy, false, false, false, false, true);
+            }
+            
+            return value;
+        });
         attributes.put(key, value);
     }
 
@@ -657,10 +665,12 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     // / Listeners
     // /
     //
-    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, boolean set, boolean backdate, boolean logged, boolean updated) {
+    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, Map<String, Object> attributes, boolean set, 
+            boolean backdate, boolean logged, boolean updated, boolean attributesChanged) {
         DataPointListener l = Common.runtimeManager.getDataPointListeners(vo.getId());
         if (l != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, set, backdate, logged, updated));
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, 
+                    attributes, set, backdate, logged, updated, attributesChanged));
     }
 
     class EventNotifyWorkItem implements WorkItem {
@@ -669,30 +679,39 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         private final DataPointListener listener;
         private final PointValueTime oldValue;
         private final PointValueTime newValue;
+        private final Map<String, Object> attributes;
         private final boolean set;
         private final boolean backdate;
         private final boolean logged;
         private final boolean updated;
+        private final boolean attributesChanged;
 
-        EventNotifyWorkItem(String xid, DataPointListener listener, PointValueTime oldValue, PointValueTime newValue, boolean set,
-                boolean backdate, boolean logged, boolean updated) {
-        	this.sourceXid = xid;
+        EventNotifyWorkItem(String xid, DataPointListener listener, PointValueTime oldValue, PointValueTime newValue, Map<String, Object> attributes, boolean set,
+                boolean backdate, boolean logged, boolean updated, boolean attributesChanged) {
+            this.sourceXid = xid;
             this.listener = listener;
             this.oldValue = oldValue;
             this.newValue = newValue;
+            this.attributes = attributes;
             this.set = set;
             this.backdate = backdate;
             this.logged = logged;
             this.updated = updated;
+            this.attributesChanged = attributesChanged;
         }
 
         @Override
         public void execute() {
+            if (attributesChanged) {
+                listener.attributeChanged(attributes);
+                return;
+            }
+
             if (backdate)
                 listener.pointBackdated(newValue);
-            else if(updated) {
+            else if (updated) {
                 // Updated
-        		listener.pointUpdated(newValue);
+                listener.pointUpdated(newValue);
 
                 // Fire if the point has changed.
                 if (!PointValueTime.equalValues(oldValue, newValue))
@@ -702,10 +721,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 if (set)
                     listener.pointSet(oldValue, newValue);
             }
-            
-            //Was this value actually logged
-            if(logged)
-            	listener.pointLogged(newValue);
+
+            // Was this value actually logged
+            if (logged)
+                listener.pointLogged(newValue);
         }
 
         @Override

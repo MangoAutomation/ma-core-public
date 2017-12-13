@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.util.Map;
+
 public interface DataPointListener {
 	
 	/**
@@ -60,4 +62,10 @@ public interface DataPointListener {
      * @param value
      */
     void pointLogged(PointValueTime value);
+    
+    /**
+     * Called when any attribute on a data source has changed, all attributes after the change are supplied to this callback
+     * @param attributes
+     */
+    default void attributeChanged(Map<String, Object> attributes) { }
 }
