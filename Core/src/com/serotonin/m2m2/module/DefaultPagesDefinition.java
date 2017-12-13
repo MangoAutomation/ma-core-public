@@ -64,6 +64,16 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         }
         return uri;
     }
+    
+    public static String getPasswordResetUri() {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getPasswordResetPageUri();
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
 
     private static String getFirstLoginUri(HttpServletRequest request, HttpServletResponse response) {
         String uri = null;
@@ -143,6 +153,16 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * @return the URI of the login page to use, or null.
      */
     public String getLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
+        return null;
+    }
+    
+    /**
+     * Returns the URI of the password reset page to use. The default value is "/ui/login". If this method returns null, the
+     * next definition (if available) will be used.
+     * 
+     * @return the URI of the login page to use, or null.
+     */
+    public String getPasswordResetPageUri() {
         return null;
     }
 

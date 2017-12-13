@@ -51,6 +51,8 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public User getUser(String username) {
+        if (username == null) return null;
+        
         return userCache.computeIfAbsent(username, u -> {
             return queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
                     new UserRowMapper(), null);

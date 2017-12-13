@@ -6,26 +6,42 @@ package com.serotonin.m2m2.web.mvc.spring.components;
 import java.security.KeyPair;
 import java.util.Date;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.exception.NotFoundException;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
 
 /**
  * @author Jared Wiltshire
  */
 @Service
-public final class TokenAuthenticationService extends JwtSignerVerifier {
+public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.userAuth.publicKey";
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.userAuth.privateKey";
-    
-    public static final String USER_ID_CLAIM = "id";
-    public static final String USER_VERSION_CLAIM = "v";
 
+    public static final String TOKEN_TYPE_VALUE = "auth";
+    public static final String USER_ID_CLAIM = "id";
+    public static final String USER_TOKEN_VERSION_CLAIM = "v";
+    
+    private final UserDetailsService userDetailsService;
+    
+    public TokenAuthenticationService(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected String tokenType() {
+        return TOKEN_TYPE_VALUE;
+    }
+    
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
     	SystemSettingsDao.instance.setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
@@ -48,11 +64,36 @@ public final class TokenAuthenticationService extends JwtSignerVerifier {
     }
     
     public String generateToken(User user, Date expiry) {
-        JwtBuilder builder = Jwts.builder()
-                .setSubject(user.getUsername())
-                .setExpiration(expiry)
+        JwtBuilder builder = this.newToken(user.getUsername(), expiry)
                 .claim(USER_ID_CLAIM, user.getId())
-                .claim(USER_VERSION_CLAIM, 1); // this will be set to a real user version number in the future so we can blacklist old tokens
+                .claim(USER_TOKEN_VERSION_CLAIM, 1); // this will be set to a real user version number in the future so we can blacklist old tokens
+
         return this.sign(builder);
+    }
+
+    @Override
+    protected User verifyClaims(Jws<Claims> token) {
+        Claims claims = token.getBody();
+        
+        String username = claims.getSubject();
+        if (username == null) {
+            throw new NotFoundException();
+        }
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        
+        if (!(userDetails instanceof User)) {
+            throw new RuntimeException("Expected user details to be instance of User");
+        }
+        
+        User user = (User) userDetails;
+
+        Integer userId = user.getId();
+        this.verifyClaim(token, USER_ID_CLAIM, userId);
+        
+        // this will be set to a real user version number in the future so we can blacklist old tokens
+        Integer userVersion = 1;
+        this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, userVersion);
+        
+        return user;
     }
 }
