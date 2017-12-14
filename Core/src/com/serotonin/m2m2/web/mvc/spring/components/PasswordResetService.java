@@ -42,7 +42,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.passwordReset.privateKey";
     public static final String EXPIRY_SYSTEM_SETTING = "jwt.passwordReset.expiry";
     
-    public static final String PASSWORD_RESET_PAGE_TOKEN_PARAMETER = "passwordReset";
+    public static final String PASSWORD_RESET_PAGE_TOKEN_PARAMETER = "resetToken";
 
     public static final int DEFAULT_EXPIRY_DURATION = 15 * 60; // 15 minutes
     
