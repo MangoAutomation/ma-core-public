@@ -41,8 +41,16 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 * @return
 	 */
 	public boolean isAdmin() {
-		User user = (User) this.getPrincipal();
-		return user.isAdmin();
+	    Object principal = this.getPrincipal();
+	    
+	    if (principal instanceof User) {
+	        User user = (User) this.getPrincipal();
+	        return user.isAdmin();
+	    }
+	    
+	    // principal is probably a string "anonymousUser"
+	    
+		return false;
 	}
 	
 	/**

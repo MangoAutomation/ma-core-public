@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.spring.components;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.util.Date;
 import java.util.HashMap;
@@ -106,17 +107,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         return this.sign(builder);
     }
     
-    public User resetPassword(String token, String newPassword) {
-        User user = this.verify(token);
-        user.setPassword(Common.encrypt(newPassword));
-        UserDao.instance.saveUser(user);
-        return user;
-    }
-    
-    public void sendEmail(User user) throws TemplateException, IOException, AddressException {
-        String token = this.generateToken(user);
-        int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
-
+    public URI generateResetUrl(String token) throws UnknownHostException {
         UriComponentsBuilder builder;
         String baseUrl = SystemSettingsDao.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL);
         if (baseUrl != null) {
@@ -133,7 +124,25 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
 
         String resetPage = DefaultPagesDefinition.getPasswordResetUri();
         
-        URI uri = builder.path(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
+        return builder.path(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
+    }
+    
+    public URI generateRelativeResetUrl(String token) {
+        String resetPage = DefaultPagesDefinition.getPasswordResetUri();
+        return UriComponentsBuilder.fromPath(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
+    }
+
+    public User resetPassword(String token, String newPassword) {
+        User user = this.verify(token);
+        user.setPassword(Common.encrypt(newPassword));
+        UserDao.instance.saveUser(user);
+        return user;
+    }
+
+    public void sendEmail(User user) throws TemplateException, IOException, AddressException {
+        String token = this.generateToken(user);
+        int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
+        URI uri = this.generateResetUrl(token);
         
         Translations translations = Translations.getTranslations(user.getLocaleObject());
         

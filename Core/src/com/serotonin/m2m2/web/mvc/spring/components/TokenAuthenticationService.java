@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
 
@@ -66,9 +67,14 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     public String generateToken(User user, Date expiry) {
         JwtBuilder builder = this.newToken(user.getUsername(), expiry)
                 .claim(USER_ID_CLAIM, user.getId())
-                .claim(USER_TOKEN_VERSION_CLAIM, 1); // this will be set to a real user version number in the future so we can blacklist old tokens
+                .claim(USER_TOKEN_VERSION_CLAIM, user.getTokenVersion());
 
         return this.sign(builder);
+    }
+
+    public void revokeTokens(User user) {
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        UserDao.instance.saveUser(user);
     }
 
     @Override
