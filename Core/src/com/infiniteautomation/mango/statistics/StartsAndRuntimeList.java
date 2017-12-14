@@ -19,7 +19,9 @@ import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 /**
- * @author Matthew Lohbihler
+ * Track runtime, state changes and percentage in state of total runtime (not period)
+ * 
+ * @author Matthew Lohbihler, Terry Packer
  */
 public class StartsAndRuntimeList implements StatisticsGenerator {
     // Configuration values.
@@ -36,7 +38,6 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private int count;
 
     // State values.
-    private DataValue latestValue;
     private long latestTime;
     private StartsAndRuntime sar;
 
@@ -58,7 +59,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         this.periodEnd = periodEnd;
 
         if (startValue != null) {
-            this.startValue = latestValue = startValue;
+            this.startValue = startValue;
             latestTime = periodStart;
             sar = get(startValue);
         }
@@ -80,17 +81,12 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
             firstTime = time;
         }
 
-        if (!ObjectUtils.equals(value, latestValue)) {
-            // Update the last value stats, if any.
-            if (sar != null)
-                sar.runtime += time - latestTime;
+        if (sar != null)
+            sar.runtime += time - latestTime;
 
-            latestValue = value;
-            latestTime = time;
-            sar = get(value);
-            sar.starts++;
-        }
-
+        latestTime = time;
+        sar = get(value);
+        sar.starts++;
         lastValue = value;
         lastTime = time;
     }

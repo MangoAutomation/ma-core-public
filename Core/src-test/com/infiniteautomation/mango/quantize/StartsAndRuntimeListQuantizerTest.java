@@ -8,25 +8,25 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.infiniteautomation.mango.statistics.AnalogStatistics;
+import com.infiniteautomation.mango.statistics.StartsAndRuntime;
+import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
-import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
-
 /**
- * Test statistics for the Month of Jan 2017
  *
  * @author Terry Packer
  */
-public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
+public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
 
     
     @Test
@@ -36,28 +36,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-                //Test Minimum
-                Assert.assertEquals(Double.NaN, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(Double.NaN, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMaximumTime());
-                //Test Average
-                Assert.assertEquals(Double.NaN, stats.getAverage(), 0.0001);
-                //Test Integral
-                Assert.assertEquals(Double.NaN, stats.getIntegral(), 0.0001);
-                //Test sum
-                Assert.assertEquals(0.0d, stats.getSum(), 0.0001);
+                
                 //Test first
                 Assert.assertEquals(null, stats.getFirstValue());
                 Assert.assertEquals(null, stats.getFirstTime());
@@ -68,8 +57,6 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(null, stats.getStartValue());
                 //Test count
                 Assert.assertEquals(0, stats.getCount());
-                //Test delta
-                Assert.assertEquals(Double.NaN, stats.getDelta(), 0.0001);
                 
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
@@ -85,9 +72,9 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
-        double value = 1.0;
+        int value = 1;
         while(time.toInstant().isBefore(to.toInstant())) {
-            data.add(new IdPointValueTime(1, new NumericValue(value), time.toInstant().toEpochMilli()));
+            data.add(new IdPointValueTime(1, new MultistateValue(value), time.toInstant().toEpochMilli()));
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
         
@@ -95,52 +82,43 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
                 ZonedDateTime sampleTime = time.plusHours(12);
-                //Test Minimum
-                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
-                //Test Average
-                Assert.assertEquals(1.0d, stats.getAverage(), 0.0001);
-                //Test Integral
-                if(counter.getValue() == 1) {
-                    double integral = 1.0d * 12 * 60 * 60;
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }else {
-                    //24Hrs
-                    double integral = 1.0d * 24 * 60 * 60;
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }
-                //Test sum
-                Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
+                
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
                 Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(1, stats.getLastValue().getIntegerValue());
                 Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(null, stats.getStartValue());
                 else
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
-                //Test delta
-                Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
+                
+                //Test StartsList
+                Map<Object, StartsAndRuntime> map = stats.getStartsAndRuntime();
+                StartsAndRuntime one = map.get(1);
+                Assert.assertEquals(1, one.getStarts());
+                Assert.assertEquals(100.0d, one.getPercentage(), 0.0001);
+                Assert.assertEquals(1.0d, one.getProportion(), 0.0001);
+                if(counter.getValue() == 1)
+                    Assert.assertEquals(12*60*60*1000, one.getRuntime());
+                else
+                    Assert.assertEquals(24*60*60*1000, one.getRuntime());
                 
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
@@ -164,30 +142,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-
-                //Test Minimum
-                Assert.assertEquals(Double.NaN, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(Double.NaN, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMaximumTime());
-                //Test Average
-                Assert.assertEquals(1.0, stats.getAverage(), 0.0001);
-                //Test Integral
-                double integral = 1.0 * 24*60*60;
-                Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                //Test sum
-                Assert.assertEquals(0.0d, stats.getSum(), 0.0001);
+                
                 //Test first
                 Assert.assertEquals(null, stats.getFirstValue());
                 Assert.assertEquals(null, stats.getFirstTime());
@@ -195,18 +160,23 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(null, stats.getLastValue());
                 Assert.assertEquals(null, stats.getLastTime());
                 //Test start
-                Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(0, stats.getCount());
-                //Test delta
-                Assert.assertEquals(0.0d, stats.getDelta(), 0.0001);
+                //Ensure data
+                Assert.assertEquals(1, stats.getStartsAndRuntime().size());
+                StartsAndRuntime one = stats.getStartsAndRuntime().get(1);
+                Assert.assertEquals(0, one.getStarts());
+                Assert.assertEquals(100.0d, one.getPercentage(), 0.0001);
+                Assert.assertEquals(1.0d, one.getProportion(), 0.0001);
+                Assert.assertEquals(24*60*60*1000, one.getRuntime());
                 
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
         
-        quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         quantizer.done();
         Assert.assertEquals(new Integer(31), counter.getValue());
     }
@@ -220,59 +190,37 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
                 ZonedDateTime sampleTime = time;
                 if(counter.getValue() == 1) {
-                    //Test Minimum
-                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                    //Test Maximum
-                    Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
-                    //Test Average
-                    Assert.assertEquals(1.0d, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    //24Hrs
-                    double integral = 1.0d * 24 * 60 * 60;
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                    //Test sum
-                    Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
                     Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                     //Test last
-                    Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getLastValue().getIntegerValue());
                     Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                     //Test start
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(1, stats.getCount());
-                    //Test delta
-                    Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
+                    //Ensure data
+                    Assert.assertEquals(1, stats.getStartsAndRuntime().size());
+                    StartsAndRuntime one = stats.getStartsAndRuntime().get(1);
+                    Assert.assertEquals(1, one.getStarts());
+                    Assert.assertEquals(100.0d, one.getPercentage(), 0.0001);
+                    Assert.assertEquals(1.0d, one.getProportion(), 0.0001);
+                    Assert.assertEquals(24*60*60*1000, one.getRuntime());
                 }else {
                     //No data in other periods
-                    //Test Minimum
-                    Assert.assertEquals(Double.NaN, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals(null, stats.getMinimumTime());
-                    //Test Maximum
-                    Assert.assertEquals(Double.NaN, stats.getMaximumValue(), 0.0001);
-                    Assert.assertEquals(null, stats.getMaximumTime());
-                    //Test Average
-                    Assert.assertEquals(1.0, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    double integral = 1.0 * 24*60*60;
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                    //Test sum
-                    Assert.assertEquals(0.0d, stats.getSum(), 0.0001);
                     //Test first
                     Assert.assertEquals(null, stats.getFirstValue());
                     Assert.assertEquals(null, stats.getFirstTime());
@@ -280,11 +228,16 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(null, stats.getLastValue());
                     Assert.assertEquals(null, stats.getLastTime());
                     //Test start
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(0, stats.getCount());
-                    //Test delta
-                    Assert.assertEquals(0.0d, stats.getDelta(), 0.0001);
+                    //Ensure data
+                    Assert.assertEquals(1, stats.getStartsAndRuntime().size());
+                    StartsAndRuntime one = stats.getStartsAndRuntime().get(1);
+                    Assert.assertEquals(0, one.getStarts());
+                    Assert.assertEquals(100.0d, one.getPercentage(), 0.0001);
+                    Assert.assertEquals(1.0d, one.getProportion(), 0.0001);
+                    Assert.assertEquals(24*60*60*1000, one.getRuntime());
                 }
                 
                 //Move to next period time
@@ -292,21 +245,20 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             }
         });
         
-        quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.toInstant().toEpochMilli()), 0, false);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), 0, false);
         quantizer.done();
         Assert.assertEquals(new Integer(31), counter.getValue());
     }
     
-    //Test with Start Value and Values
     @Test
     public void testStartValueOneValuePerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
-        double value = 1.0;
+        int value = 1;
         while(time.toInstant().isBefore(to.toInstant())) {
-            data.add(new IdPointValueTime(1, new NumericValue(value), time.toInstant().toEpochMilli()));
+            data.add(new IdPointValueTime(1, new MultistateValue(value), time.toInstant().toEpochMilli()));
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
         
@@ -314,62 +266,49 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
                 ZonedDateTime sampleTime = time.plusHours(12);
-                //Test Minimum
-                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
-                //Test Average
-                Assert.assertEquals(1.0d, stats.getAverage(), 0.0001);
-                //Test Integral
-                //24Hrs
-                double integral = 1.0d * 24 * 60 * 60;
-                Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                //Test sum
-                Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
+                
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
                 Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(1, stats.getLastValue().getIntegerValue());
                 Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
-                Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
-                //Test delta
-                Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
+                //Ensure data
+                Assert.assertEquals(1, stats.getStartsAndRuntime().size());
+                StartsAndRuntime one = stats.getStartsAndRuntime().get(1);
+                Assert.assertEquals(1, one.getStarts());
+                Assert.assertEquals(100.0d, one.getPercentage(), 0.0001);
+                Assert.assertEquals(1.0d, one.getProportion(), 0.0001);
+                Assert.assertEquals(24*60*60*1000, one.getRuntime());
                 
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
 
-        quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
         Assert.assertEquals(new Integer(31), counter.getValue());
     }
-    //TODO Test with End Value on edge of period end i.e. not a bookend (this won't happen via a query)
-    
-    //
-    //Many Values Per Period Tests
-    //
     
     @Test
     public void testNoStartValueManyValuesPerPeriod() throws IOException {
@@ -381,12 +320,12 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
             //Insert 10 values per day
-            double value = 1.0;
+            int value = 1;
             ZonedDateTime daily = ZonedDateTime.ofInstant(time.toInstant(), zoneId);
             for(int i=0; i<10; i++) {
-                data.add(new IdPointValueTime(1, new NumericValue(value), daily.toInstant().toEpochMilli()));
+                data.add(new IdPointValueTime(1, new MultistateValue(value), daily.toInstant().toEpochMilli()));
                 daily = (ZonedDateTime)hourlyAdjuster.adjustInto(daily);
-                value = value + 1.0d;
+                value = value + 1;
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
@@ -395,63 +334,86 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
-                //Test Minimum
-                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
-                //Test Average
-                //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
-                if(counter.getValue() == 1) {
-                    double integral = 1d*60d*60d + 2d*60*60 + 3d*60*60 + 4d*60*60 + 5d*60*60 + 6d*60*60 + 7d*60*60 + 8d*60*60 + 9d*60*60;
-                    integral = integral + 10d * 3d*60*60;
-                    double average = integral / (12d*60d*60d); //first 12hrs didn't have a value
-                    Assert.assertEquals(average, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }else {
-                    double integral = 1d*60d*60d + 2d*60*60 + 3d*60*60 + 4d*60*60 + 5d*60*60 + 6d*60*60 + 7d*60*60 + 8d*60*60 + 9d*60*60;
-                    integral = integral + 10d * 15d*60*60;
-                    double average = integral / (24d*60d*60d);
-                    Assert.assertEquals(average, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }
-                
-                
-                //Test sum
-                Assert.assertEquals(55d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
                 Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(10, stats.getLastValue().getIntegerValue());
                 Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(null, stats.getStartValue());
                 else
-                    Assert.assertEquals(10.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(10, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(10, stats.getCount());
-                //Test delta
+                //Ensure data
                 if(counter.getValue() == 1) {
-                    //1 to 10
-                    Assert.assertEquals(9.0, stats.getDelta(), 0.0001);
+                    //1 to 10, was 10 for last 3 hrs of day
+                    Assert.assertEquals(10, stats.getStartsAndRuntime().size());
+                    for(StartsAndRuntime value : stats.getData()) {
+                        switch((Integer)value.getValue()) {
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(1d/12d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(1d/12d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(60*60*1000, value.getRuntime());                                
+                                break;
+                            case 10:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(3d/12d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(3d/12d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(3*60*60*1000, value.getRuntime());  
+                                break;
+                        }
+                    }
+
                 }else {
-                    Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
+                    //Start in state 10 for 12 hrs more
+                    Assert.assertEquals(10, stats.getStartsAndRuntime().size());
+                    for(StartsAndRuntime value : stats.getData()) {
+                        switch((Integer)value.getValue()) {
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(1d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(1d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(60*60*1000, value.getRuntime());                                
+                                break;
+                            case 10:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(15d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(15d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(15*60*60*1000, value.getRuntime());  
+                                break;
+                        }
+                    }
                 }
                 
                 //Move to next period time
@@ -477,12 +439,12 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
             //Insert 10 values per day
-            double value = 1.0;
+            int value = 1;
             ZonedDateTime daily = ZonedDateTime.ofInstant(time.toInstant(), zoneId);
             for(int i=0; i<10; i++) {
-                data.add(new IdPointValueTime(1, new NumericValue(value), daily.toInstant().toEpochMilli()));
+                data.add(new IdPointValueTime(1, new MultistateValue(value), daily.toInstant().toEpochMilli()));
                 daily = (ZonedDateTime)hourlyAdjuster.adjustInto(daily);
-                value = value + 1.0d;
+                value = value + 1;
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
@@ -491,62 +453,91 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-
-                //Test Minimum
-                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
-                //Test Average
-                //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
-                if(counter.getValue() == 1) {
-                    double integral = 1d*13*60d*60d + 2d*60*60 + 3d*60*60 + 4d*60*60 + 5d*60*60 + 6d*60*60 + 7d*60*60 + 8d*60*60 + 9d*60*60;
-                    integral = integral + 10d * 3d*60*60;
-                    double average = integral / (24d*60d*60d);
-                    Assert.assertEquals(average, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }else {
-                    double integral = 1d*60d*60d + 2d*60*60 + 3d*60*60 + 4d*60*60 + 5d*60*60 + 6d*60*60 + 7d*60*60 + 8d*60*60 + 9d*60*60;
-                    integral = integral + 10d * 15d*60*60;
-                    double average = integral / (24d*60d*60d);
-                    Assert.assertEquals(average, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }
-                
-                //Test sum
-                Assert.assertEquals(55d, stats.getSum(), 0.0001);
+              
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
                 Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(10, stats.getLastValue().getIntegerValue());
                 Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 else
-                    Assert.assertEquals(10.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(10, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(10, stats.getCount());
-                //Test delta
+                //Ensure data
                 if(counter.getValue() == 1) {
-                    //1 to 10
-                    Assert.assertEquals(9.0, stats.getDelta(), 0.0001);
+                    //1 to 10, was 10 for last 3 hrs of day
+                    Assert.assertEquals(10, stats.getStartsAndRuntime().size());
+                    for(StartsAndRuntime value : stats.getData()) {
+                        switch((Integer)value.getValue()) {
+                            case 1:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(13d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(13d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(13*60*60*1000, value.getRuntime());    
+                                break;
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(1d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(1d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(60*60*1000, value.getRuntime());                                
+                                break;
+                            case 10:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(3d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(3d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(3*60*60*1000, value.getRuntime());  
+                                break;
+                        }
+                    }
+
                 }else {
-                    Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
+                    //Start in state 10 for 12 hrs more
+                    Assert.assertEquals(10, stats.getStartsAndRuntime().size());
+                    for(StartsAndRuntime value : stats.getData()) {
+                        switch((Integer)value.getValue()) {
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(1d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(1d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(60*60*1000, value.getRuntime());                                
+                                break;
+                            case 10:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(15d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(15d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(15*60*60*1000, value.getRuntime());  
+                                break;
+                        }
+                    }
                 }
                 
                 //Move to next period time
@@ -554,7 +545,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             }
         });
         
-        quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
@@ -572,12 +563,12 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
             //Insert 10 values per day
-            double value = 1.0;
+            int value = 1;
             ZonedDateTime daily = ZonedDateTime.ofInstant(time.toInstant(), zoneId);
             for(int i=0; i<10; i++) {
-                data.add(new IdPointValueTime(1, new NumericValue(value), daily.toInstant().toEpochMilli()));
+                data.add(new IdPointValueTime(1, new MultistateValue(value), daily.toInstant().toEpochMilli()));
                 daily = (ZonedDateTime)hourlyAdjuster.adjustInto(daily);
-                value = value + 1.0d;
+                value = value + 1;
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
@@ -586,80 +577,101 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
             
             @Override
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-
-                //Test Minimum
-                if(counter.getValue() == 1) {
-                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                }else {
-                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                }
-                //Test Maximum
-                Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
-                //Test Average
-                //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
-                if(counter.getValue() == 1) {
-                    double integral = 1d*13*60d*60d + 2d*60*60 + 3d*60*60 + 4d*60*60 + 5d*60*60 + 6d*60*60 + 7d*60*60 + 8d*60*60 + 9d*60*60;
-                    integral = integral + 10d * 3d*60*60;
-                    double average = integral / (24d*60d*60d);
-                    Assert.assertEquals(average, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }else {
-                    double integral = 1d*60d*60d + 2d*60*60 + 3d*60*60 + 4d*60*60 + 5d*60*60 + 6d*60*60 + 7d*60*60 + 8d*60*60 + 9d*60*60;
-                    integral = integral + 10d * 15d*60*60;
-                    double average = integral / (24d*60d*60d);
-                    Assert.assertEquals(average, stats.getAverage(), 0.0001);
-                    //Test Integral
-                    Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
-                }
                 
-                //Test sum
                 if(counter.getValue() == 1) {
-                    Assert.assertEquals(56d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
                     Assert.assertEquals((long)time.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }else {
-                    Assert.assertEquals(55d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());                    
+                    Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
+                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }
                 //Test last
-                Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(10, stats.getLastValue().getIntegerValue());
                 Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
-                
+                //Test start (the first start value will be null
                 if(counter.getValue() == 1) {
-                    //Test start (the first start value will be null
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(11, stats.getCount());
                 }else {
-                    //Test start (the first start value will be null
-                    Assert.assertEquals(10.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(10, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(10, stats.getCount());
                 }
-                
-                //Test delta
+
+                //Ensure data
                 if(counter.getValue() == 1) {
-                    //1 to 10
-                    Assert.assertEquals(9.0, stats.getDelta(), 0.0001);
+                    //1 to 10, was 10 for last 3 hrs of day
+                    Assert.assertEquals(10, stats.getStartsAndRuntime().size());
+                    for(StartsAndRuntime value : stats.getData()) {
+                        switch((Integer)value.getValue()) {
+                            case 1:
+                                Assert.assertEquals(2, value.getStarts());
+                                Assert.assertEquals(100d*(13d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(13d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(13*60*60*1000, value.getRuntime());    
+                                break;
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(1d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(1d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(60*60*1000, value.getRuntime());                                
+                                break;
+                            case 10:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(3d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(3d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(3*60*60*1000, value.getRuntime());  
+                                break;
+                        }
+                    }
+
                 }else {
-                    Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
+                    //Start in state 10 for 12 hrs more
+                    Assert.assertEquals(10, stats.getStartsAndRuntime().size());
+                    for(StartsAndRuntime value : stats.getData()) {
+                        switch((Integer)value.getValue()) {
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(1d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(1d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(60*60*1000, value.getRuntime());                                
+                                break;
+                            case 10:
+                                Assert.assertEquals(1, value.getStarts());
+                                Assert.assertEquals(100d*(15d/24d), value.getPercentage(), 0.0001);
+                                Assert.assertEquals(15d/24d, value.getProportion(), 0.0001);
+                                Assert.assertEquals(15*60*60*1000, value.getRuntime());  
+                                break;
+                        }
+                    }
                 }
                 
                 //Move to next period time
@@ -667,7 +679,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             }
         });
         
-        quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.toInstant().toEpochMilli()), 0, false);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), 0, false);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
