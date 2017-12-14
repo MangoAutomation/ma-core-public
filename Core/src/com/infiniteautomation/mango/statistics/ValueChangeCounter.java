@@ -67,7 +67,12 @@ public class ValueChangeCounter implements StatisticsGenerator {
             firstTime = time;
         }
 
-        if (!ObjectUtils.equals(latestValue, value)) {
+        if(time == periodStart) {
+            //This is probably the same as the start value but we don't really care it is definitely 
+            // the first change
+            changes++;
+            latestValue = value;
+        }else if (!ObjectUtils.equals(latestValue, value)) {
             changes++;
             latestValue = value;
         }
