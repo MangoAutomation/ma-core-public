@@ -257,6 +257,7 @@ public class MangoSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
                     .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
                     .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
+                    .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
                     .antMatchers(HttpMethod.OPTIONS).permitAll()
                     .anyRequest().authenticated()
                     .and()
@@ -340,6 +341,7 @@ public class MangoSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
                     .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
                     .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
+                    .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
                     .antMatchers(HttpMethod.OPTIONS).permitAll()
                     .anyRequest().authenticated()
                     .and()
