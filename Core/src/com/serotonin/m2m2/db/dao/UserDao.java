@@ -84,6 +84,8 @@ public class UserDao extends AbstractDao<User> {
             user.setPermissions(rs.getString(++i));
             user.setName(rs.getString(++i));
             user.setLocale(rs.getString(++i));
+            user.setTokenVersion(rs.getInt(++i));
+            user.setPasswordVersion(rs.getInt(++i));
             return user;
         }
     }
@@ -110,8 +112,8 @@ public class UserDao extends AbstractDao<User> {
     }
 
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
-            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale, tokenVersion, passwordVersion) " //
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
         int id = ejt.doInsert(
@@ -121,7 +123,7 @@ public class UserDao extends AbstractDao<User> {
                         user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                         boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale() }, new int[] { Types.VARCHAR, Types.VARCHAR,
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
+                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER });
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
@@ -133,8 +135,8 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=? " //
-            + "WHERE id=?";
+            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=? , tokenVersion=? , passwordVersion=?" //
+            + " WHERE id=?";
 
     void updateUser(User user) {
         // Potential fix for "An attempt was made to get a data value of type 'VARCHAR' from a data value of type 'null'"
@@ -155,10 +157,11 @@ public class UserDao extends AbstractDao<User> {
                     new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                             boolToChar(user.isDisabled()), user.getHomeUrl(),
                             user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
-                            user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getId() },
+                            user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
+                            user.getTokenVersion(), user.getPasswordVersion(), user.getId() },
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER });
+                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER });
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
             if (handler != null)
                 handler.notify("update", user);
@@ -244,7 +247,9 @@ public class UserDao extends AbstractDao<User> {
 				vo.isMuted(),
 				vo.getPermissions(),
                 vo.getName(),
-                vo.getLocale()
+                vo.getLocale(),
+                vo.getTokenVersion(),
+                vo.getPasswordVersion()
 		};
 	}
     
@@ -278,6 +283,8 @@ public class UserDao extends AbstractDao<User> {
 		map.put("permissions", Types.VARCHAR);
         map.put("name", Types.VARCHAR);
         map.put("locale", Types.VARCHAR);
+        map.put("tokenVersion", Types.INTEGER);
+        map.put("passwordVersion", Types.INTEGER);
 
 		return map;
 	}

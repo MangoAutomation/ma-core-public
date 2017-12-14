@@ -42,6 +42,8 @@ create table users (
   permissions nvarchar(255),
   name nvarchar(255),
   locale nvarchar(50),
+  tokenVersion int not null,
+  passwordVersion int not null,
   primary key (id)
 );
 

@@ -79,6 +79,9 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     @JsonProperty
     private String locale;
 
+    private int tokenVersion;
+    private int passwordVersion;
+
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
@@ -107,6 +110,9 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this.name = "";
         this.timezone = "";
         this.locale = "";
+        
+        this.tokenVersion = 1;
+        this.passwordVersion = 1;
     }
 
     /**
@@ -600,4 +606,20 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 	 * 
 	 */
 	private static final long serialVersionUID = -1L;
+
+    public int getTokenVersion() {
+        return tokenVersion;
+    }
+
+    public void setTokenVersion(int tokenVersion) {
+        this.tokenVersion = tokenVersion;
+    }
+
+    public int getPasswordVersion() {
+        return passwordVersion;
+    }
+
+    public void setPasswordVersion(int passwordVersion) {
+        this.passwordVersion = passwordVersion;
+    }
 }

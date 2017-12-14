@@ -46,6 +46,8 @@ create table users (
   permissions varchar(255),
   name nvarchar(255),
   locale varchar(50),
+  tokenVersion int not null,
+  passwordVersion int not null,
   primary key (id)
 ) engine=InnoDB;
 
