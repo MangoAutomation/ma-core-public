@@ -67,9 +67,8 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
-        
-        // this will be set to a real password version number in the future so we can blacklist old tokens
-        Integer pwVersion = 1;
+
+        Integer pwVersion = user.getPasswordVersion();
         this.verifyClaim(token, USER_PASSWORD_VERSION_CLAIM, pwVersion);
         
         return user;

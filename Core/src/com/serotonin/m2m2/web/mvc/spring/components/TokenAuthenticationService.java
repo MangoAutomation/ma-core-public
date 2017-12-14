@@ -89,10 +89,9 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
-        
-        // this will be set to a real user version number in the future so we can blacklist old tokens
-        Integer userVersion = 1;
-        this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, userVersion);
+
+        Integer tokenVersion = user.getTokenVersion();
+        this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
         
         return user;
     }
