@@ -203,11 +203,11 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
         if(H2_SYNTAX) {
             if(type.getEventSubtype() == null)
-                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) VALUES ((SELECT id FROM eventHandlers WHERE xid=?), ?, ?, ?)", 
+                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?)", 
                         new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()}, 
                         new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
             else
-                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) VALUES ((SELECT id FROM eventHandlers WHERE xid=?), ?, ?, ?, ?)", 
+                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?, ?)", 
                     new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
                     new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         }
