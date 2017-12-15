@@ -62,6 +62,7 @@
 		<Logger name="com.mangofactory" level="debug"/>
 		<Logger name="org.eclipse.jetty" level="info"/>
 		<Logger name="org.springframework.web" level="debug"/>
+		<Logger name="org.springframework.security" level="debug"/>
 		<Logger name="com.fasterxml" level="debug"/>
 		<Logger name="com.infiniteautomation.brewersdashboard.rt" level="debug"/>
 		<Logger name="com.serotonin.bacnet4j" level="debug"/>
