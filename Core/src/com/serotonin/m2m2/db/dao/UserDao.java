@@ -152,6 +152,13 @@ public class UserDao extends AbstractDao<User> {
             user.setLocale("");
         User old = getUser(user.getId());
         try {
+            boolean passwordChanged = !old.getPassword().equals(user.getPassword());
+            if (passwordChanged) {
+                user.setPasswordVersion(old.getPasswordVersion() + 1);
+            } else {
+                user.setPasswordVersion(old.getPasswordVersion());
+            }
+            
             ejt.update(
                     USER_UPDATE,
                     new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
@@ -163,11 +170,16 @@ public class UserDao extends AbstractDao<User> {
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER });
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
+
+            boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
+            if (passwordChanged || permissionsChanged || user.isDisabled()) {
+                MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
+            }
+            
+            userCache.remove(old.getUsername());
+            
             if (handler != null)
                 handler.notify("update", user);
-            //Update User In Session
-            MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
-            userCache.remove(old.getUsername());
         }
         catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -212,9 +224,7 @@ public class UserDao extends AbstractDao<User> {
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-        //Update User In Session
-        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
-        userCache.remove(old.getUsername());
+        userCache.put(user.getUsername(), user);
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -222,9 +232,15 @@ public class UserDao extends AbstractDao<User> {
         ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-        //Update User In Session
-        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
-        userCache.remove(old.getUsername());
+        userCache.put(user.getUsername(), user);
+    }
+    
+    public void save(User user, String initiatorId) {
+        throw new UnsupportedOperationException("Use saveUser()");
+    }
+    
+    public void delete(User user, String initiatorId) {
+        throw new UnsupportedOperationException("Use deleteUser()");
     }
     
     //Overrides for use in AbstractBasicDao
