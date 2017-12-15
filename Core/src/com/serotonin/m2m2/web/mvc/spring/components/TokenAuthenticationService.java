@@ -73,8 +73,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     }
 
     public void revokeTokens(User user) {
-        user.setTokenVersion(user.getTokenVersion() + 1);
-        UserDao.instance.saveUser(user);
+        UserDao.instance.revokeTokens(user);
     }
 
     @Override

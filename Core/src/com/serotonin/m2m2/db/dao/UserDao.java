@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -135,7 +136,7 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=? , tokenVersion=? , passwordVersion=?" //
+            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=?, passwordVersion=?" //
             + " WHERE id=?";
 
     void updateUser(User user) {
@@ -165,10 +166,10 @@ public class UserDao extends AbstractDao<User> {
                             boolToChar(user.isDisabled()), user.getHomeUrl(),
                             user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
                             user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
-                            user.getTokenVersion(), user.getPasswordVersion(), user.getId() },
+                            user.getPasswordVersion(), user.getId() },
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER });
+                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER });
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
 
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
@@ -210,7 +211,19 @@ public class UserDao extends AbstractDao<User> {
                 userCache.remove(user.getUsername());
             }
         });
+    }
+    
+    public void revokeTokens(User user) {
+        int userId = user.getId();
+        int currentTokenVersion = user.getTokenVersion();
+        String username = user.getUsername();
         
+        int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", new Object[] { currentTokenVersion + 1, userId, currentTokenVersion, username });
+        if (count == 0) {
+            throw new EmptyResultDataAccessException("Updated no rows", 1);
+        }
+        
+        userCache.remove(user.getUsername());
     }
 
     public void recordLogin(User user) {
