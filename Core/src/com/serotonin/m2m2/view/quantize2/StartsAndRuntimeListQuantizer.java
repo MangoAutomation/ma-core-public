@@ -8,6 +8,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
 
+@Deprecated //Use com.infiniteautomation.mango.quantize class instead
 public class StartsAndRuntimeListQuantizer extends AbstractDataQuantizer {
     public static void quantize(BucketCalculator bucketCalculator, DataValue startValue, List<IValueTime> data,
     	StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList> callback) {

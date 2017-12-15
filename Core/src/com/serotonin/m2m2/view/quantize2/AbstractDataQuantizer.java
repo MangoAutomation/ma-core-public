@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 
+@Deprecated //Use com.infiniteautomation.mango.quantize class instead
 abstract public class AbstractDataQuantizer {
     private final BucketCalculator bucketCalculator;
     private final long startTime;

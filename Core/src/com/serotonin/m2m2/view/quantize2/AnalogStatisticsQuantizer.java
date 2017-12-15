@@ -12,6 +12,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.AnalogStatistics;
 import com.serotonin.m2m2.view.stats.IValueTime;
 
+@Deprecated //Use com.infiniteautomation.mango.quantize class instead
 public class AnalogStatisticsQuantizer extends AbstractDataQuantizer {
     public static void quantize(BucketCalculator bucketCalculator, DataValue startValue, List<IValueTime> data,
     		StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {

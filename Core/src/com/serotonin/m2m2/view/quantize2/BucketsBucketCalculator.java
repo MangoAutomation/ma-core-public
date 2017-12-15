@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
  * 
  * @author Matthew
  */
+@Deprecated //Use com.infiniteautomation.mango.quantize class instead
 public class BucketsBucketCalculator implements BucketCalculator {
     private final DateTime startTime;
     private final DateTime endTime;

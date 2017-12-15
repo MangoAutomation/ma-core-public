@@ -16,6 +16,7 @@ import com.serotonin.m2m2.Common;
  * 
  * @author Matthew
  */
+@Deprecated //Use com.infiniteautomation.mango.quantize class instead
 public class TimePeriodBucketCalculator implements BucketCalculator {
     private final DateTime startTime;
     private final DateTime endTime;

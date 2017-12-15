@@ -14,6 +14,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 /**
  * @author Matthew Lohbihler
  */
+@Deprecated //Use com.infiniteautomation.mango.statistics class instead
 public class ValueChangeCounter implements StatisticsGenerator {
     // Configuration values.
     private final long periodStart;

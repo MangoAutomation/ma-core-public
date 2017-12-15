@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
  * 
  * @author Matthew
  */
+@Deprecated //Use com.infiniteautomation.mango.quantize class instead
 public interface BucketCalculator {
     /**
      * The time from which the range is divided.
