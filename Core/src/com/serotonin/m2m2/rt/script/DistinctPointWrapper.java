@@ -8,11 +8,11 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
 
 /**
  * @author Matthew Lohbihler
@@ -54,10 +54,10 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
         PointValueTime start = point.getPointValueBefore(from);
         List<PointValueTime> values = point.getPointValuesBetween(from, to);
         StartsAndRuntimeList stats = new StartsAndRuntimeList(from, to, start, values);
-        if(point.getDataTypeId() == DataTypes.BINARY)
-        	return  new BinaryStartsAndRuntimeListWrapper(stats);
+        if (point.getDataTypeId() == DataTypes.BINARY)
+            return new BinaryStartsAndRuntimeListWrapper(stats);
         else
-        	return new MultistateStartsAndRuntimeListWrapper(stats);
+            return new MultistateStartsAndRuntimeListWrapper(stats);
     }
     
     @Override

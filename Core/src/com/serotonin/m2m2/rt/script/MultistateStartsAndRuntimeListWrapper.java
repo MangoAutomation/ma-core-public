@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
+import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 
 /**
  * @author Terry Packer

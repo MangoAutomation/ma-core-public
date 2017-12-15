@@ -8,11 +8,11 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.view.stats.ValueChangeCounter;
 
 /**
  * @author Matthew Lohbihler

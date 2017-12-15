@@ -7,9 +7,9 @@ package com.serotonin.m2m2.rt.script;
 import java.util.List;
 import java.util.Map;
 
+import com.infiniteautomation.mango.statistics.StartsAndRuntime;
+import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.view.stats.StartsAndRuntime;
-import com.serotonin.m2m2.view.stats.StartsAndRuntimeList;
 
 /**
  * @author Terry Packer

@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import com.serotonin.m2m2.view.stats.ValueChangeCounter;
+import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 
 /**
  * @author Terry Packer

@@ -1,6 +1,7 @@
 /*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+ * Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+ * 
+ * @author Matthew Lohbihler
  */
 package com.serotonin.m2m2.rt.script;
 
@@ -8,17 +9,18 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.view.stats.AnalogStatistics;
 
 /**
  * @author Matthew Lohbihler
  */
 public class NumericPointWrapper extends AbstractPointWrapper {
-    public NumericPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
+    public NumericPointWrapper(IDataPointValueSource point, ScriptEngine engine,
+            ScriptPointValueSetter setter) {
         super(point, engine, setter);
     }
 
@@ -76,18 +78,18 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
         return wrapper;
     }
-    
+
     @Override
-	protected void helpImpl(StringBuilder builder) {
-		builder.append("ago(periodType): double,\n ");		
-    	builder.append("ago(periodType, periods): double,\n ");
-    	builder.append("past(periodType): AnalogStatisticsWrapper,\n ");	
-    	builder.append("past(periodType, periods): AnalogStatisticsWrapper,\n ");	
-    	builder.append("prev(periodType): AnalogStatisticsWrapper,\n ");	
-    	builder.append("prev(periodType, periods): AnalogStatisticsWrapper,\n ");	
-    	builder.append("previous(periodType): AnalogStatisticsWrapper,\n ");	
-    	builder.append("previous(periodType, periods): AnalogStatisticsWrapper,\n ");	
-    	builder.append("stats(from, to): AnalogStatisticsWrapper,\n ");	
+    protected void helpImpl(StringBuilder builder) {
+        builder.append("ago(periodType): double,\n ");
+        builder.append("ago(periodType, periods): double,\n ");
+        builder.append("past(periodType): AnalogStatisticsWrapper,\n ");
+        builder.append("past(periodType, periods): AnalogStatisticsWrapper,\n ");
+        builder.append("prev(periodType): AnalogStatisticsWrapper,\n ");
+        builder.append("prev(periodType, periods): AnalogStatisticsWrapper,\n ");
+        builder.append("previous(periodType): AnalogStatisticsWrapper,\n ");
+        builder.append("previous(periodType, periods): AnalogStatisticsWrapper,\n ");
+        builder.append("stats(from, to): AnalogStatisticsWrapper,\n ");
     }
-    
+
 }
