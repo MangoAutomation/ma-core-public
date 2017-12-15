@@ -289,6 +289,8 @@ public class EventManagerImpl implements EventManager {
 		List<User> activeUsers = userDao.getActiveUsers();
 		// Loop in case of multiples
 		while (evt != null) {
+            evt.returnToNormal(time, cause);
+            
 			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
@@ -312,8 +314,6 @@ public class EventManagerImpl implements EventManager {
 			}
 			
 			resetHighestAlarmLevel(time);
-
-			evt.returnToNormal(time, cause);
 			if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
 				eventDao.saveEvent(evt);
 
@@ -342,7 +342,9 @@ public class EventManagerImpl implements EventManager {
 		for(EventInstance evt : evts){
 			if(evt.isActive())
 				eventIds.add(evt.getId());
-			evt.returnToNormal(time, inactiveCause);	
+			
+			evt.returnToNormal(time, inactiveCause);
+			
 			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
