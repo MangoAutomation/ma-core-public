@@ -69,8 +69,8 @@ public class UserEventCache extends TimeoutClient{
      */
     public void addEvent(Integer userId, EventInstance value) {
         UserEventCacheEntry entry = cacheMap.get(userId);
-        if(entry != null){
-        	entry.addEvent(value);
+        if (entry != null) {
+            entry.addEvent(value);
         }
     }
     
@@ -80,8 +80,8 @@ public class UserEventCache extends TimeoutClient{
 	 */
 	public void updateEvent(int userId, EventInstance evt) {
         UserEventCacheEntry entry = cacheMap.get(userId);
-        if(entry != null){
-        	entry.replace(evt);
+        if (entry != null) {
+            entry.replace(evt);
         }
 	}
 
@@ -92,8 +92,8 @@ public class UserEventCache extends TimeoutClient{
 	 */
     public void removeEvent(Integer userId, EventInstance evt) {
         UserEventCacheEntry entry = cacheMap.get(userId);
-        if(entry != null){
-        	entry.remove(evt);
+        if (entry != null) {
+            entry.remove(evt);
         }
     }
 
@@ -104,8 +104,8 @@ public class UserEventCache extends TimeoutClient{
      */
     public List<EventInstance> getAllEvents(Integer userId) {
         UserEventCacheEntry c = cacheMap.computeIfAbsent(userId, (k) -> {
-        	List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
-        	return new UserEventCacheEntry(userEvents);
+            List<EventInstance> userEvents = dao.getAllUnsilencedEvents(userId);
+            return new UserEventCacheEntry(userEvents);
         });
         return c.getEvents();
     }
@@ -115,17 +115,17 @@ public class UserEventCache extends TimeoutClient{
      * @param time
      */
     public void purgeEventsBefore(long time){
-		Iterator<Integer> it = cacheMap.keySet().iterator();
-		while(it.hasNext()){
-			cacheMap.get(it.next()).purgeBefore(time);
-		}
+        Iterator<Integer> it = cacheMap.keySet().iterator();
+        while (it.hasNext()) {
+            cacheMap.get(it.next()).purgeBefore(time);
+        }
     }
     
     public void purgeEventsBefore(long time, int alarmLevel){
-			Iterator<Integer> it = cacheMap.keySet().iterator();
-			while(it.hasNext()){
-				cacheMap.get(it.next()).purgeBefore(time, alarmLevel);
-			}
+        Iterator<Integer> it = cacheMap.keySet().iterator();
+        while (it.hasNext()) {
+            cacheMap.get(it.next()).purgeBefore(time, alarmLevel);
+        }
     }
     
     public void purgeEventsBefore(long time, String typeName){
@@ -147,15 +147,15 @@ public class UserEventCache extends TimeoutClient{
     
     // CLEANUP method
     public void cleanup() {
-        if(!running)
-        	return;
+        if (!running)
+            return;
 
         long now = Common.timer.currentTimeMillis();
         ArrayList<Integer> deleteKey = null;
-        
+
 
         Iterator<Entry<Integer, UserEventCacheEntry>> itr = cacheMap.entrySet().iterator();
-        
+
         deleteKey = new ArrayList<Integer>((cacheMap.size() / 2) + 1);
         Entry<Integer, UserEventCacheEntry> entry = null;
         UserEventCacheEntry cacheEntry = null;
@@ -166,9 +166,9 @@ public class UserEventCache extends TimeoutClient{
                 deleteKey.add(entry.getKey());
             }
         }
-        
+
         for (Integer key : deleteKey) {
-        	cacheMap.remove(key);
+            cacheMap.remove(key);
         }
     }
 
@@ -261,24 +261,24 @@ public class UserEventCache extends TimeoutClient{
 		 * @return
 		 */
 		public List<EventInstance> getEvents() {
-			this.lock.readLock().lock();
-        	try{
-        		//Make a copy
-        		return new ArrayList<>(this.events);
-        	}finally{
-        		this.lock.readLock().unlock();
-        		this.lastAccessed = Common.timer.currentTimeMillis();
-        	}
+            this.lock.readLock().lock();
+            try {
+                // Make a copy
+                return new ArrayList<>(this.events);
+            } finally {
+                this.lock.readLock().unlock();
+                this.lastAccessed = Common.timer.currentTimeMillis();
+            }
 		}
 
 		public void addEvent(EventInstance event){
-        	this.lock.writeLock().lock();
-        	try{
-        		this.events.add(event);
-        	}finally{
-        		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.timer.currentTimeMillis();
-        	}
+            this.lock.writeLock().lock();
+            try {
+                this.events.add(event);
+            } finally {
+                this.lock.writeLock().unlock();
+                this.lastAccessed = Common.timer.currentTimeMillis();
+            }
         }
 
 		/**
@@ -339,47 +339,48 @@ public class UserEventCache extends TimeoutClient{
 			
 		}
 		public void purgeBefore(long time, int alarmLevel){
-			this.lock.writeLock().lock();
-			try{
-				ListIterator<EventInstance> it = this.events.listIterator();
-	        	while(it.hasNext()){
-	        		EventInstance ue  = it.next();
-	        		if((ue.getActiveTimestamp() < time)&&(ue.getAlarmLevel() == alarmLevel)){
-	        			it.remove();
-	        		}
-	        	}
-			}finally{
-        		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.timer.currentTimeMillis();
-        	}
+            this.lock.writeLock().lock();
+            try {
+                ListIterator<EventInstance> it = this.events.listIterator();
+                while (it.hasNext()) {
+                    EventInstance ue = it.next();
+                    if ((ue.getActiveTimestamp() < time) && (ue.getAlarmLevel() == alarmLevel)) {
+                        it.remove();
+                    }
+                }
+            } finally {
+                this.lock.writeLock().unlock();
+                this.lastAccessed = Common.timer.currentTimeMillis();
+            }
 		}
 		public void purgeBefore(long time, String typeName){
 			
-			this.lock.writeLock().lock();
-			try{
-				ListIterator<EventInstance> it = this.events.listIterator();
-	        	while(it.hasNext()){
-	        		EventInstance ue  = it.next();
-	        		if((ue.getActiveTimestamp() < time)&&(ue.getEventType().getEventType().equals(typeName))){
-	        			it.remove();
-	        		}
-	        	}
-			}finally{
-        		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.timer.currentTimeMillis();
-        	}
+            this.lock.writeLock().lock();
+            try {
+                ListIterator<EventInstance> it = this.events.listIterator();
+                while (it.hasNext()) {
+                    EventInstance ue = it.next();
+                    if ((ue.getActiveTimestamp() < time)
+                            && (ue.getEventType().getEventType().equals(typeName))) {
+                        it.remove();
+                    }
+                }
+            } finally {
+                this.lock.writeLock().unlock();
+                this.lastAccessed = Common.timer.currentTimeMillis();
+            }
 		}
 		/**
 		 * Dump our entire cache
 		 */
 		public void purge() {
-			this.lock.writeLock().lock();
-			try{
-				this.events.clear();
-			}finally{
-        		this.lock.writeLock().unlock();
-        		this.lastAccessed = Common.timer.currentTimeMillis();
-        	}
-		}
+            this.lock.writeLock().lock();
+            try {
+                this.events.clear();
+            } finally {
+                this.lock.writeLock().unlock();
+                this.lastAccessed = Common.timer.currentTimeMillis();
+            }
+        }
     }
 }

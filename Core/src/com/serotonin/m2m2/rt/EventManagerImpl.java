@@ -216,7 +216,7 @@ public class EventManagerImpl implements EventManager {
 			// Call raiseEvent handlers.
 			handleRaiseEvent(evt, emailUsers);
 
-			if (log.isTraceEnabled())
+			if (log.isDebugEnabled())
 				log.trace("Event raised: type=" + type + ", message="
 						+ message.translate(Common.getTranslations()));
 		}

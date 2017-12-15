@@ -57,33 +57,33 @@ public class EventDao extends BaseDao {
     private static final int MAX_PENDING_EVENTS = 100;
 
     public void saveEvent(EventInstance event) {
-    	if(event.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)){
-    		AuditEventInstanceVO vo = new AuditEventInstanceVO();
-    		AuditEventType type = (AuditEventType)event.getEventType();
-    		vo.setTypeName(type.getEventSubtype());
-    		vo.setAlarmLevel(event.getAlarmLevel());
-    		if(type.getRaisingUser() != null)
-    			vo.setUserId(type.getRaisingUser().getId());
-    		else
-    			vo.setUserId(Common.NEW_ID);
-    		vo.setChangeType(type.getChangeType());
-    		vo.setObjectId(type.getReferenceId1());
-    		vo.setTimestamp(event.getActiveTimestamp());
-    		try {
-				vo.setContext(JsonSerializableUtility.convertMapToJsonObject(event.getContext()));
-			} catch (JsonException e) {
-				LOG.error(e.getMessage(), e);
-			}
-    		vo.setMessage(event.getMessage());
-    		AuditEventDao.instance.save(vo);
-    		//Save for use in the cache
-    		type.setReferenceId2(vo.getId());
-    	}else{
-	        if (event.getId() == Common.NEW_ID)
-	            insertEvent(event);
-	        else
-	            updateEvent(event);
-    	}
+        if (event.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)) {
+            AuditEventInstanceVO vo = new AuditEventInstanceVO();
+            AuditEventType type = (AuditEventType) event.getEventType();
+            vo.setTypeName(type.getEventSubtype());
+            vo.setAlarmLevel(event.getAlarmLevel());
+            if (type.getRaisingUser() != null)
+                vo.setUserId(type.getRaisingUser().getId());
+            else
+                vo.setUserId(Common.NEW_ID);
+            vo.setChangeType(type.getChangeType());
+            vo.setObjectId(type.getReferenceId1());
+            vo.setTimestamp(event.getActiveTimestamp());
+            try {
+                vo.setContext(JsonSerializableUtility.convertMapToJsonObject(event.getContext()));
+            } catch (JsonException e) {
+                LOG.error(e.getMessage(), e);
+            }
+            vo.setMessage(event.getMessage());
+            AuditEventDao.instance.save(vo);
+            // Save for use in the cache
+            type.setReferenceId2(vo.getId());
+        } else {
+            if (event.getId() == Common.NEW_ID)
+                insertEvent(event);
+            else
+                updateEvent(event);
+        }
     }
 
     private static final String EVENT_INSERT = //
