@@ -78,9 +78,6 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
             return;
         }
         
-        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        
         HttpSession session = request.getSession(false);
         if (session != null) {
             SessionInformation info = this.getSessionInformation(session.getId());
@@ -88,8 +85,7 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
                 if (logger.isWarnEnabled()) {
                     logger.warn("Unknown session " + session.getId());
                 }
-                return;
-            } else if (info.isExpired()) {
+            } else if (info.isExpired() && !user.isDisabled()) {
                 // Session was set to expire via a call to exireSessionsForUser() from the DAO.
                 // Invalidate the current session and register a new one right now so the user can continue working.
                 
@@ -113,18 +109,19 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
                 
                 session = newSession;
             }
-            
+
             // update the session attribute for legacy pages with the new user
             session.setAttribute(Common.SESSION_USER, user);
         }
-        
+
         // Set the spring security context (thread local) to a new Authentication with the updated user and authorities.
         // Updates the SPRING_SECURITY_CONTEXT session attribute as well.
         // Should always be a UsernamePasswordAuthenticationToken a user cannot update themselves via a JWT.
+        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (currentAuthentication instanceof UsernamePasswordAuthenticationToken) {
             UsernamePasswordAuthenticationToken newAuthentication = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
         }
-        
+
     }
 }
