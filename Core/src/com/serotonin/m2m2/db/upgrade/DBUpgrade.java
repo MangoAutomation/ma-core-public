@@ -29,6 +29,7 @@ import com.serotonin.util.StringUtils;
 abstract public class DBUpgrade extends BaseDao {
     private static final Log LOG = LogFactory.getLog(DBUpgrade.class);
     protected static final String DEFAULT_DATABASE_TYPE = "*";
+    private boolean firstScriptRun = true;
 
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
@@ -131,6 +132,7 @@ abstract public class DBUpgrade extends BaseDao {
 
     protected void runScript(Map<String, String[]> scripts) throws Exception {
         OutputStream out = createUpdateLogOutputStream();
+        firstScriptRun = false;
         runScript(scripts, out);
         out.flush();
         out.close();
@@ -153,7 +155,7 @@ abstract public class DBUpgrade extends BaseDao {
 
         try {
             if (logDir.isDirectory() && logDir.canWrite())
-                return new FileOutputStream(logFile);
+                return new FileOutputStream(logFile, !firstScriptRun);
         }
         catch (Exception e) {
             LOG.error("Failed to create database upgrade log file.", e);

@@ -43,12 +43,17 @@ protected void upgrade() throws Exception {
     scripts.put(DatabaseProxy.DatabaseType.H2.name(), alterColumn);
     runScript(scripts);
     
-    if(0 == this.ejt.queryForInt("SELECT id FROM INFORMATION_SCHEMA.CONSTRAINTS WHERE TABLE_NAME = 'USERCOMMENTS' AND CONSTRAINT_TYPE='PRIMARY KEY'", null, 0)){
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), addUserCommentIndexMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), addUserCommentIndexMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addUserCommentIndexMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), addUserCommentIndexMySQL);
-    }
+    scripts.clear();
+    String[] empty = new String[0];
+    scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), empty);
+    scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), empty);
+    scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), empty);
+    //Upgrade 14 omitted setting this primary key for the user comments, but it was in the create tables
+    scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {"If (SELECT id " +
+            "FROM INFORMATION_SCHEMA.CONSTRAINTS" +
+            "WHERE TABLE_NAME = 'USERCOMMENTS' AND CONSTRAINT_TYPE='PRIMARY KEY').resultSize == 0 then" +
+            "ALTER TABLE userComments ADD PRIMARY KEY (id);"});
+    runScript(scripts);
     
 }
 
@@ -56,14 +61,6 @@ protected void upgrade() throws Exception {
 protected String getNewSchemaVersion() {
     return "20";
 }
-
-private static final String[] addUserCommentIndexMySQL = {
-        "ALTER TABLE userComments ADD PRIMARY KEY (id)"
-};
-
-private static final String[] addUserCommentIndexMSSQL = {
-        "ALTER TABLE userComments ADD CONSTRAINT pk PRIMARY KEY CLUSTERED (id)"
-};
 
 private static final String[] addColumn = {
         "ALTER TABLE dataPoints ADD COLUMN dataTypeId INT;",
