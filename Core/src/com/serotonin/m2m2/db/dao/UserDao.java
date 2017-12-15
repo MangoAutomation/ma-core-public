@@ -170,6 +170,7 @@ public class UserDao extends AbstractDao<User> {
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                             Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER });
+
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
 
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
@@ -216,13 +217,36 @@ public class UserDao extends AbstractDao<User> {
     public void revokeTokens(User user) {
         int userId = user.getId();
         int currentTokenVersion = user.getTokenVersion();
+        int newTokenVersion = currentTokenVersion + 1;
         String username = user.getUsername();
         
-        int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", new Object[] { currentTokenVersion + 1, userId, currentTokenVersion, username });
+        int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", new Object[] { newTokenVersion, userId, currentTokenVersion, username });
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
         
+        user.setTokenVersion(newTokenVersion);
+        
+        userCache.remove(user.getUsername());
+    }
+    
+    public static final String LOCKED_PASSWORD = "{LOCKED}";
+    public void lockPassword(User user) {
+        int userId = user.getId();
+        int currentPasswordVersion = user.getPasswordVersion();
+        int newPasswordVersion = currentPasswordVersion + 1;
+        String username = user.getUsername();
+        
+        int count = ejt.update("UPDATE users SET password = ?, passwordVersion = ? WHERE id = ? AND passwordVersion = ? AND username = ?",
+                new Object[] { LOCKED_PASSWORD, newPasswordVersion, userId, currentPasswordVersion, username });
+        if (count == 0) {
+            throw new EmptyResultDataAccessException("Updated no rows", 1);
+        }
+        
+        user.setPassword(LOCKED_PASSWORD);
+        user.setPasswordVersion(newPasswordVersion);
+        
+        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(user);
         userCache.remove(user.getUsername());
     }
 

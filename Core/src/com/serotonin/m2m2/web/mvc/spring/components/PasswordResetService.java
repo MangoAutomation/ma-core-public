@@ -102,7 +102,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         
         JwtBuilder builder = this.newToken(user.getUsername(), expirationDate)
             .claim(USER_ID_CLAIM, user.getId())
-            .claim(USER_PASSWORD_VERSION_CLAIM, 1); // this will be set to a real password version number in the future so we can blacklist old tokens
+            .claim(USER_PASSWORD_VERSION_CLAIM, user.getPasswordVersion());
         
         return this.sign(builder);
     }
@@ -138,9 +138,13 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         UserDao.instance.saveUser(user);
         return user;
     }
-
+    
     public void sendEmail(User user) throws TemplateException, IOException, AddressException {
         String token = this.generateToken(user);
+        this.sendEmail(user, token);
+    }
+
+    public void sendEmail(User user, String token) throws TemplateException, IOException, AddressException {
         int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
         URI uri = this.generateResetUrl(token);
         

@@ -586,6 +586,8 @@ public class Common {
                 return BCrypt.checkpw(password, hash);
             } else if ("NONE".equals(algorithm)) {
                return hash.equals(password);
+            } else if ("LOCKED".equals(algorithm)) {
+                return false;
             } else {
                 return hash.equals(encrypt(password, algorithm));
             }
