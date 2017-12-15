@@ -5,7 +5,10 @@
 package com.serotonin.m2m2.web.dwr.emport;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -17,6 +20,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -25,7 +29,9 @@ import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointSummaryPathPair;
@@ -58,6 +64,7 @@ public class ImportTask extends ProgressiveTask {
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
     protected final List<DataPointSummaryPathPair> dpPathPairs = new ArrayList<DataPointSummaryPathPair>();
+    protected final Map<String, DataPointVO> eventDetectorPoints = new HashMap<String, DataPointVO>();
 
     /**
      * Create an Import task with a listener to be scheduled now
@@ -155,7 +162,7 @@ public class ImportTask extends ProgressiveTask {
         }
         
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
-        	addImporter(new EventDetectorImporter(jv.toJsonObject()));
+        	addImporter(new EventDetectorImporter(jv.toJsonObject(), eventDetectorPoints));
 
         this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths 
 
@@ -259,6 +266,7 @@ public class ImportTask extends ProgressiveTask {
                     }
                 }
                 processDataPointPaths(hierarchyImporter, dpPathPairs);
+                processUpdatedDetectors(eventDetectorPoints);
                 completed = true;
             }
             catch (Exception e) {
@@ -324,6 +332,35 @@ public class ImportTask extends ProgressiveTask {
         }
         DataPointDao.instance.savePointHierarchy(root);
         importContext.addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
+    }
+    
+    private void processUpdatedDetectors(Map<String, DataPointVO> eventDetectorMap) {
+        for(DataPointVO dpvo : eventDetectorMap.values()) {
+            //We can't really guarantee that the import didnt' also ocntain event detectors on the point or that the
+            // Data Point VO's we retrieved are still correct, so mix in the detectors to the point out of the database.
+            boolean isNew = true;
+            DataPointVO saved = DataPointDao.instance.getDataPoint(dpvo.getId(), false);
+            DataPointDao.instance.setEventDetectors(saved);
+            for(AbstractPointEventDetectorVO<?> eventDetector : dpvo.getEventDetectors()) {
+                Iterator<AbstractPointEventDetectorVO<?>> iter = saved.getEventDetectors().iterator();
+                while(iter.hasNext()) {
+                    AbstractPointEventDetectorVO<?> next = iter.next();
+                    if(eventDetector.getXid().equals(next.getXid())) { //Same detector, replace it
+                        eventDetector.setId(next.getId());
+                        isNew = false;
+                        iter.remove();
+                        break;
+                    }
+                }
+                //Having removed the old versions, add the new.
+                saved.getEventDetectors().add(eventDetector);
+            }
+            
+            //Save the data point
+            Common.runtimeManager.saveDataPoint(saved);
+            for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
+                importContext.addSuccessMessage(isNew, "emport.eventDetector.prefix", modified.getXid());
+        }
     }
 
     private void addException(Exception e) {
