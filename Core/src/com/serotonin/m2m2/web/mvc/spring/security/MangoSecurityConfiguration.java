@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +45,7 @@ import org.springframework.security.web.header.writers.frameoptions.AllowFromStr
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -61,8 +63,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
 /**
@@ -157,6 +159,11 @@ public class MangoSecurityConfiguration {
         return browserHtmlRequestMatcher;
     }
     
+    @Bean
+    public SessionInformationExpiredStrategy sessionInformationExpiredStrategy(@Qualifier("browserHtmlRequestMatcher") RequestMatcher matcher) {
+        return new MangoExpiredSessionStrategy(matcher);
+    }
+
     /**
      * Internal method to create a static matcher
      * @return
@@ -299,6 +306,7 @@ public class MangoSecurityConfiguration {
         LogoutSuccessHandler logoutSuccessHandler;
         PermissionExceptionFilter permissionExceptionFilter;
         SessionRegistry sessionRegistry;
+        SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
         
         @Autowired
         public void init(
@@ -310,7 +318,8 @@ public class MangoSecurityConfiguration {
                 LogoutHandler logoutHandler,
                 LogoutSuccessHandler logoutSuccessHandler,
                 PermissionExceptionFilter permissionExceptionFilter,
-                SessionRegistry sessionRegistry) {
+                SessionRegistry sessionRegistry,
+                SessionInformationExpiredStrategy sessionInformationExpiredStrategy) {
             this.authenticationSuccessHandler = authenticationSuccessHandler;
             this.authenticationFailureHandler = authenticationFailureHandler;
             this.accessDeniedHandler = accessDeniedHandler;
@@ -320,15 +329,19 @@ public class MangoSecurityConfiguration {
             this.logoutSuccessHandler = logoutSuccessHandler;
             this.permissionExceptionFilter = permissionExceptionFilter;
             this.sessionRegistry = sessionRegistry;
+            this.sessionInformationExpiredStrategy = sessionInformationExpiredStrategy;
         }
         
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.antMatcher("/rest/**")
                 .sessionManagement()
+                    // dont actually want an invalid session strategy, just treat them as having no session
+                    //.invalidSessionStrategy(invalidSessionStrategy)
 	            	.maximumSessions(10)
 	            	    .maxSessionsPreventsLogin(false)
 	            	    .sessionRegistry(sessionRegistry)
+	            	    .expiredSessionStrategy(sessionInformationExpiredStrategy)
 	            	    .and()
             	    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             	    .sessionFixation()
@@ -415,6 +428,7 @@ public class MangoSecurityConfiguration {
         RequestCache requestCache;
         PermissionExceptionFilter permissionExceptionFilter;
         SessionRegistry sessionRegistry;
+        SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
         
         @Autowired
         public void init(AccessDeniedHandler accessDeniedHandler,
@@ -425,7 +439,8 @@ public class MangoSecurityConfiguration {
                 LogoutSuccessHandler logoutSuccessHandler,
                 RequestCache requestCache, 
                 PermissionExceptionFilter permissionExceptionFilter,
-                SessionRegistry sessionRegistry) {
+                SessionRegistry sessionRegistry,
+                SessionInformationExpiredStrategy sessionInformationExpiredStrategy) {
             this.accessDeniedHandler = accessDeniedHandler;
             this.authenticationEntryPoint = authenticationEntryPoint;
             this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -435,15 +450,19 @@ public class MangoSecurityConfiguration {
             this.requestCache = requestCache;
             this.permissionExceptionFilter = permissionExceptionFilter;
             this.sessionRegistry = sessionRegistry;
+            this.sessionInformationExpiredStrategy = sessionInformationExpiredStrategy;
         }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
             .sessionManagement()
+                // dont actually want an invalid session strategy, just treat them as having no session
+                //.invalidSessionStrategy(invalidSessionStrategy)
                 .maximumSessions(10)
                     .maxSessionsPreventsLogin(false)
                     .sessionRegistry(sessionRegistry)
+                    .expiredSessionStrategy(sessionInformationExpiredStrategy)
                     .and()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .sessionFixation()
