@@ -8,8 +8,8 @@
  <packaging>pom</packaging>
  <properties>
   <jettyVersion>9.3.11.v20160721</jettyVersion>
-  <springVersion>4.3.7.RELEASE</springVersion>
-  <springSecurityVersion>4.1.1.RELEASE</springSecurityVersion>
+  <springVersion>4.3.13.RELEASE</springVersion>
+  <springSecurityVersion>4.2.3.RELEASE</springSecurityVersion>
   <log4jVersion>2.8.1</log4jVersion>
   <jacksonVersion>2.9.2</jacksonVersion>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
