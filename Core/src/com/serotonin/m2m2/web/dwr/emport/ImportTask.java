@@ -20,7 +20,6 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -312,23 +311,19 @@ public class ImportTask extends ProgressiveTask {
             }
             
             for(String s : pathParts) {
+                if(StringUtils.isBlank(s))
+                    continue;
+                previous = starting;
+                starting = starting.getSubfolder(s);
                 if(starting == null) {
                     PointFolder newFolder = new PointFolder();
                     newFolder.setName(s);
                     previous.addSubfolder(newFolder);
                     starting = newFolder;
                 }
-                previous = starting;
-                starting = starting.getSubfolder(s);
             }
-            if(starting != null)
-                starting.getPoints().add(dpp.getDataPointSummary());
-            else {
-                PointFolder newFolder = new PointFolder();
-                newFolder.setName(pathParts[pathParts.length-1]);
-                previous.addSubfolder(newFolder);
-                newFolder.addDataPoint(dpp.getDataPointSummary());
-            }
+
+            starting.addDataPoint(dpp.getDataPointSummary());
         }
         DataPointDao.instance.savePointHierarchy(root);
         importContext.addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
