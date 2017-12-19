@@ -146,13 +146,18 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
 
     public void sendEmail(User user, String token) throws TemplateException, IOException, AddressException {
         int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
-        URI uri = this.generateResetUrl(token);
+        
+        URI uri = null;
+        try {
+            uri = this.generateResetUrl(token);
+        } catch (Exception e) {
+        }
         
         Translations translations = Translations.getTranslations(user.getLocaleObject());
         
         Map<String, Object> model = new HashMap<>();
         model.put("username", user.getUsername());
-        model.put("resetUri", uri);
+        model.put("resetUri", uri != null ? uri : "");
         model.put("token", token);
         model.put("validFor", expiryDuration / 60); // in minutes
         
