@@ -8,13 +8,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -37,7 +34,7 @@ public class EventDetectorImporter extends Importer {
 		if(dataPointMap.containsKey(dataPointXid))
 		    dpvo = dataPointMap.get(dataPointXid);
 		else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.instance.getByXid(dataPointXid)) == null) {
-			addFailureMessage("emport.error.missingPoint");
+			addFailureMessage("emport.error.missingPoint", dataPointXid);
 			return;
 		} else {
 		    dataPointMap.put(dataPointXid, dpvo);
