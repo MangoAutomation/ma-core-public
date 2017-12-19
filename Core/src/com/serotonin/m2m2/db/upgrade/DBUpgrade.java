@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.upgrade;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -133,9 +134,17 @@ abstract public class DBUpgrade extends BaseDao {
     protected void runScript(Map<String, String[]> scripts) throws Exception {
         OutputStream out = createUpdateLogOutputStream();
         firstScriptRun = false;
-        runScript(scripts, out);
-        out.flush();
-        out.close();
+        try {
+            runScript(scripts, out);
+        } catch(Exception e) {
+            PrintWriter pw = new PrintWriter(out);
+            e.printStackTrace(pw);
+            pw.flush();
+            throw e;
+        } finally {
+            out.flush();
+            out.close();
+        }
     }
 
     protected void runScript(Map<String, String[]> scripts, final OutputStream out) throws Exception {
