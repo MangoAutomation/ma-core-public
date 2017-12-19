@@ -204,8 +204,8 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setId(newId);
         
         synchronized (dp) {
-        	ped.setSourceId(dp.getId());
-        	ped.njbSetDataPoint(dp);
+            ped.setSourceId(dp.getId());
+            ped.njbSetDataPoint(dp);
             dp.getEventDetectors().add(ped);
         }
         return ped;

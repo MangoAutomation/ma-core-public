@@ -32,7 +32,9 @@ public class UnitUtil {
     public static final Unit<Energy> THERM = BTU.times(100000);
     public static final Unit<?> PSI = NonSI.POUND_FORCE.divide(NonSI.INCH.pow(2));
 
-    static {
+
+    
+    public static void initialize() {
         // register some labels
         addLabel(BTU, "btu");
         addLabel(THERM, "thm");
