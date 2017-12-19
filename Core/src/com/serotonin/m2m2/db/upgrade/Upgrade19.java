@@ -49,11 +49,12 @@ protected void upgrade() throws Exception {
     scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), empty);
     scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), empty);
     //Upgrade 14 omitted setting this primary key for the user comments, but it was in the create tables
-    scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {"If (SELECT id " +
-            "FROM INFORMATION_SCHEMA.CONSTRAINTS" +
-            "WHERE TABLE_NAME = 'USERCOMMENTS' AND CONSTRAINT_TYPE='PRIMARY KEY').resultSize == 0 then" +
-            "ALTER TABLE userComments ADD PRIMARY KEY (id);"});
-    runScript(scripts);
+    scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {"ALTER TABLE userComments ADD PRIMARY KEY (id);"});
+    try {
+        runScript(scripts);
+    } catch(Exception e) {
+        //It may already have existed.
+    }
     
 }
 
