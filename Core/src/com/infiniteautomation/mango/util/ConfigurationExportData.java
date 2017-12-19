@@ -56,7 +56,8 @@ public class ConfigurationExportData {
         names.add(DATA_SOURCES);
         names.add(DATA_POINTS);
         names.add(EVENT_HANDLERS);
-        names.add(EVENT_DETECTORS);
+        //TODO reinstate event detectors once there is a non-data-point event detector
+        //names.add(EVENT_DETECTORS);
         names.add(JSON_DATA);
         names.add(MAILING_LISTS);
         names.add(POINT_HIERARCHY);
@@ -80,7 +81,8 @@ public class ConfigurationExportData {
         elements.add(new StringStringPair("header.dataSources", DATA_SOURCES));
         elements.add(new StringStringPair("header.dataPoints", DATA_POINTS));
         elements.add(new StringStringPair("header.eventHandlers", EVENT_HANDLERS));
-        elements.add(new StringStringPair("header.eventDetectors", EVENT_DETECTORS));
+        //TODO reinstate event detectors once there is a non-data-point event detector
+        //elements.add(new StringStringPair("header.eventDetectors", EVENT_DETECTORS));
         elements.add(new StringStringPair("header.jsonData", JSON_DATA));
         elements.add(new StringStringPair("header.mailingLists", MAILING_LISTS));
         elements.add(new StringStringPair("header.publishers", PUBLISHERS));
