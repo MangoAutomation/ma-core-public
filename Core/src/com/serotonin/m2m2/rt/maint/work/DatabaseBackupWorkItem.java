@@ -221,7 +221,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 		File logDir = new File(dir);
 		File logFile = new File(logDir, getClass().getName() + ".log");
-		LOG.info("Writing upgrade log to " + logFile.getAbsolutePath());
+		LOG.info("Writing backup log to " + logFile.getAbsolutePath());
 
 		try {
 			if (logDir.isDirectory() && logDir.canWrite())
