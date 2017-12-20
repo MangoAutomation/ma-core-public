@@ -64,6 +64,7 @@ create table userComments (
 ) engine=InnoDB;
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
 alter table userComments add constraint userCommentsUn1 unique (xid);
+ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC, `typeKey` ASC);
 
 --
 -- Mailing lists
@@ -235,7 +236,8 @@ create table events (
 ) engine=InnoDB;
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
 alter table events add index performance1 (activeTs ASC);
-alter table events add index performance2 (typeRef1 ASC);
+ALTER TABLE events ADD INDEX events_performance2 (`rtnApplicable` ASC, `rtnTs` ASC);
+ALTER TABLE events ADD INDEX events_performance3 (`typeName` ASC, `subTypeName` ASC, `typeRef1` ASC);
 
 create table userEvents (
   eventId int not null,

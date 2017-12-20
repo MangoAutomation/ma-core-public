@@ -59,6 +59,8 @@ create table userComments (
 );
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
 alter table userComments add constraint userCommentsUn1 unique (xid);
+CREATE INDEX userComments_performance1 ON userComments (commentType ASC, typeKey ASC);
+
 --
 -- Mailing lists
 create table mailingLists (
@@ -227,7 +229,8 @@ create table events (
 );
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
 CREATE INDEX events_performance1 ON events (activeTs ASC);
-CREATE INDEX events_performance2 ON events (typeRef1 ASC);
+CREATE INDEX events_performance2 ON events (rtnApplicable ASC, rtnTs ASC);
+CREATE INDEX events_performance3 ON events (typeName ASC, subTypeName ASC, typeRef1 ASC);
 
 create table userEvents (
   eventId int not null,
@@ -237,7 +240,7 @@ create table userEvents (
 );
 alter table userEvents add constraint userEventsFk1 foreign key (eventId) references events(id) on delete cascade;
 alter table userEvents add constraint userEventsFk2 foreign key (userId) references users(id);
-
+CREATE INDEX userEvents_performance1 ON userEvents (userId ASC, silenced ASC);
 
 --
 --

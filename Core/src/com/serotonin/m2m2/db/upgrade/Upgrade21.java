@@ -96,9 +96,7 @@ public class Upgrade21 extends DBUpgrade {
             "UPDATE users SET passwordVersion = 1;",
             "ALTER TABLE users MODIFY COLUMN tokenVersion INT NOT NULL;",
             "ALTER TABLE users MODIFY COLUMN passwordVersion INT NOT NULL;",
-            "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);",
-            "alter table events add index performance2 (typeRef1 ASC);" 
-            
+            "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);"
     };
     
     private final String[] h2 = new String[] {
@@ -108,8 +106,7 @@ public class Upgrade21 extends DBUpgrade {
             "UPDATE users SET passwordVersion = 1;",
             "ALTER TABLE users ALTER COLUMN tokenVersion INT NOT NULL;",
             "ALTER TABLE users ALTER COLUMN passwordVersion INT NOT NULL;",
-            "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);",
-            "CREATE INDEX events_performance2 ON events (`typeRef1` ASC);"
+            "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);"
     };
     
     private final String[] mssql = new String[] {
@@ -119,8 +116,7 @@ public class Upgrade21 extends DBUpgrade {
             "UPDATE users SET passwordVersion = 1;",
             "ALTER TABLE users ALTER COLUMN tokenVersion INT NOT NULL;",
             "ALTER TABLE users ALTER COLUMN passwordVersion INT NOT NULL;",
-            "alter table users add constraint username_unique unique (username);",
-            "CREATE INDEX events_performance2 ON events (typeRef1 ASC);"
+            "alter table users add constraint username_unique unique (username);"
     };
     
     private final String[] postgres = new String[] {
@@ -130,7 +126,6 @@ public class Upgrade21 extends DBUpgrade {
             "UPDATE users SET passwordVersion = 1;",
             "ALTER TABLE users ALTER COLUMN tokenVersion INT NOT NULL;",
             "ALTER TABLE users ALTER COLUMN passwordVersion INT NOT NULL;",
-            "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE (username);",
-            "alter table events add index performance2 (typeRef1 ASC);"
+            "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE (username);"
     };
 }

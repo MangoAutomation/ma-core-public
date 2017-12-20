@@ -60,6 +60,7 @@ CREATE TABLE userComments (
 );
 ALTER TABLE userComments ADD CONSTRAINT userCommentsFk1 FOREIGN KEY (userId) REFERENCES users(id);
 ALTER TABLE userComments ADD CONSTRAINT userCommentsUn1 UNIQUE (xid);
+ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC, `typeKey` ASC);
 
 --
 -- Mailing lists
@@ -257,7 +258,8 @@ CREATE TABLE events (
 );
 ALTER TABLE events ADD CONSTRAINT eventsFk1 FOREIGN KEY (ackUserId) REFERENCES users(id);
 alter table events add index performance1 (activeTs ASC);
-alter table events add index performance2 (typeRef1 ASC);
+ALTER TABLE events ADD INDEX events_performance2 (`rtnApplicable` ASC, `rtnTs` ASC);
+ALTER TABLE events ADD INDEX events_performance3 (`typeName` ASC, `subTypeName` ASC, `typeRef1` ASC);
 
 CREATE TABLE userEvents (
   eventId integer NOT NULL,
@@ -267,7 +269,7 @@ CREATE TABLE userEvents (
 );
 ALTER TABLE userEvents ADD CONSTRAINT userEventsFk1 FOREIGN KEY (eventId) REFERENCES events(id) ON DELETE CASCADE;
 ALTER TABLE userEvents ADD CONSTRAINT userEventsFk2 FOREIGN KEY (userId) REFERENCES users(id);
-
+alter table userEvents add index performance1 (userId ASC, silenced ASC);
 
 --
 --
