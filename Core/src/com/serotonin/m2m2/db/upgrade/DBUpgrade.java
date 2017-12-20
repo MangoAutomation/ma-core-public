@@ -30,7 +30,7 @@ import com.serotonin.util.StringUtils;
 abstract public class DBUpgrade extends BaseDao {
     private static final Log LOG = LogFactory.getLog(DBUpgrade.class);
     protected static final String DEFAULT_DATABASE_TYPE = "*";
-    private boolean firstScriptRun = true;
+    protected boolean firstScriptRun = true;
 
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
@@ -122,13 +122,24 @@ abstract public class DBUpgrade extends BaseDao {
      */
     protected void runScript(String[] script) throws Exception {
         OutputStream out = createUpdateLogOutputStream();
-        Common.databaseProxy.runScript(script, out);
-        out.flush();
-        out.close();
+        firstScriptRun = false;
+        try {
+            runScript(script, out);
+        } finally {
+            out.flush();
+            out.close();
+        }
     }
 
     protected void runScript(String[] script, OutputStream out) throws Exception {
-        Common.databaseProxy.runScript(script, out);
+        try {
+            Common.databaseProxy.runScript(script, out);
+        } catch(Exception e) {
+            PrintWriter pw = new PrintWriter(out);
+            e.printStackTrace(pw);
+            pw.flush();
+            throw e;
+        }
     }
 
     protected void runScript(Map<String, String[]> scripts) throws Exception {
@@ -136,11 +147,6 @@ abstract public class DBUpgrade extends BaseDao {
         firstScriptRun = false;
         try {
             runScript(scripts, out);
-        } catch(Exception e) {
-            PrintWriter pw = new PrintWriter(out);
-            e.printStackTrace(pw);
-            pw.flush();
-            throw e;
         } finally {
             out.flush();
             out.close();

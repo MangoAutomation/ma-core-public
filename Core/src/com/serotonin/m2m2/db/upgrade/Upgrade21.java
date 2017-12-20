@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -25,51 +27,60 @@ public class Upgrade21 extends DBUpgrade {
     
     @Override
     protected void upgrade() throws Exception {
+        OutputStream out = createUpdateLogOutputStream();
         //Update User table to make Unique usernames only
         //First remove duplicate users
-        Map<Integer, String> toRemove = query("SELECT id,username FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,String>>(){
-
-            @Override
-            public Map<Integer, String> extractData(ResultSet rs)
-                    throws SQLException, DataAccessException {
-                Map<Integer, String> remove = new HashMap<>();
-                Map<String, Integer> existing = new HashMap<>();
-                while(rs.next()) {
-                    if(null != existing.put(rs.getString(2), rs.getInt(1))) {
-                        remove.put(rs.getInt(1), rs.getString(2));
+        try {
+            Map<Integer, String> toRemove = query("SELECT id,username FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,String>>(){
+    
+                @Override
+                public Map<Integer, String> extractData(ResultSet rs)
+                        throws SQLException, DataAccessException {
+                    Map<Integer, String> remove = new HashMap<>();
+                    Map<String, Integer> existing = new HashMap<>();
+                    while(rs.next()) {
+                        if(null != existing.put(rs.getString(2), rs.getInt(1))) {
+                            remove.put(rs.getInt(1), rs.getString(2));
+                        }
                     }
+                    return remove;
                 }
-                return remove;
-            }
+                
+            });
             
-        });
-        
-
-        StringBuilder deleteSQL = new StringBuilder("DELETE FROM users WHERE id IN (");
-        MutableInt count = new MutableInt(toRemove.keySet().size());
-        toRemove.keySet().stream().forEach((key) -> {
-            LOG.warn("Removing duplicate user '" + toRemove.get(key) + "' with id " + key);
-            count.decrement();
-            deleteSQL.append(key);
-            if(count.getValue() > 0)
-                deleteSQL.append(",");
-        });
-        deleteSQL.append(");");
-        Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {deleteSQL.toString()});
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {deleteSQL.toString()});
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {deleteSQL.toString()});
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), new String[] {deleteSQL.toString()});
-        runScript(scripts);
-        
-
-        //Finally update the users table with new columns
-        scripts.clear();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), postgres);
-        runScript(scripts);
+    
+            StringBuilder deleteSQL = new StringBuilder("DELETE FROM users WHERE id IN (");
+            MutableInt count = new MutableInt(toRemove.keySet().size());
+            toRemove.keySet().stream().forEach((key) -> {
+                LOG.warn("Removing duplicate user '" + toRemove.get(key) + "' with id " + key);
+                PrintWriter pw = new PrintWriter(out);
+                pw.write("WARN: Removing duplicate user '" + toRemove.get(key) + "' with id " + key + "\n");
+                pw.flush();
+                count.decrement();
+                deleteSQL.append(key);
+                if(count.getValue() > 0)
+                    deleteSQL.append(",");
+            });
+            deleteSQL.append(");");
+            Map<String, String[]> scripts = new HashMap<>();
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {deleteSQL.toString()});
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {deleteSQL.toString()});
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {deleteSQL.toString()});
+            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), new String[] {deleteSQL.toString()});
+            runScript(scripts, out);
+            
+    
+            //Finally update the users table with new columns
+            scripts.clear();
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2);
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
+            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), postgres);
+            runScript(scripts, out);
+        } finally {
+            out.flush();
+            out.close();
+        }
 
     }
 
