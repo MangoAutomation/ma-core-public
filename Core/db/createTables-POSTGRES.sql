@@ -47,6 +47,7 @@ CREATE TABLE users (
   passwordVersion integer NOT NULL,
   PRIMARY KEY (id)
 );
+ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE (username);
 
 CREATE TABLE userComments (
   id int not null auto_increment,
@@ -255,6 +256,8 @@ CREATE TABLE events (
   PRIMARY KEY (id)
 );
 ALTER TABLE events ADD CONSTRAINT eventsFk1 FOREIGN KEY (ackUserId) REFERENCES users(id);
+alter table events add index performance1 (activeTs ASC);
+alter table events add index performance2 (typeRef1 ASC);
 
 CREATE TABLE userEvents (
   eventId integer NOT NULL,

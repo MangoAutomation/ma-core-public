@@ -50,6 +50,7 @@ create table users (
   passwordVersion int not null,
   primary key (id)
 ) engine=InnoDB;
+ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
 
 create table userComments (
   id int not null auto_increment,
@@ -234,7 +235,7 @@ create table events (
 ) engine=InnoDB;
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
 alter table events add index performance1 (activeTs ASC);
-
+alter table events add index performance2 (typeRef1 ASC);
 
 create table userEvents (
   eventId int not null,

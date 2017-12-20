@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
@@ -55,7 +56,20 @@ public class QueryStream<VO extends AbstractBasicVO, MODEL, DAO extends Abstract
 	@Override
 	public void streamData(JsonGenerator jgen) throws IOException {
 		this.queryCallback.setJsonGenerator(jgen);
-		this.results.query();
+		List<Object> args = this.results.getLimitOffsetArgs();
+		if( args != null && args.get(0) != null) {
+		    //Detect if the limit is non 0
+		    boolean query = true;
+		    if(args.get(0) instanceof Integer) {
+		        if(0 == (Integer)args.get(0))
+		            query = false;
+		    }else if(args.get(0) instanceof Long) {
+		        if(0 == (Long)args.get(0))
+		            query = false;
+		    }
+		    if(query)
+		        this.results.query();
+	    }
 	}
 
 	/* (non-Javadoc)

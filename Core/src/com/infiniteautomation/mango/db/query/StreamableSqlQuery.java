@@ -109,34 +109,36 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	 * Execute the Count if there is one
 	 */
 	public void count() throws IOException{
-		if(countSql == null)
-			return;
-		LogStopWatch stopWatch = null;
-        if(this.useMetrics)
-        	 stopWatch = new LogStopWatch();
-        try{
-	        PreparedStatement statement = this.dao.createPreparedStatement(countSql, countArgs, stream);
-	        try{
-		        ResultSet rs = statement.executeQuery();
-		        RowMapper<Long> mapper = SingleColumnRowMapper.newInstance(Long.class);
-		        int index = 0;
-		        while(rs.next()){
-	        		this.countCallback.row(mapper.mapRow(rs, index), index);
-	        		index++;
-		        }
-	        }catch(Exception e){
-	        	LOG.error(e.getMessage(), e);
-	        	statement.cancel();
-	        	throw e;
-	        }finally{
-	        	statement.getConnection().close();
-	        	statement.close();
-	        }
-        }catch(Exception e){
-        	LOG.error(e.getMessage() + " For Query: " + countSql, e);
-        	throw new IOException(e);
+        if (countSql == null)
+            return;
+        LogStopWatch stopWatch = null;
+        if (this.useMetrics)
+            stopWatch = new LogStopWatch();
+        try {
+            PreparedStatement statement =
+                    this.dao.createPreparedStatement(countSql, countArgs, stream);
+            try {
+                ResultSet rs = statement.executeQuery();
+                RowMapper<Long> mapper = SingleColumnRowMapper.newInstance(Long.class);
+                int index = 0;
+                while (rs.next()) {
+                    this.countCallback.row(mapper.mapRow(rs, index), index);
+                    index++;
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+                statement.cancel();
+                throw e;
+            } finally {
+                statement.getConnection().close();
+                statement.close();
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage() + " For Query: " + countSql, e);
+            throw new IOException(e);
         }
-        if(this.useMetrics)
-        	stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString(), this.metricsThreshold);
+        if (this.useMetrics)
+            stopWatch.stop("Count: " + countSql + " \nArgs: " + countArgs.toString(),
+                    this.metricsThreshold);
 	}	
 }

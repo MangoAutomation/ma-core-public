@@ -46,6 +46,7 @@ create table users (
   passwordVersion int not null,
   primary key (id)
 );
+alter table users add constraint username_unique unique (username);
 
 create table userComments (
   id int not null identity,
@@ -225,6 +226,8 @@ create table events (
   primary key (id)
 );
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
+CREATE INDEX events_performance1 ON events (activeTs ASC);
+CREATE INDEX events_performance2 ON events (typeRef1 ASC);
 
 create table userEvents (
   eventId int not null,
