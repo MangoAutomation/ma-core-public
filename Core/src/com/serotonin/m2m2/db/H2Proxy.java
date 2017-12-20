@@ -232,6 +232,9 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     @Override
     public void terminateImpl() {
+        if(Common.envProps.getBoolean("db.h2.shutdownCompact", false)) {
+            runScript(new String[] {"SHUTDOWN COMPACT;"}, null);
+        }
         if (dataSource != null)
             dataSource.dispose();
         if (web != null) {
