@@ -101,6 +101,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -109,10 +110,18 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 ZonedDateTime sampleTime = time.plusHours(12);
                 //Test Minimum
                 Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
                 //Test Maximum
                 Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+
+                if(counter.getValue() == 1) {
+                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                }else {
+                    //Period start if there was a start value
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                }
+
                 //Test Average
                 Assert.assertEquals(1.0d, stats.getAverage(), 0.0001);
                 //Test Integral
@@ -176,11 +185,11 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
                 //Test Minimum
-                Assert.assertEquals(Double.NaN, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMinimumTime());
+                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
+                Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
                 //Test Maximum
-                Assert.assertEquals(Double.NaN, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMaximumTime());
+                Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
+                Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                 //Test Average
                 Assert.assertEquals(1.0, stats.getAverage(), 0.0001);
                 //Test Integral
@@ -261,11 +270,11 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 }else {
                     //No data in other periods
                     //Test Minimum
-                    Assert.assertEquals(Double.NaN, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals(null, stats.getMinimumTime());
+                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
                     //Test Maximum
-                    Assert.assertEquals(Double.NaN, stats.getMaximumValue(), 0.0001);
-                    Assert.assertEquals(null, stats.getMaximumTime());
+                    Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                     //Test Average
                     Assert.assertEquals(1.0, stats.getAverage(), 0.0001);
                     //Test Integral
@@ -326,12 +335,14 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
                 ZonedDateTime sampleTime = time.plusHours(12);
+                //Start Value was 3 hrs before 1st period start
                 //Test Minimum
                 Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
                 //Test Maximum
                 Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+
                 //Test Average
                 Assert.assertEquals(1.0d, stats.getAverage(), 0.0001);
                 //Test Integral
@@ -406,12 +417,22 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
-                //Test Minimum
-                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                if(counter.getValue() == 1) {
+                    //Test Minimum
+                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
+                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    //Test Maximum
+                    Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                }else {
+                    //Have start value
+                    //Test Minimum
+                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
+                    Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    //Test Maximum
+                    Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                }
                 //Test Average
                 //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
                 if(counter.getValue() == 1) {
@@ -502,12 +523,22 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
-                //Test Minimum
-                Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                //Test Maximum
-                Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                if(counter.getValue() == 1) {
+                    //Test Minimum
+                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    //Test Maximum
+                    Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                }else {
+                    //Test Minimum
+                    Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
+                    Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    //Test Maximum
+                    Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                }
+                
                 //Test Average
                 //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
                 if(counter.getValue() == 1) {
@@ -600,14 +631,19 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test Minimum
                 if(counter.getValue() == 1) {
                     Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    //Test Maximum
+                    Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+
                 }else {
                     Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    //Test Maximum
+                    Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                 }
-                //Test Maximum
-                Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                
                 //Test Average
                 //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
                 if(counter.getValue() == 1) {
