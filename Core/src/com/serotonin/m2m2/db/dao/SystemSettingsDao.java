@@ -36,6 +36,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
+import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -154,10 +155,8 @@ public class SystemSettingsDao extends BaseDao {
     public static final String HIGH_PRI_MAX_POOL_SIZE = "highPriorityThreadMaximumPoolSize";
     
     public static final String MED_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
-    public static final String MED_PRI_MAX_POOL_SIZE = "mediumPriorityThreadMaximumPoolSize";
     
     public static final String LOW_PRI_CORE_POOL_SIZE = "lowPriorityThreadCorePoolSize";
-    public static final String LOW_PRI_MAX_POOL_SIZE = "lowPriorityThreadMaximumPoolSize";
     
     //Site analytics
     public static final String SITE_ANALYTICS_HEAD = "siteAnalyticsHead";
@@ -176,8 +175,9 @@ public class SystemSettingsDao extends BaseDao {
     
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
+    private final ThreadPoolSettingsListenerDefinition threadPoolListener;
     private SystemSettingsDao(){
-    	
+    	    this.threadPoolListener = new ThreadPoolSettingsListenerDefinition();
     }
     
     // Value cache
@@ -287,7 +287,10 @@ public class SystemSettingsDao extends BaseDao {
             }
         });
 
-        //Fire an event for this
+        //Fire an event for this here as if the pools are full we may not be able to spawn a thread for the change
+        if(this.threadPoolListener.getKeys().contains(key))
+            this.threadPoolListener.SystemSettingsSaved(key, oldValue, value);
+
         SystemSettingsEventDispatcher.fireSystemSettingSaved(key, oldValue, value);
     }
 
@@ -433,9 +436,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(HIGH_PRI_CORE_POOL_SIZE, 1);
         DEFAULT_VALUES.put(HIGH_PRI_MAX_POOL_SIZE, 100);
         DEFAULT_VALUES.put(MED_PRI_CORE_POOL_SIZE, 3);
-        DEFAULT_VALUES.put(MED_PRI_MAX_POOL_SIZE, 30);
         DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);
-        DEFAULT_VALUES.put(LOW_PRI_MAX_POOL_SIZE, 3);
         
         DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
         
@@ -511,31 +512,30 @@ public class SystemSettingsDao extends BaseDao {
      */
     public void updateSettings(Map<String,Object> settings) {
 
-    	Iterator<String> it = settings.keySet().iterator();
-    	while(it.hasNext()){
-    		String setting = it.next();
-    		//Lookup the setting to see if it exists
-    		Object value = settings.get(setting);
-    		
-    		String stringValue;
-    		if(value instanceof Boolean){
-    			if((Boolean)value)
-    				stringValue = "Y";
-    			else
-    				stringValue = "N";
-    		}else if(value instanceof String){
-    			//Can we convert the value to ensure we don't save the String values
-    			Integer converted = convertToValueFromCode(setting, (String)value);
-    			if(converted != null)
-    				stringValue = converted.toString();
-    			else
-    				stringValue = value.toString();
-    		}else{
-    			stringValue = value.toString();
-    		}
-    		setValue(setting, stringValue);
-    	}
+        Iterator<String> it = settings.keySet().iterator();
+        while (it.hasNext()) {
+            String setting = it.next();
+            // Lookup the setting to see if it exists
+            Object value = settings.get(setting);
 
+            String stringValue;
+            if (value instanceof Boolean) {
+                if ((Boolean) value)
+                    stringValue = "Y";
+                else
+                    stringValue = "N";
+            } else if (value instanceof String) {
+                // Can we convert the value to ensure we don't save the String values
+                Integer converted = convertToValueFromCode(setting, (String) value);
+                if (converted != null)
+                    stringValue = converted.toString();
+                else
+                    stringValue = value.toString();
+            } else {
+                stringValue = value.toString();
+            }
+            setValue(setting, stringValue);
+        }
     }
 
 	/**
@@ -640,106 +640,98 @@ public class SystemSettingsDao extends BaseDao {
 	    	}
 		}
 		
-    	//Validate the Hour and Minute
-    	Integer backupHour = getIntValue(BACKUP_HOUR, settings);
-    	if(backupHour != null)
-			if((backupHour > 23)||(backupHour<0)){
-	    		response.addContextualMessage(BACKUP_HOUR,
-	    				"systemSettings.validation.backupHourInvalid");
-	    	}
-    	
-    	Integer backupMinute = getIntValue(BACKUP_MINUTE, settings);
-    	if(backupMinute != null)
-	    	if((backupMinute > 59)||(backupMinute<0)){
-	    		response.addContextualMessage(BACKUP_MINUTE,
-	    				"systemSettings.validation.backupMinuteInvalid");
-	    	}
-    	
-    	validatePeriodType(BACKUP_PERIOD_TYPE, settings, response);
-    	
-    	//Validate the number of backups to keep
-    	Integer backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
-    	if(backupFileCount != null)
-	    	if(backupFileCount < 1){
-	    		response.addContextualMessage(BACKUP_FILE_COUNT,
-	    				"systemSettings.validation.backupFileCountInvalid");
-	    	}   	
-
-
-		//Validate
-    	setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
-    	if(setting != null){
-	    	File tmp = new File((String)setting);
-	    	if(!tmp.exists()){
-	    		//Doesn't exist, push up message
-	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
-	    				"systemSettings.validation.databaseBackupLocationNotExists");
-	    	}
-	    	if(!tmp.canWrite()){
-	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
-	    				"systemSettings.validation.cannotWriteToDatabaseBackupFileLocation");
-	    	}
-    	}
-    	
-    	//Validate the Hour and Minute
-    	Integer databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
-    	if(databaseBackupHour != null)
-	    	if((databaseBackupHour > 23)||(databaseBackupHour<0)){
-	    		response.addContextualMessage(DATABASE_BACKUP_HOUR,
-	    				"systemSettings.validation.databaseBackupHourInvalid");
-	    	}
-    	
-    	Integer databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
-    	if(databaseBackupMinute != null)
-	    	if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
-	    		response.addContextualMessage(DATABASE_BACKUP_MINUTE,
-	    				"systemSettings.validation.databaseBackupMinuteInvalid");
-	    	}
-    	
-    	validatePeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings, response);
-    	
-    	//Validate the number of backups to keep
-    	Integer databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
-    	if(databaseBackupFileCount != null)
-	    	if(databaseBackupFileCount < 1){
-	    		response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
-	    				"systemSettings.validation.databaseBackupFileCountInvalid");
-	    	} 
-    	
-    	//Thread Pool Sizes
-    	Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
-    	Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
+        	//Validate the Hour and Minute
+        	Integer backupHour = getIntValue(BACKUP_HOUR, settings);
+        	if(backupHour != null)
+    			if((backupHour > 23)||(backupHour<0)){
+    	    		response.addContextualMessage(BACKUP_HOUR,
+    	    				"systemSettings.validation.backupHourInvalid");
+    	    	}
+        	
+        	Integer backupMinute = getIntValue(BACKUP_MINUTE, settings);
+        	if(backupMinute != null)
+    	    	if((backupMinute > 59)||(backupMinute<0)){
+    	    		response.addContextualMessage(BACKUP_MINUTE,
+    	    				"systemSettings.validation.backupMinuteInvalid");
+    	    	}
+        	
+        	validatePeriodType(BACKUP_PERIOD_TYPE, settings, response);
+        	
+        	//Validate the number of backups to keep
+        	Integer backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
+        	if(backupFileCount != null)
+    	    	if(backupFileCount < 1){
+    	    		response.addContextualMessage(BACKUP_FILE_COUNT,
+    	    				"systemSettings.validation.backupFileCountInvalid");
+    	    	}   	
+    
+    
+    		//Validate
+        	setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
+        	if(setting != null){
+    	    	File tmp = new File((String)setting);
+    	    	if(!tmp.exists()){
+    	    		//Doesn't exist, push up message
+    	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
+    	    				"systemSettings.validation.databaseBackupLocationNotExists");
+    	    	}
+    	    	if(!tmp.canWrite()){
+    	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
+    	    				"systemSettings.validation.cannotWriteToDatabaseBackupFileLocation");
+    	    	}
+        	}
+        	
+        	//Validate the Hour and Minute
+        	Integer databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
+        	if(databaseBackupHour != null)
+    	    	if((databaseBackupHour > 23)||(databaseBackupHour<0)){
+    	    		response.addContextualMessage(DATABASE_BACKUP_HOUR,
+    	    				"systemSettings.validation.databaseBackupHourInvalid");
+    	    	}
+        	
+        	Integer databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
+        	if(databaseBackupMinute != null)
+    	    	if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
+    	    		response.addContextualMessage(DATABASE_BACKUP_MINUTE,
+    	    				"systemSettings.validation.databaseBackupMinuteInvalid");
+    	    	}
+        	
+        	validatePeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings, response);
+        	
+        	//Validate the number of backups to keep
+        	Integer databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
+        	if(databaseBackupFileCount != null)
+    	    	if(databaseBackupFileCount < 1){
+    	    		response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
+    	    				"systemSettings.validation.databaseBackupFileCountInvalid");
+    	    	} 
+        	
+        	//Thread Pool Sizes
+        	Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
+        	Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
     	
         if((corePoolSize != null)&&(corePoolSize < 0)){
-        	response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", 0);
+        	    response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", 0);
         }
 
         if((maxPoolSize != null)&&(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN)){
-        	response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
+            response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }
         
         if((maxPoolSize != null)&&(maxPoolSize < corePoolSize)){
-        	response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+        	    response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }
 
         //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
         // core pool thread is available
         corePoolSize = getIntValue(MED_PRI_CORE_POOL_SIZE, settings);
-        maxPoolSize = getIntValue(MED_PRI_MAX_POOL_SIZE, settings);
-        if(maxPoolSize < corePoolSize){
-        	response.addContextualMessage(MED_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
-        }
         if(corePoolSize < BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN){
-        	response.addContextualMessage(MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
+        	    response.addContextualMessage(MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
         }
         
         corePoolSize = getIntValue(LOW_PRI_CORE_POOL_SIZE, settings);
-        maxPoolSize = getIntValue(LOW_PRI_MAX_POOL_SIZE, settings);
-        if(maxPoolSize < corePoolSize){
-        	response.addContextualMessage(LOW_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
-        }
         if(corePoolSize < BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
-        	response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
+        	    response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
         
         //Validate Upgrade Version State

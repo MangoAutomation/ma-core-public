@@ -122,13 +122,6 @@ public interface BackgroundProcessing extends ILifecycle{
      */
     void setMediumPriorityServiceCorePoolSize(int corePoolSize);
 
-    /**
-     * Doesn't have any effect in the current configuration of the medium priority
-     * queue
-     * @param maximumPoolSize
-     */
-    void setMediumPriorityServiceMaximumPoolSize(int maximumPoolSize);
-
     int getMediumPriorityServiceCorePoolSize();
 
     int getMediumPriorityServiceMaximumPoolSize();
@@ -145,12 +138,6 @@ public interface BackgroundProcessing extends ILifecycle{
      */
     void setLowPriorityServiceCorePoolSize(int corePoolSize);
 
-    /**
-     * Doesn't have any effect in the current configuration of the medium priority
-     * queue
-     * @param maximumPoolSize
-     */
-    void setLowPriorityServiceMaximumPoolSize(int maximumPoolSize);
 
     int getLowPriorityServiceCorePoolSize();
 

@@ -288,14 +288,6 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
     }
 
     /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#setMediumPriorityServiceMaximumPoolSize(int)
-     */
-    @Override
-    public void setMediumPriorityServiceMaximumPoolSize(int maximumPoolSize) {
-        
-    }
-
-    /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#getMediumPriorityServiceCorePoolSize()
      */
     @Override
@@ -332,14 +324,6 @@ public class MockBackgroundProcessing implements BackgroundProcessing{
      */
     @Override
     public void setLowPriorityServiceCorePoolSize(int corePoolSize) {
-        
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#setLowPriorityServiceMaximumPoolSize(int)
-     */
-    @Override
-    public void setLowPriorityServiceMaximumPoolSize(int maximumPoolSize) {
         
     }
 

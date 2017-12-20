@@ -32,13 +32,13 @@ public class SystemSettingsEventDispatcher {
     public static void addListener(SystemSettingsListener l) {
         //Add the listener for all supported keys
     	List<SystemSettingsListener> list;
-        for(String key : l.getKeys()){
-        	list = LISTENER_MAP.get(key);
-        	if(list == null){
-        		list = new CopyOnWriteArrayList<SystemSettingsListener>();
-        		LISTENER_MAP.put(key, list);
-        	}
-        	list.add(l);
+        for (String key : l.getKeys()) {
+            list = LISTENER_MAP.get(key);
+            if (list == null) {
+                list = new CopyOnWriteArrayList<SystemSettingsListener>();
+                LISTENER_MAP.put(key, list);
+            }
+            list.add(l);
         }
     }
 
@@ -69,10 +69,11 @@ public class SystemSettingsEventDispatcher {
      */
     public static void fireSystemSettingSaved(String key, String oldValue, String newValue) {
         List<SystemSettingsListener> listeners = LISTENER_MAP.get(key);
-        if(listeners != null)
-	    	for (SystemSettingsListener l : listeners){
-	        		Common.backgroundProcessing.addWorkItem(new DispatcherExecution(l, key, oldValue, newValue, SETTING_SAVED));
-	        }
+        if (listeners != null)
+            for (SystemSettingsListener l : listeners) {
+                Common.backgroundProcessing.addWorkItem(
+                        new DispatcherExecution(l, key, oldValue, newValue, SETTING_SAVED));
+            }
     }
 
     /**
@@ -82,9 +83,10 @@ public class SystemSettingsEventDispatcher {
      */
     public static void fireSystemSettingRemoved(String key, String lastValue) {
         List<SystemSettingsListener> listeners = LISTENER_MAP.get(key);
-        if(listeners != null)
-        for (SystemSettingsListener l : listeners)
-            Common.backgroundProcessing.addWorkItem(new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
+        if (listeners != null)
+            for (SystemSettingsListener l : listeners)
+                Common.backgroundProcessing.addWorkItem(
+                        new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
     }
 
     static class DispatcherExecution implements WorkItem {
@@ -105,13 +107,13 @@ public class SystemSettingsEventDispatcher {
 
         @Override
         public void execute() {
-            switch(operation){
-            case SETTING_SAVED:
-            	l.SystemSettingsSaved(key, oldValue, newValue);
-            	break;
-            case SETTING_REMOVED:
-            	l.SystemSettingsRemoved(key, oldValue);
-            	break;
+            switch (operation) {
+                case SETTING_SAVED:
+                    l.SystemSettingsSaved(key, oldValue, newValue);
+                    break;
+                case SETTING_REMOVED:
+                    l.SystemSettingsRemoved(key, oldValue);
+                    break;
             }
         }
 

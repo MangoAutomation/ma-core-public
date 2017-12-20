@@ -118,7 +118,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public void rejectedHighPriorityTask(RejectedTaskReason reason){
-    	highPriorityRejectionHandler.rejectedTask(reason);
+    	    highPriorityRejectionHandler.rejectedTask(reason);
     }
     
     
@@ -128,7 +128,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getHighPriorityServiceScheduledTaskCount(){
-    	return this.timer.size();
+        return this.timer.size();
     }
     
     /* (non-Javadoc)
@@ -136,7 +136,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getHighPriorityServiceQueueSize(){
-    	return highPriorityService.getQueue().size();
+    	    return highPriorityService.getQueue().size();
     }
     
     /* (non-Javadoc)
@@ -144,7 +144,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getHighPriorityServiceActiveCount(){
-    	return highPriorityService.getActiveCount();
+    	    return highPriorityService.getActiveCount();
     }
     
     /* (non-Javadoc)
@@ -152,14 +152,14 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getHighPriorityServiceCorePoolSize(){
-    	return highPriorityService.getCorePoolSize();
+    	    return highPriorityService.getCorePoolSize();
     }
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceLargestPoolSize()
      */
     @Override
     public int getHighPriorityServiceLargestPoolSize(){
-    	return this.highPriorityService.getLargestPoolSize();
+        return this.highPriorityService.getLargestPoolSize();
     }    
     
     /* (non-Javadoc)
@@ -192,7 +192,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getHighPriorityServiceMaximumPoolSize(){
-    	return highPriorityService.getMaximumPoolSize();
+    	    return highPriorityService.getMaximumPoolSize();
     }
     
     /* (non-Javadoc)
@@ -200,17 +200,17 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public Map<String, Integer> getHighPriorityServiceQueueClassCounts() {
-    	Iterator<TimerTask> iter = timer.getTasks().iterator();
-    	Map<String, Integer> classCounts = new HashMap<>();
-    	while(iter.hasNext()){
-    		TimerTask task = iter.next();
-    		Integer count = classCounts.get(task.getName());
+        Iterator<TimerTask> iter = timer.getTasks().iterator();
+        Map<String, Integer> classCounts = new HashMap<>();
+        while (iter.hasNext()) {
+            TimerTask task = iter.next();
+            Integer count = classCounts.get(task.getName());
             if (count == null)
                 count = 0;
             count++;
             classCounts.put(task.getName(), count);
-    	}
-    	return classCounts;
+        }
+        return classCounts;
     }
 
     /* (non-Javadoc)
@@ -250,13 +250,13 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public List<WorkItemModel> getHighPriorityServiceItems(){
-    	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
-    	Iterator<TimerTask> iter = timer.getTasks().iterator();
-    	while(iter.hasNext()){
-    		TimerTask task = iter.next();
-    		list.add(new WorkItemModel(task.getClass().getCanonicalName(), task.getName(), "HIGH"));
-    	}
-    	return list;
+        List<WorkItemModel> list = new ArrayList<WorkItemModel>();
+        Iterator<TimerTask> iter = timer.getTasks().iterator();
+        while (iter.hasNext()) {
+            TimerTask task = iter.next();
+            list.add(new WorkItemModel(task.getClass().getCanonicalName(), task.getName(), "HIGH"));
+        }
+        return list;
     }
 
     
@@ -265,28 +265,25 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public List<WorkItemModel> getMediumPriorityServiceQueueItems(){
-    	return getQueueItems(mediumPriorityService, "MEDIUM");
-    	
+    	    return getQueueItems(mediumPriorityService, "MEDIUM");
     }
- 
-    
     
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setMediumPriorityServiceCorePoolSize(int)
      */
     @Override
     public void setMediumPriorityServiceCorePoolSize(int corePoolSize){
-    	if((corePoolSize > 0)&&(corePoolSize <= this.mediumPriorityService.getMaximumPoolSize()))
-    		this.mediumPriorityService.setCorePoolSize(corePoolSize);
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setMediumPriorityServiceMaximumPoolSize(int)
-     */
-    @Override
-    public void setMediumPriorityServiceMaximumPoolSize(int maximumPoolSize){
-    	if((maximumPoolSize >= MED_PRI_MAX_POOL_SIZE_MIN)&&(maximumPoolSize >= this.mediumPriorityService.getCorePoolSize())) //Default
-    		this.mediumPriorityService.setMaximumPoolSize(maximumPoolSize);
+        if (corePoolSize > MED_PRI_MAX_POOL_SIZE_MIN) {
+            if(corePoolSize > this.mediumPriorityService.getMaximumPoolSize()) {
+                //Increasing pool
+                this.mediumPriorityService.setMaximumPoolSize(corePoolSize);
+                this.mediumPriorityService.setCorePoolSize(corePoolSize);
+            }else {
+                //Decreasing pool
+                this.mediumPriorityService.setCorePoolSize(corePoolSize);
+                this.mediumPriorityService.setMaximumPoolSize(corePoolSize);
+            }
+        }
     }
     
     /* (non-Javadoc)
@@ -294,7 +291,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getMediumPriorityServiceCorePoolSize(){
-    	return this.mediumPriorityService.getCorePoolSize();
+        return this.mediumPriorityService.getCorePoolSize();
     }
     
     /* (non-Javadoc)
@@ -302,7 +299,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getMediumPriorityServiceMaximumPoolSize(){
-    	return this.mediumPriorityService.getMaximumPoolSize();
+        return this.mediumPriorityService.getMaximumPoolSize();
     }
     
     /* (non-Javadoc)
@@ -310,7 +307,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getMediumPriorityServiceActiveCount(){
-    	return this.mediumPriorityService.getActiveCount();
+        return this.mediumPriorityService.getActiveCount();
     }
     
     /* (non-Javadoc)
@@ -318,7 +315,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public int getMediumPriorityServiceLargestPoolSize(){
-    	return this.mediumPriorityService.getLargestPoolSize();
+        return this.mediumPriorityService.getLargestPoolSize();
     }    
     
     /* (non-Javadoc)
@@ -326,17 +323,17 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     @Override
     public void setLowPriorityServiceCorePoolSize(int corePoolSize){
-    	if((corePoolSize > 0)&&(corePoolSize <= this.lowPriorityService.getMaximumPoolSize()))
-    		this.lowPriorityService.setCorePoolSize(corePoolSize);
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setLowPriorityServiceMaximumPoolSize(int)
-     */
-    @Override
-    public void setLowPriorityServiceMaximumPoolSize(int maximumPoolSize){
-    	if((maximumPoolSize >= LOW_PRI_MAX_POOL_SIZE_MIN)&&maximumPoolSize >= this.lowPriorityService.getCorePoolSize()) //Default
-    		this.lowPriorityService.setMaximumPoolSize(maximumPoolSize);
+        if (corePoolSize > LOW_PRI_MAX_POOL_SIZE_MIN) {
+            if(corePoolSize > this.lowPriorityService.getMaximumPoolSize()) {
+                //Increasing pool
+                this.lowPriorityService.setMaximumPoolSize(corePoolSize);
+                this.lowPriorityService.setCorePoolSize(corePoolSize);
+            }else {
+                //Decreasing pool
+                this.lowPriorityService.setCorePoolSize(corePoolSize);
+                this.lowPriorityService.setMaximumPoolSize(corePoolSize);
+            }
+        }
     }
     
     /* (non-Javadoc)
@@ -446,16 +443,13 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         	
         	//Pull our settings from the System Settings
         	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
-        	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
         	
         	//Sanity check to ensure the pool sizes are appropriate
-        	if(maxPoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
-        		maxPoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
-        	if(maxPoolSize < corePoolSize)
-        		maxPoolSize = corePoolSize;
+        	if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
+        		corePoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
         	mediumPriorityService = new OrderedThreadPoolExecutor(
         	       		corePoolSize,
-        	       		maxPoolSize,
+        	       		corePoolSize,
         	      		60L,
         	      		TimeUnit.SECONDS,
         	            new LinkedBlockingQueue<Runnable>(),
@@ -465,13 +459,10 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         	      		Common.timer.getTimeSource());
             
         	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
-        	maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
         	//Sanity check to ensure the pool sizes are appropriate
-        	if(maxPoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
-        		maxPoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
-        	if(maxPoolSize < corePoolSize)
-        		maxPoolSize = corePoolSize;
-            lowPriorityService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS,
+        	if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
+        	    corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
+        lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
         this.state = RUNNING;
     }
@@ -707,5 +698,4 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 		}
     	
     }
-    
 }

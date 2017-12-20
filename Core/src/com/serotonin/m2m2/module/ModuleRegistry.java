@@ -1042,7 +1042,9 @@ public class ModuleRegistry {
         preDefaults.add(new DiskInfoDefinition());
         
         /* System Settings Listeners */
-        preDefaults.add(new ThreadPoolSettingsListenerDefinition());
+        // Do NOT Use the ThreadPoolListener as if the pools are full we can't spawn threads to update the settings...
+        // preDefaults.add(new ThreadPoolSettingsListenerDefinition());
+        //
         preDefaults.add(new LanguageSettingListenerDefinition());
         preDefaults.add(new BackupSettingsListenerDefinition());
         preDefaults.add(new DatabaseBackupSettingsListenerDefinition());

@@ -22,27 +22,21 @@ public class ThreadPoolSettingsListenerDefinition extends SystemSettingsListener
 	 */
 	@Override
 	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
-		Integer value = Integer.parseInt(newValue);
-		switch(key){
-		case SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE:
-        	Common.backgroundProcessing.setHighPriorityServiceCorePoolSize(value);
-			break;
-		case SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE:
-            Common.backgroundProcessing.setHighPriorityServiceMaximumPoolSize(value);
-			break;
-		case SystemSettingsDao.MED_PRI_CORE_POOL_SIZE:
-		case SystemSettingsDao.MED_PRI_MAX_POOL_SIZE:
-        	//Due to the pool type we should set these to the same values
-        	Common.backgroundProcessing.setMediumPriorityServiceMaximumPoolSize(value);
-        	Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(value);
-			break;
-		case SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE:
-		case SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE:
-        	//Due to the pool type we should set these to the same values
-        	Common.backgroundProcessing.setLowPriorityServiceMaximumPoolSize(value);
-        	Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(value);
-			break;
-		}
+        Integer value = Integer.parseInt(newValue);
+        switch (key) {
+            case SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE:
+                Common.backgroundProcessing.setHighPriorityServiceCorePoolSize(value);
+                break;
+            case SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE:
+                Common.backgroundProcessing.setHighPriorityServiceMaximumPoolSize(value);
+                break;
+            case SystemSettingsDao.MED_PRI_CORE_POOL_SIZE:
+                Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(value);
+                break;
+            case SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE:
+                Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(value);
+                break;
+        }
 	}
 
 	/* (non-Javadoc)
@@ -61,12 +55,8 @@ public class ThreadPoolSettingsListenerDefinition extends SystemSettingsListener
 		List<String> keys = new ArrayList<String>();
 		keys.add(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
 		keys.add(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-		
-		keys.add(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
-		keys.add(SystemSettingsDao.MED_PRI_MAX_POOL_SIZE);
-		
-		keys.add(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
-		keys.add(SystemSettingsDao.LOW_PRI_MAX_POOL_SIZE);
+		keys.add(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+		keys.add(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
 		
 		return keys;
 	}
