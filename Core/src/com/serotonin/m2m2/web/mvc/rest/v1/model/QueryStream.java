@@ -57,9 +57,9 @@ public class QueryStream<VO extends AbstractBasicVO, MODEL, DAO extends Abstract
 	public void streamData(JsonGenerator jgen) throws IOException {
 		this.queryCallback.setJsonGenerator(jgen);
 		List<Object> args = this.results.getLimitOffsetArgs();
+		boolean query = true;
 		if( args != null && args.get(0) != null) {
 		    //Detect if the limit is non 0
-		    boolean query = true;
 		    if(args.get(0) instanceof Integer) {
 		        if(0 == (Integer)args.get(0))
 		            query = false;
@@ -67,9 +67,9 @@ public class QueryStream<VO extends AbstractBasicVO, MODEL, DAO extends Abstract
 		        if(0 == (Long)args.get(0))
 		            query = false;
 		    }
-		    if(query)
-		        this.results.query();
 	    }
+		if(query)
+            this.results.query();
 	}
 
 	/* (non-Javadoc)
