@@ -10,11 +10,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -34,9 +32,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
-import com.serotonin.m2m2.rt.event.UserEventLevelSummary;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -251,67 +247,17 @@ public class EventDao extends BaseDao {
         attachRelationalInfo(results);
         return results;
     }
-    
-    //Improved Join performance
-    private final String EVENT_SELECT_WITH_USER_DATA_FROM_USER_EVENTS = "select events.id, events.typeName, events.subtypeName, events.typeRef1, events.typeRef2, events.activeTs, events.rtnApplicable, events.rtnTs, events.rtnCause, events.alarmLevel, events.message, events.ackTs, events.ackUserId, events.alternateAckSource," 
-            + "users.username,"
-            + "(select count(1) from userComments where commentType=1 and typeKey=events.id) as cnt,"
-            + "userEvents.silenced "
-            + "from userEvents "
-            + "left join events on events.id=userEvents.eventId "
-            + "left join users on events.ackUserId=users.id ";
 
     public List<EventInstance> getAllUnsilencedEvents(int userId) {
-        StringBuilder query = new StringBuilder(EVENT_SELECT_WITH_USER_DATA_FROM_USER_EVENTS);
-        query.append("WHERE userEvents.userId=? AND userEvents.silenced=? ");
-        query.append("order by events.activeTs desc");
+        StringBuilder query = new StringBuilder(EVENT_SELECT_WITH_USER_DATA);
+        query.append("WHERE ue.userId=? AND ue.silenced=? ");
+        query.append("order by e.activeTs desc");
 
         List<EventInstance> results = query(query.toString(), new Object[] { userId, boolToChar(false) }, new UserEventInstanceRowMapper());
         attachRelationalInfo(results);
         return results;
     }
-    
-    /**
-     * Count all the unsilenced events for a user, return in a map Level -> Summary
-     * @param userId
-     * @return
-     */
-    public Map<Integer, UserEventLevelSummary> getUnsilencedUserEventSummaries(int userId){
-        StringBuilder query = new StringBuilder();
-        query.append("SELECT agg.alarmLevel, agg.total, events.id");
-        query.append(" FROM (");
-        query.append("SELECT events.alarmLevel, COUNT(events.id) as total, MAX(events.activeTs) AS maxTs ");
-        query.append("from userEvents ");
-        query.append("LEFT JOIN events ON events.id=userEvents.eventId ");
-        query.append("WHERE  userEvents.userId=? AND userEvents.silenced='N' ");
-        query.append("GROUP BY events.alarmLevel) ");
-        query.append("AS agg ");
-        query.append("LEFT JOIN events ON agg.maxTs = events.activeTs AND agg.alarmLevel = events.alarmLevel ");
-        query.append("GROUP BY events.alarmLevel");
-        return query(query.toString(), new Object[] {userId}, new ResultSetExtractor<Map<Integer, UserEventLevelSummary>>() {
-
-            @Override
-            public Map<Integer, UserEventLevelSummary> extractData(ResultSet rs)
-                    throws SQLException, DataAccessException {
-                Map<Integer, UserEventLevelSummary> alarmCounts = new HashMap<>();
-                alarmCounts.put(AlarmLevels.LIFE_SAFETY, new UserEventLevelSummary(AlarmLevels.LIFE_SAFETY));
-                alarmCounts.put(AlarmLevels.CRITICAL, new UserEventLevelSummary(AlarmLevels.CRITICAL));
-                alarmCounts.put(AlarmLevels.URGENT, new UserEventLevelSummary(AlarmLevels.URGENT));
-                alarmCounts.put(AlarmLevels.WARNING, new UserEventLevelSummary(AlarmLevels.WARNING));
-                alarmCounts.put(AlarmLevels.IMPORTANT, new UserEventLevelSummary(AlarmLevels.IMPORTANT));
-                alarmCounts.put(AlarmLevels.INFORMATION, new UserEventLevelSummary(AlarmLevels.INFORMATION));
-                alarmCounts.put(AlarmLevels.NONE, new UserEventLevelSummary(AlarmLevels.NONE));
-                alarmCounts.put(AlarmLevels.DO_NOT_LOG, new UserEventLevelSummary(AlarmLevels.DO_NOT_LOG));
-                
-                while(rs.next()) {
-                    UserEventLevelSummary summary = alarmCounts.get(rs.getInt(1));
-                    summary.setUnsilencedCount(rs.getInt(2));
-                    summary.setLatest(getEventInstance(rs.getInt(3)));
-                }
-                return alarmCounts;
-            }
-        });
-    }
+ 
     
     public List<EventInstance> getPendingEvents(int userId) {
         List<EventInstance> results = Common.databaseProxy.doLimitQuery(this, EVENT_SELECT_WITH_USER_DATA
