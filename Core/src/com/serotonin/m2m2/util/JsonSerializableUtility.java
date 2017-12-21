@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,6 +24,7 @@ import java.util.Map;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.serotonin.json.JsonException;
+import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
@@ -34,7 +37,7 @@ import com.serotonin.m2m2.Common;
 /**
  * Code Lifted from Serotonin JSON JsonContext
  * 
- * to allow collecting annotated properties from an Object
+ * Utility to allow collecting differences in annotated properties from an Object
  * 
  * @author Terry Packer
  *
@@ -82,12 +85,10 @@ public class JsonSerializableUtility {
 		
 		//First check the annotated properties
 		List<SerializableProperty> properties = findProperties(from.getClass());
-		for(SerializableProperty property : properties){
+		for(SerializableProperty property : properties)
 			//Compare the property and if it has members, compare them.
 			if(different(property.getReadMethod().invoke(from), property.getReadMethod().invoke(to))){
 				allChanges.put(property.getName(), property.getReadMethod().invoke(to));
-			}
-			
 		}
 		
 		//Second if we are JsonSerializable check the values returned from that
@@ -116,8 +117,23 @@ public class JsonSerializableUtility {
 	protected boolean different(Object fromValue, Object toValue) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
 		
 		//Either null?
-		if(((fromValue == null)&&(toValue != null))||((fromValue != null)&&(toValue == null)))
+		if(((fromValue == null)&&(toValue != null))||((fromValue != null)&&(toValue == null))) {
+		    //Test Map and Collections, we assume null and empty are a no-change scenario
+		    // one of fromValue or toValue must be null but not both
+		    if(toValue == null) {
+		        if((fromValue instanceof Collection<?>)&&(((Collection<?>)fromValue).size() == 0))
+		            return false;
+		        if((fromValue instanceof Map<?,?>)&&(((Map<?,?>)fromValue).size() == 0))
+		            return false;
+		    }else {
+                if ((toValue instanceof Collection<?>) && (((Collection<?>) toValue).size() == 0))
+                    return false;
+                if ((toValue instanceof Map<?, ?>) && (((Map<?, ?>) toValue).size() == 0))
+                    return false;
+		    }
+		    
 			return true;
+		}
 		
 		//Both null
 		if((fromValue == null)&&(toValue == null))
@@ -207,7 +223,7 @@ public class JsonSerializableUtility {
 					return true;
 			}
 		}else if(properties.size() == 0){
-			//No Sero Json Properties at all 
+			//No Sero Json Properties at all, hopefully something that implements .equals() 
 			return !ObjectUtils.equals(from, to);
 		}
 
@@ -219,7 +235,23 @@ public class JsonSerializableUtility {
 		//
         // Introspect the class.
         List<SerializableProperty> properties = new ArrayList<>();
-
+        boolean jsonSerializable = JsonSerializable.class.isAssignableFrom(clazz);
+        if(!jsonSerializable) {
+            //Is it a semi-primative
+            if(clazz.isAssignableFrom(Boolean.class) || 
+                    clazz.isAssignableFrom(Byte.class) ||
+                    clazz.isAssignableFrom(Short.class) ||
+                    clazz.isAssignableFrom(Integer.class) ||
+                    clazz.isAssignableFrom(Long.class) ||
+                    clazz.isAssignableFrom(Float.class) ||
+                    clazz.isAssignableFrom(Double.class) ||
+                    clazz.isAssignableFrom(BigInteger.class) ||
+                    clazz.isAssignableFrom(BigDecimal.class) ||
+                    clazz.isAssignableFrom(String.class) ||
+                    clazz.isAssignableFrom(Object.class)
+                    )
+                return properties;
+        }
         BeanInfo info;
         try {
             info = Introspector.getBeanInfo(clazz);
@@ -233,13 +265,45 @@ public class JsonSerializableUtility {
         // Annotations or beans
         Class<?> currentClazz = clazz;
         while (currentClazz != Object.class) {
-            addAnnotatedProperties(currentClazz, descriptors, properties);
-            //Serotonin JSON searches for POJO properties here, we don't want to.
+            boolean annotationsFound = addAnnotatedProperties(currentClazz, descriptors, properties);
+            //Serotonin JSON searches for POJO properties here, we don't want to. 
+            if (!annotationsFound && !currentClazz.isAnnotationPresent(JsonEntity.class) && !jsonSerializable)
+                addPojoProperties(currentClazz, descriptors, properties);
             currentClazz = currentClazz.getSuperclass();
         }
 
         return properties;
 	}
+	
+    private void addPojoProperties(Class<?> clazz, PropertyDescriptor[] descriptors,
+            List<SerializableProperty> properties) {
+        for (PropertyDescriptor descriptor : descriptors) {
+            String name = descriptor.getName();
+
+            // Don't implicitly marshall getClass()
+            if (name.equals("class"))
+                continue;
+
+            // Ignore hibernate stuff too
+            if (name.equals("hibernateLazyInitializer"))
+                continue;
+
+            Method readMethod = descriptor.getReadMethod();
+            if (readMethod != null && readMethod.getDeclaringClass() != clazz)
+                readMethod = null;
+
+            Method writeMethod = descriptor.getWriteMethod();
+            if (writeMethod != null && writeMethod.getDeclaringClass() != clazz)
+                writeMethod = null;
+
+            SerializableProperty prop = new SerializableProperty();
+            prop.setName(name);
+            prop.setReadMethod(readMethod);
+            prop.setWriteMethod(writeMethod);
+
+            maybeAddProperty(properties, prop);
+        }
+    }
 	
     private boolean addAnnotatedProperties(Class<?> clazz, PropertyDescriptor[] descriptors,
             List<SerializableProperty> properties) throws JsonException {
@@ -274,9 +338,6 @@ public class JsonSerializableUtility {
 
             SerializableProperty prop = new SerializableProperty();
             prop.setName(name);
-
-            // if (anno.typeFactory() != TypeFactory.class)
-            // prop.setTypeFactory(anno.typeFactory());
 
             prop.setReadMethod(readMethod);
             prop.setWriteMethod(writeMethod);

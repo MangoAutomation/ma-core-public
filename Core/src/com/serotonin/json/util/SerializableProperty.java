@@ -75,4 +75,8 @@ public class SerializableProperty {
     public void setIncludeHints(String[] includeHints) {
         this.includeHints = includeHints;
     }
+    
+    public String toString() {
+        return getNameToUse();
+    }
 }
