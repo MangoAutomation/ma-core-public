@@ -14,6 +14,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common.TimePeriods;
 
 /**
+ * Truncate the Temporal to the desired resolution
  *
  * @author Terry Packer
  */
