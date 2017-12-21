@@ -6,13 +6,16 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.JsonException;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
@@ -51,6 +54,16 @@ public class EventDetectorImporter extends Importer {
                     ModuleRegistry.getEventDetectorDefinitionTypes());
             return;
         }
+        
+        JsonArray handlerXids = json.getJsonArray("handlers");
+        if(handlerXids != null)
+            for(int k = 0; k < handlerXids.size(); k+=1) {
+                AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(handlerXids.getString(k));
+                if(eh == null) {
+                    addFailureMessage("emport.eventHandler.missing", handlerXids.getString(k));
+                    return;
+                }
+            }
         
         AbstractEventDetectorVO<?> importing = def.baseCreateEventDetectorVO();
         importing.setDefinition(def);

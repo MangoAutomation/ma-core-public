@@ -36,6 +36,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -57,6 +58,7 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
@@ -1653,6 +1655,16 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                         break;
                     }
                 }
+                
+                JsonArray handlerXids = pedObject.getJsonArray("handlers");
+                if(handlerXids != null)
+                    for(int k = 0; k < handlerXids.size(); k+=1) {
+                        AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(handlerXids.getString(k));
+                        if(eh == null) {
+                            throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
+                        }
+                        
+                    }
 
                 if (ped == null) {
                 	String typeStr = pedObject.getString("type");

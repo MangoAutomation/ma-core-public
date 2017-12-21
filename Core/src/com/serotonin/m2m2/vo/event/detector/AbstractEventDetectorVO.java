@@ -25,6 +25,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
 import com.serotonin.validation.StringValidation;
@@ -174,6 +175,13 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
             if (StringValidation.isLengthGreaterThan(name, 255))
                 response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         }
+        
+        if(addedEventHandlerXids != null)
+            for(String ehXid : addedEventHandlerXids) {
+                AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(ehXid);
+                if(eh == null)
+                    response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", ehXid));
+            }
 	}
 
 	@Override
@@ -183,9 +191,12 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         writer.writeEntry("xid", xid);
         writer.writeEntry("alias", name);
         
-        // The event handler references will now be exported here, 
-        // rather than in the handler referencing the detector
-        writer.writeEntry("handlers", EventHandlerDao.instance.getEventHandlerXids(getEventType()));
+        /* Event handler references are not exported here because there would be a circular dependency
+        *  with the eventTypes array in the handler, and since there are other event types that was deemed
+        *  the more versatile. One can create handler mappings through this array, but you cannot have both 
+        *  items refer to one another in the JSON if both are new, so this is not exported.
+        */
+        //writer.writeEntry("handlers", EventHandlerDao.instance.getEventHandlerXids(getEventType()));
     }
 
     @Override
@@ -198,7 +209,6 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         if(handlers != null) {
             addedEventHandlerXids = new ArrayList<String>(handlers.size());
             Iterator<JsonValue> iter = handlers.iterator();
-            EventTypeVO etvo = getEventType();
             while(iter.hasNext())
                 addedEventHandlerXids.add(iter.next().toString());
         }
