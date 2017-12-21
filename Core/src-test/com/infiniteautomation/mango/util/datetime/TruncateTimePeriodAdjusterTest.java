@@ -101,8 +101,6 @@ public class TruncateTimePeriodAdjusterTest {
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int hour = result.get(ChronoField.HOUR_OF_DAY);
                 int expected = time.get(ChronoField.HOUR_OF_DAY) - (time.get(ChronoField.HOUR_OF_DAY) % j);
-                if(expected < 0)
-                    expected = 23 + expected;
                 if(hour != expected)
                     fail("Expected " + expected + 
                             " for " + j + " at time " + time.get(ChronoField.HOUR_OF_DAY) +

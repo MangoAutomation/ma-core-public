@@ -50,12 +50,8 @@ public class TruncateTimePeriodAdjuster implements TemporalAdjuster {
                 temporal = temporal.with(ChronoField.MILLI_OF_SECOND, 0);
                 break;
             case TimePeriods.HOURS:
-                if(periods > 1) {
-                    if(temporal.get(ChronoField.HOUR_OF_DAY) < periods) //handle dst spring forward
-                        temporal = temporal.with(ChronoField.HOUR_OF_DAY, 0);
-                    else
-                        temporal = temporal.minus(temporal.get(ChronoField.HOUR_OF_DAY) % periods, ChronoUnit.HOURS);
-                }
+                if(periods > 1)
+                    temporal = temporal.with(ChronoField.HOUR_OF_DAY, temporal.get(ChronoField.HOUR_OF_DAY) - temporal.get(ChronoField.HOUR_OF_DAY) % periods);
                 temporal = temporal.with(ChronoField.MINUTE_OF_HOUR, 0);
                 temporal = temporal.with(ChronoField.SECOND_OF_MINUTE, 0);
                 temporal = temporal.with(ChronoField.MILLI_OF_SECOND, 0);
