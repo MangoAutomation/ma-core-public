@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.util.Map;
+
 public class DataPointEventMulticaster implements DataPointListener {
     protected final DataPointListener a, b;
 
@@ -114,6 +116,15 @@ public class DataPointEventMulticaster implements DataPointListener {
 	public void pointLogged(PointValueTime value) {
 		a.pointLogged(value);
 		b.pointLogged(value);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#attributeChanged(java.util.Map)
+	 */
+	@Override
+	public void attributeChanged(Map<String, Object> attributes) {
+	    a.attributeChanged(attributes);
+	    b.attributeChanged(attributes);
 	}
 
 	/* (non-Javadoc)
