@@ -495,7 +495,7 @@ dataPoints = new StoreView({
         	startImageFader("toggleAllDataPoints" + id, true);
     	
     	var _this = this;
-    	DataPointDwr.toggle(id, enabled, function(result) {
+    	DataPointDwr.enableDisable(id, enabled, function(result) {
     		//TODO there is a known bug here that will change the color of the editing points light even 
     		// if the data point that was toggled is no longer in the edit view.  
     		_this.updateStatus(result.data.id,result.data.enabled);

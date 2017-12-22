@@ -101,7 +101,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     }
     
     @DwrPermission(user = true)
-    public ProcessResult toggle(int dataPointId, boolean enabled) {
+    public ProcessResult enableDisable(int dataPointId, boolean enabled) {
         DataPointVO dataPoint = DataPointDao.instance.getDataPoint(dataPointId, false);
         Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
  

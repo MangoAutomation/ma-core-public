@@ -129,7 +129,7 @@ dataPoints = new StoreView({
      */
     toggle: function(id) {
     	var imageNode = $("toggleDataPoint"+ result.data.id);
-    	DataPointDwr.toggle(id, imageNode.src.indexOf("_go") == -1, function(result) {
+    	DataPointDwr.enableDisable(id, imageNode.src.indexOf("_go") == -1, function(result) {
             if(result.data.enabled){
                 updateImg(
                 		$("toggleDataPoint"+ result.data.id),
