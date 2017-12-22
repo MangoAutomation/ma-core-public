@@ -101,7 +101,13 @@
 <li>name - the point's name</li>
 <li>deviceName - the device name for the point</li>
 <li>values - a sequence (list) of rendered point value times</li></ul>
-
+<p>
+  The event object is added to the model with the key 'evt'. Events have the properties on the evt object
+  like those in the EventInstance class. Audit events have the JSON for the changes in question stored in their
+  'context' attribute. Data source and data point events store the data source's object under 'evt.context.dataSource'.
+  Publisher events have the publisher's object stored in 'evt.context.publisher'. System events have a null evt.context.
+  If the event type is defined by a module, the contents of its context should be described in the help for that module.
+</p>
 <h1>Editing set point handlers</h1>
 <p>
   When an event is raised, this handler will set the value of a given settable point. The <b>Target</b> is the settable 
