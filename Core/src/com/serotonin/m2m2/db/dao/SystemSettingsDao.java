@@ -948,45 +948,52 @@ public class SystemSettingsDao extends BaseDao {
 				settings.put(key, DEFAULT_VALUES.get(key));
 		}
 		
-		//Then replace anything with what is stored in the database
-		ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
-            
-            public void processRow(ResultSet rs) throws SQLException {
-            	String settingName = rs.getString(1);
+        // Then replace anything with what is stored in the database
+        ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
 
-            	//Don't export any passwords or schema numbers
-            	if((!settingName.toLowerCase().contains("password")&&!settingName.startsWith(DATABASE_SCHEMA_VERSION))){
-            		String settingValue = rs.getString(2);
-                	//Convert Numbers to Integers
-                	try{
-                		settings.put(settingName, Integer.parseInt(settingValue));
-                	}catch(NumberFormatException e){
-                		//Are we a boolean
-                		if(settingValue.equalsIgnoreCase("y")){
-                			settings.put(settingName, new Boolean(true));
-                		}else if(settingValue.equalsIgnoreCase("n")){
-                			settings.put(settingName, new Boolean(false));
-                		}else{
-                			//Must be a string
-                			settings.put(settingName, settingValue);
-                		}
-                		
-                	}
-            	}
+            public void processRow(ResultSet rs) throws SQLException {
+                String settingName = rs.getString(1);
+                // Don't export any passwords or schema numbers
+                if ((!settingName.toLowerCase().contains("password")
+                        && !settingName.startsWith(DATABASE_SCHEMA_VERSION))) {
+                    String settingValue = rs.getString(2);
+                    if (settingValue != null) {
+                        // Convert Numbers to Integers
+                        try {
+                            settings.put(settingName, Integer.parseInt(settingValue));
+                        } catch (NumberFormatException e) {
+                            // Are we a boolean
+                            if (settingValue.equalsIgnoreCase("y")) {
+                                settings.put(settingName, new Boolean(true));
+                            } else if (settingValue.equalsIgnoreCase("n")) {
+                                settings.put(settingName, new Boolean(false));
+                            } else {
+                                // Must be a string
+                                settings.put(settingName, settingValue);
+                            }
+                        }
+                    }else {
+                        //If there is no default then set it to the null that was returned in the query
+                        //  this preserves the ability to save null settings values
+                        //  and also so that there is an indication that a null setting exists
+                        if(settings.get(settingName) == null)
+                            settings.put(settingName, null);
+                    }
+                }
             }
-    	});
+        });
 		
-		//Convert the Integers to Codes
-		it = settings.keySet().iterator();
-		while(it.hasNext()){
-			key = it.next();
-    		Object value = settings.get(key);
-    		if(value instanceof Integer){
-	    		String code = convertToCodeFromValue(key, (Integer)value);
-	    		if(code != null)
-	    			settings.put(key, code);
-    		}
-		}
+        // Convert the Integers to Codes
+        it = settings.keySet().iterator();
+        while (it.hasNext()) {
+            key = it.next();
+            Object value = settings.get(key);
+            if (value instanceof Integer) {
+                String code = convertToCodeFromValue(key, (Integer) value);
+                if (code != null)
+                    settings.put(key, code);
+            }
+        }
 		
 		return settings;
 	}
