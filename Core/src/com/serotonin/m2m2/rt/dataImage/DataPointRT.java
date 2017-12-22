@@ -400,8 +400,24 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         synchronized (intervalLoggingLock) {
             if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
                 return;
-            long delay = 0l;
+            
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
+            
+            intervalValue = pointValue;
+            if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
+                intervalStartTime = Common.timer.currentTimeMillis();
+                if(averagingValues.size() > 0) {
+                    Double nullValue = null;
+                        AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
+                        PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
+                    valueCache.logPointValueAsync(newValue, null);
+                    //Fire logged Events
+                    fireEvents(null, newValue, null, false, false, true, false, false);
+                        averagingValues.clear();
+                }
+            }
+            
+            long delay = loggingPeriodMillis;
             if(quantize){
                 	// Quantize the start.
                 	//Compute delay only if we are offset from the next poll time
@@ -415,20 +431,6 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
             else
 	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
-            	
-            intervalValue = pointValue;
-            if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                intervalStartTime = Common.timer.currentTimeMillis();
-                if(averagingValues.size() > 0) {
-                    Double nullValue = null;
-                	    AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
-                	    PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
-                    valueCache.logPointValueAsync(newValue, null);
-                    //Fire logged Events
-                    fireEvents(null, newValue, null, false, false, true, false, false);
-                	    averagingValues.clear();
-                }
-            }
         }
     }
     
@@ -529,7 +531,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                         value = null;
                 } else {
                     AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
-                    if (stats.getAverage() == null)
+                    if (stats.getAverage() == null || (stats.getAverage() == Double.NaN && stats.getCount() == 0))
                         value = null;
                     else if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
                         value = new NumericValue(stats.getAverage());
