@@ -901,6 +901,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         }else {
                             //Send the start value since it's time == from
                             callback.firstValue(current, counter.getValue(), false);
+                            values.put(current.getId(), null); // So we don't process this value 2x
                             counter.increment();
                         }
                     }
