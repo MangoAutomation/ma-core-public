@@ -157,7 +157,6 @@ public interface BackgroundProcessing extends ILifecycle{
     void terminate();
 
     void joinTermination();
-    //
     
     TaskRejectionHandler getHighPriorityRejectionHandler();
 
