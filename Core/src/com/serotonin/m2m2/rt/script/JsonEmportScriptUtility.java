@@ -1,6 +1,5 @@
 package com.serotonin.m2m2.rt.script;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +13,7 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -103,19 +103,19 @@ public class JsonEmportScriptUtility {
 			JsonObject jo = value.toJsonObject();
 			if(importExclusions != null)
 				doExclusions(jo);
-			ScriptImportTask sit = new ScriptImportTask(jo, false);
+			ScriptImportTask sit = new ScriptImportTask(jo);
 			sit.run(Common.timer.currentTimeMillis());
 		}
 	}
 	
-	public List<String> doImportGetStatus(String json) throws Exception {
+	public List<ProcessMessage> doImportGetStatus(String json) throws Exception {
 		if(admin) {
 			JsonTypeReader reader = new JsonTypeReader(json);
 			JsonValue value = reader.read();
 			JsonObject jo = value.toJsonObject();
 			if(importExclusions != null)
 				doExclusions(jo);
-			ScriptImportTask sit = new ScriptImportTask(jo, true);
+			ScriptImportTask sit = new ScriptImportTask(jo);
 			sit.run(Common.timer.currentTimeMillis());
 			return sit.getMessages();
 		}
@@ -140,19 +140,13 @@ public class JsonEmportScriptUtility {
 	}
 	
 	class ScriptImportTask extends ImportTask {
-
-		private List<String> messages;
 		
-		public ScriptImportTask(JsonObject jo, boolean messages) {
+		public ScriptImportTask(JsonObject jo) {
 			super(jo, Common.getTranslations(), null, false);
-			if(messages)
-				this.messages = new ArrayList<>();
-			else
-				this.messages = null;
 		}
 		
-		public List<String> getMessages() {
-			return messages;
+		public List<ProcessMessage> getMessages() {
+			return importContext.getResult().getMessages();
 		}
 	}
 	
@@ -165,7 +159,7 @@ public class JsonEmportScriptUtility {
 		builder.append("dataPointQuery(rql): String, \n");
 		builder.append("dataSourceQuery(rql): String, \n");
 		builder.append("doImport(String): void, \n");
-		builder.append("doImportGetStatus(String): List<String> \n");
+		builder.append("doImportGetStatus(String): List<ProcessMessage> \n");
 		builder.append("}\n");
 		return builder.toString();
 	}
