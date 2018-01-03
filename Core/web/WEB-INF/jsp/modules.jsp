@@ -210,12 +210,14 @@
     				var element = $(allModuleMap[module].dependencies[k]+"Check");
     				if(element)
     					element.checked='checked';
+    				selectDependencies(allModuleMap[module].dependencies[k]+"Check", checked)
     			}
     		}
     	} else if(!checked && module in allModuleMap) {
     		if(allModuleMap[module].requiredFor !== null) {
     			for(var k = 0; k<allModuleMap[module].requiredFor.length; k+=1) {
     				$(allModuleMap[module].requiredFor[k]+"Check").checked = false;
+    				selectDependencies(allModuleMap[module].requiredFor[k]+"Check", false);
     			}
     		}
     	}
