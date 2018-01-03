@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.script;
 
+import java.util.Map;
+
 import javax.measure.unit.Unit;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -68,6 +70,10 @@ public class DataPointWrapper {
         return vo.getDataSourceXid();
     }
     
+    public Map<String, String> getTags() {
+        return vo.getTags();
+    }
+    
     public AbstractPointWrapper getRuntime(){
     	return this.wrapper;
     }
@@ -92,10 +98,11 @@ public class DataPointWrapper {
 		builder.append("id: ").append(getId()).append(",\n");
 		builder.append("xid: ").append(getXid()).append(",\n");
 		builder.append("name: ").append(getName()).append(",\n");
-		builder.append("path: ").append(getName()).append(",\n");
+		builder.append("path: ").append(getPath()).append(",\n");
 		builder.append("unit: ").append(getUnit().toString()).append(",\n");
 		builder.append("dataSourceName: ").append(getDataSourceName()).append(",\n");
 		builder.append("dataSourceXid: ").append(getDataSourceXid()).append(",\n");
+		builder.append("tags: ").append(getTags()).append(",\n");
 
 		if(this.wrapper != null)
 			builder.append("runtime: ").append(this.wrapper.getHelp());
