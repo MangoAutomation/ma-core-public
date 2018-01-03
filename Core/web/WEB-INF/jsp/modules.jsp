@@ -210,7 +210,7 @@
     				var element = $(allModuleMap[module].dependencies[k]+"Check");
     				if(element)
     					element.checked='checked';
-    				selectDependencies(allModuleMap[module].dependencies[k]+"Check", checked)
+    				selectDependencies(allModuleMap[module].dependencies[k]+"Check", true)
     			}
     		}
     	} else if(!checked && module in allModuleMap) {
