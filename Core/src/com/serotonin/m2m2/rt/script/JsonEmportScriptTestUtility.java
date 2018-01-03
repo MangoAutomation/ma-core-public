@@ -3,6 +3,9 @@ package com.serotonin.m2m2.rt.script;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.serotonin.m2m2.i18n.ProcessMessage;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
 	public JsonEmportScriptTestUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
@@ -15,9 +18,9 @@ public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 	}
 	
 	@Override
-	public List<String> doImportGetStatus(String json) {
-		List<String> result = new ArrayList<>(1);
-		result.add("Cannot run or test imports during validation.");
+	public List<ProcessMessage> doImportGetStatus(String json) {
+		List<ProcessMessage> result = new ArrayList<>(1);
+		result.add(new ProcessMessage(new TranslatableMessage("literal", "Cannot run or test imports during validation.")));
 		return result;
 	}
 
