@@ -58,7 +58,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.http.HttpUtils4;
 
-public class ModulesDwr extends BaseDwr {
+public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     static final Log LOG = LogFactory.getLog(ModulesDwr.class);
     
     private static final List<ModuleNotificationListener> listeners = new CopyOnWriteArrayList<ModuleNotificationListener>();
@@ -68,6 +68,14 @@ public class ModulesDwr extends BaseDwr {
     
     private static UpgradeDownloader UPGRADE_DOWNLOADER;
     private static final Object UPGRADE_DOWNLOADER_LOCK = new Object();
+    
+    /**
+     * 
+     */
+    public ModulesDwr() {
+        //We are a listener
+        listeners.add(this);
+    }
     
     @DwrPermission(admin = true)
     public boolean toggleDeletion(String moduleName) {
@@ -159,8 +167,8 @@ public class ModulesDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public static String startDownloads(List<StringStringPair> modules, boolean backup, boolean restart) {
         synchronized(UPGRADE_DOWNLOADER_LOCK){
-        	if (UPGRADE_DOWNLOADER != null && !UPGRADE_DOWNLOADER.isFinished())
-        		return Common.translate("modules.versionCheck.occupied");
+            if (UPGRADE_DOWNLOADER != null)
+                return Common.translate("modules.versionCheck.occupied");
         }
 
         // Check if the selected modules will result in a version-consistent system.
@@ -202,14 +210,13 @@ public class ModulesDwr extends BaseDwr {
 
         synchronized(UPGRADE_DOWNLOADER_LOCK){
 	        // Ensure that 2 downloads cannot start at the same time.
-	        if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
-	                if (UPGRADE_DOWNLOADER == null || UPGRADE_DOWNLOADER.isFinished()) {
-	                    UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getHttpUser());
-	                    Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
-	                }
-	                else
-	                    return Common.translate("modules.versionCheck.occupied");
-	        }
+	        if (UPGRADE_DOWNLOADER == null) {
+                    UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getHttpUser());
+                    //Clear out common info
+                    resetUpgradeStatus();
+                    Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
+	        } else
+                    return Common.translate("modules.versionCheck.occupied");
         }
 
         return null;
@@ -235,7 +242,6 @@ public class ModulesDwr extends BaseDwr {
             if (UPGRADE_DOWNLOADER == null)
                 return false;
             else {
-
                 UPGRADE_DOWNLOADER.cancel();
                 return true;
             }
@@ -246,20 +252,20 @@ public class ModulesDwr extends BaseDwr {
     public static ProcessResult monitorDownloads() {
         ProcessResult result = new ProcessResult();
         synchronized (UPGRADE_DOWNLOADER_LOCK) {
-            if (UPGRADE_DOWNLOADER == null) {
+            if (UPGRADE_DOWNLOADER == null && stage == UpgradeState.IDLE) {
                 result.addGenericMessage("modules.versionCheck.notRunning");
                 return result;
             }
-            result.addData("finished", UPGRADE_DOWNLOADER.isFinished());
-            result.addData("cancelled", UPGRADE_DOWNLOADER.cancelled);
-            result.addData("restart", UPGRADE_DOWNLOADER.isRestart());
-            if (UPGRADE_DOWNLOADER.getError() != null)
-                result.addData("error", UPGRADE_DOWNLOADER.getError());
-            result.addData("stage", UPGRADE_DOWNLOADER.getStage());
-            result.addData("results", UPGRADE_DOWNLOADER.getResults(getTranslations()));
-
-            if (UPGRADE_DOWNLOADER.isFinished())
-                UPGRADE_DOWNLOADER = null;
+            result.addData("finished", finished);
+            result.addData("cancelled", cancelled);
+            result.addData("restart", restart);
+            if (error != null)
+                result.addData("error", error);
+            result.addData("stage", stage);
+            result.addData("results", getUpgradeResults(Common.getTranslations()));
+            
+            if(finished)
+                stage = UpgradeState.IDLE;
         }
 
         return result;
@@ -368,10 +374,6 @@ public class ModulesDwr extends BaseDwr {
         private final List<StringStringPair> modules;
         private final boolean backup;
         private final boolean restart;
-        private final List<StringStringPair> results = new ArrayList<>();
-        private String stage = Common.translate("modules.downloadUpgrades.stage.start");
-        private String error;
-        private boolean finished;
         private final File coreDir = new File(Common.MA_HOME);
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
         private volatile boolean cancelled = false;
@@ -393,179 +395,179 @@ public class ModulesDwr extends BaseDwr {
         
         @Override
         public boolean cancel() {
-        	this.cancelled = true;
-        	return super.cancel();
+            this.cancelled = true;
+            return super.cancel();
         }
 
         @Override
         public void run(long runtime) {
-        	LOG.info("UpgradeDownloader started");
-        	
-            if (backup) {
-                // Run the backup.
-                stage = Common.translate("modules.downloadUpgrades.stage.backup");
-                LOG.info("UpgradeDownloader: " + stage);
-                for (ModuleNotificationListener listener : listeners)
-                    listener.upgradeStateChanged(stage);
-
-                // Do the backups. They run async, so this returns immediately. The shutdown will
-                // wait for the
-                // background processes to finish though.
-                BackupWorkItem.queueBackup(
-                        SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
-                DatabaseBackupWorkItem.queueBackup(SystemSettingsDao
-                        .getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
-            }
-
-            stage = Common.translate("modules.downloadUpgrades.stage.download");
-            LOG.info("UpgradeDownloader: " + stage);
-            for (ModuleNotificationListener listener : listeners)
-                listener.upgradeStateChanged(stage);
-
-            HttpClient httpClient = Common.getHttpClient();
-
-            // Create the temp directory into which to download, if necessary.
-            File tempDir = new File(Common.MA_HOME, ModuleUtils.DOWNLOAD_DIR);
-            if (!tempDir.exists())
-                tempDir.mkdirs();
-
-            // Delete anything that is currently the temp directory.
             try {
-                FileUtils.cleanDirectory(tempDir);
-            } catch (IOException e) {
-                error = "Error while clearing temp dir: " + e.getMessage();
-                LOG.warn("Error while clearing temp dir", e);
-                finished = true;
-                return;
-            }
-
-            // Delete all upgrade files of any version from the target directories. Only do this for
-            // names in the
-            // modules list so that custom modules do not get deleted.
-            cleanDownloads();
-
-            for (StringStringPair mod : modules) {
-                if (cancelled) {
-                    LOG.info("UpgradeDownloader: Cancelled");
-                    try {
-                        FileUtils.cleanDirectory(tempDir);
-                    } catch (IOException e) {
-                        error = "Error while clearing temp dir when cancelled: " + e.getMessage();
-                        LOG.warn("Error while clearing temp dir when cancelled", e);
-                    }
+                for (ModuleNotificationListener listener : listeners)
+                    listener.upgradeStateChanged(UpgradeState.STARTED);
+                LOG.info("UpgradeDownloader started");
+    
+                if (backup) {
+                    // Run the backup.
+                    LOG.info("UpgradeDownloader: " + UpgradeState.BACKUP);
                     for (ModuleNotificationListener listener : listeners)
-                        listener.upgradeStateChanged("cancelled");
+                        listener.upgradeStateChanged(UpgradeState.BACKUP);
+    
+                    // Do the backups. They run async, so this returns immediately. The shutdown will
+                    // wait for the
+                    // background processes to finish though.
+                    BackupWorkItem.queueBackup(
+                            SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
+                    DatabaseBackupWorkItem.queueBackup(SystemSettingsDao
+                            .getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
+                }
 
-                    finished = true;
+                LOG.info("UpgradeDownloader: " + UpgradeState.DOWNLOAD);
+                for (ModuleNotificationListener listener : listeners)
+                    listener.upgradeStateChanged(UpgradeState.DOWNLOAD);
+    
+                HttpClient httpClient = Common.getHttpClient();
+    
+                // Create the temp directory into which to download, if necessary.
+                File tempDir = new File(Common.MA_HOME, ModuleUtils.DOWNLOAD_DIR);
+                if (!tempDir.exists())
+                    tempDir.mkdirs();
+    
+                // Delete anything that is currently the temp directory.
+                try {
+                    FileUtils.cleanDirectory(tempDir);
+                } catch (IOException e) {
+                    String error = "Error while clearing temp dir: " + e.getMessage();
+                    LOG.warn("Error while clearing temp dir", e);
+                    for (ModuleNotificationListener listener : listeners)
+                        listener.upgradeError(error);
                     return;
                 }
-                String name = mod.getKey();
-                String version = mod.getValue();
-
-                String filename = ModuleUtils.moduleFilename(name, version);
-                String url = Common.envProps.getString("store.url") + "/"
-                        + ModuleUtils.downloadFilename(name, version);
-                HttpGet get = new HttpGet(url);
-
-                FileOutputStream out = null;
-                try {
-                    out = new FileOutputStream(new File(tempDir, filename));
-                    HttpUtils4.execute(httpClient, get, out);
-                    synchronized (results) {
-                        results.add(new StringStringPair(name, null));
-                    }
-                } catch (IOException e) {
-                    synchronized (results) {
-                        results.add(new StringStringPair(name, e.getMessage()));
-                        LOG.warn("Upgrade download error", e);
-                        error = "Download failed";
-                        finished = true;
+    
+                // Delete all upgrade files of any version from the target directories. Only do this for
+                // names in the
+                // modules list so that custom modules do not get deleted.
+                cleanDownloads();
+    
+                for (StringStringPair mod : modules) {
+                    if (cancelled) {
+                        LOG.info("UpgradeDownloader: Cancelled");
+                        try {
+                            FileUtils.cleanDirectory(tempDir);
+                        } catch (IOException e) {
+                            String error = "Error while clearing temp dir when cancelled: " + e.getMessage();
+                            LOG.warn("Error while clearing temp dir when cancelled", e);
+                            for (ModuleNotificationListener listener : listeners)
+                                listener.upgradeError(error);
+                        }
+                        for (ModuleNotificationListener listener : listeners)
+                            listener.upgradeStateChanged(UpgradeState.CANCELLED);
                         return;
                     }
-                } finally {
+                    String name = mod.getKey();
+                    String version = mod.getValue();
+    
+                    String filename = ModuleUtils.moduleFilename(name, version);
+                    String url = Common.envProps.getString("store.url") + "/"
+                            + ModuleUtils.downloadFilename(name, version);
+                    HttpGet get = new HttpGet(url);
+    
+                    FileOutputStream out = null;
                     try {
-                        if (out != null)
-                            out.close();
+                        out = new FileOutputStream(new File(tempDir, filename));
+                        HttpUtils4.execute(httpClient, get, out);
+                        for (ModuleNotificationListener listener : listeners)
+                            listener.moduleDownloaded(name, version);
                     } catch (IOException e) {
-                        // no op
+                        LOG.warn("Upgrade download error", e);
+                        String error = new TranslatableMessage("modules.downloadFailure", e.getMessage()).translate(Common.getTranslations());
+                        //Notify of the failure
+                        for (ModuleNotificationListener listener : listeners)
+                            listener.moduleDownloadFailed(name, version, error);
+                        return;
+                    } finally {
+                        try {
+                            if (out != null)
+                                out.close();
+                        } catch (IOException e) {
+                            // no op
+                        }
                     }
                 }
+
+                LOG.info("UpgradeDownloader: " + UpgradeState.INSTALL);
                 for (ModuleNotificationListener listener : listeners)
-                    listener.moduleDownloaded(name, version);
-
-            }
-
-            stage = Common.translate("modules.downloadUpgrades.stage.install");
-            LOG.info("UpgradeDownloader: " + stage);
-            for (ModuleNotificationListener listener : listeners)
-                listener.upgradeStateChanged(stage);
-
-            // Move the downloaded files to their proper places.
-            File[] files = tempDir.listFiles();
-            if (files == null || files.length == 0) {
-                error = "Weird, there are no downloaded files to move";
-                LOG.warn(error);
-                finished = true;
-                return;
-            }
-
-            for (File file : files) {
-                File targetDir =
-                        file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + "core")
-                                ? coreDir
-                                : moduleDir;
+                    listener.upgradeStateChanged(UpgradeState.INSTALL);
+    
+                // Move the downloaded files to their proper places.
+                File[] files = tempDir.listFiles();
+                if (files == null || files.length == 0) {
+                    String error = "Weird, there are no downloaded files to move";
+                    LOG.warn(error);
+                    for (ModuleNotificationListener listener : listeners)
+                        listener.upgradeError(error);
+                    return;
+                }
+    
+                for (File file : files) {
+                    File targetDir =
+                            file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + "core")
+                                    ? coreDir
+                                    : moduleDir;
+                    try {
+                        FileUtils.moveFileToDirectory(file, targetDir, false);
+                    } catch (IOException e) {
+                        // If anything bad happens during the copy, try to clean out the download files
+                        // again.
+                        String error = e.getMessage();
+                        for (ModuleNotificationListener listener : listeners)
+                            listener.upgradeError(error);
+                        cleanDownloads();
+                        LOG.warn(e);
+                        throw new ShouldNeverHappenException(e);
+                    }
+                }
+    
+                // Delete the download dir.
                 try {
-                    FileUtils.moveFileToDirectory(file, targetDir, false);
+                    FileUtils.deleteDirectory(tempDir);
                 } catch (IOException e) {
-                    // If anything bad happens during the copy, try to clean out the download files
-                    // again.
-                    cleanDownloads();
-                    finished = true;
                     LOG.warn(e);
-                    throw new ShouldNeverHappenException(e);
                 }
-            }
-
-            // Delete the download dir.
-            try {
-                FileUtils.deleteDirectory(tempDir);
-            } catch (IOException e) {
-                LOG.warn(e);
-            }
-
-            // Final chance to be cancelled....
-            if (cancelled) {
-                // Delete what we downloaded.
-                cleanDownloads();
-                LOG.info("UpgradeDownloader: Cancelled");
-                finished = true;
-                for (ModuleNotificationListener listener : listeners)
-                    listener.upgradeStateChanged("cancelled");
-
-                return;
-            }
-
-            if (restart) {
-                stage = Common.translate("modules.downloadUpgrades.stage.restart");
-                LOG.info("UpgradeDownloader: " + stage);
-
-                synchronized (SHUTDOWN_TASK_LOCK) {
-                    if (SHUTDOWN_TASK == null) {
-                        IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-                        SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true, user);
+    
+                // Final chance to be cancelled....
+                if (cancelled) {
+                    // Delete what we downloaded.
+                    cleanDownloads();
+                    LOG.info("UpgradeDownloader: Cancelled");
+                    for (ModuleNotificationListener listener : listeners)
+                        listener.upgradeStateChanged(UpgradeState.CANCELLED);
+                    return;
+                }
+    
+                if (restart) {
+                    LOG.info("UpgradeDownloader: " + UpgradeState.RESTART);
+                    synchronized (SHUTDOWN_TASK_LOCK) {
+                        if (SHUTDOWN_TASK == null) {
+                            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
+                            SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true, user);
+                        }
                     }
+                    for (ModuleNotificationListener listener : listeners)
+                        listener.upgradeStateChanged(UpgradeState.RESTART);
+    
+                } else {
+                    LOG.info("UpgradeDownloader: " + UpgradeState.DONE);
+                    for (ModuleNotificationListener listener : listeners)
+                        listener.upgradeStateChanged(UpgradeState.DONE);
                 }
-                for (ModuleNotificationListener listener : listeners)
-                    listener.upgradeStateChanged(stage);
-
-            } else {
-                stage = Common.translate("modules.downloadUpgrades.stage.done");
-                LOG.info("UpgradeDownloader: " + stage);
-                for (ModuleNotificationListener listener : listeners)
-                    listener.upgradeStateChanged(stage);
+            }finally {
+                for (ModuleNotificationListener listener : listeners) {
+                    try { listener.upgradeTaskFinished(); } catch(Exception e) { }
+                }
+                synchronized (UPGRADE_DOWNLOADER_LOCK) {
+                    UPGRADE_DOWNLOADER = null;
+                }       
             }
-
-            finished = true;
         }
 
         private void cleanDownloads() {
@@ -581,46 +583,6 @@ public class ModulesDwr extends BaseDwr {
                 }
             }
         }
-
-        public List<StringStringPair> getResults(Translations translations) {
-            synchronized (results) {
-                List<StringStringPair> l = new ArrayList<>();
-                String m;
-                for (StringStringPair kvp : results) {
-                    if (kvp.getValue() == null)
-                        m = translations.translate("modules.downloadComplete");
-                    else
-                        m = new TranslatableMessage("modules.downloadFailure", kvp.getValue()).translate(translations);
-                    l.add(new StringStringPair(kvp.getKey(), m));
-                }
-
-                return l;
-            }
-        }
-
-        public boolean isFinished() {
-            return finished;
-        }
-
-        public boolean isRestart() {
-            return restart;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public String getStage() {
-            return stage;
-        }
-
-        public void setError(String error) {
-            this.error = error;
-        }
-
-        public List<StringStringPair> getModules() {
-            return modules;
-        }
     }
     
     public static void addModuleNotificationListener(ModuleNotificationListener listener){
@@ -628,6 +590,97 @@ public class ModulesDwr extends BaseDwr {
     }
     public static void removeModuleNotificationListener(ModuleNotificationListener listener){
         listeners.remove(listener);
+    }
+    
+    //For status about upgrade state (Preferably use your own listener)
+    protected static UpgradeState stage = UpgradeState.IDLE;
+    protected static boolean cancelled;
+    protected static boolean finished;
+    protected static boolean restart;
+    protected static String error = null;
+    protected static final List<StringStringPair> moduleResults = new ArrayList<>();
+    
+    protected static void resetUpgradeStatus() {
+        cancelled = false;
+        finished = false;
+        restart = false;
+        error = null;
+        moduleResults.clear();
+    }
+    
+    public static List<StringStringPair> getUpgradeResults(Translations translations) {
+        synchronized (moduleResults) {
+            return new ArrayList<>(moduleResults);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#moduleDownloaded(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void moduleDownloaded(String name, String version) {
+        synchronized (moduleResults) {
+            moduleResults.add(new StringStringPair(name, Common.translate("modules.downloadComplete")));
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#moduleDownloadFailed(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void moduleDownloadFailed(String name, String version, String reason) {
+        synchronized (moduleResults) {
+            moduleResults.add(new StringStringPair(name, reason));
+        }
+    }
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#moduleUpgradeAvailable(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void moduleUpgradeAvailable(String name, String version) {
+        //No-op
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#upgradeStateChanged(com.serotonin.m2m2.module.ModuleNotificationListener.UpgradeState)
+     */
+    @Override
+    public void upgradeStateChanged(UpgradeState state) {
+        stage = state;
+        switch(stage) {
+            case CANCELLED:
+                cancelled = true;
+            break;
+            case RESTART:
+                restart = true;
+            break;
+            default:
+                break;
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#upgradeError(java.lang.String)
+     */
+    @Override
+    public void upgradeError(String e) {
+        error = e;
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#upgradeTaskFinished()
+     */
+    @Override
+    public void upgradeTaskFinished() {
+        finished = true;
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleNotificationListener#newModuleAvailable(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void newModuleAvailable(String name, String version) {
+        //no-op
     }
     
 }
