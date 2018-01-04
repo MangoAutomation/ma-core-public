@@ -499,7 +499,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                             String desc = "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
                                     + rs.getString("xid") + "' could not be loaded. Is its module missing?";
                             LOG.error(desc, e);
-                            throw new ShouldNeverHappenException(desc);
+                        }else {
+                            LOG.error(e.getMessage(), e);
                         }
                     }
                 }
