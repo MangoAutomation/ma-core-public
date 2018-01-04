@@ -34,6 +34,8 @@ import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
@@ -1001,9 +1003,28 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (useMetrics) {
             stopWatch = new LogStopWatch();
         }
-        
-        this.query(sql, argumentsArray, this.getRowMapper(), callback);
 
+        //this.query(sql, argumentsArray, this.getRowMapper(), callback );
+        this.query(sql, argumentsArray, new ResultSetExtractor<Void>() {
+
+            @Override
+            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                RowMapper<T> rowMapper = getRowMapper();
+                int rowNum = 0;
+                while (rs.next()) {
+                    try {
+                        callback.row(rowMapper.mapRow(rs, rowNum), rowNum); 
+                    }catch (Exception e) {
+                        //TODO see #1195 for improvements in logging
+                        LOG.error(e.getMessage(), e);
+                    }finally {
+                        rowNum++;
+                    }
+                }
+                return null;
+            }
+            
+        });
         if (stopWatch != null) {
             stopWatch.stop("customizedQuery(): " + this.create.renderInlined(offsetStep), metricsThreshold);
         }
