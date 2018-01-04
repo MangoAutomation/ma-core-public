@@ -71,6 +71,13 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
             if (line.endsWith(";")) {
                 // Execute the statement
                 ejt.execute(statement.toString());
+                if(out != null) {
+                    try {
+                        out.write((statement.toString() + "\n").getBytes(Common.UTF8_CS));
+                    } catch (IOException e) {
+                        //Don't really care
+                    }
+                }
                 statement.delete(0, statement.length() - 1);
             }
         }

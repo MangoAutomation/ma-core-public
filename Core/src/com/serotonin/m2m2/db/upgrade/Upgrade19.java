@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -21,122 +23,113 @@ import com.serotonin.util.SerializationHelper;
 
 public class Upgrade19 extends DBUpgrade {
 
-private static final Log LOG = LogFactory.getLog(Upgrade19.class);
-
-@Override
-protected void upgrade() throws Exception {
-    //Add the data type column into the database.
-    Map<String, String[]> scripts = new HashMap<>();
-    scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), addColumn);
-    scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), addColumn);
-    scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addColumn);
-    scripts.put(DatabaseProxy.DatabaseType.H2.name(), addColumn);
-    runScript(scripts);
+    private static final Log LOG = LogFactory.getLog(Upgrade19.class);
     
-    //not using data type id to deserialize, so we don't need a legacy row mapper here
-    this.ejt.query(UPGRADE_19_DATA_POINT_SELECT, new Upgrade19ResultSetExtractor());
-    
-    scripts.clear();
-    scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), alterColumn);
-    scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), modifyColumn);
-    scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterColumn);
-    scripts.put(DatabaseProxy.DatabaseType.H2.name(), alterColumn);
-    runScript(scripts);
-    
-    scripts.clear();
-    String[] empty = new String[0];
-    scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), empty);
-    scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), empty);
-    scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), empty);
-    //Upgrade 14 omitted setting this primary key for the user comments, but it was in the create tables
-    scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {"ALTER TABLE userComments ADD PRIMARY KEY (id);"});
-    try {
-        runScript(scripts);
-    } catch(Exception e) {
-        //It may already have existed.
-    }
-    
-}
-
-@Override
-protected String getNewSchemaVersion() {
-    return "20";
-}
-
-private static final String[] addColumn = {
-        "ALTER TABLE dataPoints ADD COLUMN dataTypeId INT;",
-};
-private static final String[] alterColumn = {
-        "ALTER TABLE dataPoints ALTER COLUMN dataTypeId INT NOT NULL;"
-};
-private static final String[] modifyColumn = {
-        "ALTER TABLE dataPoints MODIFY COLUMN dataTypeId INT NOT NULL;"
-};
-
-private static final String UPGRADE_19_DATA_POINT_SELECT = //
-"select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
-        + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
-        + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-        + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, "
-        + "  ds.name,  ds.xid, ds.dataSourceType " //
-        + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
-
-class Upgrade19DataPointRowMapper implements RowMapper<DataPointVO> {
     @Override
-    public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-        int i = 0;
-
-        DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
-        dp.setId(rs.getInt(++i));
-        dp.setXid(rs.getString(++i));
-        dp.setDataSourceId(rs.getInt(++i));
-        dp.setName(rs.getString(++i));
-        dp.setDeviceName(rs.getString(++i));
-        dp.setEnabled(charToBool(rs.getString(++i)));
-        dp.setPointFolderId(rs.getInt(++i));
-        dp.setLoggingType(rs.getInt(++i));
-        dp.setIntervalLoggingPeriodType(rs.getInt(++i));
-        dp.setIntervalLoggingPeriod(rs.getInt(++i));
-        dp.setIntervalLoggingType(rs.getInt(++i));
-        dp.setTolerance(rs.getDouble(++i));
-        dp.setPurgeOverride(charToBool(rs.getString(++i)));
-        dp.setPurgeType(rs.getInt(++i));
-        dp.setPurgePeriod(rs.getInt(++i));
-        dp.setDefaultCacheSize(rs.getInt(++i));
-        dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
-        dp.setEngineeringUnits(rs.getInt(++i));
-        dp.setReadPermission(rs.getString(++i));
-        dp.setSetPermission(rs.getString(++i));
-        //Because we read 0 for null
-        dp.setTemplateId(rs.getInt(++i));
-        if(rs.wasNull())
-            dp.setTemplateId(null);
-        dp.setRollup(rs.getInt(++i));
-
-        // Data source information.
-        dp.setDataSourceName(rs.getString(++i));
-        dp.setDataSourceXid(rs.getString(++i));
-        dp.setDataSourceTypeName(rs.getString(++i));
-
-        dp.ensureUnitsCorrect();
-
-        return dp;
+    protected void upgrade() throws Exception {
+        //Add the data type column into the database.
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), addColumn);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), addColumn);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addColumn);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), addColumn);
+        runScript(scripts);
+        
+        //not using data type id to deserialize, so we don't need a legacy row mapper here
+        this.ejt.query(UPGRADE_19_DATA_POINT_SELECT, new Upgrade19ResultSetExtractor());
+        
+        scripts.clear();
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), alterColumn);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), modifyColumn);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterColumn);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), alterColumn);
+        runScript(scripts);
+        
+        scripts.clear();
+        String[] empty = new String[0];
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), empty);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), empty);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), empty);
+        //Upgrade 14 omitted setting this primary key for the user comments, but it was in the create tables
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {"ALTER TABLE userComments ADD PRIMARY KEY (id);"});
+        try {
+            runScript(scripts);
+        } catch(Exception e) {
+            //It may already have existed.
+        }
+        
     }
-}
+    
+    @Override
+    protected String getNewSchemaVersion() {
+        return "20";
+    }
+    
+    private static final String[] addColumn = {
+            "ALTER TABLE dataPoints ADD COLUMN dataTypeId INT;",
+    };
+    private static final String[] alterColumn = {
+            "ALTER TABLE dataPoints ALTER COLUMN dataTypeId INT NOT NULL;"
+    };
+    private static final String[] modifyColumn = {
+            "ALTER TABLE dataPoints MODIFY COLUMN dataTypeId INT NOT NULL;"
+    };
+    
+    private static final String UPGRADE_19_DATA_POINT_SELECT = //
+    "select dp.id, ds.dataSourceType, dp.data " //
+            + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
+    
+    class RawDataPoint {
+        int id;
+        Integer dataTypeId;
+        String dataSourceTypeName;
+    }
+    
+    class Upgrade19DataPointRowMapper implements RowMapper<RawDataPoint> {
+        @Override
+        public RawDataPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
+            
+            RawDataPoint dp = new RawDataPoint();
+            try{
+                  dp.id = rs.getInt(1);
+                  dp.dataSourceTypeName = rs.getString(2);
+                  DataPointVO dpVo = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(3));
+                  dp.dataTypeId = dpVo.getPointLocator().getDataTypeId();
+            }catch(Exception e) {
+                //Munchy munch, we will handle this later when we see the dataTypeId is null
+            }
+            
+            return dp;
+        }
+    }
 
     class Upgrade19ResultSetExtractor implements ResultSetExtractor<Void> {
     
         @Override
         public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
             Upgrade19DataPointRowMapper dprw = new Upgrade19DataPointRowMapper();
-            while(rs.next()) {
-                DataPointVO dpvo = dprw.mapRow(rs, rs.getRow());
-                if(LOG.isDebugEnabled())
-                    LOG.debug("Updating dpid: " + dpvo.getId() + " setting data type id to: " + dpvo.getPointLocator().getDataTypeId());
-                
-                ejt.update("update dataPoints set dataTypeId=? where id=?",
-                        new Object[]{dpvo.getPointLocator().getDataTypeId(), dpvo.getId()}, 
-                        new int[] {Types.INTEGER, Types.INTEGER});
+            OutputStream out = createUpdateLogOutputStream();
+            
+            try(PrintWriter pw = new PrintWriter(out)) {
+                while(rs.next()) {
+                    RawDataPoint rdp = dprw.mapRow(rs, rs.getRow());
+                    if(rdp.dataTypeId != null) {
+                        String message = "Updating dpid: " + rdp.id + " setting data type id to: " + rdp.dataTypeId;
+                        if(LOG.isDebugEnabled())
+                            LOG.debug(message);
+                        pw.write(message + "\n");
+                        ejt.update("update dataPoints set dataTypeId=? where id=?",
+                                new Object[]{rdp.dataTypeId, rdp.id}, 
+                                new int[] {Types.INTEGER, Types.INTEGER});
+                    }else {
+                        String message = "Data source module " + rdp.dataSourceTypeName + " is missing.  Data point with id " + rdp.id + " not upgraded yet."; 
+                        LOG.info(message);
+                        pw.write(message + "\n");
+                        ejt.update("update dataPoints set dataTypeId=? where id=?",
+                                new Object[]{-1, rdp.id}, 
+                                new int[] {Types.INTEGER, Types.INTEGER});
+                    }
+                }
             }
             return null;
         }
