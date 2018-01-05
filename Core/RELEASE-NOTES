@@ -1,6 +1,54 @@
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
-* Improved accuracy of Rollups See this document for more information (???)
+* Improved accuracy of Rollups
+* Gracefully skip loading data sources and data points for modules that are missing, but log occurances
+* Better feedback on Core and Module upgrade/update errors
+* Better dependency checking for modules during upgrade/update
+* Adding tags for data points to arbitrarily store information against a data point, name and device name are default tags
+* Adding websocket to notify when a data point tag is changed
+* Allow accessing tags for a data point from Mango javascript
+* Update Apache commons-lang3 library to 3.7
+* Update Apache commons-logging to 1.2
+* Improved Audit change tracking
+* Exporting event detectors as their own array in JSON export
+* No longer exporting Event Detector array within Data Point JSON export
+* Adding 'authorization' header to default CORS headers in env.properties
+* Adding indexes to events SQL table for improved performance
+* Improved database upgrade logging to db upgrade logs
+* Adding Unique constraint to username's in database, delete users with higher ids and same username
+* Adding env property to compact H2 database during shutdown db.h2.shutdownCompact (default is false)
+* Fixes for setting thread pool sizes accurately
+* Redirect user on Expired HTTP Session
+* Events websocket fixed to return correct 'return to normal' timestamp
+* Create new user session when logging in instead of re-using existing session
+* Adding password reset option to login page, email must be configured for this to work
+* Allow admin to invalidate a user's session
+* Add index to user comment SQL table for performance
+* Data Point WebSocket now broadcasts 'unreliable' attribute
+* Fix to prevent mutliple users restarting a datapoint at the same time
+* Implement User cache to improve performance
+* Add NONE publish type for publishers
+* Fix getting a point value after a given time which previously could have returned a wrong value from the cache
+* Performance enhancements for data point cache to merge the cache on reset rather than completely discard it
+* Test framework created to allow testing all Mango sub-systems independently during development
+* Adding Jackson CSV support to allow better CSV rendering via REST
+* Changing name of data points to variable name map from VARIABLE to CONTEXT_POINTS in Mango javascript
+* Improved performance of point value queries
+* Update Jackson libraray to 2.9.2
+* Improved REST exception handling and error messages
+* Runtime Manager synchronization changes for performance improvement
+* Point Hierarchy synchronization changes for performance improvement and to prevent mangled hierarchies
+* Added SQL indexes for permissions columns for better performance
+* Improved data point query infrastructure for better RQL query support via REST
+* Improved performance to stop/start/restart data points
+* Tracking delete operations in Audit table
+* Improved validation of Event Detectors
+* Fixed bug where directing to HTTPS was not working from startup page
+* Signing Mango Core to indicate it was downloaded from the Mango Store
+* Expose point heirarhcy path for data point in Mango javascript.
+* Prevent deleting any module's dependency
+* Improved Access Denied logging
+* Better file name when downloading CSV of data sources
 * Permissions performance enhancement for admin users
 * Added ID to DataPointWrapper for script environments
 * Added ability to purge between times
