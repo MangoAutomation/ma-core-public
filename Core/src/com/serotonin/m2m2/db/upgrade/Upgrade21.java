@@ -63,11 +63,15 @@ public class Upgrade21 extends DBUpgrade {
             });
             deleteSQL.append(");");
             Map<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {deleteSQL.toString()});
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {deleteSQL.toString()});
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {deleteSQL.toString()});
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), new String[] {deleteSQL.toString()});
-            runScript(scripts, out);
+            if(count.getValue().intValue() > 0) {
+                scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {deleteSQL.toString()});
+                scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {deleteSQL.toString()});
+                scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {deleteSQL.toString()});
+                scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), new String[] {deleteSQL.toString()});
+                runScript(scripts, out);
+            } else {
+                LOG.info("No duplicate users to remove.");
+            }
             
     
             //Finally update the users table with new columns
