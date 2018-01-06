@@ -1,6 +1,12 @@
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
 * Improved accuracy of Rollups
+* Modified statistics according to 
+* Analog Statistics minimum value with no values in period changed from null to NaN
+* Analog Statistics maximum value with no values in period changed from null to NaN
+* Analog Statistics average value no values in period changed from null to NaN
+* Analog Statistics integral value with no values in period changed from null to NaN
+* Analog Statistics delta value with no values in period changed from null to NaN
 * Gracefully skip loading data sources and data points for modules that are missing, but log occurances
 * Better feedback on Core and Module upgrade/update errors
 * Better dependency checking for modules during upgrade/update
