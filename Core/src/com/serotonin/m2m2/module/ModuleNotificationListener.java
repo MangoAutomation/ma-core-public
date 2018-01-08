@@ -5,7 +5,7 @@
 package com.serotonin.m2m2.module;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
  * Listen for notifications on Module upgrades, downloads 
@@ -24,24 +24,24 @@ public interface ModuleNotificationListener {
         CANCELLED;
         
         
-        public String getDescription() {
+        public TranslatableMessage getDescription() {
             switch(this.name()) {
                 case "IDLE":
-                    return Common.translate("startup.state.notStarted");
+                    return new TranslatableMessage("startup.state.notStarted");
                 case "STARTED":
-                    return Common.translate("modules.downloadUpgrades.stage.start");
+                    return new TranslatableMessage("modules.downloadUpgrades.stage.start");
                 case "BACKUP":
-                    return Common.translate("modules.downloadUpgrades.stage.backup");
+                    return new TranslatableMessage("modules.downloadUpgrades.stage.backup");
                 case "DOWNLOAD":
-                    return Common.translate("modules.downloadUpgrades.stage.download");
+                    return new TranslatableMessage("modules.downloadUpgrades.stage.download");
                 case "INSTALL":
-                    return Common.translate("modules.downloadUpgrades.stage.install");
+                    return new TranslatableMessage("modules.downloadUpgrades.stage.install");
                 case "RESTART":
-                    return Common.translate("modules.downloadUpgrades.stage.restart");
+                    return new TranslatableMessage("modules.downloadUpgrades.stage.restart");
                 case "DONE":
-                    return Common.translate("modules.downloadUpgrades.stage.done");
+                    return new TranslatableMessage("modules.downloadUpgrades.stage.done");
                 case "CANCELLED":
-                    return Common.translate("common.cancelled");
+                    return new TranslatableMessage("common.cancelled");
                 default:
                     throw new ShouldNeverHappenException("Unknown upgrade state: " + this.name());
             }
