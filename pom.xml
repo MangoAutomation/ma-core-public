@@ -2,7 +2,7 @@
  <modelVersion>4.0.0</modelVersion>
  <groupId>com.infiniteautomation.mango</groupId>
  <artifactId>mango-parent</artifactId>
- <version>3.3.0-SNAPSHOT</version>
+ <version>3.3.0-beta.1</version>
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
@@ -329,7 +329,7 @@
    <url>https://github.com/infiniteautomation/ma-core-public</url>
    <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
    <developerConnection>scm:git:[push=]https://github.com/infiniteautomation/ma-core-public.git[fetch=]https://github.com/infiniteautomation/ma-core-public.git</developerConnection>
-   <tag>HEAD</tag>
+   <tag>v3.3.0-beta.1</tag>
  </scm>
  <distributionManagement>
 	<snapshotRepository>
