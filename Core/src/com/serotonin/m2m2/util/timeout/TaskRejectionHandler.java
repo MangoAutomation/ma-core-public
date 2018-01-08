@@ -71,14 +71,14 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 			});
 	
 			//Is it time to
-			if(log.isWarnEnabled() && stats.update(reason))
-				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
+			if(log.isDebugEnabled() && stats.update(reason))
+				log.debug("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
 		}else{
 			//Task without an ID was rejected
 			long now = Common.timer.currentTimeMillis();
-			if(log.isWarnEnabled() && (now  > (lastUnorderedRejection + logPeriod))){
+			if(log.isDebugEnabled() && (now  > (lastUnorderedRejection + logPeriod))){
 				lastUnorderedRejection = now;
-				log.warn("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
+				log.debug("Rejected task: " + reason.getTask().getName() + " because " + reason.getDescription());
 			}
 			//TODO if we want we could track these by Name here since the name probably is unique but this 
 			// would take processor time from the CPU and is not necessary
@@ -155,7 +155,6 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	 */
 	@Override
 	public void rejected(RejectedTaskReason reason) {
-		//TODO We have processor time, maybe clean here?
 		this.rejectedTask(reason);
 	}
 	
