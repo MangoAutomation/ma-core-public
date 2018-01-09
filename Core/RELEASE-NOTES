@@ -16,7 +16,6 @@
 * Update Apache commons-lang3 library to 3.7
 * Update Apache commons-logging to 1.2
 * Improved Audit change tracking
-* Exporting event detectors as their own array in JSON export
 * No longer exporting Event Detector array within Data Point JSON export
 * Adding 'authorization' header to default CORS headers in env.properties
 * Adding indexes to events SQL table for improved performance
