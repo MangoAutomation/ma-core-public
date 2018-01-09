@@ -10,7 +10,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.RuntimeManager;
-import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -47,7 +46,7 @@ public class MockRuntimeManager implements RuntimeManager {
      */
     @Override
     public int getState() {
-        return RuntimeManagerImpl.RUNNING;
+        return RuntimeManager.RUNNING;
     }
 
     /* (non-Javadoc)

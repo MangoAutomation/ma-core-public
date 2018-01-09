@@ -80,7 +80,7 @@ public class EventDetectorImporter extends Importer {
 			ctx.getReader().readInto(importing, json);
 			
 //			try {
-//				if(Common.runtimeManager.getState() == RuntimeManagerImpl.RUNNING){
+//				if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
 //            		Common.runtimeManager.saveDataPoint(dpvo);
 //            		addSuccessMessage(isNew, "emport.eventDetector.prefix", xid);
 //            	}else{
