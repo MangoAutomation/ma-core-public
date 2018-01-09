@@ -42,7 +42,7 @@ public class DataSourceTypePointsLimit implements LicenseEnforcement {
                     int count = DataPointDao.instance.countPointsForDataSourceType(dataSourceType);
 
                     // Apply count restriction.
-                    if (count >= pointLimit)
+                    if (count > pointLimit)
                         response.addGenericMessage("license.dataSourcePointLimit", pointLimit);
                 }
             }
