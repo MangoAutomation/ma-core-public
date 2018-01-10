@@ -205,9 +205,11 @@ public class RestProcessResult<T> {
 		
 		if(this.validationMessages == null)
 			this.validationMessages = new HashMap<String,String>();
-		
-		for(ProcessMessage message : validation.getMessages()){
-			this.validationMessages.put(message.getContextKey(), message.getContextualMessage().translate(Common.getTranslations()));
+		if(validation.getHasMessages()) {
+		    this.highestStatus = HttpStatus.UNPROCESSABLE_ENTITY;
+        		for(ProcessMessage message : validation.getMessages()){
+        			this.validationMessages.put(message.getContextKey(), message.getContextualMessage().translate(Common.getTranslations()));
+        		}
 		}
 		
 	}
@@ -215,6 +217,7 @@ public class RestProcessResult<T> {
 	public void addValidationMessage(ProcessMessage message){
 		if(this.validationMessages == null)
 			this.validationMessages = new HashMap<String,String>();
+		this.highestStatus = HttpStatus.UNPROCESSABLE_ENTITY;
 		this.validationMessages.put(message.getContextKey(), message.getContextualMessage().translate(Common.getTranslations()));
 	}
 
