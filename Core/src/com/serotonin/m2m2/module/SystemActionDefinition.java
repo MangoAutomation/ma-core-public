@@ -24,7 +24,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
-     * The reference key to the action.  Should be unique across all Modules and Mango Core
+     * The reference key to the action. Should be unique across all Modules and Mango Core
      * 
      * @return the reference key
      */
@@ -32,48 +32,57 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
      * Validate the inputs and create the Task with input that will be scheduled and run
+     * 
      * @param input
      * @return
      */
-    public SystemActionTask getTask(final User user, final JsonNode input) throws ValidationFailedRestException, AccessDeniedException{
-    	this.hasTaskPermission(user);
-    	this.validate(input);
-    	return getTaskImpl(input);
+    public SystemActionTask getTask(final User user, final JsonNode input)
+            throws ValidationFailedRestException, AccessDeniedException {
+        this.hasTaskPermission(user);
+        this.validate(input);
+        return getTaskImpl(input);
     }
-    
+
     /**
      * Check the permission to the task
+     * 
      * @param user
      * @throws AccessDeniedException
      */
-    protected void hasTaskPermission(User user) throws AccessDeniedException{
-        	PermissionDefinition def = getPermissionDefinition();
-        	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(def.getPermissionTypeName())))
-        		throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
+    protected void hasTaskPermission(User user) throws AccessDeniedException {
+        PermissionDefinition def = getPermissionDefinition();
+        if (!Permissions.hasPermission(user,
+                SystemSettingsDao.getValue(def.getPermissionTypeName())))
+            throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied",
+                    user.getUsername(), new TranslatableMessage(def.getPermissionKey()))
+                            .translate(Common.getTranslations()));
     }
-    
+
     /**
      * Get the permission definition for this action
+     * 
      * @return
      */
-    protected PermissionDefinition getPermissionDefinition(){
+    protected PermissionDefinition getPermissionDefinition() {
         return ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
     }
 
     protected void validate(JsonNode input) throws ValidationFailedRestException {
-        	RestValidationResult result = validateImpl(input);
-        	if(result != null)
-        		result.ensureValid();
+        RestValidationResult result = validateImpl(input);
+        if (result != null)
+            result.ensureValid();
     }
-    
+
     /**
      * Get the TypeName of the permission definition
+     * 
      * @return
      */
     abstract protected String getPermissionTypeName();
-    
+
     /**
      * Return the Task configured with inputs
+     * 
      * @param input
      * @return
      */
@@ -81,10 +90,11 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
      * Validate the inputs for the task
+     * 
      * @param input
      * @throws ValidationFailedRestException
      */
     abstract protected RestValidationResult validateImpl(final JsonNode input);
 
-    
+
 }
