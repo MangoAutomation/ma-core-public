@@ -170,7 +170,7 @@ public abstract class JwtSignerVerifier<T> {
         return Base64.getEncoder().encodeToString(key.getEncoded());
     }
     
-    protected String printToken(String token) {
+    public static String printToken(String token) {
         String[] parts = token.split("\\.");
         if (parts.length != 3) {
             return token;
@@ -184,6 +184,6 @@ public abstract class JwtSignerVerifier<T> {
         byte[] bodyBytes = base64Decoder.decode(parts[1]);
         String body = new String(bodyBytes, StandardCharsets.UTF_8);
         
-        return String.format("header: %s, body: %s", header, body);
+        return String.format("{header: %s, body: %s}", header, body);
     }
 }
