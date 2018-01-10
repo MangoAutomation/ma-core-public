@@ -15,10 +15,13 @@ import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.Base64.Decoder;
 import java.util.Date;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.springframework.security.crypto.codec.Base64;
 
 import com.serotonin.ShouldNeverHappenException;
 
@@ -42,8 +45,12 @@ public abstract class JwtSignerVerifier<T> {
     
     private KeyPair keyPair;
     private JwtParser parser;
+
+    protected final Log log;
     
     protected JwtSignerVerifier() {
+        log = LogFactory.getLog(this.getClass());
+        
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
@@ -76,9 +83,16 @@ public abstract class JwtSignerVerifier<T> {
     }
 
     protected final String sign(JwtBuilder builder) {
-        return builder.claim(TOKEN_TYPE_CLAIM, this.tokenType())
+        String token = builder.claim(TOKEN_TYPE_CLAIM, this.tokenType())
             .signWith(SignatureAlgorithm.ES512, keyPair.getPrivate())
             .compact();
+        
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Created JWT token: " + printToken(token));
+        }
+        
+        return token;
     }
     
     /**
@@ -137,8 +151,10 @@ public abstract class JwtSignerVerifier<T> {
     }
 
     public static KeyPair keysToKeyPair(String publicKeyStr, String privateKeyStr) {
-        byte[] publicBase64 = Base64.decode(publicKeyStr.getBytes(StandardCharsets.ISO_8859_1));
-        byte[] privateBase64 = Base64.decode(privateKeyStr.getBytes(StandardCharsets.ISO_8859_1));
+        Decoder base64Decoder = Base64.getDecoder();
+        
+        byte[] publicBase64 = base64Decoder.decode(publicKeyStr);
+        byte[] privateBase64 = base64Decoder.decode(privateKeyStr);
 
         try {
             KeyFactory kf = KeyFactory.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
@@ -151,7 +167,23 @@ public abstract class JwtSignerVerifier<T> {
     }
     
     public static String keyToString(Key key) {
-        byte[] publicBase64 = Base64.encode(key.getEncoded());
-        return new String(publicBase64, StandardCharsets.ISO_8859_1);
+        return Base64.getEncoder().encodeToString(key.getEncoded());
+    }
+    
+    protected String printToken(String token) {
+        String[] parts = token.split("\\.");
+        if (parts.length != 3) {
+            return token;
+        }
+        
+        Decoder base64Decoder = Base64.getDecoder();
+
+        byte[] headerBytes = base64Decoder.decode(parts[0]);
+        String header = new String(headerBytes, StandardCharsets.UTF_8);
+
+        byte[] bodyBytes = base64Decoder.decode(parts[1]);
+        String body = new String(bodyBytes, StandardCharsets.UTF_8);
+        
+        return String.format("header: %s, body: %s", header, body);
     }
 }

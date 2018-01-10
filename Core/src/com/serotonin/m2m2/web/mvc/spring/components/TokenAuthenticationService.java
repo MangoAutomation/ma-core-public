@@ -31,7 +31,9 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     public static final String TOKEN_TYPE_VALUE = "auth";
     public static final String USER_ID_CLAIM = "id";
     public static final String USER_TOKEN_VERSION_CLAIM = "v";
-    
+
+    private static final int DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
     private final UserDetailsService userDetailsService;
     
     public TokenAuthenticationService(UserDetailsService userDetailsService) {
@@ -64,7 +66,15 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
         this.generateNewKeyPair();
     }
     
+    public String generateToken(User user) {
+        return this.generateToken(user, null);
+    }
+    
     public String generateToken(User user, Date expiry) {
+        if (expiry == null) {
+            expiry = new Date(System.currentTimeMillis() + DEFAULT_EXPIRY);
+        }
+        
         JwtBuilder builder = this.newToken(user.getUsername(), expiry)
                 .claim(USER_ID_CLAIM, user.getId())
                 .claim(USER_TOKEN_VERSION_CLAIM, user.getTokenVersion());
