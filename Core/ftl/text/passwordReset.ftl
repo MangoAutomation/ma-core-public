@@ -13,4 +13,6 @@ ${resetUri}
 
 ${token}
 
+Reset link and token will expire at ${expiration?datetime} ${expiration?string["z"]}.
+
 <@fmt key="ftl.htmlFooter.mango"/>

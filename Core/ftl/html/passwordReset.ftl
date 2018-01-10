@@ -15,4 +15,6 @@
 <pre>${token}</pre>
 </p>
 
+<p>Reset link and token will expire at ${expiration?datetime} ${expiration?string["z"]}.</p>
+
 <#include "include/footer.ftl">

@@ -97,8 +97,14 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     }
     
     public String generateToken(User user) {
-        int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
-        Date expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000);
+        return this.generateToken(user, null);
+    }
+    
+    public String generateToken(User user, Date expirationDate) {
+        if (expirationDate == null) {
+            int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
+            expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000);
+        }
         
         JwtBuilder builder = this.newToken(user.getUsername(), expirationDate)
             .claim(USER_ID_CLAIM, user.getId())
@@ -145,8 +151,6 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     }
 
     public void sendEmail(User user, String token) throws TemplateException, IOException, AddressException {
-        int expiryDuration = SystemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
-        
         URI uri = null;
         try {
             uri = this.generateResetUrl(token);
@@ -155,11 +159,14 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         
         Translations translations = Translations.getTranslations(user.getLocaleObject());
         
+        Jws<Claims> parsed = this.parse(token);
+        Date expiration = parsed.getBody().getExpiration();
+        
         Map<String, Object> model = new HashMap<>();
         model.put("username", user.getUsername());
         model.put("resetUri", uri != null ? uri : "");
         model.put("token", token);
-        model.put("validFor", expiryDuration / 60); // in minutes
+        model.put("expiration", expiration);
         
         TranslatableMessage subject = new TranslatableMessage("ftl.passwordReset.subject", user.getUsername());
         MangoEmailContent content = new MangoEmailContent("passwordReset", model, translations, subject.translate(translations), Common.UTF8);
