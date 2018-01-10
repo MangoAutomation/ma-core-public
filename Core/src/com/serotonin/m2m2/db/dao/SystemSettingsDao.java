@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -764,6 +765,13 @@ public class SystemSettingsDao extends BaseDao {
 			}
 		}
         
+		//Validate point hierarchy settings
+		setting = settings.get(HIERARCHY_PATH_SEPARATOR);
+		if(setting != null) {
+		    if(StringUtils.isEmpty((String)setting))
+		        response.addContextualMessage(HIERARCHY_PATH_SEPARATOR, "validate.cannotContainEmptyString");
+		}
+		
         //Validate the Module Settings
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions())
         	def.validateSettings(settings, response);
