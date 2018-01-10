@@ -621,4 +621,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     public void setPasswordVersion(int passwordVersion) {
         this.passwordVersion = passwordVersion;
     }
+    
+    public boolean isPasswordLocked() {
+        return UserDao.LOCKED_PASSWORD.equals(this.password);
+    }
 }
