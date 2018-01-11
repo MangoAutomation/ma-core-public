@@ -10,8 +10,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -148,7 +147,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     }
 
     public int getCount(){
-    	return count;
+        return count;
     }
     
     public Map<Object, StartsAndRuntime> getStartsAndRuntime() {
@@ -168,7 +167,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
 
     public StartsAndRuntime get(DataValue value) {
         for (StartsAndRuntime sar : data) {
-            if (ObjectUtils.equals(sar.value, value))
+            if (Objects.equals(sar.value, value))
                 return sar;
         }
 

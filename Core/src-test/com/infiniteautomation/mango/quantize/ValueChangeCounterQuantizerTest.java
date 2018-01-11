@@ -18,7 +18,6 @@ import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 /**
  *
@@ -32,10 +31,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -78,10 +77,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -132,10 +131,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -176,10 +175,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -221,10 +220,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -284,10 +283,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -349,10 +348,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart
@@ -419,10 +418,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
                 ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
                 //Test periodStart

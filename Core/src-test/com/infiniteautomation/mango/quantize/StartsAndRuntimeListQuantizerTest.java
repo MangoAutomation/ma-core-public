@@ -20,7 +20,6 @@ import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 /**
  *
@@ -36,10 +35,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -82,10 +81,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -142,10 +141,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -190,10 +189,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -266,10 +265,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -334,10 +333,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -453,10 +452,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart
@@ -577,10 +576,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
                 counter.increment();
                 StartsAndRuntimeList stats = (StartsAndRuntimeList)statisticsGenerator;
                 //Test periodStart

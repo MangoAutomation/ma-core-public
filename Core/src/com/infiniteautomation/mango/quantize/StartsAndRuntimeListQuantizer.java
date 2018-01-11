@@ -4,11 +4,10 @@ import java.time.Instant;
 
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 public class StartsAndRuntimeListQuantizer extends AbstractPointValueTimeQuantizer<StartsAndRuntimeList> {
 
-    public StartsAndRuntimeListQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<StatisticsGenerator> callback) {
+    public StartsAndRuntimeListQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList> callback) {
         super(bucketCalculator, callback);
     }
     

@@ -30,7 +30,7 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenerator> implements BookendQueryCallback<IdPointValueTime>{
     
     private final BucketCalculator bucketCalculator;
-    private final StatisticsGeneratorQuantizerCallback<StatisticsGenerator> callback;
+    private final StatisticsGeneratorQuantizerCallback<T> callback;
     private final long startTime;
     private final long endTime;
 
@@ -40,7 +40,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     private long periodToMillis; //For performance
     private DataValue lastValue;
 
-    public AbstractPointValueTimeQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<StatisticsGenerator> callback) {
+    public AbstractPointValueTimeQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<T> callback) {
         this.bucketCalculator = bucketCalculator;
         this.callback = callback;
         

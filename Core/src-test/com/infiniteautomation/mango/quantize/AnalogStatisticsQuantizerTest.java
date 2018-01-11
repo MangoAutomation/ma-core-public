@@ -18,7 +18,6 @@ import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 
 /**
@@ -36,10 +35,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart
@@ -95,10 +94,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 
@@ -173,10 +172,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart
@@ -229,10 +228,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart
@@ -323,10 +322,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart
@@ -406,10 +405,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart
@@ -512,10 +511,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart
@@ -617,10 +616,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
-        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StatisticsGenerator>() {
+        AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
             
             @Override
-            public void quantizedStatistics(StatisticsGenerator statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
                 AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
                 //Test periodStart

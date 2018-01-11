@@ -4,11 +4,10 @@ import java.time.Instant;
 
 import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 public class ValueChangeCounterQuantizer extends AbstractPointValueTimeQuantizer<ValueChangeCounter> {
 
-    public ValueChangeCounterQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<StatisticsGenerator> callback) {
+    public ValueChangeCounterQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<ValueChangeCounter> callback) {
         super(bucketCalculator, callback);
     }
     

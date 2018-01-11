@@ -8,12 +8,11 @@ import java.time.Instant;
 
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 public class AnalogStatisticsQuantizer extends AbstractPointValueTimeQuantizer<AnalogStatistics> {
 
     public AnalogStatisticsQuantizer(BucketCalculator bucketCalculator,
-            StatisticsGeneratorQuantizerCallback<StatisticsGenerator> callback) {
+            StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {
         super(bucketCalculator, callback);
     }
 
