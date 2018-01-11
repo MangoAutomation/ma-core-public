@@ -167,52 +167,77 @@
 		});
 	}
 
-	var numericRollups = [];
-	numericRollups.push({value: <%=Common.Rollups.NONE%>, innerHTML: '<fmt:message key="common.rollup.none" />'});
-    numericRollups.push({value: <%=Common.Rollups.AVERAGE%>, innerHTML: '<fmt:message key="common.rollup.average" />'});
-    numericRollups.push({value: <%=Common.Rollups.DELTA%>, innerHTML: '<fmt:message key="common.rollup.delta" />'});
-    numericRollups.push({value: <%=Common.Rollups.MINIMUM%>, innerHTML: '<fmt:message key="common.rollup.minimum" />'});
-    numericRollups.push({value: <%=Common.Rollups.MAXIMUM%>, innerHTML: '<fmt:message key="common.rollup.maximum" />'});
-    numericRollups.push({value: <%=Common.Rollups.SUM%>, innerHTML: '<fmt:message key="common.rollup.sum" />'});
-    numericRollups.push({value: <%=Common.Rollups.START%>, innerHTML: '<fmt:message key="common.rollup.start" />'});
-    numericRollups.push({value: <%=Common.Rollups.FIRST%>, innerHTML: '<fmt:message key="common.rollup.first" />'});
-    numericRollups.push({value: <%=Common.Rollups.LAST%>, innerHTML: '<fmt:message key="common.rollup.last" />'});
-    numericRollups.push({value: <%=Common.Rollups.COUNT%>, innerHTML: '<fmt:message key="common.rollup.count" />'});
-    numericRollups.push({value: <%=Common.Rollups.INTEGRAL%>, innerHTML: '<fmt:message key="common.rollup.integral" />'});
-	
-    var nonNumericRollups = [];
-    nonNumericRollups.push({value: <%=Common.Rollups.NONE%>, innerHTML: '<fmt:message key="common.rollup.none" />'});
-    nonNumericRollups.push({value: <%=Common.Rollups.START%>, innerHTML: '<fmt:message key="common.rollup.start" />'});
-    nonNumericRollups.push({value: <%=Common.Rollups.FIRST%>, innerHTML: '<fmt:message key="common.rollup.first" />'});
-    nonNumericRollups.push({value: <%=Common.Rollups.LAST%>, innerHTML: '<fmt:message key="common.rollup.last" />'});
-    nonNumericRollups.push({value: <%=Common.Rollups.COUNT%>, innerHTML: '<fmt:message key="common.rollup.count" />'});
-    
-    function setRollupOptions(rollupSelect, rollups){
-	    	for(var i = rollupSelect.length - 1 ; i >= 0 ; i--){ rollupSelect.remove(i) }
-	    	for(var i=0; i<rollups.length; i++){
-	    		var opt = document.createElement('option');
-	    		opt.value = rollups[i].value;
-	    		opt.innerHTML = rollups[i].innerHTML;
-	    		rollupSelect.appendChild(opt);
-	    	}
-    }
-    
-	/**
-	 * Reset the Point Properties Inputs depending on Data Type
-	 */
 	function resetPointProperties(dataTypeId) {
-		var rollupNode = $("rollup");
-		if (dataTypeId == <%=DataTypes.NUMERIC%>) {
-			show("unitSection");
-			$("plotType").disabled = false;
-			setRollupOptions(rollupNode, numericRollups);
-		} else {
-			hide("unitSection");
-			$("plotType").disabled = true;
-			$set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
-			setRollupOptions(rollupNode, nonNumericRollups);
-		}
-	}
+        var rollupNode = $("rollup");
+        if (dataTypeId == <%=DataTypes.NUMERIC%>) {
+            show("unitSection");
+            $("plotType").disabled = false;
+            rollupNode[<%=Common.Rollups.NONE%>].hidden = false;
+            rollupNode[<%=Common.Rollups.AVERAGE%>].hidden = false;
+            rollupNode[<%=Common.Rollups.DELTA%>].hidden = false;
+            rollupNode[<%=Common.Rollups.MINIMUM%>].hidden = false;
+            rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = false;
+            rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = true;
+            rollupNode[<%=Common.Rollups.SUM%>].hidden = false;
+            rollupNode[<%=Common.Rollups.START%>].hidden = false;
+            rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
+            rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
+            rollupNode[<%=Common.Rollups.COUNT%>].hidden = false;
+            rollupNode[<%=Common.Rollups.INTEGRAL%>].hidden = false;
+            rollupNode[<%=Common.Rollups.ALL%>].hidden = true;
+            //For compatibility in all browsers
+            rollupNode[<%=Common.Rollups.NONE%>].disabled = false;
+            rollupNode[<%=Common.Rollups.AVERAGE%>].disabled = false;
+            rollupNode[<%=Common.Rollups.DELTA%>].disabled = false;
+            rollupNode[<%=Common.Rollups.MINIMUM%>].disabled = false;
+            rollupNode[<%=Common.Rollups.MAXIMUM%>].disabled = false;
+            rollupNode[<%=Common.Rollups.ACCUMULATOR%>].disabled = true;
+            rollupNode[<%=Common.Rollups.SUM%>].disabled = false;
+            rollupNode[<%=Common.Rollups.START%>].disabled = false;
+            rollupNode[<%=Common.Rollups.FIRST%>].disabled = false;
+            rollupNode[<%=Common.Rollups.LAST%>].disabled = false;
+            rollupNode[<%=Common.Rollups.COUNT%>].disabled = false;
+            rollupNode[<%=Common.Rollups.INTEGRAL%>].disabled = false;
+            rollupNode[<%=Common.Rollups.ALL%>].disabled = true;
+            if(rollupNode[$get("rollup")].disabled)
+                $set("rollup", <%=Common.Rollups.NONE%>);
+        } else {
+            hide("unitSection");
+            $("plotType").disabled = true;
+            $set("plotType",<%=DataPointVO.PlotTypes.STEP%>);
+            rollupNode[<%=Common.Rollups.NONE%>].hidden = false;
+            rollupNode[<%=Common.Rollups.AVERAGE%>].hidden = true;
+            rollupNode[<%=Common.Rollups.DELTA%>].hidden = true;
+            rollupNode[<%=Common.Rollups.MINIMUM%>].hidden = true;
+            rollupNode[<%=Common.Rollups.MAXIMUM%>].hidden = true;
+            rollupNode[<%=Common.Rollups.ACCUMULATOR%>].hidden = true;
+            rollupNode[<%=Common.Rollups.SUM%>].hidden = true;
+            rollupNode[<%=Common.Rollups.START%>].hidden = false;
+            rollupNode[<%=Common.Rollups.FIRST%>].hidden = false;
+            rollupNode[<%=Common.Rollups.LAST%>].hidden = false;
+            rollupNode[<%=Common.Rollups.COUNT%>].hidden = false;
+            rollupNode[<%=Common.Rollups.INTEGRAL%>].hidden = true;
+            rollupNode[<%=Common.Rollups.ALL%>].hidden = true;
+            
+            //For compatibility in all browsers
+            rollupNode[<%=Common.Rollups.NONE%>].disabled = false;
+            rollupNode[<%=Common.Rollups.AVERAGE%>].disabled = true;
+            rollupNode[<%=Common.Rollups.DELTA%>].disabled = true;
+            rollupNode[<%=Common.Rollups.MINIMUM%>].disabled = true;
+            rollupNode[<%=Common.Rollups.MAXIMUM%>].disabled = true;
+            rollupNode[<%=Common.Rollups.ACCUMULATOR%>].disabled = true;
+            rollupNode[<%=Common.Rollups.SUM%>].disabled = true;
+            rollupNode[<%=Common.Rollups.START%>].disabled = false;
+            rollupNode[<%=Common.Rollups.FIRST%>].disabled = false;
+            rollupNode[<%=Common.Rollups.LAST%>].disabled = false;
+            rollupNode[<%=Common.Rollups.COUNT%>].disabled = false;
+            rollupNode[<%=Common.Rollups.INTEGRAL%>].disabled = true;
+            rollupNode[<%=Common.Rollups.ALL%>].disabled = true;
+            
+            if(rollupNode[$get("rollup")].disabled)
+                $set("rollup", <%=Common.Rollups.NONE%>);
+        }
+    }
 	
 	//Register for callbacks when the data type is changed
 	dataTypeChangedCallbacks.push(resetPointProperties);
