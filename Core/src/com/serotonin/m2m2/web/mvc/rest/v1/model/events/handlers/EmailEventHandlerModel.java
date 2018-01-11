@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.email.EmailRecipientModel;
@@ -151,5 +152,21 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 	
 	public void setAdditionalContext(List<IntStringPair> additionalContext) {
 		this.data.setAdditionalContext(additionalContext);
+	}
+	
+	public ScriptPermissions getScriptPermissions() {
+	    return this.data.getScriptPermissions();
+	}
+	
+	public void setScriptPermissions(ScriptPermissions scriptPermissions) {
+	    this.data.setScriptPermissions(scriptPermissions);
+	}
+	
+	public String getScript() {
+	    return this.data.getScript();
+	}
+	
+	public void setScript(String script) {
+	    this.data.setScript(script);
 	}
 }

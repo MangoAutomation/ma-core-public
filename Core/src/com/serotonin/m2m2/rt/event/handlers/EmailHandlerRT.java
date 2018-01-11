@@ -19,16 +19,22 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.script.CompiledScript;
+import javax.script.ScriptException;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -37,15 +43,30 @@ import com.serotonin.m2m2.email.UsedImagesDirective;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.SetPointSource;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
+import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.JsonImportExclusion;
+import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
+import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptLog;
+import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
+import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
+import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
+import com.serotonin.m2m2.rt.script.ScriptUtils;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RenderedPointValueTime;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
@@ -55,7 +76,7 @@ import com.serotonin.web.mail.EmailAttachment;
 import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailInline;
 
-public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implements ModelTimeoutClient<EventInstance> {
+public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implements ModelTimeoutClient<EventInstance>, SetPointSource {
     private static final Log LOG = LogFactory.getLog(EmailHandlerRT.class);
 
     private TimerTask escalationTask;
@@ -151,17 +172,18 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
-        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false, null, null, null);
+        sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false, null, null, null, null, null, null);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
         sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), 
-        		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext());
+        		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext(), vo.getScript(), 
+        		new SetCallback(vo.getScriptPermissions()), vo.getScriptPermissions());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
             String alias, boolean includeSystemInfo, int pointValueCount, boolean includeLogs, String handlerXid,
-            String customTemplate, List<IntStringPair> additionalContext) {
+            String customTemplate, List<IntStringPair> additionalContext, String script, SetCallback setCallback, ScriptPermissions permissions) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
                     SystemEventType.TYPE_EMAIL_SEND_FAILURE)) {
@@ -314,6 +336,48 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             	model.put("additionalContext", context);
             }
             
+            if(!StringUtils.isEmpty(script)) {
+                //Okay, a script is defined, let's pass it the model so that it may add to it
+                Map<String, Object> modelContext = new HashMap<String, Object>();
+                modelContext.put("model", model);
+                
+                Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
+                for(IntStringPair pair : additionalContext) {
+                    DataPointRT dprt = Common.runtimeManager.getDataPoint(pair.getKey());
+                    if(dprt == null) {
+                        DataPointVO targetVo = DataPointDao.instance.getDataPoint(pair.getKey(), false);
+                        if(targetVo == null) {
+                            LOG.warn("Additional context point with ID: " + pair.getKey() + " and context name " + pair.getValue() + " could not be found.");
+                            continue; //Not worth aborting the email, just warn it
+                        }
+                        
+                        if(targetVo.getDefaultCacheSize() == 0)
+                            targetVo.setDefaultCacheSize(1);
+                        dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(targetVo.getDataSourceId()), null);
+                        dprt.resetValues();
+                    }
+                    context.put(pair.getValue(), dprt);
+                }
+                
+                List<JsonImportExclusion> importExclusions = new ArrayList<JsonImportExclusion>(1);
+                importExclusions.add(new JsonImportExclusion("xid", handlerXid) {
+                    @Override
+                    public String getImporterType() {
+                        return ConfigurationExportData.EVENT_HANDLERS;
+                    }
+                });
+                
+                try {
+                    CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
+                    CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(), 
+                            DataTypes.ALPHANUMERIC, evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp(), 
+                            permissions, SetPointHandlerRT.NULL_WRITER, new ScriptLog(SetPointHandlerRT.NULL_WRITER,
+                            LogLevel.FATAL), setCallback, importExclusions, false);
+                } catch(ScriptPermissionsException|ScriptException|ResultTypeException e) {
+                    LOG.error("Exception running email handler script: " + e.getMessage(), e);
+                }
+            }
+            
             MangoEmailContent content;
             if(StringUtils.isEmpty(customTemplate))
             	content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
@@ -436,4 +500,59 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 		return Common.defaultTaskQueueSize;
 	}
     
+	class SetCallback extends ScriptPointValueSetter {
+        public SetCallback(ScriptPermissions permissions) {
+            super(permissions);
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * com.serotonin.mango.util.script.ScriptPointValueSetter#setImpl(com.serotonin.mango.rt.dataImage.IDataPointValueSource,
+         * java.lang.Object, long)
+         */
+        @Override
+        public void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+            DataPointRT dprt = (DataPointRT) point;
+
+            // We may, however, need to coerce the given value.
+            try {
+                DataValue mangoValue = ScriptUtils.coerce(value, dprt.getDataTypeId());
+                SetPointSource source;
+                PointValueTime newValue = new PointValueTime(mangoValue, timestamp);
+                if(StringUtils.isBlank(annotation))
+                    source = EmailHandlerRT.this;
+                else
+                    source = new OneTimePointAnnotation(EmailHandlerRT.this, annotation);
+                
+                DataSourceRT<? extends DataSourceVO<?>> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
+                dsrt.setPointValue(dprt, newValue, source);
+            }
+            catch (ResultTypeException e) {
+                // Log an error
+                LOG.error("Invalid set attempted from email event handler on data point: " + dprt.getVO().getExtendedName());
+            }
+        }
+    }
+
+    @Override
+    public String getSetPointSourceType() {
+        return "EMAIL_EVENT_HANDLER";
+    }
+
+    @Override
+    public int getSetPointSourceId() {
+        return vo.getId();
+    }
+
+    @Override
+    public TranslatableMessage getSetPointSourceMessage() {
+        return new TranslatableMessage("annotation.eventHandler");
+    }
+
+    @Override
+    public void raiseRecursionFailureEvent() {
+        LOG.error("Recursion failure in setting value from email handler");
+    }
 }

@@ -17,6 +17,8 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
 	
 	public static final String TYPE_NAME = "SET_POINT";
 	public static final String DESC_KEY = "eventHandlers.type.setPoint";
+	public static final int ACTIVE_SCRIPT_TYPE = 0;
+	public static final int INACTIVE_SCRIPT_TYPE = 1;
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventHandlerDefinition#getEventHandlerTypeName()

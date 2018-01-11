@@ -17,6 +17,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
 
 	public static final String TYPE_NAME = "EMAIL";
 	public static final String DESC_KEY = "eventHandlers.type.email";
+	public static final int EMAIL_SCRIPT_TYPE = 2;
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventHandlerDefinition#getEventHandlerTypeName()

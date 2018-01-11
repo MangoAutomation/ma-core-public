@@ -681,7 +681,8 @@
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
                     eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("customTemplate"), $get("sendEscalation"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
-                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), context, saveEventHandlerCB);
+                    $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), context,
+                    getScriptPermissions(), emailScriptEditor.getValue(), saveEventHandlerCB);
         }
         else if (handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>') {
         	var context = createContextArray();
@@ -725,25 +726,36 @@
         hide("handlerEditDiv");
     }
     
-    function validateScript(editor, active) {
+    function validateScript(editor, type) {
     	var script = editor.getValue();
-   		EventHandlersDwr.validateScript(editor.getValue(), targetPointSelector.value, active, 
+    	var targetPointId;
+    	if(type == "<c:out value="<%= EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE %>"/>")
+    		targetPointId = null;
+    	else
+    		targetPointId = targetPointSelector.value;
+   		EventHandlersDwr.validateScript(editor.getValue(), targetPointId, type, 
    				createContextArray(), getScriptPermissions(), function(response) {
-   			if(active) {
-   				showDwrMessages(response.messages);
+   			showDwrMessages(response.messages);
+   			if(type == "<c:out value="<%= SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE %>"/>") {
    	            hide("activeScriptValidationOutput");
    	            if (response.data.out){
    	                output = response.data.out;
    	                $set("activeScriptValidationOutput", output);
    	                show("activeScriptValidationOutput");
    	            }
-   			} else {
-   				showDwrMessages(response.messages);
+   			} else if(type == "<c:out value="<%= SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE %>"/>") {
    	            hide("inactiveScriptValidationOutput");
    	            if (response.data.out){
    	                output = response.data.out;
    	                $set("inactiveScriptValidationOutput", output);
    	                show("inactiveScriptValidationOutput");
+   	            }
+   			}  else if(type == "<c:out value="<%= EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE %>"/>") {
+   	            hide("emailScriptValidationOutput");
+   	            if (response.data.out){
+   	                output = response.data.out;
+   	                $set("emailScriptValidationOutput", output);
+   	                show("emailScriptValidationOutput");
    	            }
    			}
    				
@@ -954,6 +966,8 @@
               <td class="formField"><input type="checkbox" id="disabled"/></td>
             </tr>
             
+            <tag:scriptPermissions></tag:scriptPermissions>
+            
             <tr><td class="horzSeparator" colspan="2"></td></tr>
           </table>
           
@@ -989,8 +1003,8 @@
             
             <tr id="activeScriptRow">
               <td class="formLabelRequired">
-                <fmt:message key="eventHandlers.script"/>
-                <tag:img png="accept" onclick="validateScript(activeEditor, true);" title="common.validate"/>
+                <fmt:message key="eventHandlers.script"/> <%-- SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE --%>
+                <tag:img png="accept" onclick='validateScript(activeEditor, 0);' title="common.validate"/>
               </td>
               <td class="formField">
                 <div id="activeScript" style="font-family: Courier New !important; position: relative; height:400px; width:700px"></div>
@@ -1022,8 +1036,8 @@
             
             <tr id="inactiveScriptRow">
               <td class="formLabelRequired">
-                <fmt:message key="eventHandlers.script"/>
-                <tag:img png="accept" onclick="validateScript(inactiveEditor, false);" title="common.validate"/>
+                <fmt:message key="eventHandlers.script"/> <%-- SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE --%>
+                <tag:img png="accept" onclick='validateScript(inactiveEditor, 1);' title="common.validate"/>
               </td>
               <td class="formField">
                 <div id="inactiveScript" style="font-family: Courier New !important; position: relative; height:400px; width:700px"></div>
@@ -1031,7 +1045,6 @@
 			  </td>
             </tr>
             <tr><td class="horzSeparator" colspan="2"></td></tr>
-            <tag:scriptPermissions></tag:scriptPermissions>
             <tr><td class="formLabel"><fmt:message key="eventHandlers.additionalContext"/></td>
               <td><select id="setpointAdditionalContextSelector"></select></td>
             </tr>
@@ -1078,6 +1091,16 @@
 		    </tr>
             <tr><td class="formLabel"><fmt:message key="eventHandlers.customTemplate"/></td>
               <td class="formField"><textarea id="customTemplate"></textarea></td></tr>
+            <tr id="emailScriptRow">
+              <td class="formLabel">
+                <fmt:message key="eventHandlers.script"/> <%-- EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE --%>
+                <tag:img png="accept" onclick="validateScript(emailScriptEditor, 2);" title="common.validate"/>
+              </td>
+              <td class="formField">
+                <div id="emailScript" style="font-family: Courier New !important; position: relative; height:400px; width:700px"></div>
+                <div id="emailScriptValidationOutput" style="display:none;color:green; width: 100%px; overflow: auto"></div>
+			  </td>
+            </tr>
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.includeSystemInfo"/></td>
               <td class="formField"><input id="includeSystemInfo" type="checkbox" /></td>
@@ -1164,11 +1187,14 @@
   ace.config.set("basePath", "/resources/ace");
     var activeEditor = ace.edit("activeScript");
     var inactiveEditor = ace.edit("inactiveScript");
+    var emailScriptEditor = ace.edit("emailScript");
     activeEditor.setTheme("ace/theme/tomorrow_night_bright");
     inactiveEditor.setTheme("ace/theme/tomorrow_night_bright");
+    emailScriptEditor.setTheme("ace/theme/tomorrow_night_bright");
     var JavaScriptMode = ace.require("ace/mode/javascript").Mode;
     activeEditor.getSession().setMode(new JavaScriptMode());
     inactiveEditor.getSession().setMode(new JavaScriptMode());
+    emailScriptEditor.getSession().setMode(new JavaScriptMode());
 </script>
 </jsp:body>
 </tag:page>

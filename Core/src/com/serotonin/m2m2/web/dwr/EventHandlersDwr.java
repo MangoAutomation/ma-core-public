@@ -25,6 +25,7 @@ import org.directwebremoting.WebContextFactory;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -274,7 +275,8 @@ public class EventHandlersDwr extends BaseDwr {
             List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, int escalationDelayType,
             int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
             boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo, 
-            int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext) {
+            int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext, 
+            ScriptPermissions permissions, String script) {
         EmailEventHandlerVO handler = new EmailEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
         handler.setActiveRecipients(activeRecipients);
@@ -290,6 +292,8 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setIncludePointValueCount(includePointValueCount);
         handler.setIncludeLogfile(includeLogfile);
         handler.setAdditionalContext(additionalContext);
+        handler.setScriptPermissions(permissions);
+        handler.setScript(script);
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
@@ -356,39 +360,46 @@ public class EventHandlersDwr extends BaseDwr {
     }
     
     @DwrPermission(user = true)
-    public ProcessResult validateScript(String script, int targetPointId, boolean active, 
+    public ProcessResult validateScript(String script, Integer targetPointId, int type, 
             List<IntStringPair> additionalContext, ScriptPermissions scriptPermissions) {
         ProcessResult response = new ProcessResult();
         TranslatableMessage message;
 
-        DataPointRT target = Common.runtimeManager.getDataPoint(targetPointId);
-        if(target == null){
-            DataPointVO targetVo = DataPointDao.instance.getDataPoint(targetPointId, false);
-            if(targetVo == null) {
-                if(active)
-                    response.addMessage("activeScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
-                else
-                    response.addMessage("inactiveScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
-                return response;
-            }
-            if(targetVo.getDefaultCacheSize() == 0)
-                targetVo.setDefaultCacheSize(1);
-            target = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(targetVo.getDataSourceId()), null);
-            target.resetValues();
-        }
-        
         Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
-        context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, target);
+        int targetDataType;
+        if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE || type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE) {
+            DataPointRT target = targetPointId == null ? null : Common.runtimeManager.getDataPoint(targetPointId.intValue());
+            if(target == null){
+                DataPointVO targetVo = targetPointId == null ? null : DataPointDao.instance.getDataPoint(targetPointId.intValue(), false);
+                if(targetVo == null) {
+                    if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE) //These are passed in the validateScript of eventHandlers.jsp
+                        response.addMessage("activeScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
+                    else if(type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE)
+                        response.addMessage("inactiveScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
+                    return response;
+                }
+                if(targetVo.getDefaultCacheSize() == 0)
+                    targetVo.setDefaultCacheSize(1);
+                target = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(targetVo.getDataSourceId()), null);
+                target.resetValues();
+                context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, target);
+            }
+            targetDataType = target.getDataTypeId();
+        } else {
+            targetDataType = DataTypes.ALPHANUMERIC;
+        }
         
         for(IntStringPair cxt : additionalContext) {
             DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
             if(dprt == null) {
                 DataPointVO dpvo = DataPointDao.instance.getDataPoint(cxt.getKey(), false);
                 if(dpvo == null) {
-                    if(active)
+                    if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE)
                         response.addMessage("activeScript", new TranslatableMessage("event.script.contextPointMissing", cxt.getValue(), cxt.getKey()));
-                    else
+                    else if(type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE)
                         response.addMessage("inactiveScript", new TranslatableMessage("event.script.contextPointMissing", cxt.getValue(), cxt.getKey()));
+                    else if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)
+                        response.addMessage("emailScript", new TranslatableMessage("event.script.contextPointMissing", cxt.getValue(), cxt.getKey()));
                     return response;
                 }
                 if(dpvo.getDefaultCacheSize() == 0)
@@ -401,8 +412,9 @@ public class EventHandlersDwr extends BaseDwr {
         
         Map<String, Object> otherContext = new HashMap<String, Object>();
         otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
-        
-        int targetDataType = target.getDataTypeId();
+        if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)
+            otherContext.put("model", new HashMap<String, Object>());
+         
 
         final StringWriter scriptOut = new StringWriter();
         final PrintWriter scriptWriter = new PrintWriter(scriptOut);
@@ -455,10 +467,12 @@ public class EventHandlersDwr extends BaseDwr {
             message = e.getTranslatableMessage();
         }
 
-        if(active)
+        if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE)
             response.addMessage("activeScript", message);
-        else
+        else if(type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE)
             response.addMessage("inactiveScript", message);
+        else if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)
+            response.addMessage("emailScript", message);
         return response;
     }
     

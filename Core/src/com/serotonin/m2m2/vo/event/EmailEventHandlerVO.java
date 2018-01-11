@@ -10,6 +10,8 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.script.ScriptException;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.db.pair.IntStringPair;
@@ -27,6 +29,8 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
+import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -67,6 +71,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private boolean includeLogfile;
     private String customTemplate;
     private List<IntStringPair> additionalContext = new ArrayList<IntStringPair>();
+    private ScriptPermissions scriptPermissions;
+    private String script;
     
     public List<RecipientListEntryBean> getActiveRecipients() {
         return activeRecipients;
@@ -170,6 +176,22 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	public void setAdditionalContext(List<IntStringPair> additionalContext) {
 		this.additionalContext = additionalContext;
 	}
+	
+	public ScriptPermissions getScriptPermissions() {
+	    return scriptPermissions;
+	}
+	
+	public void setScriptPermissions(ScriptPermissions scriptPermissions) {
+	    this.scriptPermissions = scriptPermissions;
+	}
+	
+	public String getScript() {
+	    return script;
+	}
+	
+	public void setScript(String script) {
+	    this.script = script;
+	}
 
 	@Override
 	public void validate(ProcessResult response) {
@@ -216,6 +238,14 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }else{
         	additionalContext = new ArrayList<>();
         }
+        
+        if(!StringUtils.isEmpty(script)) {
+            try {
+                CompiledScriptExecutor.compile(script);
+            } catch(ScriptException e) {
+                response.addGenericMessage("eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
+            }
+        }
 	}
     
 	//
@@ -223,7 +253,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
     	out.writeInt(version);
@@ -240,6 +270,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         out.writeBoolean(includeLogfile);
         SerializationHelper.writeSafeUTF(out, customTemplate);
         out.writeObject(additionalContext);
+        out.writeObject(scriptPermissions);
+        SerializationHelper.writeSafeUTF(out, script);
     }
 	
     @SuppressWarnings("unchecked")
@@ -262,6 +294,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = null;
             additionalContext = new ArrayList<IntStringPair>();
+            scriptPermissions = new ScriptPermissions();
+            script = null;
         }
         else if (ver == 2) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -280,6 +314,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = new ArrayList<IntStringPair>();
+            scriptPermissions = new ScriptPermissions();
+            script = null;
         }
         else if (ver == 3) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -298,6 +334,28 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
+            scriptPermissions = new ScriptPermissions();
+            script = null;
+        }
+        else if (ver == 4) {
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            scriptPermissions = (ScriptPermissions) in.readObject();
+            script = SerializationHelper.readSafeUTF(in);
         }
     }
     
@@ -333,6 +391,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	}
         }
         writer.writeEntry("additionalContext", context);
+        writer.writeEntry("script", script);
     }
     
     @SuppressWarnings("unchecked")
@@ -421,6 +480,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	this.additionalContext = additionalContext;
         } else
         	this.additionalContext = new ArrayList<>();
+        
+        script = jsonObject.getString("script");
     }
     
     @Override
