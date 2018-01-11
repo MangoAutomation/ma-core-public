@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
 
@@ -18,10 +19,10 @@ import com.serotonin.timer.TimerTrigger;
  * 
  * @author Terry Packer
  */
-public abstract class SystemActionTask extends TimerTask{
+public abstract class SystemActionTask extends TimerTask {
 
-	public static final int PRIORITY_HIGH = 1;
-	public static final int PRIORITY_MEDIUM = 2;
+	public static final int PRIORITY_HIGH = WorkItem.PRIORITY_HIGH;
+	public static final int PRIORITY_MEDIUM = WorkItem.PRIORITY_MEDIUM;
 	
 	protected static final Log LOG = LogFactory.getLog(SystemActionTask.class);
 	
