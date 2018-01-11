@@ -392,6 +392,15 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
+        if(scriptPermissions != null) {
+            JsonObject permissions = new JsonObject();
+            permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
+            permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
+            permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
+            writer.writeEntry("scriptPermissions", permissions);
+        } else {
+            writer.writeEntry("scriptPermissions", null);
+        }
     }
     
     @SuppressWarnings("unchecked")
@@ -482,6 +491,21 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	this.additionalContext = new ArrayList<>();
         
         script = jsonObject.getString("script");
+        
+        JsonObject permissions = jsonObject.getJsonObject("scriptPermissions");
+        ScriptPermissions scriptPermissions = new ScriptPermissions();
+        if(permissions != null) {
+            String perm = permissions.getString(ScriptPermissions.DATA_SOURCE);
+            if(perm != null)
+                scriptPermissions.setDataSourcePermissions(perm);
+            perm = permissions.getString(ScriptPermissions.DATA_POINT_READ);
+            if(perm != null)
+                scriptPermissions.setDataPointReadPermissions(perm);
+            perm = permissions.getString(ScriptPermissions.DATA_POINT_SET);
+            if(perm != null)
+                scriptPermissions.setDataPointSetPermissions(perm);
+        }
+        this.scriptPermissions = scriptPermissions;
     }
     
     @Override
