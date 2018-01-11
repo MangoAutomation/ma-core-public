@@ -422,15 +422,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     public void setPointLocator(PointLocatorVO<?> pointLocator) {
-        // if data type changed from non numeric to numeric then use unit as suffix
-        if (pointLocator.getDataTypeId() == DataTypes.NUMERIC
-                && (this.pointLocator == null || this.pointLocator.getDataTypeId() != DataTypes.NUMERIC)
-                && textRenderer instanceof ConvertingRenderer) {
-            ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
-            cr.setUseUnitAsSuffix(true);
-        }
         this.pointLocator = pointLocator;
-        
         if (this.textRenderer == null) {
             this.defaultTextRenderer();
         }
