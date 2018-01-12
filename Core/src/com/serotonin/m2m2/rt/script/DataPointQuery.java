@@ -13,6 +13,8 @@ import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -49,9 +51,14 @@ public class DataPointQuery{
 	 */
 	public List<DataPointWrapper> query(String query){
 		ASTNode root = parser.parse(query);
-		BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(root, true);
-		
-		List<DataPointVO> dataPoints = sqlQuery.immediateQuery();
+		List<DataPointVO> dataPoints = new ArrayList<>();
+		ConditionSortLimitWithTagKeys conditions = DataPointDao.instance.rqlToCondition(root);
+		DataPointDao.instance.customizedQuery(conditions, new MappedRowCallback<DataPointVO>() {
+            @Override
+            public void row(DataPointVO item, int index) {
+                dataPoints.add(item);
+            }
+		});
 		
 		List<DataPointWrapper> results = new ArrayList<DataPointWrapper>();
 
