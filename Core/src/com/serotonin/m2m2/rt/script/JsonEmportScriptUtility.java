@@ -1,11 +1,14 @@
 package com.serotonin.m2m2.rt.script;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
@@ -72,9 +75,15 @@ public class JsonEmportScriptUtility {
 		Map<String, Object> data = new LinkedHashMap<>();
 		if(admin) {
 			ASTNode root = parser.parse(query);
-			BaseSqlQuery<DataPointVO> sqlQuery = DataPointDao.instance.createQuery(root, true);
-			
-			List<DataPointVO> dataPoints = sqlQuery.immediateQuery();
+			List<DataPointVO> dataPoints = new ArrayList<>();
+	        ConditionSortLimitWithTagKeys conditions = DataPointDao.instance.rqlToCondition(root);
+	        DataPointDao.instance.customizedQuery(conditions, new MappedRowCallback<DataPointVO>() {
+	            @Override
+	            public void row(DataPointVO item, int index) {
+	                dataPoints.add(item);
+	            }
+	        });
+	        
 			data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
 		}
 		return EmportDwr.export(data, prettyIndent);
