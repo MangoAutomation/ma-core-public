@@ -23,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -41,6 +42,8 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
@@ -214,6 +217,13 @@ public class MangoSecurityConfiguration {
     public static SessionRegistry sessionRegistry() {
     	return sessionRegistry;
     }
+    
+    @Bean
+    public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+        DefaultHttpFirewall firewall = new DefaultHttpFirewall();
+        firewall.setAllowUrlEncodedSlash(true);
+        return firewall;
+    }
 
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
@@ -225,18 +235,26 @@ public class MangoSecurityConfiguration {
         AccessDeniedHandler accessDeniedHandler;
         AuthenticationEntryPoint authenticationEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
         CorsConfigurationSource corsConfigurationSource;
+        HttpFirewall httpFirewall;
         
         @Autowired
         public void init(MangoRestAccessDeniedHandler accessDeniedHandler,
-                CorsConfigurationSource corsConfigurationSource) {
+                CorsConfigurationSource corsConfigurationSource,
+                HttpFirewall httpFirewall) {
             this.accessDeniedHandler = accessDeniedHandler;
             this.corsConfigurationSource = corsConfigurationSource;
+            this.httpFirewall = httpFirewall;
         }
         
         @Bean(name=BeanIds.AUTHENTICATION_MANAGER)
         @Override
         public AuthenticationManager authenticationManagerBean() throws Exception {
             return super.authenticationManagerBean();
+        }
+        
+        @Override
+        public void configure(WebSecurity web) throws Exception {
+            web.httpFirewall(this.httpFirewall);
         }
 
         @Override
@@ -307,6 +325,7 @@ public class MangoSecurityConfiguration {
         PermissionExceptionFilter permissionExceptionFilter;
         SessionRegistry sessionRegistry;
         SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
+        HttpFirewall httpFirewall;
         
         @Autowired
         public void init(
@@ -319,7 +338,8 @@ public class MangoSecurityConfiguration {
                 LogoutSuccessHandler logoutSuccessHandler,
                 PermissionExceptionFilter permissionExceptionFilter,
                 SessionRegistry sessionRegistry,
-                SessionInformationExpiredStrategy sessionInformationExpiredStrategy) {
+                SessionInformationExpiredStrategy sessionInformationExpiredStrategy,
+                HttpFirewall httpFirewall) {
             this.authenticationSuccessHandler = authenticationSuccessHandler;
             this.authenticationFailureHandler = authenticationFailureHandler;
             this.accessDeniedHandler = accessDeniedHandler;
@@ -330,6 +350,12 @@ public class MangoSecurityConfiguration {
             this.permissionExceptionFilter = permissionExceptionFilter;
             this.sessionRegistry = sessionRegistry;
             this.sessionInformationExpiredStrategy = sessionInformationExpiredStrategy;
+            this.httpFirewall = httpFirewall;
+        }
+        
+        @Override
+        public void configure(WebSecurity web) throws Exception {
+            web.httpFirewall(this.httpFirewall);
         }
         
         @Override
