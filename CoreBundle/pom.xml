@@ -155,13 +155,13 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>maintenance-events</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mango-api</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -191,7 +191,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>scheduled-events</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -427,7 +427,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>excel-reports</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -493,7 +493,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>advanced-scheduler</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 	</dependencies>
