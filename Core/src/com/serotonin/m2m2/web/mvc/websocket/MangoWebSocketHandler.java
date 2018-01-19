@@ -28,9 +28,7 @@ public abstract class MangoWebSocketHandler extends MangoWebSocketPublisher{
 	 * @return
 	 */
 	protected User getUser(WebSocketSession session) {
-		return (User)session.getAttributes().get("user");
+		return (User)session.getAttributes().get(MangoWebSocketHandshakeInterceptor.USER_ATTRIBUTE);
 	}
-	
-	
-	
+
 }

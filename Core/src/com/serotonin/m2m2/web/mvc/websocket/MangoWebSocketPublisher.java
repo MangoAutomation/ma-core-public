@@ -157,7 +157,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 	 * @return
 	 */
 	protected AbstractSession getHttpSession(WebSocketSession session) {
-	    HttpSession httpSession = (HttpSession) session.getAttributes().get("httpsession");
+	    HttpSession httpSession = (HttpSession) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.HTTP_SESSION_ATTRIBUTE);
 	    if (httpSession instanceof AbstractSession) {
 	        return (AbstractSession) httpSession;
 	    }
