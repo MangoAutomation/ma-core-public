@@ -309,7 +309,7 @@ nothing returned
 <h2>Data Point Queries</h2>
 Data points can be queried by using the <b>DataPointQuery</b> utility.  This utility has one method:
 <code>DataPointQuery.query(stringRql);</code>
-
+The RQL has a default limit of 100. Add '&limit(-1)' to have no limit in the query.
 <h3>DataPointWrapper</h3>
 <p>The DataPointWrapper returned has some of the basic information on a data point in addition to the
 Runtime member which is the same as the Object that wraps the context points for a script. 
