@@ -105,8 +105,12 @@ public class QueryComparison {
 			return compareString((String)value);
 		}else if(value instanceof Boolean){
 			return compareBoolean((Boolean)value);
-		}else{
-			throw new ShouldNeverHappenException("Unsupported class type: " + value.getClass().getCanonicalName());
+		} else if (value instanceof Enum<?>) {
+		    return compareString(((Enum<?>) value).name());
+		} else if (value == null) {
+            return compareNull();
+        } else {
+		    return compareString(value.toString());
 		}
 	}
 	
@@ -241,6 +245,7 @@ public class QueryComparison {
 				throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
 		}
 	}
+	
 	public boolean compareBoolean(Boolean thisValue){
 		try{
 			
@@ -274,6 +279,29 @@ public class QueryComparison {
 			return false;
 		}
 	}
+	
+    public boolean compareNull() {
+        Object value = this.arguments.get(0);
+        switch(comparisonType) {
+            case GREATER_THAN:
+            case GREATER_THAN_EQUAL_TO:
+            case LESS_THAN:
+            case LESS_THAN_EQUAL_TO:
+                return false;
+            case LIKE:
+            case EQUAL_TO:
+                return null == value;
+            case NOT_EQUAL_TO:
+                return null != value;
+            case IN:
+                for (Object o : this.arguments) {
+                    if (null == o) return true;
+                }
+                return false;
+            default:
+                throw new ShouldNeverHappenException("Unsupported comparisonType: " + getComparison());
+        }
+    }
 
 	/**
 	 * @param object
