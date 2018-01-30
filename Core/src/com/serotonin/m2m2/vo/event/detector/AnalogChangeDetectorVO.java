@@ -53,7 +53,6 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	@JsonProperty
     private boolean checkDecrease = true;
 	private int updateEvent = UpdateEventType.LOGGED_ONLY;
-	
 
 	public AnalogChangeDetectorVO() {
 		super(new int[] { DataTypes.NUMERIC });
@@ -89,6 +88,11 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
     
     public void setUpdateEvent(int updateEvent) {
         this.updateEvent = updateEvent;
+    }
+    
+    @Override
+    public boolean isRtnApplicable() {
+        return getDuration() != 0;
     }
 	
 

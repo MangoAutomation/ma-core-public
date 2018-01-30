@@ -54,6 +54,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
      * raised during the duration of a single high limit exceed.
      */
     private boolean eventActive;
+    private PointValueTime instantValue;
     
     private double max = Double.NEGATIVE_INFINITY;
     private double min = Double.POSITIVE_INFINITY;
@@ -67,6 +68,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
     public AnalogChangeDetectorRT(AnalogChangeDetectorVO vo) {
         super(vo);
         this.durationMillis = Common.getMillis(vo.getDurationType(), vo.getDuration());
+        this.valueEventType = vo.getUpdateEvent();
         PointValueDao pvd = Common.databaseProxy.newPointValueDao();
         long now = Common.timer.currentTimeMillis();
         periodValues = new ArrayList<>();
@@ -77,6 +79,9 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         }else {
             latestTime = -1;
         }
+        
+        if(durationMillis == 0 && valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY)
+            instantValue = periodStartValue;
         
         periodValues.addAll(pvd.getPointValues(vo.getSourceId(), now - durationMillis + 1));
         
@@ -90,7 +95,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             if(pvt.getTime() > latestTime)
                 latestTime = pvt.getTime();
         }
-        valueEventType = vo.getUpdateEvent();
+        
     }
 
     @Override
@@ -202,14 +207,44 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 
     @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.CHANGES_ONLY)
-            handleValue(newValue);
+        if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.CHANGES_ONLY) {
+            if(durationMillis != 0)
+                handleValue(newValue);
+            else {
+                if((newValue.getDoubleValue() < oldValue.getDoubleValue() - vo.getLimit() || 
+                   newValue.getDoubleValue() > oldValue.getDoubleValue() + vo.getLimit()) && !eventActive) {
+                    raiseEvent(newValue.getTime(), null);
+                    eventActive = true;
+                }
+                else if(newValue.getDoubleValue() >= oldValue.getDoubleValue() - vo.getLimit() && 
+                   newValue.getDoubleValue() <= oldValue.getDoubleValue() + vo.getLimit() && eventActive) {
+                    returnToNormal(newValue.getTime());
+                    eventActive = false;
+                }
+            }
+        }
     }
     
     @Override
     public void pointLogged(PointValueTime value) {
-        if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY)
-            handleValue(value);
+        if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY) {
+            if(durationMillis != 0)
+                handleValue(value);
+            else {
+                if(instantValue == null)
+                    instantValue = value;
+                else if((value.getDoubleValue() < instantValue.getDoubleValue() - vo.getLimit() ||
+                        value.getDoubleValue() > instantValue.getDoubleValue() + vo.getLimit()) && !eventActive) {
+                    raiseEvent(value.getTime(), null);
+                    eventActive = true;
+                }
+                else if(value.getDoubleValue() >= instantValue.getDoubleValue() - vo.getLimit() &&
+                        value.getDoubleValue() <= instantValue.getDoubleValue() + vo.getLimit() && eventActive) {
+                    returnToNormal(value.getTime());
+                    eventActive = false;
+                }
+            }
+        }
     }
     
 	/* 
