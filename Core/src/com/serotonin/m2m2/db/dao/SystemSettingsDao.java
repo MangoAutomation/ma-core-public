@@ -37,6 +37,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -772,9 +773,13 @@ public class SystemSettingsDao extends BaseDao {
 		        response.addContextualMessage(HIERARCHY_PATH_SEPARATOR, "validate.cannotContainEmptyString");
 		}
 		
-        //Validate the Module Settings
-        for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions())
-        	def.validateSettings(settings, response);
+        // Validate the Module Settings
+        for (SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions())
+            def.validateSettings(settings, response);
+        
+        //Ensure no one can change the superadmin permission 
+        if(settings.get(SuperadminPermissionDefinition.PERMISSION) != null)
+            response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
 	}
 	
 

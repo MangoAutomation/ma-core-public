@@ -31,6 +31,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
@@ -249,11 +250,13 @@ public class SystemSettingsDwr extends BaseDwr {
         List<Map<String, String>> modulePermissions = new ArrayList<>();
         settings.put("modulePermissions", modulePermissions);
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-            Map<String, String> permission = new HashMap<>();
-            permission.put("name", def.getPermissionTypeName());
-            permission.put("label", Translations.getTranslations(Common.getLocale()).translate(def.getPermissionKey()));
-            permission.put("value", SystemSettingsDao.getValue(def.getPermissionTypeName()));
-            modulePermissions.add(permission);
+            if(!def.getPermissionTypeName().equals(SuperadminPermissionDefinition.PERMISSION)) {
+                Map<String, String> permission = new HashMap<>();
+                permission.put("name", def.getPermissionTypeName());
+                permission.put("label", Translations.getTranslations(Common.getLocale()).translate(def.getPermissionKey()));
+                permission.put("value", SystemSettingsDao.getValue(def.getPermissionTypeName()));
+                modulePermissions.add(permission);
+            }
         }
 
         //Thread Pool Settings
@@ -534,8 +537,11 @@ public class SystemSettingsDwr extends BaseDwr {
     public void saveSystemPermissions(String datasource, List<StringStringPair> modulePermissions) {
         SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         systemSettingsDao.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
-        for (StringStringPair p : modulePermissions)
-            systemSettingsDao.setValue(p.getKey(), p.getValue());
+        for (StringStringPair p : modulePermissions) {
+            //Don't allow saving the superadmin permission as it doesn't do anything it's hard coded
+            if(!p.getKey().equals(SuperadminPermissionDefinition.PERMISSION))
+                systemSettingsDao.setValue(p.getKey(), p.getValue());
+        }
     }
 
     

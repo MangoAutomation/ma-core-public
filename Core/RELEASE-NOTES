@@ -1,3 +1,7 @@
+*Version 3.3.1*
+* Removing superadmin duplicate permission text box on legacy system settings page
+* Adding validation so users know its not possible to change the read only superadmin permission
+
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
 * Improved accuracy of Rollups
