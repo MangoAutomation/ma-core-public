@@ -235,15 +235,18 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 		
 		if(r instanceof OrderedTaskCollection){
 			OrderedTaskCollection t  = (OrderedTaskCollection)r;
+			OrderedTaskCollection nextTask = null;
 			synchronized (keyedTasks){
 				//Don't bother trying to run the queue we've got a problem
 				if (t.dependencyQueue.isEmpty()){
                     keyedTasks.remove(t.wrapper.task.id);
                 }else{
                     //Could be trouble, but let it fail if it must
-                    execute(t.dependencyQueue.poll());
+                    nextTask = t.dependencyQueue.poll();
                 }
 			}
+			if(nextTask != null)
+			    execute(nextTask);
 			this.handler.rejectedExecution(t.wrapper, e);
 			
 		}else if(r instanceof TaskWrapper){
@@ -316,15 +319,15 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                 // TODO Review this as it may be possible to remove a non-empty queue, need to
                 // synchronize on keyedTasks...
                 Runnable nextTask = null;
-                if (this.dependencyQueue.isEmpty()) {
-                    // Remove the Collection
-                    synchronized (keyedTasks) {
+                synchronized (keyedTasks) {
+                    if (this.dependencyQueue.isEmpty()) {
+                        // Remove the Collection
                         keyedTasks.remove(wrapper.task.id);
+                    } else {
+                        // Have something in our queue, process it now
+                        nextTask = this.dependencyQueue.poll();
                     }
-                } else {
-                    // Have something in our queue, process it now
-                    nextTask = this.dependencyQueue.poll();
-                }
+                } 
                 // Update our task info
                 this.dependencyQueue.info.addExecutionTime(timer.currentTimeMillis() - start);
                 this.dependencyQueue.info.updateCurrentQueueSize(this.dependencyQueue.size());
