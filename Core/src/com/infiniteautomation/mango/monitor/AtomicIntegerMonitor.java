@@ -12,9 +12,9 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * Threadsafe Integer Monitor
  * @author Terry Packer
  */
-public class AtomicIntegerMonitor extends ValueMonitor<Integer>{
+public class AtomicIntegerMonitor extends ValueMonitor<Integer> {
 
-	private AtomicInteger value;
+	private final AtomicInteger value;
 	
 	public AtomicIntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
         this(id, name, owner, 0);
@@ -39,8 +39,7 @@ public class AtomicIntegerMonitor extends ValueMonitor<Integer>{
     }
 
     public void setValueIfGreater(int value) {
-        if (this.value.get() < value)
-            this.value.set(value);
+        this.value.updateAndGet(current -> value > current ? value : current);
     }
 
     public void increment(){

@@ -6,7 +6,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * @author Matthew Lohbihler
  */
 public class DoubleMonitor extends ValueMonitor<Double> {
-    private double value;
+    private volatile double value;
 
     public DoubleMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
         this(id, name, owner, 0);

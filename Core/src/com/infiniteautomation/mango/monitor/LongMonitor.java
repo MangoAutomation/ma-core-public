@@ -6,7 +6,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * @author Matthew Lohbihler
  */
 public class LongMonitor extends ValueMonitor<Long> {
-    private long value;
+    private volatile long value;
 
     public LongMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
         this(id, name, owner, 0);

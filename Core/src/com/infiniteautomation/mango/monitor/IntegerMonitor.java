@@ -6,7 +6,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * @author Matthew Lohbihler
  */
 public class IntegerMonitor extends ValueMonitor<Integer> {
-    protected int value;
+    protected volatile int value;
 
     public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
         this(id, name, owner, 0);
