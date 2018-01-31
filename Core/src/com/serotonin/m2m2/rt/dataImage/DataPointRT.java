@@ -405,7 +405,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
             
             intervalValue = pointValue;
             if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                intervalStartTime = Common.timer.currentTimeMillis();
+                intervalStartTime = timer == null ? Common.timer.currentTimeMillis() : timer.currentTimeMillis();
                 if(averagingValues.size() > 0) {
                     Double nullValue = null;
                         AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
@@ -825,11 +825,16 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     public void initializeHistorical() {
-        initializeIntervalLogging(0l, false);
+        if(timer != null) {
+            pointValue = getPointValueBefore(timer.currentTimeMillis());
+            initializeIntervalLogging(timer.currentTimeMillis(), false);
+        } else
+            initializeIntervalLogging(0l, false);
     }
 
     public void terminateHistorical() {
         terminateIntervalLogging();
+        pointValue = valueCache.getLatestPointValue();
     }
 
 
