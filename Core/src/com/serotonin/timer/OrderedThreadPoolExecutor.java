@@ -316,18 +316,20 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
             try {
                 this.wrapper.run();
             } finally {
-                // TODO Review this as it may be possible to remove a non-empty queue, need to
-                // synchronize on keyedTasks...
                 Runnable nextTask = null;
-                synchronized (keyedTasks) {
-                    if (this.dependencyQueue.isEmpty()) {
-                        // Remove the Collection
-                        keyedTasks.remove(wrapper.task.id);
-                    } else {
-                        // Have something in our queue, process it now
-                        nextTask = this.dependencyQueue.poll();
+                if(this.dependencyQueue.isEmpty())
+                    synchronized (keyedTasks) {
+                        //Check again, now that we have the lock
+                        if (this.dependencyQueue.isEmpty()) { 
+                            // Remove the Collection
+                            keyedTasks.remove(wrapper.task.id);
+                        } else {
+                            // Have something in our queue, process it now
+                            nextTask = this.dependencyQueue.poll();
+                        }
                     }
-                } 
+                else
+                    nextTask = this.dependencyQueue.poll();
                 // Update our task info
                 this.dependencyQueue.info.addExecutionTime(timer.currentTimeMillis() - start);
                 this.dependencyQueue.info.updateCurrentQueueSize(this.dependencyQueue.size());
