@@ -6,7 +6,9 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.serotonin.m2m2.Common;
@@ -134,31 +136,115 @@ public class PointValueFacade {
         List<PointValueTime> values = new ArrayList<>();
         List<Integer> ids = new ArrayList<>();
         ids.add(dataPointId);
+        List<PointValueTime> cache = buildCacheView(from, to);
+        
         pointValueDao.wideBookendQuery(ids, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
-                if(insertInitial)
-                    values.add(value);
+                if(insertInitial) {
+                    if(cache != null) {
+                        processRow((PointValueTime)value, index, bookend, false, values, cache);
+                    }else {
+                        values.add(value);
+                    }
+                }
             }
 
             @Override
             public void row(IdPointValueTime value, int index) throws IOException {
-                values.add(value);
+                if(cache != null) {
+                    processRow((PointValueTime)value, index, false, false, values, cache);
+                }else {
+                    values.add(value);
+                }
             }
 
             @Override
             public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
-                if(insertFinal)
-                    values.add(value);
+                if(insertFinal) {
+                    if(cache != null) {
+                        processRow((PointValueTime)value, index, bookend, false, values, cache);
+                    }else {
+                        values.add(value);
+                    }
+                }
             }
         });
         return values;
     }
 
+    /**
+     * Write out any cached values that would be equal to or between the time of the incomming 
+     *   point value and the next one to be returned by the query.
+     *   this should be called before processing this value
+     * @param value
+     * @param bookend
+     * @return true to continue to process the incoming value, false if it was a bookend that was replaced via the cache
+     * @throws IOException 
+     */
+    protected boolean processValueThroughCache(PointValueTime value, int index, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws IOException {
+        if(pointCache != null && pointCache.size() > 0) {
+            ListIterator<PointValueTime> it = pointCache.listIterator();
+            while(it.hasNext()) {
+                PointValueTime pvt = it.next();
+                if(pvt.getTime() > value.getTime()) {
+                    //Can't be a bookend
+                    processRow(pvt, index, false, true, pointCache, values);
+                    it.remove();
+                }else if(pvt.getTime() == value.getTime()) {
+                    //Could be a bookend
+                    processRow(pvt, index, bookend, true, pointCache, values);
+                    it.remove();
+                    return false;
+                }else
+                    break; //No more since we are in time order of the query
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Common row processing logic
+     * @param value
+     * @param index
+     * @param bookend
+     * @throws IOException
+     */
+    protected void processRow(PointValueTime value, int index, boolean bookend, boolean cached, List<PointValueTime> pointCache, List<PointValueTime> values) throws IOException {
+        if(pointCache != null && !cached)
+            if(!processValueThroughCache(value, index, bookend, pointCache, values))
+                return;
+        
+        //Add this value
+        values.add(value);
+    }
+    
     public List<PointValueTime> getLatestPointValues(int limit) {
         	if ((point != null)&&(useCache))
         	    return point.getLatestPointValues(limit);
         return pointValueDao.getLatestPointValues(dataPointId, limit);
+    }
+    
+    /**
+     * Return a view of the cache if there are points within the range, if the facade is not to use cache return null 
+     * @param from
+     * @param to
+     * @return cacheView or null if not allowed to use cache
+     */
+    private List<PointValueTime> buildCacheView(long from, long to) {
+        if ((point != null) && (useCache))
+            return null;
+        
+        List<PointValueTime> cache = point.getCacheCopy();
+        List<PointValueTime> pointCache = new ArrayList<>(cache.size());
+        for(PointValueTime pvt : cache) {
+            if(pvt.getTime() >= from && pvt.getTime() < to) {
+                pointCache.add(pvt);
+            }
+        }
+        if(!pointCache.isEmpty())
+            Collections.sort(pointCache);
+        return pointCache;
     }
 }

@@ -182,11 +182,11 @@ public class ImageChartServlet extends BaseInfoServlet {
                         if (from == -1 && to == -1)
                             data = pointValueFacade.getPointValues(0);
                         else if (from == -1)
-                            data = pointValueFacade.getPointValuesBetween(0, to);
+                            data = pointValueFacade.getPointValuesBetween(0, to, true, true);
                         else if (to == -1)
                             data = pointValueFacade.getPointValues(from);
                         else
-                            data = pointValueFacade.getPointValuesBetween(from, to);
+                            data = pointValueFacade.getPointValuesBetween(from, to, true, true);
 
                         if (dp.getPointLocator().getDataTypeId() == DataTypes.NUMERIC) {
                         	TimeSeries ts;

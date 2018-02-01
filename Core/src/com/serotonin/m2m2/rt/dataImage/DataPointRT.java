@@ -9,8 +9,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -325,7 +325,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 } else if(newValue.getValue() instanceof ImageValue) {
                     logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.getValue()).getDigest());
                 } else
-                    logValue = !ObjectUtils.equals(newValue.getValue(), pointValue.getValue());
+                    logValue = !Objects.equals(newValue.getValue(), pointValue.getValue());
             }
 
             saveValue = logValue;
