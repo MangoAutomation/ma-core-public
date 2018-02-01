@@ -311,7 +311,7 @@
             <!-- goals will evenually be used by the release:perform -->
             <goals>install</goals>
             <preparationGoals>install</preparationGoals>
-            <tagNameFormat>m2m2-core-@{project.version}</tagNameFormat>
+            <tagNameFormat>@{project.groupId}-v@{project.version}</tagNameFormat>
          </configuration>
       </plugin>
       <plugin>
