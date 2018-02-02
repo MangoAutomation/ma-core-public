@@ -191,7 +191,11 @@ public class JsonSerializableUtility {
 	}
 	
 	protected boolean differentRecursive(Object from, Object to) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
-
+	    if (from == null && to != null || to == null && from != null)
+	        return true;
+	    if (from == null && to == null)
+	        return false;
+	    
 		if(!from.getClass().equals(to.getClass()))
 			return true;
 		
