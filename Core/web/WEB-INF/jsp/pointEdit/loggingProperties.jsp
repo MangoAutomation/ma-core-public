@@ -16,7 +16,8 @@
       var purgePeriod = $("purgePeriod");
       var purgeType = $("purgeType");
       
-      if ($("toleranceSection") && loggingType == <%= DataPointVO.LoggingTypes.ON_CHANGE %>)
+      if ($("toleranceSection") && (loggingType == <%= DataPointVO.LoggingTypes.ON_CHANGE %> || 
+				loggingType == <%=DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL%>))
           // On change logging for a numeric requires a tolerance setting.
           tolerance.disabled = false;
       else
@@ -32,10 +33,13 @@
           changePurgeOverride();
       }
       
-      if (loggingType == <%= DataPointVO.LoggingTypes.INTERVAL %>)
+      if (loggingType == <%= DataPointVO.LoggingTypes.INTERVAL %> || 
+				loggingType == <%=DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL%>)
           show("intervalLoggingSection");
       else
           hide("intervalLoggingSection");
+      
+      //TODO changes for ON_CHANGE_INTERVAL menu disabling / enabling like snippet?
   }
   
   function changePurgeOverride() {
@@ -100,6 +104,7 @@
             <sst:option value="<%= Integer.toString(DataPointVO.LoggingTypes.ALL) %>"><fmt:message key="pointEdit.logging.type.all"/></sst:option>
             <sst:option value="<%= Integer.toString(DataPointVO.LoggingTypes.NONE) %>"><fmt:message key="pointEdit.logging.type.never"/></sst:option>
             <sst:option value="<%= Integer.toString(DataPointVO.LoggingTypes.INTERVAL) %>"><fmt:message key="pointEdit.logging.type.interval"/></sst:option>
+            <sst:option value="<%= Integer.toString(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) %>"><fmt:message key="pointEdit.logging.type.changeInterval"/></sst:option>
             <sst:option value="<%= Integer.toString(DataPointVO.LoggingTypes.ON_TS_CHANGE) %>"><fmt:message key="pointEdit.logging.type.tsChange"/></sst:option>
           </sst:select>
         </td>
@@ -123,7 +128,7 @@
       </tr>
       
       <spring:bind path="form.intervalLoggingType">
-        <tr>
+        <tr id="intervalLoggingTypeRow">
           <td class="formLabelRequired"><fmt:message key="pointEdit.logging.valueType"/></td>
           <td class="formField">
             <sst:select id="intervalLoggingType" name="intervalLoggingType" value="${form.intervalLoggingType}">

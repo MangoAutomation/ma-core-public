@@ -41,6 +41,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.FixedRateTrigger;
+import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.Task;
 import com.serotonin.timer.TimerTask;
@@ -300,6 +301,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         // ... or even saving in the cache.
         boolean saveValue = true;
         switch (vo.getLoggingType()) {
+        case DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL:
         case DataPointVO.LoggingTypes.ON_CHANGE:
             if (pointValue == null)
                 logValue = true;
@@ -354,8 +356,11 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         if(!saveToDatabase)
         	logValue = false;
         
-        if (saveValue)
+        if (saveValue) {
             valueCache.savePointValue(newValue, source, logValue, async);
+            if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)
+                rescheduleChangeInterval(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod()));
+        }
 
         // add annotation to newValue before firing events so event detectors can
         // fetch the annotation
@@ -397,41 +402,55 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
      * 
      */
     public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
+        if(vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL && vo.getLoggingType() != DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)
+            return;
+        
         synchronized (intervalLoggingLock) {
-            if (vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL)
-                return;
             
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
-            
-            intervalValue = pointValue;
-            if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                intervalStartTime = timer == null ? Common.timer.currentTimeMillis() : timer.currentTimeMillis();
-                if(averagingValues.size() > 0) {
-                    Double nullValue = null;
-                        AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
-                        PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
-                    valueCache.logPointValueAsync(newValue, null);
-                    //Fire logged Events
-                    fireEvents(null, newValue, null, false, false, true, false, false);
-                        averagingValues.clear();
-                }
-            }
-            
             long delay = loggingPeriodMillis;
             if(quantize){
-                	// Quantize the start.
-                	//Compute delay only if we are offset from the next poll time
-                	long nextPollOffset = (nextPollTime % loggingPeriodMillis);
-                	if(nextPollOffset != 0)
-                		delay = loggingPeriodMillis - nextPollOffset;
+                    // Quantize the start.
+                    //Compute delay only if we are offset from the next poll time
+                    long nextPollOffset = (nextPollTime % loggingPeriodMillis);
+                    if(nextPollOffset != 0)
+                        delay = loggingPeriodMillis - nextPollOffset;
                     LOG.debug("First interval log should be at: " + (nextPollTime + delay));
             }
-            //Are we using a custom timer?
-            if(this.timer == null)
-	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
-            else
-	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
+            
+            if (vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL) {
+                intervalValue = pointValue;
+                if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
+                    intervalStartTime = timer == null ? Common.timer.currentTimeMillis() : timer.currentTimeMillis();
+                    if(averagingValues.size() > 0) {
+                        Double nullValue = null;
+                            AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
+                            PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
+                        valueCache.logPointValueAsync(newValue, null);
+                        //Fire logged Events
+                        fireEvents(null, newValue, null, false, false, true, false, false);
+                            averagingValues.clear();
+                    }
+                }
+                //Are we using a custom timer?
+                if(this.timer == null)
+    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
+                else
+    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
+            } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
+                rescheduleChangeInterval(delay);
+            }
         }
+    }
+    
+    private void rescheduleChangeInterval(long delay) {
+        if(intervalLoggingTask != null)
+            intervalLoggingTask.cancel();
+        
+        if(this.timer == null)
+            intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient());
+        else
+            intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient(), timer);
     }
     
     private TimeoutClient createIntervalLoggingTimeoutClient(){
@@ -501,61 +520,73 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     public void scheduleTimeoutImpl(long fireTime) {
         synchronized (intervalLoggingLock) {
             DataValue value;
-            if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.INSTANT)
-                value = PointValueTime.getValue(pointValue);
-            else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.MAXIMUM
-                    || vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.MINIMUM) {
-                value = PointValueTime.getValue(intervalValue);
-                intervalValue = pointValue;
-            }
-            else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-            	
-            	//We won't allow logging values until we have a full average window
-            	//If we don't have enough averaging values then we will bail and wait for more
-            	if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
-            		return;
-                
-                if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE) {
-                    StartsAndRuntimeList stats = new StartsAndRuntimeList(intervalStartTime, fireTime, intervalValue, averagingValues);
-                    double maxProportion = -1;
-                    Object valueAtMax = null;
-                    for(StartsAndRuntime sar : stats.getData()) {
-                        if(sar.getProportion() > maxProportion) {
-                            maxProportion = sar.getProportion();
-                            valueAtMax = sar.getValue();
-                        }
-                    }
-                    if(valueAtMax != null)
-                        value = new MultistateValue(DataValue.objectToValue(valueAtMax).getIntegerValue());
-                    else
-                        value = null;
-                } else {
-                    AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
-                    if (stats.getAverage() == null || (stats.getAverage() == Double.NaN && stats.getCount() == 0))
-                        value = null;
-                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
-                        value = new NumericValue(stats.getAverage());
-                    else if(vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
-                        value = new BinaryValue(stats.getAverage() >= 0.5);
-                    else
-                        throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
+            if(vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL) {
+                if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.INSTANT)
+                    value = PointValueTime.getValue(pointValue);
+                else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.MAXIMUM
+                        || vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.MINIMUM) {
+                    value = PointValueTime.getValue(intervalValue);
+                    intervalValue = pointValue;
                 }
-                //Compute the center point of our average data, starting by finding where our period started
-                long sampleWindowStartTime;
-                if(vo.isOverrideIntervalLoggingSamples())
-                	sampleWindowStartTime = averagingValues.get(0).getTime();
+                else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
+                	
+                	//We won't allow logging values until we have a full average window
+                	//If we don't have enough averaging values then we will bail and wait for more
+                	if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
+                		return;
+                    
+                    if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE) {
+                        StartsAndRuntimeList stats = new StartsAndRuntimeList(intervalStartTime, fireTime, intervalValue, averagingValues);
+                        double maxProportion = -1;
+                        Object valueAtMax = null;
+                        for(StartsAndRuntime sar : stats.getData()) {
+                            if(sar.getProportion() > maxProportion) {
+                                maxProportion = sar.getProportion();
+                                valueAtMax = sar.getValue();
+                            }
+                        }
+                        if(valueAtMax != null)
+                            value = new MultistateValue(DataValue.objectToValue(valueAtMax).getIntegerValue());
+                        else
+                            value = null;
+                    } else {
+                        AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
+                        if (stats.getAverage() == null || (stats.getAverage() == Double.NaN && stats.getCount() == 0))
+                            value = null;
+                        else if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
+                            value = new NumericValue(stats.getAverage());
+                        else if(vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
+                            value = new BinaryValue(stats.getAverage() >= 0.5);
+                        else
+                            throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
+                    }
+                    //Compute the center point of our average data, starting by finding where our period started
+                    long sampleWindowStartTime;
+                    if(vo.isOverrideIntervalLoggingSamples())
+                    	sampleWindowStartTime = averagingValues.get(0).getTime();
+                    else
+                    	sampleWindowStartTime = intervalStartTime; 
+                    
+                    intervalStartTime = fireTime;
+                    fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
+                    intervalValue = pointValue;
+                    
+                    if(!vo.isOverrideIntervalLoggingSamples())
+                    	averagingValues.clear();
+                }
                 else
-                	sampleWindowStartTime = intervalStartTime; 
-                
-                intervalStartTime = fireTime;
-                fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
-                intervalValue = pointValue;
-                
-                if(!vo.isOverrideIntervalLoggingSamples())
-                	averagingValues.clear();
-            }
-            else
-                throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
+                    throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
+            } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
+                //Okay, no changes rescheduled the timer. Get a value, reschedule
+                if(pointValue != null) {
+                    value = pointValue.getValue();
+                    if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
+                        toleranceOrigin = pointValue.getDoubleValue();
+                } else
+                    value = null;
+                rescheduleChangeInterval(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod()));
+            } else
+                value = null;
 
             if (value != null){
             	PointValueTime newValue = new PointValueTime(value, fireTime);

@@ -142,7 +142,8 @@
 		var purgePeriod = $("purgePeriod");
 		var purgeType = $("purgeType");
 
-		if ($("toleranceSection") && loggingType == <%=DataPointVO.LoggingTypes.ON_CHANGE%>)
+		if ($("toleranceSection") && ( loggingType == <%=DataPointVO.LoggingTypes.ON_CHANGE%> || 
+				loggingType == <%=DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL%>))
 			// On change logging for a numeric requires a tolerance setting.
 			tolerance.disabled = false;
 		else
@@ -157,10 +158,19 @@
 			changePurgeOverride();
 		}
 
-		if (loggingType == <%=DataPointVO.LoggingTypes.INTERVAL%>)
+		if (loggingType == <%=DataPointVO.LoggingTypes.INTERVAL%> || 
+				loggingType == <%= DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL %>)
 			show("intervalLoggingSection");
 		else
 			hide("intervalLoggingSection");
+		
+		if(loggingType == <%= DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL %>) {
+		    hide("intervalLoggingTypeRow");
+		    hide("overrideIntervalLoggingSamplesRow");
+		} else {
+			show("intervalLoggingTypeRow");
+			changeIntervalLoggingType();
+		}
 	}
 
 	function changeIntervalLoggingType() {
@@ -244,6 +254,11 @@
           </sst:option>
           <sst:option
             value="<%=Integer
+							.toString(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)%>">
+            <fmt:message key="pointEdit.logging.type.changeInterval" />
+          </sst:option>
+          <sst:option
+            value="<%=Integer
 							.toString(DataPointVO.LoggingTypes.ON_TS_CHANGE)%>">
             <fmt:message key="pointEdit.logging.type.tsChange" />
           </sst:option>
@@ -263,7 +278,7 @@
             h="true" d="true" w="true" mon="true" y="true" /></td>
       </tr>
 
-      <tr>
+      <tr id="intervalLoggingTypeRow">
         <td class="formLabelRequired"><fmt:message
             key="pointEdit.logging.valueType" /></td>
         <td class="formField"><sst:select id="intervalLoggingType"

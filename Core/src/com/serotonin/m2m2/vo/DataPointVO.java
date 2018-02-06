@@ -76,6 +76,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         int NONE = 3;
         int INTERVAL = 4;
         int ON_TS_CHANGE = 5;
+        int ON_CHANGE_INTERVAL = 6;
     }
 
     public static final ExportCodes LOGGING_TYPE_CODES = new ExportCodes();
@@ -85,6 +86,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         LOGGING_TYPE_CODES.addElement(LoggingTypes.NONE, "NONE", "pointEdit.logging.type.never");
         LOGGING_TYPE_CODES.addElement(LoggingTypes.INTERVAL, "INTERVAL", "pointEdit.logging.type.interval");
         LOGGING_TYPE_CODES.addElement(LoggingTypes.ON_TS_CHANGE, "ON_TS_CHANGE", "pointEdit.logging.type.tsChange");
+        LOGGING_TYPE_CODES.addElement(LoggingTypes.ON_CHANGE_INTERVAL, "ON_CHANGE_INTERVAL", "pointEdit.logging.type.changeInterval");
     }
 
     public interface PurgeTypes {
