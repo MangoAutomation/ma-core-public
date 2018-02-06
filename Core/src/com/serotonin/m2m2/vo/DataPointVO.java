@@ -879,7 +879,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 
         if(pointLocator != null){
-            if (loggingType == DataPointVO.LoggingTypes.ON_CHANGE && pointLocator.getDataTypeId() == DataTypes.NUMERIC) {
+            if (pointLocator.getDataTypeId() == DataTypes.NUMERIC && (loggingType == DataPointVO.LoggingTypes.ON_CHANGE ||
+                    loggingType == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)) {
                 if (tolerance < 0)
                     response.addContextualMessage("tolerance", "validate.cannotBeNegative");
             }
