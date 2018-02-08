@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.monitor.DoubleMonitor;
+import com.infiniteautomation.mango.monitor.LongMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
@@ -29,7 +32,7 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> {
+abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> implements ValueMonitorOwner {
 	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";
@@ -53,6 +56,10 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
     private final AtomicLong unsuccessfulPolls = new AtomicLong();
+    private final AtomicLong currentSuccessfulPolls = new AtomicLong();
+    private final LongMonitor currentSuccessfulPollsMonitor;
+    private final LongMonitor lastPollDurationMonitor;
+    private final DoubleMonitor successfulPollsQuotientMonitor;
     private final ConcurrentLinkedQueue<LongLongPair> latestPollTimes;
     private final ConcurrentLinkedQueue<Long> latestAbortedPollTimes;
     private long nextAbortedPollMessageTime = 0l;
@@ -93,6 +100,13 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 			}
         	
         };
+
+        this.currentSuccessfulPollsMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
+                new LongMonitor("PDS_" + vo.getXid() + "_SUCCESS", new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()), this));
+        this.lastPollDurationMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
+                new LongMonitor("PDS_" + vo.getXid() + "_DURATION", new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()), this));
+        this.successfulPollsQuotientMonitor = (DoubleMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
+                new DoubleMonitor("PDS_" + vo.getXid() + "_QUOTIENT", new TranslatableMessage("internal.monitor.pollingDataSource.QUOTIENT", vo.getName()), this));
     }
     
     public void setCronPattern(String cronPattern) {
@@ -109,7 +123,9 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     }
 
     public void incrementSuccessfulPolls(long time) {
-        successfulPolls.incrementAndGet();
+        long successful = successfulPolls.incrementAndGet();
+        currentSuccessfulPolls.incrementAndGet();
+        successfulPollsQuotientMonitor.setValue(successful/(successful + unsuccessfulPolls.get()));
         this.lastPollSuccessful.getAndSet(true);
     }
 
@@ -123,7 +139,13 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
      * @param time
      */
     public void incrementUnsuccessfulPolls(long time) {
+        long consecutiveSuccesses = currentSuccessfulPolls.getAndSet(0);
+        currentSuccessfulPollsMonitor.setValue(consecutiveSuccesses);
+        
         long unsuccessful = unsuccessfulPolls.incrementAndGet();
+        long successful = successfulPolls.get();
+        successfulPollsQuotientMonitor.setValue(successful/(successful + unsuccessful));
+        
         lastPollSuccessful.set(false);
         latestAbortedPollTimes.add(time);
         //Trim the Queue
@@ -162,7 +184,9 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             doPollNoSync(fireTime);
             
             //Save the poll time and duration
-            this.latestPollTimes.add(new LongLongPair(fireTime, Common.timer.currentTimeMillis() - startTs));
+            long pollDuration = Common.timer.currentTimeMillis() - startTs;
+            this.latestPollTimes.add(new LongLongPair(fireTime, pollDuration));
+            this.lastPollDurationMonitor.setValue(pollDuration);
             //Trim the Queue
             while(this.latestPollTimes.size() > 10)
                 this.latestPollTimes.poll();
@@ -260,7 +284,12 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     @Override
     public void terminate() {
         if (timerTask != null)
-            timerTask.cancel();       
+            timerTask.cancel();
+        
+        Common.MONITORED_VALUES.removeStatMonitor(currentSuccessfulPollsMonitor.getId());
+        Common.MONITORED_VALUES.removeStatMonitor(lastPollDurationMonitor.getId());
+        Common.MONITORED_VALUES.removeStatMonitor(successfulPollsQuotientMonitor.getId());
+        
         super.terminate();
     }
 
@@ -323,5 +352,13 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 			latestTimes.add(it.next());
 		}
 		return latestTimes;
+    }
+    
+    /* (non-Javadoc)
+     * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
+     */
+    @Override
+    public void reset(String monitorId) {
+        //TODO Implement if required
     }
 }
