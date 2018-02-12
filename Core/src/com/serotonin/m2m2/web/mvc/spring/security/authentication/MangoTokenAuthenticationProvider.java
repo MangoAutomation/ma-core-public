@@ -53,11 +53,11 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
         String bearerToken = (String) authentication.getCredentials();
 
         User user;
-        Jws<Claims> claims;
+        Jws<Claims> jws;
         
         try {
-            claims = tokenAuthenticationService.parse(bearerToken);
-            user = tokenAuthenticationService.verify(claims);
+            jws = tokenAuthenticationService.parse(bearerToken);
+            user = tokenAuthenticationService.verify(jws);
         } catch (ExpiredJwtException e) {
             throw new CredentialsExpiredException(e.getMessage(), e);
         } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
@@ -74,7 +74,7 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
         userDetailsChecker.check(user);
         
         if (log.isDebugEnabled()) {
-            log.debug("Successfully authenticated user using JWT token, header: " + claims.getHeader() + ", body: " + claims.getBody());
+            log.debug("Successfully authenticated user using JWT token, header: " + jws.getHeader() + ", body: " + jws.getBody());
         }
 
         return new PreAuthenticatedAuthenticationToken(user, bearerToken, user.getAuthorities());

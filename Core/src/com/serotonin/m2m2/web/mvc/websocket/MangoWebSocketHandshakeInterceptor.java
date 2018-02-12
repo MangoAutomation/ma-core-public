@@ -21,9 +21,16 @@ import com.serotonin.m2m2.vo.User;
  * @author Terry Packer
  */
 public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInterceptor{
-	
+
+    // TODO Remove these in Mango 3.4
     public static final String USER_ATTRIBUTE = "user";
     public static final String HTTP_SESSION_ATTRIBUTE = "httpsession";
+    
+    public MangoWebSocketHandshakeInterceptor() {
+        super();
+        this.setCopyAllAttributes(false);
+        this.setCreateSession(false);
+    }
     
 	@Override
 	public boolean beforeHandshake(ServerHttpRequest request,
@@ -36,12 +43,11 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
 		    attributes.put(USER_ATTRIBUTE, user);
 		}
 		
-		// TODO remove this attribute in Mango 3.4, already made available in HttpSessionHandshakeInterceptor as HTTP.SESSION.ID
 		HttpSession session = ((ServletServerHttpRequest)request).getServletRequest().getSession(false);
 		if (session != null) {
 	        attributes.put(HTTP_SESSION_ATTRIBUTE, session);
 		}
-		
+
 		return super.beforeHandshake(request, response, wsHandler, attributes);
 	}
 

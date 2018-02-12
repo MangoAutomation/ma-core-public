@@ -96,7 +96,7 @@ public abstract class JwtSignerVerifier<T> {
     }
     
     /**
-     * Parses the token and verifies it's signature and expiration. Does NOT verify claims!
+     * Parses the token and verifies it's signature and expiration. Does NOT verify any other claims!
      * @param token
      * @return
      */
@@ -114,7 +114,7 @@ public abstract class JwtSignerVerifier<T> {
     }
     
     /**
-     * Parses the token and verifies it's signature, expiration and claims.
+     * Verify a parsed token's claims (NOT expiration).
      * @param token
      * @return
      */

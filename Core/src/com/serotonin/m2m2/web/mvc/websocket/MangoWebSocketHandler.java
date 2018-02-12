@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.vo.User;
 
 /**
+ * TODO Mango 3.4 remove this intermediate layer that serves no purpose.
  * @author Terry Packer
  *
  */
@@ -28,7 +29,6 @@ public abstract class MangoWebSocketHandler extends MangoWebSocketPublisher{
 	 * @return
 	 */
 	protected User getUser(WebSocketSession session) {
-		return (User)session.getAttributes().get(MangoWebSocketHandshakeInterceptor.USER_ATTRIBUTE);
+	    return super.getUser(session);
 	}
-
 }

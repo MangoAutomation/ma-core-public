@@ -39,6 +39,8 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketH
     
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        super.afterConnectionClosed(session, status);
+        
     	lock.writeLock().lock();
     	try{
     		sessions.remove(session);
@@ -73,7 +75,8 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketH
         lock.readLock().lock();
         try{
             for (WebSocketSession session : sessions) {
-                if (hasPermission(getUser(session), vo)) {
+                User user = getUser(session);
+                if (user != null && hasPermission(getUser(session), vo)) {
                     notify(session, action, vo, initiatorId, originalXid);
                 }
             }
@@ -90,6 +93,7 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketH
             DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
             sendMessage(session, notification);
         } catch (Exception e) {
+            // TODO Mango 3.4 add new exception type for closed session and don't try and send error if it was a closed session exception
             try {
                 this.sendErrorMessage(session, MangoWebSocketErrorType.SERVER_ERROR, new TranslatableMessage("rest.error.serverError", e.getMessage()));
             } catch (Exception e1) {

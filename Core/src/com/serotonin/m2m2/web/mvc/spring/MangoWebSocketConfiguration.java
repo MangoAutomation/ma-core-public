@@ -6,7 +6,16 @@ package com.serotonin.m2m2.web.mvc.spring;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
@@ -30,7 +39,47 @@ import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketConfigurer;
  */
 @Configuration
 @EnableWebSocket
-public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer {
+public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer  {
+
+    @Autowired
+    private ConfigurableApplicationContext context;
+    
+    @Autowired
+    private ConfigurableListableBeanFactory beanFactory;
+
+    @PostConstruct
+    public void postConstruct() {
+        // SessionDestroyedEvent from root context are not propagated to the child web context. Register as a listener
+        // on the parent.
+        ConfigurableApplicationContext parent = (ConfigurableApplicationContext) context.getParent();
+        
+        ApplicationListener<SessionDestroyedEvent> listener = this::sessionDestroyed;
+        parent.addApplicationListener(listener);
+    }
+
+    public static class MangoSessionDestroyedEvent extends ApplicationEvent {
+        private static final long serialVersionUID = 1L;
+        private final SessionDestroyedEvent event;
+
+        public MangoSessionDestroyedEvent(SessionDestroyedEvent event) {
+            super(event.getSource());
+            this.event = event;
+        }
+
+        public SessionDestroyedEvent getOriginalEvent() {
+            return event;
+        }
+    }
+    
+    public void sessionDestroyed(SessionDestroyedEvent event) {
+        // cant just publish same event as this would cause a stack overflow, child events propagate to the parent
+        this.context.publishEvent(new MangoSessionDestroyedEvent(event));
+    }
+
+    @Bean
+    public List<WebSocketDefinition> websocketDefinitions() {
+        return ModuleRegistry.getDefinitions(WebSocketDefinition.class);
+    }
     
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -38,22 +87,29 @@ public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer {
 		//Setup Allowed Origins for CORS requests
 		boolean hasOrigins = false;
 		String[] origins = null;
-		if(Common.envProps.getBoolean("rest.cors.enabled", false)){
+		if (Common.envProps.getBoolean("rest.cors.enabled", false)) {
 			hasOrigins = true;
 			origins = Common.envProps.getStringArray("rest.cors.allowedOrigins", ",", new String[0]);
 		}
 
-		List<WebSocketDefinition> defs = ModuleRegistry.getDefinitions(WebSocketDefinition.class);
-		for(WebSocketDefinition def : defs){
+		for (WebSocketDefinition def : websocketDefinitions()) {
 			WebSocketHandler handler = def.getHandlerInstance();
-			if(def.perConnection())
-				handler = new PerConnectionWebSocketHandler(def.getHandlerInstance().getClass());
-			WebSocketHandlerRegistration registration = registry.addHandler(handler, def.getUrl())
-					.setHandshakeHandler(handshakeHandler())
-					.addInterceptors(handshakeIterceptor());
-			if(hasOrigins)
-				registration.setAllowedOrigins(origins);
+
+			if (def.perConnection()) {
+			    PerConnectionWebSocketHandler perConnection = new PerConnectionWebSocketHandler(handler.getClass());
+			    beanFactory.initializeBean(perConnection, PerConnectionWebSocketHandler.class.getName());
+			    handler = perConnection;
+			} else {
+                beanFactory.autowireBean(handler);
+                handler = (WebSocketHandler) beanFactory.initializeBean(handler, handler.getClass().getName());
+			}
+		    
+            WebSocketHandlerRegistration registration = registry.addHandler(handler, def.getUrl())
+                    .setHandshakeHandler(handshakeHandler())
+                    .addInterceptors(handshakeIterceptor());
+            
+            if(hasOrigins)
+                registration.setAllowedOrigins(origins);
 		}
-		
 	}
 }

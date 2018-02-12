@@ -17,7 +17,7 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
  * @author Terry Packer
  *
  */
-public abstract class MangoWebSocketConfigurer implements WebSocketConfigurer{
+public abstract class MangoWebSocketConfigurer implements WebSocketConfigurer {
 
 	@Bean
     public DefaultHandshakeHandler handshakeHandler() {
@@ -37,6 +37,7 @@ public abstract class MangoWebSocketConfigurer implements WebSocketConfigurer{
 	 * Get the interceptor to fill in the session
 	 * @return
 	 */
+	@Bean
 	protected HandshakeInterceptor handshakeIterceptor() {
 		return new MangoWebSocketHandshakeInterceptor();
 	}

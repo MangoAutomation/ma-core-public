@@ -8,9 +8,10 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
-import org.springframework.web.socket.adapter.jetty.JettyWebSocketSession;
+import org.springframework.web.socket.WebSocketSession;
 
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
@@ -25,16 +26,38 @@ import com.serotonin.m2m2.util.timeout.TimeoutTask;
  * @author Terry Packer
  *
  */
-public 	class MangoPingPongTracker extends TimeoutClient{
+public 	class MangoPingPongTracker extends TimeoutClient {
 	
-	private static final Log LOG = LogFactory.getLog(MangoPingPongTracker.class);
+	private final Log log = LogFactory.getLog(this.getClass());
 			
-	private JettyWebSocketSession  session; 
+	private WebSocketSession session;
 	private int timeout;
+	private TimeoutTask task;
+
+	public MangoPingPongTracker(WebSocketSession session, int timeout) {
+	    this.session = session;
+	    this.timeout = timeout;
+
+	    this.sendPing();
+	}
 	
-	public MangoPingPongTracker(JettyWebSocketSession  session, int timeout){
-		this.session = session;
-		this.timeout = timeout;
+	public void sendPing() {
+        try {
+            session.getAttributes().put(MangoWebSocketPublisher.RECEIVED_PONG, Boolean.FALSE);
+            session.sendMessage(new PingMessage());
+        } catch (IOException | WebSocketException e) {
+            if (log.isErrorEnabled()) {
+                log.error("Error sending websocket ping", e);
+            }
+        } finally {
+            task = new TimeoutTask(this.timeout, this);
+        }
+	}
+	
+	public void shutdown() {
+	    if (this.task != null) {
+	        this.task.cancel();
+	    }
 	}
 	
 	/* (non-Javadoc)
@@ -44,29 +67,21 @@ public 	class MangoPingPongTracker extends TimeoutClient{
 	public void scheduleTimeout(long fireTime) {
 		
 		//Shut'er down if we are already dead
-		if((this.session == null)||(!this.session.isOpen()))
+		if (!this.session.isOpen())
 			return;
 		
-		Boolean receivedPong = (Boolean)this.session.getAttributes().get(MangoWebSocketPublisher.RECEIVED_PONG);
-		if(receivedPong){
-			this.session.getAttributes().put(MangoWebSocketPublisher.RECEIVED_PONG, new Boolean(false));
-			try {
-				synchronized(session){
-					session.getNativeSession().getRemote().sendPing(new PingMessage().getPayload());
-				}
-			} catch (IOException e) {
-				LOG.error(e.getMessage(), e);
-			}finally{
-				new TimeoutTask(this.timeout, this);
-			}
-		}else{
+		Boolean receivedPong = (Boolean) this.session.getAttributes().get(MangoWebSocketPublisher.RECEIVED_PONG);
+		if (receivedPong) {
+			this.sendPing();
+		} else {
 			try {
 				session.close(new CloseStatus(CloseStatus.SESSION_NOT_RELIABLE.getCode(), "Didn't receive Pong from Endpoint within " + timeout + " ms."));
 			} catch (IOException e) {
-				LOG.error(e.getMessage(), e);
+                if (log.isErrorEnabled()) {
+                    log.error("Error closing websocket session after poing timeout", e);
+                }
 			}
 		}
-		
 	}
 
 	/* (non-Javadoc)
