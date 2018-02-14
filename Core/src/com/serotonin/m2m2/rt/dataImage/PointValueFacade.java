@@ -142,9 +142,10 @@ public class PointValueFacade {
 
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+                //If there is no value before from the bookend value.value will be null with a value.timestamp == from
                 if(insertInitial) {
                     if(cache != null) {
-                        processRow((PointValueTime)value, index, bookend, false, values, cache);
+                        processRow((PointValueTime)value, index, bookend, false, cache, values);
                     }else {
                         values.add(value);
                     }
@@ -154,7 +155,7 @@ public class PointValueFacade {
             @Override
             public void row(IdPointValueTime value, int index) throws IOException {
                 if(cache != null) {
-                    processRow((PointValueTime)value, index, false, false, values, cache);
+                    processRow((PointValueTime)value, index, false, false, cache, values);
                 }else {
                     values.add(value);
                 }
@@ -164,7 +165,7 @@ public class PointValueFacade {
             public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
                 if(insertFinal) {
                     if(cache != null) {
-                        processRow((PointValueTime)value, index, bookend, false, values, cache);
+                        processRow((PointValueTime)value, index, bookend, false, cache, values);
                     }else {
                         values.add(value);
                     }
@@ -233,18 +234,18 @@ public class PointValueFacade {
      * @return cacheView or null if not allowed to use cache
      */
     private List<PointValueTime> buildCacheView(long from, long to) {
-        if ((point != null) && (useCache))
-            return null;
-        
-        List<PointValueTime> cache = point.getCacheCopy();
-        List<PointValueTime> pointCache = new ArrayList<>(cache.size());
-        for(PointValueTime pvt : cache) {
-            if(pvt.getTime() >= from && pvt.getTime() < to) {
-                pointCache.add(pvt);
+        if ((point != null) && (useCache)) {
+            List<PointValueTime> cache = point.getCacheCopy();
+            List<PointValueTime> pointCache = new ArrayList<>(cache.size());
+            for(PointValueTime pvt : cache) {
+                if(pvt.getTime() >= from && pvt.getTime() < to) {
+                    pointCache.add(pvt);
+                }
             }
-        }
-        if(!pointCache.isEmpty())
-            Collections.sort(pointCache);
-        return pointCache;
+            if(!pointCache.isEmpty())
+                Collections.sort(pointCache);
+            return pointCache;
+        }else
+            return null;
     }
 }
