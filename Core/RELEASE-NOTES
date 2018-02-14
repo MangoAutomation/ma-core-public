@@ -2,6 +2,9 @@
 * Removing superadmin duplicate permission text box on legacy system settings page
 * Adding validation so users know its not possible to change the read only superadmin permission
 * Fixing initializeHistorical to set DataPointRT's pointValue and interval appropriately
+* Enable using websockets with JWT token authentication
+* Fix RQL queries which do in-memory compare against enums
+* Fix default date/time format for REST API
 
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
