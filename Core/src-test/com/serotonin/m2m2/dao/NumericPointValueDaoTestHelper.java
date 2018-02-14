@@ -808,12 +808,8 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(startTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                }else { //no prior value
+                    Assert.assertNull(value.getValue());
                 }
             }
             
@@ -863,12 +859,8 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(startTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                }else { //No prior value
+                    Assert.assertNull(value.getValue());
                 }
             }
             
@@ -928,12 +920,8 @@ public class NumericPointValueDaoTestHelper {
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend)
                     throws IOException {
-                if(value.getId() == seriesId2) {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(0, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                if(value.getId() == seriesId2) { //no value before time 0, value.getValue() should be null
+                    Assert.assertNull(value.getValue());
                 }else
                     Assert.fail("Should not get first value for series 1");
             }
@@ -984,12 +972,8 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(startTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                }else { //Series 1 has no data before startTs so value.getValue() should be null.
+                    Assert.assertNull(value.getValue());
                 }
             }
             
@@ -1043,20 +1027,8 @@ public class NumericPointValueDaoTestHelper {
             
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend)
-                    throws IOException {
-                if(value.getId() == seriesId2) {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }
+                    throws IOException { //No values before series2StartTs
+                Assert.assertNull(value.getValue());
             }
             
             @Override
@@ -1116,12 +1088,8 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(startTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                }else { //Series 1 has no data before startTs so value.getValue() should be null.
+                    Assert.assertNull(value.getValue());
                 }
             }
             
@@ -1179,23 +1147,11 @@ public class NumericPointValueDaoTestHelper {
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
             
+            //Neither has data before series2StartTs so value.getValue() should be null.
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend)
                     throws IOException {
-                if(value.getId() == seriesId2) {
-                    //This has a value before the startTs
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }
+                Assert.assertNull(value.getValue());
             }
             
             @Override
@@ -1262,12 +1218,8 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(startTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                }else { //No prior value
+                    Assert.assertNull(value.getValue());
                 }
             }
             
@@ -1327,21 +1279,8 @@ public class NumericPointValueDaoTestHelper {
             
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend)
-                    throws IOException {
-                if(value.getId() == seriesId2) {
-                    //This has a value before the startTs
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }
+                    throws IOException { //no data prior
+                Assert.assertNull(value.getValue());
             }
             
             @Override
@@ -1409,12 +1348,8 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(startTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
+                }else { //No prior value
+                    Assert.assertNull(value.getValue());
                 }
             }
             
@@ -1483,21 +1418,8 @@ public class NumericPointValueDaoTestHelper {
             
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend)
-                    throws IOException {
-                if(value.getId() == seriesId2) {
-                    //This has a value before the startTs
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }else {
-                    //Check value
-                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
-                    //Check time
-                    Assert.assertEquals(series2StartTs - 1, value.getTime());
-                    Assert.assertEquals(true, bookend);
-                }
+                    throws IOException { //No data prior
+                Assert.assertNull(value.getValue());
             }
             
             @Override
