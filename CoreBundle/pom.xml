@@ -161,7 +161,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mango-api</artifactId>
-			<version>3.3.2-SNAPSHOT</version>
+			<version>3.3.4-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -427,7 +427,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>excel-reports</artifactId>
-			<version>3.3.2-SNAPSHOT</version>
+			<version>3.3.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -481,7 +481,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
