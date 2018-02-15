@@ -893,10 +893,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                                     callback.firstValue(new IdPointValueTime(current.getId(), before.getValue(), from), counter.getValue(), true);
                                 }
                             }else {
-                                if(current.isAnnotated())
-                                    callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, ((AnnotatedIdPointValueTime)current).getSourceMessage()), counter.getValue(), true);
-                                else
-                                    callback.firstValue(new IdPointValueTime(current.getId(), current.getValue(), from), counter.getValue(), true);
+                                //No value before, send out null
+                                callback.firstValue(new IdPointValueTime(current.getId(), null, from), counter.getValue(), true);
                             }
                         }else {
                             //Send the start value since it's time == from
