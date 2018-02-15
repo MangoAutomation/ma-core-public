@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.dataSource;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,6 +98,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 			@Override
 			public void rejected(RejectedTaskReason reason) {
 				incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+				updateSuccessfulPollQuotient();
 				Common.backgroundProcessing.rejectedHighPriorityTask(reason);
 			}
         	
@@ -144,8 +147,6 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         currentSuccessfulPollsMonitor.setValue(consecutiveSuccesses);
         
         long unsuccessful = unsuccessfulPolls.incrementAndGet();
-        long successful = successfulPolls.get();
-        successfulPollsQuotientMonitor.setValue(successful/(successful + unsuccessful));
         
         lastPollSuccessful.set(false);
         latestAbortedPollTimes.add(time);
@@ -165,38 +166,48 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             this.raiseEvent(eventId, time, false, new TranslatableMessage("event.pollAborted", vo.getXid(), vo.getName()));
     }
 
+    protected void updateSuccessfulPollQuotient() {
+        long unsuccessful = unsuccessfulPolls.get();
+        long successful = successfulPolls.get(); 
+        BigDecimal bd = new BigDecimal((double)successful/(double)(successful + unsuccessful));
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        successfulPollsQuotientMonitor.setValue(bd.doubleValue());
+    }
+    
     public synchronized void scheduleTimeoutImpl(long fireTime) {
         try {
             jobThread = Thread.currentThread();
-            
-	    	long startTs = Common.timer.currentTimeMillis();
-	    	
-	    	//Check to see if this poll is running after it's next poll time, i.e. polls are backing up
-	    	if((cronPattern == null)&&((startTs - fireTime) > pollingPeriodMillis)){
-	           	incrementUnsuccessfulPolls(fireTime);
-	            return;
-	        }
-	        
-	        incrementSuccessfulPolls(fireTime);
+
+            long startTs = Common.timer.currentTimeMillis();
+
+            // Check to see if this poll is running after it's next poll time, i.e. polls are
+            // backing up
+            if ((cronPattern == null) && ((startTs - fireTime) > pollingPeriodMillis)) {
+                incrementUnsuccessfulPolls(fireTime);
+                return;
+            }
+
+            incrementSuccessfulPolls(fireTime);
 
             // Check if there were changes to the data points list.
             updateChangedPoints(fireTime);
 
             doPollNoSync(fireTime);
-            
-            //Save the poll time and duration
+
+            // Save the poll time and duration
             long pollDuration = Common.timer.currentTimeMillis() - startTs;
             this.latestPollTimes.add(new LongLongPair(fireTime, pollDuration));
             this.lastPollDurationMonitor.setValue(pollDuration);
-            //Trim the Queue
-            while(this.latestPollTimes.size() > 10)
+            // Trim the Queue
+            while (this.latestPollTimes.size() > 10)
                 this.latestPollTimes.poll();
-        }
-        finally {
+        } finally {
             if (terminationLock != null) {
                 synchronized (terminationLock) {
                     terminationLock.notifyAll();
                 }
+            }else {
+                updateSuccessfulPollQuotient();
             }
             jobThread = null;
         }
@@ -262,7 +273,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
             long delay = 0;
             if (quantize){
                 // Quantize the start.
-            	long now = Common.timer.currentTimeMillis();
+                long now = Common.timer.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
                 if(LOG.isDebugEnabled())
                 	LOG.debug("First poll should be at: " + (now + delay));
