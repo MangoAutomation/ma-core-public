@@ -106,11 +106,11 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 
         //Set it to -1 so that if it never aborts we can distinguish from always aborting
         this.currentSuccessfulPollsMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new LongMonitor("PDS_" + vo.getXid() + "_SUCCESS", new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()), this, -1));
+                new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_SUCCESS", new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()), this, -1));
         this.lastPollDurationMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new LongMonitor("PDS_" + vo.getXid() + "_DURATION", new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()), this));
+                new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_DURATION", new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()), this));
         this.successfulPollsQuotientMonitor = (DoubleMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new DoubleMonitor("PDS_" + vo.getXid() + "_QUOTIENT", new TranslatableMessage("internal.monitor.pollingDataSource.QUOTIENT", vo.getName()), this));
+                new DoubleMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_QUOTIENT", new TranslatableMessage("internal.monitor.pollingDataSource.QUOTIENT", vo.getName()), this));
     }
     
     public void setCronPattern(String cronPattern) {
