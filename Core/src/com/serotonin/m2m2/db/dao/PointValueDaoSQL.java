@@ -65,6 +65,7 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.pair.LongPair;
+import com.serotonin.metrics.EventHistogram;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
@@ -1378,6 +1379,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
     public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
     public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
+    final static EventHistogram writesPerSecond = new EventHistogram(5000, 2);
 
     private static final ValueMonitorOwner valueOwner = new ValueMonitorOwner(){
 
@@ -1511,22 +1513,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     int retries = 10;
                     while (true) {
                         try {
-
-                            Long time = null;
-                            if (inserts.length > 10) {
-                            	time = Common.timer.currentTimeMillis();
-                            }
-
                             ejt.update(sb.toString(), params);
-
-                            if (time != null) {
-                                long elapsed = Common.timer.currentTimeMillis() - time;
-                                if (elapsed > 0) {
-                                    double writesPerSecond = ((double) inserts.length / (double) elapsed) * 1000d;
-                                    BATCH_WRITE_SPEED_MONITOR.setValue((int) writesPerSecond);
-                                }
-                            }
-
+                            writesPerSecond.hitMultiple(inserts.length);
+                            BATCH_WRITE_SPEED_MONITOR.setValue(writesPerSecond.getEventCounts()[0] / 5);
                             break;
                         }
                         catch (RuntimeException e) {

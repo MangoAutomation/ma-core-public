@@ -43,7 +43,12 @@ public class EventHistogram {
         update();
         buckets[position]++;
     }
-
+    
+    public void hitMultiple(int count){
+        update();
+        buckets[position] = buckets[position] + count;
+    }
+    
     /**
      * Returns a snapshot of the event count array. The value at 0 is the oldest count. The value at length-1 is the
      * current count, which typically will be understated because the period will probably be incomplete.
