@@ -1,5 +1,6 @@
 *Version 3.3.2*
 * Adding Interval Log On Change logging type for data points, ensure you update the MangoApi module to 3.3.3
+* Adding bookend query to improve visuals of JFree chart on Legacy Data Point Details page.
 
 *Version 3.3.1*
 * Removing superadmin duplicate permission text box on legacy system settings page
