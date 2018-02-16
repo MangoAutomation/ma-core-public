@@ -93,7 +93,7 @@ public class DataPointDetailsDwr extends DataPointDwr {
     @DwrPermission(user = true)
     public ProcessResult getImageChartData(int fromYear, int fromMonth, int fromDay, int fromHour, int fromMinute,
             int fromSecond, boolean fromNone, int toYear, int toMonth, int toDay, int toHour, int toMinute,
-            int toSecond, boolean toNone, int width, int height) {
+            int toSecond, boolean toNone, int width, int height, boolean useCache) {
         DateTimeZone dtz = Common.getUser().getDateTimeZoneInstance();
         DateTime from = createDateTime(fromYear, fromMonth, fromDay, fromHour, fromMinute, fromSecond, fromNone, dtz);
         DateTime to = createDateTime(toYear, toMonth, toDay, toHour, toMinute, toSecond, toNone, dtz);
@@ -111,6 +111,8 @@ public class DataPointDetailsDwr extends DataPointDwr {
         htmlData.append(width);
         htmlData.append("&h=");
         htmlData.append(height);
+        if(useCache)
+            htmlData.append("&useCache=true");
         htmlData.append("\" alt=\"" + translate("common.imageChart") + "\"/>");
 
         ProcessResult response = new ProcessResult();

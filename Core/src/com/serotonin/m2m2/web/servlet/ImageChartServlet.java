@@ -10,6 +10,7 @@ import java.awt.Paint;
 import java.awt.Stroke;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -33,6 +34,7 @@ import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEven
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
 import com.serotonin.m2m2.util.chart.ImageChartUtils;
 import com.serotonin.m2m2.util.chart.NumericTimeSeries;
@@ -42,7 +44,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
-import com.serotonin.m2m2.util.ColorUtils;
 
 public class ImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
@@ -104,6 +105,8 @@ public class ImageChartServlet extends BaseInfoServlet {
         // Width and height can also be added to the image name in case they change dynamically. Add them to the data
         // point id list but prepend them with w and h: "_w500_h250.png"
         //
+        // Optionally use cached values by adding a useCache=true parameter to the URL
+        //
         // Hex colour definitions need to be prefixed with '0x' instead of '#'.
         try {
             // Remove the / and the .png
@@ -128,6 +131,11 @@ public class ImageChartServlet extends BaseInfoServlet {
 
             int width = getIntRequestParameter(request, "w", 200);
             int height = getIntRequestParameter(request, "h", 100);
+            
+            String useCacheString = request.getParameter("useCache");
+            boolean useCache = false;
+            if(useCacheString != null && Boolean.valueOf(useCacheString))
+                useCache = true;
 
             TimeZone timeZone = Common.getUserTimeZone(Common.getUser(request));
 
@@ -177,14 +185,14 @@ public class ImageChartServlet extends BaseInfoServlet {
                         	}
                         }
                         
-                        PointValueFacade pointValueFacade = new PointValueFacade(dataPointId);
+                        PointValueFacade pointValueFacade = new PointValueFacade(dataPointId, useCache);
                         List<PointValueTime> data;
                         if (from == -1 && to == -1)
-                            data = pointValueFacade.getPointValuesBetween(Long.MIN_VALUE, Long.MAX_VALUE, true, true);
+                            data = pointValueFacade.getPointValuesBetween(0, Common.timer.currentTimeMillis(), true, true);
                         else if (from == -1)
                             data = pointValueFacade.getPointValuesBetween(0, to, true, true);
                         else if (to == -1)
-                            data = pointValueFacade.getPointValuesBetween(from, Long.MAX_VALUE, true, true);
+                            data = pointValueFacade.getPointValuesBetween(from, Common.timer.currentTimeMillis(), true, true);
                         else
                             data = pointValueFacade.getPointValuesBetween(from, to, true, true);
 
