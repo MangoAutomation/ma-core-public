@@ -99,7 +99,7 @@
           var width = dojo.contentBox($("imageChartDiv")).w - 20;
           DataPointDetailsDwr.getImageChartData($get("fromYear"), $get("fromMonth"), $get("fromDay"), $get("fromHour"),
                 $get("fromMinute"), $get("fromSecond"), $get("fromNone"), $get("toYear"), $get("toMonth"), 
-                $get("toDay"), $get("toHour"), $get("toMinute"), $get("toSecond"), $get("toNone"), width, 350, function(response) {
+                $get("toDay"), $get("toHour"), $get("toMinute"), $get("toSecond"), $get("toNone"), width, 350, false, function(response) {
               $("imageChartDiv").innerHTML = response.data.chart;
               $("imageChartAsof").innerHTML = response.data.asof;
               stopImageFader($("imageChartImg"));
