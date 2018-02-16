@@ -38,7 +38,9 @@ public 	class MangoPingPongTracker extends TimeoutClient {
 	    this.session = session;
 	    this.timeout = timeout;
 
-	    this.sendPing();
+	    if (this.session.isOpen()) {
+	        this.sendPing();
+	    }
 	}
 	
 	public void sendPing() {
