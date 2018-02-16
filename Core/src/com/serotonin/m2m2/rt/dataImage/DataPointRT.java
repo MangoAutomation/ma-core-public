@@ -72,7 +72,6 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     private TimerTask intervalLoggingTask;
 
     //Simulation Timer, or any timer implementation
-    //TODO Remove references to Common.timer and pass into constructor?
     private AbstractTimer timer;
     
     /**
@@ -80,6 +79,13 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
      */
     private double toleranceOrigin;
 
+    /**
+     * TODO Remove this constructor in 3.4 and force use of a timer
+     * @param vo
+     * @param pointLocator
+     * @param dsVo
+     * @param initialCache
+     */
     public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
         this.vo = vo;
         this.dsVo = dsVo;
@@ -106,33 +112,6 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         this.timer = timer;
     }
     
-    /**
-     * For Legacy compatibility in 2.7.12
-     * 
-     * TODO Remove in 2.7.8 and fix modules
-     * 
-	 * @param DataPoint
-	 * @param Point Locator RT
-	 */
-	public DataPointRT(DataPointVO dp, PointLocatorRT<?> rt) {
-		this(dp, rt, DataSourceDao.instance.get(dp.getDataSourceId()), null);
-	}
-
-    /**
-     * For Legacy compatibility in 2.7.12
-     * 
-     * TODO Remove in 2.7.8 and fix modules
-     * 
-     * To allow simulation of points using a timer implementation
-     * @param vo
-     * @param pointLocator
-     * @param timer
-     */
-    public DataPointRT(DataPointVO dp, PointLocatorRT<?> pointLocator, AbstractTimer timer) {
-        this(dp, pointLocator, DataSourceDao.instance.get(dp.getDataSourceId()), null);
-        this.timer = timer;
-    }
-	
 	//
     //
     // Single value
