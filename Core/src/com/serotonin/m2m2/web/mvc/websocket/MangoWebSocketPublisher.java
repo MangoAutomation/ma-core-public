@@ -147,6 +147,9 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 
     /**
      * Send an error message
+     * 
+     * TODO Mango 3.4 remove throws Exception
+     * 
      * @param session
      * @param errorType
      * @param message
@@ -162,6 +165,9 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 
     /**
      * Send a positive response
+     * 
+     * TODO Mango 3.4 remove throws Exception
+     * 
      * @param session
      * @param payload
      * @throws JsonProcessingException
@@ -179,12 +185,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
      * @param message
      * @throws IOException
      */
-    protected void sendStringMessageAsync(WebSocketSession session, String message) throws Exception {
-        // TODO Mango 3.4 add new exception type for closed session and don't try and send error if it was a closed session exception
-        if (!session.isOpen()) {
-            throw new Exception("Websocket session is closed, can't send message");
-        }
-
+    protected void sendStringMessageAsync(WebSocketSession session, String message) {
         JettyWebSocketSession jettySession = (JettyWebSocketSession) session;
         jettySession.getNativeSession().getRemote().sendStringByFuture(message);
     }
