@@ -929,6 +929,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }
                 
                 //Do final value logic
+                List<IdPointValueTime> bookends = new ArrayList<>(ids.size());
                 for(Integer id: ids) {
                     IdPointValueTime current = values.get(id);
                     if(current == null) {
@@ -960,7 +961,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                                 }else {
                                     post = new IdPointValueTime(id, current.getValue(), to);
                                 }
-                                callback.lastValue(post, counter.getValue(), true);
+                                //So that the bookends are processed last (in time order)
+                                bookends.add(post);
                             }else {
                                 callback.lastValue(current, counter.getValue(), false);
                                 counter.increment();
@@ -972,6 +974,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         values.remove(id);
                     }
                 }
+                //Finally push out bookends
+                for(IdPointValueTime post : bookends)
+                    callback.lastValue(post, counter.getValue(), true);
             }catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 ps.cancel();

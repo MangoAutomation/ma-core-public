@@ -1,7 +1,8 @@
 *Version 3.3.2*
 * Adding Interval Log On Change logging type for data points, ensure you update the MangoApi module to 3.3.3
-* Fixes for broken SQL point value bookend query to now return null data value for first values before query time if none exists
-* Adding bookend query to improve visuals of JFree chart on Legacy Data Point Details page.
+* Fix for broken SQL point value bookend query to now return null data value for first values before query time if none exists
+* Fix for broken SQL point value bookend query to return bookends in time order of query
+* Using bookend query to improve visuals of JFree chart on Legacy Data Point Details page.
 * Improved accuracy of writes per second for SQL Point Value databases
 * Fixed JsonEmport script utility always had admin privilege
 * Offer default script permissions to event handlers
