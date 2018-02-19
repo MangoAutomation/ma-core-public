@@ -35,8 +35,8 @@ public class JsonEmportScriptUtility {
 	private final List<JsonImportExclusion> importExclusions;
 	
 	public JsonEmportScriptUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
-		admin = Permissions.hasPermission(permissions.getDataSourcePermissions(), SuperadminPermissionDefinition.GROUP_NAME) &&
-				Permissions.hasPermission(permissions.getDataPointSetPermissions(), SuperadminPermissionDefinition.GROUP_NAME);
+		admin = Permissions.hasPermission(SuperadminPermissionDefinition.GROUP_NAME, permissions.getDataSourcePermissions()) &&
+				Permissions.hasPermission(SuperadminPermissionDefinition.GROUP_NAME, permissions.getDataPointSetPermissions());
 		this.parser = new RQLParser();
 		this.importExclusions = importExclusions;
 	}

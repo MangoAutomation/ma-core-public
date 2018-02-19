@@ -40,6 +40,7 @@
     var inactiveRecipients;
     var store;
     var targetPointSelector,activePointSelector,inactivePointSelector;
+    var userNewScriptPermissions;
     
     var contextArray = new Array(); 
     
@@ -300,6 +301,10 @@
                 }
             }
             
+            //
+            // Make default script permissions for the user available
+            userNewScriptPermissions = data.userNewScriptPermissions
+            
             function createEventTypeNode(widgetId, eventType, parent) {
                 makeNonTreeItem(eventType);
                 var node = {
@@ -455,13 +460,13 @@
             $set("xid", handler.xid);
             $set("alias", handler.alias);
             $set("disabled", handler.disabled);
+            setScriptPermissions(handler.scriptPermissions);
             if (handler.handlerType == '<c:out value="<%= SetPointEventHandlerDefinition.TYPE_NAME %>"/>') {
                 targetPointSelector.set('value',handler.targetPointId);
                 $set("activeAction", handler.activeAction);
                 $set("inactiveAction", handler.inactiveAction);
                 activeEditor.setValue(handler.activeScript);
                 inactiveEditor.setValue(handler.inactiveScript);
-                setScriptPermissions(handler.scriptPermissions);
                 contextArray = new Array();
                 for(var k = 0; k < handler.additionalContext.length; k+=1)
                 	addToContextArray(handler.additionalContext[k].key, handler.additionalContext[k].value)
@@ -523,8 +528,8 @@
             writeContextArray("emailContextTable");
             writeContextArray("setpointContextTable");
             
-            // Clear the script permissions.
-            setScriptPermissions({"scriptDataSourcePermission":"", "scriptDataPointReadPermission":"", "scriptDataPointSetPermission":""});
+            // Set default permissions for new handler
+            setScriptPermissions(userNewScriptPermissions);
         }
         
         // Set the use source value checkbox.

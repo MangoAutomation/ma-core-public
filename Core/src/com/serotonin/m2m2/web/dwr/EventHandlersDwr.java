@@ -215,8 +215,11 @@ public class EventHandlersDwr extends BaseDwr {
                     adminEventTypes.put(def.getTypeName(), info);
                 }
             }
+            
         }
 
+        model.put("userNewScriptPermissions", new ScriptPermissions(user));
+        
         // Get the mailing lists.
         model.put(SchemaDefinition.MAILING_LISTS_TABLE, MailingListDao.instance.getMailingLists());
 
