@@ -849,6 +849,7 @@ public class NumericPointValueDaoTestHelper {
     
     public void testBookendExceptionInLastValueCallback() {
         MutableInt count = new MutableInt();
+        MutableInt lastValueCallCount = new MutableInt();
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -893,13 +894,15 @@ public class NumericPointValueDaoTestHelper {
             @Override
             public void lastValue(IdPointValueTime value, int index, boolean bookend)
                     throws IOException {
+                lastValueCallCount.increment();
                 throw new IOException("Last Value Callback Exception");
             }
             
         });
-        //We take one off the total because the exception is thrown on lastValue for series 1 when there is still
-        //  1 row left for series 2
-        Assert.assertEquals(new Integer(totalSampleCount * 2 - 1) , count.getValue());   
+        //Since the exception is thrown in last value all the true values should have been sent out already
+        Assert.assertEquals(new Integer(totalSampleCount * 2) , count.getValue());   
+        //Ensure that last value is only called once due to the exception
+        Assert.assertEquals(new Integer(1) , lastValueCallCount.getValue());
     }
     
     public void testBookendNoDataInBothSeries() {
