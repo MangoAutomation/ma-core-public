@@ -1,12 +1,3 @@
-*Version 3.3.2*
-* Adding Interval Log On Change logging type for data points, ensure you update the MangoApi module to 3.3.3
-* Fix for broken SQL point value bookend query to now return null data value for first values before query time if none exists
-* Fix for broken SQL point value bookend query to return bookends in time order of query
-* Using bookend query to improve visuals of JFree chart on Legacy Data Point Details page.
-* Improved accuracy of writes per second for SQL Point Value databases
-* Fixed JsonEmport script utility always had admin privilege
-* Offer default script permissions to event handlers
-
 *Version 3.3.1*
 * Removing superadmin duplicate permission text box on legacy system settings page
 * Adding validation so users know its not possible to change the read only superadmin permission
@@ -14,6 +5,13 @@
 * Enable using websockets with JWT token authentication
 * Fix RQL queries which do in-memory compare against enums
 * Fix default date/time format for REST API
+* Adding Interval Log On Change logging type for data points, ensure you update the MangoApi module to 3.3.3
+* Fix for broken SQL point value bookend query to now return null data value for first values before query time if none exists
+* Fix for broken SQL point value bookend query to return bookends in time order of query
+* Using bookend query to improve visuals of JFree chart on Legacy Data Point Details page.
+* Improved accuracy of writes per second for SQL Point Value databases
+* Fixed JsonEmport script utility always had admin privilege
+* Offer default script permissions to event handlers
 
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"

@@ -940,12 +940,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                                 AnnotatedIdPointValueTime pre = new AnnotatedIdPointValueTime(id, prevValue.getValue(), from, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
                                 callback.firstValue(pre, counter.getValue(), true);
                                 AnnotatedIdPointValueTime post = new AnnotatedIdPointValueTime(id, prevValue.getValue(), to, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
-                                callback.lastValue(post, counter.getValue(), true);
+                                bookends.add(post);
                             }else {
                                 IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
                                 callback.firstValue(pre, counter.getValue(), true);
                                 IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
-                                callback.lastValue(post, counter.getValue(), true);
+                                bookends.add(post);
                             }
                         }
                     }else {
