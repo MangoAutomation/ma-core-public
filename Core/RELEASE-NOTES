@@ -3,6 +3,8 @@
 * Fixes for broken SQL point value bookend query to now return null data value for first values before query time if none exists
 * Adding bookend query to improve visuals of JFree chart on Legacy Data Point Details page.
 * Improved accuracy of writes per second for SQL Point Value databases
+* Fixed JsonEmport script utility always had admin privilege
+* Offer default script permissions to event handlers
 
 *Version 3.3.1*
 * Removing superadmin duplicate permission text box on legacy system settings page
