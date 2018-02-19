@@ -137,6 +137,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                             user.setPhone("");
                             user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
                             user.setDisabled(false);
+                            user.setHomeUrl("/ui/administration/home");
                             UserDao.instance.saveUser(user);
                         	
                             DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
