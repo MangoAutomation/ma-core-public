@@ -12,5 +12,5 @@ import com.serotonin.m2m2.module.definitions.actions.PurgeFilter;
  * @author Phillip Dunlap
  */
 public abstract class PurgeFilterDefinition extends ModuleElementDefinition {
-    public abstract PurgeFilter newPurgeFilter();
+    public abstract PurgeFilter getPurgeFilter();
 }

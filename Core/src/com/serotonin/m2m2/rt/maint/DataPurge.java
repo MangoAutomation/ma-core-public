@@ -140,7 +140,7 @@ public class DataPurge {
             
             List<PurgeFilter> purgeFilters = new ArrayList<PurgeFilter>();
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
-                purgeFilters.add(pfd.newPurgeFilter());
+                purgeFilters.add(pfd.getPurgeFilter());
 
             // No matter when this purge actually runs, we want it to act like it's midnight.
             DateTime cutoff = new DateTime(runtime);
