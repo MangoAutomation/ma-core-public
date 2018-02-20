@@ -12,6 +12,7 @@
 * Improved accuracy of writes per second for SQL Point Value databases
 * Fixed JsonEmport script utility always had admin privilege
 * Offer default script permissions to event handlers
+* Fix bug in text email template for data point events
 
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"

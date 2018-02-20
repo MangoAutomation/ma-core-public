@@ -4,7 +4,7 @@
 -->
 <#include "alarmLevel.ftl">${evt.prettyActiveTimestamp} - <@fmt message=evt.message/>
 
-<#if renderedHtmlPointValues??>
+<#if renderedPointValues??>
   <#list renderedPointValues as renderedPvt>
   ${renderedPvt.value} @ ${renderedPvt.time}
   </#list>
