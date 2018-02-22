@@ -5,8 +5,7 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import java.io.Serializable;
-
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
@@ -30,7 +29,7 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
             return true;
         if (pvt1 == null || pvt2 == null)
             return false;
-        return ObjectUtils.equals(pvt1.getValue(), pvt2.getValue());
+        return Objects.equals(pvt1.getValue(), pvt2.getValue());
     }
 
     public static DataValue getValue(PointValueTime pvt) {
@@ -98,7 +97,7 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
         PointValueTime that = (PointValueTime) o;
         if (time != that.time)
             return false;
-        return ObjectUtils.equals(value, that.value);
+        return Objects.equals(value, that.value);
     }
 
     @Override
