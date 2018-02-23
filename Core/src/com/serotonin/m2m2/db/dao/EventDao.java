@@ -191,7 +191,7 @@ public class EventDao extends BaseDao {
     }
 
     public EventInstance get(int eventId){
-    	return queryForObject(BASIC_EVENT_SELECT + " where e.id = ?", new Object[]{ eventId }, new EventInstanceRowMapper());
+    	return queryForObject(BASIC_EVENT_SELECT + " where e.id = ?", new Object[]{ eventId }, new EventInstanceRowMapper(), null);
     }
     
     private static final String EVENT_SELECT_WITH_USER_DATA = //

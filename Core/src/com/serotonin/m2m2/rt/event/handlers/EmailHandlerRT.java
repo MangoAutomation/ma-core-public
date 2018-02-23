@@ -35,6 +35,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -158,6 +159,14 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         // have not been overridden.
         if (vo.isSendInactive() && !vo.isInactiveOverride())
             inactiveRecipients.addAll(addresses);
+        
+        //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted
+        // and in which case we want to notice rather than send emails forever.
+        EventInstance dbEvent = EventDao.instance.get(evt.getId());
+        if(dbEvent != null && !dbEvent.isAcknowledged() && dbEvent.isActive()) {
+            long delayMS = Common.getMillis(vo.getEscalationDelayType(), vo.getEscalationDelay());
+            escalationTask = new ModelTimeoutTask<EventInstance>(delayMS, this, dbEvent);
+        }
     }
 
     @Override
