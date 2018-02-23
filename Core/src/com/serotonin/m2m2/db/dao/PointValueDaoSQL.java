@@ -930,6 +930,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 
                 //Do final value logic
                 List<IdPointValueTime> bookends = new ArrayList<>(ids.size());
+                List<IdPointValueTime> pairs = new ArrayList<>(values.size());
                 for(Integer id: ids) {
                     IdPointValueTime current = values.get(id);
                     if(current == null) {
@@ -950,28 +951,33 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         }
                     }else {
                         //Had data, write out as last value, possibly as a bookend
-                        if(limit == null || counter.getValue() < limit - values.size()) {
-                            if(current.getTime() != to) {
-                                //Send out this value as a row, then bookend it
-                                callback.row(current, counter.getValue());
-                                counter.increment();
-                                IdPointValueTime post;
-                                if(current.isAnnotated()) {
-                                    post = new AnnotatedIdPointValueTime(id, current.getValue(), to, ((AnnotatedIdPointValueTime) current).getSourceMessage());
-                                }else {
-                                    post = new IdPointValueTime(id, current.getValue(), to);
-                                }
-                                //So that the bookends are processed last (in time order)
-                                bookends.add(post);
+                        pairs.add(current);
+                        values.remove(id);
+                    }
+                }
+                //Send out ordered data
+                Collections.sort(pairs);
+                for(IdPointValueTime current : pairs) {
+                    if(limit == null || counter.getValue() < limit - values.size()) {
+                        if(current.getTime() != to) {
+                            //Send out this value as a row, then bookend it
+                            callback.row(current, counter.getValue());
+                            counter.increment();
+                            IdPointValueTime post;
+                            if(current.isAnnotated()) {
+                                post = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), to, ((AnnotatedIdPointValueTime) current).getSourceMessage());
                             }else {
-                                callback.lastValue(current, counter.getValue(), false);
-                                counter.increment();
+                                post = new IdPointValueTime(current.getId(), current.getValue(), to);
                             }
+                            //So that the bookends are processed last (in time order)
+                            bookends.add(post);
                         }else {
                             callback.lastValue(current, counter.getValue(), false);
                             counter.increment();
                         }
-                        values.remove(id);
+                    }else {
+                        callback.lastValue(current, counter.getValue(), false);
+                        counter.increment();
                     }
                 }
                 //Finally push out bookends
