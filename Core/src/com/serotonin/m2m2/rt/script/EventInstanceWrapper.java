@@ -1,6 +1,7 @@
 package com.serotonin.m2m2.rt.script;
 
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.type.EventType;
 
 public class EventInstanceWrapper {
 	private final EventInstance event;
@@ -9,6 +10,9 @@ public class EventInstanceWrapper {
 		this.event = event;
 	}
 	
+	public EventType getEventTypeObject() {
+	    return event.getEventType();
+	}
 	public String getType() {
 		return event.getEventType().getEventType();
 	}
@@ -19,7 +23,7 @@ public class EventInstanceWrapper {
 		return event.getEventType().getReferenceId1();
 	}
 	public int getReferenceId2() {
-		return event.getEventType().getReferenceId1();
+		return event.getEventType().getReferenceId2();
 	}
 	public long getActiveTimestamp() {
 		return event.getActiveTimestamp();
@@ -48,6 +52,7 @@ public class EventInstanceWrapper {
 		StringBuilder builder = new StringBuilder();
     	builder.append("{\n");
     	
+    	builder.append("getEventTypeObject(): EventType,\n");
     	builder.append("getType(): String,\n");
     	builder.append("getSubtype(): String,\n");
     	builder.append("getReferenceId1(): int,\n");
