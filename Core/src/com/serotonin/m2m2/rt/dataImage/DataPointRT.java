@@ -20,7 +20,6 @@ import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
@@ -581,6 +580,12 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     public void resetValues() {
         valueCache.reset();
+        if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE)
+            pointValue = valueCache.getLatestPointValue();
+    }
+    
+    public void resetValues(long before) {
+        valueCache.reset(before);
         if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE)
             pointValue = valueCache.getLatestPointValue();
     }

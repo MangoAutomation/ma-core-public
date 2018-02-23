@@ -813,7 +813,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     public long purgeDataPointValues() {
         long count = Common.databaseProxy.newPointValueDao().deleteAllPointData();
         for (Integer id : dataPoints.keySet())
-            updateDataPointValuesRT(id);
+            updateDataPointValuesRT(id, Long.MAX_VALUE);
         return count;
     }
 
@@ -824,7 +824,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     public void purgeDataPointValuesWithoutCount() {
         Common.databaseProxy.newPointValueDao().deleteAllPointDataWithoutCount();
         for (Integer id : dataPoints.keySet())
-            updateDataPointValuesRT(id);
+            updateDataPointValuesRT(id, Long.MAX_VALUE);
         return;
     }
     
@@ -843,7 +843,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     @Override
     public long purgeDataPointValues(int dataPointId) {
         long count = Common.databaseProxy.newPointValueDao().deletePointValues(dataPointId);
-        updateDataPointValuesRT(dataPointId);
+        updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
         return count;
     }
     
@@ -853,7 +853,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
 	@Override
     public boolean purgeDataPointValuesWithoutCount(int dataPointId) {
 		if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(dataPointId)){
-			updateDataPointValuesRT(dataPointId);
+			updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
 			return true;
 		}else
 			return false;
@@ -878,7 +878,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     public long purgeDataPointValues(int dataPointId, long before) {
        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
         if (count > 0)
-            updateDataPointValuesRT(dataPointId);
+            updateDataPointValuesRT(dataPointId, before);
         return count;
     }
     
@@ -889,7 +889,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     public long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime) {
         long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(dataPointId, startTime, endTime);
         if(count > 0)
-            updateDataPointValuesRT(dataPointId);
+            updateDataPointValuesRT(dataPointId, endTime);
         return count;
     }
 
@@ -899,7 +899,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     @Override
     public boolean purgeDataPointValuesWithoutCount(int dataPointId, long before) {
         if(Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(dataPointId, before)){
-             updateDataPointValuesRT(dataPointId);
+             updateDataPointValuesRT(dataPointId, before);
              return true;
         }else
          return false;
@@ -911,6 +911,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
         if (dataPoint != null)
             // Enabled. Reset the point's cache.
             dataPoint.resetValues();
+    }
+    
+    private void updateDataPointValuesRT(int dataPointId, long before) {
+        DataPointRT dataPoint = dataPoints.get(dataPointId);
+        if (dataPoint != null)
+            // Enabled. Reset the point's cache.
+            dataPoint.resetValues(before);
     }
 
     //

@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -228,16 +229,24 @@ public class PointValueCache {
     }
 
     public void reset() {
-        List<PointValueTime> c = cache;
-
-        int size = defaultSize;
-        if (c.size() < size)
-            size = c.size();
-
-        List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-        nc.addAll(c.subList(0, size));
-
-        maxSize = size;
+        List<PointValueTime> nc = dao.getLatestPointValues(dataPointId, defaultSize);
+        maxSize = defaultSize;
         cache = nc;
+    }
+    
+    public void reset(long before) {
+        List<PointValueTime> nc = new ArrayList<PointValueTime>(cache.size());
+        nc.addAll(cache);
+        Iterator<PointValueTime> iter = nc.iterator();
+        while(iter.hasNext())
+            if(iter.next().getTime() < before)
+                iter.remove();
+
+        if(nc.size() < defaultSize) {
+            maxSize = 0;
+            cache = nc;
+            refreshCache(defaultSize);
+        } else
+            cache = nc;
     }
 }
