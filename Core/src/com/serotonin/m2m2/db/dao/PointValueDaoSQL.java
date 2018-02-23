@@ -981,8 +981,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }
                 }
                 //Finally push out bookends
-                for(IdPointValueTime post : bookends)
-                    callback.lastValue(post, counter.getValue(), true);
+                if(limit == null || counter.getValue() < limit - values.size())
+                    for(IdPointValueTime post : bookends)
+                        callback.lastValue(post, counter.getValue(), true);
             }catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 ps.cancel();
