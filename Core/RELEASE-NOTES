@@ -17,6 +17,7 @@
 * Exposed EventType in EventInstanceWrapper under getEventTypeObject()
 * Optionally, escalation emails for non-Do-not-log email event handlers will resend the escalation email every escalation period if active and unacknowledged.
 * EventDao::get returns null instead of throws exception if no event exists
+* Improved synchronization in real-time task subsystem to ensure tasks are not lost
 * Purged values removed from the point's value cache
 
 *Version 3.3.0*
