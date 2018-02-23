@@ -475,6 +475,7 @@
             else if (handler.handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>') {
                 emailRecipients.updateRecipientList(handler.activeRecipients);
                 $set("sendEscalation", handler.sendEscalation);
+                $set("repeatEscalations", handler.repeatEscalations);
                 $set("escalationDelayType", handler.escalationDelayType);
                 $set("escalationDelay", handler.escalationDelay);
                 escalRecipients.updateRecipientList(handler.escalationRecipients);
@@ -509,6 +510,7 @@
             $set("activeAction", <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>);
             $set("inactiveAction", <c:out value="<%= SetPointEventHandlerVO.SET_ACTION_NONE %>"/>);
             $set("sendEscalation", false);
+            $set("repeatEscalations", false);
             $set("escalationDelayType", <c:out value="<%= Common.TimePeriods.HOURS %>"/>);
             $set("escalationDelay", 1);
             $set("sendInactive", false);
@@ -651,10 +653,12 @@
     
     function sendEscalationChanged() {
         if ($get("sendEscalation")) {
+        	show("repeatEscalationsRow")
             show("escalationAddresses1");
             show("escalationAddresses2");
         }
         else {
+        	hide("repeatEscalationsRow")
             hide("escalationAddresses1");
             hide("escalationAddresses2");
         }
@@ -684,7 +688,7 @@
             var inactiveList = inactiveRecipients.createRecipientArray();
             var context = createContextArray();
             EventHandlersDwr.saveEmailEventHandler(eventType.type, eventType.subtype, eventType.typeRef1,
-                    eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("customTemplate"), $get("sendEscalation"),
+                    eventType.typeRef2, handlerId, xid, alias, disabled, emailList, $get("customTemplate"), $get("sendEscalation"), $get("repeatEscalations"),
                     $get("escalationDelayType"), $get("escalationDelay"), escalList, $get("sendInactive"),
                     $get("inactiveOverride"), inactiveList, $get("includeSystemInfo"), $get("includePointValueCount"), $get("includeLogfile"), context,
                     getScriptPermissions(), emailScriptEditor.getValue(), saveEventHandlerCB);
@@ -1121,6 +1125,11 @@
             <tr>
               <td class="formLabelRequired"><fmt:message key="eventHandlers.escal"/></td>
               <td class="formField"><input id="sendEscalation" type="checkbox" onclick="sendEscalationChanged()"/></td>
+            </tr>
+            
+            <tr id="repeatEscalationsRow">
+              <td class="formLabelRequired"><fmt:message key="eventHandlers.repeatEscal"/></td>
+              <td class="formField"><input id="repeatEscalations" type="checkbox"/></td>
             </tr>
             
             <tr id="escalationAddresses1">

@@ -160,12 +160,14 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         if (vo.isSendInactive() && !vo.isInactiveOverride())
             inactiveRecipients.addAll(addresses);
         
-        //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted
-        // and in which case we want to notice rather than send emails forever.
-        EventInstance dbEvent = EventDao.instance.get(evt.getId());
-        if(dbEvent != null && !dbEvent.isAcknowledged() && dbEvent.isActive()) {
-            long delayMS = Common.getMillis(vo.getEscalationDelayType(), vo.getEscalationDelay());
-            escalationTask = new ModelTimeoutTask<EventInstance>(delayMS, this, dbEvent);
+        if (vo.isRepeatEscalations()) {
+            //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted
+            // and in which case we want to notice rather than send emails forever.
+            EventInstance dbEvent = EventDao.instance.get(evt.getId());
+            if(dbEvent != null && !dbEvent.isAcknowledged() && dbEvent.isActive()) {
+                long delayMS = Common.getMillis(vo.getEscalationDelayType(), vo.getEscalationDelay());
+                escalationTask = new ModelTimeoutTask<EventInstance>(delayMS, this, dbEvent);
+            }
         }
     }
 

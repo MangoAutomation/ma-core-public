@@ -60,6 +60,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	
 	private List<RecipientListEntryBean> activeRecipients;
     private boolean sendEscalation;
+    private boolean repeatEscalations;
     private int escalationDelayType = TimePeriods.HOURS;
     private int escalationDelay = 1;
     private List<RecipientListEntryBean> escalationRecipients;
@@ -112,6 +113,14 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 
     public void setSendEscalation(boolean sendEscalation) {
         this.sendEscalation = sendEscalation;
+    }
+    
+    public boolean isRepeatEscalations() {
+        return repeatEscalations;
+    }
+    
+    public void setRepeatEscalations(boolean repeatEscalations) {
+        this.repeatEscalations = repeatEscalations;
     }
 
     public boolean isSendInactive() {
@@ -204,7 +213,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                 response.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
             if (escalationRecipients.isEmpty())
                 response.addGenericMessage("eventHandlers.noEscalRecips");
-        }
+        } else if(repeatEscalations)
+            repeatEscalations = false;
 
         if (sendInactive && inactiveOverride) {
             if (inactiveRecipients.isEmpty())
@@ -253,12 +263,13 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 4;
+    private static final int version = 5;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
     	out.writeInt(version);
     	out.writeObject(activeRecipients);
         out.writeBoolean(sendEscalation);
+        out.writeBoolean(repeatEscalations);
         out.writeInt(escalationDelayType);
         out.writeInt(escalationDelay);
         out.writeObject(escalationRecipients);
@@ -281,6 +292,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
+            repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
             escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -301,6 +313,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
+            repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
             escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -321,6 +334,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
+            repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
             escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -341,6 +355,28 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
+            repeatEscalations = false;
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            scriptPermissions = (ScriptPermissions) in.readObject();
+            script = SerializationHelper.readSafeUTF(in);
+        }
+        else if (ver == 5) {
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            repeatEscalations = in.readBoolean();
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
             escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -368,6 +404,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             writer.writeEntry("escalationDelayType", Common.TIME_PERIOD_CODES.getCode(escalationDelayType));
             writer.writeEntry("escalationDelay", escalationDelay);
             writer.writeEntry("escalationRecipients", escalationRecipients);
+            writer.writeEntry("keepSendingEscalations", repeatEscalations);
         }
         writer.writeEntry("sendInactive", sendInactive);
         if (sendInactive) {
@@ -435,6 +472,10 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             if (jsonEscalationRecipients != null)
                 escalationRecipients = (List<RecipientListEntryBean>) reader.read(recipType,
                         jsonEscalationRecipients);
+            
+            b = jsonObject.getBoolean("keepSendingEscalations");
+            if(b != null)
+                repeatEscalations = b;
         }
 
         b = jsonObject.getBoolean("sendInactive");

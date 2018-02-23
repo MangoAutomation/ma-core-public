@@ -275,8 +275,8 @@ public class EventHandlersDwr extends BaseDwr {
     @DwrPermission(user = true)
     public ProcessResult saveEmailEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled,
-            List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, int escalationDelayType,
-            int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
+            List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, boolean repeatEscalations,
+            int escalationDelayType, int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
             boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo, 
             int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext, 
             ScriptPermissions permissions, String script) {
@@ -285,6 +285,7 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setActiveRecipients(activeRecipients);
         handler.setCustomTemplate(customTemplate);
         handler.setSendEscalation(sendEscalation);
+        handler.setRepeatEscalations(repeatEscalations);
         handler.setEscalationDelayType(escalationDelayType);
         handler.setEscalationDelay(escalationDelay);
         handler.setEscalationRecipients(escalationRecipients);

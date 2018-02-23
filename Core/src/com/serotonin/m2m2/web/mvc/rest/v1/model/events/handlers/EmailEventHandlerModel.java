@@ -83,6 +83,14 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
     public void setSendEscalation(boolean sendEscalation) {
         this.data.setSendEscalation(sendEscalation);
     }
+    
+    public boolean isRepeatEscalations() {
+        return this.data.isRepeatEscalations();
+    }
+    
+    public void setRepeatEscalations(boolean repeatEscalations) {
+        this.data.setRepeatEscalations(repeatEscalations);
+    }
 
     public boolean isSendInactive() {
         return this.data.isSendInactive();

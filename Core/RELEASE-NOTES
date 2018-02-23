@@ -15,7 +15,7 @@
 * Fix bug in text email template for data point events
 * Fix bug in EventInstanceWrapper for getReferenceId2() returning reference id 1
 * Exposed EventType in EventInstanceWrapper under getEventTypeObject()
-* Escalation emails for non-Do-not-log email event handlers will resend the escalation email every escalation period if active and unacknowledged.
+* Optionally, escalation emails for non-Do-not-log email event handlers will resend the escalation email every escalation period if active and unacknowledged.
 * EventDao::get returns null instead of throws exception if no event exists
 
 *Version 3.3.0*
