@@ -5,8 +5,7 @@
 package com.infiniteautomation.mango.statistics;
 
 import java.util.List;
-
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -72,7 +71,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
             // the first change
             changes++;
             latestValue = value;
-        }else if (!ObjectUtils.equals(latestValue, value)) {
+        }else if (!Objects.equals(latestValue, value)) {
             changes++;
             latestValue = value;
         }
