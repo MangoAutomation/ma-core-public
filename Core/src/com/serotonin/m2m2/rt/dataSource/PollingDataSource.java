@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.rt.dataSource;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,7 +59,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     private final AtomicLong currentSuccessfulPolls = new AtomicLong();
     private final LongMonitor currentSuccessfulPollsMonitor;
     private final LongMonitor lastPollDurationMonitor;
-    private final DoubleMonitor successfulPollsQuotientMonitor;
+    private final DoubleMonitor successfulPollsPercentageMonitor;
     private final ConcurrentLinkedQueue<LongLongPair> latestPollTimes;
     private final ConcurrentLinkedQueue<Long> latestAbortedPollTimes;
     private long nextAbortedPollMessageTime = 0l;
@@ -109,8 +107,8 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
                 new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_SUCCESS", new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()), this, -1));
         this.lastPollDurationMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
                 new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_DURATION", new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()), this));
-        this.successfulPollsQuotientMonitor = (DoubleMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new DoubleMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_QUOTIENT", new TranslatableMessage("internal.monitor.pollingDataSource.QUOTIENT", vo.getName()), this));
+        this.successfulPollsPercentageMonitor = (DoubleMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
+                new DoubleMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_PERCENTAGE", new TranslatableMessage("internal.monitor.pollingDataSource.PERCENTAGE", vo.getName()), this));
     }
     
     public void setCronPattern(String cronPattern) {
@@ -129,7 +127,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     public void incrementSuccessfulPolls(long time) {
         long successful = successfulPolls.incrementAndGet();
         currentSuccessfulPolls.incrementAndGet();
-        successfulPollsQuotientMonitor.setValue(successful/(successful + unsuccessfulPolls.get()));
+        successfulPollsPercentageMonitor.setValue(successful/(successful + unsuccessfulPolls.get()));
         this.lastPollSuccessful.getAndSet(true);
     }
 
@@ -168,10 +166,8 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
 
     protected void updateSuccessfulPollQuotient() {
         long unsuccessful = unsuccessfulPolls.get();
-        long successful = successfulPolls.get(); 
-        BigDecimal bd = new BigDecimal((double)successful/(double)(successful + unsuccessful));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        successfulPollsQuotientMonitor.setValue(bd.doubleValue());
+        long successful = successfulPolls.get();
+        successfulPollsPercentageMonitor.setValue(((double)successful/(double)(successful + unsuccessful))*100);
     }
     
     public synchronized void scheduleTimeoutImpl(long fireTime) {
@@ -206,9 +202,8 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
                 synchronized (terminationLock) {
                     terminationLock.notifyAll();
                 }
-            }else {
-                updateSuccessfulPollQuotient();
             }
+            updateSuccessfulPollQuotient();
             jobThread = null;
         }
     }
@@ -300,7 +295,7 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
         
         Common.MONITORED_VALUES.removeStatMonitor(currentSuccessfulPollsMonitor.getId());
         Common.MONITORED_VALUES.removeStatMonitor(lastPollDurationMonitor.getId());
-        Common.MONITORED_VALUES.removeStatMonitor(successfulPollsQuotientMonitor.getId());
+        Common.MONITORED_VALUES.removeStatMonitor(successfulPollsPercentageMonitor.getId());
         
         super.terminate();
     }
