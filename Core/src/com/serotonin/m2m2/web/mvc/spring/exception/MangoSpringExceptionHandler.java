@@ -124,6 +124,10 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
         	
         	this.storeException(servletRequest, ex, status);
         	
+        //Log all but not found exceptions
+        	if(body instanceof ServerErrorException || body instanceof GenericRestException || !(body instanceof AbstractRestV2Exception))
+        	    ExceptionUtils.logWebException(ex, servletRequest, LOG);
+        	
         	if(this.browserHtmlRequestMatcher.matches(servletRequest)){
             String uri;
             if (status == HttpStatus.FORBIDDEN) {
@@ -174,9 +178,6 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 		HttpSession sesh = request.getSession(false);
 		if (sesh != null)
 			sesh.setAttribute(Common.SESSION_USER_EXCEPTION, ex);
-        //Log all but not found exceptions
-        if(!status.equals(HttpStatus.NOT_FOUND))
-            ExceptionUtils.logWebException(ex, request, LOG);
     }
     
 }
