@@ -28,6 +28,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.exception.NotFoundException;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 
 public class UserDao extends AbstractDao<User> {
@@ -152,6 +153,9 @@ public class UserDao extends AbstractDao<User> {
         if (user.getLocale() == null)
             user.setLocale("");
         User old = getUser(user.getId());
+        if (old == null) {
+            throw new NotFoundException();
+        }
         try {
             boolean passwordChanged = !old.getPassword().equals(user.getPassword());
             if (passwordChanged) {
