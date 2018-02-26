@@ -125,9 +125,8 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     }
 
     public void incrementSuccessfulPolls(long time) {
-        long successful = successfulPolls.incrementAndGet();
+        successfulPolls.incrementAndGet();
         currentSuccessfulPolls.incrementAndGet();
-        successfulPollsPercentageMonitor.setValue(successful/(successful + unsuccessfulPolls.get()));
         this.lastPollSuccessful.getAndSet(true);
     }
 
