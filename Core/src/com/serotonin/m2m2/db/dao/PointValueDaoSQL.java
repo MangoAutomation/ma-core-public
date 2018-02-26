@@ -958,7 +958,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 //Send out ordered data
                 Collections.sort(pairs);
                 for(IdPointValueTime current : pairs) {
-                    if(limit == null || counter.getValue() < limit - values.size()) {
+                    if(limit == null || counter.getValue() < limit) {
                         if(current.getTime() != to) {
                             //Send out this value as a row, then bookend it
                             callback.row(current, counter.getValue());
@@ -981,7 +981,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     }
                 }
                 //Finally push out bookends
-                if(limit == null || counter.getValue() < limit - values.size())
+                if(limit == null || counter.getValue() < limit)
                     for(IdPointValueTime post : bookends)
                         callback.lastValue(post, counter.getValue(), true);
             }catch(IOException e) {
