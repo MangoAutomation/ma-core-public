@@ -875,7 +875,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             
             String startValueSql = "";
             List<Object> startValueArgs = new ArrayList<>(2);
-            startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
+            startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
             startValueArgs.add(ids.get(0));
             startValueArgs.add(from);
             
@@ -999,7 +999,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     first = false;
                 else
                     startValueSql += " UNION ";
-                startValueSql = startValueSql + "(" + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1) ";
+                startValueSql = startValueSql + "(" + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1) ";
                 startValueArgs.add(seriesId);
                 startValueArgs.add(from);
             }
@@ -1009,8 +1009,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             setter.setValues(firstValuesSelect);
             
             List<Object> args = new ArrayList<>(ids.size()*2);
-            String dataPointIds = createDelimitedList(ids, ",", null); //pv.ts > ? because startValue query gets from
-            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") AND pv.ts > ? AND pv.ts<? ORDER BY pv.ts ASC";
+            String dataPointIds = createDelimitedList(ids, ",", null);
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") AND pv.ts >= ? AND pv.ts<? ORDER BY pv.ts ASC";
             args.add(from+1); //handle from in the startValueSql
             args.add(to);
             
