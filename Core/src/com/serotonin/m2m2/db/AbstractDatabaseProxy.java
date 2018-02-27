@@ -425,7 +425,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     //  TODO: could potentially expose Logging DAO for use in application	
-    //  	currently not implemented except for TinyTSDB
+    //  	currently not implemented except for IasTsdb
     //	/**
     //	 * Get an instance of the Logging Dao
     //	 * 
