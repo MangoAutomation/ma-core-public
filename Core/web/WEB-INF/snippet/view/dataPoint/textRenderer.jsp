@@ -55,9 +55,14 @@
             <tr>
               <td valign="top"><input id="zeroLabel" type="text"/></td>
               <td width="10"></td>
-              <td valign="top" align="center" id="zeroColourInputRow">
-                <div dojoType="dijit.ColorPalette" palette="3x4" id="zeroColour"></div>
-                <a href="#" onclick="textRendererEditor.handlerBinaryZeroColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+              <td valign="top" id="zeroColourInputRow">
+                <div>
+                    <input id="zeroColourText" data-method-name="handlerBinaryZeroColour">
+                    <a href="#" onclick="textRendererEditor.handlerBinaryZeroColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+                </div>
+                <div>
+                    <div dojoType="dijit.ColorPalette" palette="7x10" id="zeroColour"></div>
+                </div>
               </td>
             </tr>
           </table>
@@ -70,9 +75,14 @@
             <tr>
               <td valign="top"><input id="oneLabel" type="text"/></td>
               <td width="10"></td>
-              <td valign="top" align="center" id="oneColourInputRow">
-                <div dojoType="dijit.ColorPalette" palette="3x4" id="oneColour"></div>
-                <a id="oneColourDefault" href="#" onclick="textRendererEditor.handlerBinaryOneColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+              <td valign="top" id="oneColourInputRow">
+                <div>
+                    <input id="oneColourText" data-method-name="handlerBinaryOneColour">
+                    <a href="#" onclick="textRendererEditor.handlerBinaryOneColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+                </div>
+                <div>
+                    <div dojoType="dijit.ColorPalette" palette="7x10" id="oneColour"></div>
+                </div>
               </td>
             </tr>
           </table>
@@ -87,14 +97,19 @@
               <th><fmt:message key="pointEdit.text.key"/></th>
               <th><fmt:message key="pointEdit.text.text"/></th>
               <th><fmt:message key="pointEdit.text.colour"/></th>
-              <td></td>
+              <th></th>
             </tr>
             <tr>
               <td valign="top"><input type="text" id="textRendererMultistateKey" value="" class="formVeryShort"/></td>
               <td valign="top"><input type="text" id="textRendererMultistateText" value="" class="formShort"/></td>
-              <td valign="top" align="center">
-                <div dojoType="dijit.ColorPalette" palette="3x4" id="textRendererMultistateColour"></div>
-                <a href="#" onclick="textRendererEditor.handlerMultistateColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+              <td valign="top">
+                <div>
+                    <input id="textRendererMultistateColourText" data-method-name="handlerMultistateColour">
+                    <a href="#" onclick="textRendererEditor.handlerMultistateColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+                </div>
+                <div>
+                    <div dojoType="dijit.ColorPalette" palette="7x10" id="textRendererMultistateColour"></div>
+                </div>
               </td>
               <td valign="top">
                 <tag:img id="multistateValueAdd" png="add" title="common.add" onclick="return textRendererEditor.addMultistateValue();"/>
@@ -141,15 +156,20 @@
               <th><fmt:message key="pointEdit.text.to"/></th>
               <th><fmt:message key="pointEdit.text.text"/></th>
               <th><fmt:message key="pointEdit.text.colour"/></th>
-              <td></td>
+              <th></th>
             </tr>
             <tr>
               <td valign="top"><input type="text" id="textRendererRangeFrom" value="" class="formVeryShort"/></td>
               <td valign="top"><input type="text" id="textRendererRangeTo" value="" class="formVeryShort"/></td>
               <td valign="top"><input type="text" id="textRendererRangeText" value=""/></td>
-              <td valign="top" align="center">
-                <div dojoType="dijit.ColorPalette" palette="3x4" id="textRendererRangeColour"></div>
-                <a href="#" onclick="textRendererEditor.handlerRangeColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+              <td valign="top">
+                <div>
+                    <input id="textRendererRangeColourText" data-method-name="handlerRangeColour">
+                    <a href="#" onclick="textRendererEditor.handlerRangeColour(null); return false;">(<fmt:message key="pointEdit.text.default"/>)</a>
+                </div>
+                <div>
+                    <div dojoType="dijit.ColorPalette" palette="7x10" id="textRendererRangeColour"></div>
+                </div>
               </td>
               <td valign="top">
                 <tag:img id="addRangeRendererRange" png="add" title="common.add" onclick="return textRendererEditor.addRangeValue();"/>
@@ -315,9 +335,9 @@
        }else if (typeName == "textRendererBinary"){
      	  vo.textRenderer = new BinaryTextRenderer();
            vo.textRenderer.zeroLabel = dojo.byId("zeroLabel").value;
-           vo.textRenderer.zeroColour = dijit.byId("zeroColour").selectedColour;
+           vo.textRenderer.zeroColour = document.getElementById('zeroColourText').value;
            vo.textRenderer.oneLabel = dojo.byId("oneLabel").value;
-           vo.textRenderer.oneColour = dijit.byId("oneColour").selectedColour;
+           vo.textRenderer.oneColour = document.getElementById('oneColourText').value;
        }else if (typeName == "textRendererMultistate"){
      	  vo.textRenderer = new MultistateRenderer();
      	  vo.textRenderer.multistateValues = textRendererEditor.multistateValues;
@@ -390,7 +410,12 @@
           dijit.byId("textRendererMultistateColour").onChange = this.handlerMultistateColour;
           dijit.byId("zeroColour").onChange = this.handlerBinaryZeroColour;
           dijit.byId("oneColour").onChange = this.handlerBinaryOneColour;
-          
+
+          document.getElementById('textRendererRangeColourText').onchange = this.colorTextInputChanged;
+          document.getElementById('textRendererMultistateColourText').onchange = this.colorTextInputChanged;
+          document.getElementById('oneColourText').onchange = this.colorTextInputChanged;
+          document.getElementById('zeroColourText').onchange = this.colorTextInputChanged;
+
           this.textRendererSelect = new dijit.form.Select({
               name: 'textRendererSelect',
           },"textRendererSelect");
@@ -516,7 +541,7 @@
           if (colour)
               theValue.colour = colour;
           else
-              theValue.colour = dijit.byId("textRendererMultistateColour").selectedColour;
+              theValue.colour = document.getElementById('textRendererMultistateColourText').value;
           this.multistateValues[this.multistateValues.length] = theValue;
           this.sortMultistateValues();
           this.refreshMultistateList();
@@ -608,7 +633,7 @@
           if (colour)
               theValue.colour = colour;
           else
-              theValue.colour = dijit.byId("textRendererRangeColour").selectedColour;
+              theValue.colour = document.getElementById('textRendererRangeColourText').value;
           this.rangeValues[this.rangeValues.length] = theValue;
           this.sortRangeValues();
           this.refreshRangeList();
@@ -654,20 +679,58 @@
       
       //
       // Color handling
+      
+      this.colorTextInputChanged = function(event) {
+          var color = event.target.value;
+          var methodName = event.target.dataset.methodName;
+          this[methodName](color);
+      }.bind(this);
+      
       this.handlerRangeColour = function(colour) {
-          dijit.byId("textRendererRangeColour").selectedColour = colour;
+          var colorDijit = dijit.byId('textRendererRangeColour');
+          
+          if (colorDijit.lastSetColor !== colour) {
+              colorDijit.lastSetColor = colour;
+              colorDijit.set('value', colour);
+          }
+          
+          document.getElementById('textRendererRangeColourText').value = colour;
           $("textRendererRangeText").style.color = colour;
       };
+      
       this.handlerMultistateColour = function(colour) {
-          dijit.byId("textRendererMultistateColour").selectedColour = colour;
+          var colorDijit = dijit.byId('textRendererMultistateColour');
+          
+          if (colorDijit.lastSetColor !== colour) {
+              colorDijit.lastSetColor = colour;
+              colorDijit.set('value', colour);
+          }
+          
+          document.getElementById('textRendererMultistateColourText').value = colour;
           $("textRendererMultistateText").style.color = colour;
       };
+      
       this.handlerBinaryZeroColour = function(colour) {
-          dijit.byId("zeroColour").selectedColour = colour;
+          var colorDijit = dijit.byId('zeroColour');
+          
+          if (colorDijit.lastSetColor !== colour) {
+              colorDijit.lastSetColor = colour;
+              colorDijit.set('value', colour);
+          }
+          
+          document.getElementById('zeroColourText').value = colour;
           $("zeroLabel").style.color = colour;
       };
+      
       this.handlerBinaryOneColour = function(colour) {
-          dijit.byId("oneColour").selectedColour = colour;
+          var colorDijit = dijit.byId('oneColour');
+          
+          if (colorDijit.lastSetColor !== colour) {
+              colorDijit.lastSetColor = colour;
+              colorDijit.set('value', colour);
+          }
+          
+          document.getElementById('oneColourText').value = colour;
           $("oneLabel").style.color = colour;
       };
   }
