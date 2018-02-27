@@ -913,7 +913,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         callback.firstValue(current, counter.getAndIncrement(), false);
                         realSamples.increment();
                     } else {
-                        callback.firstValue(current, counter.getAndIncrement(), true);
+                        IdPointValueTime fakeValue;
+                        if(current.isAnnotated())
+                            fakeValue = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, 
+                                    ((AnnotatedIdPointValueTime)current).getSourceMessage());
+                        else
+                            fakeValue = new IdPointValueTime(current.getId(), current.getValue(), from);
+                        callback.firstValue(fakeValue, counter.getAndIncrement(), true);
                     }
                     values.put(current.getId(), current);
                 }
@@ -943,7 +949,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 }
                 
                 for(IdPointValueTime current : values.values()) {
-                    callback.lastValue(current, counter.getAndIncrement(), true);
+                    IdPointValueTime fakeValue;
+                    if(current.isAnnotated())
+                        fakeValue = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), to, 
+                                ((AnnotatedIdPointValueTime)current).getSourceMessage());
+                    else
+                        fakeValue = new IdPointValueTime(current.getId(), current.getValue(), to);
+                    callback.lastValue(fakeValue, counter.getAndIncrement(), true);
                 }
                 
                 for(Integer id : ids) {
@@ -997,8 +1009,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             setter.setValues(firstValuesSelect);
             
             List<Object> args = new ArrayList<>(ids.size()*2);
-            String dataPointIds = createDelimitedList(ids, ",", null);
-            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") AND pv.ts >= ? AND pv.ts<? ORDER BY pv.ts ASC";
+            String dataPointIds = createDelimitedList(ids, ",", null); //pv.ts > ? because startValue query gets from
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") AND pv.ts > ? AND pv.ts<? ORDER BY pv.ts ASC";
             args.add(from+1); //handle from in the startValueSql
             args.add(to);
             
