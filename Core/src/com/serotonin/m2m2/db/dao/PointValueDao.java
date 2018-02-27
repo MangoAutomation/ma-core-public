@@ -194,7 +194,7 @@ public interface PointValueDao {
      * @param orderById
      *            should the results also be ordered by data point id
      * @param limit
-     *            the limit of results, null for no limit
+     *            the limit of results, null for no limit (Limits do not include the bookends so the returned count can be up to limit + 2)
      * @param callback
      *            the query callback
      */

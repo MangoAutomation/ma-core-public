@@ -890,18 +890,21 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                             if(before != null) {
                                 if(before.isAnnotated()) {
                                     callback.firstValue(new AnnotatedIdPointValueTime(current.getId(), before.getValue(), from, ((AnnotatedPointValueTime)before).getSourceMessage()), counter.getValue(), true);
+                                    counter.increment();
                                 }else {
                                     callback.firstValue(new IdPointValueTime(current.getId(), before.getValue(), from), counter.getValue(), true);
+                                    counter.increment();
                                 }
                             }else {
                                 //No value before, send out null
                                 callback.firstValue(new IdPointValueTime(current.getId(), null, from), counter.getValue(), true);
+                                counter.increment();
                             }
                         }else {
                             //Send the start value since it's time == from
                             callback.firstValue(current, counter.getValue(), false);
-                            values.put(current.getId(), null); // So we don't process this value 2x
                             counter.increment();
+                            values.put(current.getId(), null); // So we don't process this value 2x
                         }
                     }
                     //Send out as normal row and potentially flush anything before my time of now
@@ -940,11 +943,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                             if(prevValue.isAnnotated()) {
                                 AnnotatedIdPointValueTime pre = new AnnotatedIdPointValueTime(id, prevValue.getValue(), from, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
                                 callback.firstValue(pre, counter.getValue(), true);
+                                counter.increment();
                                 AnnotatedIdPointValueTime post = new AnnotatedIdPointValueTime(id, prevValue.getValue(), to, ((AnnotatedPointValueTime) prevValue).getSourceMessage());
                                 bookends.add(post);
                             }else {
                                 IdPointValueTime pre = new IdPointValueTime(id, prevValue.getValue(), from);
                                 callback.firstValue(pre, counter.getValue(), true);
+                                counter.increment();
                                 IdPointValueTime post = new IdPointValueTime(id, prevValue.getValue(), to);
                                 bookends.add(post);
                             }
@@ -958,32 +963,28 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 //Send out ordered data
                 Collections.sort(pairs);
                 for(IdPointValueTime current : pairs) {
-                    if(limit == null || counter.getValue() < limit) {
-                        if(current.getTime() != to) {
-                            //Send out this value as a row, then bookend it
-                            callback.row(current, counter.getValue());
-                            counter.increment();
-                            IdPointValueTime post;
-                            if(current.isAnnotated()) {
-                                post = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), to, ((AnnotatedIdPointValueTime) current).getSourceMessage());
-                            }else {
-                                post = new IdPointValueTime(current.getId(), current.getValue(), to);
-                            }
-                            //So that the bookends are processed last (in time order)
-                            bookends.add(post);
+                    if(current.getTime() != to) {
+                        //Send out this value as a row, then bookend it
+                        callback.row(current, counter.getValue());
+                        counter.increment();
+                        IdPointValueTime post;
+                        if(current.isAnnotated()) {
+                            post = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), to, ((AnnotatedIdPointValueTime) current).getSourceMessage());
                         }else {
-                            callback.lastValue(current, counter.getValue(), false);
-                            counter.increment();
+                            post = new IdPointValueTime(current.getId(), current.getValue(), to);
                         }
+                        //So that the bookends are processed last (in time order)
+                        bookends.add(post);
                     }else {
                         callback.lastValue(current, counter.getValue(), false);
                         counter.increment();
                     }
                 }
                 //Finally push out bookends
-                if(limit == null || counter.getValue() < limit)
-                    for(IdPointValueTime post : bookends)
-                        callback.lastValue(post, counter.getValue(), true);
+                for(IdPointValueTime post : bookends) {
+                    callback.lastValue(post, counter.getValue(), true);
+                    counter.increment();
+                }
             }catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 ps.cancel();
