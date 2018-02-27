@@ -176,7 +176,13 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     public void testBookendMultiplePointValuesOrderByIdLimitOffsetSeries() {
         this.helper.testBookendMultiplePointValuesOrderByIdLimitOffsetSeries();
     }
-    //TODO Uncomment when ready @Test
+    
+    @Test
+    public void testNoStartBookendOrderByIdLimit(){
+        this.helper.testNoStartBookendOrderByIdLimit();
+    }
+
+    @Test
     public void testSeries1NoDataSeries2OneSample() {
         this.helper.testSeries1NoDataSeries2OneSample();
     }
