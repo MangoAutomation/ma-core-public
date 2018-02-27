@@ -183,7 +183,7 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     }
 
     @Test
-    public void testSeries1NoDataSeries2OneSample() {
-        this.helper.testSeries1NoDataSeries2OneSample();
+    public void testSeries1NoDataSeries2OneSampleOrderById() {
+        this.helper.testSeries1NoDataSeries2OneSampleOrderById();
     }
 }
