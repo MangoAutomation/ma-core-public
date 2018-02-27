@@ -869,6 +869,38 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
         
         @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            if(ids.size() != 1)
+                throw new RuntimeException("Wrong base query.");
+            
+            boolean first = true;
+            String startValueSql = "";
+            List<Object> startValueArgs = new ArrayList<>(ids.size()*2);
+            startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
+            startValueArgs.add(ids.get(0));
+            startValueArgs.add(from);
+            
+            firstValuesSelect = con.prepareStatement(startValueSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(startValueArgs.toArray(new Object[startValueArgs.size()]));
+            setter.setValues(firstValuesSelect);
+            
+            List<Object> args = new ArrayList<>(); //pv.ts > ? because firstValueSelect is special
+            String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts > ? and pv.ts<? order by pv.ts asc";
+            args.add(ids.get(0));
+            args.add(from);
+            args.add(to);
+            if(limit != null) {
+                sql += " limit ?";
+                args.add(limit);
+            }
+            
+            PreparedStatement stmt = con.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            setter = new ArgumentPreparedStatementSetter(args.toArray(new Object[args.size()]));
+            setter.setValues(stmt);
+            return stmt;
+        }
+        
+        @Override
         public Integer doInPreparedStatement(PreparedStatement ps)
                 throws SQLException, DataAccessException {
             ResultSet rs = null;
@@ -952,13 +984,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             String startValueSql = "";
             List<Object> startValueArgs = new ArrayList<>(ids.size()*2);
             for(Integer seriesId : ids) {
-                startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
-                startValueArgs.add(seriesId);
-                startValueArgs.add(from);
                 if(first)
                     first = false;
                 else
                     startValueSql += " UNION ";
+                startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
+                startValueArgs.add(seriesId);
+                startValueArgs.add(from);
             }
             
             firstValuesSelect = con.prepareStatement(startValueSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
