@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.junit.Assert;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
@@ -123,6 +124,7 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestExceptionInCallback () {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(endTs);
         this.dao.getLatestPointValues(ids, endTs, false, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -132,6 +134,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() > timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -169,6 +174,7 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestNoDataInOneSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs);
         this.dao.getLatestPointValues(ids, startTs, false, null, new PVTQueryCallback<IdPointValueTime>() {
             int seriesId2Counter = 2;
             @Override
@@ -176,6 +182,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() > timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -195,6 +204,7 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestMultiplePointValuesNoLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(endTs);
         this.dao.getLatestPointValues(ids, endTs, false, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -204,6 +214,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() > timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -230,6 +243,7 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestMultiplePointValuesNoLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2EndTs + 1);
         this.dao.getLatestPointValues(ids, series2EndTs + 1, false, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -239,6 +253,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() > timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -262,6 +279,8 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestMultiplePointValuesOrderByIdNoLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(endTs);
+        MutableLong timestamp2 = new MutableLong(endTs);
         this.dao.getLatestPointValues(ids, endTs, true, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -278,12 +297,18 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() > timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter--;
                 }else {
+                    if(value.getTime() > timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -301,6 +326,8 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestMultiplePointValuesOrderByIdNoLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(series2EndTs + 1);
+        MutableLong timestamp2 = new MutableLong(series2EndTs + 1);
         this.dao.getLatestPointValues(ids, series2EndTs + 1, true, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -317,12 +344,18 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() > timestamp2.getValue())
+                        Assert.fail("Timestamp out of order");
+                    timestamp2.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter--;
                 }else {
+                    if(value.getTime() > timestamp1.getValue())
+                        Assert.fail("Timestamp out of order");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -340,6 +373,7 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestMultiplePointValuesLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(endTs);
         this.dao.getLatestPointValues(ids, endTs, false, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -349,6 +383,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() > timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -371,6 +408,7 @@ public class NumericPointValueDaoTestHelper {
     public void testLatestMultiplePointValuesLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2EndTs + 1);
         this.dao.getLatestPointValues(ids, series2EndTs + 1, false, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -380,6 +418,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() > timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -403,6 +444,8 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count1 = new MutableInt();
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(endTs);
+        MutableLong timestamp2 = new MutableLong(endTs);
         this.dao.getLatestPointValues(ids, endTs, true, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -418,6 +461,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() > timestamp2.getValue())
+                        Assert.fail("Timestamp out of order");
+                    timestamp2.setValue(value.getTime());
                     count2.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -425,6 +471,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter--;
                 }else {
+                    if(value.getTime() > timestamp1.getValue())
+                        Assert.fail("Timestamp out of order");
+                    timestamp1.setValue(value.getTime());
                     count1.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -443,6 +492,8 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count1 = new MutableInt();
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(series2EndTs + 1);
+        MutableLong timestamp2 = new MutableLong(series2EndTs + 1);
         this.dao.getLatestPointValues(ids, series2EndTs + 1, true, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = data.get(seriesId).size() - 1;
@@ -458,6 +509,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() > timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     count2.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -465,6 +519,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter--;
                 }else {
+                    if(value.getTime() > timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     count1.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -483,6 +540,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBetweenExceptionInCallback() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp  = new MutableLong(startTs);
         this.dao.getPointValuesBetween(ids, startTs, endTs, false, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -492,6 +550,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -528,6 +589,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBetweenNoDataInOneSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(0);
         this.dao.getPointValuesBetween(ids, 0, startTs, false, null, new PVTQueryCallback<IdPointValueTime>() {
             int seriesId2Counter = 0;
             @Override
@@ -535,6 +597,9 @@ public class NumericPointValueDaoTestHelper {
                 count.increment();
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -553,6 +618,7 @@ public class NumericPointValueDaoTestHelper {
     public void testRangeMultiplePointValuesNoLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs);
         this.dao.getPointValuesBetween(ids, startTs, endTs, false, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -562,6 +628,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -584,6 +653,7 @@ public class NumericPointValueDaoTestHelper {
     public void testRangeMultiplePointValuesNoLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2StartTs);
         this.dao.getPointValuesBetween(ids, series2StartTs, series2EndTs + 1, false, null, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -593,6 +663,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -615,6 +688,8 @@ public class NumericPointValueDaoTestHelper {
     public void testRangeMultiplePointValuesOrderByIdNoLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(startTs);
+        MutableLong timestamp2 = new MutableLong(startTs);
         this.dao.getPointValuesBetween(ids, startTs, endTs, true, null, new PVTQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -631,12 +706,18 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -652,6 +733,8 @@ public class NumericPointValueDaoTestHelper {
     public void testRangeMultiplePointValuesOrderByIdNoLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(series2StartTs);
+        MutableLong timestamp2 = new MutableLong(series2StartTs);
         this.dao.getPointValuesBetween(ids, series2StartTs, series2EndTs+1, true, null, new PVTQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -668,12 +751,18 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -689,6 +778,7 @@ public class NumericPointValueDaoTestHelper {
     public void testRangeMultiplePointValuesLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs);
         this.dao.getPointValuesBetween(ids, startTs, endTs, false, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -698,6 +788,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -720,6 +813,7 @@ public class NumericPointValueDaoTestHelper {
     public void testRangeMultiplePointValuesLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2StartTs);
         this.dao.getPointValuesBetween(ids, series2StartTs, series2EndTs, false, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -729,6 +823,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -752,6 +849,9 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count1 = new MutableInt();
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(startTs);
+        MutableLong timestamp2 = new MutableLong(startTs);
+        
         this.dao.getPointValuesBetween(ids, startTs, endTs, true, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -767,6 +867,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     count2.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -774,6 +877,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     count1.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -791,6 +897,8 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count1 = new MutableInt();
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(series2StartTs);
+        MutableLong timestamp2 = new MutableLong(series2StartTs);
         this.dao.getPointValuesBetween(ids, series2StartTs, series2EndTs, true, 20, new PVTQueryCallback<IdPointValueTime>() {
             
             int seriesIdCounter = 0;
@@ -806,6 +914,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     count2.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -813,6 +924,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     count1.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -853,6 +967,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendExceptionInRowCallback() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs - 1);
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -863,6 +978,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -883,6 +1001,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -914,6 +1035,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt lastValueCallCount = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs - 1);
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -924,6 +1046,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -944,6 +1069,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -965,6 +1093,9 @@ public class NumericPointValueDaoTestHelper {
                 lastValueCallCount.increment();
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 throw new IOException("Last Value Callback Exception");
             }
             
@@ -997,6 +1128,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendNoDataInOneSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(0);
         this.dao.wideBookendQuery(ids, 0, startTs, false, null, new BookendQueryCallback<IdPointValueTime>() {
             int seriesId2Counter = 0;
             @Override
@@ -1004,6 +1136,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value is null as no data exists before time 0
                     Assert.assertNull(value.getValue());
@@ -1018,6 +1153,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1033,6 +1171,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1051,6 +1192,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendMultiplePointValuesNoLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs - 1);
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1061,6 +1203,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1081,6 +1226,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1101,6 +1249,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //This has a value before the startTs
                     //Check value
@@ -1124,6 +1275,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendMultiplePointValuesNoLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2StartTs - 1);
         this.dao.wideBookendQuery(ids, series2StartTs - 1, series2EndTs + 1, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1134,6 +1286,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value is null as no data exists before the start time for series 2
                     Assert.assertNull(value.getValue());
@@ -1154,6 +1309,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1174,6 +1332,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(data.get(value.getId()).size() - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1196,6 +1357,8 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendMultiplePointValuesOrderByIdNoLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(startTs - 1);
+        MutableLong timestamp2 = new MutableLong(startTs - 1);
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, true, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1207,6 +1370,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //This has a value before the startTs
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1214,6 +1380,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value is null as no data exists before the startTs for series 1
                     Assert.assertNull(value.getValue());
                     //Check time
@@ -1234,12 +1403,18 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -1254,6 +1429,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //This has a value before the startTs
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(totalSampleCount + 2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1261,6 +1439,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(endTs, value.getTime());
                     Assert.assertEquals(true, bookend);
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(totalSampleCount - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -1276,6 +1457,8 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendMultiplePointValuesOrderByIdNoLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(series2StartTs - 1);
+        MutableLong timestamp2 = new MutableLong(series2StartTs - 1);
         this.dao.wideBookendQuery(ids, series2StartTs - 1, series2EndTs + 1, true, null, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1287,12 +1470,18 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value is null as no data exists before the start Ts for series 2
                     Assert.assertNull(value.getValue());
                     //Check time
                     Assert.assertEquals(series2StartTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value is null as no data exists before the startTs for series 1
                     Assert.assertNull(value.getValue());
                     //Check time
@@ -1313,12 +1502,18 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -1333,6 +1528,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //This has a value before the startTs
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(data.get(value.getId()).size() - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1340,6 +1538,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(series2EndTs + 1, value.getTime());
                     Assert.assertEquals(true, bookend);
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(totalSampleCount - 1).getDoubleValue(), value.getDoubleValue(), 0.001);
                     //Check time
@@ -1355,6 +1556,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendMultiplePointValuesLimit() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs - 1);
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, false, 20, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1365,6 +1567,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //This has a value before the startTs
                     //Check value
@@ -1386,6 +1591,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1406,6 +1614,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Limited queries bookend
                     Assert.assertEquals(true, bookend);
@@ -1431,6 +1642,7 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendMultiplePointValuesLimitOffsetSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2StartTs - 1);
         this.dao.wideBookendQuery(ids, series2StartTs - 1, series2EndTs + 1, false, 20, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1441,6 +1653,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value is null as no data exists before the start Ts for series 2
                     Assert.assertNull(value.getValue());
@@ -1461,7 +1676,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 count.increment();
-                System.out.println(value);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1482,6 +1699,9 @@ public class NumericPointValueDaoTestHelper {
                     throws IOException {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
                 if(value.getId() == seriesId2) {
                     //This has a value before the startTs
                     //Limited query bookend
@@ -1509,6 +1729,8 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count1 = new MutableInt();
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(startTs - 1);
+        MutableLong timestamp2 = new MutableLong(startTs - 1);
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, true, 20, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1520,6 +1742,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //This has a value before the startTs
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(2).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1527,6 +1752,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(startTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value is null as no data exists before the startTs for series 1
                     Assert.assertNull(value.getValue());
                     //Check time
@@ -1546,6 +1774,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     count2.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1553,6 +1784,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     count1.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1568,6 +1802,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //This has a value before the startTs
                     //Check bookend
                     Assert.assertEquals(true, bookend);
@@ -1576,6 +1813,9 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(endTs, value.getTime());
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Limited queries bookend
                     Assert.assertEquals(true, bookend);
                     //Check value
@@ -1594,6 +1834,8 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count1 = new MutableInt();
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp1 = new MutableLong(series2StartTs - 1);
+        MutableLong timestamp2 = new MutableLong(series2StartTs - 1);
         this.dao.wideBookendQuery(ids, series2StartTs - 1, series2EndTs + 1, true, 20, new BookendQueryCallback<IdPointValueTime>() {
 
             int seriesIdCounter = 0;
@@ -1605,12 +1847,18 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //Check value is null as no data exists before the start Ts for series 2
                     Assert.assertNull(value.getValue());
                     //Check time
                     Assert.assertEquals(series2StartTs - 1, value.getTime());
                     Assert.assertEquals(true, bookend);
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Check value is null as no data exists before the startTs for series 1
                     Assert.assertNull(value.getValue());
                     //Check time
@@ -1630,6 +1878,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals((int)seriesId2, value.getId());
                 }
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     count2.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1637,6 +1888,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
                     seriesId2Counter++;
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     count1.increment();
                     //Check value
                     Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
@@ -1652,6 +1906,9 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(mutableIndex.intValue(), index);
                 mutableIndex.increment();
                 if(value.getId() == seriesId2) {
+                    if(value.getTime() < timestamp2.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp2.setValue(value.getTime());
                     //This has a value before the startTs
                     //Limited but has bookend
                     Assert.assertEquals(true, bookend);
@@ -1660,6 +1917,9 @@ public class NumericPointValueDaoTestHelper {
                     //Check time
                     Assert.assertEquals(series2EndTs + 1, value.getTime());
                 }else {
+                    if(value.getTime() < timestamp1.getValue())
+                        Assert.fail("Timestamp out of order.");
+                    timestamp1.setValue(value.getTime());
                     //Limited but has bookend
                     Assert.assertEquals(true, bookend);
                     //Check value
@@ -1672,5 +1932,79 @@ public class NumericPointValueDaoTestHelper {
         });
         Assert.assertEquals(new Integer(20), count1.getValue());
         Assert.assertEquals(new Integer(20), count2.getValue());
+    }
+    
+    /**
+     * Query with only 1 value at the start time for series 2
+     */
+    public void testSeries1NoDataSeries2OneSample() {
+        MutableInt count1 = new MutableInt();
+        MutableInt count2 = new MutableInt();
+        MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2StartTs);
+        this.dao.wideBookendQuery(ids, series2StartTs, series2StartTs + 2, true, 20, new BookendQueryCallback<IdPointValueTime>() {
+
+            int seriesIdCounter = 0;
+            int seriesId2Counter = 0;
+            
+            @Override
+            public void firstValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                if(value.getId() == seriesId2) {
+                    //Check value is null as no data exists before the start Ts for series 2
+                    Assert.assertEquals(data.get(seriesId2).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(series2StartTs, value.getTime());
+                    Assert.assertEquals(false, bookend);
+                    count1.increment();
+                }else {
+                    //Check value is null as no data exists before the startTs for series 1
+                    Assert.assertNull(value.getValue());
+                    //Check time
+                    Assert.assertEquals(series2StartTs, value.getTime());
+                    Assert.assertEquals(true, bookend);
+                    count2.increment();
+                }
+            }
+            
+            @Override
+            public void row(IdPointValueTime value, int index) throws IOException {
+                Assert.fail("No data in query period, should not call row");
+            }
+            
+            @Override
+            public void lastValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                if(value.getId() == seriesId2) {
+                    //This has a value before the startTs
+                    Assert.assertEquals(true, bookend);
+                    //Check value
+                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(series2EndTs + 1, value.getTime());
+                    count1.increment();
+                }else {
+                    Assert.assertEquals(true, bookend);
+                    //Check value
+                    Assert.assertNull(value.getValue());
+                    //Check time
+                    Assert.assertEquals(series2EndTs + 1, value.getTime());
+                    count2.increment();
+                }
+            }
+            
+        });
+        Assert.assertEquals(new Integer(2), count1.getValue());
+        Assert.assertEquals(new Integer(2), count2.getValue());
     }
 }
