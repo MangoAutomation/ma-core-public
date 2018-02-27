@@ -926,7 +926,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 
                 for(Integer id : ids)
                     if(!values.containsKey(id))
-                        callback.firstValue(null, counter.getAndIncrement(), true);
+                        callback.firstValue(new IdPointValueTime(id, null, from), counter.getAndIncrement(), true);
             } catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 firstValuesSelect.cancel();
