@@ -2049,9 +2049,9 @@ public class NumericPointValueDaoTestHelper {
                     Assert.assertEquals(series2StartTs + 2, value.getTime());
                     count1.increment();
                 }else {
-                    if(value.getTime() < timestamp2.getValue())
+                    if(value.getTime() < timestamp1.getValue())
                         Assert.fail("Timestamp out of order.");
-                    timestamp2.setValue(value.getTime());
+                    timestamp1.setValue(value.getTime());
                     Assert.assertEquals(true, bookend);
                     //Check value
                     Assert.assertNull(value.getValue());
@@ -2169,5 +2169,163 @@ public class NumericPointValueDaoTestHelper {
         });
         Assert.assertEquals(new Integer(21), count1.getValue());
         Assert.assertEquals(new Integer(21), count2.getValue());
+    }
+    
+    /**
+     * Query with only 1 value at the start time for series 2
+     */
+    public void testSeries1NoDataSeries2OneSample() {
+        MutableInt count = new MutableInt();
+        MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(series2StartTs);
+        
+        this.dao.wideBookendQuery(ids, series2StartTs, series2StartTs + 2, false, 20, new BookendQueryCallback<IdPointValueTime>() {
+            
+            @Override
+            public void firstValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                count.increment();
+                if(value.getId() == seriesId2) {
+                    //Check value is null as no data exists before the start Ts for series 2
+                    Assert.assertEquals(data.get(seriesId2).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(series2StartTs, value.getTime());
+                    Assert.assertEquals(false, bookend);
+
+                }else {
+                    //Check value is null as no data exists before the startTs for series 1
+                    Assert.assertNull(value.getValue());
+                    //Check time
+                    Assert.assertEquals(series2StartTs, value.getTime());
+                    Assert.assertEquals(true, bookend);
+                }
+            }
+            
+            @Override
+            public void row(IdPointValueTime value, int index) throws IOException {
+                Assert.fail("No data in query period, should not call row");
+            }
+            
+            @Override
+            public void lastValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                count.increment();
+                if(value.getId() == seriesId2) {
+                    //This has a value before the startTs
+                    Assert.assertEquals(true, bookend);
+                    //Check value
+                    Assert.assertEquals(data.get(value.getId()).get(0).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(series2StartTs + 2, value.getTime());
+                }else {
+                    Assert.assertEquals(true, bookend);
+                    //Check value
+                    Assert.assertNull(value.getValue());
+                    //Check time
+                    Assert.assertEquals(series2StartTs + 2, value.getTime());
+                }
+            }
+            
+        });
+        Assert.assertEquals(new Integer(4), count.getValue());
+    }
+    
+    public void testNoStartBookendLimit() {
+        MutableInt count1 = new MutableInt();
+        MutableInt count2 = new MutableInt();
+        MutableInt mutableIndex = new MutableInt();
+        MutableLong timestamp = new MutableLong(startTs);
+        this.dao.wideBookendQuery(ids, startTs, endTs, false, 20, new BookendQueryCallback<IdPointValueTime>() {
+
+            int seriesIdCounter = 0;
+            int seriesId2Counter = 3;
+            
+            @Override
+            public void firstValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                if(value.getId() == seriesId2) {
+                    Assert.assertEquals(data.get(seriesId2).get(seriesId2Counter++).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(startTs, value.getTime());
+                    Assert.assertEquals(false, bookend);
+                    count1.increment();
+                }else {
+                    //Check value is null as no data exists before the startTs for series 1
+                    Assert.assertEquals(data.get(seriesId).get(seriesIdCounter++).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(startTs, value.getTime());
+                    Assert.assertEquals(false, bookend);
+                    count2.increment();
+                }
+            }
+            
+            @Override
+            public void row(IdPointValueTime value, int index) throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                if(value.getId() == seriesId2) {
+                    count2.increment();
+                    //Check value
+                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(data.get(value.getId()).get(seriesId2Counter).getTime(), value.getTime());
+                    seriesId2Counter++;
+                }else {
+                    count1.increment();
+                    //Check value
+                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(data.get(value.getId()).get(seriesIdCounter).getTime(), value.getTime());
+                    seriesIdCounter++;
+                }
+            }
+            
+            @Override
+            public void lastValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertEquals(mutableIndex.intValue(), index);
+                mutableIndex.increment();
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                if(value.getId() == seriesId2) {
+                    //This has a value before the startTs
+                    Assert.assertEquals(true, bookend);
+                    //Check value
+                    Assert.assertEquals(data.get(value.getId()).get(--seriesId2Counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(endTs, value.getTime());
+                    count1.increment();
+                }else {
+                    Assert.assertEquals(true, bookend);
+                    //Check value
+                    Assert.assertEquals(data.get(value.getId()).get(--seriesIdCounter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                    //Check time
+                    Assert.assertEquals(endTs, value.getTime());
+                    count2.increment();
+                }
+            }
+            
+        });
+        Assert.assertEquals(new Integer(11), count1.getValue());
+        Assert.assertEquals(new Integer(11), count2.getValue());
     }
 }
