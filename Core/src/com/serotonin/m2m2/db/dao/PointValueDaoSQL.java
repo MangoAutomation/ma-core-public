@@ -999,7 +999,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     first = false;
                 else
                     startValueSql += " UNION ";
-                startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
+                startValueSql = startValueSql + "(" + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1) ";
                 startValueArgs.add(seriesId);
                 startValueArgs.add(from);
             }
