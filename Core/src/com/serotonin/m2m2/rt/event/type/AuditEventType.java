@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -107,7 +107,7 @@ public class AuditEventType extends EventType{
 			LOG.error(e.getMessage(), e);
 		}
     	
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.added", context);
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.extended.added", context);
     }
 
     public static void raiseChangedEvent(String auditEventType, AbstractVO<?> from, AbstractVO<?> to) {
@@ -125,13 +125,13 @@ public class AuditEventType extends EventType{
 			LOG.error(e.getMessage(), e);
 		}
         
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.changed", context);
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.extended.changed", context);
     }
     
     public static void raiseToggleEvent(String auditEventType, AbstractActionVO<?> toggled) {
         Map<String, Object> context = new HashMap<String, Object>();
         context.put(AbstractActionVO.ENABLED_KEY, toggled.isEnabled());
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, toggled, "event.audit.toggled", context);
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, toggled, "event.audit.extended.toggled", context);
     }
 
     public static void raiseDeletedEvent(String auditEventType, AbstractVO<?> o) {
@@ -143,7 +143,7 @@ public class AuditEventType extends EventType{
 				| InvocationTargetException | JsonException | IOException e) {
 			LOG.error(e.getMessage(), e);
 		}
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.deleted", context);
+        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.extended.deleted", context);
     }
 
     private static void raiseEvent(int changeType, String auditEventType, AbstractVO<?> to, String key, Map<String, Object> context) {
@@ -158,9 +158,9 @@ public class AuditEventType extends EventType{
             else
                 username = new TranslatableMessage(descKey);
         }
-
+        
         TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
-                to.getId());
+                to.getName(), to.getXid());
         
         AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
         type.setRaisingUser(user);
@@ -208,7 +208,7 @@ public class AuditEventType extends EventType{
 
     public static void maybeAddPropertyChangeMessage(List<TranslatableMessage> list, String propertyNameKey,
             Object fromValue, Object toValue) {
-        if (!ObjectUtils.equals(fromValue, toValue))
+        if (!Objects.equals(fromValue, toValue))
             addPropertyChangeMessage(list, propertyNameKey, fromValue, toValue);
     }
 

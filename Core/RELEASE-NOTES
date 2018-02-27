@@ -20,6 +20,7 @@
 * Improved synchronization in real-time task subsystem to ensure tasks are not lost
 * Purged values removed from the point's value cache
 * Reduce log output for REST Exceptions that are passed back in the response
+* Changing audit log messages to the format User {username} created|changed|deleted|toggled {vo type} - {vo.name} with xid {vo.xid}
 
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
