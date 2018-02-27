@@ -944,7 +944,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     IdPointValueTime current = mapper.mapRow(rs, counter.getValue());
                     values.put(current.getId(), current);
                     callback.row(current, counter.getAndIncrement());
-                    if(realSamples.incrementAndGet() == limit)
+                    if(limit != null && realSamples.incrementAndGet() == limit)
                         break;
                 }
                 
