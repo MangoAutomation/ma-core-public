@@ -23,7 +23,10 @@
 
 <p>The <b>Plain</b> renderer is the default numeric renderer. Displays the unaltered raw value.</p>
 
-<p>The <b>Range</b> renderer allows the user to define a number <b>Format</b> (see the "Number format" documentation for more information), as well as an arbitrary number of textual values to represent various numeric from/to ranges. Each of these ranges can also be assigned a distinctive color. The number format is only used if the value does not fall within a defined range. For example, the range "cold", "normal", and "hot" may be defined for a temperature point, with appropriate colors for each.</p>
+<p>The <b>Range</b> renderer allows the user to define a number <b>Format</b> (see the "Number format" documentation for more information), as well as an arbitrary number of textual values to represent various
+numeric from/to ranges. Each of these ranges can also be assigned a distinctive color. The number format is used if the value does not fall within a defined range or if you use the value interpolation feature.
+For example, the range "cold", "normal", and "hot" may be defined for a temperature point, with appropriate colors for each. If you insert the token <em>${value}</em> into your text the token will be replaced with
+the actual numeric value formatted according to the format field.</p>
 
 <p>
   The <b>Time</b> renderer allows the user to define a <b>Format</b> (see the "date/time format" documentation for more 

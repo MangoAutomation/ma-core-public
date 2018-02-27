@@ -95,14 +95,17 @@ public class RangeRenderer extends ConvertingRenderer {
     public String getText(double value, int hint) {
         if ((hint & HINT_NO_CONVERT) == 0)
             value = unit.getConverterTo(renderedUnit).convert(value);
+
+        String numberString = new DecimalFormat(format).format(value);
         
         if ((hint & HINT_RAW) != 0 || (hint & HINT_SPECIFIC) != 0)
-            return new DecimalFormat(format).format(value);
+            return numberString;
 
         RangeValue range = getRangeValue(value);
         if (range == null)
-            return new DecimalFormat(format).format(value);
-        return range.getText();
+            return numberString;
+        
+        return range.formatText(numberString);
     }
 
     @Override

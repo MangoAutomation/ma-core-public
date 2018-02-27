@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.serotonin.util.SerializationHelper;
 
@@ -16,6 +18,8 @@ public class RangeValue implements Serializable {
     private double to;
     private String text;
     private String colour;
+    
+    private static final Pattern VALUE_PATTERN = Pattern.compile("\\$\\{value\\}");
 
     /**
      * Required by DWR. Should not be used otherwise.
@@ -57,6 +61,11 @@ public class RangeValue implements Serializable {
         this.to = to;
         this.text = text;
         this.colour = colour;
+    }
+    
+    String formatText(String number) {
+        String escapedReplacement = Matcher.quoteReplacement(number);
+        return VALUE_PATTERN.matcher(this.text).replaceAll(escapedReplacement);
     }
 
     boolean contains(double d) {
