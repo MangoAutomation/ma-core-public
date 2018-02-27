@@ -873,9 +873,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             if(ids.size() != 1)
                 throw new RuntimeException("Wrong base query.");
             
-            boolean first = true;
             String startValueSql = "";
-            List<Object> startValueArgs = new ArrayList<>(ids.size()*2);
+            List<Object> startValueArgs = new ArrayList<>(2);
             startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointid=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
             startValueArgs.add(ids.get(0));
             startValueArgs.add(from);
@@ -884,7 +883,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(startValueArgs.toArray(new Object[startValueArgs.size()]));
             setter.setValues(firstValuesSelect);
             
-            List<Object> args = new ArrayList<>(); //pv.ts > ? because firstValueSelect is special
+            List<Object> args = new ArrayList<>(3); //pv.ts > ? because firstValueSelect is special
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts > ? and pv.ts<? order by pv.ts asc";
             args.add(ids.get(0));
             args.add(from);
