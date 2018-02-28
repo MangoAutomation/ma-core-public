@@ -477,6 +477,9 @@
 		template.chartColour = dojo.byId("chartColour").value;
 		template.plotType = dojo.byId("plotType").value;
 		template.rollup = dojo.byId("rollup").value;
+		template.preventSetExtremeValues = dijit.byId("preventSetExtremeValues").get('checked');
+		template.setExtremeLowLimit = dojo.byId("setExtremeLowLimit").value;
+		template.setExtremeHighLimit = dojo.byId("setExtremeHighLimit").value;
 
 		getLoggingProperties(template);
 
