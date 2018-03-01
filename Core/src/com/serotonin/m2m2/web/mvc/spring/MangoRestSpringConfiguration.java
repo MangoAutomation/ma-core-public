@@ -112,8 +112,6 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
 		// Create and add any properties for Spring Annotations
 		Properties properties = new Properties();
-		String inputDateFormat = Common.envProps.getString("rest.customDateInputFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-		properties.put("rest.customDateInputFormat", inputDateFormat);
 
 		configurer.setProperties(properties);
 		return configurer;
@@ -217,14 +215,10 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 		        objectMapper.registerModule(def.getJacksonModule());
 		}
 
-		// Custom Date Output Format
-		String customDateFormat = Common.envProps.getString("rest.customDateOutputFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-		if (customDateFormat != null) {
-			objectMapper.configure(
-					SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-			DateFormat dateFormat = new SimpleDateFormat(customDateFormat);
-			objectMapper.setDateFormat(dateFormat);
-		}
+		//Always output dates in ISO 8601
+		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		objectMapper.setDateFormat(dateFormat);
 
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
