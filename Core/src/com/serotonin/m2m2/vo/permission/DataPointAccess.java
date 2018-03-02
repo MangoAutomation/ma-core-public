@@ -53,7 +53,7 @@ public class DataPointAccess implements JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("dataPointXid", DataPointDao.instance.getDataPointXidById(dataPointId));
+        writer.writeEntry("dataPointXid", DataPointDao.instance.getXidById(dataPointId));
         writer.writeEntry("permission", ACCESS_CODES.getCode(permission));
     }
 
@@ -63,7 +63,7 @@ public class DataPointAccess implements JsonSerializable {
         if (StringUtils.isBlank(text))
             throw new TranslatableJsonException("emport.error.permission.missing", "dataPointXid");
 
-        Integer dpid = DataPointDao.instance.getDataPointIdByXid(text);
+        Integer dpid = DataPointDao.instance.getIdByXid(text);
         if (dpid == null)
             throw new TranslatableJsonException("emport.error.missingPoint", text);
         dataPointId = dpid;

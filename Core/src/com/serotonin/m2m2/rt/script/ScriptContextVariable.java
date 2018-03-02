@@ -120,7 +120,7 @@ public class ScriptContextVariable implements Serializable{
         DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (ScriptContextVariable p : context) {
-            String xid = dataPointDao.getDataPointXidById(p.getDataPointId());
+            String xid = dataPointDao.getXidById(p.getDataPointId());
             JsonObject point = new JsonObject();
             pointList.add(point);
             point.put("varName", new JsonString(p.getVariableName()));
@@ -149,7 +149,7 @@ public class ScriptContextVariable implements Serializable{
                 if (xid == null)
                     throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
 
-                Integer dpid = dataPointDao.getDataPointIdByXid(xid);
+                Integer dpid = dataPointDao.getIdByXid(xid);
                 if (dpid == null){
                 	//This can also happen if the point is in its own context (Bug from legacy systems).
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);

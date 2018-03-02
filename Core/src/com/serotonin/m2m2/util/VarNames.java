@@ -55,7 +55,7 @@ public class VarNames {
             JsonObject point = new JsonObject();
             pointList.add(point);
             point.put("varName", new JsonString(p.getValue()));
-            point.put("dataPointXid", new JsonString(dataPointDao.getDataPointXidById(p.getKey())));
+            point.put("dataPointXid", new JsonString(dataPointDao.getXidById(p.getKey())));
         }
         writer.writeEntry("context", pointList);
     }
@@ -72,7 +72,7 @@ public class VarNames {
                 if (xid == null)
                     throw new TranslatableJsonException("emport.error.meta.missing", "dataPointXid");
 
-                Integer dpid = dataPointDao.getDataPointIdByXid(xid);
+                Integer dpid = dataPointDao.getIdByXid(xid);
                 if (dpid == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
 

@@ -678,13 +678,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
         writer.writeEntry("handlerType", TYPE_CODES.getCode(handlerType));
 
         if (handlerType == TYPE_SET_POINT) {
-            String dpXid = dataPointDao.getDataPointXidById(targetPointId);
+            String dpXid = dataPointDao.getXidById(targetPointId);
             writer.writeEntry("targetPointId", dpXid);
 
             // Active
             writer.writeEntry("activeAction", SET_ACTION_CODES.getCode(activeAction));
             if (activeAction == SET_ACTION_POINT_VALUE) {
-                dpXid = dataPointDao.getDataPointXidById(activePointId);
+                dpXid = dataPointDao.getXidById(activePointId);
                 writer.writeEntry("activePointId", dpXid);
             }
             else if (activeAction == SET_ACTION_STATIC_VALUE)
@@ -693,7 +693,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             // Inactive
             writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
             if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                dpXid = dataPointDao.getDataPointXidById(inactivePointId);
+                dpXid = dataPointDao.getXidById(inactivePointId);
                 writer.writeEntry("inactivePointId", dpXid);
             }
             else if (inactiveAction == SET_ACTION_STATIC_VALUE)
@@ -741,7 +741,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
         if (handlerType == TYPE_SET_POINT) {
             String xid = jsonObject.getString("targetPointId");
             if (xid != null) {
-                Integer id = dataPointDao.getDataPointIdByXid(xid);
+                Integer id = dataPointDao.getIdByXid(xid);
                 if (id == null)
                     throw new TranslatableJsonException("emport.error.missingPoint", xid);
                 targetPointId = id;
@@ -759,7 +759,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (activeAction == SET_ACTION_POINT_VALUE) {
                 xid = jsonObject.getString("activePointId");
                 if (xid != null) {
-                    Integer id = dataPointDao.getDataPointIdByXid(xid);
+                    Integer id = dataPointDao.getIdByXid(xid);
                     if (id == null)
                         throw new TranslatableJsonException("emport.error.missingPoint", xid);
                     activePointId = id;
@@ -783,7 +783,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (inactiveAction == SET_ACTION_POINT_VALUE) {
                 xid = jsonObject.getString("inactivePointId");
                 if (xid != null) {
-                    Integer id = dataPointDao.getDataPointIdByXid(xid);
+                    Integer id = dataPointDao.getIdByXid(xid);
                     if (id == null)
                         throw new TranslatableJsonException("emport.error.missingPoint", xid);
                     inactivePointId = id;

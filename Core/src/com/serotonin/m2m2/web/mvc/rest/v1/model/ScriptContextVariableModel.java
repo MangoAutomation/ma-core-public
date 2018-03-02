@@ -40,7 +40,7 @@ public class ScriptContextVariableModel {
 	 * @param variable
 	 */
 	public ScriptContextVariableModel(ScriptContextVariable variable){
-		this.dataPointXid = DataPointDao.instance.getDataPointXidById(variable.getDataPointId());
+		this.dataPointXid = DataPointDao.instance.getXidById(variable.getDataPointId());
 		this.variableName = variable.getVariableName();
 		this.contextUpdate = variable.isContextUpdate();
 	}
@@ -72,7 +72,7 @@ public class ScriptContextVariableModel {
 	public ScriptContextVariable createVariable(){
 		int dataPointId = Common.NEW_ID;
 		if(this.dataPointXid != null){
-			Integer id = DataPointDao.instance.getDataPointIdByXid(this.dataPointXid);
+			Integer id = DataPointDao.instance.getIdByXid(this.dataPointXid);
 			if(id != null)
 				dataPointId = id;
 		}

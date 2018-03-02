@@ -333,7 +333,7 @@ public class DeltamationCommon {
         DataPointDao points = DataPointDao.instance;
         
         String xid = jsonObject.getString(name);
-        Integer dpid = points.getDataPointIdByXid(xid);
+        Integer dpid = points.getIdByXid(xid);
         if (dpid == null) {
             throw new TranslatableJsonException("validate.pointMissing", name, xid);
         }

@@ -133,6 +133,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public String getExtendedPointName(int dataPointId) {
+        //TODO? return ejt.queryForObject("SELECT CONCAT(deviceName, ' - ', name) FROM dataPoints WHERE ID=?", 
+        //                                  new Object[]{dataPointId}, String.class, "?");
         DataPointVO vo = getDataPoint(dataPointId, false);
         if (vo == null)
             return "?";
@@ -211,23 +213,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
         return dp;
     }
-    
-    /**
-     * Get the ID for an XID
-     * @return Integer
-     */
-    public Integer getDataPointIdByXid(String xid) {
-        return this.queryForObject("SELECT id FROM dataPoints WHERE xid=?", new Object[] { xid }, Integer.class, null);
-    }
-    
-    /**
-     * Get the ID for an XID
-     * @return Integer
-     */
-    public String getDataPointXidById(int id) {
-        return this.queryForObject("SELECT xid FROM dataPoints WHERE id=?", new Object[] { id }, String.class, null);
-    }
-    
     
     /**
      * Get all data point Ids in the table

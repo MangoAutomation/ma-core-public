@@ -239,7 +239,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
                 response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
             }
             else{
-                String dpXid = DataPointDao.instance.getDataPointXidById(pointId);
+                String dpXid = DataPointDao.instance.getXidById(pointId);
                 if(dpXid == null)
                 	it.remove();
                 else

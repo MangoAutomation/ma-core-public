@@ -112,6 +112,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 	protected final String SELECT_BY_ID;
 	protected final String SELECT_BY_XID;
 	protected final String SELECT_BY_NAME;
+	protected final String SELECT_XID_BY_ID;
+	protected final String SELECT_ID_BY_XID;
 	protected final String INSERT;
 	protected final String UPDATE;
 	protected final String DELETE;
@@ -289,6 +291,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 			SELECT_BY_ID = SELECT_ALL + " WHERE id=?";
 			SELECT_BY_XID = SELECT_ALL + " WHERE xid=?";
 			SELECT_BY_NAME = SELECT_ALL + " WHERE name=?";
+			SELECT_XID_BY_ID = "SELECT xid FROM " + tableName + " WHERE id=?";
+			SELECT_ID_BY_XID = "SELECT id FROM " + tableName + " WHERE xid=?";
 			INSERT = insert + ") VALUES (" + insertValues + ")";
 			UPDATE = update + " WHERE id=?";
 			DELETE = "DELETE FROM " + tableName + " WHERE id=?";
@@ -328,6 +332,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 			SELECT_BY_ID = SELECT_ALL + " WHERE " + this.tablePrefix + "id=?";
 			SELECT_BY_XID = SELECT_ALL + " WHERE " + this.tablePrefix + "xid=?";
 			SELECT_BY_NAME = SELECT_ALL + " WHERE " + this.tablePrefix + "name=?";
+			SELECT_XID_BY_ID = "SELECT " + this.tablePrefix + "xid FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + "id=?";
+            SELECT_ID_BY_XID = "SELECT " + this.tablePrefix + "id FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + "xid=?";
 			INSERT = insert + ") VALUES (" + insertValues + ")";
 			UPDATE = update + " WHERE id=?";
 			DELETE = "DELETE FROM " + tableName + " WHERE id=?";
@@ -692,6 +698,22 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 		});
 		return items;
 	}
+	
+	/**
+     * Get the ID for an XID
+     * @return Integer
+     */
+    public Integer getIdByXid(String xid) {
+        return this.queryForObject(SELECT_ID_BY_XID, new Object[] { xid }, Integer.class, null);
+    }
+    
+    /**
+     * Get the ID for an XID
+     * @return String
+     */
+    public String getXidById(int id) {
+        return this.queryForObject(SELECT_XID_BY_ID, new Object[] { id }, String.class, null);
+    }
 	
 	/**
      * Return all VOs with FKs Populated

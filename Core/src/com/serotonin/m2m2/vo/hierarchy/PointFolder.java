@@ -333,7 +333,7 @@ public class PointFolder implements JsonSerializable {
         DataPointDao dataPointDao = DataPointDao.instance;
         List<String> pointList = new ArrayList<String>();
         for (DataPointSummary p : points) {
-            String dpXid = dataPointDao.getDataPointXidById(p.getId());
+            String dpXid = dataPointDao.getXidById(p.getId());
             if (dpXid != null)
                 pointList.add(dpXid);
         }

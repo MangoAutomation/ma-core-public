@@ -127,7 +127,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         for (PublishedPointRT<T> rt : pointRTs) {
             if (!rt.isPointEnabled()) {
                 badPointId = rt.getVo().getDataPointId();
-                disabledPoint = DataPointDao.instance.getDataPointXidById(badPointId);
+                disabledPoint = DataPointDao.instance.getXidById(badPointId);
                 break;
             }
         }
