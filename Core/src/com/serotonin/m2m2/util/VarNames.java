@@ -52,13 +52,10 @@ public class VarNames {
         DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (IntStringPair p : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(p.getKey(), false);
-            if (dp != null) {
-                JsonObject point = new JsonObject();
-                pointList.add(point);
-                point.put("varName", new JsonString(p.getValue()));
-                point.put("dataPointXid", new JsonString(dp.getXid()));
-            }
+            JsonObject point = new JsonObject();
+            pointList.add(point);
+            point.put("varName", new JsonString(p.getValue()));
+            point.put("dataPointXid", new JsonString(dataPointDao.getDataPointXidById(p.getKey())));
         }
         writer.writeEntry("context", pointList);
     }

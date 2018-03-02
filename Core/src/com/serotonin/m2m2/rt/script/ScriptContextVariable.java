@@ -120,14 +120,12 @@ public class ScriptContextVariable implements Serializable{
         DataPointDao dataPointDao = DataPointDao.instance;
         JsonArray pointList = new JsonArray();
         for (ScriptContextVariable p : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(p.getDataPointId(), false);
-            if (dp != null) {
-                JsonObject point = new JsonObject();
-                pointList.add(point);
-                point.put("varName", new JsonString(p.getVariableName()));
-                point.put("dataPointXid", new JsonString(dp.getXid()));
-                point.put("updateContext", new JsonBoolean(p.isContextUpdate()));
-            }
+            String xid = dataPointDao.getDataPointXidById(p.getDataPointId());
+            JsonObject point = new JsonObject();
+            pointList.add(point);
+            point.put("varName", new JsonString(p.getVariableName()));
+            point.put("dataPointXid", new JsonString(xid));
+            point.put("updateContext", new JsonBoolean(p.isContextUpdate()));
         }
         writer.writeEntry("context", pointList);
     }

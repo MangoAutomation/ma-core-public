@@ -36,10 +36,8 @@ import com.serotonin.m2m2.view.quantize.NumericDataQuantizer;
 import com.serotonin.m2m2.view.quantize.TimeSeriesQuantizerCallback;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.pair.LongPair;
-import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
-import com.serotonin.timer.RealTimeTimer;
 import com.serotonin.timer.sync.Synchronizer;
 import com.serotonin.m2m2.util.ColorUtils;
 

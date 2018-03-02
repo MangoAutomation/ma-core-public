@@ -678,16 +678,14 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
         writer.writeEntry("handlerType", TYPE_CODES.getCode(handlerType));
 
         if (handlerType == TYPE_SET_POINT) {
-            DataPointVO dp = dataPointDao.getDataPoint(targetPointId, false);
-            if (dp != null)
-                writer.writeEntry("targetPointId", dp.getXid());
+            String dpXid = dataPointDao.getDataPointXidById(targetPointId);
+            writer.writeEntry("targetPointId", dpXid);
 
             // Active
             writer.writeEntry("activeAction", SET_ACTION_CODES.getCode(activeAction));
             if (activeAction == SET_ACTION_POINT_VALUE) {
-                dp = dataPointDao.getDataPoint(activePointId, false);
-                if (dp != null)
-                    writer.writeEntry("activePointId", dp.getXid());
+                dpXid = dataPointDao.getDataPointXidById(activePointId);
+                writer.writeEntry("activePointId", dpXid);
             }
             else if (activeAction == SET_ACTION_STATIC_VALUE)
                 writer.writeEntry("activeValueToSet", activeValueToSet);
@@ -695,9 +693,8 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             // Inactive
             writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
             if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                dp = dataPointDao.getDataPoint(inactivePointId, false);
-                if (dp != null)
-                    writer.writeEntry("inactivePointId", dp.getXid());
+                dpXid = dataPointDao.getDataPointXidById(inactivePointId);
+                writer.writeEntry("inactivePointId", dpXid);
             }
             else if (inactiveAction == SET_ACTION_STATIC_VALUE)
                 writer.writeEntry("inactiveValueToSet", inactiveValueToSet);

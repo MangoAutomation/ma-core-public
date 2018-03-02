@@ -233,12 +233,14 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         	T point = it.next();
             int pointId = point.getDataPointId();
             //Does this point even exist?
-            DataPointVO vo = DataPointDao.instance.getDataPoint(pointId, false);
+            
             if (set.contains(pointId)) {
+                DataPointVO vo = DataPointDao.instance.getDataPoint(pointId, false);
                 response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
             }
             else{
-                if(vo == null)
+                String dpXid = DataPointDao.instance.getDataPointXidById(pointId);
+                if(dpXid == null)
                 	it.remove();
                 else
                 	set.add(pointId);

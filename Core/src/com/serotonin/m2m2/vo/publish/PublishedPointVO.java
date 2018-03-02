@@ -56,13 +56,7 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        DataPointVO dp = DataPointDao.instance.getDataPoint(dataPointId, false);
-        String xid;
-        if (dp == null)
-            xid = null;
-        else
-            xid = dp.getXid();
-
+        String xid = DataPointDao.instance.getDataPointXidById(dataPointId);
         writer.writeEntry("dataPointId", xid);
     }
 

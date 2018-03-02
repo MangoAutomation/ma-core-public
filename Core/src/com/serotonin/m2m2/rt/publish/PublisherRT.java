@@ -21,7 +21,6 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.timer.FixedRateTrigger;
@@ -124,11 +123,11 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
 
     synchronized private void checkForDisabledPoints() {
         int badPointId = -1;
-        DataPointVO disabledPoint = null;
+        String disabledPoint = null;
         for (PublishedPointRT<T> rt : pointRTs) {
             if (!rt.isPointEnabled()) {
                 badPointId = rt.getVo().getDataPointId();
-                disabledPoint = DataPointDao.instance.getDataPoint(badPointId, false);
+                disabledPoint = DataPointDao.instance.getDataPointXidById(badPointId);
                 break;
             }
         }
@@ -143,7 +142,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
                     // The point is missing
                     lm = new TranslatableMessage("event.publish.pointMissing", badPointId);
                 else
-                    lm = new TranslatableMessage("event.publish.pointDisabled", disabledPoint.getXid());
+                    lm = new TranslatableMessage("event.publish.pointDisabled", disabledPoint);
                 Common.eventManager.raiseEvent(pointDisabledEventType, Common.timer.currentTimeMillis(), true,
                         vo.getAlarmLevel(POINT_DISABLED_EVENT, AlarmLevels.URGENT), lm, createEventContext());
             }

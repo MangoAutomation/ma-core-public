@@ -337,16 +337,14 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
     	super.jsonWrite(writer);
     	
-        DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId, false);
-        if (dp != null)
-            writer.writeEntry("targetPointId", dp.getXid());
+    	String dpXid = DataPointDao.instance.getDataPointXidById(targetPointId);
+        writer.writeEntry("targetPointId", dpXid);
 
         // Active
         writer.writeEntry("activeAction", SET_ACTION_CODES.getCode(activeAction));
         if (activeAction == SET_ACTION_POINT_VALUE) {
-            dp = DataPointDao.instance.getDataPoint(activePointId, false);
-            if (dp != null)
-                writer.writeEntry("activePointId", dp.getXid());
+            dpXid = DataPointDao.instance.getDataPointXidById(activePointId);
+            writer.writeEntry("activePointId", dpXid);
         }
         else if (activeAction == SET_ACTION_STATIC_VALUE)
             writer.writeEntry("activeValueToSet", activeValueToSet);
@@ -356,9 +354,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         // Inactive
         writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
         if (inactiveAction == SET_ACTION_POINT_VALUE) {
-            dp = DataPointDao.instance.getDataPoint(inactivePointId, false);
-            if (dp != null)
-                writer.writeEntry("inactivePointId", dp.getXid());
+            dpXid = DataPointDao.instance.getDataPointXidById(inactivePointId);
+            writer.writeEntry("inactivePointId", dpXid);
         }
         else if (inactiveAction == SET_ACTION_STATIC_VALUE)
             writer.writeEntry("inactiveValueToSet", inactiveValueToSet);

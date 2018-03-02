@@ -221,6 +221,15 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
     
     /**
+     * Get the ID for an XID
+     * @return Integer
+     */
+    public String getDataPointXidById(int id) {
+        return this.queryForObject("SELECT xid FROM dataPoints WHERE id=?", new Object[] { id }, String.class, null);
+    }
+    
+    
+    /**
      * Get all data point Ids in the table
      * @return
      */
