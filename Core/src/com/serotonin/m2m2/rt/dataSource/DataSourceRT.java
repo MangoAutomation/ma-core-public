@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.serotonin.ShouldNeverHappenException;
@@ -59,7 +61,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     /**
      * Access to either the addedPoints or removedPoints lists should be synchronized with this object's monitor.
      */
-    protected final Object pointListChangeLock = new Object();
+    protected final ReadWriteLock pointListChangeLock = new ReentrantReadWriteLock();
 
     private final List<DataSourceEventType> eventTypes;
 
@@ -102,17 +104,29 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     }
 
     public void addDataPoint(DataPointRT dataPoint) {
-        synchronized (pointListChangeLock) {
-            addedChangedPoints.remove(dataPoint);
-            addedChangedPoints.add(dataPoint);
-            removedPoints.remove(dataPoint);
+        pointListChangeLock.readLock().lock();
+        try {
+            //Further synchronize with other readers
+            synchronized(pointListChangeLock) {
+                addedChangedPoints.remove(dataPoint);
+                addedChangedPoints.add(dataPoint);
+                removedPoints.remove(dataPoint);
+            }
+        } finally {
+            pointListChangeLock.readLock().unlock();
         }
     }
 
     public void removeDataPoint(DataPointRT dataPoint) {
-        synchronized (pointListChangeLock) {
-            addedChangedPoints.remove(dataPoint);
-            removedPoints.add(dataPoint);
+        pointListChangeLock.readLock().lock();
+        try {
+            //Further synchronize with other readers
+            synchronized(pointListChangeLock) {
+                addedChangedPoints.remove(dataPoint);
+                removedPoints.add(dataPoint);
+            }
+        } finally {
+            pointListChangeLock.readLock().unlock();
         }
     }
     
