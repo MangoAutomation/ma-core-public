@@ -158,6 +158,8 @@ public class JsonSerializableUtility {
             return digestsDiffer(fromValue, toValue);
 		} else if(fromValue instanceof Map<?,?>) {
 		    Map<?,?> toMap = (Map<?,?>)toValue;
+		    if(((Map<?,?>)fromValue).size() != toMap.size())
+                return true;
 		    for(Entry<?,?> entry : ((Map<?,?>)fromValue).entrySet()) {
 		        if(!toMap.containsKey(entry.getKey()))
 		            return true;
@@ -167,9 +169,8 @@ public class JsonSerializableUtility {
 		        if(digestsDiffer(entry.getValue(), toMap.get(entry.getKey())))
 		            return true;
 		    }
-		    if(((Map<?,?>)fromValue).size() != ((Map<?,?>)toValue).size())
-                return true;
-            return digestsDiffer(fromValue, toValue);
+		    
+            return false;
 		}
 		
 		//Same class, check if it has properties
