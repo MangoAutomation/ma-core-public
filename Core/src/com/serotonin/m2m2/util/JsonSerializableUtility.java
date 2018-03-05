@@ -26,9 +26,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.jfree.util.Log;
+import java.util.Map.Entry;
+import java.util.Objects;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -158,6 +157,16 @@ public class JsonSerializableUtility {
                 return true;
             return digestsDiffer(fromValue, toValue);
 		} else if(fromValue instanceof Map<?,?>) {
+		    Map<?,?> toMap = (Map<?,?>)toValue;
+		    for(Entry<?,?> entry : ((Map<?,?>)fromValue).entrySet()) {
+		        if(!toMap.containsKey(entry.getKey()))
+		            return true;
+		        if(entry.getValue() instanceof Map<?,?>) //Recurse
+		            if(different(entry.getValue(), toMap.get(entry.getKey())))
+		                return true;
+		        if(digestsDiffer(entry.getValue(), toMap.get(entry.getKey())))
+		            return true;
+		    }
 		    if(((Map<?,?>)fromValue).size() != ((Map<?,?>)toValue).size())
                 return true;
             return digestsDiffer(fromValue, toValue);
@@ -168,19 +177,19 @@ public class JsonSerializableUtility {
 	}
 	
 	private boolean digestsDiffer(Object fromValue, Object toValue) throws IOException, JsonException {
-	    try {
+	    try (
     	    DigestOutputStream dos = new DigestOutputStream(new OutputStream() {
                 @Override
                 public void write(int b) throws IOException {
                     // no-op, just digesting
                 }
             }, MessageDigest.getInstance("MD5"));
-    	    
-    	    OutputStreamWriter fromStreamWriter = new OutputStreamWriter(dos);
-            JsonWriter fromWriter = new JsonWriter(Common.JSON_CONTEXT, fromStreamWriter);
+    	    OutputStreamWriter toStreamWriter = new OutputStreamWriter(dos);
+    	    OutputStreamWriter fromStreamWriter = new OutputStreamWriter(dos);) {
             
+    	    JsonWriter fromWriter = new JsonWriter(Common.JSON_CONTEXT, fromStreamWriter);
             //We need fresh writers to avoid miscellaneous commas or whatnot
-            OutputStreamWriter toStreamWriter = new OutputStreamWriter(dos);
+            
             JsonWriter toWriter = new JsonWriter(Common.JSON_CONTEXT, toStreamWriter);
             
             fromWriter.writeObject(fromValue);
@@ -195,7 +204,6 @@ public class JsonSerializableUtility {
             return !Arrays.equals(fromDigest, toDigest);
 	    } catch(NoSuchAlgorithmException e) {
 	        //Required to implement MD5, really shouldn't happen
-	        Log.error("Unable to compute collection digests, should never happen assume different: " + e.getMessage(), e);
 	        throw new ShouldNeverHappenException(e);
 	    }
 	}
@@ -238,7 +246,7 @@ public class JsonSerializableUtility {
 			}
 		}else if(properties.size() == 0){
 			//No Sero Json Properties at all, hopefully something that implements .equals() 
-			return !ObjectUtils.equals(from, to);
+			return !Objects.equals(from, to);
 		}
 
 		return false;
