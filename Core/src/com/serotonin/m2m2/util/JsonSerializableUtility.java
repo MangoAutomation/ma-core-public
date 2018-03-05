@@ -158,9 +158,10 @@ public class JsonSerializableUtility {
             return digestsDiffer(fromValue, toValue);
 		} else if(fromValue instanceof Map<?,?>) {
 		    Map<?,?> toMap = (Map<?,?>)toValue;
-		    if(((Map<?,?>)fromValue).size() != toMap.size())
+		    Map<?,?> fromMap = (Map<?,?>)fromValue;
+		    if(fromMap.size() != toMap.size())
                 return true;
-		    for(Entry<?,?> entry : ((Map<?,?>)fromValue).entrySet()) {
+		    for(Entry<?,?> entry : fromMap.entrySet()) {
 		        if(!toMap.containsKey(entry.getKey()))
 		            return true;
 		        if(entry.getValue() instanceof Map<?,?>) //Recurse
