@@ -9,12 +9,18 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,8 +28,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.jfree.util.Log;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonWriter;
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
@@ -143,51 +152,52 @@ public class JsonSerializableUtility {
 		if(!fromValue.getClass().equals(toValue.getClass()))
 			return true;
 		
-		//List
-		if(fromValue instanceof Collection<?>){
-			Collection<?> fromCollection = (Collection<?>)fromValue;
-			Collection<?> toCollection = (Collection<?>)toValue;
-			//Does the toCollection contain an item that is new/different?
-			if(toCollection.size() == fromCollection.size()){
-				for(Object to : toCollection){
-					boolean containedWithinFrom = false;
-					for(Object from : fromCollection){
-						if(!differentRecursive(from, to)){
-							containedWithinFrom = true;
-							break;
-						}
-					}
-					if(!containedWithinFrom)
-						return true;
-				}
-			}else{
-				//Different Size
-				return true;
-			}
-			return false;
-		}
-		//Map
-		if(fromValue instanceof Map<?,?>){
-			Map<?,?> fromMap = (Map<?,?>)fromValue;
-			Map<?,?> toMap = (Map<?,?>)toValue;
-			if(toMap.size() == fromMap.size()){
-				Iterator<?> it = toMap.keySet().iterator();
-				while(it.hasNext()){
-					Object key = it.next();
-					Object from = fromMap.get(key);
-					Object to = toMap.get(key);
-					if(differentRecursive(from, to))
-						return true;
-				}
-			}else{
-				//Different size
-				return true;
-			}
-			return false;
+		//List or map
+		if(fromValue instanceof Collection<?>) {
+		    if(((Collection<?>)fromValue).size() != ((Collection<?>)toValue).size())
+                return true;
+            return digestsDiffer(fromValue, toValue);
+		} else if(fromValue instanceof Map<?,?>) {
+		    if(((Map<?,?>)fromValue).size() != ((Map<?,?>)toValue).size())
+                return true;
+            return digestsDiffer(fromValue, toValue);
 		}
 		
 		//Same class, check if it has properties
 		return differentRecursive(fromValue, toValue);
+	}
+	
+	private boolean digestsDiffer(Object fromValue, Object toValue) throws IOException, JsonException {
+	    try {
+    	    DigestOutputStream dos = new DigestOutputStream(new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                    // no-op, just digesting
+                }
+            }, MessageDigest.getInstance("MD5"));
+    	    
+    	    OutputStreamWriter fromStreamWriter = new OutputStreamWriter(dos);
+            JsonWriter fromWriter = new JsonWriter(Common.JSON_CONTEXT, fromStreamWriter);
+            
+            //We need fresh writers to avoid miscellaneous commas or whatnot
+            OutputStreamWriter toStreamWriter = new OutputStreamWriter(dos);
+            JsonWriter toWriter = new JsonWriter(Common.JSON_CONTEXT, toStreamWriter);
+            
+            fromWriter.writeObject(fromValue);
+            fromWriter.flush();
+            byte[] fromDigest = dos.getMessageDigest().digest();
+            fromDigest = Arrays.copyOf(fromDigest, fromDigest.length);
+            
+            toWriter.writeObject(toValue);
+            toWriter.flush();
+            byte[] toDigest = dos.getMessageDigest().digest();
+            
+            return !Arrays.equals(fromDigest, toDigest);
+	    } catch(NoSuchAlgorithmException e) {
+	        //Required to implement MD5, really shouldn't happen
+	        Log.error("Unable to compute collection digests, should never happen assume different: " + e.getMessage(), e);
+	        throw new ShouldNeverHappenException(e);
+	    }
 	}
 	
 	protected boolean differentRecursive(Object from, Object to) throws JsonException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException{
