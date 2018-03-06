@@ -161,7 +161,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mango-api</artifactId>
-			<version>3.3.5-SNAPSHOT</version>
+			<version>3.3.6-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -185,7 +185,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>reports</artifactId>
-			<version>3.3.3-SNAPSHOT</version>
+			<version>3.3.4-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -233,7 +233,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>watchlist</artifactId>
-			<version>3.3.2-SNAPSHOT</version>
+			<version>3.3.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<!-- ma-modules-private -->
@@ -306,7 +306,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>modbus-ds</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -360,7 +360,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>snmp-ds</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -427,7 +427,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>excel-reports</artifactId>
-			<version>3.3.3-SNAPSHOT</version>
+			<version>3.3.4-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -469,7 +469,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>device-config</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -487,13 +487,13 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>haystack-ds-pub</artifactId>
-			<version>3.3.1-SNAPSHOT</version>
+			<version>3.3.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>advanced-scheduler</artifactId>
-			<version>3.3.2-SNAPSHOT</version>
+			<version>3.3.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 	</dependencies>
