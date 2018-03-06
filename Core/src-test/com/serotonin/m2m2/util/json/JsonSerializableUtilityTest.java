@@ -6,6 +6,7 @@ package com.serotonin.m2m2.util.json;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -120,7 +121,7 @@ public class JsonSerializableUtilityTest {
     //TODO Test writerMap
     
     @Test
-    public void testAnnotatedList() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+    public void testwriterListLength() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
         
         List<Object> annotatedList1 = new ArrayList<>();
         annotatedList1.add(new Integer(1));
@@ -196,9 +197,275 @@ public class JsonSerializableUtilityTest {
         Assert.assertEquals((int)1, changedList.get(1));
     }
     
-    //TODO Test writer list
-    //TODO test rollup enum
+    @Test
+    public void testAnnotatedList() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        List<Object> annotatedList1 = new ArrayList<>();
+        annotatedList1.add(new Integer(1));
+        annotatedList1.add(new Integer(2));
+        
+        List<Object> annotatedList2 = new ArrayList<>();
+        annotatedList2.add(new Integer(2));
+        annotatedList2.add(new Integer(3));
+
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        o1.setAnnotatedList(annotatedList1);
+        
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        o2.setAnnotatedList(annotatedList2);
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 1)
+            Assert.fail("List should have changed");
+        @SuppressWarnings("unchecked")
+        List<Object> changedList = (List<Object>) changes.get("annotatedList");
+        Assert.assertNotNull("List should have changed", changedList);
+        Assert.assertEquals((int)2, changedList.size());
+        Assert.assertEquals((int)2, changedList.get(0));
+        Assert.assertEquals((int)3, changedList.get(1));
+    }
+
+    @Test
+    public void testWriterListLength() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        List<Object> writerList1 = new ArrayList<>();
+        writerList1.add(new Integer(1));
+        writerList1.add(new Integer(2));
+        
+        List<Object> writerList2 = new ArrayList<>();
+        writerList2.add(new Integer(1));
+        writerList2.add(new Integer(2));
+
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        o1.setWriterList(writerList1);
+        
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        o2.setWriterList(writerList2);
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+        
+        //No Changes
+        if(changes.size() != 0)
+            Assert.fail("List should not have changed");
+        
+        //Modify the List
+        writerList2.remove(1);
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("List should have changed");
+        @SuppressWarnings("unchecked")
+        List<Object> changedList = (List<Object>) changes.get("writerList");
+        Assert.assertNotNull("List should have changed", changedList);
+        Assert.assertEquals((int)1, changedList.size());
+        Assert.assertEquals((int)1, changedList.get(0));
+    }
     
-    //TODO Test List of JsonSerializable objects...
+    @Test
+    public void testWriterListOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        List<Object> writerList1 = new ArrayList<>();
+        writerList1.add(new Integer(1));
+        writerList1.add(new Integer(2));
+        
+        List<Object> writerList2 = new ArrayList<>();
+        writerList2.add(new Integer(1));
+        writerList2.add(new Integer(2));
+
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        o1.setWriterList(writerList1);
+        
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        o2.setWriterList(writerList2);
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+        
+        //No Changes
+        if(changes.size() != 0)
+            Assert.fail("List should not have changed");
+        
+        //Modify the List
+        writerList2.clear();
+        writerList2.add(new Integer(2));
+        writerList2.add(new Integer(1));
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("List should have changed");
+        @SuppressWarnings("unchecked")
+        List<Object> changedList = (List<Object>) changes.get("writerList");
+        Assert.assertNotNull("List should have changed", changedList);
+        Assert.assertEquals((int)2, changedList.size());
+        Assert.assertEquals((int)2, changedList.get(0));
+        Assert.assertEquals((int)1, changedList.get(1));
+    }
     
+    @Test
+    public void testWriterList() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        List<Object> writerList1 = new ArrayList<>();
+        writerList1.add(new Integer(1));
+        writerList1.add(new Integer(2));
+        
+        List<Object> writerList2 = new ArrayList<>();
+        writerList2.add(new Integer(2));
+        writerList2.add(new Integer(3));
+
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        o1.setWriterList(writerList1);
+        
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        o2.setWriterList(writerList2);
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 1)
+            Assert.fail("List should have changed");
+        @SuppressWarnings("unchecked")
+        List<Object> changedList = (List<Object>) changes.get("writerList");
+        Assert.assertNotNull("List should have changed", changedList);
+        Assert.assertEquals((int)2, changedList.size());
+        Assert.assertEquals((int)2, changedList.get(0));
+        Assert.assertEquals((int)3, changedList.get(1));
+    }
+    
+    @Test
+    public void testRollupEnum() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 0)
+            Assert.fail("Day Of Week should not have changed");
+        
+        o2.setDayOfWeekEnum(DayOfWeek.FRIDAY);
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("Day Of Week should have changed");
+        DayOfWeek dow = (DayOfWeek) changes.get("dayOfWeekEnum");
+        Assert.assertEquals(DayOfWeek.FRIDAY, dow);
+    }
+    
+    @Test
+    public void testListJsonSerializable() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        List<Object> writerList1 = new ArrayList<>();
+        writerList1.add(new JsonSerializableTestObject());
+        writerList1.add(new JsonSerializableTestObject());
+        
+        List<Object> writerList2 = new ArrayList<>();
+        writerList2.add(new JsonSerializableTestObject());
+        writerList2.add(new JsonSerializableTestObject());
+
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        o1.setWriterList(writerList1);
+        
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        o2.setWriterList(writerList2);
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 0)
+            Assert.fail("List should not have changed");
+        
+        ((JsonSerializableTestObject)o2.getWriterList().get(0)).setDayOfWeekEnum(DayOfWeek.SUNDAY);
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("List should have changed");
+        @SuppressWarnings("unchecked")
+        List<JsonSerializableTestObject> changedList = (List<JsonSerializableTestObject>) changes.get("writerList");
+        Assert.assertNotNull("List should have changed", changedList);
+        Assert.assertEquals((int)2, changedList.size());
+        Assert.assertEquals(DayOfWeek.SUNDAY, changedList.get(0).getDayOfWeekEnum());
+        Assert.assertEquals(DayOfWeek.MONDAY, changedList.get(1).getDayOfWeekEnum());
+    }
+    
+    @Test
+    public void testIntArray() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 0)
+            Assert.fail("Int array should not have changed");
+        
+        o2.setIntArray(new int[] {1,2,3});
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("Int array should have changed");
+
+        int[] changed = (int[]) changes.get("intArray");
+        Assert.assertNotNull("Int array should have changed", changed);
+        Assert.assertEquals((int)3, changed.length);
+        Assert.assertEquals(1, changed[0]);
+        Assert.assertEquals(2, changed[1]);
+        Assert.assertEquals(3, changed[2]);
+        
+    }
+    
+    @Test
+    public void testObjectArray() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 0)
+            Assert.fail("Object array should not have changed");
+        
+        o1.setObjectArray(new Object[] {new Integer(0), new Integer(1)});
+        o2.setObjectArray(new Object[] {new Integer(2), new Integer(3)});
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("Object array should have changed");
+
+        Object[] changed = (Object[]) changes.get("objectArray");
+        Assert.assertNotNull("Object array should have changed", changed);
+        Assert.assertEquals((int)2, changed.length);
+        Assert.assertEquals(2, changed[0]);
+        Assert.assertEquals(3, changed[1]);
+    }
+    
+    @Test
+    public void testIntegerArray() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 0)
+            Assert.fail("Integer array should not have changed");
+        
+        o1.setIntegerArray(new Integer[] {new Integer(0), new Integer(1)});
+        o2.setIntegerArray(new Integer[] {new Integer(2), new Integer(3)});
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("Integer array should have changed");
+
+        Object[] changed = (Object[]) changes.get("integerArray");
+        Assert.assertNotNull("Integer array should have changed", changed);
+        Assert.assertEquals((int)2, changed.length);
+        Assert.assertEquals(2, changed[0]);
+        Assert.assertEquals(3, changed[1]);
+    }
 }

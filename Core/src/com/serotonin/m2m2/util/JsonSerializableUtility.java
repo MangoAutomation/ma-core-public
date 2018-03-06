@@ -173,6 +173,9 @@ public class JsonSerializableUtility {
             return false;
 		} else if(fromValue instanceof Enum) {
 		    return !((Enum<?>)fromValue).name().equals(((Enum<?>)toValue).name());
+		}else if(fromValue.getClass().isArray()) {
+		    //Array Handling
+		    return digestsDiffer(fromValue, toValue);
 		}
 		//Same class, check if it has properties
 		return differentRecursive(fromValue, toValue);

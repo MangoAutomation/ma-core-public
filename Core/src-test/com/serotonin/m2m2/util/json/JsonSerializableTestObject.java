@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.util.json;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,6 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.Common.Rollups;
 
 /**
  *
@@ -40,13 +40,20 @@ public class JsonSerializableTestObject implements JsonSerializable{
     @JsonProperty
     private JsonSerializableTestEnum innerAnnotatedEnum = JsonSerializableTestEnum.ONE;
     @JsonProperty
-    private Rollups rollup;
+    private DayOfWeek dayOfWeekEnum = DayOfWeek.MONDAY;
     @JsonProperty
     private String string = "testString";
     @JsonProperty
     private Map<String, Object> annotatedMap;
     @JsonProperty
     private List<Object> annotatedList;
+    @JsonProperty
+    private int[] intArray = new int[] {0,1,2,3};
+    //NOTE this cannot be filled with new Object() as there is no writer for this type
+    @JsonProperty
+    private Object[] objectArray = new Object[] {new Double(0.0), new Double(0.1)};
+    @JsonProperty
+    private Integer[] integerArray = new Integer[] {new Integer(0), new Integer(1)};
     
     private JsonSerializableTestEnum writerInnerEnum = JsonSerializableTestEnum.ONE;
     private Map<String, Object> writerMap;
@@ -166,6 +173,62 @@ public class JsonSerializableTestObject implements JsonSerializable{
      */
     public void setWriterList(List<Object> writerList) {
         this.writerList = writerList;
+    }
+
+    /**
+     * @return the dayOfWeekEnum
+     */
+    public DayOfWeek getDayOfWeekEnum() {
+        return dayOfWeekEnum;
+    }
+
+    /**
+     * @param dayOfWeekEnum the dayOfWeekEnum to set
+     */
+    public void setDayOfWeekEnum(DayOfWeek dayOfWeekEnum) {
+        this.dayOfWeekEnum = dayOfWeekEnum;
+    }
+
+    /**
+     * @return the intArray
+     */
+    public int[] getIntArray() {
+        return intArray;
+    }
+
+    /**
+     * @param intArray the intArray to set
+     */
+    public void setIntArray(int[] intArray) {
+        this.intArray = intArray;
+    }
+
+    /**
+     * @return the objectArray
+     */
+    public Object[] getObjectArray() {
+        return objectArray;
+    }
+
+    /**
+     * @param objectArray the objectArray to set
+     */
+    public void setObjectArray(Object[] objectArray) {
+        this.objectArray = objectArray;
+    }
+
+    /**
+     * @return the integerArray
+     */
+    public Integer[] getIntegerArray() {
+        return integerArray;
+    }
+
+    /**
+     * @param integerArray the integerArray to set
+     */
+    public void setIntegerArray(Integer[] integerArray) {
+        this.integerArray = integerArray;
     }
 
 }
