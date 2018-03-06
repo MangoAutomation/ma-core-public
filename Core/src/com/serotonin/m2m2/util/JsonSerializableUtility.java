@@ -109,7 +109,7 @@ public class JsonSerializableUtility {
 			((JsonSerializable)to).jsonWrite(toWriter);
 		}
 			
-		//Compare the 2 maps and if different add the toValues
+		//Compare the 2 maps and if different add the toValues (use toWriter to pick up new properties/fields)
 		Iterator<String> it = toWriter.keySet().iterator();
 		while(it.hasNext()){
 			String name = it.next();
@@ -170,10 +170,10 @@ public class JsonSerializableUtility {
 		        if(digestsDiffer(entry.getValue(), toMap.get(entry.getKey())))
 		            return true;
 		    }
-		    
             return false;
+		} else if(fromValue instanceof Enum) {
+		    return !((Enum<?>)fromValue).name().equals(((Enum<?>)toValue).name());
 		}
-		
 		//Same class, check if it has properties
 		return differentRecursive(fromValue, toValue);
 	}
