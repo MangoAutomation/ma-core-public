@@ -2,6 +2,7 @@
 * Maximum file upload size configurable via env property web.fileUpload.maxSize
 * Removed rest.customDateOutputFormat and rest.customDateInputFormat env properties, REST dates are always ISO 8601 format now
 * Performance improvements in JSON exports, more consistency in missing points export as null xids
+* Performance improvements for Audit tracking, more efficient change detection
 
 *Version 3.3.1*
 * Removing superadmin duplicate permission text box on legacy system settings page
