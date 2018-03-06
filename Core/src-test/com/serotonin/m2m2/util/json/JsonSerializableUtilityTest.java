@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,14 +60,14 @@ public class JsonSerializableUtilityTest {
     @Test
     public void testAnnotatedMapOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
         
-        Map<String, Object> annotatedMap1 = new HashMap<>();
+        Map<String, Object> annotatedMap1 = new LinkedHashMap<>();
         annotatedMap1.put("int", new Integer(1));
         annotatedMap1.put("string", new String("one"));
         
-        Map<String, Object> annotatedMap2 = new HashMap<>();
+        Map<String, Object> annotatedMap2 = new LinkedHashMap<>();
         annotatedMap2.put("string", new String("one"));
         annotatedMap2.put("int", new Integer(1));
-        
+
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
         o1.setAnnotatedMap(annotatedMap1);
         
