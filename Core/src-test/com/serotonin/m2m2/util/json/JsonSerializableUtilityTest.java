@@ -420,6 +420,33 @@ public class JsonSerializableUtilityTest {
     }
     
     @Test
+    public void testIntArrayOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
+        
+        JsonSerializableTestObject o1 = new JsonSerializableTestObject();
+        JsonSerializableTestObject o2 = new JsonSerializableTestObject();
+        
+        JsonSerializableUtility util = new JsonSerializableUtility();
+        Map<String, Object> changes = util.findChanges(o1, o2);
+
+        if(changes.size() != 0)
+            Assert.fail("Int array should not have changed");
+        
+        o1.setIntArray(new int[] {3,2,1});
+        o2.setIntArray(new int[] {1,2,3});
+        
+        changes = util.findChanges(o1, o2);
+        if(changes.size() != 1)
+            Assert.fail("Int array should have changed");
+
+        int[] changed = (int[]) changes.get("intArray");
+        Assert.assertNotNull("Int array should have changed", changed);
+        Assert.assertEquals((int)3, changed.length);
+        Assert.assertEquals(1, changed[0]);
+        Assert.assertEquals(2, changed[1]);
+        Assert.assertEquals(3, changed[2]);
+    }
+    
+    @Test
     public void testObjectArray() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
         
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();

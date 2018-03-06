@@ -11,6 +11,7 @@ import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -174,8 +175,10 @@ public class JsonSerializableUtility {
 		} else if(fromValue instanceof Enum) {
 		    return !((Enum<?>)fromValue).name().equals(((Enum<?>)toValue).name());
 		}else if(fromValue.getClass().isArray()) {
-		    //Array Handling
-		    return digestsDiffer(fromValue, toValue);
+		    if(Array.getLength(fromValue) != Array.getLength(toValue))
+		        return true;
+		    else
+		        return digestsDiffer(fromValue, toValue);
 		}
 		//Same class, check if it has properties
 		return differentRecursive(fromValue, toValue);
