@@ -1,5 +1,7 @@
 *Version 3.3.3*
 * Fix bug where data point tags were not exported when using the search-and-export feature of the data point tables on the Data Source Edit page
+* Attempt to open unknown comm port identifiers as JSSC serial ports before reporting port not found failure
+* Check owned ports during port list refresh
 
 *Version 3.3.2*
 * Maximum file upload size configurable via env property web.fileUpload.maxSize
