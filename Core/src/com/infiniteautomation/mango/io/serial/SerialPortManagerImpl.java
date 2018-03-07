@@ -6,7 +6,9 @@
 package com.infiniteautomation.mango.io.serial;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -108,6 +110,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
         try {
             String[] portNames;
+            Map<String, Boolean> portOwnership = new HashMap<String, Boolean>();
 
             switch (SerialNativeInterface.getOsType()) {
                 case SerialNativeInterface.OS_LINUX:
@@ -132,15 +135,28 @@ public class SerialPortManagerImpl implements SerialPortManager {
                     break;
             }
 
-            for (String portName : portNames) {
-                freePorts.add(new SerialPortIdentifier(portName, SerialPortTypes.JSSC));
+            for (SerialPortIdentifier port : ownedPorts) 
+                    portOwnership.put(port.getName(), true);
+            
+            for (String portName : portNames) {                
+                if (!portOwnership.containsKey(portName)) {
+                    freePorts.add(new SerialPortIdentifier(portName, SerialPortTypes.JSSC));
+                    portOwnership.put(portName, false);
+                } else if(LOG.isDebugEnabled())
+                    LOG.debug("Not adding port " + portName + " to free ports because it is owned.");
             }
 
             // Collect any Virtual Comm Ports from the DB and load them in
             List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.instance.getAll();
             if (list != null) {
                 for (VirtualSerialPortConfig config : list) {
-                    freePorts.add(new VirtualSerialPortIdentifier(config));
+                    if(!portOwnership.containsKey(config.getPortName())) {
+                        freePorts.add(new VirtualSerialPortIdentifier(config));
+                        portOwnership.put(config.getPortName(), false);
+                    } else if(LOG.isWarnEnabled()) {
+                        LOG.warn("Virtual serial port config " + config.getXid() + " named " + config.getPortName() +
+                            " not available due to name conflict with other serial port or it was open during refresh.");
+                    }
                 }
             }
             initialized = true;
@@ -238,9 +254,9 @@ public class SerialPortManagerImpl implements SerialPortManager {
             }
 
             // Did we find it?
-            if (portId == null) {
-                throw new SerialPortException("Port " + commPortId + " does not exist.");
-            }
+            if (portId == null)
+                //Well let's try to open it and see what happens, assume it's JSSC
+                portId = new SerialPortIdentifier(commPortId, SerialPortTypes.JSSC);
 
             // Try to open the port
             SerialPortProxy port;
