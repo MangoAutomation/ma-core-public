@@ -20,7 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionCallback;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -102,15 +102,10 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void saveUser(final User user) {
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                if (user.getId() == Common.NEW_ID)
-                    insertUser(user);
-                else
-                    updateUser(user);
-            }
-        });
+        if (user.getId() == Common.NEW_ID)
+            insertUser(user);
+        else
+            updateUser(user);
     }
 
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
@@ -118,21 +113,28 @@ public class UserDao extends AbstractDao<User> {
             + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
-        int id = ejt.doInsert(
-                USER_INSERT,
-                new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
-                        boolToChar(user.isDisabled()), user.getHomeUrl(),
-                        user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                        boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), user.getPasswordVersion() }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER });
+        int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+            @Override
+            public Integer doInTransaction(TransactionStatus status) {
+                return ejt.doInsert(
+                    USER_INSERT,
+                    new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
+                            boolToChar(user.isDisabled()), user.getHomeUrl(),
+                            user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
+                            boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), user.getPasswordVersion() },
+                    new int[] { Types.VARCHAR, Types.VARCHAR,
+                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
+                );
+            }
+        });
+        
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
         
         if (handler != null)
             handler.notify("add", user);
-        
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -152,33 +154,49 @@ public class UserDao extends AbstractDao<User> {
             user.setName("");
         if (user.getLocale() == null)
             user.setLocale("");
-        User old = getUser(user.getId());
-        if (old == null) {
-            throw new NotFoundException();
-        }
+
+        int originalPwVersion = user.getPasswordVersion();
+        
         try {
-            boolean passwordChanged = !old.getPassword().equals(user.getPassword());
-            if (passwordChanged) {
-                user.setPasswordVersion(old.getPasswordVersion() + 1);
-            } else {
-                user.setPasswordVersion(old.getPasswordVersion());
+            User old = getTransactionTemplate().execute(new TransactionCallback<User>() {
+                @Override
+                public User doInTransaction(TransactionStatus status) {
+                    User old = getUser(user.getId());
+                    if (old == null) {
+                        return null;
+                    }
+                    
+                    boolean passwordChanged = !old.getPassword().equals(user.getPassword());
+                    if (passwordChanged) {
+                        user.setPasswordVersion(old.getPasswordVersion() + 1);
+                    } else {
+                        user.setPasswordVersion(old.getPasswordVersion());
+                    }
+                    
+                    ejt.update(
+                        USER_UPDATE,
+                        new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
+                                boolToChar(user.isDisabled()), user.getHomeUrl(),
+                                user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
+                                user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
+                                user.getPasswordVersion(), user.getId() },
+                        new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                                Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
+                    );
+                    
+                    return old;
+                }
+            });
+    
+            if (old == null) {
+                throw new NotFoundException();
             }
-            
-            ejt.update(
-                    USER_UPDATE,
-                    new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
-                            boolToChar(user.isDisabled()), user.getHomeUrl(),
-                            user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
-                            user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
-                            user.getPasswordVersion(), user.getId() },
-                    new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER });
 
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
 
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
-            if (passwordChanged || permissionsChanged || user.isDisabled()) {
+            if (user.getPasswordVersion() > originalPwVersion || permissionsChanged || user.isDisabled()) {
                 MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
             }
             
@@ -186,8 +204,8 @@ public class UserDao extends AbstractDao<User> {
             
             if (handler != null)
                 handler.notify("update", user);
-        }
-        catch (DataIntegrityViolationException e) {
+            
+        } catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
             LOG.error("Error updating user: " + user, e);
             throw e;
@@ -195,11 +213,11 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void deleteUser(final int userId) {
-    	User user = get(userId);
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @SuppressWarnings("synthetic-access")
+        User user = getTransactionTemplate().execute(new TransactionCallback<User>() {
             @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
+            public User doInTransaction(TransactionStatus status) {
+                User user = get(userId);
+                
                 Object[] args = new Object[] { userId };
                 ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
                 ejt.update("DELETE FROM mailingListMembers WHERE userId=?", args);
@@ -207,15 +225,18 @@ public class UserDao extends AbstractDao<User> {
                 ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
                         new TranslatableMessage("events.ackedByDeletedUser").serialize(), userId });
                 ejt.update("DELETE FROM users WHERE id=?", args);
-                AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
-                countMonitor.decrement();
-                if (handler != null)
-                    handler.notify("delete", user);
-                //Update User In Session
-                MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(user);
-                userCache.remove(user.getUsername());
+                
+                return user;
             }
         });
+
+        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
+        countMonitor.decrement();
+        if (handler != null)
+            handler.notify("delete", user);
+        //Update User In Session
+        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(user);
+        userCache.remove(user.getUsername());
     }
     
     public void revokeTokens(User user) {
