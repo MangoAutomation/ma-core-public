@@ -597,7 +597,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         User user = Common.getUser();
         for (DataPointVO vo : filteredPoints) {
             if (Permissions.hasDataPointReadPermission(user, vo)) {
-            	dao.setEventDetectors(vo);
+            	    dao.loadRelationalData(vo);
                 vos.add(vo);
             }
         }

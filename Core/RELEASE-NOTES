@@ -1,3 +1,6 @@
+*Version 3.3.3*
+* Fix bug where data point tags were not exported when using the search-and-export feature of the data point tables on the Data Source Edit page
+
 *Version 3.3.2*
 * Maximum file upload size configurable via env property web.fileUpload.maxSize
 * Removed rest.customDateOutputFormat and rest.customDateInputFormat env properties, REST dates are always ISO 8601 format now
