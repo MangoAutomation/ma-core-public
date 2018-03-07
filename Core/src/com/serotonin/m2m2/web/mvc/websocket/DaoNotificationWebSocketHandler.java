@@ -4,10 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.websocket;
 
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,30 +21,18 @@ import com.serotonin.m2m2.vo.User;
 public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketHandler {
     private static final Log LOG = LogFactory.getLog(DaoNotificationWebSocketHandler.class);
     
-    final Set<WebSocketSession> sessions = new HashSet<WebSocketSession>();
-    final ReadWriteLock lock = new ReentrantReadWriteLock();
+    final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
     
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
     	super.afterConnectionEstablished(session);
-    	lock.writeLock().lock();
-    	try{
-    		sessions.add(session);
-    	}finally{
-    		lock.writeLock().unlock();
-    	}
+    	sessions.add(session);
     }
     
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        
-    	lock.writeLock().lock();
-    	try{
-    		sessions.remove(session);
-    	}finally{
-    		lock.writeLock().unlock();
-    	}
+        sessions.remove(session);
     }
     
     /**
@@ -72,16 +58,11 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketH
      * @param initiatorId random string to identify who initiated the event
      */
     public void notify(String action, T vo, String initiatorId, String originalXid) {
-        lock.readLock().lock();
-        try{
-            for (WebSocketSession session : sessions) {
-                User user = getUser(session);
-                if (user != null && hasPermission(getUser(session), vo)) {
-                    notify(session, action, vo, initiatorId, originalXid);
-                }
+        for (WebSocketSession session : sessions) {
+            User user = getUser(session);
+            if (user != null && hasPermission(getUser(session), vo)) {
+                notify(session, action, vo, initiatorId, originalXid);
             }
-        }finally{
-            lock.readLock().unlock();
         }
     }
     
