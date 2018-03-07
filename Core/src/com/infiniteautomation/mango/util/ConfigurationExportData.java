@@ -60,6 +60,7 @@ public class ConfigurationExportData {
         //names.add(EVENT_DETECTORS);
         names.add(JSON_DATA);
         names.add(MAILING_LISTS);
+        names.add(PUBLISHERS);
         names.add(POINT_HIERARCHY);
         names.add(SYSTEM_SETTINGS);
         names.add(TEMPLATES);
