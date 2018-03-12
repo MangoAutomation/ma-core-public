@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Locale;
 
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -42,13 +43,18 @@ public class DateUtilsTest {
 		long to = DateUtils.truncate(baseTime.getMillis(), periodType);
 		long from = DateUtils.minus(to, periodType, count);
 		
-		DateTime startOfMonth = baseTime.minusMonths(count).withDayOfMonth(1).withTimeAtStartOfDay();
-		assertEquals(startOfMonth.getMillis(), from);
-
-		DateTime endOfMonth = startOfMonth.plusMonths(count);
-		assertEquals(endOfMonth.getMillis(), to);
-
+		try {
+    		DateTime startOfMonth = baseTime.minusMonths(count).withDayOfMonth(1).withTimeAtStartOfDay();
+    		assertEquals(startOfMonth.getMillis(), from);
+    
+    		DateTime endOfMonth = startOfMonth.plusMonths(count);
+    		assertEquals(endOfMonth.getMillis(), to);
+		} catch(AssertionError e) {
+            System.out.println("Failed quickTest for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+            throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString(), e);
+        }
 	}
+	
 	@Test
 	public void testPreviousMinutes(){
 		int count = 62;
@@ -69,9 +75,13 @@ public class DateUtilsTest {
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
 				
-				assertEquals(start.getMillis(), from);
-		
-				assertEquals(end.getMillis(), to);
+				try {
+    				assertEquals(start.getMillis(), from);
+    				assertEquals(end.getMillis(), to);
+				} catch(AssertionError e) {
+                    System.out.println("Failed testPreviousMinutes for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+                    throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString(), e);
+                }
 				
 				
 				//Step along
@@ -84,7 +94,7 @@ public class DateUtilsTest {
 	public void testPreviousHours(){
 		int count = 364;
 		while(count > 0){
-			DateTime baseTime = new DateTime().minusYears(2);
+			DateTime baseTime = new DateTime().minusYears(2).dayOfYear().setCopy(count).secondOfDay().addToCopy(count*126).millisOfSecond().setCopy(count*2);
 			long now = new Date().getTime();
 			while(baseTime.isBefore(now)){
 			
@@ -100,9 +110,13 @@ public class DateUtilsTest {
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
 				
-				assertEquals(start.getMillis(), from);
-		
-				assertEquals(end.getMillis(), to);
+				try {
+    				assertEquals(start.getMillis(), from);
+    				assertEquals(end.getMillis(), to);
+				} catch(AssertionError e) {
+				    System.out.println("Failed testPreviousHours for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+				    throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis(), e);
+				}
 				
 				
 				//Step along
@@ -130,10 +144,13 @@ public class DateUtilsTest {
 				
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
-				
-				assertEquals(start.getMillis(), from);
-		
-				assertEquals(end.getMillis(), to);
+				try {
+    				assertEquals(start.getMillis(), from);
+    				assertEquals(end.getMillis(), to);
+    			} catch(AssertionError e) {
+                    System.out.println("Failed testPreviousDays for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+                    throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString(), e);
+                }
 				
 				
 				//Step along
@@ -162,13 +179,14 @@ public class DateUtilsTest {
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
 				
-				
-				assertEquals(start.getMillis(), from);
-				assertEquals(end.getMillis(), to);
-		
+				try {
+    				assertEquals(start.getMillis(), from);
+    				assertEquals(end.getMillis(), to);
+				} catch(AssertionError e) {
+                    System.out.println("Failed testPreviousWeeks for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+                    throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString(), e);
+                }
 
-				
-				
 				//Step along
 				baseTime = baseTime.plusWeeks(1);
 			}
@@ -195,11 +213,13 @@ public class DateUtilsTest {
 				
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
-				
-				assertEquals(start.getMillis(), from);
-		
-				assertEquals(end.getMillis(), to);
-				
+				try {
+    				assertEquals(start.getMillis(), from);
+    				assertEquals(end.getMillis(), to);
+    			} catch(AssertionError e) {
+                    System.out.println("Failed testPreviousMonths for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+                    throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString(), e);
+                }
 				
 				//Step along
 				baseTime = baseTime.plusMonths(1);
@@ -227,9 +247,13 @@ public class DateUtilsTest {
 //				Double days = (double)(end.getMillis() - start.getMillis())/(1000D*60D*60D*24D);
 //				System.out.println("Period: " + start.toString("MMM-yyyy") + " - " + end.toString("MMM-yyyy") + " Duration in Days: " + days);
 				
-				assertEquals(start.getMillis(), from);
-		
-				assertEquals(end.getMillis(), to);
+				try {
+    				assertEquals(start.getMillis(), from);
+    				assertEquals(end.getMillis(), to);
+				} catch(AssertionError e) {
+                    System.out.println("Failed testPreviousYears for: " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString());
+                    throw new AssertionError(e.getMessage() + " from baseTime " + baseTime.getMillis() + " in locale " + Locale.getDefault().toString(), e);
+                }
 				
 				
 				//Step along
