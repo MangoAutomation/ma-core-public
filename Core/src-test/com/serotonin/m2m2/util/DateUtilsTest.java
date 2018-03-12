@@ -94,7 +94,7 @@ public class DateUtilsTest {
 	public void testPreviousHours(){
 		int count = 364;
 		while(count > 0){
-			DateTime baseTime = new DateTime().minusYears(2).dayOfYear().setCopy(count).secondOfDay().addToCopy(count*126).millisOfSecond().setCopy(count*2);
+			DateTime baseTime = new DateTime().minusYears(2);
 			long now = new Date().getTime();
 			while(baseTime.isBefore(now)){
 			
