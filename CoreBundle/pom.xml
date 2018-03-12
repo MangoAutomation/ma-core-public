@@ -481,7 +481,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
-			<version>3.3.5-SNAPSHOT</version>
+			<version>3.3.6-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
