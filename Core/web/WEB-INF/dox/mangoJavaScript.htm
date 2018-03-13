@@ -340,6 +340,12 @@ object will contain:</p>
   <li>points - List&lt;DataPointWrapper&gt;</li>
 </ul>
 
+<h2>Point Value Queries</h2>
+<p>While point values and statistics can be gotten through point wrappers, one need use the <code>PointValueQuery</code> utility
+to easily stream values or collate multiple points' values by time. A second method is provided to optionally roll the data up into
+rollup periods, and then to pass a part or the whole statistics object to the callback. To see the method signatures, run <code>print(PointValueQuery);</code>
+from within the scripting environment.</p>
+
 <h2>JsonEmport utility</h2>
 <p>The JsonEmport utility provides methods to pass JSON or get JSON as one would through an import/export page. A script cannot save itself
 through the emport utility. If it tried, that item in the JSON will be ignored. This utility is accessible through the context 

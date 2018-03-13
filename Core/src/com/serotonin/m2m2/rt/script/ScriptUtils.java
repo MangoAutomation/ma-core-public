@@ -14,6 +14,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -111,6 +112,9 @@ public class ScriptUtils {
         globalBindings.put("YEAR", Common.TimePeriods.YEARS);
         globalBindings.put(POINTS_CONTEXT_KEY, new ArrayList<String>());
         
+        for(IntStringPair isp : Common.ROLLUP_CODES.getIdKeys(Common.Rollups.NONE))
+            globalBindings.put(Common.ROLLUP_CODES.getCode(isp.getKey()), isp.getKey());
+        
         //Add in Additional Utilities with Global Scope
         globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
         globalBindings.put(UnitUtility.CONTEXT_KEY, new UnitUtility());
@@ -141,6 +145,7 @@ public class ScriptUtils {
     	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
     	engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);
     	engineScope.put(HttpBuilderScriptUtility.CONTEXT_KEY, new HttpBuilderScriptUtility(permissions));
+    	engineScope.put(PointValueTimeStreamScriptUtility.CONTEXT_KEY, new PointValueTimeStreamScriptUtility(permissions));
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {

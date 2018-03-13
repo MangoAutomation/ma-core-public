@@ -19,6 +19,7 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.web.taglib.Functions;
 
 public class IdPointValueTime extends PointValueTime implements IdTime{
     private static final long serialVersionUID = 1L;
@@ -32,5 +33,10 @@ public class IdPointValueTime extends PointValueTime implements IdTime{
 
     public int getId() {
         return dataPointId;
+    }
+    
+    @Override
+    public String toString() {
+        return "IdPointValueTime(" + dataPointId + "=" + getValue() + "@" + Functions.getFullMilliSecondTime(getTime()) + ")";
     }
 }
