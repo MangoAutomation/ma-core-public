@@ -96,88 +96,92 @@ public class BackupWorkItem implements WorkItem {
 	}
     
 	@Override
-	public void execute() {
-		synchronized(lock){
-			LOG.info("Starting backup WorkItem.");
-			//Create the filename
-			String filename = "Mango-Configuration";
-			String runtimeString = dateFormatter.format(new Date());
-			int maxFiles = SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
-			//If > 1 then we will use a date in the filename 
-			if(maxFiles > 1){
-				//Create Mango-Configuration-date.json
-				filename += "-";
-				filename += runtimeString;
-			}
-			filename += ".json";
-			//Fill the full path
-			String fullFilePath = this.backupLocation;
-			if(fullFilePath.endsWith(File.separator)){
-				fullFilePath += filename;
-			}else{
-				fullFilePath += File.separator;
-				fullFilePath += filename;
-			}
+    public void execute() {
+        synchronized (lock) {
+            LOG.info("Starting backup WorkItem.");
+            // Create the filename
+            String filename = "Mango-Configuration";
+            String runtimeString = dateFormatter.format(new Date());
+            int maxFiles = SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
+            // If > 1 then we will use a date in the filename
+            if (maxFiles > 1) {
+                // Create Mango-Configuration-date.json
+                filename += "-";
+                filename += runtimeString;
+            }
+            filename += ".json";
+            // Fill the full path
+            String fullFilePath = this.backupLocation;
+            if (fullFilePath.endsWith(File.separator)) {
+                fullFilePath += filename;
+            } else {
+                fullFilePath += File.separator;
+                fullFilePath += filename;
+            }
 
-			if(cancelled)
-				return;
-			//Collect the json backup data
-			String jsonData = getBackup();
-			
-			//Write to file
-			try{
-				File file = new File(fullFilePath);
-				if(!file.exists())
-					if(!file.createNewFile()){
-						failed = true;
-						LOG.warn("Unable to create backup file: " + fullFilePath);
-			            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-			                    Common.timer.currentTimeMillis(), false,
-			                    new TranslatableMessage("event.backup.failure", fullFilePath, "Unable to create backup file"));
-	
-						return;
-					}
-				FileWriter fw = new FileWriter(file,false); //Always replace if exists
-				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(jsonData);
-				bw.close();
-				
-				//Save the filename
-				this.filename = file.getAbsolutePath();
-				
-				//Store the last successful backup time
-				SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,runtimeString);
-				
-				//Clean up old files, keeping the correct number as the history
-				File backupDir = new File(this.backupLocation);
-				File[] files = backupDir.listFiles(new FilenameFilter(){
-					public boolean accept(File dir, String name){
-						return name.toLowerCase().endsWith(".json");
-					}
-				});
-				//Sort the files by date
-		        Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
-		        
-		        //Keep the desired history
-		        for(int i=maxFiles; i<files.length; i++){
-		        	try{
-		        		files[i].delete(); //Remove it
-		        	}catch(Exception e){
-		        		LOG.warn("Unable to delete file: " + files[i].getAbsolutePath(),e);
-		        	}
-		        }
-		        
-			}catch(Exception e){
-				LOG.warn(e);
-				failed = true;
-	            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
-	                    Common.timer.currentTimeMillis(), false,
-	                    new TranslatableMessage("event.backup.failure", fullFilePath, e.getMessage()));
-			}finally{
-				this.finished = true;
-			}
-		}
-	}
+            if (cancelled)
+                return;
+            // Collect the json backup data
+            String jsonData = getBackup();
+
+            // Write to file
+            try {
+                File file = new File(fullFilePath);
+                if (!file.exists())
+                    if (!file.createNewFile()) {
+                        failed = true;
+                        LOG.warn("Unable to create backup file: " + fullFilePath);
+                        SystemEventType.raiseEvent(
+                                new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
+                                Common.timer.currentTimeMillis(), false,
+                                new TranslatableMessage("event.backup.failure", fullFilePath,
+                                        "Unable to create backup file"));
+
+                        return;
+                    }
+                FileWriter fw = new FileWriter(file, false); // Always replace if exists
+                BufferedWriter bw = new BufferedWriter(fw);
+                bw.write(jsonData);
+                bw.close();
+
+                // Save the filename
+                this.filename = file.getAbsolutePath();
+
+                // Store the last successful backup time
+                SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS,
+                        runtimeString);
+
+                // Clean up old files, keeping the correct number as the history
+                File backupDir = new File(this.backupLocation);
+                File[] files = backupDir.listFiles(new FilenameFilter() {
+                    public boolean accept(File dir, String name) {
+                        return name.toLowerCase().endsWith(".json");
+                    }
+                });
+                // Sort the files by date
+                Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
+
+                // Keep the desired history
+                for (int i = maxFiles; i < files.length; i++) {
+                    try {
+                        files[i].delete(); // Remove it
+                    } catch (Exception e) {
+                        LOG.warn("Unable to delete file: " + files[i].getAbsolutePath(), e);
+                    }
+                }
+
+            } catch (Exception e) {
+                LOG.warn(e);
+                failed = true;
+                SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
+                        Common.timer.currentTimeMillis(), false, new TranslatableMessage(
+                                "event.backup.failure", fullFilePath, e.getMessage()));
+            } finally {
+                this.finished = true;
+                LOG.info("Finished backup WorkItem.");
+            }
+        }
+    }
 
 	/**
 	 * Get a JSON Backup
