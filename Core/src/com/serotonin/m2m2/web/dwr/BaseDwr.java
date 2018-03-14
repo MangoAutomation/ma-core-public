@@ -826,7 +826,7 @@ abstract public class BaseDwr {
 
 		Common.serialPortManager.refreshFreeCommPorts();
 		List<SerialPortIdentifier> ports = Common.serialPortManager
-				.getFreeCommPorts();
+				.getAllCommPorts();
 		for (SerialPortIdentifier proxy : ports)
 			portNames.add(proxy.getName());
 
