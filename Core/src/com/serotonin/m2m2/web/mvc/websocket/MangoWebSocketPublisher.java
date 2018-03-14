@@ -116,10 +116,13 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
 
     @PostConstruct
     private void postConstruct() {
-        ApplicationListener<MangoSessionDestroyedEvent> listener = (event) -> {
-            this.sessionDestroyed(event.getOriginalEvent());
-        };
-        context.addApplicationListener(listener);
+        // TODO Mango 3.4 re-enable this and ensure that listener is removed from context when per-session handler is destroyed
+        // potential memory leak otherwise.
+        
+//        ApplicationListener<MangoSessionDestroyedEvent> listener = (event) -> {
+//            this.sessionDestroyed(event.getOriginalEvent());
+//        };
+//        context.addApplicationListener(listener);
     }
 
     /**
