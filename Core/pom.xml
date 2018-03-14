@@ -13,16 +13,7 @@
 	<properties>
 		<webDirectory>${project.basedir}/web</webDirectory>
 		<jspWorkDirectory>${project.basedir}/work/jsp</jspWorkDirectory>
-		<skipDownloadModule>true</skipDownloadModule>
 	</properties>
-	<profiles>
-		<profile>
-	      <id>download-module</id>
-	      <properties>
-	        <skipDownloadModule>false</skipDownloadModule>
-	      </properties>
-	    </profile>
-	</profiles>
 	<build>
 		<testResources>
 			<testResource>
@@ -139,24 +130,10 @@
                             <outputDirectory>${MA_HOME}/boot/</outputDirectory>
                             <stripVersion>true</stripVersion>
                             <stripClassifier>true</stripClassifier>
+                            <skip>false</skip>
                         </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                	<skip>${skipDownloadModule}</skip>
-                    <artifactItems>
-                        <artifactItem>
-                            <groupId>com.infiniteautomation.mango</groupId>
-                            <artifactId>${moduleName}</artifactId>
-                            <version>${moduleVersion}</version>
-                            <type>zip</type>
-                        </artifactItem>
-                    </artifactItems>
-                    <outputDirectory>${MA_HOME}/web/modules</outputDirectory>
-                    <stripVersion>false</stripVersion>
-                    <stripClassifier>false</stripClassifier>
-                    <useBaseVersion>false</useBaseVersion>
-                </configuration>
             </plugin>
             <plugin>
               <groupId>org.codehaus.mojo</groupId>
