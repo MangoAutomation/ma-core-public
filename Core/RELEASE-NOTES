@@ -4,6 +4,7 @@
 * Add PointValueQuery object into script environments and rollup codes
 * Fix memory leak from not removing context listener in websocket code
 * Fix ALPN agent jar not being added to boot directory in bundle zip file
+* Shutdown task is now the highest priority thread.
 
 *Version 3.3.3*
 * Fix bug where data point tags were not exported when using the search-and-export feature of the data point tables on the Data Source Edit page
