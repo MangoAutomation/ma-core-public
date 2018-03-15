@@ -210,18 +210,9 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.CHANGES_ONLY) {
             if(durationMillis != 0)
                 handleValue(newValue);
-            else {
-                if((newValue.getDoubleValue() < oldValue.getDoubleValue() - vo.getLimit() || 
-                   newValue.getDoubleValue() > oldValue.getDoubleValue() + vo.getLimit()) && !eventActive) {
+            else if((newValue.getDoubleValue() < oldValue.getDoubleValue() - vo.getLimit() || 
+                    newValue.getDoubleValue() > oldValue.getDoubleValue() + vo.getLimit()))
                     raiseEvent(newValue.getTime(), null);
-                    eventActive = true;
-                }
-                else if(newValue.getDoubleValue() >= oldValue.getDoubleValue() - vo.getLimit() && 
-                   newValue.getDoubleValue() <= oldValue.getDoubleValue() + vo.getLimit() && eventActive) {
-                    returnToNormal(newValue.getTime());
-                    eventActive = false;
-                }
-            }
         }
     }
     
@@ -234,15 +225,12 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 if(instantValue == null)
                     instantValue = value;
                 else if((value.getDoubleValue() < instantValue.getDoubleValue() - vo.getLimit() ||
-                        value.getDoubleValue() > instantValue.getDoubleValue() + vo.getLimit()) && !eventActive) {
+                        value.getDoubleValue() > instantValue.getDoubleValue() + vo.getLimit())) {
                     raiseEvent(value.getTime(), null);
-                    eventActive = true;
                 }
-                else if(value.getDoubleValue() >= instantValue.getDoubleValue() - vo.getLimit() &&
-                        value.getDoubleValue() <= instantValue.getDoubleValue() + vo.getLimit() && eventActive) {
-                    returnToNormal(value.getTime());
-                    eventActive = false;
-                }
+                
+                if(value.getTime() > instantValue.getTime())
+                    instantValue = value;
             }
         }
     }
