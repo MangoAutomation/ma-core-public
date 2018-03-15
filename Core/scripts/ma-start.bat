@@ -92,7 +92,7 @@ if exist "%MA_HOME%\bin\ext-enabled" (
 		call "%MA_HOME%\bin\ext-enabled/%%~nf" start
 	)
 )
-"%EXECJAVA%" %JPDA% %JAVAOPTS% -server -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
+"%EXECJAVA%" %JPDA% %JAVAOPTS% -server -Dlog4j2.enableThreadlocals=true -Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector -Dma.home="%MA_HOME%" -cp "%MA_CP%" com.serotonin.m2m2.Main
 if exist "%MA_HOME%\RESTART" (
 	if exist "%MA_HOME%\bin\ext-enabled" (
 		for /R "%MA_HOME%\bin\ext-enabled" %%f in (*.bat) do (
