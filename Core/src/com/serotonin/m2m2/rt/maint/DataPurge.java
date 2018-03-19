@@ -38,7 +38,7 @@ public class DataPurge {
 	
 	public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
 	
-    private final Log log = LogFactory.getLog(DataPurge.class);
+    private static final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = DataPointDao.instance;
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
@@ -309,7 +309,11 @@ public class DataPurge {
 
         @Override
         public void run(long runtime) {
-            new DataPurge().execute(runtime);
+            try {
+                new DataPurge().execute(runtime);
+            }catch(Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 }
