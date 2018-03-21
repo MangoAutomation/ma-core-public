@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -118,17 +119,17 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
         if (text != null)
             activeProcessCommand = text;
 
-        Integer i = jsonObject.getInt("activeProcessTimeout");
+        JsonNumber i = jsonObject.getJsonNumber("activeProcessTimeout");
         if (i != null)
-            activeProcessTimeout = i;
+            activeProcessTimeout = i.intValue();
 
         text = jsonObject.getString("inactiveProcessCommand");
         if (text != null)
             inactiveProcessCommand = text;
 
-        i = jsonObject.getInt("inactiveProcessTimeout");
+        i = jsonObject.getJsonNumber("inactiveProcessTimeout");
         if (i != null)
-            inactiveProcessTimeout = i;
+            inactiveProcessTimeout = i.intValue();
 
     }
     

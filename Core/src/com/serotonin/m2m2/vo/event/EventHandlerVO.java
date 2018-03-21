@@ -18,6 +18,8 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonArray;
+import com.serotonin.json.type.JsonBoolean;
+import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
@@ -801,9 +803,9 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (jsonActiveRecipients != null)
                 activeRecipients = (List<RecipientListEntryBean>) reader.read(recipType, jsonActiveRecipients);
 
-            Boolean b = jsonObject.getBoolean("sendEscalation");
+            JsonBoolean b = jsonObject.getJsonBoolean("sendEscalation");
             if (b != null)
-                sendEscalation = b;
+                sendEscalation = b.booleanValue();
 
             if (sendEscalation) {
                 text = jsonObject.getString("escalationDelayType");
@@ -814,9 +816,9 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                                 Common.TIME_PERIOD_CODES.getCodeList());
                 }
 
-                Integer i = jsonObject.getInt("escalationDelay");
+                JsonNumber i = jsonObject.getJsonNumber("escalationDelay");
                 if (i != null)
-                    escalationDelay = i;
+                    escalationDelay = i.intValue();
 
                 JsonArray jsonEscalationRecipients = jsonObject.getJsonArray("escalationRecipients");
                 if (jsonEscalationRecipients != null)
@@ -824,14 +826,14 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                             jsonEscalationRecipients);
             }
 
-            b = jsonObject.getBoolean("sendInactive");
+            b = jsonObject.getJsonBoolean("sendInactive");
             if (b != null)
-                sendInactive = b;
+                sendInactive = b.booleanValue();
 
             if (sendInactive) {
-                b = jsonObject.getBoolean("inactiveOverride");
+                b = jsonObject.getJsonBoolean("inactiveOverride");
                 if (b != null)
-                    inactiveOverride = b;
+                    inactiveOverride = b.booleanValue();
 
                 if (inactiveOverride) {
                     JsonArray jsonInactiveRecipients = jsonObject.getJsonArray("inactiveRecipients");
@@ -840,16 +842,16 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                                 jsonInactiveRecipients);
                 }
             }
-            b = jsonObject.getBoolean("includeSystemInformation");
+            b = jsonObject.getJsonBoolean("includeSystemInformation");
             if(b != null){
-            	includeSystemInfo = b;
+            	includeSystemInfo = b.booleanValue();
             }
             
             includePointValueCount = jsonObject.getInt("includePointValueCount", 0);
             
-            b = jsonObject.getBoolean("includeLogfile");
+            b = jsonObject.getJsonBoolean("includeLogfile");
             if(b != null){
-            	includeSystemInfo = b;
+            	includeSystemInfo = b.booleanValue();
             }
         }
         else if (handlerType == TYPE_PROCESS) {
@@ -857,17 +859,17 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (text != null)
                 activeProcessCommand = text;
 
-            Integer i = jsonObject.getInt("activeProcessTimeout");
+            JsonNumber i = jsonObject.getJsonNumber("activeProcessTimeout");
             if (i != null)
-                activeProcessTimeout = i;
+                activeProcessTimeout = i.intValue();
 
             text = jsonObject.getString("inactiveProcessCommand");
             if (text != null)
                 inactiveProcessCommand = text;
 
-            i = jsonObject.getInt("inactiveProcessTimeout");
+            i = jsonObject.getJsonNumber("inactiveProcessTimeout");
             if (i != null)
-                inactiveProcessTimeout = i;
+                inactiveProcessTimeout = i.intValue();
         }
     }
 }
