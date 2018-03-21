@@ -15,6 +15,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -633,10 +634,10 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     }
 
     private boolean getBoolean(JsonObject json, String name) throws JsonException {
-        Boolean b = json.getBoolean(name);
+        JsonBoolean b = json.getJsonBoolean(name);
         if (b == null)
             throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return b;
+        return b.booleanValue();
     }
 
     private String getString(JsonObject json, String name) throws JsonException {

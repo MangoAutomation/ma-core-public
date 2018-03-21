@@ -19,6 +19,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonArray;
+import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.json.util.TypeDefinition;
@@ -217,7 +218,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             repeatEscalations = false;
 
         if (sendInactive && inactiveOverride) {
-            if (inactiveRecipients.isEmpty())
+            if (inactiveRecipients == null || inactiveRecipients.isEmpty())
                 response.addGenericMessage("eventHandlers.noInactiveRecips");
         }
         
@@ -451,9 +452,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         if (jsonActiveRecipients != null)
             activeRecipients = (List<RecipientListEntryBean>) reader.read(recipType, jsonActiveRecipients);
 
-        Boolean b = jsonObject.getBoolean("sendEscalation");
+        JsonBoolean b = jsonObject.getJsonBoolean("sendEscalation");
         if (b != null)
-            sendEscalation = b;
+            sendEscalation = b.booleanValue();
 
         if (sendEscalation) {
             text = jsonObject.getString("escalationDelayType");
@@ -464,7 +465,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                             Common.TIME_PERIOD_CODES.getCodeList());
             }
 
-            Integer i = jsonObject.getInt("escalationDelay");
+            Integer i = jsonObject.getInt("escalationDelay", 1);
             if (i != null)
                 escalationDelay = i;
 
@@ -473,19 +474,19 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                 escalationRecipients = (List<RecipientListEntryBean>) reader.read(recipType,
                         jsonEscalationRecipients);
             
-            b = jsonObject.getBoolean("keepSendingEscalations");
+            b = jsonObject.getJsonBoolean("keepSendingEscalations");
             if(b != null)
-                repeatEscalations = b;
+                repeatEscalations = b.booleanValue();
         }
 
-        b = jsonObject.getBoolean("sendInactive");
+        b = jsonObject.getJsonBoolean("sendInactive");
         if (b != null)
-            sendInactive = b;
+            sendInactive = b.booleanValue();
 
         if (sendInactive) {
-            b = jsonObject.getBoolean("inactiveOverride");
+            b = jsonObject.getJsonBoolean("inactiveOverride");
             if (b != null)
-                inactiveOverride = b;
+                inactiveOverride = b.booleanValue();
 
             if (inactiveOverride) {
                 JsonArray jsonInactiveRecipients = jsonObject.getJsonArray("inactiveRecipients");
@@ -494,17 +495,15 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                             jsonInactiveRecipients);
             }
         }
-        b = jsonObject.getBoolean("includeSystemInformation");
-        if(b != null){
-        	includeSystemInfo = b;
-        }
+        b = jsonObject.getJsonBoolean("includeSystemInformation");
+        if(b != null)
+        	includeSystemInfo = b.booleanValue();
         
         includePointValueCount = jsonObject.getInt("includePointValueCount", 0);
         
-        b = jsonObject.getBoolean("includeLogfile");
-        if(b != null){
-        	includeSystemInfo = b;
-        }
+        b = jsonObject.getJsonBoolean("includeLogfile");
+        if(b != null)
+        	includeSystemInfo = b.booleanValue();
         
         customTemplate = jsonObject.getString("customTemplate");
         
