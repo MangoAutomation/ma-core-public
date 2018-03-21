@@ -15,7 +15,7 @@ CREATE TABLE systemSettings (
 -- Templates
 CREATE TABLE templates (
   id int NOT NULL auto_increment,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   name varchar(255),
   templateType varchar(50),
   readPermission varchar(255),
@@ -51,7 +51,7 @@ ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE (username);
 
 CREATE TABLE userComments (
   id int not null auto_increment,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   userId integer,
   commentType integer NOT NULL,
   typeKey integer NOT NULL,
@@ -66,7 +66,7 @@ ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC,
 -- Mailing lists
 CREATE TABLE mailingLists (
   id SERIAL,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   name varchar(40) NOT NULL,
   receiveAlarmEmails INT NOT NULL,
   PRIMARY KEY (id)
@@ -98,7 +98,7 @@ ALTER TABLE mailingListMembers ADD CONSTRAINT mailingListMembersFk1 FOREIGN KEY 
 --
 CREATE TABLE dataSources (
   id SERIAL,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   name varchar(40) NOT NULL,
   dataSourceType varchar(40) NOT NULL,
   data bytea NOT NULL,
@@ -116,7 +116,7 @@ CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 --
 CREATE TABLE dataPoints (
   id SERIAL,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   dataSourceId integer NOT NULL,
   name varchar(255),
   deviceName varchar(255),
@@ -199,7 +199,7 @@ CREATE TABLE pointValueAnnotations (
 --
 CREATE TABLE eventDetectors (
   id SERIAL,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   sourceTypeName varchar(32) NOT NULL,
   typeName varchar(32) NOT NULL,
   dataPointId int NOT NULL,
@@ -207,33 +207,7 @@ CREATE TABLE eventDetectors (
   PRIMARY KEY (id)
 );
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
-ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id)
-  
---
---
--- Point event detectors
---
-CREATE TABLE pointEventDetectors (
-  id SERIAL,
-  xid varchar(50) NOT NULL,
-  alias varchar(255),
-  dataPointId integer NOT NULL,
-  detectorType integer NOT NULL,
-  alarmLevel integer NOT NULL,
-  stateLimit double precision,
-  duration integer,
-  durationType integer,
-  binaryState character(1),
-  multistateState integer,
-  changeCount integer,
-  alphanumericState varchar(128),
-  weight double precision,
-  PRIMARY KEY (id)
-);
-ALTER TABLE pointEventDetectors ADD CONSTRAINT pointEventDetectorsUn1 UNIQUE (xid, dataPointId);
-ALTER TABLE pointEventDetectors ADD CONSTRAINT pointEventDetectorsFk1 FOREIGN KEY (dataPointId) 
-  REFERENCES dataPoints(id);
-
+ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
 
 --
 --
@@ -277,7 +251,7 @@ alter table userEvents add index performance1 (userId ASC, silenced ASC);
 --
 CREATE TABLE eventHandlers (
   id SERIAL,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   alias varchar(255),
   eventHandlerType varchar(40) NOT NULL,
   
@@ -319,7 +293,7 @@ CREATE INDEX alarmLevelIndex ON audit (alarmLevel ASC);
 --
 CREATE TABLE publishers (
   id SERIAL,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   publisherType varchar(40) NOT NULL,
   data bytea NOT NULL,
   rtdata bytea,
@@ -329,7 +303,7 @@ ALTER TABLE publishers ADD CONSTRAINT publishersUn1 UNIQUE (xid);
 
 CREATE TABLE jsonData (
   	id SERIAL,
-	xid varchar(50) not null,
+	xid varchar(100) not null,
 	name varchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),

@@ -18,7 +18,7 @@ create table systemSettings (
 -- Templates 
 create table templates (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   name varchar(255) not null,
   templateType varchar(50) not null,
   data longblob not null,
@@ -54,7 +54,7 @@ ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
 
 create table userComments (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   userId int,
   commentType int not null,
   typeKey int not null,
@@ -70,7 +70,7 @@ ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC,
 -- Mailing lists
 create table mailingLists (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   name varchar(40) not null,
   receiveAlarmEmails int not null,
   primary key (id)
@@ -102,7 +102,7 @@ alter table mailingListMembers add constraint mailingListMembersFk1 foreign key 
 --
 create table dataSources (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   name varchar(40) not null,
   dataSourceType varchar(40) not null,
   data longblob not null,
@@ -120,7 +120,7 @@ CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 --
 CREATE TABLE dataPoints (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   dataSourceId int not null,
   name varchar(255),
   deviceName varchar(255),
@@ -203,7 +203,7 @@ create table pointValueAnnotations (
 --
 CREATE TABLE eventDetectors (
   id int NOT NULL auto_increment,
-  xid varchar(50) NOT NULL,
+  xid varchar(100) NOT NULL,
   sourceTypeName varchar(32) NOT NULL,
   typeName varchar(32) NOT NULL,
   dataPointId int,
@@ -255,7 +255,7 @@ alter table userEvents add index performance1 (userId ASC, silenced ASC);
 --
 create table eventHandlers (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   alias varchar(255),
   eventHandlerType varchar(40) NOT NULL,
   data longblob not null,
@@ -302,7 +302,7 @@ CREATE INDEX alarmLevelIndex ON audit (alarmLevel ASC);
 --
 create table publishers (
   id int not null auto_increment,
-  xid varchar(50) not null,
+  xid varchar(100) not null,
   publisherType varchar(40) not null,
   data longblob not null,
   rtdata longblob,
@@ -316,7 +316,7 @@ alter table publishers add constraint publishersUn1 unique (xid);
 --
 CREATE TABLE jsonData (
   	id int not null auto_increment,
-	xid varchar(50) not null,
+	xid varchar(100) not null,
 	name varchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),

@@ -14,7 +14,7 @@ create table systemSettings (
 -- Templates
 create table templates (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   name nvarchar(255) not null,
   templateType nvarchar(50) not null,
   readPermission nvarchar(255),
@@ -50,7 +50,7 @@ alter table users add constraint username_unique unique (username);
 
 create table userComments (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   userId int,
   commentType int not null,
   typeKey int not null,
@@ -65,7 +65,7 @@ CREATE INDEX userComments_performance1 ON userComments (commentType ASC, typeKey
 -- Mailing lists
 create table mailingLists (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   name nvarchar(40) not null,
   receiveAlarmEmails int not null,
   primary key (id)
@@ -95,7 +95,7 @@ alter table mailingListMembers add constraint mailingListMembersFk1 foreign key 
 --
 create table dataSources (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   name nvarchar(40) not null,
   dataSourceType nvarchar(40) not null,
   data image not null,
@@ -113,7 +113,7 @@ CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 --
 create table dataPoints (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   dataSourceId int not null,
   name nvarchar(255),
   deviceName nvarchar(255),
@@ -196,7 +196,7 @@ create table pointValueAnnotations (
 --
 CREATE TABLE eventDetectors (
   id int NOT NULL identity,
-  xid nvarchar(50) NOT NULL,
+  xid nvarchar(100) NOT NULL,
   sourceTypeName nvarchar(32) NOT NULL,
   typeName nvarchar(32) NOT NULL,
   dataPointId int,
@@ -248,7 +248,7 @@ CREATE INDEX userEvents_performance1 ON userEvents (userId ASC, silenced ASC);
 --
 create table eventHandlers (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   alias nvarchar(255),
   eventHandlerType nvarchar(40) not null,
   
@@ -290,7 +290,7 @@ CREATE INDEX alarmLevelIndex ON audit (alarmLevel ASC);
 --
 create table publishers (
   id int not null identity,
-  xid nvarchar(50) not null,
+  xid nvarchar(100) not null,
   publisherType nvarchar(40) not null,
   data image not null,
   rtdata image,
@@ -305,7 +305,7 @@ alter table publishers add constraint publishersUn1 unique (xid);
 --
 CREATE TABLE jsonData (
   	id int not null identity,
-	xid nvarchar(50) not null,
+	xid nvarchar(100) not null,
 	name nvarchar(255) not null,
 	readPermission varchar(255),
   	editPermission varchar(255),
