@@ -7,6 +7,7 @@
 * Shutdown task is now the highest priority thread.
 * Fix AnalogChangeEventDetector to raise event every change with zero duration set, fix zero duration logged only
 * Catch nightly purge errors and log them
+* Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers 
 
 *Version 3.3.3*
 * Fix bug where data point tags were not exported when using the search-and-export feature of the data point tables on the Data Source Edit page
