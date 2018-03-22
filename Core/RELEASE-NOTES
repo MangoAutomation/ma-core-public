@@ -1,3 +1,7 @@
+*Version 3.4.0*
+* Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers
+* Increase the XID field to 100 characters from 50 
+
 *Version 3.3.4*
 * Export publishers in nightly backup
 * Add INFO level log message to indicate end of configuration backup task
@@ -7,8 +11,6 @@
 * Shutdown task is now the highest priority thread.
 * Fix AnalogChangeEventDetector to raise event every change with zero duration set, fix zero duration logged only
 * Catch nightly purge errors and log them
-* Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers
-* Increase the XID field to 100 characters from 50 
 
 *Version 3.3.3*
 * Fix bug where data point tags were not exported when using the search-and-export feature of the data point tables on the Data Source Edit page
