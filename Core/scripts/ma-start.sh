@@ -99,6 +99,8 @@ while [ $LOOP_EXIT = false ]; do
     $EXECJAVA $JPDA $JAVAOPTS -server -cp "$MA_CP" \
         "-Dma.home=$MA_HOME" \
         "-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
+        "-Dlog4j2.enableThreadlocals=true" \
+        "-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector" \
         com.serotonin.m2m2.Main &
     
     PID=$!

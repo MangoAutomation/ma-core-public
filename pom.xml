@@ -9,7 +9,7 @@
   <jettyVersion>9.3.11.v20160721</jettyVersion>
   <springVersion>4.3.13.RELEASE</springVersion>
   <springSecurityVersion>4.2.3.RELEASE</springSecurityVersion>
-  <log4jVersion>2.8.1</log4jVersion>
+  <log4jVersion>2.10.0</log4jVersion>
   <jacksonVersion>2.9.2</jacksonVersion>
   <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
   <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
