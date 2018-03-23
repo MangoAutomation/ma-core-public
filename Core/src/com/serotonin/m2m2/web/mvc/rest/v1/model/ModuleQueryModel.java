@@ -71,7 +71,7 @@ public class ModuleQueryModel {
     /**
      * To be called prior to creating the query
      */
-    public void ensureValid(User user) {
+    public void ensureValid(User user, String tableName) {
         RestValidationResult result = new RestValidationResult();
         if(queryType == null)
             result.addRequiredError("queryType");
@@ -81,7 +81,7 @@ public class ModuleQueryModel {
             result.ensureValid();
         }
         definition.ensurePermission(user);
-        definition.validate(user, parameters, result);
+        definition.validate(user, tableName, parameters, result);
         result.ensureValid();
     }
     

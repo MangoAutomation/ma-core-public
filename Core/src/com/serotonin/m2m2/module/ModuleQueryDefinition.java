@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,6 +42,12 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     abstract protected String getPermissionTypeName();
     
     /**
+     * Get the name of the table that the query from createQuery will be used on
+     * @return
+     */
+    abstract protected String getTableName();
+    
+    /**
      * Validate the inputs for the query
      * 
      * @param parameters
@@ -54,7 +61,13 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
      */
     abstract public ASTNode createQuery(User user, JsonNode parameters) throws IOException;
     
-    public void validate(final User user, final JsonNode input, final RestValidationResult result) throws ValidationFailedRestException {
+    public void validate(final User user, final String tableName, final JsonNode input, final RestValidationResult result) throws ValidationFailedRestException {
+        if(StringUtils.equals(getTableName(), tableName)) {
+            //This definition doesn't match the table it is going to run on, abort
+            result.addInvalidValueError("queryTypeName");
+            return;
+        }
+        
         validateImpl(user, input, result);
     }
     

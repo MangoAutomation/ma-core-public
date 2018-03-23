@@ -15,6 +15,7 @@ import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -45,6 +46,13 @@ public class EventsByTagQueryDefinition extends ModuleQueryDefinition {
         return null; //Don't have any permissions for this query
     }
 
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.module.ModuleQueryDefinition#getTableName()
+     */
+    @Override
+    protected String getTableName() {
+        return SchemaDefinition.EVENTS_TABLE;
+    }
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.module.ModuleQueryDefinition#validateImpl(com.fasterxml.jackson.databind.JsonNode)
      */
