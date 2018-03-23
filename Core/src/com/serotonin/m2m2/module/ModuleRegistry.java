@@ -70,6 +70,7 @@ import com.serotonin.m2m2.module.definitions.permissions.SqlBackupActionPermissi
 import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.query.EventsByTagQueryDefinition;
 import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeInfoDefinition;
@@ -84,7 +85,6 @@ import com.serotonin.m2m2.module.definitions.settings.NoSqlPointValueDatabaseSiz
 import com.serotonin.m2m2.module.definitions.settings.OperatingSystemInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseBackupFileListInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseSizeInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.TimezoneInfoDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
@@ -141,6 +141,7 @@ public class ModuleRegistry {
     private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
+    private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS; 
     
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
@@ -777,6 +778,41 @@ public class ModuleRegistry {
     
     //
     //
+    // Module Query special handling
+    //
+    public static Map<String, ModuleQueryDefinition> getModuleQueryDefinitions() {
+        ensureModuleQueryDefinitions();
+        return new HashMap<String, ModuleQueryDefinition>(MODULE_QUERY_DEFINITIONS);
+    }
+    
+    public static ModuleQueryDefinition getModuleQueryDefinition(String name){
+        ensureModuleQueryDefinitions();
+        return MODULE_QUERY_DEFINITIONS.get(name);
+    }
+
+    private static void ensureModuleQueryDefinitions() {
+        if (MODULE_QUERY_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (MODULE_QUERY_DEFINITIONS == null) {
+                    Map<String, ModuleQueryDefinition> map = new HashMap<>();
+                    for(ModuleQueryDefinition def : Module.getDefinitions(preDefaults, ModuleQueryDefinition.class)){
+                        map.put(def.getQueryTypeName(), def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (ModuleQueryDefinition def : module.getDefinitions(ModuleQueryDefinition.class))
+                            map.put(def.getQueryTypeName(), def);
+                    }
+                    for(ModuleQueryDefinition def : Module.getDefinitions(postDefaults, ModuleQueryDefinition.class)){
+                        map.put(def.getQueryTypeName(), def);
+                    }
+                    MODULE_QUERY_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
     // Generic handling
     //
     public static <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
@@ -1062,6 +1098,9 @@ public class ModuleRegistry {
         preDefaults.add(new CoreFileStoreDefinition());
         preDefaults.add(new PublicFileStoreDefinition());
         preDefaults.add(new DocsFileStoreDefinition());
+        
+        /* Module Queries */
+        preDefaults.add(new EventsByTagQueryDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
