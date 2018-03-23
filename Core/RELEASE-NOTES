@@ -1,8 +1,10 @@
 *Version 3.4.0*
+* Removing line number, class name and packages from log4j output, !!this means the logfile has a new format!!
 * Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers
 * Increase the XID field to 100 characters from 50 
 * Adding new module definitions for custom queries to be used as helpers in REST query endpoints 
 * Adding definition for Events by Data Point Tag query
+
 
 *Version 3.3.4*
 * Export publishers in nightly backup
