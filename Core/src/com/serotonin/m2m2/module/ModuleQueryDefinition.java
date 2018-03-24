@@ -45,7 +45,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
      * Get the name of the table that the query from createQuery will be used on
      * @return
      */
-    abstract protected String getTableName();
+    abstract public String getTableName();
     
     /**
      * Validate the inputs for the query
@@ -55,6 +55,12 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     abstract protected void validateImpl(final User user, final JsonNode parameters, final RestValidationResult result);
     
     /**
+     * Return information about the parameters and types for the query
+     * @return
+     */
+    abstract public JsonNode getExplainInfo();
+    
+    /**
      * Create an AST Node for this query
      * @param parameters
      * @return
@@ -62,7 +68,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     abstract public ASTNode createQuery(User user, JsonNode parameters) throws IOException;
     
     public void validate(final User user, final String tableName, final JsonNode input, final RestValidationResult result) throws ValidationFailedRestException {
-        if(StringUtils.equals(getTableName(), tableName)) {
+        if(!StringUtils.equals(getTableName(), tableName)) {
             //This definition doesn't match the table it is going to run on, abort
             result.addInvalidValueError("queryTypeName");
             return;
@@ -121,6 +127,45 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
             root = new ASTNode("or", restriction, query);
         }
         return root;
+    }
+    
+    public class ParameterInfo {
+
+        String type;
+        boolean required;
+
+        //TODO Mango 3.4 do we need a default? Object default;
+        //TODO Mango 3.4 do we need a description? TranslatableMessage description;
+        
+        public ParameterInfo() { }
+        public ParameterInfo(String type, boolean required) {
+            this.type = type;
+            this.required = required;
+        }
+        /**
+         * @return the required
+         */
+        public boolean isRequired() {
+            return required;
+        }
+        /**
+         * @param required the required to set
+         */
+        public void setRequired(boolean required) {
+            this.required = required;
+        }
+        /**
+         * @return the type
+         */
+        public String getType() {
+            return type;
+        }
+        /**
+         * @param type the type to set
+         */
+        public void setType(String type) {
+            this.type = type;
+        }
     }
     
 }
