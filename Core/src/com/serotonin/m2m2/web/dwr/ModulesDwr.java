@@ -464,11 +464,11 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         return;
                     }
                     String name = mod.getKey();
-                    String version = mod.getValue();
+                    Version version = Version.valueOf(mod.getValue());
     
-                    String filename = ModuleUtils.moduleFilename(name, version);
+                    String filename = ModuleUtils.moduleFilename(name, version.getNormalVersion());
                     String url = Common.envProps.getString("store.url") + "/"
-                            + ModuleUtils.downloadFilename(name, version);
+                            + ModuleUtils.downloadFilename(name, version.getNormalVersion());
                     HttpGet get = new HttpGet(url);
     
                     FileOutputStream out = null;
@@ -476,13 +476,13 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         out = new FileOutputStream(new File(tempDir, filename));
                         HttpUtils4.execute(httpClient, get, out);
                         for (ModuleNotificationListener listener : listeners)
-                            listener.moduleDownloaded(name, version);
+                            listener.moduleDownloaded(name, version.toString());
                     } catch (IOException e) {
                         LOG.warn("Upgrade download error", e);
                         String error = new TranslatableMessage("modules.downloadFailure", e.getMessage()).translate(Common.getTranslations());
                         //Notify of the failure
                         for (ModuleNotificationListener listener : listeners)
-                            listener.moduleDownloadFailed(name, version, error);
+                            listener.moduleDownloadFailed(name, version.toString(), error);
                         return;
                     } finally {
                         try {
