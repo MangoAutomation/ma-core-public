@@ -149,15 +149,13 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
     /**
      * Send an error message
      * 
-     * TODO Mango 3.4 remove throws Exception
-     * 
      * @param session
      * @param errorType
      * @param message
      * @throws JsonProcessingException
      * @throws IOException
      */
-    protected void sendErrorMessage(WebSocketSession session, MangoWebSocketErrorType errorType, TranslatableMessage message) throws JsonProcessingException, Exception {
+    protected void sendErrorMessage(WebSocketSession session, MangoWebSocketErrorType errorType, TranslatableMessage message) throws JsonProcessingException {
         MangoWebSocketErrorModel error = new MangoWebSocketErrorModel(errorType, message.translate(Common.getTranslations()));
         MangoWebSocketResponseModel model = new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.ERROR, error);
         this.sendStringMessageAsync(session, this.jacksonMapper.writeValueAsString(model));
@@ -167,14 +165,12 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
     /**
      * Send a positive response
      * 
-     * TODO Mango 3.4 remove throws Exception
-     * 
      * @param session
      * @param payload
      * @throws JsonProcessingException
      * @throws IOException
      */
-    protected void sendMessage(WebSocketSession session, Object payload) throws JsonProcessingException, Exception {
+    protected void sendMessage(WebSocketSession session, Object payload) throws JsonProcessingException {
         MangoWebSocketResponseModel model = new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.OK, payload);
         this.sendStringMessageAsync(session, this.jacksonMapper.writeValueAsString(model));
     }
