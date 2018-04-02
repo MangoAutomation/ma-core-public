@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketHandler;
+import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketPublisher;
 
 /**
  * Allow Modules to define WebSockets
@@ -15,13 +15,13 @@ import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketHandler;
 public abstract class WebSocketDefinition extends ModuleElementDefinition{
 
 	/* Singleton Instance */
-	private MangoWebSocketHandler handler;
+	private MangoWebSocketPublisher handler;
 
 	/**
 	 * Return the one and only singleton
 	 * @return
 	 */
-	protected abstract MangoWebSocketHandler getHandler();
+	protected abstract MangoWebSocketPublisher getHandler();
 
 	/**
 	 * The URL to connect to this websocket
@@ -50,7 +50,7 @@ public abstract class WebSocketDefinition extends ModuleElementDefinition{
 	 * To be used to get the instance that is loaded into Spring and mapped to this Url
 	 * @return
 	 */
-	public MangoWebSocketHandler getHandlerInstance(){
+	public MangoWebSocketPublisher getHandlerInstance(){
 		if(this.handler == null)
 			this.handler = getHandler();
 		return this.handler;

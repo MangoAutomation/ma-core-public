@@ -18,7 +18,7 @@ import com.serotonin.m2m2.vo.User;
 /**
  * @author Jared Wiltshire
  */
-public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketHandler {
+public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketPublisher {
     private static final Log LOG = LogFactory.getLog(DaoNotificationWebSocketHandler.class);
     
     final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
