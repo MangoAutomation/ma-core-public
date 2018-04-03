@@ -4,7 +4,7 @@
 * Increase the XID field to 100 characters from 50 
 * Adding new module definitions for custom queries to be used as helpers in REST query endpoints 
 * Adding definition for Events by Data Point Tag query at /v1/events/module-defined-query/DATA_POINT_EVENTS_BY_TAG
-
+* Adding simplify settings as a property of data point VO
 
 *Version 3.3.4*
 * Export publishers in nightly backup
