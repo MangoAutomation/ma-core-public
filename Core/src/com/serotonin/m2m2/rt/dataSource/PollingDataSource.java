@@ -227,15 +227,19 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
      * @param time
      */
     protected void doPollNoSync(long time) {
-        synchronized (pointListChangeLock) {
+        pointListChangeLock.readLock().lock();
+        try{
             doPoll(time);
+        } finally {
+            pointListChangeLock.readLock().unlock();
         }
     }
 
     abstract protected void doPoll(long time);
 
     protected void updateChangedPoints(long fireTime) {
-        synchronized (pointListChangeLock) {
+        pointListChangeLock.writeLock().lock();
+        try {
             if (addedChangedPoints.size() > 0) {
 
             	    // Remove any existing instances of the points.
@@ -254,6 +258,8 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
                 removedPoints.clear();
                 pointListChanged = true;
             }
+        } finally {
+            pointListChangeLock.writeLock().unlock();
         }
     }
     

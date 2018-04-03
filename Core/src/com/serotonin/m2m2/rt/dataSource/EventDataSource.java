@@ -21,17 +21,23 @@ abstract public class EventDataSource<T extends DataSourceVO<?>> extends DataSou
 
     @Override
     public void addDataPoint(DataPointRT dataPoint) {
-        synchronized (pointListChangeLock) {
+        pointListChangeLock.writeLock().lock();
+        try {
             // Remove any existing instances of the points.
             dataPoints.remove(dataPoint);
             dataPoints.add(dataPoint);
+        } finally {
+            pointListChangeLock.writeLock().unlock();
         }
     }
 
     @Override
     public void removeDataPoint(DataPointRT dataPoint) {
-        synchronized (pointListChangeLock) {
+        pointListChangeLock.writeLock().lock();
+        try {
             dataPoints.remove(dataPoint);
+        } finally {
+            pointListChangeLock.writeLock().unlock();
         }
     }
 
