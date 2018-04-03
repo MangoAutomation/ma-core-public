@@ -83,39 +83,60 @@ public class DataPointEventMulticaster implements DataPointListener {
     // /
 	@Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        a.pointChanged(oldValue, newValue);
-        b.pointChanged(oldValue, newValue);
+	    try {
+	        a.pointChanged(oldValue, newValue);
+	    } finally {
+	        b.pointChanged(oldValue, newValue);
+	    }
     }
 	@Override
     public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
-        a.pointSet(oldValue, newValue);
-        b.pointSet(oldValue, newValue);
+	    try {
+	        a.pointSet(oldValue, newValue);
+	    } finally {
+	        b.pointSet(oldValue, newValue);
+	    }
     }
 	@Override
     public void pointUpdated(PointValueTime newValue) {
-        a.pointUpdated(newValue);
-        b.pointUpdated(newValue);
+	    try {
+	        a.pointUpdated(newValue);
+	    } finally {
+	        b.pointUpdated(newValue);
+	    }
     }
 	@Override
     public void pointBackdated(PointValueTime value) {
-        a.pointBackdated(value);
-        b.pointBackdated(value);
+	    try {
+	        a.pointBackdated(value);
+	    } finally {
+	        b.pointBackdated(value);
+	    }
     }
 	@Override
     public void pointInitialized() {
-        a.pointInitialized();
-        b.pointInitialized();
+	    try {
+	        a.pointInitialized();
+	    } finally {
+	        b.pointInitialized();
+	    }
     }
 	@Override
     public void pointTerminated() {
-        a.pointTerminated();
-        b.pointTerminated();
+	    try {
+	        a.pointTerminated();
+	    } finally {
+	        b.pointTerminated();
+	    }
     }
 
 	@Override
 	public void pointLogged(PointValueTime value) {
-		a.pointLogged(value);
-		b.pointLogged(value);
+	    try {
+	        a.pointLogged(value);
+	    } finally {
+	        b.pointLogged(value);
+	    }
 	}
 	
 	/* (non-Javadoc)
@@ -123,8 +144,11 @@ public class DataPointEventMulticaster implements DataPointListener {
 	 */
 	@Override
 	public void attributeChanged(Map<String, Object> attributes) {
-	    a.attributeChanged(attributes);
-	    b.attributeChanged(attributes);
+	    try {
+	        a.attributeChanged(attributes);
+	    } finally {
+	        b.attributeChanged(attributes);
+	    }
 	}
 
 	/* (non-Javadoc)
