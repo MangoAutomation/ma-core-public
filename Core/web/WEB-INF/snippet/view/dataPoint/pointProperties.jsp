@@ -117,6 +117,17 @@
 
 		dojo.byId("chartColour").value = vo.chartColour;
 		dojo.byId("plotType").value = vo.plotType;
+		
+		dijit.byId('useSimplify').set('checked', vo.simplifyTarget > 0);
+		if(vo.simplifyTarget > 0) {
+			show("simplifySettings");
+			dojo.byId("simplifyTarget").value = vo.simplifyTarget;
+			dojo.byId("simplifyTolerance").value = vo.simplifyTolerance;
+		} else {
+			hide("simplifySettings");
+			dojo.byId("simplifyTarget").value = 500; //Default simplify target
+			dojo.byId("simplifyTolerance").value = vo.simplifyTolerance;
+		}
 
 		if (vo.pointLocator.dataTypeId == <%=DataTypes.NUMERIC%>) {
 			show("unitSection");
@@ -148,6 +159,11 @@
 		vo.preventSetExtremeValues = dijit.byId("preventSetExtremeValues").get('checked');
 		vo.setExtremeLowLimit = dojo.byId("setExtremeLowLimit").value;
 		vo.setExtremeHighLimit = dojo.byId("setExtremeHighLimit").value;
+		if(dijit.byId('useSimplify').get('checked'))
+			vo.simplifyTarget = dojo.byId("simplifyTarget").value;
+		else
+			vo.simplifyTarget = -1; //Don't simplify
+		vo.simplifyTolerance = dojo.byId("simplifyTolerance").value;
 	}
 
 	/**
@@ -245,6 +261,9 @@
 	function disablePointProperties(dataTypeId) {
 		setDisabled('chartColour', true);
 		setDisabled('plotType', true);
+		setDisabled('useSimplify', true);
+		setDisabled('simplifyTarget', true);
+		setDisabled('simplifyTolerance', true);
 		setDisabled('preventSetExtremeValues', true);
 		setDisabled('setExtremeLowLimit', true);
 		setDisabled('setExtremeHighLimit', true);
@@ -254,6 +273,9 @@
 	function enablePointProperties(dataTypeId) {
 		setDisabled('chartColour', false);
 		setDisabled('plotType', false);
+		setDisabled('useSimplify', false);
+		setDisabled('simplifyTarget', false);
+		setDisabled('simplifyTolerance', false);
 		setDisabled('preventSetExtremeValues', false);
 		setDisabled('setExtremeLowLimit', false);
 		setDisabled('setExtremeHighLimit', false);
@@ -272,6 +294,14 @@
 	          $("setExtremeHighLimit").disabled = true;
 	      }
 	  }
+	
+	function changeUseSimplify() {
+		var simplify = $get("useSimplify");
+		if(simplify)
+			show("simplifySettings");
+		else
+			hide("simplifySettings");
+	}
 </script>
 
 <div>
@@ -361,6 +391,31 @@
         </sst:select></td>
     </tr>
     
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.useSimplify"/></td>
+      <td class="formField">
+        <input
+          data-dojo-type="dijit.form.CheckBox" id="useSimplify"
+          name="useSimplify"  onchange="changeUseSimplify();"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
+    </tr>
+    <tbody id="simplifySettings">
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.simplifyTarget"/></td>
+      <td class="formField">
+        <input type="text" id="simplifyTarget" name="simplifyTarget"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
+    </tr>
+    <tr>
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.simplifyTolerance"/></td>
+      <td class="formField">
+        <input type="text" id="simplifyTolerance" name="simplifyTolerance"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
+    </tr>
+    </tbody>
     <tr>
       <td class="formLabelRequired"><fmt:message key="pointEdit.props.preventSetExtremeValues"/></td>
       <td class="formField">

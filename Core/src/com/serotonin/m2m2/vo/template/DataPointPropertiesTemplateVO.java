@@ -41,12 +41,15 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     private int dataTypeId  = DataTypes.NUMERIC;
     
 	/* Point Properties */
-	
     @JsonProperty
     private String chartColour;
     private int rollup = Common.Rollups.NONE;
 
     private int plotType = DataPointVO.PlotTypes.STEP;
+    @JsonProperty
+    private int simplifyTarget = -1;
+    @JsonProperty
+    private double simplifyTolerance = 1.0;
 	
     /* Logging Properties */
     private int loggingType = LoggingTypes.ON_CHANGE;
@@ -143,6 +146,22 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
 	public void setPlotType(int plotType) {
 		this.plotType = plotType;
+	}
+	
+	public int getSimplifyTarget() {
+	    return simplifyTarget;
+	}
+	
+	public void setSimplifyTarget(int simplifyTarget) {
+	    this.simplifyTarget = simplifyTarget;
+	}
+	
+	public double getSimplifyTolerance() {
+	    return simplifyTolerance;
+	}
+	
+	public void setSimplifyTolerance(double simplifyTolerance) {
+	    this.simplifyTolerance = simplifyTolerance;
 	}
 
 	public int getLoggingType() {
@@ -379,6 +398,9 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
             }
         }
+        
+        if (simplifyTarget > 0 && simplifyTarget < 3)
+            response.addContextualMessage("simplifyTarget", "validate.greaterThan", 3);
     }
     
 
@@ -386,7 +408,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     //
     // Serialization
     //
-    private static final int version = 4;
+    private static final int version = 5;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -396,6 +418,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         SerializationHelper.writeSafeUTF(out, chartColour);
         out.writeInt(rollup);
         out.writeInt(plotType);
+        out.writeInt(simplifyTarget);
+        out.writeDouble(simplifyTolerance);
         /* Logging Properties */
         out.writeInt(loggingType);
         out.writeDouble(tolerance);
@@ -438,6 +462,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
+        	simplifyTarget = -1;
+        	simplifyTolerance = 1.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -454,10 +480,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeOverride = in.readBoolean();
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
-        	
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
@@ -468,6 +492,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
+        	simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -484,10 +510,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeOverride = in.readBoolean();
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
-        	
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
@@ -498,6 +522,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
+        	simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -514,10 +540,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeOverride = in.readBoolean();
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
-        	
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
             setExtremeHighLimit = in.readDouble();
@@ -528,6 +552,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = in.readInt();
         	plotType = in.readInt();
+        	simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -544,15 +570,42 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeOverride = in.readBoolean();
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
-        	
             textRenderer = (TextRenderer) in.readObject();
             chartRenderer = (ChartRenderer) in.readObject();
-            
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
+        }else if (ver == 5) {
+            /* Point Properties */
+            defaultTemplate = in.readBoolean();
+            dataTypeId = in.readInt();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            rollup = in.readInt();
+            plotType = in.readInt();
+            simplifyTarget = in.readInt();
+            simplifyTolerance = in.readDouble();
+            /* Logging Properties */
+            loggingType = in.readInt();
+            tolerance = in.readDouble();
+            discardExtremeValues = in.readBoolean();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            intervalLoggingType = in.readInt();
+            intervalLoggingPeriodType = in.readInt();
+            intervalLoggingPeriod = in.readInt();
+            overrideIntervalLoggingSamples = in.readBoolean();
+            intervalLoggingSampleWindowSize = in.readInt();
+            defaultCacheSize = in.readInt();
+            /* Purge Override Settings */
+            purgeOverride = in.readBoolean();
+            purgeType = in.readInt();
+            purgePeriod = in.readInt();
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
             setExtremeHighLimit = in.readDouble();
         }
-
     }
 
     @Override
@@ -565,7 +618,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         writer.writeEntry("intervalLoggingType", DataPointVO.INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType));
         writer.writeEntry("purgeType", Common.TIME_PERIOD_CODES.getCode(purgeType));
         writer.writeEntry("plotType", DataPointVO.PLOT_TYPE_CODES.getCode(plotType));
-
     }
 
     @Override
@@ -654,6 +706,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		vo.setChartColour(getChartColour());
 		vo.setPlotType(getPlotType());
 		vo.setRollup(getRollup());
+		vo.setSimplifyTarget(getSimplifyTarget());
+		vo.setSimplifyTolerance(getSimplifyTolerance());
 		
 		/* Logging Properties */
 		vo.setLoggingType(getLoggingType());
@@ -695,6 +749,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		this.setChartColour(vo.getChartColour());
 		this.setPlotType(vo.getPlotType());
 		this.setRollup(vo.getRollup());
+		this.setSimplifyTarget(vo.getSimplifyTarget());
+		this.setSimplifyTolerance(vo.getSimplifyTolerance());
 		
 		/* Logging Properties */
 		this.setLoggingType(vo.getLoggingType());

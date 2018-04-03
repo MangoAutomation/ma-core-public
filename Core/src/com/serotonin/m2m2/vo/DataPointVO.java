@@ -209,6 +209,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private int rollup = Common.Rollups.NONE;
 
     private int plotType = PlotTypes.STEP;
+    
+    // Properties for Simplify
+    @JsonProperty
+    private int simplifyTarget = -1; // -1 reflects don't simplify
+    @JsonProperty
+    private double simplifyTolerance = 1.0;
 
     private PointLocatorVO<?> pointLocator;
 
@@ -706,6 +712,26 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setPlotType(int plotType) {
         this.plotType = plotType;
     }
+    
+    public boolean isSimplifyDataSets() {
+        return simplifyTarget > 0;
+    }
+    
+    public int getSimplifyTarget() {
+        return simplifyTarget;
+    }
+    
+    public void setSimplifyTarget(int simplifyTarget) {
+        this.simplifyTarget = simplifyTarget;
+    }
+    
+    public double getSimplifyTolerance() {
+        return simplifyTolerance;
+    }
+    
+    public void setSimplifyTolerance(double simplifyTolerance) {
+        this.simplifyTolerance = simplifyTolerance;
+    }
 
     public boolean isOverrideIntervalLoggingSamples() {
         return overrideIntervalLoggingSamples;
@@ -841,6 +867,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setLoggingType(loggingType);
             copy.setName(name);
             copy.setPlotType(plotType);
+            copy.setSimplifyTarget(simplifyTarget);
+            copy.setSimplifyTolerance(simplifyTolerance);
             copy.setPointFolderId(pointFolderId);
             copy.setTextRenderer(textRenderer);
             copy.setPointLocator(pointLocator);
@@ -955,6 +983,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             response.addContextualMessage("plotType", "validate.invalidValue");
         if (plotType != PlotTypes.STEP && pointLocator.getDataTypeId() != DataTypes.NUMERIC)
             response.addContextualMessage("plotType", "validate.invalidValue");
+        
+        if(simplifyTarget > 0 && simplifyTarget < 3)
+            response.addContextualMessage("simplifyTarget", "validate.greaterThan", 3);
+        else if(simplifyTarget <= 0)
+            simplifyTarget = -1;
 
         //Validate the unit
         try {
@@ -1122,7 +1155,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     // Serialization
     //
-    private static final int version = 11; //Skipped 7,8 to catch up with Deltamation
+    private static final int version = 12; //Skipped 7,8 to catch up with Deltamation
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         ensureUnitsCorrect();
@@ -1144,6 +1177,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         out.writeBoolean(preventSetExtremeValues);
         out.writeDouble(setExtremeLowLimit);
         out.writeDouble(setExtremeHighLimit);
+        out.writeInt(simplifyTarget);
+        out.writeDouble(simplifyTolerance);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -1173,26 +1208,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             engineeringUnits = in.readInt();
             chartColour = "";
             plotType = PlotTypes.STEP;
-
             unit = defaultUnit();
             unitString = UnitUtil.formatLocal(unit);
-
             integralUnit = defaultUnit();
             integralUnitString = UnitUtil.formatLocal(integralUnit);
-
             renderedUnit = defaultIntegralUnit();
             renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-
             useIntegralUnit = false;
             useRenderedUnit = false;
-
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
-            
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 2) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1216,25 +1246,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             engineeringUnits = in.readInt();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = PlotTypes.STEP;
-
             unit = defaultUnit();
             unitString = UnitUtil.formatLocal(unit);
-
             integralUnit = defaultUnit();
             integralUnitString = UnitUtil.formatLocal(integralUnit);
-
             renderedUnit = defaultIntegralUnit();
             renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-
             useIntegralUnit = false;
             useRenderedUnit = false;
-
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 3) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1258,24 +1284,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             engineeringUnits = in.readInt();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = PlotTypes.STEP;
-
             unit = defaultUnit();
             unitString = UnitUtil.formatLocal(unit);
-
             integralUnit = defaultUnit();
             integralUnitString = UnitUtil.formatLocal(integralUnit);
-
             renderedUnit = defaultIntegralUnit();
             renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-
             useIntegralUnit = false;
             useRenderedUnit = false;
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 4) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1301,13 +1324,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             plotType = in.readInt();
             useIntegralUnit = false;
             useRenderedUnit = false;
-
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 5) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1317,25 +1340,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
-
             unit = defaultUnit();
             unitString = UnitUtil.formatLocal(unit);
-
             integralUnit = defaultUnit();
             integralUnitString = UnitUtil.formatLocal(integralUnit);
-
             renderedUnit = defaultIntegralUnit();
             renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-
             useIntegralUnit = false;
             useRenderedUnit = false;
-
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 6) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1345,25 +1364,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
-
             unit = (Unit<?>) in.readObject();
             unitString = UnitUtil.formatLocal(unit);
-
             integralUnit = (Unit<?>) in.readObject();
             integralUnitString = UnitUtil.formatLocal(integralUnit);
-
             renderedUnit = (Unit<?>) in.readObject();
             renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
-
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 7) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1381,6 +1396,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 8) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1401,6 +1418,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1436,13 +1455,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
-
             overrideIntervalLoggingSamples = false;
             intervalLoggingSampleWindowSize = 10;
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 10) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1477,13 +1496,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
-
             overrideIntervalLoggingSamples = in.readBoolean();
             intervalLoggingSampleWindowSize = in.readInt();
-            
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
         }
         else if (ver == 11) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1518,13 +1537,54 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
-
             overrideIntervalLoggingSamples = in.readBoolean();
             intervalLoggingSampleWindowSize = in.readInt();
-            
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
             setExtremeHighLimit = in.readDouble();
+            simplifyTarget = -1;
+            simplifyTolerance = 1.0;
+        }
+        else if (ver == 12) {
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            plotType = in.readInt();
+            
+            try{
+                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unitString = UnitUtil.formatLocal(unit);
+            }catch(Exception e){
+                unit = defaultUnit();
+                unitString = UnitUtil.formatLocal(unit);
+            }
+            try{
+                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }catch(Exception e){
+                integralUnit = defaultUnit();
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }
+
+            try{
+                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }catch(Exception e){
+                renderedUnit = defaultUnit();
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }
+            useIntegralUnit = in.readBoolean();
+            useRenderedUnit = in.readBoolean();
+            overrideIntervalLoggingSamples = in.readBoolean();
+            intervalLoggingSampleWindowSize = in.readInt();
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
+            simplifyTarget = in.readInt();
+            simplifyTolerance = in.readDouble();
         }
 
         // Check the purge type. Weird how this could have been set to 0.

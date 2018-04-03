@@ -422,6 +422,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             dp.setIntegralUnitString(newDp.getIntegralUnitString());
             dp.setChartColour(newDp.getChartColour());
             dp.setPlotType(newDp.getPlotType());
+            dp.setSimplifyTarget(newDp.getSimplifyTarget());
+            dp.setSimplifyTolerance(newDp.getSimplifyTolerance());
 
             //Logging Properties
             dp.setLoggingType(newDp.getLoggingType());
