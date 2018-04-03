@@ -47,9 +47,9 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
     private int plotType = DataPointVO.PlotTypes.STEP;
     @JsonProperty
-    private int simplifyTarget = -1;
+    private int simplifyType = DataPointVO.SimplifyTypes.NONE;
     @JsonProperty
-    private double simplifyTolerance = 1.0;
+    private double simplifyArgument = 10.0;
 	
     /* Logging Properties */
     private int loggingType = LoggingTypes.ON_CHANGE;
@@ -148,20 +148,20 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		this.plotType = plotType;
 	}
 	
-	public int getSimplifyTarget() {
-	    return simplifyTarget;
+	public int getSimplifyType() {
+	    return simplifyType;
 	}
 	
-	public void setSimplifyTarget(int simplifyTarget) {
-	    this.simplifyTarget = simplifyTarget;
+	public void setSimplifyType(int simplifyType) {
+	    this.simplifyType = simplifyType;
 	}
 	
-	public double getSimplifyTolerance() {
-	    return simplifyTolerance;
+	public double getSimplifyArgument() {
+	    return simplifyArgument;
 	}
 	
-	public void setSimplifyTolerance(double simplifyTolerance) {
-	    this.simplifyTolerance = simplifyTolerance;
+	public void setSimplifyArgument(double simplifyArgument) {
+	    this.simplifyArgument = simplifyArgument;
 	}
 
 	public int getLoggingType() {
@@ -399,8 +399,13 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             }
         }
         
-        if (simplifyTarget > 0 && simplifyTarget < 3)
-            response.addContextualMessage("simplifyTarget", "validate.greaterThan", 3);
+        if (simplifyType == DataPointVO.SimplifyTypes.TARGET) {
+            if (simplifyArgument < 10)
+                response.addContextualMessage("simplifyArgument", "validate.greaterThan", 3);
+        } else if(!DataPointVO.SIMPLIFY_TYPE_CODES.isValidId(simplifyType)) {
+            response.addContextualMessage("simplifyType", "validate.invalidValue");
+        } else if(simplifyType != DataPointVO.SimplifyTypes.NONE && (dataTypeId == DataTypes.ALPHANUMERIC || dataTypeId == DataTypes.IMAGE))
+            response.addContextualMessage("simplifyType", "validate.cannotSimplifyType", DataTypes.getDataTypeMessage(dataTypeId));
     }
     
 
@@ -418,8 +423,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         SerializationHelper.writeSafeUTF(out, chartColour);
         out.writeInt(rollup);
         out.writeInt(plotType);
-        out.writeInt(simplifyTarget);
-        out.writeDouble(simplifyTolerance);
+        out.writeInt(simplifyType);
+        out.writeDouble(simplifyArgument);
         /* Logging Properties */
         out.writeInt(loggingType);
         out.writeDouble(tolerance);
@@ -462,8 +467,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
-        	simplifyTarget = -1;
-        	simplifyTolerance = 1.0;
+        	simplifyType = DataPointVO.SimplifyTypes.NONE;
+        	simplifyArgument = 10.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -492,8 +497,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
-        	simplifyTarget = -1;
-            simplifyTolerance = 1.0;
+        	simplifyType = DataPointVO.SimplifyTypes.NONE;
+            simplifyArgument = 10.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -522,8 +527,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
-        	simplifyTarget = -1;
-            simplifyTolerance = 1.0;
+        	simplifyType = DataPointVO.SimplifyTypes.NONE;
+            simplifyArgument = 10.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -552,8 +557,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	chartColour = SerializationHelper.readSafeUTF(in);
         	rollup = in.readInt();
         	plotType = in.readInt();
-        	simplifyTarget = -1;
-            simplifyTolerance = 1.0;
+        	simplifyType = DataPointVO.SimplifyTypes.NONE;
+            simplifyArgument = 10.0;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -582,8 +587,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             chartColour = SerializationHelper.readSafeUTF(in);
             rollup = in.readInt();
             plotType = in.readInt();
-            simplifyTarget = in.readInt();
-            simplifyTolerance = in.readDouble();
+            simplifyType = in.readInt();
+            simplifyArgument = in.readDouble();
             /* Logging Properties */
             loggingType = in.readInt();
             tolerance = in.readDouble();
@@ -706,8 +711,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		vo.setChartColour(getChartColour());
 		vo.setPlotType(getPlotType());
 		vo.setRollup(getRollup());
-		vo.setSimplifyTarget(getSimplifyTarget());
-		vo.setSimplifyTolerance(getSimplifyTolerance());
+		vo.setSimplifyType(getSimplifyType());
+		vo.setSimplifyArgument(getSimplifyArgument());
 		
 		/* Logging Properties */
 		vo.setLoggingType(getLoggingType());
@@ -749,8 +754,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		this.setChartColour(vo.getChartColour());
 		this.setPlotType(vo.getPlotType());
 		this.setRollup(vo.getRollup());
-		this.setSimplifyTarget(vo.getSimplifyTarget());
-		this.setSimplifyTolerance(vo.getSimplifyTolerance());
+		this.setSimplifyType(vo.getSimplifyType());
+		this.setSimplifyArgument(vo.getSimplifyArgument());
 		
 		/* Logging Properties */
 		this.setLoggingType(vo.getLoggingType());

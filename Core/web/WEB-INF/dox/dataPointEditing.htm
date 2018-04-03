@@ -75,10 +75,10 @@
   a rollup of 'Point default' is requested. A rollup has a <b>Rollup period</b> and a <b>Rollup period type</b>.
 </p>
 <p>
-  Both rollups and raw data sets can also be put through the Simplify algorithm. While this can take more resources and time to
-  get the data set, the data set should have its minor variances simplified. If <b>Use simplify</b> is checked and a <b>Simplify target</b>
-  greater than zero is set, then the algorithm will be applied. For importing, a simplify target less than or equal to zero means
-  do not use simplify.
+  Both rollups and raw data sets can also be put through the Simplify algorithm. Data sets can aspire to have a certain resulting
+  number of values, or provide a magnitude for what is significant. While this can take more resources and time to
+  get the data set, the data set should have its minor variances simplified. A point set to simplify either to a target or a
+  tolerance it will use the <b>Simplify argument</b> for that value.
 </p>
 <p>
   Data points can restrict outgoing set values with the <b>Prevent extreme sets</b> option. This allows the admin to specify an upper and

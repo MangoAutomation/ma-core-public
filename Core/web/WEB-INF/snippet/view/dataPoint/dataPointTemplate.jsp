@@ -476,11 +476,8 @@
 		//Not using units anymore getPointProperties(template);
 		template.chartColour = dojo.byId("chartColour").value;
 		template.plotType = dojo.byId("plotType").value;
-		if(dijit.byId('useSimplify').get('checked'))
-			template.simplifyTarget = dojo.byId("simplifyTarget").value;
-		else
-			template.simplifyTarget = -1;
-		template.simplifyTolerance = dojo.byId("simplifyTolerance").value;
+		template.simplifyType = dojo.byId("simplifyType").value;
+		template.simplifyArgument = dojo.byId("simplifyArgument").value;
 		template.rollup = dojo.byId("rollup").value;
 		template.preventSetExtremeValues = dijit.byId("preventSetExtremeValues").get('checked');
 		template.setExtremeLowLimit = dojo.byId("setExtremeLowLimit").value;
@@ -511,17 +508,9 @@
 		//For the point properties (not using units anymore)
 		dojo.byId("chartColour").value = template.chartColour;
 		dojo.byId("plotType").value = template.plotType;
-		dijit.byId("useSimplify").set('checked', template.simplifyTarget != -1);
-		if(template.simplifyTarget == -1) {
-			dojo.byId("simplifyTarget").value = 500;
-			hide("simplifySettings");
-		} else {
-			dojo.byId("simplifyTarget").value = template.simplifyTarget;
-			show("simplifySettings");
-		}			
-		dojo.byId("simplifyTolerance").value = template.simplifyTolerance;
+		dojo.byId("simplifyType").value = template.simplifyType;
+		dojo.byId("simplifyArgument").value = template.simplifyArgument;
 		dojo.byId("rollup").value = template.rollup;
-		
 		
 		setLoggingProperties(template);
 		setTextRenderer(template);
