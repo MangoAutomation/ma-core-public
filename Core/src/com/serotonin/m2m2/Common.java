@@ -613,8 +613,8 @@ public class Common {
 
     public static HttpClient getHttpClient(int timeout) {
         // Create global request configuration
-        RequestConfig defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.BEST_MATCH)
-                .setExpectContinueEnabled(true).setStaleConnectionCheckEnabled(true)
+        RequestConfig defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT)
+                .setExpectContinueEnabled(true)
                 .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
                 .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC)).setSocketTimeout(timeout)
                 .setConnectTimeout(timeout).build();

@@ -79,7 +79,6 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     private double toleranceOrigin;
 
     /**
-     * TODO Remove this constructor in 3.4 and force use of a timer
      * @param vo
      * @param pointLocator
      * @param dsVo
