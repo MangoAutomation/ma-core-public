@@ -68,14 +68,6 @@ public abstract class StartsAndRuntimeListWrapper {
         return this.statistics.getData();
     }
 
-    public StartsAndRuntime get(Object value) {
-        return this.statistics.get(DataValue.objectToValue(value));
-    }
-
-    public StartsAndRuntime get(DataValue value) {
-    	return this.statistics.get(value);
-    }
-
     public String getHelp() {
         return this.statistics.getHelp();
     }

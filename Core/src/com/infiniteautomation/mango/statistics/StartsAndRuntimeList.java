@@ -161,11 +161,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         return data;
     }
 
-    public StartsAndRuntime get(Object value) {
-        return get(DataValue.objectToValue(value));
-    }
-
-    public StartsAndRuntime get(DataValue value) {
+    private StartsAndRuntime get(DataValue value) {
         for (StartsAndRuntime sar : data) {
             if (Objects.equals(sar.value, value))
                 return sar;
