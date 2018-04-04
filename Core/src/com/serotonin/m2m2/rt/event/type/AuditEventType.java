@@ -26,6 +26,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.util.JsonSerializableUtility;
@@ -36,6 +37,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.AuditEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
+import com.serotonin.timer.RejectedTaskReason;
 
 public class AuditEventType extends EventType{
     //
@@ -106,7 +108,6 @@ public class AuditEventType extends EventType{
 				| InvocationTargetException | JsonException | IOException e) {
 			LOG.error(e.getMessage(), e);
 		}
-    	
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.extended.added", context);
     }
 
@@ -165,8 +166,80 @@ public class AuditEventType extends EventType{
         AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
         type.setRaisingUser(user);
 
-        Common.eventManager.raiseEvent(type, Common.timer.currentTimeMillis(), false, getEventType(type.getAuditEventType())
-                .getAlarmLevel(), message, context);
+        Common.backgroundProcessing.addWorkItem(new AuditEventWorkItem(type, Common.timer.currentTimeMillis(), message, context));
+    }
+    
+    static class AuditEventWorkItem implements WorkItem {
+
+        private AuditEventType type;
+        private long time;
+        private TranslatableMessage message;
+        private Map<String, Object> context;
+        
+        
+        /**
+         * @param type
+         * @param time
+         * @param message
+         * @param context
+         */
+        public AuditEventWorkItem(AuditEventType type, long time, TranslatableMessage message,
+                Map<String, Object> context) {
+            this.type = type;
+            this.time = time;
+            this.message = message;
+            this.context = context;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#execute()
+         */
+        @Override
+        public void execute() {
+            Common.eventManager.raiseEvent(type, time, false, getEventType(type.getAuditEventType())
+                    .getAlarmLevel(), message, context);
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getPriority()
+         */
+        @Override
+        public int getPriority() {
+            return WorkItem.PRIORITY_MEDIUM;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
+         */
+        @Override
+        public String getDescription() {
+            return message.translate(Common.getTranslations());
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+         */
+        @Override
+        public String getTaskId() {
+            // No Order required
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getQueueSize()
+         */
+        @Override
+        public int getQueueSize() {
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+         */
+        @Override
+        public void rejected(RejectedTaskReason reason) {
+          //No special handling, tracking/logging handled by WorkItemRunnable
+        }
     }
     
     //

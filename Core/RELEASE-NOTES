@@ -6,6 +6,7 @@
 * Adding definition for Events by Data Point Tag query at /v1/events/module-defined-query/DATA_POINT_EVENTS_BY_TAG
 * Adding simplify settings as a property of data point VO
 * Removing get(object) and get(DataValue) from StartsAndRuntimeList javascript wrapper so these methods are no longer available and should never have been used
+* Raising Audit events in separate thread as to avoid database deadlock when raising events in a transaction.
 
 *Version 3.3.4*
 * Export publishers in nightly backup
