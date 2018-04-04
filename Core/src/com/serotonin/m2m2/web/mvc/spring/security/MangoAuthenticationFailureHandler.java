@@ -21,7 +21,10 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 
 /**
  * @author Jared Wiltshire
@@ -83,5 +86,9 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
 						+ request.getRemoteAddr());
 			}
 		}
+		
+		//Raise the event
+        String username = request.getParameter("username");
+        SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_FAILED_USER_LOGIN), Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.failedLogin", username, request.getRemoteAddr()));
 	}
 }

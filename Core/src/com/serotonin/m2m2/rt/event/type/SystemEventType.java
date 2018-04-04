@@ -40,6 +40,7 @@ public class SystemEventType extends EventType {
     public static final String TYPE_SYSTEM_SHUTDOWN = "SYSTEM_SHUTDOWN";
     public static final String TYPE_MAX_ALARM_LEVEL_CHANGED = "MAX_ALARM_LEVEL_CHANGED";
     public static final String TYPE_USER_LOGIN = "USER_LOGIN";
+    public static final String TYPE_FAILED_USER_LOGIN = "FAILED_USER_LOGIN";
     public static final String TYPE_SET_POINT_HANDLER_FAILURE = "SET_POINT_HANDLER_FAILURE";
     public static final String TYPE_EMAIL_SEND_FAILURE = "EMAIL_SEND_FAILURE";
     public static final String TYPE_PROCESS_FAILURE = "PROCESS_FAILURE";
@@ -57,6 +58,7 @@ public class SystemEventType extends EventType {
         addEventType(TYPE_SYSTEM_SHUTDOWN, "event.system.shutdown");
         addEventType(TYPE_MAX_ALARM_LEVEL_CHANGED, "event.system.maxAlarmChanged");
         addEventType(TYPE_USER_LOGIN, "event.system.userLogin");
+        addEventType(TYPE_FAILED_USER_LOGIN, "event.system.failedUserLogin");
         addEventType(TYPE_SET_POINT_HANDLER_FAILURE, "event.system.setPoint");
         addEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email");
         addEventType(TYPE_PROCESS_FAILURE, "event.system.process");
