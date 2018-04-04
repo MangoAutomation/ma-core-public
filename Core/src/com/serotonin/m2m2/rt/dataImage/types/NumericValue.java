@@ -6,19 +6,28 @@ package com.serotonin.m2m2.rt.dataImage.types;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Locale;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Matthew Lohbihler
  */
 public class NumericValue extends DataValue implements Comparable<NumericValue> {
+    
     public static NumericValue parseNumeric(String s) {
         if (s == null)
             return new NumericValue(0);
         try {
-        	NumberFormat format = NumberFormat.getInstance(Common.getLocale());
+            User user = Common.getHttpUser();
+            Locale locale = null;
+            if(user == null)
+                locale = Common.getLocale();
+            else
+                locale = user.getLocaleObject();
+        	NumberFormat format = NumberFormat.getInstance(locale);
             Number number = format.parse(s);
             return new NumericValue(number.doubleValue());
         }
