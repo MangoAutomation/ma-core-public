@@ -24,6 +24,8 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.FiledataDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PurgeDefinition;
+import com.serotonin.m2m2.module.PurgeFilterDefinition;
+import com.serotonin.m2m2.module.definitions.actions.PurgeFilter;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -135,12 +137,19 @@ public class DataPurge {
                     purgePeriod = SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS);
                 }
             }
+            
+            List<PurgeFilter> purgeFilters = new ArrayList<PurgeFilter>();
+            for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
+                purgeFilters.add(pfd.getPurgeFilter());
 
             // No matter when this purge actually runs, we want it to act like it's midnight.
             DateTime cutoff = new DateTime(runtime);
             cutoff = DateUtils.truncateDateTime(cutoff, Common.TimePeriods.DAYS);
             cutoff = DateUtils.minus(cutoff, purgeType, purgePeriod);
             if (Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                long millis = cutoff.getMillis();
+                for(PurgeFilter pf : purgeFilters)
+                    millis = pf.adjustPurgeTime(dataPoint, millis);
                 if (countPointValues)
                     deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(),
                             cutoff.getMillis());
