@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.io.InputStream;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,6 +26,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -104,11 +104,13 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
                 catch (ShouldNeverHappenException e) {
                     // If the module was removed but there are still records in the database, this exception will be
                     // thrown. Check the inner exception to confirm.
-                    if (e.getCause() instanceof ObjectStreamException) {
+                    if (e.getCause() instanceof ModuleNotLoadedException) {
                         // Yep. Log the occurrence and continue.
                         LOG.error(
                                 "Publisher with type '" + rs.getString("publisherType") + "' and xid '"
                                         + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
+                    }else {
+                        LOG.error(e.getMessage(), e);
                     }
                 }
             }

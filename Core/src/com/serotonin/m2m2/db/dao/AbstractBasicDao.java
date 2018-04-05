@@ -54,6 +54,7 @@ import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
+import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
@@ -1037,8 +1038,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                     try {
                         callback.row(rowMapper.mapRow(rs, rowNum), rowNum); 
                     }catch (Exception e) {
-                        //TODO see #1195 for improvements in logging
-                        LOG.error(e.getMessage(), e);
+                        if(e.getCause() instanceof ModuleNotLoadedException)
+                            LOG.error(e.getCause().getMessage(), e.getCause());
+                        else
+                            LOG.error(e.getMessage(), e);
                     }finally {
                         rowNum++;
                     }

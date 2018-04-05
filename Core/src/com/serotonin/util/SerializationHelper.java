@@ -12,6 +12,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 
+import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 
 /**
@@ -145,7 +146,11 @@ public class SerializationHelper {
                 return Class.forName(name, false, classLoader);
             }
             catch (ClassNotFoundException ex) {
-                return super.resolveClass(desc);
+                try {
+                    return super.resolveClass(desc);
+                }catch(Exception e) {
+                    throw new ModuleNotLoadedException(name);
+                }
             }
         }
     }

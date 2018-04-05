@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db.dao;
 
 import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
-import java.io.ObjectStreamException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,6 +58,7 @@ import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
+import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
@@ -195,9 +195,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         catch (ShouldNeverHappenException e) {
             // If the module was removed but there are still records in the database, this exception will be
             // thrown. Check the inner exception to confirm.
-            if (e.getCause() instanceof ObjectStreamException) {
+            if (e.getCause() instanceof ModuleNotLoadedException) {
                 // Yep. Log the occurrence and continue.
-                LOG.error("Data point with id '" + id + "' could not be loaded. Is its module missing?", e);
+                LOG.error("Data point with id '" + id + "' could not be loaded. Is its module missing?", e.getCause());
             }else{
             	LOG.error(e.getMessage(), e);
             }
@@ -669,10 +669,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     catch (ShouldNeverHappenException e) {
                         // If the module was removed but there are still records in the database, this exception will be
                         // thrown. Check the inner exception to confirm.
-                        if (e.getCause() instanceof ObjectStreamException) {
+                        if (e.getCause() instanceof ModuleNotLoadedException) {
                             // Yep. Log the occurrence and continue.
                             LOG.error("Data point with id '" + rs.getInt("id") + "' and name '" + rs.getString("name")
-                                    + "' could not be loaded. Is its module missing?", e);
+                                    + "' could not be loaded. Is its module missing?", e.getCause());
+                        }else {
+                            LOG.error(e.getMessage(), e);
                         }
                     }
                 }
@@ -1302,10 +1304,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     catch (ShouldNeverHappenException e) {
                         // If the module was removed but there are still records in the database, this exception will be
                         // thrown. Check the inner exception to confirm.
-                        if (e.getCause() instanceof ObjectStreamException) {
+                        if (e.getCause() instanceof ModuleNotLoadedException) {
                             // Yep. Log the occurrence and continue.
                             LOG.error("Data point with xid '" + rs.getString("xid")
-                                    + "' could not be loaded. Is its module missing?", e);
+                                    + "' could not be loaded. Is its module missing?", e.getCause());
                         }
                         else {
                             LOG.error(e.getMessage(), e);
