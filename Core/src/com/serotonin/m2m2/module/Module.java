@@ -76,7 +76,7 @@ public class Module {
 
     private final Set<String> locales = new HashSet<>();
     private String graphics;
-    private String emailTemplates;
+    private List<String> emailTemplateDirs;
     private final boolean signed;
 
     /**
@@ -339,11 +339,11 @@ public class Module {
         return graphics;
     }
 
-    public String getEmailTemplatesDir() {
-        return emailTemplates;
+    public List<String> getEmailTemplateDirs() {
+        return emailTemplateDirs;
     }
 
-    public void setEmailTemplatesDir(String emailTemplates) {
-        this.emailTemplates = emailTemplates;
+    public void setEmailTemplateDirs(List<String> emailTemplates) {
+        this.emailTemplateDirs = emailTemplates;
     }
 }
