@@ -220,6 +220,10 @@ public class Common {
     public static String getWebPath(String path) {
         return MA_HOME + "/web" + (path.startsWith("/") ? path : "/" + path);
     }
+    
+    public static String getOverrideWebPath(String path) {
+        return MA_HOME + "/overrides/web" + (path.startsWith("/") ? path : "/" + path);
+    }
 
     public static File getLogsDir() {
         File file = new File(MA_HOME, "logs");
