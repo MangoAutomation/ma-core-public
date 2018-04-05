@@ -19,6 +19,9 @@ abstract public class EventDataSource<T extends DataSourceVO<?>> extends DataSou
         super(vo);
     }
 
+    /**
+     * Do not call while holding read lock
+     */
     @Override
     public void addDataPoint(DataPointRT dataPoint) {
         pointListChangeLock.writeLock().lock();
@@ -31,6 +34,9 @@ abstract public class EventDataSource<T extends DataSourceVO<?>> extends DataSou
         }
     }
 
+    /**
+     * Do not call while holding read lock
+     */
     @Override
     public void removeDataPoint(DataPointRT dataPoint) {
         pointListChangeLock.writeLock().lock();
