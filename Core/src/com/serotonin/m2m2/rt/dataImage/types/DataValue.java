@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.rt.dataImage.types;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
@@ -50,7 +50,7 @@ abstract public class DataValue {
     }
 
     public static boolean isEqual(DataValue v1, DataValue v2) {
-        return ObjectUtils.equals(v1, v2);
+        return Objects.equals(v1, v2);
     }
 
     abstract public boolean hasDoubleRepresentation();
