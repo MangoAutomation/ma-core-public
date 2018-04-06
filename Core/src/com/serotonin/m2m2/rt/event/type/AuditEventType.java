@@ -201,7 +201,7 @@ public class AuditEventType extends EventType{
          */
         @Override
         public int getPriority() {
-            return WorkItem.PRIORITY_MEDIUM;
+            return WorkItem.PRIORITY_LOW;
         }
 
         /* (non-Javadoc)
