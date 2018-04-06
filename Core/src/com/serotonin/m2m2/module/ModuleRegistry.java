@@ -70,6 +70,7 @@ import com.serotonin.m2m2.module.definitions.permissions.SqlBackupActionPermissi
 import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.query.DataPointEventsByDataPointRQLQueryDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByTagQueryDefinition;
 import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
@@ -1101,6 +1102,7 @@ public class ModuleRegistry {
         
         /* Module Queries */
         preDefaults.add(new DataPointEventsByTagQueryDefinition());
+        preDefaults.add(new DataPointEventsByDataPointRQLQueryDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,

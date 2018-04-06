@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
@@ -24,14 +25,16 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.RQLParser;
+import net.jazdw.rql.parser.RQLParserException;
 
 /**
  *
  * @author Terry Packer
  */
-public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
+public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDefinition {
 
-    public static final String QUERY_TYPE_NAME = "DATA_POINT_EVENTS_BY_TAG";
+    public static final String QUERY_TYPE_NAME = "DATA_POINT_EVENTS_BY_DATA_POINT_RQL";
     
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.module.ModuleQueryDefinition#getQueryTypeName()
@@ -61,27 +64,20 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
      */
     @Override
     protected void validateImpl(final User user, final JsonNode parameters, final RestValidationResult result) {
-        if(parameters.get("tags") == null)
-            result.addRequiredError("tags");
+        if(parameters.get("rql") == null)
+            result.addRequiredError("rql");
         else {
-            //Ensure the format of tags is a Map<String,String>
-            ObjectReader reader = Common.objectMapper.getObjectReader(Map.class);
             try {
-                //Map<String, String> tags = 
-                reader.readValue(parameters.get("tags"));
-                //TODO Mango 3.4 any further validation?
-            }catch(IOException e) {
-               result.addInvalidValueError("tags"); 
+                JsonNode rqlNode = parameters.get("rql");
+                ObjectReader reader = Common.objectMapper.getObjectReader(String.class);
+                String rql = reader.readValue(rqlNode);
+                if (rql != null && !rql.isEmpty()) {
+                    RQLParser parser = new RQLParser();
+                    parser.parse(rql);
+                }
+            }catch(IOException | RQLParserException | IllegalArgumentException e) {
+               result.addInvalidValueError("rql"); 
             }
-        }
-        if(parameters.has("limit")) {
-            if(!parameters.get("limit").isNumber())
-                result.addInvalidValueError("limit");
-        }
-
-        if(parameters.has("offset")) {
-            if(!parameters.get("offset").isNumber())
-                result.addInvalidValueError("offset");
         }
     }
 
@@ -90,13 +86,26 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
      */
     @Override
     public ASTNode createQuery(User user, JsonNode parameters) throws IOException {
-        JsonNode tagsNode = parameters.get("tags");
-        ObjectReader reader = Common.objectMapper.getObjectReader(Map.class);
-        Map<String, String> tags = reader.readValue(tagsNode);
+        JsonNode rqlNode = parameters.get("rql");
+        ObjectReader reader = Common.objectMapper.getObjectReader(String.class);
+        String rql = reader.readValue(rqlNode);
+        
+        ASTNode rqlAstNode;
+        if (rql == null || rql.isEmpty()) {
+            rqlAstNode = new ASTNode("limit", AbstractBasicDao.DEFAULT_LIMIT);
+        }
+        
+        RQLParser parser = new RQLParser();
+        try {
+            rqlAstNode = parser.parse(rql);
+        } catch (RQLParserException | IllegalArgumentException e) {
+            throw new IOException(e.getMessage());
+        }
+        
         //Lookup data points by tag
         List<Object> args = new ArrayList<>();
         args.add("typeRef1");
-        DataPointDao.instance.dataPointsForTags(tags, user, new MappedRowCallback<DataPointVO>() {
+        DataPointDao.instance.rqlQuery(rqlAstNode, new MappedRowCallback<DataPointVO>() {
             @Override
             public void row(DataPointVO dp, int index) {
                 if(Permissions.hasDataPointReadPermission(user, dp)){
@@ -111,14 +120,6 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
             query = addAndRestriction(query, new ASTNode("eq", "userId", user.getId()));
             query = addAndRestriction(query, new ASTNode("eq", "typeName", "DATA_POINT"));
     
-            //TODO Should we force a limit if none is supplied?
-            if(parameters.has("limit")) {
-                int offset = 0;
-                int limit = parameters.get("limit").asInt();
-                if(parameters.has("offset"))
-                    offset = parameters.get("offset").asInt();
-                query = addAndRestriction(query, new ASTNode("limit", limit, offset));
-            }
             return query;
         }else {
             return new ASTNode("limit", 0, 0);
@@ -131,10 +132,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
     @Override
     public JsonNode getExplainInfo() {
         Map<String, Object> info = new HashMap<>();
-        
-        info.put("tags", new ParameterInfo("Map", true));
-        info.put("limit", new ParameterInfo("Number", false));
-        info.put("offset", new ParameterInfo("Number", false));
+        info.put("rql", new ParameterInfo("String", true));
         return JsonNodeFactory.instance.pojoNode(info);
     }
 }

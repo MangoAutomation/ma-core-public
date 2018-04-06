@@ -61,7 +61,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     abstract public JsonNode getExplainInfo();
     
     /**
-     * Create an AST Node for this query
+     * Create an AST Node for this query.
      * @param parameters
      * @return
      */
