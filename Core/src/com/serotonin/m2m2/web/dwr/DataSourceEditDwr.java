@@ -213,8 +213,18 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             //Should really be done elsewhere
             dp.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
 
-        }
-        else {
+        } else if (id == DataPointDwr.COPY_ID) {
+            dp.setId(Common.NEW_ID);
+            if (StringUtils.isBlank(xid))
+                response.addContextualMessage("xid", "validate.required");
+            else if (StringValidation.isLengthGreaterThan(xid, 50))
+                response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+            else if (!DataPointDao.instance.isXidUnique(xid, id))
+                response.addContextualMessage("xid", "validate.xidUsed");
+
+            if (StringUtils.isBlank(name))
+                response.addContextualMessage("name", "validate.required");
+        } else {
             //New validation on save for all settings on existing points
 
             dp.validate(response);

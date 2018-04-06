@@ -53,7 +53,7 @@ import com.serotonin.m2m2.web.taglib.Functions;
  *
  */
 public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
-
+    public static final int COPY_ID = -2;
     /**
      * Default Constructor
      */
@@ -265,6 +265,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
         //Store the edit point
         DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
+        editPoint.setId(COPY_ID);
         Common.getUser().setEditPoint(editPoint);
 
         return result;
