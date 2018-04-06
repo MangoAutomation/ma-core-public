@@ -104,14 +104,25 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
-        if(vo.isCheckIncrease() && vo.isCheckDecrease())
-            return new TranslatableMessage("event.detector.analogChangePeriod", name, prettyLimit, durationDescription);
-        else if(vo.isCheckIncrease())
-            return new TranslatableMessage("event.detector.analogIncreasePeriod", name, prettyLimit, durationDescription);
-        else if(vo.isCheckDecrease())
-            return new TranslatableMessage("event.detector.analogDecreasePeriod", name, prettyLimit, durationDescription);
-        else
-            throw new ShouldNeverHappenException("Illegal state for analog change detector" + vo.getXid());
+        if(durationDescription != null) {
+            if(vo.isCheckIncrease() && vo.isCheckDecrease())
+                return new TranslatableMessage("event.detector.analogChangePeriod", name, prettyLimit, durationDescription);
+            else if(vo.isCheckIncrease())
+                return new TranslatableMessage("event.detector.analogIncreasePeriod", name, prettyLimit, durationDescription);
+            else if(vo.isCheckDecrease())
+                return new TranslatableMessage("event.detector.analogDecreasePeriod", name, prettyLimit, durationDescription);
+            else
+                throw new ShouldNeverHappenException("Illegal state for analog change detector" + vo.getXid());
+        } else {
+            if(vo.isCheckIncrease() && vo.isCheckDecrease())
+                return new TranslatableMessage("event.detector.analogChange", name, prettyLimit);
+            else if(vo.isCheckIncrease())
+                return new TranslatableMessage("event.detector.analogIncrease", name, prettyLimit);
+            else if(vo.isCheckDecrease())
+                return new TranslatableMessage("event.detector.analogDecrease", name, prettyLimit);
+            else
+                throw new ShouldNeverHappenException("Illegal state for analog change detector" + vo.getXid());
+        }
     }
 
     @Override
