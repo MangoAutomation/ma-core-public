@@ -288,7 +288,7 @@ public class SpreadsheetEmporter {
         // headers
         CellStyle headerStyle = wb.createCellStyle();
         Font headerFont = wb.createFont();
-        headerFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        headerFont.setBold(true);
         headerStyle.setFont(headerFont);
         
         row = sheet.createRow(rowNum++);
@@ -385,7 +385,7 @@ public class SpreadsheetEmporter {
         // headers
         CellStyle headerStyle = wb.createCellStyle();
         Font headerFont = wb.createFont();
-        headerFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+        headerFont.setBold(true);
         headerStyle.setFont(headerFont);
         
         row = currentSheet.createRow(sheetEmporter.incrementRowNum());
