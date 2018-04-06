@@ -477,7 +477,8 @@
 		template.chartColour = dojo.byId("chartColour").value;
 		template.plotType = dojo.byId("plotType").value;
 		template.simplifyType = dojo.byId("simplifyType").value;
-		template.simplifyArgument = dojo.byId("simplifyArgument").value;
+		template.simplifyTolerance = dojo.byId("simplifyTolerance").value;
+		template.simplifyTarget = dojo.byId("simplifyTarget").value;
 		template.rollup = dojo.byId("rollup").value;
 		template.preventSetExtremeValues = dijit.byId("preventSetExtremeValues").get('checked');
 		template.setExtremeLowLimit = dojo.byId("setExtremeLowLimit").value;
@@ -509,7 +510,8 @@
 		dojo.byId("chartColour").value = template.chartColour;
 		dojo.byId("plotType").value = template.plotType;
 		dojo.byId("simplifyType").value = template.simplifyType;
-		dojo.byId("simplifyArgument").value = template.simplifyArgument;
+		dojo.byId("simplifyTolerance").value = template.simplifyTolerance;
+		dojo.byId("simplifyTarget").value = template.simplifyTarget;
 		dojo.byId("rollup").value = template.rollup;
 		
 		setLoggingProperties(template);

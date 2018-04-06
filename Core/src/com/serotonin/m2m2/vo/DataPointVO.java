@@ -223,10 +223,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private int plotType = PlotTypes.STEP;
     
     // Properties for Simplify
-    @JsonProperty
     private int simplifyType = SimplifyTypes.NONE;
-    @JsonProperty
-    private double simplifyArgument = 10.0;
+    private double simplifyTolerance = 10.0;
+    private int simplifyTarget = 5000;
 
     private PointLocatorVO<?> pointLocator;
 
@@ -737,12 +736,20 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.simplifyType = simplifyType;
     }
     
-    public double getSimplifyArgument() {
-        return simplifyArgument;
+    public double getSimplifyTolerance() {
+        return simplifyTolerance;
     }
     
-    public void setSimplifyArgument(double simplifyArgument) {
-        this.simplifyArgument = simplifyArgument;
+    public void setSimplifyTolerance(double simplifyTolerance) {
+        this.simplifyTolerance = simplifyTolerance;
+    }
+    
+    public int getSimplifyTarget() {
+        return simplifyTarget;
+    }
+    
+    public void setSimplifyTarget(int simplifyTarget) {
+        this.simplifyTarget = simplifyTarget;
     }
 
     public boolean isOverrideIntervalLoggingSamples() {
@@ -880,7 +887,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setName(name);
             copy.setPlotType(plotType);
             copy.setSimplifyType(simplifyType);
-            copy.setSimplifyArgument(simplifyArgument);
+            copy.setSimplifyTolerance(simplifyTolerance);
+            copy.setSimplifyTarget(simplifyTarget);
             copy.setPointFolderId(pointFolderId);
             copy.setTextRenderer(textRenderer);
             copy.setPointLocator(pointLocator);
@@ -998,7 +1006,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         
         if(!SIMPLIFY_TYPE_CODES.isValidId(simplifyType))
             response.addContextualMessage("simplifyType", "validate.invalidValue");
-        else if(simplifyType == SimplifyTypes.TARGET && simplifyArgument < 10)
+        else if(simplifyType == SimplifyTypes.TARGET && simplifyTarget < 10)
             response.addContextualMessage("simplifyTarget", "validate.greaterThan", 10);
         else if(simplifyType != DataPointVO.SimplifyTypes.NONE && (pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC || 
                 pointLocator.getDataTypeId() == DataTypes.IMAGE))
@@ -1170,7 +1178,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     // Serialization
     //
-    private static final int version = 12; //Skipped 7,8 to catch up with Deltamation
+    private static final int version = 13; //Skipped 7,8 to catch up with Deltamation
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         ensureUnitsCorrect();
@@ -1193,7 +1201,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         out.writeDouble(setExtremeLowLimit);
         out.writeDouble(setExtremeHighLimit);
         out.writeInt(simplifyType);
-        out.writeDouble(simplifyArgument);
+        out.writeDouble(simplifyTolerance);
+        out.writeInt(simplifyTarget);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -1237,7 +1246,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 2) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1275,7 +1285,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 3) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1313,7 +1324,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 4) {
             name = SerializationHelper.readSafeUTF(in);
@@ -1345,7 +1357,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 5) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1369,7 +1382,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 6) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1393,7 +1407,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 7) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1412,7 +1427,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 8) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1434,7 +1450,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 9) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1476,7 +1493,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 10) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1517,7 +1535,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = -Double.MAX_VALUE;
             setExtremeHighLimit = Double.MAX_VALUE;
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 11) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1558,7 +1577,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = in.readDouble();
             setExtremeHighLimit = in.readDouble();
             simplifyType = SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         }
         else if (ver == 12) {
             textRenderer = (TextRenderer) in.readObject();
@@ -1599,7 +1619,50 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setExtremeLowLimit = in.readDouble();
             setExtremeHighLimit = in.readDouble();
             simplifyType = in.readInt();
-            simplifyArgument = in.readDouble();
+            simplifyTolerance = in.readDouble();
+            simplifyTarget = 5000;
+        }
+        else if (ver == 13) {
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            pointLocator = (PointLocatorVO<?>) in.readObject();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            plotType = in.readInt();
+            
+            try{
+                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unitString = UnitUtil.formatLocal(unit);
+            }catch(Exception e){
+                unit = defaultUnit();
+                unitString = UnitUtil.formatLocal(unit);
+            }
+            try{
+                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }catch(Exception e){
+                integralUnit = defaultUnit();
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }
+
+            try{
+                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }catch(Exception e){
+                renderedUnit = defaultUnit();
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }
+            useIntegralUnit = in.readBoolean();
+            useRenderedUnit = in.readBoolean();
+            overrideIntervalLoggingSamples = in.readBoolean();
+            intervalLoggingSampleWindowSize = in.readInt();
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
+            simplifyType = in.readInt();
+            simplifyTolerance = in.readDouble();
+            simplifyTarget = in.readInt();
         }
 
         // Check the purge type. Weird how this could have been set to 0.
@@ -1663,6 +1726,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         	if(template != null)
         		writer.writeEntry("templateXid", template.getXid());
         }
+        
+        writer.writeEntry("simplifyType", SIMPLIFY_TYPE_CODES.getCode(simplifyType));
+        if(simplifyType == SimplifyTypes.TARGET)
+            writer.writeEntry("simplifyTarget", simplifyTarget);
+        else if(simplifyType == SimplifyTypes.TOLERANCE)
+            writer.writeEntry("simplifyTolerance", simplifyTolerance);
     }
 
     @Override
@@ -1797,6 +1866,23 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 	            throw new TranslatableJsonException("emport.error.chart.invalid", "rollup", text,
 	                    Common.ROLLUP_CODES.getCodeList());
         }
+        
+        //Simplify
+        text = jsonObject.getString("simplifyType");
+        if (text != null){
+            simplifyType = SIMPLIFY_TYPE_CODES.getId(text);
+            if(simplifyType == -1)
+                throw new TranslatableJsonException("emport.error.invalid", "simplifyType", text,
+                        SIMPLIFY_TYPE_CODES.getCodeList());
+        }
+        
+        int simplifyTarget = jsonObject.getInt("simplifyTarget", Integer.MIN_VALUE);
+        if (simplifyTarget != Integer.MIN_VALUE)
+            this.simplifyTarget = simplifyTarget;
+        
+        double simplifyTolerance = jsonObject.getDouble("simplifyTolerance", Double.NaN);
+        if (simplifyTolerance != Double.NaN)
+            this.simplifyTolerance = simplifyTolerance;
     }
 
     private Unit<?> parseUnitString(String string, String item) throws TranslatableJsonException {

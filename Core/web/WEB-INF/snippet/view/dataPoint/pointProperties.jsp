@@ -119,11 +119,10 @@
 		dojo.byId("plotType").value = vo.plotType;
 		
 		$set("simplifyType", vo.simplifyType);
-		dojo.byId("simplifyArgument").value = vo.simplifyArgument;
-		if(vo.simplifyType !== <%= DataPointVO.SimplifyTypes.NONE %>)
-			show("simplifySettings");
-		else
-			hide("simplifySettings");
+		dojo.byId("simplifyTarget").value = vo.simplifyTarget;
+		dojo.byId("simplifyTolerance").value = vo.simplifyTolerance;
+		simplifyTypeChanged();
+			
 
 		if (vo.pointLocator.dataTypeId == <%=DataTypes.NUMERIC%>) {
 			show("unitSection");
@@ -156,7 +155,8 @@
 		vo.setExtremeLowLimit = dojo.byId("setExtremeLowLimit").value;
 		vo.setExtremeHighLimit = dojo.byId("setExtremeHighLimit").value;
 		vo.simplifyType = dojo.byId("simplifyType").value;
-		vo.simplifyArgument = dojo.byId("simplifyArgument").value;
+		vo.simplifyTarget= dojo.byId("simplifyTarget").value;
+		vo.simplifyTolerance= dojo.byId("simplifyTolerance").value;
 	}
 
 	/**
@@ -255,7 +255,8 @@
 		setDisabled('chartColour', true);
 		setDisabled('plotType', true);
 		setDisabled('simplifyType', true);
-		setDisabled('simplifyArgument', true);
+		setDisabled('simplifyTarget', true);
+		setDisabled('simplifyTolerance', true);
 		setDisabled('preventSetExtremeValues', true);
 		setDisabled('setExtremeLowLimit', true);
 		setDisabled('setExtremeHighLimit', true);
@@ -266,7 +267,8 @@
 		setDisabled('chartColour', false);
 		setDisabled('plotType', false);
 		setDisabled('simplifyType', false);
-		setDisabled('simplifyArgument', false);
+		setDisabled('simplifyTarget', false);
+		setDisabled('simplifyTolerance', false);
 		setDisabled('preventSetExtremeValues', false);
 		setDisabled('setExtremeLowLimit', false);
 		setDisabled('setExtremeHighLimit', false);
@@ -287,11 +289,19 @@
 	  }
 	
 	function simplifyTypeChanged() {
-		var simplify = $get("simplifyType") !== <%= DataPointVO.SimplifyTypes.NONE %>;
-		if(simplify)
-			show("simplifySettings");
-		else
-			hide("simplifySettings");
+		var simplifyType = $get("simplifyType");
+		if(simplifyType == <%= DataPointVO.SimplifyTypes.NONE %>) {
+			hide("simplifyTargetRow");
+			hide("simplifyToleranceRow");
+		}
+		else if(simplifyType == <%= DataPointVO.SimplifyTypes.TARGET %>) {
+			show("simplifyTargetRow");
+			hide("simplifyToleranceRow");
+		}
+		else if(simplifyType == <%= DataPointVO.SimplifyTypes.TOLERANCE %>) {
+			hide("simplifyTargetRow");
+			show("simplifyToleranceRow");
+		}
 	}
 </script>
 
@@ -403,10 +413,17 @@
       </td>
       <td class="formError">${status.errorMessage}</td>
     </tr>
-    <tr id="simplifySettings">
-      <td class="formLabelRequired"><fmt:message key="pointEdit.props.simplifyArgument"/></td>
+    <tr id="simplifyTargetRow">
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.simplifyTarget"/></td>
       <td class="formField">
-        <input type="text" id="simplifyArgument" name="simplifyArgument"/>
+        <input type="text" id="simplifyTarget" name="simplifyTarget"/>
+      </td>
+      <td class="formError">${status.errorMessage}</td>
+    </tr>
+    <tr id="simplifyToleranceRow">
+      <td class="formLabelRequired"><fmt:message key="pointEdit.props.simplifyTolerance"/></td>
+      <td class="formField">
+        <input type="text" id="simplifyTolerance" name="simplifyTolerance"/>
       </td>
       <td class="formError">${status.errorMessage}</td>
     </tr>

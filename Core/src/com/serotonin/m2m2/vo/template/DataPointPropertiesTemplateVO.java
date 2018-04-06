@@ -23,7 +23,6 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 
@@ -46,13 +45,12 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     private int rollup = Common.Rollups.NONE;
 
     private int plotType = DataPointVO.PlotTypes.STEP;
-    @JsonProperty
     private int simplifyType = DataPointVO.SimplifyTypes.NONE;
-    @JsonProperty
-    private double simplifyArgument = 10.0;
+    private double simplifyTolerance = 10.0;
+    private int simplifyTarget = 5000;
 	
     /* Logging Properties */
-    private int loggingType = LoggingTypes.ON_CHANGE;
+    private int loggingType = DataPointVO.LoggingTypes.ON_CHANGE;
     @JsonProperty
     private double tolerance = 0;
     @JsonProperty
@@ -156,12 +154,20 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 	    this.simplifyType = simplifyType;
 	}
 	
-	public double getSimplifyArgument() {
-	    return simplifyArgument;
+	public double getSimplifyTolerance() {
+	    return simplifyTolerance;
 	}
 	
-	public void setSimplifyArgument(double simplifyArgument) {
-	    this.simplifyArgument = simplifyArgument;
+	public void setSimplifyTolerance(double simplifyTolerance) {
+	    this.simplifyTolerance = simplifyTolerance;
+	}
+	
+	public int getSimplifyTarget() {
+	    return simplifyTarget;
+	}
+	
+	public void setSimplifyTarget(int simplifyTarget) {
+	    this.simplifyTarget = simplifyTarget;
 	}
 
 	public int getLoggingType() {
@@ -400,8 +406,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         }
         
         if (simplifyType == DataPointVO.SimplifyTypes.TARGET) {
-            if (simplifyArgument < 10)
-                response.addContextualMessage("simplifyArgument", "validate.greaterThan", 3);
+            if (simplifyTarget < 10)
+                response.addContextualMessage("simplifyTarget", "validate.greaterThan", 3);
         } else if(!DataPointVO.SIMPLIFY_TYPE_CODES.isValidId(simplifyType)) {
             response.addContextualMessage("simplifyType", "validate.invalidValue");
         } else if(simplifyType != DataPointVO.SimplifyTypes.NONE && (dataTypeId == DataTypes.ALPHANUMERIC || dataTypeId == DataTypes.IMAGE))
@@ -413,7 +419,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     //
     // Serialization
     //
-    private static final int version = 5;
+    private static final int version = 6;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -424,7 +430,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         out.writeInt(rollup);
         out.writeInt(plotType);
         out.writeInt(simplifyType);
-        out.writeDouble(simplifyArgument);
+        out.writeDouble(simplifyTolerance);
+        out.writeInt(simplifyTarget);
         /* Logging Properties */
         out.writeInt(loggingType);
         out.writeDouble(tolerance);
@@ -468,7 +475,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
         	simplifyType = DataPointVO.SimplifyTypes.NONE;
-        	simplifyArgument = 10.0;
+        	simplifyTolerance = 10.0;
+        	simplifyTarget = 5000;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -498,7 +506,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
         	simplifyType = DataPointVO.SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -528,7 +537,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	rollup = Common.Rollups.NONE;
         	plotType = in.readInt();
         	simplifyType = DataPointVO.SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -558,7 +568,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	rollup = in.readInt();
         	plotType = in.readInt();
         	simplifyType = DataPointVO.SimplifyTypes.NONE;
-            simplifyArgument = 10.0;
+            simplifyTolerance = 10.0;
+            simplifyTarget = 5000;
         	/* Logging Properties */
         	loggingType = in.readInt();
         	tolerance = in.readDouble();
@@ -588,7 +599,39 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             rollup = in.readInt();
             plotType = in.readInt();
             simplifyType = in.readInt();
-            simplifyArgument = in.readDouble();
+            simplifyTolerance = in.readDouble();
+            simplifyTarget = 5000;
+            /* Logging Properties */
+            loggingType = in.readInt();
+            tolerance = in.readDouble();
+            discardExtremeValues = in.readBoolean();
+            discardLowLimit = in.readDouble();
+            discardHighLimit = in.readDouble();
+            intervalLoggingType = in.readInt();
+            intervalLoggingPeriodType = in.readInt();
+            intervalLoggingPeriod = in.readInt();
+            overrideIntervalLoggingSamples = in.readBoolean();
+            intervalLoggingSampleWindowSize = in.readInt();
+            defaultCacheSize = in.readInt();
+            /* Purge Override Settings */
+            purgeOverride = in.readBoolean();
+            purgeType = in.readInt();
+            purgePeriod = in.readInt();
+            textRenderer = (TextRenderer) in.readObject();
+            chartRenderer = (ChartRenderer) in.readObject();
+            preventSetExtremeValues = in.readBoolean();
+            setExtremeLowLimit = in.readDouble();
+            setExtremeHighLimit = in.readDouble();
+        }else if (ver == 6) {
+            /* Point Properties */
+            defaultTemplate = in.readBoolean();
+            dataTypeId = in.readInt();
+            chartColour = SerializationHelper.readSafeUTF(in);
+            rollup = in.readInt();
+            plotType = in.readInt();
+            simplifyType = in.readInt();
+            simplifyTolerance = in.readDouble();
+            simplifyTarget = in.readInt();
             /* Logging Properties */
             loggingType = in.readInt();
             tolerance = in.readDouble();
@@ -623,6 +666,11 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         writer.writeEntry("intervalLoggingType", DataPointVO.INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType));
         writer.writeEntry("purgeType", Common.TIME_PERIOD_CODES.getCode(purgeType));
         writer.writeEntry("plotType", DataPointVO.PLOT_TYPE_CODES.getCode(plotType));
+        writer.writeEntry("simplifyType", DataPointVO.SIMPLIFY_TYPE_CODES.getCode(simplifyType));
+        if(simplifyType == DataPointVO.SimplifyTypes.TARGET)
+            writer.writeEntry("simplifyTarget", simplifyTarget);
+        else if(simplifyType == DataPointVO.SimplifyTypes.TOLERANCE)
+            writer.writeEntry("simplifyTolerance", simplifyTolerance);
     }
 
     @Override
@@ -696,6 +744,23 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 throw new TranslatableJsonException("emport.error.invalid", "plotType", text,
                 		DataPointVO.PLOT_TYPE_CODES.getCodeList());
         }
+        
+        //Simplify
+        text = jsonObject.getString("simplifyType");
+        if (text != null){
+            simplifyType = DataPointVO.SIMPLIFY_TYPE_CODES.getId(text);
+            if(simplifyType == -1)
+                throw new TranslatableJsonException("emport.error.invalid", "simplifyType", text,
+                        DataPointVO.SIMPLIFY_TYPE_CODES.getCodeList());
+        }
+        
+        int simplifyTarget = jsonObject.getInt("simplifyTarget", Integer.MIN_VALUE);
+        if (simplifyTarget != Integer.MIN_VALUE)
+            this.simplifyTarget = simplifyTarget;
+        
+        double simplifyTolerance = jsonObject.getDouble("simplifyTolerance", Double.NaN);
+        if (simplifyTolerance != Double.NaN)
+            this.simplifyTolerance = simplifyTolerance;
     }
     
     /**
@@ -712,7 +777,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		vo.setPlotType(getPlotType());
 		vo.setRollup(getRollup());
 		vo.setSimplifyType(getSimplifyType());
-		vo.setSimplifyArgument(getSimplifyArgument());
+		vo.setSimplifyTolerance(getSimplifyTolerance());
+		vo.setSimplifyTarget(getSimplifyTarget());
 		
 		/* Logging Properties */
 		vo.setLoggingType(getLoggingType());
@@ -755,7 +821,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		this.setPlotType(vo.getPlotType());
 		this.setRollup(vo.getRollup());
 		this.setSimplifyType(vo.getSimplifyType());
-		this.setSimplifyArgument(vo.getSimplifyArgument());
+		this.setSimplifyTolerance(vo.getSimplifyTolerance());
+		this.setSimplifyTarget(vo.getSimplifyTarget());
 		
 		/* Logging Properties */
 		this.setLoggingType(vo.getLoggingType());
