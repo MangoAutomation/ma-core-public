@@ -24,6 +24,7 @@ import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PerConnectionWebSocketDefinition;
 import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketConfigurer;
 
@@ -93,13 +94,14 @@ public class MangoWebSocketConfiguration extends MangoWebSocketConfigurer  {
 		}
 
 		for (WebSocketDefinition def : websocketDefinitions()) {
-			WebSocketHandler handler = def.getHandlerInstance();
+			WebSocketHandler handler;
 
-			if (def.perConnection()) {
-			    PerConnectionWebSocketHandler perConnection = new PerConnectionWebSocketHandler(handler.getClass());
+			if (def instanceof PerConnectionWebSocketDefinition) {
+			    PerConnectionWebSocketHandler perConnection = new PerConnectionWebSocketHandler(((PerConnectionWebSocketDefinition) def).getHandlerClass());
 			    beanFactory.initializeBean(perConnection, PerConnectionWebSocketHandler.class.getName());
 			    handler = perConnection;
 			} else {
+			    handler = def.getHandlerInstance();
                 beanFactory.autowireBean(handler);
                 handler = (WebSocketHandler) beanFactory.initializeBean(handler, handler.getClass().getName());
 			}

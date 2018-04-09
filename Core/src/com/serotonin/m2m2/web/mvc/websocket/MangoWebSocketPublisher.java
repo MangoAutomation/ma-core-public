@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.security.Principal;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpSession;
+import javax.annotation.PreDestroy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.jetty.server.session.AbstractSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -30,37 +30,34 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebSocketConfiguration.MangoSessionDestroyedEvent;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.BearerAuthenticationToken;
 
 /**
- * TODO Mango 3.4 refactor this class into two base classes, one that is a per session handler and another which has
- * a collection of sessions that it manages. The structure right now is ridiculous.
- * 
- * EventWebSocketDefinition creates an EventEventHandler, gets its class then uses a PerConnectionWebSocketHandler to
- * create an EventEventHandler instance for every connection. Each EventEventHandler instance then creates an EventWebSocketPublisher
- * for each user.
- * 
  * @author Terry Packer
- *
  */
 public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
+
+    public final static CloseStatus NOT_AUTHENTICATED = new CloseStatus(4001, "Not authenticated");
+    public final static CloseStatus NOT_AUTHORIZED = new CloseStatus(4003, "Not authorized");
 
     public static final int DEFAULT_PING_TIMEOUT_MS = 10000;
 
     /**
-     * Close the socket after our HttpSession is invalidated,
-     * Eventually this should work via Events instead of checking when we need to send data.
+     * Close the socket after our HttpSession is invalidated or when the authentication token is not valid.
+     * i.e. true = authentication required
      */
-    protected boolean closeOnLogout = true;
+    protected final boolean closeOnLogout;
+    
     /**
      * Enable Ping/Pong Connection Tracking
      */
-    protected boolean usePingPong = true;
+    protected final boolean usePingPong;
     /**
      * Timeout in ms to wait for Pong response before terminating connection
      */
@@ -68,79 +65,46 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
     public static final String RECEIVED_PONG = "receivedPong";
     public static final String PING_PONG_TRACKER_ATTRIBUTE = "MangoPingPongTracker";
 
-    // TODO Mango 3.4 remove this from the constructor and use Spring to autowire it
-    protected ObjectMapper jacksonMapper;
-
     protected final Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
+    protected ObjectMapper jacksonMapper;
+    @Autowired
     protected AuthenticationManager authenticationManager;
     @Autowired
-    protected ConfigurableApplicationContext context;
-    @Autowired
     protected MangoSessionRegistry sessionRegistry;
+    @Autowired
+    protected ApplicationEventMulticaster eventMulticaster;
 
-    public final static CloseStatus NOT_AUTHENTICATED = new CloseStatus(4001, "Not authenticated");
-    public final static CloseStatus NOT_AUTHORIZED = new CloseStatus(4003, "Not authorized");
-
+    private final ApplicationListener<MangoSessionDestroyedEvent> sessionDestroyedListener = (event) -> {
+        this.httpSessionDestroyed(event.getOriginalEvent());
+    };
+    
     public MangoWebSocketPublisher() {
-        this.jacksonMapper = MangoRestSpringConfiguration.getObjectMapper();
-        this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
+        this(true);
     }
-
-    /**
-     * Supply your own ObjectMapper
-     * @param jacksonMapper
-     */
-    public MangoWebSocketPublisher(ObjectMapper jacksonMapper) {
-        this.jacksonMapper = jacksonMapper;
-        this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
-    }
-
-
-    /**
-     * 
-     * @param jacksonMapper
-     * @param closeOnLogout - Close the websocket on HttpSesssion Invalidation?
-     * @param usePingPong - Use Ping Pong Connection maintenence
-     * @param pingPongTimeoutMs - Ms to wait for Pong
-     */
-    public MangoWebSocketPublisher(ObjectMapper jacksonMapper, boolean closeOnLogout, boolean usePingPong, int pingPongTimeoutMs) {
-        this.jacksonMapper = jacksonMapper;
+    
+    public MangoWebSocketPublisher(boolean closeOnLogout) {
         this.closeOnLogout = closeOnLogout;
-        this.usePingPong = usePingPong;
-        this.pingPongTimeoutMs = pingPongTimeoutMs;
+        this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
+        this.usePingPong = this.pingPongTimeoutMs > 0;
     }
 
     @PostConstruct
     private void postConstruct() {
-        // TODO Mango 3.4 re-enable this and ensure that listener is removed from context when per-session handler is destroyed
-        // potential memory leak otherwise.
-        
-//        ApplicationListener<MangoSessionDestroyedEvent> listener = (event) -> {
-//            this.sessionDestroyed(event.getOriginalEvent());
-//        };
-//        context.addApplicationListener(listener);
+        eventMulticaster.addApplicationListener(this.sessionDestroyedListener);
+    }
+    
+    @PreDestroy
+    private void preDestroy() {
+        eventMulticaster.removeApplicationListener(this.sessionDestroyedListener);
     }
 
     /**
-     * Called when a session is destroyed. New method, can't use this until Mango 3.4
+     * Called when a HTTP session is destroyed, subclasses should override and close the corresponding websocket session/s.
      * @param event
      */
-    public void sessionDestroyed(SessionDestroyedEvent event) {
-        //        String httpSessionId = event.getId();
-        //        
-        //        for (WebSocketSession wss : sessions) {
-        //            String httpSession = httpSessionIdForSession(wss);
-        //            if (httpSessionId.equals(httpSession)) {
-        //                try {
-        //                    wss.close();
-        //                } catch (Exception e) {
-        //                    
-        //                }
-        //            }
-        //        }
-    }
+    public abstract void httpSessionDestroyed(SessionDestroyedEvent event);
 
     public String httpSessionIdForSession(WebSocketSession session) {
         return (String) session.getAttributes().get(HttpSessionHandshakeInterceptor.HTTP_SESSION_ID_ATTR_NAME);
@@ -174,6 +138,28 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
         MangoWebSocketResponseModel model = new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.OK, payload);
         this.sendStringMessageAsync(session, this.jacksonMapper.writeValueAsString(model));
     }
+    
+    /**
+     * Sends a message raw without wrapping it in a MangoWebSocketResponseModel
+     * @param session
+     * @param message
+     * @throws JsonProcessingException
+     */
+    protected void sendRawMessage(WebSocketSession session, Object message) throws JsonProcessingException {
+        this.sendStringMessageAsync(session, this.jacksonMapper.writeValueAsString(message));
+    }
+    
+    /**
+     * Sends a message raw without wrapping it in a MangoWebSocketResponseModel using a Jackson serialization view
+     * @param session
+     * @param message
+     * @param view
+     * @throws JsonProcessingException
+     */
+    protected void sendRawMessageUsingView(WebSocketSession session, Object message, Class<?> view) throws JsonProcessingException {
+        ObjectWriter objectWriter = this.jacksonMapper.writerWithView(view);
+        this.sendStringMessageAsync(session, objectWriter.writeValueAsString(message));
+    }
 
     /**
      * WebSocketSession.sendMessage() is blocking and will throw exceptions on concurrent sends, this method uses the aysnc RemoteEndpoint.sendStringByFuture() method instead
@@ -183,6 +169,10 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
      * @throws IOException
      */
     protected void sendStringMessageAsync(WebSocketSession session, String message) {
+        if (!session.isOpen()) {
+            throw new WebSocketClosedException();
+        }
+        
         JettyWebSocketSession jettySession = (JettyWebSocketSession) session;
         jettySession.getNativeSession().getRemote().sendStringByFuture(message);
     }
@@ -204,24 +194,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
     }
 
     /**
-     * 
-     * TODO remove in Mango 3.4
-     * 
-     * Return the HttpSession assigned to this websocket session when it was created
-     * @param session
-     * @return
-     */
-    @Deprecated
-    protected AbstractSession getHttpSession(WebSocketSession session) {
-        HttpSession httpSession = (HttpSession) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.HTTP_SESSION_ATTRIBUTE);
-        if (httpSession instanceof AbstractSession) {
-            return (AbstractSession) httpSession;
-        }
-        return null;
-    }
-
-    /**
-     * Gets the Mango user for a WebSocketSession. If there is no user and closeOnLogout is true then the WebSocketSession is closed.
+     * Gets the Mango user for a WebSocketSession.
      * 
      * Will return null when:
      * <ul>
@@ -292,7 +265,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
         }
 
         // no valid session or authentication token, close session if appropriate and return null
-        // TODO Mango 3.4 don't close sessions here
+        // TODO Mango 3.4 don't close sessions here (need token revoked event before we can remove this)
         if (this.closeOnLogout) {
             this.closeSession(session, NOT_AUTHENTICATED);
         }
@@ -318,7 +291,7 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
     /**
      * Start the Ping/Pong Tracker for this session
      */
-    public void startPingPong(WebSocketSession session) throws Exception {
+    private void startPingPong(WebSocketSession session) throws Exception {
         MangoPingPongTracker pingPongTracker = new MangoPingPongTracker(session, this.pingPongTimeoutMs);
         session.getAttributes().put(PING_PONG_TRACKER_ATTRIBUTE, pingPongTracker);
     }

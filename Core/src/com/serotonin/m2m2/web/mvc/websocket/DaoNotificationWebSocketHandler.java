@@ -4,12 +4,6 @@
  */
 package com.serotonin.m2m2.web.mvc.websocket;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -18,23 +12,8 @@ import com.serotonin.m2m2.vo.User;
 /**
  * @author Jared Wiltshire
  */
-public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketPublisher {
-    private static final Log LOG = LogFactory.getLog(DaoNotificationWebSocketHandler.class);
-    
-    final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
-    
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-    	super.afterConnectionEstablished(session);
-    	sessions.add(session);
-    }
-    
-    @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        super.afterConnectionClosed(session, status);
-        sessions.remove(session);
-    }
-    
+public abstract class DaoNotificationWebSocketHandler<T> extends MultiSessionWebSocketHandler {
+
     /**
      * @param action add, update or delete
      * @param vo
@@ -73,12 +52,13 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MangoWebSocketP
         try {
             DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
             sendMessage(session, notification);
+        } catch(WebSocketClosedException e) {
+            log.warn("Tried to notify closed websocket session", e);
         } catch (Exception e) {
-            // TODO Mango 3.4 add new exception type for closed session and don't try and send error if it was a closed session exception
             try {
                 this.sendErrorMessage(session, MangoWebSocketErrorType.SERVER_ERROR, new TranslatableMessage("rest.error.serverError", e.getMessage()));
             } catch (Exception e1) {
-                LOG.error(e1.getMessage(), e1);
+                log.error(e1.getMessage(), e1);
             }
         }
     }
