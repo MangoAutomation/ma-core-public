@@ -1,5 +1,4 @@
 *Version 3.4.0*
-* Removing line number, class name and packages from log4j output, !!this means the logfile has a new format!!
 * Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers
 * Increase the XID field to 100 characters from 50 
 * Adding new module definitions for custom queries to be used as helpers in REST query endpoints 
@@ -8,6 +7,7 @@
 * Removing get(object) and get(DataValue) from StartsAndRuntimeList javascript wrapper so these methods are no longer available and should never have been used
 * Raising Audit events as low priority work items to avoid database deadlock when raising events in a transaction.
 * Change locking for adding points to enable polling data sources to easily add points to themselves without a deadlock risk
+* Add new log4j configuration file to optionally use with high performance logging extension
 
 *Version 3.3.4*
 * Export publishers in nightly backup
