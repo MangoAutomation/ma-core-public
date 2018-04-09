@@ -71,10 +71,15 @@ public class DataPurge {
         boolean countPointValues = SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
         
         if(purgePoints){
+            // Get any filters for the data purge from the modules
+            List<PurgeFilter> purgeFilters = new ArrayList<PurgeFilter>();
+            for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
+                purgeFilters.add(pfd.getPurgeFilter());
+            
 	        // Get the data point information.
 	        List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
 	        for (DataPointVO dataPoint : dataPoints)
-	            purgePoint(dataPoint, countPointValues);
+	            purgePoint(dataPoint, countPointValues, purgeFilters);
 	        
 	        if(countPointValues)
 	        	deletedSamples += pointValueDao.deleteOrphanedPointValues();
@@ -101,7 +106,7 @@ public class DataPurge {
             def.execute(runtime);
     }
 
-    private void purgePoint(DataPointVO dataPoint, boolean countPointValues) {
+    private void purgePoint(DataPointVO dataPoint, boolean countPointValues, List<PurgeFilter> purgeFilters) {
         if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
@@ -137,10 +142,6 @@ public class DataPurge {
                     purgePeriod = SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS);
                 }
             }
-            
-            List<PurgeFilter> purgeFilters = new ArrayList<PurgeFilter>();
-            for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
-                purgeFilters.add(pfd.getPurgeFilter());
 
             // No matter when this purge actually runs, we want it to act like it's midnight.
             DateTime cutoff = new DateTime(runtime);
