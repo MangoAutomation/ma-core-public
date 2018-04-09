@@ -15,7 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
  * @author Jared Wiltshire
  */
 public abstract class MultiSessionWebSocketHandler extends MangoWebSocketPublisher {
-    
+
     protected final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
 
     public MultiSessionWebSocketHandler() {
@@ -31,29 +31,26 @@ public abstract class MultiSessionWebSocketHandler extends MangoWebSocketPublish
         super.afterConnectionEstablished(session);
         sessions.add(session);
     }
-    
+
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         sessions.remove(session);
     }
-    
+
     @Override
     public void httpSessionDestroyed(SessionDestroyedEvent event) {
         String destroyedHttpSessionId = event.getId();
-        
+
         if (this.closeOnLogout) {
             Iterator<WebSocketSession> it = sessions.iterator();
             while (it.hasNext()) {
                 WebSocketSession wss = it.next();
-                
+
                 String httpSessionId = httpSessionIdForSession(wss);
                 if (destroyedHttpSessionId.equals(httpSessionId)) {
-                    try {
-                        closeSession(wss, NOT_AUTHENTICATED);
-                        it.remove();
-                    } catch (Exception e) {
-                    }
+                    it.remove();
+                    closeSession(wss, NOT_AUTHENTICATED);
                 }
             }
         }
