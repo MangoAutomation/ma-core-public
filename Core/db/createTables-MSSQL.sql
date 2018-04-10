@@ -317,6 +317,16 @@ ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
 
 --
 --
+-- InstalledModules
+--  Thirty character restriction is from the store
+CREATE TABLE installedModules (
+	name nvarchar(30) not null,
+	version nvarchar(255) not null
+);
+ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
+
+--
+--
 -- Compound events detectors
 --
 -- create table compoundEventDetectors (
