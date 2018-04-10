@@ -3,11 +3,9 @@
  */
 package com.serotonin.m2m2.web.mvc.websocket;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -34,25 +32,14 @@ public abstract class MultiSessionWebSocketHandler extends MangoWebSocketHandler
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        super.afterConnectionClosed(session, status);
         sessions.remove(session);
+        super.afterConnectionClosed(session, status);
     }
 
     @Override
-    public void httpSessionDestroyed(SessionDestroyedEvent event) {
-        String destroyedHttpSessionId = event.getId();
-
-        if (this.closeOnLogout) {
-            Iterator<WebSocketSession> it = sessions.iterator();
-            while (it.hasNext()) {
-                WebSocketSession wss = it.next();
-
-                String httpSessionId = httpSessionIdForSession(wss);
-                if (destroyedHttpSessionId.equals(httpSessionId)) {
-                    it.remove();
-                    closeSession(wss, NOT_AUTHENTICATED);
-                }
-            }
-        }
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+        sessions.remove(session);
+        super.handleTransportError(session, exception);
     }
+
 }
