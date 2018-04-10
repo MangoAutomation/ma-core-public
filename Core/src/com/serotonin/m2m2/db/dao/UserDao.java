@@ -21,6 +21,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -29,24 +30,24 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
-import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 public class UserDao extends AbstractDao<User> {
-	
-	public static final UserDao instance = new UserDao();
-	private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
-	
-    /**
-	 * @param typeName
-	 * @param tablePrefix
-	 * @param extraProperties
-	 * @param extraSQL
-	 */
-	private UserDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("USER"), AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
-	}
 
-	private static final Log LOG = LogFactory.getLog(UserDao.class);
+    public static final UserDao instance = new UserDao();
+    private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
+
+    /**
+     * @param typeName
+     * @param tablePrefix
+     * @param extraProperties
+     * @param extraSQL
+     */
+    private UserDao() {
+        super(ModuleRegistry.getWebSocketHandlerDefinition("USER"), AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
+    }
+
+    private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     public User getUser(int id) {
         return this.get(id);
@@ -54,7 +55,7 @@ public class UserDao extends AbstractDao<User> {
 
     public User getUser(String username) {
         if (username == null) return null;
-        
+
         return userCache.computeIfAbsent(username, u -> {
             return queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
                     new UserRowMapper(), null);
@@ -62,7 +63,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public boolean userExists(int id) {
-    	return ejt.queryForInt("SELECT count(id) FROM users WHERE id="+id, new Object[0], 0) == 1;
+        return ejt.queryForInt("SELECT count(id) FROM users WHERE id="+id, new Object[0], 0) == 1;
     }
 
     class UserRowMapper implements RowMapper<User> {
@@ -117,22 +118,22 @@ public class UserDao extends AbstractDao<User> {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 return ejt.doInsert(
-                    USER_INSERT,
-                    new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
-                            boolToChar(user.isDisabled()), user.getHomeUrl(),
-                            user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                            boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), user.getPasswordVersion() },
-                    new int[] { Types.VARCHAR, Types.VARCHAR,
-                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
-                );
+                        USER_INSERT,
+                        new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
+                                boolToChar(user.isDisabled()), user.getHomeUrl(),
+                                user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
+                                boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), user.getPasswordVersion() },
+                        new int[] { Types.VARCHAR, Types.VARCHAR,
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
+                        );
             }
         });
-        
+
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
-        
+
         if (handler != null)
             handler.notify("add", user);
     }
@@ -156,7 +157,7 @@ public class UserDao extends AbstractDao<User> {
             user.setLocale("");
 
         int originalPwVersion = user.getPasswordVersion();
-        
+
         try {
             User old = getTransactionTemplate().execute(new TransactionCallback<User>() {
                 @Override
@@ -165,30 +166,30 @@ public class UserDao extends AbstractDao<User> {
                     if (old == null) {
                         return null;
                     }
-                    
+
                     boolean passwordChanged = !old.getPassword().equals(user.getPassword());
                     if (passwordChanged) {
                         user.setPasswordVersion(old.getPasswordVersion() + 1);
                     } else {
                         user.setPasswordVersion(old.getPasswordVersion());
                     }
-                    
+
                     ejt.update(
-                        USER_UPDATE,
-                        new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
-                                boolToChar(user.isDisabled()), user.getHomeUrl(),
-                                user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
-                                user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
-                                user.getPasswordVersion(), user.getId() },
-                        new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
-                    );
-                    
+                            USER_UPDATE,
+                            new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
+                                    boolToChar(user.isDisabled()), user.getHomeUrl(),
+                                    user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
+                                    user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
+                                    user.getPasswordVersion(), user.getId() },
+                            new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                                    Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                                    Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
+                            );
+
                     return old;
                 }
             });
-    
+
             if (old == null) {
                 throw new NotFoundException();
             }
@@ -197,18 +198,26 @@ public class UserDao extends AbstractDao<User> {
 
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
             if (user.getPasswordVersion() > originalPwVersion || permissionsChanged || user.isDisabled()) {
-                MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(old);
+                exireSessionsForUser(old);
             }
-            
+
             userCache.remove(old.getUsername());
-            
+
             if (handler != null)
                 handler.notify("update", user);
-            
+
         } catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
             LOG.error("Error updating user: " + user, e);
             throw e;
+        }
+    }
+
+    private void exireSessionsForUser(User user) {
+        AnnotationConfigWebApplicationContext context = Common.getRootContext();
+        if (context != null) {
+            MangoSessionRegistry sessionRegistry = context.getBean(MangoSessionRegistry.class);
+            sessionRegistry.exireSessionsForUser(user);
         }
     }
 
@@ -217,7 +226,7 @@ public class UserDao extends AbstractDao<User> {
             @Override
             public User doInTransaction(TransactionStatus status) {
                 User user = get(userId);
-                
+
                 Object[] args = new Object[] { userId };
                 ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
                 ejt.update("DELETE FROM mailingListMembers WHERE userId=?", args);
@@ -225,7 +234,7 @@ public class UserDao extends AbstractDao<User> {
                 ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
                         new TranslatableMessage("events.ackedByDeletedUser").serialize(), userId });
                 ejt.update("DELETE FROM users WHERE id=?", args);
-                
+
                 return user;
             }
         });
@@ -234,44 +243,47 @@ public class UserDao extends AbstractDao<User> {
         countMonitor.decrement();
         if (handler != null)
             handler.notify("delete", user);
-        //Update User In Session
-        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(user);
+
+        // expire the user's sessions
+        exireSessionsForUser(user);
         userCache.remove(user.getUsername());
     }
-    
+
     public void revokeTokens(User user) {
         int userId = user.getId();
         int currentTokenVersion = user.getTokenVersion();
         int newTokenVersion = currentTokenVersion + 1;
         String username = user.getUsername();
-        
+
         int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", new Object[] { newTokenVersion, userId, currentTokenVersion, username });
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
-        
+
         user.setTokenVersion(newTokenVersion);
-        
+
         userCache.remove(user.getUsername());
     }
-    
+
     public static final String LOCKED_PASSWORD = "{LOCKED}";
+
     public void lockPassword(User user) {
         int userId = user.getId();
         int currentPasswordVersion = user.getPasswordVersion();
         int newPasswordVersion = currentPasswordVersion + 1;
         String username = user.getUsername();
-        
+
         int count = ejt.update("UPDATE users SET password = ?, passwordVersion = ? WHERE id = ? AND passwordVersion = ? AND username = ?",
                 new Object[] { LOCKED_PASSWORD, newPasswordVersion, userId, currentPasswordVersion, username });
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
-        
+
         user.setPassword(LOCKED_PASSWORD);
         user.setPasswordVersion(newPasswordVersion);
-        
-        MangoSecurityConfiguration.sessionRegistry.exireSessionsForUser(user);
+
+        // expire the user's sessions
+        exireSessionsForUser(user);
         userCache.remove(user.getUsername());
     }
 
@@ -282,7 +294,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
-    	User old = getUser(userId);
+        User old = getUser(userId);
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
@@ -290,114 +302,116 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void saveMuted(int userId, boolean muted) {
-    	User old = getUser(userId);
+        User old = getUser(userId);
         ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername(), user);
     }
-    
+
+    @Override
     public void save(User user, String initiatorId) {
         throw new UnsupportedOperationException("Use saveUser()");
     }
-    
+
+    @Override
     public void delete(User user, String initiatorId) {
         throw new UnsupportedOperationException("Use deleteUser()");
     }
-    
+
     //Overrides for use in AbstractBasicDao
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
-	 */
-	@Override
-	protected Object[] voToObjectArray(User vo) {
-		return new Object[]{
-				vo.getUsername(),
-				vo.getPassword(),
-				vo.getEmail(),
-				vo.getPhone(),
-				vo.isDisabled(),
-				vo.getHomeUrl(),
-				vo.getLastLogin(),
-				vo.getReceiveAlarmEmails(),
-				vo.isReceiveOwnAuditEvents(),
-				vo.getTimezone(),
-				vo.isMuted(),
-				vo.getPermissions(),
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
+     */
+    @Override
+    protected Object[] voToObjectArray(User vo) {
+        return new Object[]{
+                vo.getUsername(),
+                vo.getPassword(),
+                vo.getEmail(),
+                vo.getPhone(),
+                vo.isDisabled(),
+                vo.getHomeUrl(),
+                vo.getLastLogin(),
+                vo.getReceiveAlarmEmails(),
+                vo.isReceiveOwnAuditEvents(),
+                vo.getTimezone(),
+                vo.isMuted(),
+                vo.getPermissions(),
                 vo.getName(),
                 vo.getLocale(),
                 vo.getTokenVersion(),
                 vo.getPasswordVersion()
-		};
-	}
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-	 */
-	@Override
-	public RowMapper<User> getRowMapper() {
-		return new UserRowMapper();
-	}
+        };
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
+     */
+    @Override
+    public RowMapper<User> getRowMapper() {
+        return new UserRowMapper();
+    }
 
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
-	@Override
-	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-		map.put("id", Types.INTEGER);
-		map.put("username", Types.VARCHAR);
-		map.put("password", Types.VARCHAR);
-		map.put("email", Types.VARCHAR);
-		map.put("phone", Types.VARCHAR);
-		map.put("disabled", Types.CHAR);
-		map.put("homeUrl", Types.VARCHAR);
-		map.put("lastLogin", Types.BIGINT);
-		map.put("receiveAlarmEmails", Types.INTEGER);
-		map.put("receiveOwnAuditEvents", Types.CHAR);
-		map.put("timezone", Types.VARCHAR);
-		map.put("muted", Types.CHAR);
-		map.put("permissions", Types.VARCHAR);
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+     */
+    @Override
+    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+        map.put("id", Types.INTEGER);
+        map.put("username", Types.VARCHAR);
+        map.put("password", Types.VARCHAR);
+        map.put("email", Types.VARCHAR);
+        map.put("phone", Types.VARCHAR);
+        map.put("disabled", Types.CHAR);
+        map.put("homeUrl", Types.VARCHAR);
+        map.put("lastLogin", Types.BIGINT);
+        map.put("receiveAlarmEmails", Types.INTEGER);
+        map.put("receiveOwnAuditEvents", Types.CHAR);
+        map.put("timezone", Types.VARCHAR);
+        map.put("muted", Types.CHAR);
+        map.put("permissions", Types.VARCHAR);
         map.put("name", Types.VARCHAR);
         map.put("locale", Types.VARCHAR);
         map.put("tokenVersion", Types.INTEGER);
         map.put("passwordVersion", Types.INTEGER);
 
-		return map;
-	}
+        return map;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-	 */
-	@Override
-	protected String getTableName() {
-		return SchemaDefinition.USERS_TABLE;
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
+     */
+    @Override
+    protected String getTableName() {
+        return SchemaDefinition.USERS_TABLE;
+    }
 
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-	 */
-	@Override
-	protected Map<String, IntStringPair> getPropertiesMap() {
-		return new HashMap<>();
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
+     */
+    @Override
+    protected Map<String, IntStringPair> getPropertiesMap() {
+        return new HashMap<>();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-	 */
-	@Override
-	protected String getXidPrefix() {
-		return "";
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
+     */
+    @Override
+    protected String getXidPrefix() {
+        return "";
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-	 */
-	@Override
-	public User getNewVo() {
-		return new User();
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
+     */
+    @Override
+    public User getNewVo() {
+        return new User();
+    }
 
 }

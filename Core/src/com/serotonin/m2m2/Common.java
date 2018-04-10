@@ -39,6 +39,7 @@ import org.joda.time.Period;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.CompiledCoreVersion;
@@ -78,7 +79,7 @@ import freemarker.template.Configuration;
 public class Common {
     public static final String SESSION_USER = "sessionUser";
     public static final String SESSION_USER_EXCEPTION  = "MANGO_USER_LAST_EXCEPTION";
-    
+
     public static OverridingWebAppContext owac;
     // Note the start time of the application.
     public static final long START_TIME = System.currentTimeMillis();
@@ -99,11 +100,11 @@ public class Common {
     public static RuntimeManager runtimeManager;
     public static SerialPortManager serialPortManager;
     public static CommonObjectMapper objectMapper; //Common Jackson Object Mapper Source
-    
+
     //Used to determine the given size of all Task Queues
     //TODO Remove this and replace with varying size queues
-    // depending on the type of task.  This was placed 
-    // here so we can release 3.0.0 with other features 
+    // depending on the type of task.  This was placed
+    // here so we can release 3.0.0 with other features
     // and not have to worry about the various problems/testing
     // for all the different tasks.
     public static int defaultTaskQueueSize = 1;
@@ -140,15 +141,15 @@ public class Common {
             return license.getFeature(name);
         return null;
     }
-    
+
     public static boolean isFree() {
-    	return free;
+        return free;
     }
-    
+
     public static boolean isInvalid() {
-    	return invalid;
+        return invalid;
     }
-    
+
     public static boolean isCoreSigned() {
         return releaseProps != null && Boolean.TRUE.toString().equals(releaseProps.getProperty("signed"));
     }
@@ -162,27 +163,27 @@ public class Common {
     public static final Version getVersion() {
         return CoreVersion.INSTANCE.version;
     }
-    
+
     public static final Version normalizeVersion(Version version) {
         return Version.forIntegers(version.getMajorVersion(), version.getMinorVersion(), version.getPatchVersion());
     }
-    
+
     private enum CoreVersion {
         INSTANCE();
         final Version version;
-        
+
         CoreVersion() {
             Version version = CompiledCoreVersion.VERSION;
-            
+
             try {
                 version = loadCoreVersionFromReleaseProperties(version);
             } catch (Throwable t) {}
-            
+
             // check for possible license subversion
             if (version.getMajorVersion() != CompiledCoreVersion.VERSION.getMajorVersion()) {
                 throw new RuntimeException("Version from release.properties does not match compiled major version " + CompiledCoreVersion.VERSION.getMajorVersion());
             }
-            
+
             this.version = version;
         }
     }
@@ -191,18 +192,18 @@ public class Common {
         if (releaseProps != null) {
             String versionStr = releaseProps.getProperty(ModuleUtils.Constants.PROP_VERSION);
             String buildNumberStr = releaseProps.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
-            
+
             if (versionStr != null) {
                 try {
                     version = Version.valueOf(versionStr);
                 } catch (com.github.zafarkhaja.semver.ParseException e) { }
             }
-            
+
             if (buildNumberStr != null) {
                 version = version.setBuildMetadata(buildNumberStr);
             }
         }
-        
+
         return version;
     }
 
@@ -214,13 +215,13 @@ public class Common {
      * @return The version of Java that the core is compiled for
      */
     public static final double getJavaSpecificationVersion(){
-    	return 1.8;
+        return 1.8;
     }
-    
+
     public static String getWebPath(String path) {
         return MA_HOME + "/web" + (path.startsWith("/") ? path : "/" + path);
     }
-    
+
     public static String getOverrideWebPath(String path) {
         return MA_HOME + "/overrides/web" + (path.startsWith("/") ? path : "/" + path);
     }
@@ -262,56 +263,56 @@ public class Common {
     //pointProperties.jsp probably depends on this and ROLLUP_CODES maintaining this ordering
     // meaning strictly ascending and the same add order to the rollup codes
     public interface Rollups {
-    	int NONE = 0;
-    	int AVERAGE = 1;
-    	int DELTA = 2;
-    	int MINIMUM = 3;
-    	int MAXIMUM = 4;
-    	int ACCUMULATOR = 5;
-    	int SUM = 6;
-    	int FIRST = 7;
-    	int LAST = 8;
-    	int COUNT = 9;
-    	int INTEGRAL = 10;
-    	int ALL = 11;
-    	int START = 12;
+        int NONE = 0;
+        int AVERAGE = 1;
+        int DELTA = 2;
+        int MINIMUM = 3;
+        int MAXIMUM = 4;
+        int ACCUMULATOR = 5;
+        int SUM = 6;
+        int FIRST = 7;
+        int LAST = 8;
+        int COUNT = 9;
+        int INTEGRAL = 10;
+        int ALL = 11;
+        int START = 12;
     }
     public static ExportCodes ROLLUP_CODES = new ExportCodes();
     static{
-    	ROLLUP_CODES.addElement(Rollups.NONE, "NONE", "common.rollup.none");
-    	ROLLUP_CODES.addElement(Rollups.AVERAGE, "AVERAGE", "common.rollup.average");
-    	ROLLUP_CODES.addElement(Rollups.DELTA, "DELTA", "common.rollup.delta");
-    	ROLLUP_CODES.addElement(Rollups.MINIMUM, "MINIMUM", "common.rollup.minimum");
-    	ROLLUP_CODES.addElement(Rollups.MAXIMUM, "MAXIMUM", "common.rollup.maximum");
-    	ROLLUP_CODES.addElement(Rollups.ACCUMULATOR, "ACCUMULATOR", "common.rollup.accumulator");
-    	ROLLUP_CODES.addElement(Rollups.SUM, "SUM", "common.rollup.sum");
-    	ROLLUP_CODES.addElement(Rollups.FIRST, "FIRST", "common.rollup.first");
-    	ROLLUP_CODES.addElement(Rollups.LAST, "LAST", "common.rollup.last");
-    	ROLLUP_CODES.addElement(Rollups.COUNT, "COUNT", "common.rollup.count");
-    	ROLLUP_CODES.addElement(Rollups.INTEGRAL, "INTEGRAL", "common.rollup.integral");
-    	ROLLUP_CODES.addElement(Rollups.ALL, "ALL", "common.rollup.all");
-    	ROLLUP_CODES.addElement(Rollups.START, "START", "common.rollup.start");
+        ROLLUP_CODES.addElement(Rollups.NONE, "NONE", "common.rollup.none");
+        ROLLUP_CODES.addElement(Rollups.AVERAGE, "AVERAGE", "common.rollup.average");
+        ROLLUP_CODES.addElement(Rollups.DELTA, "DELTA", "common.rollup.delta");
+        ROLLUP_CODES.addElement(Rollups.MINIMUM, "MINIMUM", "common.rollup.minimum");
+        ROLLUP_CODES.addElement(Rollups.MAXIMUM, "MAXIMUM", "common.rollup.maximum");
+        ROLLUP_CODES.addElement(Rollups.ACCUMULATOR, "ACCUMULATOR", "common.rollup.accumulator");
+        ROLLUP_CODES.addElement(Rollups.SUM, "SUM", "common.rollup.sum");
+        ROLLUP_CODES.addElement(Rollups.FIRST, "FIRST", "common.rollup.first");
+        ROLLUP_CODES.addElement(Rollups.LAST, "LAST", "common.rollup.last");
+        ROLLUP_CODES.addElement(Rollups.COUNT, "COUNT", "common.rollup.count");
+        ROLLUP_CODES.addElement(Rollups.INTEGRAL, "INTEGRAL", "common.rollup.integral");
+        ROLLUP_CODES.addElement(Rollups.ALL, "ALL", "common.rollup.all");
+        ROLLUP_CODES.addElement(Rollups.START, "START", "common.rollup.start");
     }
-    
-	public static ExportCodes WORK_ITEM_CODES = new ExportCodes();
+
+    public static ExportCodes WORK_ITEM_CODES = new ExportCodes();
     static {
-    	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_HIGH, "PRIORITY_HIGH");
-    	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_MEDIUM, "PRIORITY_MEDIUM");
-    	WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_LOW, "PRIORITY_LOW");
+        WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_HIGH, "PRIORITY_HIGH");
+        WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_MEDIUM, "PRIORITY_MEDIUM");
+        WORK_ITEM_CODES.addElement(WorkItem.PRIORITY_LOW, "PRIORITY_LOW");
     }
-    
+
     public static ExportCodes VERSION_STATE_CODES = new ExportCodes();
     static{
-    	VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT", "systemSettings.upgradeState.development");
-    	VERSION_STATE_CODES.addElement(UpgradeVersionState.ALPHA, "ALPHA", "systemSettings.upgradeState.alpha");
-    	VERSION_STATE_CODES.addElement(UpgradeVersionState.BETA, "BETA", "systemSettings.upgradeState.beta");
-    	VERSION_STATE_CODES.addElement(UpgradeVersionState.RELEASE_CANDIDATE, "RELEASE_CANDIDATE", "systemSettings.upgradeState.releaseCanditate");
-    	VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION", "systemSettings.upgradeState.production");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT", "systemSettings.upgradeState.development");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.ALPHA, "ALPHA", "systemSettings.upgradeState.alpha");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.BETA, "BETA", "systemSettings.upgradeState.beta");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.RELEASE_CANDIDATE, "RELEASE_CANDIDATE", "systemSettings.upgradeState.releaseCanditate");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION", "systemSettings.upgradeState.production");
     }
-    
+
     /**
      * Returns the length of time in milliseconds that the
-     * 
+     *
      * @param timePeriod
      * @param numberOfPeriods
      * @return
@@ -322,56 +323,56 @@ public class Common {
 
     public static Period getPeriod(int periodType, int periods) {
         switch (periodType) {
-        case TimePeriods.MILLISECONDS:
-            return Period.millis(periods);
-        case TimePeriods.SECONDS:
-            return Period.seconds(periods);
-        case TimePeriods.MINUTES:
-            return Period.minutes(periods);
-        case TimePeriods.HOURS:
-            return Period.hours(periods);
-        case TimePeriods.DAYS:
-            return Period.days(periods);
-        case TimePeriods.WEEKS:
-            return Period.weeks(periods);
-        case TimePeriods.MONTHS:
-            return Period.months(periods);
-        case TimePeriods.YEARS:
-            return Period.years(periods);
-        default:
-            throw new ShouldNeverHappenException("Unsupported time period: " + periodType);
+            case TimePeriods.MILLISECONDS:
+                return Period.millis(periods);
+            case TimePeriods.SECONDS:
+                return Period.seconds(periods);
+            case TimePeriods.MINUTES:
+                return Period.minutes(periods);
+            case TimePeriods.HOURS:
+                return Period.hours(periods);
+            case TimePeriods.DAYS:
+                return Period.days(periods);
+            case TimePeriods.WEEKS:
+                return Period.weeks(periods);
+            case TimePeriods.MONTHS:
+                return Period.months(periods);
+            case TimePeriods.YEARS:
+                return Period.years(periods);
+            default:
+                throw new ShouldNeverHappenException("Unsupported time period: " + periodType);
         }
     }
 
     public static TranslatableMessage getPeriodDescription(int periodType, int periods) {
         String periodKey;
         switch (periodType) {
-        case TimePeriods.MILLISECONDS:
-            periodKey = "common.tp.milliseconds";
-            break;
-        case TimePeriods.SECONDS:
-            periodKey = "common.tp.seconds";
-            break;
-        case TimePeriods.MINUTES:
-            periodKey = "common.tp.minutes";
-            break;
-        case TimePeriods.HOURS:
-            periodKey = "common.tp.hours";
-            break;
-        case TimePeriods.DAYS:
-            periodKey = "common.tp.days";
-            break;
-        case TimePeriods.WEEKS:
-            periodKey = "common.tp.weeks";
-            break;
-        case TimePeriods.MONTHS:
-            periodKey = "common.tp.months";
-            break;
-        case TimePeriods.YEARS:
-            periodKey = "common.tp.years";
-            break;
-        default:
-            throw new ShouldNeverHappenException("Unsupported time period: " + periodType);
+            case TimePeriods.MILLISECONDS:
+                periodKey = "common.tp.milliseconds";
+                break;
+            case TimePeriods.SECONDS:
+                periodKey = "common.tp.seconds";
+                break;
+            case TimePeriods.MINUTES:
+                periodKey = "common.tp.minutes";
+                break;
+            case TimePeriods.HOURS:
+                periodKey = "common.tp.hours";
+                break;
+            case TimePeriods.DAYS:
+                periodKey = "common.tp.days";
+                break;
+            case TimePeriods.WEEKS:
+                periodKey = "common.tp.weeks";
+                break;
+            case TimePeriods.MONTHS:
+                periodKey = "common.tp.months";
+                break;
+            case TimePeriods.YEARS:
+                periodKey = "common.tp.years";
+                break;
+            default:
+                throw new ShouldNeverHappenException("Unsupported time period: " + periodType);
         }
 
         return new TranslatableMessage("common.tp.description", periods, new TranslatableMessage(periodKey));
@@ -386,7 +387,7 @@ public class Common {
         }
         return user;
     }
-    
+
     @Deprecated
     public static User getUser(HttpServletRequest request) {
         return getUser();
@@ -412,7 +413,7 @@ public class Common {
         }
         return null;
     }
-    
+
     public static TimeZone getUserTimeZone(User user) {
         if (user != null)
             return user.getTimeZoneInstance();
@@ -496,34 +497,34 @@ public class Common {
 
         try {
             switch (periodType) {
-            case TimePeriods.MILLISECONDS:
-                throw new ShouldNeverHappenException("Can't create a cron trigger for milliseconds");
-            case TimePeriods.SECONDS:
-                return new CronTimerTrigger("* * * * * ?");
-            case TimePeriods.MINUTES:
-                return new CronTimerTrigger(delaySeconds + " * * * * ?");
-            case TimePeriods.HOURS:
-                return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " * * * ?");
-            case TimePeriods.DAYS:
-                return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 * * ?");
-            case TimePeriods.WEEKS:
-                return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 ? * MON");
-            case TimePeriods.MONTHS:
-                return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 1 * ?");
-            case TimePeriods.YEARS:
-                return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 1 JAN ?");
-            default:
-                throw new ShouldNeverHappenException("Invalid cron period type: " + periodType);
+                case TimePeriods.MILLISECONDS:
+                    throw new ShouldNeverHappenException("Can't create a cron trigger for milliseconds");
+                case TimePeriods.SECONDS:
+                    return new CronTimerTrigger("* * * * * ?");
+                case TimePeriods.MINUTES:
+                    return new CronTimerTrigger(delaySeconds + " * * * * ?");
+                case TimePeriods.HOURS:
+                    return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " * * * ?");
+                case TimePeriods.DAYS:
+                    return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 * * ?");
+                case TimePeriods.WEEKS:
+                    return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 ? * MON");
+                case TimePeriods.MONTHS:
+                    return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 1 * ?");
+                case TimePeriods.YEARS:
+                    return new CronTimerTrigger(delaySeconds + " " + delayMinutes + " 0 1 JAN ?");
+                default:
+                    throw new ShouldNeverHappenException("Invalid cron period type: " + periodType);
             }
         }
         catch (ParseException e) {
             throw new ShouldNeverHappenException(e);
         }
     }
-    
+
     //
     // Misc
-    
+
     /**
      * Uses BCrypt by default
      * @param plaintext
@@ -534,20 +535,20 @@ public class Common {
         String hash = encrypt(plaintext, alg);
         return "{" + alg + "}" + hash;
     }
-    
+
     public static String getHashAlgorithm() {
         return envProps.getString("security.hashAlgorithm", "BCRYPT");
     }
-    
+
     public static String encrypt(String plaintext, String alg) {
         try {
             if ("NONE".equals(alg))
                 return plaintext;
-            
+
             if ("BCRYPT".equals(alg)) {
                 return BCrypt.hashpw(plaintext, BCrypt.gensalt());
             }
-            
+
             MessageDigest md = MessageDigest.getInstance(alg);
             if (md == null)
                 throw new ShouldNeverHappenException("MessageDigest algorithm " + alg
@@ -563,44 +564,44 @@ public class Common {
             throw new ShouldNeverHappenException(e);
         }
     }
-    
+
     public static boolean checkPassword(String plaintext, String hashed) {
         return checkPassword(plaintext, hashed, false);
     }
-    
+
     public static final Pattern EXTRACT_ALGORITHM_HASH = Pattern.compile("^\\{(.*?)\\}(.*)");
-    
+
     public static boolean checkPassword(String password, String storedHash, boolean passwordEncrypted) {
         try {
             if (password == null || storedHash == null)
                 return false;
-            
+
             if (passwordEncrypted) {
                 return storedHash.equals(password);
             }
-            
+
             Matcher m = EXTRACT_ALGORITHM_HASH.matcher(storedHash);
             if (!m.matches()) {
                 return false;
             }
             String algorithm = m.group(1);
             String hash = m.group(2);
-            
+
             if ("BCRYPT".equals(algorithm)) {
                 return BCrypt.checkpw(password, hash);
             } else if ("NONE".equals(algorithm)) {
-               return hash.equals(password);
+                return hash.equals(password);
             } else if ("LOCKED".equals(algorithm)) {
                 return false;
             } else {
                 return hash.equals(encrypt(password, algorithm));
             }
-            
+
         } catch (Throwable t) {
             return false;
         }
     }
-    
+
     public static String extractHashAlgorithm(String hash) {
         Matcher m = EXTRACT_ALGORITHM_HASH.matcher(hash);
         if (!m.matches()) {
@@ -727,7 +728,7 @@ public class Common {
     public static String generateXid(String prefix) {
         return prefix + UUID.randomUUID();
     }
-    
+
     /**
      * Get the HTTP/HTTPS Cookie Name based on scheme and port
      * @return
@@ -739,5 +740,26 @@ public class Common {
             return "MANGO" + Common.envProps.getInt("web.port", 8080);
         }
     }
-    
+
+
+    /* Spring application contexts */
+    private static AnnotationConfigWebApplicationContext rootContext;
+    private static AnnotationConfigWebApplicationContext dispatcherContext;
+
+    public static AnnotationConfigWebApplicationContext getRootContext() {
+        return rootContext;
+    }
+
+    protected static void setRootContext(AnnotationConfigWebApplicationContext context) {
+        rootContext = context;
+    }
+
+    public static AnnotationConfigWebApplicationContext getDispatcherContext() {
+        return dispatcherContext;
+    }
+
+    protected static void setDispatcherContext(AnnotationConfigWebApplicationContext context) {
+        dispatcherContext = context;
+    }
+
 }

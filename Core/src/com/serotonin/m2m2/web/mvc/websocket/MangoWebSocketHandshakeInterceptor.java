@@ -32,6 +32,9 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
     public static final String WSS_FOR_HTTP_SESSION_ATTR = "WSS_FOR_HTTP_SESSION";
     public static final String CLOSE_ON_LOGOUT_ATTR = "CLOSE_ON_LOGOUT";
 
+    /**
+     * Map of http session id to a set of websocket sessions which are associated with it
+     */
     private final Map<String, Set<WebSocketSession>> sessionsByHttpSessionId = new ConcurrentHashMap<>();
     private final Log log = LogFactory.getLog(this.getClass());
 
@@ -59,14 +62,11 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
         Set<WebSocketSession> wssSet = sessionsByHttpSessionId.remove(httpSessionId);
         if (wssSet != null) {
             for (WebSocketSession wss : wssSet) {
-                Boolean closeOnLogout = (Boolean) wss.getAttributes().get(CLOSE_ON_LOGOUT_ATTR);
-                if (closeOnLogout == null || closeOnLogout) {
-                    try {
-                        wss.close(MangoWebSocketHandler.NOT_AUTHENTICATED);
-                    } catch (IOException e) {
-                        if (log.isErrorEnabled()) {
-                            log.error("Couldn't close WebSocket session for http session " + httpSessionId, e);
-                        }
+                try {
+                    wss.close(MangoWebSocketHandler.NOT_AUTHENTICATED);
+                } catch (IOException e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Couldn't close WebSocket session for http session " + httpSessionId, e);
                     }
                 }
             }

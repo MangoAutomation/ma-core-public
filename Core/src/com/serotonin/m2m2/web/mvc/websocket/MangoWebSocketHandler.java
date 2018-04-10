@@ -239,6 +239,11 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
         return null;
     }
 
+    /**
+     * Retrieve a set of sessions which will be closed when the HTTP session is destroyed
+     * @param session
+     * @return
+     */
     protected Set<WebSocketSession> sessionsForHttpSession(WebSocketSession session) {
         @SuppressWarnings("unchecked")
         Set<WebSocketSession> wssSet = (Set<WebSocketSession>) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.WSS_FOR_HTTP_SESSION_ATTR);
@@ -261,9 +266,10 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        addToSessionsForHttpSession(session);
-
-        //session.getAttributes().put(MangoWebSocketHandshakeInterceptor.CLOSE_ON_LOGOUT_ATTR, this.closeOnLogout);
+        // only add sessions which should be closed when the session is destroyed
+        if (this.closeOnLogout) {
+            addToSessionsForHttpSession(session);
+        }
 
         if (this.usePingPong) {
             this.startPingPong(session);
