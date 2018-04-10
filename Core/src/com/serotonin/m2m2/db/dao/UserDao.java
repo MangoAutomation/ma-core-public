@@ -16,12 +16,12 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -30,6 +30,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
+import com.serotonin.m2m2.web.mvc.spring.events.UserAuthTokensRevokedEvent;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 public class UserDao extends AbstractDao<User> {
@@ -214,7 +215,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     private void exireSessionsForUser(User user) {
-        AnnotationConfigWebApplicationContext context = Common.getRootContext();
+        ApplicationContext context = Common.getRootContext();
         if (context != null) {
             MangoSessionRegistry sessionRegistry = context.getBean(MangoSessionRegistry.class);
             sessionRegistry.exireSessionsForUser(user);
@@ -261,6 +262,11 @@ public class UserDao extends AbstractDao<User> {
         }
 
         user.setTokenVersion(newTokenVersion);
+
+        ApplicationContext context = Common.getRootContext();
+        if (context != null) {
+            context.publishEvent(new UserAuthTokensRevokedEvent(this, user));
+        }
 
         userCache.remove(user.getUsername());
     }

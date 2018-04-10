@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
 
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.context.ApplicationContext;
 
 import com.infiniteautomation.mango.monitor.DoubleMonitor;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
@@ -190,7 +190,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         uptime.setValue(bd.doubleValue());
 
         //Collect Active User Sessions
-        AnnotationConfigWebApplicationContext context = Common.getRootContext();
+        ApplicationContext context = Common.getRootContext();
         if (context != null) {
             MangoSessionRegistry sessionRegistry = context.getBean(MangoSessionRegistry.class);
             userSessions.setValue(sessionRegistry.getActiveSessionCount());

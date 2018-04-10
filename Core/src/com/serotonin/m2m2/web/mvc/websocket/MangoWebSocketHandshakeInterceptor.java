@@ -24,6 +24,9 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
+import com.serotonin.m2m2.web.mvc.spring.events.AllAuthTokensRevokedEvent;
+import com.serotonin.m2m2.web.mvc.spring.events.UserAuthTokensRevokedEvent;
+
 /**
  * @author Jared Wiltshire
  */
@@ -53,8 +56,13 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
         // on the parent.
         ConfigurableApplicationContext parent = (ConfigurableApplicationContext) context.getParent();
 
-        ApplicationListener<SessionDestroyedEvent> listener = this::sessionDestroyed;
-        parent.addApplicationListener(listener);
+        ApplicationListener<SessionDestroyedEvent> sessionDestroyedListener = this::sessionDestroyed;
+        ApplicationListener<UserAuthTokensRevokedEvent> userAuthTokensRevokedListener = this::userAuthTokensRevoked;
+        ApplicationListener<AllAuthTokensRevokedEvent> allAuthTokensRevokedListener = this::allAuthTokensRevoked;
+
+        parent.addApplicationListener(sessionDestroyedListener);
+        parent.addApplicationListener(userAuthTokensRevokedListener);
+        parent.addApplicationListener(allAuthTokensRevokedListener);
     }
 
     private void sessionDestroyed(SessionDestroyedEvent event) {
@@ -71,6 +79,16 @@ public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInte
                 }
             }
         }
+    }
+
+    private void userAuthTokensRevoked(UserAuthTokensRevokedEvent event) {
+        // TODO implement
+        System.out.println(event);
+    }
+
+    private void allAuthTokensRevoked(AllAuthTokensRevokedEvent event) {
+        // TODO implement
+        System.out.println(event);
     }
 
     @Override

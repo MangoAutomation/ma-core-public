@@ -11,6 +11,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -35,7 +36,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
     private AnnotationConfigWebApplicationContext dispatcherContext;
 
     public static interface MangoWebApplicationInitializerListener {
-        void onStartup(AnnotationConfigWebApplicationContext rootContext, AnnotationConfigWebApplicationContext dispatcherContext);
+        void onStartup(ApplicationContext rootContext, ApplicationContext dispatcherContext);
     }
 
     public MangoWebApplicationInitializer(MangoWebApplicationInitializerListener listener) {

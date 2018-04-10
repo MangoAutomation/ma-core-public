@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.spring.components;
 import java.security.KeyPair;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
+import com.serotonin.m2m2.web.mvc.spring.events.AllAuthTokensRevokedEvent;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -35,46 +38,50 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     private static final int DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
     private final UserDetailsService userDetailsService;
-    
-    public TokenAuthenticationService(UserDetailsService userDetailsService) {
+    private final ApplicationContext context;
+
+    @Autowired
+    public TokenAuthenticationService(UserDetailsService userDetailsService, ApplicationContext context) {
         this.userDetailsService = userDetailsService;
+        this.context = context;
     }
 
     @Override
     protected String tokenType() {
         return TOKEN_TYPE_VALUE;
     }
-    
+
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
-    	SystemSettingsDao.instance.setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
-    	SystemSettingsDao.instance.setValue(PRIVATE_KEY_SYSTEM_SETTING, keyToString(keyPair.getPrivate()));
+        SystemSettingsDao.instance.setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
+        SystemSettingsDao.instance.setValue(PRIVATE_KEY_SYSTEM_SETTING, keyToString(keyPair.getPrivate()));
     }
-    
+
     @Override
     protected KeyPair loadKeyPair() {
         String publicKeyStr = SystemSettingsDao.getValue(PUBLIC_KEY_SYSTEM_SETTING);
         String privateKeyStr = SystemSettingsDao.getValue(PRIVATE_KEY_SYSTEM_SETTING);
-        
+
         if (publicKeyStr != null && !publicKeyStr.isEmpty() && privateKeyStr != null && !privateKeyStr.isEmpty()) {
             return keysToKeyPair(publicKeyStr, privateKeyStr);
         }
         return null;
     }
-    
+
     public void resetKeys() {
         this.generateNewKeyPair();
+        this.context.publishEvent(new AllAuthTokensRevokedEvent(this));
     }
-    
+
     public String generateToken(User user) {
         return this.generateToken(user, null);
     }
-    
+
     public String generateToken(User user, Date expiry) {
         if (expiry == null) {
             expiry = new Date(System.currentTimeMillis() + DEFAULT_EXPIRY);
         }
-        
+
         JwtBuilder builder = this.newToken(user.getUsername(), expiry)
                 .claim(USER_ID_CLAIM, user.getId())
                 .claim(USER_TOKEN_VERSION_CLAIM, user.getTokenVersion());
@@ -89,17 +96,17 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     @Override
     protected User verifyClaims(Jws<Claims> token) {
         Claims claims = token.getBody();
-        
+
         String username = claims.getSubject();
         if (username == null) {
             throw new NotFoundException();
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        
+
         if (!(userDetails instanceof User)) {
             throw new RuntimeException("Expected user details to be instance of User");
         }
-        
+
         User user = (User) userDetails;
 
         Integer userId = user.getId();
@@ -107,7 +114,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
         Integer tokenVersion = user.getTokenVersion();
         this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
-        
+
         return user;
     }
 }

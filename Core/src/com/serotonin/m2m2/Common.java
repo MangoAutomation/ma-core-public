@@ -36,10 +36,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.CompiledCoreVersion;
@@ -743,22 +743,22 @@ public class Common {
 
 
     /* Spring application contexts */
-    private static AnnotationConfigWebApplicationContext rootContext;
-    private static AnnotationConfigWebApplicationContext dispatcherContext;
+    private static ApplicationContext rootContext;
+    private static ApplicationContext dispatcherContext;
 
-    public static AnnotationConfigWebApplicationContext getRootContext() {
+    public static ApplicationContext getRootContext() {
         return rootContext;
     }
 
-    protected static void setRootContext(AnnotationConfigWebApplicationContext context) {
+    protected static void setRootContext(ApplicationContext context) {
         rootContext = context;
     }
 
-    public static AnnotationConfigWebApplicationContext getDispatcherContext() {
+    public static ApplicationContext getDispatcherContext() {
         return dispatcherContext;
     }
 
-    protected static void setDispatcherContext(AnnotationConfigWebApplicationContext context) {
+    protected static void setDispatcherContext(ApplicationContext context) {
         dispatcherContext = context;
     }
 
