@@ -643,25 +643,6 @@ public class Common {
             CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build();
             return httpclient;
         }
-        //LEGACY CODE LEFT HERE UNTIL Testing of above code is confirmed as working
-        //        DefaultHttpClient client = new DefaultHttpClient();
-        //        client.getParams().setParameter("http.socket.timeout", timeout);
-        //        client.getParams().setParameter("http.connection.timeout", timeout);
-        //        client.getParams().setParameter("http.connection-manager.timeout", timeout);
-        //        client.getParams().setParameter("http.protocol.head-body-timeout", timeout);
-        //
-        //        if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
-        //            String proxyHost = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
-        //            int proxyPort = SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
-        //            String username = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, "");
-        //            String password = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, "");
-        //
-        //            client.getCredentialsProvider().setCredentials(new AuthScope(proxyHost, proxyPort),
-        //                    new UsernamePasswordCredentials(username, password));
-        //            
-        //        }
-        //
-        //        return client;
     }
 
     //
@@ -731,7 +712,7 @@ public class Common {
         return languages;
     }
 
-    private static Locale parseLocale(String str) {
+    public static Locale parseLocale(String str) {
         String[] parts = str.split("_");
         Locale locale = null;
         if (parts.length == 1)

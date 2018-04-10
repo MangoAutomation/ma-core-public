@@ -576,6 +576,40 @@ public class SystemSettingsDao extends BaseDao {
 			response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
 		}
 		
+		setting = settings.get(LANGUAGE);
+		if(setting != null) {
+		    if(setting instanceof String) {
+		        try{
+		            Locale newLocale = Common.parseLocale((String)setting);
+		            if(newLocale == null)
+		                response.addContextualMessage(LANGUAGE, "validate.invalidValue");
+		        }catch(Throwable t) {
+		            response.addContextualMessage(LANGUAGE, "validate.invalidValue");
+		        }
+		    }else {
+		        response.addContextualMessage(LANGUAGE, "validate.invalidValue");
+		    }
+		}
+
+		setting = settings.get(HTTP_CLIENT_PROXY_PORT);
+		if(setting != null) {
+		    if(setting instanceof Integer) {
+		        if((Integer)setting < 0)
+		            response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.cannotBeNegative");
+		    }else {
+		        response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.invalidValue");
+		    }
+		}
+		
+		setting = settings.get(HTTP_CLIENT_PROXY_SERVER);
+		if(setting != null) {
+		    if(setting instanceof String) {
+		        if(StringUtils.isEmpty((String)setting))
+		            response.addContextualMessage(HTTP_CLIENT_PROXY_SERVER, "validate.invalidValue");
+		    }else {
+		        response.addContextualMessage(HTTP_CLIENT_PROXY_SERVER, "validate.invalidValue");
+		    }
+		}
 		
 		validatePeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings, response);
 		
