@@ -6,6 +6,8 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.Map;
 
+import com.serotonin.m2m2.util.ExceptionListWrapper;
+
 public class DataPointEventMulticaster implements DataPointListener {
     protected final DataPointListener a, b;
 
@@ -82,73 +84,217 @@ public class DataPointEventMulticaster implements DataPointListener {
     // /
     // /
 	@Override
-    public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+    public void pointChanged(PointValueTime oldValue, PointValueTime newValue) throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.pointChanged(oldValue, newValue);
-	    } finally {
-	        b.pointChanged(oldValue, newValue);
+	    } catch(Exception e) {
+	        if(!(e instanceof ExceptionListWrapper)) 
+	            exceptionWrapper = new ExceptionListWrapper(e);
+	        else //If it is, it's already added
+	            exceptionWrapper = (ExceptionListWrapper)e;
 	    }
-    }
-	@Override
-    public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
+	    
 	    try {
-	        a.pointSet(oldValue, newValue);
-	    } finally {
-	        b.pointSet(oldValue, newValue);
-	    }
+	        b.pointChanged(oldValue, newValue);
+	    } catch(Exception e) {
+	        if(exceptionWrapper != null)
+	            exceptionWrapper.addException(e);
+	        else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+	    
+	    if(exceptionWrapper != null)
+	        throw exceptionWrapper;
     }
 	@Override
-    public void pointUpdated(PointValueTime newValue) {
+    public void pointSet(PointValueTime oldValue, PointValueTime newValue) throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
+        try {
+	        a.pointSet(oldValue, newValue);
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        try {
+	        b.pointSet(oldValue, newValue);
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
+    }
+	@Override
+    public void pointUpdated(PointValueTime newValue) throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.pointUpdated(newValue);
-	    } finally {
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+
+	    try {
 	        b.pointUpdated(newValue);
-	    }
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
     }
 	@Override
-    public void pointBackdated(PointValueTime value) {
+    public void pointBackdated(PointValueTime value) throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.pointBackdated(value);
-	    } finally {
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+	    
+	    try {
 	        b.pointBackdated(value);
-	    }
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
     }
 	@Override
-    public void pointInitialized() {
+    public void pointInitialized() throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.pointInitialized();
-	    } finally {
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+
+	    try {
 	        b.pointInitialized();
-	    }
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
     }
 	@Override
-    public void pointTerminated() {
+    public void pointTerminated() throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.pointTerminated();
-	    } finally {
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+	    
+	    try {
 	        b.pointTerminated();
-	    }
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
     }
 
 	@Override
-	public void pointLogged(PointValueTime value) {
+	public void pointLogged(PointValueTime value) throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.pointLogged(value);
-	    } finally {
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+	    
+	    try {
 	        b.pointLogged(value);
-	    }
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#attributeChanged(java.util.Map)
 	 */
 	@Override
-	public void attributeChanged(Map<String, Object> attributes) {
+	public void attributeChanged(Map<String, Object> attributes) throws ExceptionListWrapper {
+	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
 	        a.attributeChanged(attributes);
-	    } finally {
+	    } catch(Exception e) {
+            if(!(e instanceof ExceptionListWrapper)) 
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+
+	    try {
 	        b.attributeChanged(attributes);
-	    }
+	    } catch(Exception e) {
+            if(exceptionWrapper != null)
+                exceptionWrapper.addException(e);
+            else if(!(e instanceof ExceptionListWrapper))
+                exceptionWrapper = new ExceptionListWrapper(e);
+            else //If it is, it's already added
+                exceptionWrapper = (ExceptionListWrapper)e;
+        }
+        
+        if(exceptionWrapper != null)
+            throw exceptionWrapper;
 	}
 
 	/* (non-Javadoc)

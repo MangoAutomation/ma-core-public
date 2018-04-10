@@ -42,6 +42,7 @@ import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
+import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -559,7 +560,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
                         }
                         DataPointListener l = getDataPointListeners(vo.getId());
                         if (l != null)
-                            l.pointTerminated();
+                            try {
+                                l.pointTerminated();
+                            } catch(ExceptionListWrapper e) {
+                                LOG.warn("Exceptions in point terminated method.");
+                                for(Exception e2 : e.getExceptions())
+                                    LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                            }
                         rt.terminate();
                     }
                     return dataPoint;
@@ -579,7 +586,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
             
             DataPointListener l = getDataPointListeners(vo.getId());
             if (l != null)
-                l.pointInitialized();
+                try {
+                    l.pointInitialized();
+                } catch(ExceptionListWrapper e) {
+                    LOG.warn("Exceptions in point initialized method.");
+                    for(Exception e2 : e.getExceptions())
+                        LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                }
 
             // Add/update it in the data source.
             try{
@@ -611,9 +624,16 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 			+ " stopping point."
                 			, e);
             	}
+            	
                 DataPointListener l = getDataPointListeners(dataPointId);
                 if (l != null)
-                    l.pointTerminated();
+                    try {
+                        l.pointTerminated();
+                    } catch(ExceptionListWrapper e) {
+                        LOG.warn("Exceptions in point terminated method.");
+                        for(Exception e2 : e.getExceptions())
+                            LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                    }
                 p.terminate();
             }
         }
@@ -640,7 +660,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
         	}
             DataPointListener l = getDataPointListeners(dataPointId);
             if (l != null)
-                l.pointTerminated();
+                try {
+                    l.pointTerminated();
+                } catch(ExceptionListWrapper e) {
+                    LOG.warn("Exceptions in point terminated method.");
+                    for(Exception e2 : e.getExceptions())
+                        LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                }
             p.terminate();
         }
 
@@ -667,7 +693,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 }
                 DataPointListener l = getDataPointListeners(vo.getId());
                 if (l != null)
-                    l.pointTerminated();
+                    try {
+                        l.pointTerminated();
+                    } catch(ExceptionListWrapper e) {
+                        LOG.warn("Exceptions in point terminated method.");
+                        for(Exception e2 : e.getExceptions())
+                            LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                    }
                 p.terminate();
                 
                 this.startDataPoint(p.getVO(), null);

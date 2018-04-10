@@ -32,6 +32,7 @@ import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
+import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.IValueTime;
@@ -718,29 +719,35 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         @Override
         public void execute() {
-            if (attributesChanged) {
-                listener.attributeChanged(attributes);
-                return;
+            try {
+                if (attributesChanged) {
+                    listener.attributeChanged(attributes);
+                    return;
+                }
+    
+                if (backdate)
+                    listener.pointBackdated(newValue);
+                else if (updated) {
+                    // Updated
+                    listener.pointUpdated(newValue);
+    
+                    // Fire if the point has changed.
+                    if (!PointValueTime.equalValues(oldValue, newValue))
+                        listener.pointChanged(oldValue, newValue);
+    
+                    // Fire if the point was set.
+                    if (set)
+                        listener.pointSet(oldValue, newValue);
+                }
+    
+                // Was this value actually logged
+                if (logged)
+                    listener.pointLogged(newValue);
+            } catch(ExceptionListWrapper e) {
+                LOG.warn("Exceptions in event notify work item.");
+                for(Exception e2 : e.getExceptions())
+                    LOG.warn("Listener exception: " + e2.getMessage(), e2);
             }
-
-            if (backdate)
-                listener.pointBackdated(newValue);
-            else if (updated) {
-                // Updated
-                listener.pointUpdated(newValue);
-
-                // Fire if the point has changed.
-                if (!PointValueTime.equalValues(oldValue, newValue))
-                    listener.pointChanged(oldValue, newValue);
-
-                // Fire if the point was set.
-                if (set)
-                    listener.pointSet(oldValue, newValue);
-            }
-
-            // Was this value actually logged
-            if (logged)
-                listener.pointLogged(newValue);
         }
 
         @Override
