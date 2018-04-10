@@ -41,7 +41,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.BearerAuthentic
 /**
  * @author Terry Packer
  */
-public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
+public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
 
     public final static CloseStatus NOT_AUTHENTICATED = new CloseStatus(4001, "Not authenticated");
     public final static CloseStatus NOT_AUTHORIZED = new CloseStatus(4003, "Not authorized");
@@ -80,11 +80,11 @@ public abstract class MangoWebSocketPublisher extends TextWebSocketHandler {
         this.httpSessionDestroyed(event.getOriginalEvent());
     };
     
-    public MangoWebSocketPublisher() {
+    public MangoWebSocketHandler() {
         this(true);
     }
     
-    public MangoWebSocketPublisher(boolean closeOnLogout) {
+    public MangoWebSocketHandler(boolean closeOnLogout) {
         this.closeOnLogout = closeOnLogout;
         this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
         this.usePingPong = this.pingPongTimeoutMs > 0;

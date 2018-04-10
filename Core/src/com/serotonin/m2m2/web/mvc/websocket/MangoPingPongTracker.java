@@ -45,7 +45,7 @@ public 	class MangoPingPongTracker extends TimeoutClient {
 	
 	public void sendPing() {
         try {
-            session.getAttributes().put(MangoWebSocketPublisher.RECEIVED_PONG, Boolean.FALSE);
+            session.getAttributes().put(MangoWebSocketHandler.RECEIVED_PONG, Boolean.FALSE);
             session.sendMessage(new PingMessage());
         } catch (IOException | WebSocketException e) {
             if (log.isErrorEnabled()) {
@@ -72,7 +72,7 @@ public 	class MangoPingPongTracker extends TimeoutClient {
 		if (!this.session.isOpen())
 			return;
 		
-		Boolean receivedPong = (Boolean) this.session.getAttributes().get(MangoWebSocketPublisher.RECEIVED_PONG);
+		Boolean receivedPong = (Boolean) this.session.getAttributes().get(MangoWebSocketHandler.RECEIVED_PONG);
 		if (receivedPong) {
 			this.sendPing();
 		} else {

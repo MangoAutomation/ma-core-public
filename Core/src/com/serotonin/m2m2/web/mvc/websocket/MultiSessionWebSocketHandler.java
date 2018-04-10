@@ -14,7 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 /**
  * @author Jared Wiltshire
  */
-public abstract class MultiSessionWebSocketHandler extends MangoWebSocketPublisher {
+public abstract class MultiSessionWebSocketHandler extends MangoWebSocketHandler {
 
     protected final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
 
