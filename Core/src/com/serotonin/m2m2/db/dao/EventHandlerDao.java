@@ -111,7 +111,8 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	@Override
     protected List<JoinClause> getJoins() {
         List<JoinClause> joins = new ArrayList<JoinClause>();
-        joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE, "ehm", "ehm.eventHandlerId=eh.id"));
+        //This causes multiple rows per ID if there are > 1 detector to a handler
+        //joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE, "ehm", "ehm.eventHandlerId=eh.id"));
         return joins;
     }
 
@@ -205,10 +206,8 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     @Override
     public void saveRelationalData(AbstractEventHandlerVO<?> vo, boolean insert) {
         if(vo.getAddedEventTypes() != null) {
-            if(insert) {
-                for(EventType type : vo.getAddedEventTypes())
-                    addEventHandlerMappingIfMissing(vo.getId(), type);
-            }
+            for(EventType type : vo.getAddedEventTypes())
+                addEventHandlerMappingIfMissing(vo.getId(), type);
         }
     }
     

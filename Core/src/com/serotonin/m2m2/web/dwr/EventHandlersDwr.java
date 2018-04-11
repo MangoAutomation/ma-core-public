@@ -330,7 +330,7 @@ public class EventHandlersDwr extends BaseDwr {
         vo.validate(response);
 
         if (!response.getHasMessages()) {
-        	EventHandlerDao.instance.save(vo);
+        	EventHandlerDao.instance.saveFull(vo);
             response.addData("handler", vo);
         }
 
