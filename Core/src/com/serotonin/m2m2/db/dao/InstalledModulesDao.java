@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.Types;
+
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -27,7 +29,7 @@ public class InstalledModulesDao extends BaseDao {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 ejt.update(DELETE_ALL);
                 for(Module m : ModuleRegistry.getModules())
-                    ejt.doInsert(INSERT_MODULE, m.getName(), m.getVersion().toString());
+                    ejt.doInsert(INSERT_MODULE, new Object[] { m.getName(), m.getVersion().toString() }, new int[] {Types.VARCHAR, Types.VARCHAR});
             }
         });
     }
