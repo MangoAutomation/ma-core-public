@@ -35,8 +35,10 @@ function getScriptPermissions(){
 	};
 }
 function setScriptPermissions(permissions){
-	$set('scriptDataSourcePermission', permissions.dataSourcePermissions);
-	$set('scriptDataPointSetPermission', permissions.dataPointSetPermissions);
-	$set('scriptDataPointReadPermission', permissions.dataPointReadPermissions);
+	if(typeof permissions === 'object') {
+		$set('scriptDataSourcePermission', permissions.dataSourcePermissions);
+		$set('scriptDataPointSetPermission', permissions.dataPointSetPermissions);
+		$set('scriptDataPointReadPermission', permissions.dataPointReadPermissions);
+	}
 }
 </script>
