@@ -1794,16 +1794,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                         break;
                     }
                 }
-                
-                JsonArray handlerXids = pedObject.getJsonArray("handlers");
-                if(handlerXids != null)
-                    for(int k = 0; k < handlerXids.size(); k+=1) {
-                        AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(handlerXids.getString(k));
-                        if(eh == null) {
-                            throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
-                        }
-                        
-                    }
 
                 if (ped == null) {
                 	String typeStr = pedObject.getString("type");
@@ -1826,6 +1816,17 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     eventDetectors.add(dped);
                 }
 
+                JsonArray handlerXids = pedObject.getJsonArray("handlers");
+                if(handlerXids != null)
+                    for(int k = 0; k < handlerXids.size(); k+=1) {
+                        AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(handlerXids.getString(k));
+                        if(eh == null) {
+                            throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
+                        }else {
+                            ped.addAddedEventHandler(eh);
+                        }
+                    }
+                
                 reader.readInto(ped, pedObject);
             }
         }

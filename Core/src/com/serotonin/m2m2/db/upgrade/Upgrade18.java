@@ -5,6 +5,7 @@ package com.serotonin.m2m2.db.upgrade;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +14,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
 
 public class Upgrade18 extends DBUpgrade {
 
@@ -92,9 +92,24 @@ public class Upgrade18 extends DBUpgrade {
 	        DeprecatedEventHandlerRowMapper mapper = new DeprecatedEventHandlerRowMapper();
 	        while(rs.next()) {
 	            DeprecatedEventHandlerRow dep = mapper.mapRow(rs, rs.getRow());
-	            EventHandlerDao.instance.addEventHandlerMapping(dep.id, dep.eventTypeName, dep.eventSubtypeName, dep.eventTypeRef1, dep.eventTypeRef2);
+	            addEventHandlerMapping(dep.id, dep.eventTypeName, dep.eventSubtypeName, dep.eventTypeRef1, dep.eventTypeRef2);
 	        }
 	        return null;
 	    }
+    	    
+        public void addEventHandlerMapping(int eventHandlerId, String typeName, String subtypeName,
+                int typeRef1, int typeRef2) {
+            if (subtypeName == null)
+                ejt.doInsert(
+                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?,?,?,?)",
+                        new Object[] {eventHandlerId, typeName, typeRef1, typeRef2},
+                        new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+            else
+                ejt.doInsert(
+                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?,?,?,?,?)",
+                        new Object[] {eventHandlerId, typeName, subtypeName, typeRef1, typeRef2},
+                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                Types.INTEGER});
+        }
 	}
 }

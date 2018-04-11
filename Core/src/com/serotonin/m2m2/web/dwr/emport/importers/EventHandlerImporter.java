@@ -1,8 +1,6 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -49,21 +47,18 @@ public class EventHandlerImporter extends Importer {
 
         JsonObject et = json.getJsonObject("eventType");
         JsonArray ets = json.getJsonArray("eventTypes");
-        EventType eventType = null;
-        List<EventType> eventTypes = null;
         
         try {
+            ctx.getReader().readInto(handler, json);
+            
             // Find the event type.
             if(et != null)
-                eventType = ctx.getReader().read(EventType.class, et);
+                handler.addAddedEventType(ctx.getReader().read(EventType.class, et));
             else if(ets != null) {
-                eventTypes = new ArrayList<EventType>(ets.size());
                 Iterator<JsonValue> iter = ets.iterator();
                 while(iter.hasNext())
-                    eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
+                    handler.addAddedEventType(ctx.getReader().read(EventType.class, iter.next()));
             }
-
-            ctx.getReader().readInto(handler, json);
 
             // Now validate it. Use a new response object so we can distinguish errors in this vo from other errors.
             ProcessResult voResponse = new ProcessResult();
@@ -73,32 +68,8 @@ public class EventHandlerImporter extends Importer {
             else {
                 // Sweet.
                 boolean isnew = handler.getId() == Common.NEW_ID;
-
-                //Commented out at decoupling handlers and detectors because in theory it could be a different eventType
-                // and both should remain.
-//                if (!isnew && et != null) {
-//                    // Check if the event type has changed.
-//                    EventType oldEventType = ctx.getEventHandlerDao().getEventType(handler.getId());
-//                    if (!oldEventType.equals(eventType)) {
-//                        // Event type has changed. Delete the old one.
-//                        ctx.getEventHandlerDao().deleteEventHandler(handler.getId());
-//
-//                        // Call it new
-//                        handler.setId(Common.NEW_ID);
-//                        isnew = true;
-//                    }
-//                }
-
                 // Save it.
-                if(et != null)
-                    ctx.getEventHandlerDao().saveEventHandler(eventType, handler);
-                else
-                    ctx.getEventHandlerDao().saveEventHandler(handler);
-                
-                if(eventTypes != null)
-                    for(EventType type : eventTypes)
-                        ctx.getEventHandlerDao().addEventHandlerMappingIfMissing(handler.getId(), type);
-                
+                ctx.getEventHandlerDao().saveFull(handler);
                 addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
             }
         }

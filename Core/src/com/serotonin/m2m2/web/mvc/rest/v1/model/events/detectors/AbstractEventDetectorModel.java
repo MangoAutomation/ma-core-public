@@ -9,9 +9,12 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.exception.ValidationException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractVoModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
@@ -61,9 +64,21 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	    return EventHandlerDao.instance.getEventHandlerXids(this.data.getEventType());
 	}
 	
-	public void setHandlers(List<String> handlerXids) {
-	    this.data.addEventHandlers(handlerXids);;
-	}
+    public void setHandlers(List<String> handlerXids) {
+        if (handlerXids != null) {
+            ProcessResult processResult = new ProcessResult();
+            for (String xid : handlerXids) {
+                AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(xid);
+                if (eh == null)
+                    processResult.addContextualMessage("handlers",
+                            "rest.validation.xidDoesNotExist", "EventHandler", xid);
+                else
+                    data.addAddedEventHandler(eh);
+            }
+            if (processResult.getHasMessages())
+                throw new ValidationException(processResult);
+        }
+    }
 
 	/**
 	 * @param def

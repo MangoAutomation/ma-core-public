@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -25,6 +27,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 
@@ -151,31 +154,31 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
     
     @Override
     public void delete(AbstractEventDetectorVO<?> vo, String initiatorId) {
-        if (vo != null) {
-            super.delete(vo, initiatorId);
-            //Also update the Event Handlers
-            ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
-                    new Object[] { vo.getEventType().getType(), vo.getSourceId(), vo.getId() });
-
-            AuditEventType.raiseDeletedEvent(this.typeName, vo);
+        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                if (vo != null) {
+                    EventDetectorDao.super.delete(vo, initiatorId);
+                    //Also update the Event Handlers
+                    ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
+                            new Object[] { vo.getEventType().getType(), vo.getSourceId(), vo.getId() });
+                }
+            }
+        });
+    }
+    
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#saveRelationalData(com.serotonin.m2m2.vo.AbstractBasicVO, boolean)
+     */
+    @Override
+    public void saveRelationalData(AbstractEventDetectorVO<?> vo, boolean insert) {
+        if(vo.getAddedEventHandlers() != null) {
+            EventTypeVO et = vo.getEventType();
+            for(AbstractEventHandlerVO<?> ehVo : vo.getAddedEventHandlers())
+                EventHandlerDao.instance.addEventHandlerMappingIfMissing(ehVo.getId(), et.createEventType());
         }
     }
     
-    @Override
-    public void save(AbstractEventDetectorVO<?> vo, String initiatorId) {
-        if (vo.getId() <= Common.NEW_ID) {
-            insert(vo, initiatorId);
-        }
-        else {
-            update(vo, initiatorId);
-        }
-        
-        if(vo.getAddedEventHandlers() != null) {
-            EventTypeVO et = vo.getEventType();
-            for(String xid : vo.getAddedEventHandlers())
-                EventHandlerDao.instance.addEventHandlerMappingIfMissing(xid, et);
-        }
-    }
     /**
      * Get all with given source id.
      * Ordered by detector id.

@@ -30,16 +30,16 @@ import com.serotonin.validation.StringValidation;
 
 public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
-
-    //TODO Replace this with superclass name,enabled when we redo the UI
-    // caution about JSON emport
-    @JsonProperty
-    private String alias;
+    
     @JsonProperty
     private boolean disabled;
     
     private EventHandlerDefinition<T> definition;
     
+    /**
+     * These define any new mappings for this handler,
+     * they will be added when the handler is saved.
+     */
     List<EventType> addedEventTypes = null;
 
     /**
@@ -64,12 +64,20 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         return new TranslatableMessage(this.definition.getDescriptionKey());
     }
 
+    /**
+     * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
+     */
+    @Deprecated
     public String getAlias() {
-        return alias;
+        return name;
     }
-
+    
+    /**
+     * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
+     * @param alias
+     */
     public void setAlias(String alias) {
-        this.alias = alias;
+        setName(alias);
     }
 
     public boolean isDisabled() {
@@ -98,15 +106,15 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 		return this.definition.getEventHandlerTypeName();
 	}
 	
-	public void addEventType(EventType eventType) {
-	    if(addedEventTypes == null)
-	        addedEventTypes = new ArrayList<EventType>(1);
-	    this.addedEventTypes.add(eventType);
-	}
-	
-	public List<EventType> getAddedEventTypes() {
-	    return addedEventTypes;
-	}
+    public void addAddedEventType(EventType eventType) {
+        if (addedEventTypes == null)
+            addedEventTypes = new ArrayList<EventType>(1);
+        this.addedEventTypes.add(eventType);
+    }
+
+    public List<EventType> getAddedEventTypes() {
+        return addedEventTypes;
+    }
 	
     public void validate(ProcessResult response) {
     	//Not using name so don't super validate
@@ -116,6 +124,9 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
             response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
         else if (!isXidUnique(xid, id))
             response.addContextualMessage("xid", "validate.xidUsed");
+    	
+    	//addedEventTypes are not validated because it assumed they 
+    	// must be valid to be created and make it into this list
     }
 
     @SuppressWarnings("unchecked")
@@ -147,12 +158,13 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
+        writer.writeEntry("alias", name);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
         writer.writeEntry("eventTypes", EventHandlerDao.instance.getEventTypesForHandler(id));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	//Don't read xid
+        name = jsonObject.getString("alias");
     }
 }

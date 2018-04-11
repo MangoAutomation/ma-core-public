@@ -54,6 +54,9 @@ public class EventDetectorImporter extends Importer {
                     ModuleRegistry.getEventDetectorDefinitionTypes());
             return;
         }
+
+        AbstractEventDetectorVO<?> importing = def.baseCreateEventDetectorVO();
+        importing.setDefinition(def);
         
         JsonArray handlerXids = json.getJsonArray("handlers");
         if(handlerXids != null)
@@ -62,11 +65,11 @@ public class EventDetectorImporter extends Importer {
                 if(eh == null) {
                     addFailureMessage("emport.eventHandler.missing", handlerXids.getString(k));
                     return;
+                }else {
+                    importing.addAddedEventHandler(eh);
                 }
             }
         
-        AbstractEventDetectorVO<?> importing = def.baseCreateEventDetectorVO();
-        importing.setDefinition(def);
         String xid = json.getString("xid");
 
         // Create a new one

@@ -35,14 +35,6 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
 		return this.data.getDefinition().getEventHandlerTypeName();
 	}
 	
-	public String getAlias(){
-		return this.data.getAlias();
-	}
-	
-	public void setAlias(String alias){
-		this.data.setAlias(alias);
-	}
-	
     public boolean isDisabled() {
         return this.data.isDisabled();
     }
@@ -66,7 +58,7 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
 	
 	public void setEventTypes(List<EventTypeModel> eventTypes) {
 	    for(EventTypeModel etm : eventTypes) {
-	        this.data.addEventType(etm.getEventTypeInstance());
+	        this.data.addAddedEventType(etm.getEventTypeInstance());
 	    }
 	}
 	

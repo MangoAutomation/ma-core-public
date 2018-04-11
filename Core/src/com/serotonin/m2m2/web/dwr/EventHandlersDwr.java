@@ -323,12 +323,14 @@ public class EventHandlersDwr extends BaseDwr {
         vo.setXid(StringUtils.isBlank(xid) ? EventHandlerDao.instance.generateUniqueXid() : xid);
         vo.setAlias(alias);
         vo.setDisabled(disabled);
-
+        
+        vo.addAddedEventType(type.createEventType());
+        
         ProcessResult response = new ProcessResult();
         vo.validate(response);
 
         if (!response.getHasMessages()) {
-        	EventHandlerDao.instance.saveEventHandler(type, vo);
+        	EventHandlerDao.instance.save(vo);
             response.addData("handler", vo);
         }
 
@@ -341,7 +343,7 @@ public class EventHandlersDwr extends BaseDwr {
         List<EventType> eventTypes = EventHandlerDao.instance.getEventTypesForHandler(handlerId);
         for(EventType et : eventTypes)
             Permissions.ensureEventTypePermission(user, et);
-        EventHandlerDao.instance.deleteEventHandler(handlerId);
+        EventHandlerDao.instance.delete(handlerId);
     }
 
     @DwrPermission(user = true)

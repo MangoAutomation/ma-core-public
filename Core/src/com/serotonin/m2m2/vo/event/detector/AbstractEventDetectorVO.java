@@ -6,7 +6,6 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,9 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -43,7 +40,10 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	/* Source of the detector */
 	protected int sourceId;
 	
-	private List<String> addedEventHandlerXids = null;
+	/**
+	 * Handlers that will be added to this detector upon save.
+	 */
+	private List<AbstractEventHandlerVO<?>> addedEventHandlers = null;
 	
 	/**
 	 * Our defintion
@@ -134,13 +134,13 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	public void setSourceId(int id){
 		sourceId = id;
 	}
-	public void addEventHandlers(List<String> eventHandlerXids) {
-	    if(addedEventHandlerXids == null)
-	        addedEventHandlerXids = new ArrayList<String>(eventHandlerXids.size());
-	    addedEventHandlerXids.addAll(eventHandlerXids);
+	public void addAddedEventHandler(AbstractEventHandlerVO<?> eventHandler) {
+	    if(addedEventHandlers == null)
+	        addedEventHandlers = new ArrayList<>();
+	    addedEventHandlers.add(eventHandler);
 	}
-	public List<String> getAddedEventHandlers() {
-	    return addedEventHandlerXids;
+	public List<AbstractEventHandlerVO<?>> getAddedEventHandlers() {
+	    return addedEventHandlers;
 	}
 	
 	public EventDetectorDefinition<T> getDefinition() {
@@ -176,11 +176,11 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
                 response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         }
         
-        if(addedEventHandlerXids != null)
-            for(String ehXid : addedEventHandlerXids) {
-                AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(ehXid);
-                if(eh == null)
-                    response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", ehXid));
+        //Verify that they each exist as we will create a mapping when we save
+        if(addedEventHandlers != null)
+            for(AbstractEventHandlerVO<?> eh : addedEventHandlers) {
+                if(EventHandlerDao.instance.getXidById(eh.getId()) == null)
+                    response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", eh.getXid()));
             }
 	}
 
@@ -202,17 +202,5 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         name = jsonObject.getString("alias");
-        
-        //In keeping with data points, the import can only add mappings
-        //  The "handlers" key is removed by the EventDetectorRowMapper
-        JsonArray handlers = jsonObject.getJsonArray("handlers");
-        if(handlers != null) {
-            addedEventHandlerXids = new ArrayList<String>(handlers.size());
-            Iterator<JsonValue> iter = handlers.iterator();
-            while(iter.hasNext())
-                addedEventHandlerXids.add(iter.next().toString());
-        }
-        
-        
     }
 }
