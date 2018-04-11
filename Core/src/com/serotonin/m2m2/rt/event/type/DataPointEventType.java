@@ -13,6 +13,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataPointEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
@@ -138,4 +140,18 @@ public class DataPointEventType extends EventType {
 	public EventTypeModel asModel() {
 		return new DataPointEventTypeModel(this);
 	}
+	
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
+     */
+    @Override
+    public boolean hasPermission(User user) {
+        if (user.isAdmin())
+            return true;
+        
+        DataPointVO point = DataPointDao.instance.get(dataPointId);
+        if(point == null)
+            return false;
+        return Permissions.hasDataPointReadPermission(user, point);
+    }
 }

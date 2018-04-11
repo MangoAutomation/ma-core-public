@@ -11,6 +11,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.PublisherEventTypeModel;
@@ -126,5 +127,14 @@ public class PublisherEventType extends EventType {
 	@Override
 	public EventTypeModel asModel() {
 		return new PublisherEventTypeModel(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
+	 */
+	@Override
+	public boolean hasPermission(User user) {
+	    //TODO No Publisher Permissions yet
+	    return user.isAdmin();
 	}
 }

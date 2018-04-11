@@ -513,7 +513,15 @@ public class EventHandlersDwr extends BaseDwr {
 			@Override
 			public EventTypeModel asModel() {
 				return null; //Not to be used
-			}}, Common.timer.currentTimeMillis(), false, AlarmLevels.INFORMATION, 
+			}
+			/* (non-Javadoc)
+			 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
+			 */
+			@Override
+			public boolean hasPermission(User user) {
+			    return true;
+			}
+		}, Common.timer.currentTimeMillis(), false, AlarmLevels.INFORMATION, 
     			new TranslatableMessage("common.test"), null);
     	return new EventInstanceWrapper(ei);
     }

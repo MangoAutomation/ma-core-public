@@ -22,6 +22,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.util.ExportNames;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.SystemEventTypeModel;
@@ -225,5 +226,13 @@ public class SystemEventType extends EventType {
 	@Override
 	public EventTypeModel asModel() {
 		return new SystemEventTypeModel(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
+	 */
+	@Override
+	public boolean hasPermission(User user) {
+	    return user.isAdmin();
 	}
 }

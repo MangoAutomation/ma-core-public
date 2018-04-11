@@ -10,7 +10,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -204,22 +203,7 @@ public class Permissions {
     // Event access
     //
     public static boolean hasEventTypePermission(User user, EventType eventType) {
-        if (hasAdmin(user))
-            return true;
-
-        if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT)){
-            DataPointVO point = DataPointDao.instance.get(eventType.getDataPointId());
-            if(point == null)
-            	return false;
-            return hasDataPointReadPermission(user, point);
-        }else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE)){
-        	DataSourceVO<?> ds = DataSourceDao.instance.get(eventType.getDataSourceId());
-        	if(ds == null)
-        		return false;
-        	return permissionContains(ds.getEditPermission(), user.getPermissions());
-        }
-
-        return false;
+        return eventType.hasPermission(user);
     }
 
     public static void ensureEventTypePermission(User user, EventType eventType) throws PermissionException {

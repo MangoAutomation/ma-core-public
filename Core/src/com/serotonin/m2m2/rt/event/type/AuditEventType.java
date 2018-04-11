@@ -374,4 +374,12 @@ public class AuditEventType extends EventType{
 	public EventTypeModel asModel() {
 		return new AuditEventTypeModel(this);
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
+	 */
+	@Override
+	public boolean hasPermission(User user) {
+	    return user.isAdmin();
+	}
 }
