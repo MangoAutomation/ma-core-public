@@ -126,14 +126,25 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	    String prettyLimit = dataPoint.getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC);
 		TranslatableMessage durationDescription = getDurationDescription();
 		
-		if(checkIncrease && checkDecrease)
-            return new TranslatableMessage("event.detectorVo.analogChangePeriod", prettyLimit, durationDescription);
-        else if(checkIncrease)
-            return new TranslatableMessage("event.detectorVo.analogIncreasePeriod", prettyLimit, durationDescription);
-        else if(checkDecrease)
-            return new TranslatableMessage("event.detectorVo.analogDecreasePeriod", prettyLimit, durationDescription);
-        else
-            throw new ShouldNeverHappenException("Illegal state for analog change detector" + xid);
+		if(durationDescription != null) {
+    		if(checkIncrease && checkDecrease)
+                return new TranslatableMessage("event.detectorVo.analogChangePeriod", prettyLimit, durationDescription);
+            else if(checkIncrease)
+                return new TranslatableMessage("event.detectorVo.analogIncreasePeriod", prettyLimit, durationDescription);
+            else if(checkDecrease)
+                return new TranslatableMessage("event.detectorVo.analogDecreasePeriod", prettyLimit, durationDescription);
+            else
+                throw new ShouldNeverHappenException("Illegal state for analog change detector" + xid);
+		} else {
+		    if(checkIncrease && checkDecrease)
+                return new TranslatableMessage("event.detectorVo.analogChange", prettyLimit, durationDescription);
+            else if(checkIncrease)
+                return new TranslatableMessage("event.detectorVo.analogIncrease", prettyLimit, durationDescription);
+            else if(checkDecrease)
+                return new TranslatableMessage("event.detectorVo.analogDecrease", prettyLimit, durationDescription);
+            else
+                throw new ShouldNeverHappenException("Illegal state for analog change detector" + xid);
+		}
 	}
 	
 	@Override
