@@ -143,7 +143,10 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
     }
 
     protected User getUser(WebSocketSession session) {
-        return (User) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.USER_ATTR);
+        if (this.authenticationRequired) {
+            return (User) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.USER_ATTR);
+        }
+        return null;
     }
 
     @Override
