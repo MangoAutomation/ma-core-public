@@ -137,11 +137,11 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
                 throw new ShouldNeverHappenException("Illegal state for analog change detector" + xid);
 		} else {
 		    if(checkIncrease && checkDecrease)
-                return new TranslatableMessage("event.detectorVo.analogChange", prettyLimit, durationDescription);
+                return new TranslatableMessage("event.detectorVo.analogChange", prettyLimit);
             else if(checkIncrease)
-                return new TranslatableMessage("event.detectorVo.analogIncrease", prettyLimit, durationDescription);
+                return new TranslatableMessage("event.detectorVo.analogIncrease", prettyLimit);
             else if(checkDecrease)
-                return new TranslatableMessage("event.detectorVo.analogDecrease", prettyLimit, durationDescription);
+                return new TranslatableMessage("event.detectorVo.analogDecrease", prettyLimit);
             else
                 throw new ShouldNeverHappenException("Illegal state for analog change detector" + xid);
 		}
