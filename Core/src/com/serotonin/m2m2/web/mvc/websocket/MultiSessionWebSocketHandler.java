@@ -20,8 +20,8 @@ public abstract class MultiSessionWebSocketHandler extends MangoWebSocketHandler
         super();
     }
 
-    public MultiSessionWebSocketHandler(boolean closeOnLogout) {
-        super(closeOnLogout);
+    public MultiSessionWebSocketHandler(boolean authenticationRequired) {
+        super(authenticationRequired);
     }
 
     @Override

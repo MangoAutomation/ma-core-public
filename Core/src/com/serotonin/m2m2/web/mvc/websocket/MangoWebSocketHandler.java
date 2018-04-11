@@ -5,23 +5,15 @@
 package com.serotonin.m2m2.web.mvc.websocket;
 
 import java.io.IOException;
-import java.security.Principal;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.adapter.jetty.JettyWebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,8 +21,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.BearerAuthenticationToken;
 
 /**
  * @author Terry Packer
@@ -43,10 +33,9 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
     public static final int DEFAULT_PING_TIMEOUT_MS = 10000;
 
     /**
-     * Close the socket after our HttpSession is invalidated or when the authentication token is not valid.
-     * i.e. true = authentication required
+     * If true, close the socket after our HttpSession is invalidated or when the authentication token is not valid.
      */
-    protected final boolean closeOnLogout;
+    protected final boolean authenticationRequired;
 
     /**
      * Enable Ping/Pong Connection Tracking
@@ -64,22 +53,16 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     protected ObjectMapper jacksonMapper;
     @Autowired
-    protected AuthenticationManager authenticationManager;
-    @Autowired
-    protected MangoSessionRegistry sessionRegistry;
+    protected MangoWebSocketSessionTracker sessionTracker;
 
     public MangoWebSocketHandler() {
         this(true);
     }
 
-    public MangoWebSocketHandler(boolean closeOnLogout) {
-        this.closeOnLogout = closeOnLogout;
+    public MangoWebSocketHandler(boolean authenticationRequired) {
+        this.authenticationRequired = authenticationRequired;
         this.pingPongTimeoutMs = Common.envProps.getInt("web.websocket.pingTimeoutMs", DEFAULT_PING_TIMEOUT_MS);
         this.usePingPong = this.pingPongTimeoutMs > 0;
-    }
-
-    public String httpSessionIdForSession(WebSocketSession session) {
-        return (String) session.getAttributes().get(HttpSessionHandshakeInterceptor.HTTP_SESSION_ID_ATTR_NAME);
     }
 
     /**
@@ -159,116 +142,15 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    /**
-     * Gets the Mango user for a WebSocketSession.
-     *
-     * Will return null when:
-     * <ul>
-     *   <li>There never was a user</li>
-     *   <li>Session was invalidated (user logged out, admin disabled them or changed their password)</li>
-     *   <li>JWT auth token has expired, been revoked or the private/public keys changed</li>
-     * </ul>
-     *
-     * TODO Mango 3.4 store the user and authentication in the WebSocketSession attributes using the handshake intercepter.
-     * Use the sessionDestroyed/user modified/JWT key changed events to replace the user in the attributes or close the session as appropriate.
-     * If we have a user modified and JWT key changed event we don't have to re-parse and re-validate the JWT token every time.
-     *
-     * @param session
-     * @return user or null
-     */
     protected User getUser(WebSocketSession session) {
-        User user = null;
-        Authentication authentication = null;
-
-        // get the user at the time of HTTP -> websocket upgrade
-        Principal principal = session.getPrincipal();
-        if (principal instanceof Authentication) {
-            authentication = (Authentication) principal;
-            Object authenticationPrincipal = authentication.getPrincipal();
-            if (authenticationPrincipal instanceof User) {
-                user = (User) authenticationPrincipal;
-            }
-        }
-
-        // user should never be null as long as the websocket URLs are protected by Spring Security
-        if (user != null) {
-            String httpSessionId = httpSessionIdForSession(session);
-            if (httpSessionId != null) {
-                SessionInformation sessionInformation = sessionRegistry.getSessionInformation(httpSessionId);
-                if (sessionInformation != null && !sessionInformation.isExpired()) {
-                    // we have a valid session
-                    // we dont have to check if the user is disabled etc as the session would be invalidated if the user was modified
-                    return user;
-                }
-            }
-
-            // no valid session, check for an authentication token
-            if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                PreAuthenticatedAuthenticationToken token = (PreAuthenticatedAuthenticationToken) authentication;
-                Object credentials = token.getCredentials();
-                if (credentials instanceof String) {
-                    String jwtString = (String) credentials;
-                    BearerAuthenticationToken bearerToken = new BearerAuthenticationToken(jwtString);
-
-                    /**
-                     * Re-authenticate the token as
-                     * a) The user might have been disabled
-                     * b) The user's tokens might have been revoked
-                     * c) The JWT private key might have changed
-                     */
-                    try {
-                        Authentication newAuthentication = this.authenticationManager.authenticate(bearerToken);
-                        Object newPrincipal = newAuthentication.getPrincipal();
-                        if (newPrincipal instanceof User) {
-                            return (User) newPrincipal;
-                        }
-                    } catch (AuthenticationException e) {
-                        // token is no longer valid
-                        // do nothing, just return null
-                    }
-                }
-            }
-        }
-
-        // no valid session or authentication token, close session if appropriate and return null
-        // TODO Mango 3.4 don't close sessions here (need token revoked event before we can remove this)
-        if (this.closeOnLogout) {
-            this.closeSession(session, NOT_AUTHENTICATED);
-        }
-
-        return null;
-    }
-
-    /**
-     * Retrieve a set of sessions which will be closed when the HTTP session is destroyed
-     * @param session
-     * @return
-     */
-    protected Set<WebSocketSession> sessionsForHttpSession(WebSocketSession session) {
-        @SuppressWarnings("unchecked")
-        Set<WebSocketSession> wssSet = (Set<WebSocketSession>) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.WSS_FOR_HTTP_SESSION_ATTR);
-        return wssSet;
-    }
-
-    protected void addToSessionsForHttpSession(WebSocketSession session) {
-        Set<WebSocketSession> wssSet = sessionsForHttpSession(session);
-        if (wssSet != null) {
-            wssSet.add(session);
-        }
-    }
-
-    protected void removeFromSessionsForHttpSession(WebSocketSession session) {
-        Set<WebSocketSession> wssSet = sessionsForHttpSession(session);
-        if (wssSet != null) {
-            wssSet.remove(session);
-        }
+        return (User) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.USER_ATTR);
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         // only add sessions which should be closed when the session is destroyed
-        if (this.closeOnLogout) {
-            addToSessionsForHttpSession(session);
+        if (this.authenticationRequired) {
+            this.sessionTracker.afterConnectionEstablished(session);
         }
 
         if (this.usePingPong) {
@@ -278,14 +160,17 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        removeFromSessionsForHttpSession(session);
-        this.stopPingPong(session);
+        if (this.authenticationRequired) {
+            this.sessionTracker.afterConnectionClosed(session, status);
+        }
+
+        if (this.usePingPong) {
+            this.stopPingPong(session);
+        }
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        removeFromSessionsForHttpSession(session);
-        this.stopPingPong(session);
         if (session.isOpen()) {
             closeSession(session, new CloseStatus(CloseStatus.SERVER_ERROR.getCode(), exception.getMessage()));
         }

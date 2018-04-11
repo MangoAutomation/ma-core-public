@@ -17,7 +17,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
-import com.serotonin.m2m2.web.mvc.spring.events.AllAuthTokensRevokedEvent;
+import com.serotonin.m2m2.web.mvc.spring.events.AuthTokensRevokedEvent;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -70,7 +70,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
     public void resetKeys() {
         this.generateNewKeyPair();
-        this.context.publishEvent(new AllAuthTokensRevokedEvent(this));
+        this.context.publishEvent(new AuthTokensRevokedEvent(this));
     }
 
     public String generateToken(User user) {

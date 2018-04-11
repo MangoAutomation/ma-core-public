@@ -5,19 +5,24 @@ package com.serotonin.m2m2.web.mvc.spring.events;
 
 import org.springframework.context.ApplicationEvent;
 
+import com.serotonin.m2m2.vo.User;
+
 /**
  * @author Jared Wiltshire
  */
-public class AllAuthTokensRevokedEvent extends ApplicationEvent {
+public class UserCreatedEvent extends ApplicationEvent {
+
     private static final long serialVersionUID = 1L;
 
-    public AllAuthTokensRevokedEvent(Object source) {
+    private final User user;
+
+    public UserCreatedEvent(Object source, User user) {
         super(source);
+        this.user = user;
     }
 
-    @Override
-    public String toString() {
-        return "AllAuthTokensRevokedEvent []";
+    public User getUser() {
+        return user;
     }
 
 }

@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,7 +31,10 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
-import com.serotonin.m2m2.web.mvc.spring.events.UserAuthTokensRevokedEvent;
+import com.serotonin.m2m2.web.mvc.spring.events.UserCreatedEvent;
+import com.serotonin.m2m2.web.mvc.spring.events.UserDeletedEvent;
+import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
+import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent.UpdatedFields;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 public class UserDao extends AbstractDao<User> {
@@ -137,6 +141,11 @@ public class UserDao extends AbstractDao<User> {
 
         if (handler != null)
             handler.notify("add", user);
+
+        ApplicationContext context = Common.getRootContext();
+        if (context != null) {
+            context.publishEvent(new UserCreatedEvent(this, user));
+        }
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -198,7 +207,21 @@ public class UserDao extends AbstractDao<User> {
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
 
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
-            if (user.getPasswordVersion() > originalPwVersion || permissionsChanged || user.isDisabled()) {
+            boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
+
+            ApplicationContext context = Common.getRootContext();
+            if (context != null) {
+                EnumSet<UpdatedFields> fields = EnumSet.noneOf(UserUpdatedEvent.UpdatedFields.class);
+                if (passwordChanged) {
+                    fields.add(UserUpdatedEvent.UpdatedFields.PASSWORD);
+                }
+                if (permissionsChanged) {
+                    fields.add(UserUpdatedEvent.UpdatedFields.PERMISSIONS);
+                }
+                context.publishEvent(new UserUpdatedEvent(this, user, fields));
+            }
+
+            if (passwordChanged || permissionsChanged || user.isDisabled()) {
                 exireSessionsForUser(old);
             }
 
@@ -245,6 +268,11 @@ public class UserDao extends AbstractDao<User> {
         if (handler != null)
             handler.notify("delete", user);
 
+        ApplicationContext context = Common.getRootContext();
+        if (context != null) {
+            context.publishEvent(new UserDeletedEvent(this, user));
+        }
+
         // expire the user's sessions
         exireSessionsForUser(user);
         userCache.remove(user.getUsername());
@@ -265,7 +293,7 @@ public class UserDao extends AbstractDao<User> {
 
         ApplicationContext context = Common.getRootContext();
         if (context != null) {
-            context.publishEvent(new UserAuthTokensRevokedEvent(this, user));
+            context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
         }
 
         userCache.remove(user.getUsername());
@@ -287,6 +315,11 @@ public class UserDao extends AbstractDao<User> {
 
         user.setPassword(LOCKED_PASSWORD);
         user.setPasswordVersion(newPasswordVersion);
+
+        ApplicationContext context = Common.getRootContext();
+        if (context != null) {
+            context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.PASSWORD)));
+        }
 
         // expire the user's sessions
         exireSessionsForUser(user);

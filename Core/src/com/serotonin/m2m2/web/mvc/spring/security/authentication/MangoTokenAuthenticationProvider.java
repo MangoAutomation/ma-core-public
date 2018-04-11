@@ -13,7 +13,6 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.vo.User;
@@ -49,12 +48,12 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
         if (!(authentication instanceof BearerAuthenticationToken)) {
             return null;
         }
-        
+
         String bearerToken = (String) authentication.getCredentials();
 
         User user;
         Jws<Claims> jws;
-        
+
         try {
             jws = tokenAuthenticationService.parse(bearerToken);
             user = tokenAuthenticationService.verify(jws);
@@ -72,12 +71,12 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
         }
 
         userDetailsChecker.check(user);
-        
+
         if (log.isDebugEnabled()) {
             log.debug("Successfully authenticated user using JWT token, header: " + jws.getHeader() + ", body: " + jws.getBody());
         }
 
-        return new PreAuthenticatedAuthenticationToken(user, bearerToken, user.getAuthorities());
+        return new JwtAuthentication(user, bearerToken, jws, user.getAuthorities());
     }
 
     @Override

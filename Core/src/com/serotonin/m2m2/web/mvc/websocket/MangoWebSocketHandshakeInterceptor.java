@@ -3,112 +3,66 @@
  */
 package com.serotonin.m2m2.web.mvc.websocket;
 
-import java.io.IOException;
+import java.security.Principal;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.security.core.session.SessionDestroyedEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import com.serotonin.m2m2.web.mvc.spring.events.AllAuthTokensRevokedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserAuthTokensRevokedEvent;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Jared Wiltshire
  */
-public class MangoWebSocketHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
+@Component
+public class MangoWebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
-    public static final String WSS_FOR_HTTP_SESSION_ATTR = "WSS_FOR_HTTP_SESSION";
-    public static final String CLOSE_ON_LOGOUT_ATTR = "CLOSE_ON_LOGOUT";
+    public static final String HTTP_SESSION_ID_ATTR = "MA_HTTP_SESSION_ID";
+    public static final String USER_ATTR = "MA_USER";
 
-    /**
-     * Map of http session id to a set of websocket sessions which are associated with it
-     */
-    private final Map<String, Set<WebSocketSession>> sessionsByHttpSessionId = new ConcurrentHashMap<>();
-    private final Log log = LogFactory.getLog(this.getClass());
+    @Override
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+            WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
 
-    @Autowired
-    private ConfigurableApplicationContext context;
+        HttpSession session = getSession(request);
+        if (session != null) {
+            attributes.put(HTTP_SESSION_ID_ATTR, session.getId());
+        }
 
-    public MangoWebSocketHandshakeInterceptor() {
-        super();
-        this.setCopyAllAttributes(false);
-        this.setCreateSession(false);
-    }
+        // get the user at the time of HTTP -> websocket upgrade
+        Principal principal = request.getPrincipal();
+        if (principal instanceof Authentication) {
+            Authentication authentication = (Authentication) principal;
 
-    @PostConstruct
-    public void postConstruct() {
-        // SessionDestroyedEvent from root context are not propagated to the child web context. Register as a listener
-        // on the parent.
-        ConfigurableApplicationContext parent = (ConfigurableApplicationContext) context.getParent();
-
-        ApplicationListener<SessionDestroyedEvent> sessionDestroyedListener = this::sessionDestroyed;
-        ApplicationListener<UserAuthTokensRevokedEvent> userAuthTokensRevokedListener = this::userAuthTokensRevoked;
-        ApplicationListener<AllAuthTokensRevokedEvent> allAuthTokensRevokedListener = this::allAuthTokensRevoked;
-
-        parent.addApplicationListener(sessionDestroyedListener);
-        parent.addApplicationListener(userAuthTokensRevokedListener);
-        parent.addApplicationListener(allAuthTokensRevokedListener);
-    }
-
-    private void sessionDestroyed(SessionDestroyedEvent event) {
-        String httpSessionId = event.getId();
-        Set<WebSocketSession> wssSet = sessionsByHttpSessionId.remove(httpSessionId);
-        if (wssSet != null) {
-            for (WebSocketSession wss : wssSet) {
-                try {
-                    wss.close(MangoWebSocketHandler.NOT_AUTHENTICATED);
-                } catch (IOException e) {
-                    if (log.isErrorEnabled()) {
-                        log.error("Couldn't close WebSocket session for http session " + httpSessionId, e);
-                    }
-                }
+            Object authenticationPrincipal = authentication.getPrincipal();
+            if (authenticationPrincipal instanceof User) {
+                User user = (User) authenticationPrincipal;
+                attributes.put(USER_ATTR, user);
             }
         }
-    }
 
-    private void userAuthTokensRevoked(UserAuthTokensRevokedEvent event) {
-        // TODO implement
-        System.out.println(event);
-    }
-
-    private void allAuthTokensRevoked(AllAuthTokensRevokedEvent event) {
-        // TODO implement
-        System.out.println(event);
+        return true;
     }
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request,
-            ServerHttpResponse response, WebSocketHandler wsHandler,
-            Map<String, Object> attributes) throws Exception {
+    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
+            WebSocketHandler wsHandler, Exception exception) {
 
+    }
+
+    private HttpSession getSession(ServerHttpRequest request) {
         if (request instanceof ServletServerHttpRequest) {
             ServletServerHttpRequest serverRequest = (ServletServerHttpRequest) request;
-            HttpSession session = serverRequest.getServletRequest().getSession(false);
-
-            if (session != null) {
-                Set<WebSocketSession> wssSet = sessionsByHttpSessionId.computeIfAbsent(session.getId(), id -> {
-                    return ConcurrentHashMap.newKeySet();
-                });
-
-                attributes.put(WSS_FOR_HTTP_SESSION_ATTR, wssSet);
-            }
+            return serverRequest.getServletRequest().getSession(false);
         }
-
-        return super.beforeHandshake(request, response, wsHandler, attributes);
+        return null;
     }
+
 }
