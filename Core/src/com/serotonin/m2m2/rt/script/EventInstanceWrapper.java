@@ -10,6 +10,9 @@ public class EventInstanceWrapper {
 		this.event = event;
 	}
 	
+	public int getEventId() {
+	    return event.getId();
+	}
 	public EventType getEventTypeObject() {
 	    return event.getEventType();
 	}
@@ -52,6 +55,7 @@ public class EventInstanceWrapper {
 		StringBuilder builder = new StringBuilder();
     	builder.append("{\n");
     	
+    	builder.append("getEventId(): int,\n");
     	builder.append("getEventTypeObject(): EventType,\n");
     	builder.append("getType(): String,\n");
     	builder.append("getSubtype(): String,\n");
