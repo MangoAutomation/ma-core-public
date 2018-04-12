@@ -117,6 +117,8 @@ public class PointValueTimeStreamScriptUtility {
         public void execute() {
             createQuantizerMap();
             Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
+            //TODO Mango 3.4 I believe here you would want to go through the quantizer map and 'finish' anything that isn't done to ensure the empty remaining periods 
+            // get output (and also for points that didn't have any data in the query)
         }
         
         @Override
