@@ -18,32 +18,33 @@ import com.serotonin.m2m2.util.timeout.TimeoutTask;
 
 /**
  * Class to test and disconnect WebSocket sessions if the Client goes away without notifying us
- * 
+ *
  * Saves Ping/Pong state in Session attributes
- * 
+ *
  * Not convinced to use the real time timer for this, perhaps it should be a WorkItem?
- * 
+ *
  * @author Terry Packer
  *
  */
 public 	class MangoPingPongTracker extends TimeoutClient {
-	
-	private final Log log = LogFactory.getLog(this.getClass());
-			
-	private WebSocketSession session;
-	private int timeout;
-	private TimeoutTask task;
 
-	public MangoPingPongTracker(WebSocketSession session, int timeout) {
-	    this.session = session;
-	    this.timeout = timeout;
+    private final Log log = LogFactory.getLog(this.getClass());
 
-	    if (this.session.isOpen()) {
-	        this.sendPing();
-	    }
-	}
-	
-	public void sendPing() {
+    private WebSocketSession session;
+    private int timeout;
+    private TimeoutTask task;
+    private volatile boolean isShutdown = false;
+
+    public MangoPingPongTracker(WebSocketSession session, int timeout) {
+        this.session = session;
+        this.timeout = timeout;
+
+        if (this.session.isOpen()) {
+            this.sendPing();
+        }
+    }
+
+    public void sendPing() {
         try {
             session.getAttributes().put(MangoWebSocketHandler.RECEIVED_PONG, Boolean.FALSE);
             session.sendMessage(new PingMessage());
@@ -52,54 +53,58 @@ public 	class MangoPingPongTracker extends TimeoutClient {
                 log.error("Error sending websocket ping", e);
             }
         } finally {
-            task = new TimeoutTask(this.timeout, this);
+            // never reschedule the task if shutdown was called
+            if (!this.isShutdown) {
+                task = new TimeoutTask(this.timeout, this);
+            }
         }
-	}
-	
-	public void shutdown() {
-	    if (this.task != null) {
-	        this.task.cancel();
-	    }
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#scheduleTimeout(long)
-	 */
-	@Override
-	public void scheduleTimeout(long fireTime) {
-		
-		//Shut'er down if we are already dead
-		if (!this.session.isOpen())
-			return;
-		
-		Boolean receivedPong = (Boolean) this.session.getAttributes().get(MangoWebSocketHandler.RECEIVED_PONG);
-		if (receivedPong) {
-			this.sendPing();
-		} else {
-			try {
-				session.close(new CloseStatus(CloseStatus.SESSION_NOT_RELIABLE.getCode(), "Didn't receive Pong from Endpoint within " + timeout + " ms."));
-			} catch (IOException e) {
+    }
+
+    public void shutdown() {
+        this.isShutdown = true;
+        if (this.task != null) {
+            this.task.cancel();
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#scheduleTimeout(long)
+     */
+    @Override
+    public void scheduleTimeout(long fireTime) {
+
+        //Shut'er down if we are already dead
+        if (!this.session.isOpen())
+            return;
+
+        Boolean receivedPong = (Boolean) this.session.getAttributes().get(MangoWebSocketHandler.RECEIVED_PONG);
+        if (receivedPong) {
+            this.sendPing();
+        } else {
+            try {
+                session.close(new CloseStatus(CloseStatus.SESSION_NOT_RELIABLE.getCode(), "Didn't receive Pong from Endpoint within " + timeout + " ms."));
+            } catch (IOException e) {
                 if (log.isErrorEnabled()) {
                     log.error("Error closing websocket session after poing timeout", e);
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
-	 */
-	@Override
-	public String getThreadName() {
-		return "Mango ping pong tracker";
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+     */
+    @Override
+    public String getThreadName() {
+        return "Mango ping pong tracker";
+    }
 
-	private static final String taskId = "MangoPingPongTracker-";
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return taskId + session.getId();
-	}
+    private static final String taskId = "MangoPingPongTracker-";
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+     */
+    @Override
+    public String getTaskId() {
+        return taskId + session.getId();
+    }
 }
