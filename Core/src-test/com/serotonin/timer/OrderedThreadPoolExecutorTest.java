@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
@@ -28,12 +29,16 @@ public class OrderedThreadPoolExecutorTest {
     final long sleepMs = 2;
     boolean printResults = false;
     
+    /**
+     * Test inserting tasks faster than they can be run and ensure they run in insertion order
+     * @throws InterruptedException
+     */
     @Test
     public void testFailedExecutions() throws InterruptedException {
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
-        final int taskCount = 10000;
+        final int taskCount = 100;
         final long timeStep = 1;
         final List<TestTask> toProcess = new ArrayList<>();
         final List<TestTask> processed = new ArrayList<>();
@@ -79,17 +84,31 @@ public class OrderedThreadPoolExecutorTest {
             };
         }.start();
         
-        //Sleep to ensure all tasks ran
-        Thread.sleep(taskCount * sleepMs + 200);
+        //Sleep to ensure all tasks ran and return if they did
+        int waitCount = taskCount + 100;
+        for(int i=0; i<waitCount; i++) {
+            Thread.sleep(sleepMs);
+            if(!exe.queueExists(taskId))
+                break;
+        }
+
+        //Did we run all the tasks?
+        LimitedTaskQueue queue = exe.getTaskQueue(taskId);
+        if(queue != null)
+            fail("non empty queue");
         
+        //Check again to make sure they actually ran
+        Assert.assertEquals(toProcess.size(), processed.size());
+        
+        for(int i=0; i<toProcess.size(); i++) {
+            Assert.assertEquals(toProcess.get(i).runId, processed.get(i).runId);
+        }
+        
+        //Not all tasks finished, why?
         if(printResults) {
             for(TestTask test : processed)
                 System.out.println(test.toString());
         }
-        
-        LimitedTaskQueue queue = exe.getTaskQueue(taskId);
-        if(queue != null)
-            fail("non empty queue");
     }
     
     class TestTask extends Task {

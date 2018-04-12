@@ -403,7 +403,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      * @author Terry Packer
      *
      */
-    class LimitedTaskQueue extends ArrayDeque<OrderedTaskCollection>{
+    public class LimitedTaskQueue extends ArrayDeque<OrderedTaskCollection>{
 
 		private static final long serialVersionUID = 1L;
 		protected int limit;
@@ -462,7 +462,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      * @author Terry Packer
      *
      */
-    class TimePriorityLimitedTaskQueue extends LimitedTaskQueue{
+    public class TimePriorityLimitedTaskQueue extends LimitedTaskQueue{
 
 		private static final long serialVersionUID = 1L;
 		
