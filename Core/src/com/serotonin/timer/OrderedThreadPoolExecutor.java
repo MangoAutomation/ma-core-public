@@ -271,10 +271,36 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @param taskId
 	 */
 	public void updateDefaultQueueSize(int newSize, String taskId){
-        LimitedTaskQueue dependencyQueue = keyedTasks.get(taskId);
-        if (dependencyQueue != null) {
-            dependencyQueue.setLimit(newSize);
-        }
+	    synchronized(keyedTasks) {
+            LimitedTaskQueue dependencyQueue = keyedTasks.get(taskId);
+            if (dependencyQueue != null) {
+                dependencyQueue.setLimit(newSize);
+            }
+	    }
+	}
+	
+	/**
+	 * Removes the queue from the map and flushes it's tasks.
+	 * @param taskId
+	 */
+	public void removeAndFlushTaskQueue(String taskId) {
+	    synchronized(keyedTasks) {
+            LimitedTaskQueue dependencyQueue = keyedTasks.remove(taskId);
+            if (dependencyQueue != null) {
+                //TODO run all
+            }
+	    }
+	}
+	
+	/**
+	 * Get the task queue for observation
+	 * @param taskId
+	 * @return
+	 */
+	public LimitedTaskQueue getTaskQueue(String taskId) {
+	    synchronized(keyedTasks) {
+	        return keyedTasks.get(taskId);
+	    }
 	}
 	
 	/**
@@ -282,7 +308,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @param taskId
 	 * @return
 	 */
-	public boolean queueExists(Object taskId){
+	public boolean queueExists(String taskId){
 		synchronized (keyedTasks){
 			return keyedTasks.containsKey(taskId);
 		}

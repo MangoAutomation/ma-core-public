@@ -1,4 +1,4 @@
-package com.serotonin.timer.test;
+package com.serotonin.timer;
 
 import java.util.Date;
 
