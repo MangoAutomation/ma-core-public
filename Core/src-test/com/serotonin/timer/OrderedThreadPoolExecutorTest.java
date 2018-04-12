@@ -6,7 +6,8 @@ package com.serotonin.timer;
 
 import static org.junit.Assert.fail;
 
-import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,12 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Test;
 
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
-import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.OrderedThreadPoolExecutor.LimitedTaskQueue;
-import com.serotonin.timer.RejectedTaskReason;
-import com.serotonin.timer.SystemTimeSource;
-import com.serotonin.timer.Task;
-import com.serotonin.timer.TaskWrapper;
 
 /**
  *
@@ -39,8 +35,8 @@ public class OrderedThreadPoolExecutorTest {
         final String taskId = "TSK_FAIL";
         final int taskCount = 10000;
         final long timeStep = 1;
-        final ArrayDeque<TestTask> toProcess = new ArrayDeque<>();
-        final ArrayDeque<TestTask> processed = new ArrayDeque<>();
+        final List<TestTask> toProcess = new ArrayList<>();
+        final List<TestTask> processed = new ArrayList<>();
         final AtomicLong time = new AtomicLong();
         
         OrderedThreadPoolExecutor exe = new OrderedThreadPoolExecutor(
@@ -69,8 +65,8 @@ public class OrderedThreadPoolExecutorTest {
         //Starup a new thread that inserts failing tasks
         new Thread() {
             public void run() {
-                TestTask task; 
-                while((task = toProcess.poll()) != null) {
+                
+                for(TestTask task : toProcess) {
                     if(printResults)
                         System.out.println("Scheduling " + task.runId);
                     exe.execute(new TaskWrapper(task, time.getAndAdd(timeStep)));
@@ -87,10 +83,8 @@ public class OrderedThreadPoolExecutorTest {
         Thread.sleep(taskCount * sleepMs + 200);
         
         if(printResults) {
-            TestTask test; 
-            while((test = processed.poll()) != null) {
+            for(TestTask test : processed)
                 System.out.println(test.toString());
-            }
         }
         
         LimitedTaskQueue queue = exe.getTaskQueue(taskId);
@@ -102,14 +96,14 @@ public class OrderedThreadPoolExecutorTest {
 
         final int runId;
         long runtime = -1;
-        final ArrayDeque<TestTask> processed;
+        final List<TestTask> processed;
         
         /**
          * @param name
          * @param id
          * @param queueSize
          */
-        public TestTask(String name, String id, int queueSize, int runId, final ArrayDeque<TestTask> processed) {
+        public TestTask(String name, String id, int queueSize, int runId, final List<TestTask> processed) {
             super(name, id, queueSize);
             this.runId = runId;
             this.processed = processed;
