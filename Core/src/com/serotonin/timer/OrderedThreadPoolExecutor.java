@@ -208,8 +208,10 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
             wrappedTask = wrap(worker, dependencyQueue);
             // Either add or reject
             if (!first)
-                if (!dependencyQueue.add(wrappedTask, this))
-                    return; // Was rejected so nothing to do
+                synchronized(dependencyQueue) {
+                    if (!dependencyQueue.add(wrappedTask, this))
+                        return; // Was rejected so nothing to do
+                }
         }
 
         // execute and reject methods can block, call them outside synchronize block
@@ -242,7 +244,9 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                     keyedTasks.remove(t.wrapper.task.id);
                 }else{
                     //Could be trouble, but let it fail if it must
-                    nextTask = t.dependencyQueue.poll();
+                    synchronized(t.dependencyQueue) {
+                        nextTask = t.dependencyQueue.poll();
+                    }
                 }
 			}
 			if(nextTask != null)
@@ -351,11 +355,15 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                             keyedTasks.remove(wrapper.task.id);
                         } else {
                             // Have something in our queue, process it now
-                            nextTask = this.dependencyQueue.poll();
+                            synchronized(this.dependencyQueue) {
+                                nextTask = this.dependencyQueue.poll();
+                            }
                         }
                     }
                 else
-                    nextTask = this.dependencyQueue.poll();
+                    synchronized(this.dependencyQueue) {
+                        nextTask = this.dependencyQueue.poll();
+                    }
                 // Update our task info
                 this.dependencyQueue.info.addExecutionTime(timer.currentTimeMillis() - start);
                 this.dependencyQueue.info.updateCurrentQueueSize(this.dependencyQueue.size());
