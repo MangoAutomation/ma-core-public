@@ -8,7 +8,6 @@ import java.security.Principal;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.User;
@@ -49,12 +51,12 @@ public class MangoWebSocketSessionTracker {
     /**
      * Map of http session ids to a set of websocket sessions which are associated with it
      */
-    private final Map<String, Set<WebSocketSession>> sessionsByHttpSessionId = new ConcurrentHashMap<>();
+    private final SetMultimap<String, WebSocketSession> sessionsByHttpSessionId = Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     /**
      * Map of user ids to a set of websocket sessions which are associated with it
      */
-    private final Map<Integer, Set<WebSocketSession>> sessionsByUserId = new ConcurrentHashMap<>();
+    private final SetMultimap<Integer, WebSocketSession> sessionsByUserId = Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     /**
      * Set of sessions which were established using JWT authentication
@@ -111,21 +113,17 @@ public class MangoWebSocketSessionTracker {
 
     private void sessionDestroyed(SessionDestroyedEvent event) {
         String httpSessionId = event.getId();
-        Set<WebSocketSession> wssSet = sessionsByHttpSessionId.remove(httpSessionId);
-        if (wssSet != null) {
-            for (WebSocketSession session : wssSet) {
-                closeSession(session);
-            }
+
+        for (WebSocketSession session : sessionsByHttpSessionId.removeAll(httpSessionId)) {
+            closeSession(session);
         }
     }
 
     private void userDeleted(UserDeletedEvent event) {
         int userId = event.getUser().getId();
-        Set<WebSocketSession> wssSet = sessionsByUserId.remove(userId);
-        if (wssSet != null) {
-            for (WebSocketSession session : wssSet) {
-                closeSession(session);
-            }
+
+        for (WebSocketSession session : sessionsByUserId.removeAll(userId)) {
+            closeSession(session);
         }
     }
 
@@ -133,10 +131,10 @@ public class MangoWebSocketSessionTracker {
         User updatedUser = event.getUser();
         int userId = updatedUser.getId();
         EnumSet<UpdatedFields> fields = event.getUpdatedFields();
-        Set<WebSocketSession> wssSet = sessionsByUserId.get(userId);
 
-        if (wssSet != null) {
-            for (WebSocketSession session : wssSet) {
+        Set<WebSocketSession> sessions = sessionsByUserId.get(userId);
+        synchronized (sessionsByUserId) {
+            for (WebSocketSession session : sessions) {
                 if (updatedUser.isDisabled() || fields.contains(UpdatedFields.PERMISSIONS)) {
                     closeSession(session);
                     continue;
@@ -172,18 +170,12 @@ public class MangoWebSocketSessionTracker {
     public void afterConnectionEstablished(WebSocketSession session) {
         String httpSessionId = this.httpSessionIdForSession(session);
         if (httpSessionId != null) {
-            Set<WebSocketSession> wssSet = sessionsByHttpSessionId.computeIfAbsent(httpSessionId, id -> {
-                return ConcurrentHashMap.newKeySet();
-            });
-            wssSet.add(session);
+            sessionsByHttpSessionId.put(httpSessionId, session);
         }
 
         User user = this.userForSession(session);
         if (user != null) {
-            Set<WebSocketSession> wssSet = sessionsByUserId.computeIfAbsent(user.getId(), id -> {
-                return ConcurrentHashMap.newKeySet();
-            });
-            wssSet.add(session);
+            sessionsByUserId.put(user.getId(), session);
         }
 
         Authentication authentication = this.authenticationForSession(session);
@@ -201,18 +193,12 @@ public class MangoWebSocketSessionTracker {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) {
         String httpSessionId = this.httpSessionIdForSession(session);
         if (httpSessionId != null) {
-            Set<WebSocketSession> wssSet = sessionsByHttpSessionId.get(httpSessionId);
-            if (wssSet != null) {
-                wssSet.remove(session);
-            }
+            sessionsByHttpSessionId.remove(httpSessionId, session);
         }
 
         User user = this.userForSession(session);
         if (user != null) {
-            Set<WebSocketSession> wssSet = sessionsByUserId.get(user.getId());
-            if (wssSet != null) {
-                wssSet.remove(session);
-            }
+            sessionsByUserId.remove(user.getId(), session);
         }
 
         jwtSessions.remove(session);
