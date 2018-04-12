@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
+import javax.servlet.ServletContext;
+
 import org.eclipse.jetty.websocket.api.WebSocketBehavior;
 import org.eclipse.jetty.websocket.api.WebSocketPolicy;
 import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
@@ -48,6 +50,8 @@ public class MangoWebSocketConfiguration implements WebSocketConfigurer {
 
     @Autowired
     private ConfigurableListableBeanFactory beanFactory;
+    @Autowired
+    private ServletContext servletContext;
 
     @Bean
     public HandshakeHandler handshakeHandler() {
@@ -58,7 +62,7 @@ public class MangoWebSocketConfiguration implements WebSocketConfigurer {
         policy.setInputBufferSize(inputBufferSize);
         // ping pong mechanism will keep socket alive, web.websocket.pingTimeoutMs should be set lower than the idle timeout
         policy.setIdleTimeout(idleTimeout);
-        WebSocketServerFactory factory = new WebSocketServerFactory(policy);
+        WebSocketServerFactory factory = new WebSocketServerFactory(servletContext, policy);
 
         return new DefaultHandshakeHandler(
                 new JettyRequestUpgradeStrategy(factory));
