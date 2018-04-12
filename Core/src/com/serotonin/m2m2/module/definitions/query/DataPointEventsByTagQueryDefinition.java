@@ -18,6 +18,7 @@ import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -67,9 +68,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
             //Ensure the format of tags is a Map<String,String>
             ObjectReader reader = Common.objectMapper.getObjectReader(Map.class);
             try {
-                //Map<String, String> tags = 
                 reader.readValue(parameters.get("tags"));
-                //TODO Mango 3.4 any further validation?
             }catch(IOException e) {
                result.addInvalidValueError("tags"); 
             }
@@ -111,7 +110,6 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
             query = addAndRestriction(query, new ASTNode("eq", "userId", user.getId()));
             query = addAndRestriction(query, new ASTNode("eq", "typeName", "DATA_POINT"));
     
-            //TODO Should we force a limit if none is supplied?
             if(parameters.has("limit")) {
                 int offset = 0;
                 int limit = parameters.get("limit").asInt();
@@ -131,10 +129,9 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
     @Override
     public JsonNode getExplainInfo() {
         Map<String, Object> info = new HashMap<>();
-        
-        info.put("tags", new ParameterInfo("Map", true));
-        info.put("limit", new ParameterInfo("Number", false));
-        info.put("offset", new ParameterInfo("Number", false));
+        info.put("tags", new ParameterInfo("Map", true, null, new TranslatableMessage("common.default", "Tags used in query")));
+        info.put("limit", new ParameterInfo("Number", false, null, new TranslatableMessage("common.default", "Limit of data points to return events for")));
+        info.put("offset", new ParameterInfo("Number", false, 0, new TranslatableMessage("common.default", "Offset for limit")));
         return JsonNodeFactory.instance.pojoNode(info);
     }
 }

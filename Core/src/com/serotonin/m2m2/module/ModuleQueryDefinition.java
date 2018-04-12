@@ -9,6 +9,7 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
@@ -131,40 +132,30 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     
     public class ParameterInfo {
 
-        String type;
-        boolean required;
+        final String type;
+        final boolean required;
+        final Object defaultValue;
+        final TranslatableMessage description;
 
-        //TODO Mango 3.4 do we need a default? Object default;
-        //TODO Mango 3.4 do we need a description? TranslatableMessage description;
-        
-        public ParameterInfo() { }
-        public ParameterInfo(String type, boolean required) {
+        public ParameterInfo(String type, boolean required, Object defaultValue, TranslatableMessage description) {
             this.type = type;
             this.required = required;
+            this.defaultValue = defaultValue;
+            this.description = description;
         }
-        /**
-         * @return the required
-         */
+        
         public boolean isRequired() {
             return required;
         }
-        /**
-         * @param required the required to set
-         */
-        public void setRequired(boolean required) {
-            this.required = required;
-        }
-        /**
-         * @return the type
-         */
         public String getType() {
             return type;
         }
-        /**
-         * @param type the type to set
-         */
-        public void setType(String type) {
-            this.type = type;
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public Object getDefaultValue() {
+            return defaultValue;
+        }
+        public TranslatableMessage getDescription() {
+            return description;
         }
     }
     
