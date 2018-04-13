@@ -44,6 +44,12 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.JwtAuthenticati
 @Service
 public class MangoWebSocketSessionTracker {
 
+    public final static CloseStatus SESSION_DESTROYED = new CloseStatus(4101, "Session destroyed");
+    public final static CloseStatus USER_UPDATED = new CloseStatus(4102, "User updated (deleted/disabled/password or permissions changed)");
+    public final static CloseStatus USER_AUTH_TOKENS_REVOKED = new CloseStatus(4103, "User auth tokens revoked");
+    public final static CloseStatus USER_AUTH_TOKEN_EXPIRED = new CloseStatus(4104, "User auth token expired");
+    public final static CloseStatus AUTH_TOKENS_REVOKED = new CloseStatus(4105, "Auth tokens revoked");
+
     public static final String CLOSE_TIMEOUT_TASK_ATTR = "MA_CLOSE_TIMEOUT_TASK";
 
     private final Log log = LogFactory.getLog(this.getClass());
@@ -99,10 +105,10 @@ public class MangoWebSocketSessionTracker {
         return null;
     }
 
-    private void closeSession(WebSocketSession session) {
+    private void closeSession(WebSocketSession session, CloseStatus status) {
         try {
             if (session.isOpen()) {
-                session.close(MangoWebSocketHandler.NOT_AUTHENTICATED);
+                session.close(status);
             }
         } catch (IOException e) {
             if (log.isErrorEnabled()) {
@@ -114,16 +120,18 @@ public class MangoWebSocketSessionTracker {
     private void sessionDestroyed(SessionDestroyedEvent event) {
         String httpSessionId = event.getId();
 
-        for (WebSocketSession session : sessionsByHttpSessionId.removeAll(httpSessionId)) {
-            closeSession(session);
+        Set<WebSocketSession> sessions = sessionsByHttpSessionId.removeAll(httpSessionId);
+        for (WebSocketSession session : sessions) {
+            closeSession(session, SESSION_DESTROYED);
         }
     }
 
     private void userDeleted(UserDeletedEvent event) {
         int userId = event.getUser().getId();
 
-        for (WebSocketSession session : sessionsByUserId.removeAll(userId)) {
-            closeSession(session);
+        Set<WebSocketSession> sessions = sessionsByUserId.removeAll(userId);
+        for (WebSocketSession session : sessions) {
+            closeSession(session, USER_UPDATED);
         }
     }
 
@@ -136,19 +144,19 @@ public class MangoWebSocketSessionTracker {
         synchronized (sessionsByUserId) {
             for (WebSocketSession session : sessions) {
                 if (updatedUser.isDisabled() || fields.contains(UpdatedFields.PERMISSIONS)) {
-                    closeSession(session);
+                    closeSession(session, USER_UPDATED);
                     continue;
                 }
 
                 Authentication authentication = this.authenticationForSession(session);
                 if (authentication instanceof JwtAuthentication) {
                     if (fields.contains(UpdatedFields.AUTH_TOKEN)) {
-                        closeSession(session);
+                        closeSession(session, USER_AUTH_TOKENS_REVOKED);
                         continue;
                     }
                 } else if (fields.contains(UpdatedFields.PASSWORD)) {
                     // session auth or basic auth
-                    closeSession(session);
+                    closeSession(session, USER_UPDATED);
                     continue;
                 }
 
@@ -162,7 +170,7 @@ public class MangoWebSocketSessionTracker {
         Iterator<WebSocketSession> it = jwtSessions.iterator();
         while (it.hasNext()) {
             WebSocketSession session = it.next();
-            closeSession(session);
+            closeSession(session, AUTH_TOKENS_REVOKED);
             it.remove();
         }
     }
@@ -218,7 +226,7 @@ public class MangoWebSocketSessionTracker {
 
         @Override
         public void scheduleTimeout(long fireTime) {
-            closeSession(session);
+            closeSession(session, USER_AUTH_TOKEN_EXPIRED);
         }
 
         @Override
