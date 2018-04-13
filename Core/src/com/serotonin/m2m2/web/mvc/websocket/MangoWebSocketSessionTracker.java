@@ -60,9 +60,14 @@ public class MangoWebSocketSessionTracker {
     private final SetMultimap<String, WebSocketSession> sessionsByHttpSessionId = Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     /**
-     * Map of user ids to a set of websocket sessions which are associated with it
+     * Map of user ids to a set of websocket sessions which are associated with it (JWT authenticated sessions only)
      */
-    private final SetMultimap<Integer, WebSocketSession> sessionsByUserId = Multimaps.synchronizedSetMultimap(HashMultimap.create());
+    private final SetMultimap<Integer, WebSocketSession> jwtSessionsByUserId = Multimaps.synchronizedSetMultimap(HashMultimap.create());
+
+    /**
+     * Map of user ids to a set of websocket sessions which are associated with it (session/basic authenticated sessions only)
+     */
+    private final SetMultimap<Integer, WebSocketSession> otherSessionsByUserId = Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     /**
      * Set of sessions which were established using JWT authentication
@@ -129,8 +134,13 @@ public class MangoWebSocketSessionTracker {
     private void userDeleted(UserDeletedEvent event) {
         int userId = event.getUser().getId();
 
-        Set<WebSocketSession> sessions = sessionsByUserId.removeAll(userId);
-        for (WebSocketSession session : sessions) {
+        Set<WebSocketSession> jwtSessions = jwtSessionsByUserId.removeAll(userId);
+        for (WebSocketSession session : jwtSessions) {
+            closeSession(session, USER_UPDATED);
+        }
+
+        Set<WebSocketSession> otherSessions = otherSessionsByUserId.removeAll(userId);
+        for (WebSocketSession session : otherSessions) {
             closeSession(session, USER_UPDATED);
         }
     }
@@ -140,28 +150,37 @@ public class MangoWebSocketSessionTracker {
         int userId = updatedUser.getId();
         EnumSet<UpdatedFields> fields = event.getUpdatedFields();
 
-        Set<WebSocketSession> sessions = sessionsByUserId.get(userId);
-        synchronized (sessionsByUserId) {
+        boolean disabledOrPermissionsChanged = updatedUser.isDisabled() || fields.contains(UpdatedFields.PERMISSIONS);
+        boolean authTokensRevoked = fields.contains(UpdatedFields.AUTH_TOKEN);
+        boolean passwordChanged = fields.contains(UpdatedFields.PASSWORD);
+
+        if (disabledOrPermissionsChanged || authTokensRevoked) {
+            Set<WebSocketSession> sessions = jwtSessionsByUserId.removeAll(userId);
             for (WebSocketSession session : sessions) {
-                if (updatedUser.isDisabled() || fields.contains(UpdatedFields.PERMISSIONS)) {
-                    closeSession(session, USER_UPDATED);
-                    continue;
+                closeSession(session, authTokensRevoked ? USER_AUTH_TOKENS_REVOKED : USER_UPDATED);
+            }
+        } else {
+            Set<WebSocketSession> sessions = jwtSessionsByUserId.get(userId);
+            synchronized (jwtSessionsByUserId) {
+                for (WebSocketSession session : sessions) {
+                    // store the updated user in the session attributes
+                    session.getAttributes().put(MangoWebSocketHandshakeInterceptor.USER_ATTR, updatedUser);
                 }
+            }
+        }
 
-                Authentication authentication = this.authenticationForSession(session);
-                if (authentication instanceof JwtAuthentication) {
-                    if (fields.contains(UpdatedFields.AUTH_TOKEN)) {
-                        closeSession(session, USER_AUTH_TOKENS_REVOKED);
-                        continue;
-                    }
-                } else if (fields.contains(UpdatedFields.PASSWORD)) {
-                    // session auth or basic auth
-                    closeSession(session, USER_UPDATED);
-                    continue;
+        if (disabledOrPermissionsChanged || passwordChanged) {
+            Set<WebSocketSession> sessions = otherSessionsByUserId.removeAll(userId);
+            for (WebSocketSession session : sessions) {
+                closeSession(session, USER_UPDATED);
+            }
+        } else {
+            Set<WebSocketSession> sessions = otherSessionsByUserId.get(userId);
+            synchronized (otherSessionsByUserId) {
+                for (WebSocketSession session : sessions) {
+                    // store the updated user in the session attributes
+                    session.getAttributes().put(MangoWebSocketHandshakeInterceptor.USER_ATTR, updatedUser);
                 }
-
-                // store the updated user in the session attributes
-                session.getAttributes().put(MangoWebSocketHandshakeInterceptor.USER_ATTR, updatedUser);
             }
         }
     }
@@ -182,12 +201,18 @@ public class MangoWebSocketSessionTracker {
         }
 
         User user = this.userForSession(session);
+        Authentication authentication = this.authenticationForSession(session);
+        boolean isJwt = authentication instanceof JwtAuthentication;
+
         if (user != null) {
-            sessionsByUserId.put(user.getId(), session);
+            if (isJwt) {
+                jwtSessionsByUserId.put(user.getId(), session);
+            } else {
+                otherSessionsByUserId.put(user.getId(), session);
+            }
         }
 
-        Authentication authentication = this.authenticationForSession(session);
-        if (authentication instanceof JwtAuthentication) {
+        if (isJwt) {
             JwtAuthentication jwtAuthentication = (JwtAuthentication) authentication;
             Date expiration = jwtAuthentication.getToken().getBody().getExpiration();
 
@@ -205,15 +230,24 @@ public class MangoWebSocketSessionTracker {
         }
 
         User user = this.userForSession(session);
+        Authentication authentication = this.authenticationForSession(session);
+        boolean isJwt = authentication instanceof JwtAuthentication;
+
         if (user != null) {
-            sessionsByUserId.remove(user.getId(), session);
+            if (isJwt) {
+                jwtSessionsByUserId.remove(user.getId(), session);
+            } else {
+                otherSessionsByUserId.remove(user.getId(), session);
+            }
         }
 
-        jwtSessions.remove(session);
+        if (isJwt) {
+            TimeoutTask closeTask = (TimeoutTask) session.getAttributes().get(CLOSE_TIMEOUT_TASK_ATTR);
+            if (closeTask != null) {
+                closeTask.cancel();
+            }
 
-        TimeoutTask closeTask = (TimeoutTask) session.getAttributes().get(CLOSE_TIMEOUT_TASK_ATTR);
-        if (closeTask != null) {
-            closeTask.cancel();
+            jwtSessions.remove(session);
         }
     }
 
