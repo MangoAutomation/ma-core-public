@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
@@ -207,24 +206,17 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
             wrappedTask = wrap(worker, dependencyQueue);
             // Either add or reject
-            if (!first)
+            if (!first) {
                 synchronized(dependencyQueue) {
-                    if (!dependencyQueue.add(wrappedTask, this))
-                        return; // Was rejected so nothing to do
+                    dependencyQueue.add(wrappedTask, this);
                 }
+                //Not first so we won't be executing this task directly now
+                return;
+            }
         }
 
         // execute and reject methods can block, call them outside synchronize block
-        if (first) {
-            execute(wrappedTask);
-            // process rejected tasks if we are the first task as
-            // we have processed/rejected all dependent tasks
-            OrderedTaskCollection t = dependencyQueue.getRejectedTasks().poll();
-            while (t != null) {
-                t.rejected(this);
-                t = dependencyQueue.getRejectedTasks().poll();
-            }
-        }
+        execute(wrappedTask);
     }
 
 	/** 
@@ -284,15 +276,12 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	}
 	
 	/**
-	 * Removes the queue from the map and flushes it's tasks.
+	 * Removes the queue from the map and discards it's tasks.
 	 * @param taskId
 	 */
-	public void removeAndFlushTaskQueue(String taskId) {
+	public void removeTaskQueue(String taskId) {
 	    synchronized(keyedTasks) {
-            LimitedTaskQueue dependencyQueue = keyedTasks.remove(taskId);
-            if (dependencyQueue != null) {
-                //TODO run all
-            }
+            keyedTasks.remove(taskId);
 	    }
 	}
 	
@@ -407,14 +396,12 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
 		private static final long serialVersionUID = 1L;
 		protected int limit;
-		protected ArrayDeque<OrderedTaskCollection> rejectedTasks;
 		protected final OrderedTaskInfo info;
 		
 		public LimitedTaskQueue(OrderedTaskInfo info){
 			super();
 			this.limit = info.queueSizeLimit;
 			this.info = info;
-			this.rejectedTasks = new ArrayDeque<OrderedTaskCollection>(limit);
 		}
 		
 		/*
@@ -435,17 +422,8 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 					c.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
 					c.rejected(ex);
 				}
-				this.rejectedTasks.add(c);
 				return false;
 			}
-		}
-		
-		/**
-		 * Useful to get the rejected tasks outside of the sync block where they are added
-		 * @return
-		 */
-		public Queue<OrderedTaskCollection> getRejectedTasks(){
-			return this.rejectedTasks;
 		}
 		
 		public void setLimit(int limit){
@@ -490,7 +468,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 						t.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
 						t.rejected(ex);
 					}
-					this.rejectedTasks.add(t);
 				}
 				/* Now add the task */
 				boolean result = super.add(c);
