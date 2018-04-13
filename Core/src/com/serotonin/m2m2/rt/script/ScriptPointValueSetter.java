@@ -1,7 +1,6 @@
 package com.serotonin.m2m2.rt.script;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
@@ -14,13 +13,12 @@ public abstract class ScriptPointValueSetter {
 	
 	//Ensure points are settable and the setter has permissions
 	public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
-		DataPointRT dprt = (DataPointRT) point;
 
-        if(!dprt.getVO().getPointLocator().isSettable())
+        if(!point.getVO().isSettable())
         	return;
         
-        if(permissions != null && !Permissions.hasPermission(dprt.getVO().getSetPermission(), permissions.getDataPointSetPermissions()))
-        	throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", dprt.getVO().getXid()));
+        if(permissions != null && !Permissions.hasPermission(point.getVO().getSetPermission(), permissions.getDataPointSetPermissions()))
+        	throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", point.getVO().getXid()));
         
         setImpl(point, value, timestamp, annotation);
 	}

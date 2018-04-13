@@ -8,28 +8,28 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.timer.SimulationTimer;
 
 public class HistoricalDataPoint implements IDataPointValueSource {
-    private final int id;
-    private final int dataTypeId;
+    
+    private final DataPointVO vo;
     private final PointValueDao pointValueDao;
     private final SimulationTimer timer;
 
-    public HistoricalDataPoint(int id, int dataTypeId, SimulationTimer timer, PointValueDao pointValueDao) {
-        this.id = id;
-        this.dataTypeId = dataTypeId;
+    public HistoricalDataPoint(DataPointVO vo, SimulationTimer timer, PointValueDao pointValueDao) {
+        this.vo = vo;
         this.pointValueDao = pointValueDao;
         this.timer = timer;
     }
 
     public int getId() {
-        return id;
+        return vo.getId();
     }
 
     @Override
     public List<PointValueTime> getLatestPointValues(int limit) {
-        return pointValueDao.getLatestPointValues(id, limit, timer.currentTimeMillis());
+        return pointValueDao.getLatestPointValues(vo.getId(), limit, timer.currentTimeMillis());
     }
 
     @Override
@@ -49,41 +49,48 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public PointValueTime getPointValue() {
-        return pointValueDao.getPointValueBefore(id, timer.currentTimeMillis() + 1);
+        return pointValueDao.getPointValueBefore(vo.getId(), timer.currentTimeMillis() + 1);
     }
 
     @Override
     public PointValueTime getPointValueBefore(long time) {
-        return pointValueDao.getPointValueBefore(id, time);
+        return pointValueDao.getPointValueBefore(vo.getId(), time);
     }
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
-        return pointValueDao.getPointValueAfter(id, time);
+        return pointValueDao.getPointValueAfter(vo.getId(), time);
     }
 
     @Override
     public List<PointValueTime> getPointValues(long since) {
-        return pointValueDao.getPointValuesBetween(id, since, timer.currentTimeMillis());
+        return pointValueDao.getPointValuesBetween(vo.getId(), since, timer.currentTimeMillis());
     }
 
     @Override
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
-        return pointValueDao.getPointValuesBetween(id, from, to);
+        return pointValueDao.getPointValuesBetween(vo.getId(), from, to);
     }
 
     @Override
     public int getDataTypeId() {
-        return dataTypeId;
+        return vo.getPointLocator().getDataTypeId();
     }
 
     @Override
     public PointValueTime getPointValueAt(long time) {
-        return Common.databaseProxy.newPointValueDao().getPointValueAt(id, time);
+        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo.getId(), time);
     }
 
 	@Override
 	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
-		return new DataPointWrapper(DataPointDao.instance.get(id), rtWrapper);
+		return new DataPointWrapper(DataPointDao.instance.get(vo.getId()), rtWrapper);
+	}
+	/* (non-Javadoc)
+	 * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getVO()
+	 */
+	@Override
+	public DataPointVO getVO() {
+	    return vo;
 	}
 }

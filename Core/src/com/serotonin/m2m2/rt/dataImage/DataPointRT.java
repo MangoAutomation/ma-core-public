@@ -617,6 +617,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         return dsVo;
     }
     
+    @Override
     public DataPointVO getVO() {
         return vo;
     }

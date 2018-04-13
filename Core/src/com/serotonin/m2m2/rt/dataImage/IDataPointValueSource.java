@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Matthew Lohbihler
@@ -36,4 +37,5 @@ public interface IDataPointValueSource {
     int getDataTypeId();
     
     DataPointWrapper getDataPointWrapper(AbstractPointWrapper wrapper);
+    DataPointVO getVO();
 }

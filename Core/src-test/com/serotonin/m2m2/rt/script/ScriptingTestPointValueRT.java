@@ -10,19 +10,18 @@ import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.test.data.RhinoScriptTestData;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
-
-	private int id; //Index of data in Test Data Matrix
-	private int dataTypeId; //Type of data this point will return
+public class ScriptingTestPointValueRT implements IDataPointValueSource{
 	
-	public RhinoScriptingTestPointValueRT(int id, int dataTypeId){
-		this.id = id;
-		this.dataTypeId = dataTypeId;
+    final DataPointVO vo;
+    
+	public ScriptingTestPointValueRT(DataPointVO vo){
+	    this.vo = vo;
 	}
 	
 	/* (non-Javadoc)
@@ -30,7 +29,7 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public List<PointValueTime> getLatestPointValues(int limit) {
-		return RhinoScriptTestData.getLatestPointValues(dataTypeId, id, limit);
+		return RhinoScriptTestData.getLatestPointValues(vo.getPointLocator().getDataTypeId(), vo.getId(), limit);
 	}
 
 	/* (non-Javadoc)
@@ -65,7 +64,7 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public PointValueTime getPointValue() {
-		return RhinoScriptTestData.getLatestPointValue(dataTypeId, id);
+		return RhinoScriptTestData.getLatestPointValue(vo.getPointLocator().getDataTypeId(), vo.getId());
 
 	}
 
@@ -101,7 +100,7 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public List<PointValueTime> getPointValuesBetween(long from, long to) {
-		return RhinoScriptTestData.getPointValuesBetween(dataTypeId, id, from, to);
+		return RhinoScriptTestData.getPointValuesBetween(vo.getPointLocator().getDataTypeId(), vo.getId(), from, to);
 	}
 
 	/* (non-Javadoc)
@@ -109,7 +108,7 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public int getDataTypeId() {
-		return dataTypeId;
+		return vo.getPointLocator().getDataTypeId();
 	}
 
 	@Override
@@ -122,5 +121,13 @@ public class RhinoScriptingTestPointValueRT implements IDataPointValueSource{
 	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper wrapper) {
 		return null;
 	}
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getVO()
+     */
+    @Override
+    public DataPointVO getVO() {
+        return vo;
+    }
 
 }

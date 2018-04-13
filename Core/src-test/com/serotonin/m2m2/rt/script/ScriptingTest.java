@@ -24,12 +24,14 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 
 /**
  * @author Terry Packer
  * 
  */
-public class RhinoScriptingTest extends MangoTestBase{
+public class ScriptingTest extends MangoTestBase{
 
 	@Test
 	public void testAnalogStatistics() {
@@ -48,7 +50,10 @@ public class RhinoScriptingTest extends MangoTestBase{
 		try {
 			Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
 			
-			RhinoScriptingTestPointValueRT p1Rt = new RhinoScriptingTestPointValueRT(p1.getDataPointId(), DataTypes.NUMERIC);
+			DataPointVO vo = new DataPointVO();
+			vo.setId(p1.getDataPointId());
+			vo.setPointLocator(new MockPointLocatorVO());
+			ScriptingTestPointValueRT p1Rt = new ScriptingTestPointValueRT(vo);
 			
 			context.put(p1.getVariableName(), p1Rt);
 			
