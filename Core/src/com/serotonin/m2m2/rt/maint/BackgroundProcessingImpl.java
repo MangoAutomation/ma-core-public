@@ -54,8 +54,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     private OrderedThreadPoolExecutor highPriorityService;
     private TaskRejectionHandler highPriorityRejectionHandler;
     private TaskRejectionHandler mediumPriorityRejectionHandler;
-    
-    
     private OrderedThreadPoolExecutor mediumPriorityService;
     private ThreadPoolExecutor lowPriorityService;
     
@@ -274,7 +272,9 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     @Override
     public void setMediumPriorityServiceCorePoolSize(int corePoolSize){
         if (corePoolSize > MED_PRI_MAX_POOL_SIZE_MIN) {
-            if(corePoolSize > this.mediumPriorityService.getMaximumPoolSize()) {
+            if(corePoolSize == this.mediumPriorityService.getMaximumPoolSize())
+                return;
+            else if(corePoolSize > this.mediumPriorityService.getMaximumPoolSize()) {
                 //Increasing pool
                 this.mediumPriorityService.setMaximumPoolSize(corePoolSize);
                 this.mediumPriorityService.setCorePoolSize(corePoolSize);
@@ -324,7 +324,9 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     @Override
     public void setLowPriorityServiceCorePoolSize(int corePoolSize){
         if (corePoolSize > LOW_PRI_MAX_POOL_SIZE_MIN) {
-            if(corePoolSize > this.lowPriorityService.getMaximumPoolSize()) {
+            if(corePoolSize == this.lowPriorityService.getMaximumPoolSize())
+                return;
+            else if(corePoolSize > this.lowPriorityService.getMaximumPoolSize()) {
                 //Increasing pool
                 this.lowPriorityService.setMaximumPoolSize(corePoolSize);
                 this.lowPriorityService.setCorePoolSize(corePoolSize);
