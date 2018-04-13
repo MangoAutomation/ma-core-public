@@ -521,8 +521,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public List<PointValueTime> getLatestPointValues(int dataPointId, int limit) {
         if (limit == 0)
             return Collections.emptyList();
-        if (limit == 1)
-            return CollectionUtils.toList(getLatestPointValue(dataPointId));
+        if (limit == 1) {
+            PointValueTime pvt = getLatestPointValue(dataPointId);
+            if(pvt != null)
+                return CollectionUtils.toList(pvt);
+            else
+                return new ArrayList<PointValueTime>();
+        }
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? order by pv.ts desc",
                 new Object[] { dataPointId }, limit);
     }
