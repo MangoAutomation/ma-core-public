@@ -11,6 +11,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
+import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
 
 /**
@@ -38,7 +39,9 @@ public abstract class AbstractActionVO<VO extends AbstractActionVO<VO>> extends 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
     	super.jsonRead(reader, jsonObject);
-    	enabled = jsonObject.getBoolean(ENABLED_KEY);
+    	JsonBoolean enabled = jsonObject.getJsonBoolean(ENABLED_KEY);
+    	if(enabled != null)
+    	    this.enabled = enabled.toBoolean();
     }
     
     @Override
