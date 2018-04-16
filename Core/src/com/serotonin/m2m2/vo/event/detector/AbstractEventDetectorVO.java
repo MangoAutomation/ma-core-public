@@ -189,7 +189,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         writer.writeEntry("type", this.definition.getEventDetectorTypeName());
         writer.writeEntry("sourceType", this.definition.getSourceTypeName());
         writer.writeEntry("xid", xid);
-        writer.writeEntry("alias", name);
+        writer.writeEntry("name", name);
         
         /* Event handler references are not exported here because there would be a circular dependency
         *  with the eventTypes array in the handler, and since there are other event types that was deemed
@@ -201,6 +201,13 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        name = jsonObject.getString("alias");
+        String text = jsonObject.getString("name");
+        if(text != null)
+            name = text;
+        else {
+            text = jsonObject.getString("alias");
+            if(text != null)
+                name = text;
+        }
     }
 }
