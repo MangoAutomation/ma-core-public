@@ -707,7 +707,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
             }
         }
         if(!restarted) {
-            //The data poit wasn't really running. Ensure the event detectors and enable
+            //The data point wasn't really running. Ensure the event detectors and enable
             if(vo.getEventDetectors() == null)
                 DataPointDao.instance.setEventDetectors(vo);
             vo.setEnabled(true);
