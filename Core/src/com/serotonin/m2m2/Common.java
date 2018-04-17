@@ -653,6 +653,7 @@ public class Common {
     private static Object i18nLock = new Object();
     private static String systemLanguage;
     private static Translations systemTranslations;
+    private static Locale systemLocale;
     private static List<StringStringPair> languages;
 
     public static String translate(String key) {
@@ -667,7 +668,7 @@ public class Common {
 
     public static Locale getLocale() {
         ensureI18n();
-        return parseLocale(systemLanguage);
+        return systemLocale;
     }
 
     private static void ensureI18n() {
@@ -675,10 +676,10 @@ public class Common {
             synchronized (i18nLock) {
                 if (systemLanguage == null) {
                     systemLanguage = SystemSettingsDao.getValue(SystemSettingsDao.LANGUAGE);
-                    Locale locale = parseLocale(systemLanguage);
-                    if (locale == null)
+                    systemLocale = parseLocale(systemLanguage);
+                    if (systemLocale == null)
                         throw new IllegalArgumentException("Locale for given language not found: " + systemLanguage);
-                    systemTranslations = Translations.getTranslations(locale);
+                    systemTranslations = Translations.getTranslations(systemLocale);
                 }
             }
         }
@@ -693,6 +694,7 @@ public class Common {
         if (parseLocale(language) == null)
             throw new IllegalArgumentException("Locale for given language not found: " + language);
         systemLanguage = null;
+        systemLocale = null;
         systemTranslations = null;
     }
 
